@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                A D A _ B E . S O U R C E _ S T R E A M S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -176,6 +185,11 @@ package body Ada_Be.Source_Streams is
       --  Too many diversions open.
    end Allocate_User_Diversion;
 
+   function Current_Diversion (CU : Compilation_Unit) return Diversion is
+   begin
+      return CU.Current_Diversion;
+   end Current_Diversion;
+
    procedure Divert
      (CU     : in out Compilation_Unit;
       Whence : Diversion) is
@@ -214,10 +228,6 @@ package body Ada_Be.Source_Streams is
          end if;
          --  Here we are actually at BOL.
 
-         CU.Diversions (CU.Current_Diversion).At_BOL := False;
-         --  Indentation has actually been produced in D so
-         --  we do not want to generate it again in Current_Div.
-
          Put (CU, To_String (Div.Library_Item));
          CU.Diversions (CU.Current_Diversion).At_BOL := Div.At_BOL;
       end if;
@@ -255,8 +265,8 @@ package body Ada_Be.Source_Streams is
       --  The name of the file that contains Unit.
 
       function Is_Empty return Boolean;
-      --  True if, and only if, any of Unit's diversions
-      --  is not empty.
+      --  True if, and only if, all of Unit's diversions
+      --  are empty.
 
       function Ada_File_Name
         (Full_Name : String;
@@ -305,17 +315,18 @@ package body Ada_Be.Source_Streams is
          User_Edited : in Boolean := False)
       is
       begin
-         Put_Line (File, "----------------------------------------------");
+         Put_Line (File, "-------------------------------------------------");
          Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by IDLAC (http://www.polyorb.eu.org/)");
+         Put_Line (File, "--  by IDLAC (http://libre.act-europe.fr/polyorb/)");
          if not User_Edited then
             Put_Line (File, "--");
             Put_Line (File, "--  Do NOT hand-modify this file, as your");
             Put_Line (File, "--  changes will be lost when you re-run the");
             Put_Line (File, "--  IDL to Ada compiler.");
          end if;
-         Put_Line (File, "----------------------------------------------");
-         --  XXXXX To be removed later on
+         Put_Line (File, "-------------------------------------------------");
+
+         --  XXX To be removed later on
          Put_Line (File, "pragma Style_Checks (Off);");
          New_Line (File);
       end Emit_Standard_Header;
@@ -516,6 +527,13 @@ package body Ada_Be.Source_Streams is
       end if;
       Free (Object.Library_Unit);
    end Finalize;
+
+   procedure Initialize (CU : in out Compilation_Unit) is
+   begin
+      for D in Predefined_Diversions loop
+         CU.Diversions (D).Indent_Level := 1;
+      end loop;
+   end Initialize;
 
    procedure Finalize (CU : in out Compilation_Unit) is
    begin

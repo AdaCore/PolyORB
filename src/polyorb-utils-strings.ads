@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  General-purpose string pointer.
+--  General-purpose string pointer and related functions
 
 --  $Id$
 
@@ -40,10 +41,17 @@ package PolyORB.Utils.Strings is
 
    pragma Preelaborate;
 
+   --------------------
+   -- String Pointer --
+   --------------------
+
    type String_Ptr is access all Standard.String;
 
-   function "+" (S : Standard.String) return String_Ptr;
+   function "+"
+     (S : Standard.String)
+     return String_Ptr;
    pragma Inline ("+");
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Standard.String, String_Ptr);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
-
-with Ada.Exceptions;
 
 with PolyORB.Sequences.Unbounded.Search;
 
@@ -51,7 +50,8 @@ package body PolyORB.Any.ExceptionList is
    -- Finalize --
    --------------
 
-   procedure Finalize (Obj : in out Object) is
+   procedure Finalize
+     (Obj : in out Object) is
    begin
       pragma Debug (O ("Finalize : enter"));
       pragma Debug (O ("length" &
@@ -59,11 +59,6 @@ package body PolyORB.Any.ExceptionList is
       Exception_Sequences.Delete
         (Obj.List, 1, Exception_Sequences.Length (Obj.List));
       pragma Debug (O ("Finalize : leave"));
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
    end Finalize;
 
    ---------------
@@ -72,7 +67,8 @@ package body PolyORB.Any.ExceptionList is
 
    function Get_Count
      (Self : in Ref)
-      return PolyORB.Types.Unsigned_Long is
+     return PolyORB.Types.Unsigned_Long
+   is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       if Obj = null then
@@ -88,9 +84,9 @@ package body PolyORB.Any.ExceptionList is
 
    procedure Add
      (Self : in Ref;
-      Exc : in PolyORB.Any.TypeCode.Object)
+      Exc  : in PolyORB.Any.TypeCode.Object)
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       Exception_Sequences.Append (Obj.List, Exc);
    end Add;
@@ -100,7 +96,7 @@ package body PolyORB.Any.ExceptionList is
    ----------
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
@@ -114,10 +110,10 @@ package body PolyORB.Any.ExceptionList is
    ------------
 
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       Exception_Sequences.Delete (Obj.List, Positive (Index), 1);
    end Remove;
@@ -137,7 +133,9 @@ package body PolyORB.Any.ExceptionList is
    -- Create_List --
    -----------------
 
-   procedure Create_List (Self : out Ref) is
+   procedure Create_List
+     (Self : out Ref)
+   is
       Result : Ref;
    begin
       Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));

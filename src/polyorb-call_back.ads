@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     P O L Y O R B . C A L L _ B A C K                    --
+--                    P O L Y O R B . C A L L _ B A C K                     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -45,13 +46,13 @@ with PolyORB.Requests;
 
 package PolyORB.Call_Back is
 
-   use PolyORB.Components;
-
    type Call_Back_Handler is new PolyORB.Components.Component with private;
+
    type CBH_Access is access all Call_Back_Handler'Class;
 
-   type Handler is access procedure (Req : PolyORB.Requests.Request;
-                                     CBH : access Call_Back_Handler);
+   type Handler is access procedure
+     (Req :        PolyORB.Requests.Request;
+      CBH : access Call_Back_Handler);
 
    function Handle_Message
      (CB_Handler : access Call_Back_Handler;
@@ -76,13 +77,13 @@ private
 
    type Call_Back_Handler is new PolyORB.Components.Component with record
       CB_Function : Handler;
-      Notepad : aliased Annotations.Notepad;
+
+      Notepad     : aliased Annotations.Notepad;
    end record;
 
-   pragma Inline (Attach_Request_To_CB,
-                  Attach_Handler_To_CB,
-                  Notepad_Of);
-
+   pragma Inline (Attach_Request_To_CB);
+   pragma Inline (Attach_Handler_To_CB);
+   pragma Inline (Notepad_Of);
 
 end PolyORB.Call_Back;
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               T E S T _ S U I T E . O U T P U T . T E X T                --
+--               T E S T _ S U I T E . O U T P U T . F I L E                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,10 +36,16 @@
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
+with GNAT.Directory_Operations;
+with GNAT.IO_Aux;
+
 package body Test_Suite.Output.File is
 
    use Ada.Strings.Unbounded;
    use Ada.Text_IO;
+
+   use GNAT.Directory_Operations;
+   use GNAT.IO_Aux;
 
    Error_File   : File_Type;
    Log_File     : File_Type;
@@ -47,6 +54,10 @@ package body Test_Suite.Output.File is
    Test_File  : File_Type;
    Test_Name  : Unbounded_String;
    In_Test    : Boolean := False;
+
+   Initial_Dir : Unbounded_String;
+   Current_Dir : Unbounded_String;
+   Base_Output_Dir_Name : constant String := "output";
 
    ----------
    -- Open --
@@ -57,10 +68,21 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
+      Initial_Dir := To_Unbounded_String (Get_Current_Dir);
+
+      if not File_Exists (Base_Output_Dir_Name) then
+         Make_Dir (Base_Output_Dir_Name);
+      end if;
+
+      Change_Dir (Base_Output_Dir_Name);
+
       Create (Error_File, Out_File, "error");
       Create (Log_File, Out_File, "log");
       Create (Tests_Failed, Out_File, "failed");
+
+      Change_Dir (To_String (Initial_Dir));
    end Open;
 
    -----------
@@ -72,6 +94,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Close (Error_File);
       Close (Log_File);
@@ -82,12 +105,11 @@ package body Test_Suite.Output.File is
    -- Error --
    -----------
 
-   procedure Error (Output    : File_Output;
-                    Error_Msg : String)
-   is
+   procedure Error (Output : File_Output; Error_Msg : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Put_Line (Error_File, Error_Msg);
    end Error;
@@ -96,12 +118,11 @@ package body Test_Suite.Output.File is
    -- Log --
    ---------
 
-   procedure Log (Output : File_Output;
-                  Log_Msg : String)
-   is
+   procedure Log (Output : File_Output; Log_Msg : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       if In_Test then
          Put_Line (Test_File, Log_Msg);
@@ -114,30 +135,35 @@ package body Test_Suite.Output.File is
    -- Separator --
    ---------------
 
-   procedure Separator (Output : File_Output)
-   is
+   procedure Separator (Output : File_Output) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
-      New_Line (Log_File);
+      if In_Test then
+         New_Line (Test_File);
+      else
+         New_Line (Log_File);
+      end if;
    end Separator;
 
    ------------------------------
    -- Open_Test_Output_Context --
    ------------------------------
 
-   procedure Open_Test_Output_Context
-     (Output : File_Output;
-      Name   : String)
-   is
+   procedure Open_Test_Output_Context (Output : File_Output; Name : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Test_Name := To_Unbounded_String (Name);
       In_Test := True;
+
+      Change_Dir (To_String (Current_Dir));
       Create (Test_File, Out_File, Name);
+      Change_Dir (To_String (Initial_Dir));
 
       New_Line (Test_File);
       Put_Line (Test_File, "-- Begin of Test " & Name);
@@ -155,6 +181,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       New_Line (Test_File);
       Put_Line (Test_File, "-----------------------------");
@@ -178,10 +205,20 @@ package body Test_Suite.Output.File is
    is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
-      pragma Unreferenced (Name);
       pragma Warnings (On); --  WAG:3.14
+
    begin
-      null;
+      Change_Dir (Base_Output_Dir_Name);
+      if not File_Exists (Name) then
+         Make_Dir (Name);
+      end if;
+
+      Change_Dir (To_String (Initial_Dir));
+
+      Current_Dir := To_Unbounded_String
+        (Base_Output_Dir_Name
+         & Dir_Separator
+         & Name);
    end Open_Scenario_Output_Context;
 
    -----------------------------------
@@ -196,6 +233,7 @@ package body Test_Suite.Output.File is
       pragma Unreferenced (Output);
       pragma Unreferenced (Result);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       null;
    end Close_Scenario_Output_Context;
@@ -211,6 +249,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Put (Test_File, Msg);
    end Test_Execution;

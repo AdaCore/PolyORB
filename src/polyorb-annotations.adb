@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -127,19 +128,24 @@ package body PolyORB.Annotations is
    -- Destroy --
    -------------
 
-   procedure Destroy (NP : in out Notepad)
-   is
+   procedure Destroy (NP : in out Notepad) is
+      It : Iterator := First (NP);
       procedure Free is new Ada.Unchecked_Deallocation
         (Note'Class, Note_Access);
-
-      It : Iterator := First (NP);
    begin
       while not Last (It) loop
+         Destroy (Value (It).all.all);
          Free (Value (It).all);
          Next (It);
       end loop;
+      Deallocate (NP);
+   end Destroy;
 
-      Destroy (NP);
+   procedure Destroy (N : in out Note) is
+      pragma Unreferenced (N);
+
+   begin
+      null;
    end Destroy;
 
 end PolyORB.Annotations;

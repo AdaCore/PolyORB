@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#7 $
+--  $Id$
 
-with Ada.Finalization;
 
 with PolyORB.Utils.Chained_Lists;
 
@@ -50,7 +50,8 @@ package PolyORB.Opaque.Chunk_Pools is
    pragma Preelaborate;
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     new Ada.Finalization.Limited_Controlled with private;
+     tagged limited private;
+
    type Chunk_Access is access all Chunk;
 
    Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 512;
@@ -63,8 +64,8 @@ package PolyORB.Opaque.Chunk_Pools is
 
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk : out Chunk_Access;
-      Size    : Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
+      A_Chunk :    out Chunk_Access;
+      Size    :        Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
    --  Create a chunk in Pool and return an access to it.
    --  On the first call where Size is no more than Default_Chunk_Size,
    --  the Prealloc chunk is returned. On all other calls, a chunk of
@@ -90,20 +91,19 @@ package PolyORB.Opaque.Chunk_Pools is
 
 private
 
+   pragma Inline (Metadata);
+
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
-     new Ada.Finalization.Limited_Controlled with record
+     tagged limited record
         Metadata : aliased Chunk_Metadata;
          --  Metadata associated by a client to this chunk.
 
-        Data     : Zone_Access;
+        Data     : aliased Ada.Streams.Stream_Element_Array (1 .. Size);
          --  The storage space of the chunk.
      end record;
-
-   procedure Initialize (X : in out Chunk);
-   procedure Finalize (X : in out Chunk);
 
    package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
 

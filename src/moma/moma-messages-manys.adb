@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
-
-with MOMA.Types;
 
 package body MOMA.Messages.MAnys is
 
@@ -40,8 +39,7 @@ package body MOMA.Messages.MAnys is
    -- Get_Any --
    --------------
 
-   function Get_Any (Self : MAny)
-                     return PolyORB.Any.Any is
+   function Get_Any (Self : MAny) return MOMA.Types.Any is
    begin
       return Get_Payload (Self);
    end Get_Any;
@@ -50,8 +48,8 @@ package body MOMA.Messages.MAnys is
    -- Set_Any --
    --------------
 
-   procedure Set_Any (Self  : in out MAny;
-                      Value : PolyORB.Any.Any) is
+   procedure Set_Any (Self  : in out MAny; Value : MOMA.Types.Any) is
+
    begin
       Set_Payload (Self, Value);
    end Set_Any;
@@ -60,8 +58,7 @@ package body MOMA.Messages.MAnys is
    -- Create_Any_Message --
    -------------------------
 
-   function Create_Any_Message
-            return MAny
+   function Create_Any_Message return MAny
    is
       Result : MAny;
 
@@ -76,8 +73,7 @@ package body MOMA.Messages.MAnys is
    -- Image --
    -----------
 
-   function Image (Self : MAny)
-                  return String is
+   function Image (Self : MAny) return String is
    begin
       return Image (Get_Any (Self));
    end Image;

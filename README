@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -15,13 +15,21 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-This is the documentation for PolyORB version @polyorb_version@.
+This is the README file for PolyORB version @polyorb_version@.
 
-The home page of the project is located at http://www.polyorb.eu.org/.
+The home page of the project is located at http://libre.act-europe.fr/polyorb/
 This is where you can find news about the project, new releases, and
 pointers to several documents and papers related to PolyORB.
 
@@ -49,102 +57,45 @@ middleware framework.  In addition, PolyORB allows such different
 personalities to coexist in the same instance of the running middleware;
 it decouples the personality presented to applications on one side
 ("application personality"), and the personality presented
-to other middlewares on the other side ("protocol personality").
+to other middleware on the other side ("protocol personality").
 Multiple implementations of each personalisable aspect can
 coexist within the same instance of the running middleware:
-unlike previous generic middlewares, PolyORB is actually schizophrenic.
+unlike previous generic middleware, PolyORB is actually schizophrenic.
 
 The decoupling of application and protocol personalities, and the support
 for multiple simultaneous personalities within the same running middleware
 are key features required for the construction of interoperable
 distributed applications.  This allows PolyORB to communicate
-with middlewares that implement different distribution standards:
+with middleware that implement different distribution standards:
 PolyORB provides middleware-to-middleware interoperability.
 
 The PolyORB architecture also permits the automatic,
 just-in-time creation of proxies between incompatible environments
 (although this feature is not implemented yet).
 
-Build requirements
-------------------
+Installation
+------------
 
-Ada 95 compiler: GNAT 3.14a1 or later.
-
-Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
-build the SOAP protocol personality.
-
-Build instructions
-------------------
-
-Developers building PolyORB from the version control repository
-who need to rebuild the configure and Makefile.in files should
-use the script support/reconfig for this purpose.
-
-Available options for the 'configure' script include:
-  --with-appli-perso=".." : application personalities to build, among
-                            CORBA, DSA, MOMA
-  --with-proto-perso=".." : personalities to build, among
-                            GIOP, SOAP, SRP
-  --with-services=".." : services to build : naming, ir
-  --enable-shared : build shared libraries.
-  --enable-debug  : enable debugging information generation and supplementary
-                    runtime checks.
-
-By default, only the CORBA and GIOP personalities are built.
-
-Platform notes
---------------
-
-On Solaris 2.8, /usr/bin/sed and /usr/ucb/sed will silently chop long
-lines, and /usr/xpg4/bin/sed will enter an endless loop while processing
-PolyORB files. GNU sed is required to configure and build PolyORB.
+See INSTALL file for more details on supported platforms and
+installation process.
 
 Documentation overview
 ----------------------
 
-README: This file, first instructions.
-src/ROADMAP: Overview of PolyORB source code.
-doc/*: Miscellaneous documents describing PolyORB internals.
-
-Usage of idlac
---------------
-
-idlac is the IDL-to-Ada 95 compiler of PolyORB. It is an evolution
-of the compiler that was present in AdaBroker.
-
-  idlac [-i] [-k] idl_file [-cppargs ...]
-
-  -i    Generate implementation template.
-  -k    Keep temporary files.
-  -q    Be quiet.
-  -cppargs ARGS
-        Pass ARGS to the C++ preprocessor.
-
-This creates several files :
-
-- myinterface.ads, myinterface.adb : these files contain the mapping
-  for user defined types (client and server side).
-
-- myinterface-impl.ads, myinterface-impl.adb : these files are to be
-  filled by the user. They contain the implementation of the
-  server. They are generated only if the -i flag is specified.
-
-- myinterface.ads, myinterface.adb : these files
-  contain the client stubs for the interface.
-
-- myinterface-skel.ads, myinterface-skel.adb : these files
-  contain the server-side skeletons for the interface.
-
-- myinterface-stream.ads, myinterface-stream.adb : these files
-  contain subprograms to marshall data according to the CDR protocol.
+FEATURES    : List PolyORB's features.
+INSTALL     : Detail PolyORB installation process.
+NEWS        : Detail updates between PolyORB's releases.
+README      : This file, first instructions.
+src/ROADMAP : Overview of PolyORB source code.
+doc/*       : Miscellaneous documents describing PolyORB internals.
 
 Usage of PolyORB
 ----------------
 
-See examples of simple CORBA clients and servers in subdirectory 'examples/'.
-Basically, a simple non-tasking CORBA client should have a dependency
-and a pragma Elaborate_All on PolyORB.Setup.Client. A CORBA+SOAP
-server should have a dependcy and pragma Elaborate_All on one of
+See examples of simple CORBA clients and servers in subdirectory
+'examples/'.  Basically, a simple non-tasking CORBA client should have
+a dependency and a pragma Elaborate_All on PolyORB.Setup.Client. A
+CORBA server should have a dependency and pragma Elaborate_All on one of
 PolyORB.Setup.No_Tasking_Server, PolyORB.Setup.Thread_Pool_Server or
 PolyORB.Setup.Thread_Per_Session_Server.
 
@@ -164,33 +115,67 @@ PolyORB.orig, and use the following command:
 
   diff --recursive --context PolyORB.orig PolyORB > patch_file
 
-and send us the patch_file via e-mail at the address 
-
-	polyorb-devel@polyorb.eu.org
-
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
 
 Note that unified diff files (-u option of GNU diff) are also welcomed.
 
+Unsupported users may directly send their patches and bug report via
+e-mail at the address
+
+	polyorb-devel@lists.act-europe.fr
+
+If you are interested in becoming a supported PolyORB user, you should
+send an email to sales@gnat.com or to sales@act-europe.fr, depending
+on your geographic location.
+
+Mailing-lists
+-------------
+
+The mailing-list PolyORB-Users serves as a informal forum for
+technical discussions about PolyORB among users.
+
+You can subscribe to this list and browse the archive at the URL:
+
+http://lists.act-europe.fr/mailman/listinfo/polyorb-users
+
 Contributors:
 -------------
 
-PolyORB has been developped since January, 1999 by the following
+PolyORB has been developed since January, 1999 by the following
 contributors:
 
-* Fabien Azavant (azavant@enst.fr)
-* Emmanuel Chavane (chavane@enst.fr)
-* Jean-Marie Cottin (cottin@enst.fr)
+* Nicolas Archambault
+* Fabien Azavant
+* Benjamin Bagland
+* Emmanuel Chavane
+* Karim Chine
+* Jean-Marie Cottin
+* Olivier Delalleau
+* Cyril Domercq
 * Michael Friess
 * Nicolas Fritsch
+* Jeremy Gibbons
+* Vadim Godunko
+* Jerome Guitton
+* Jerome Hugues
 * Mejdi Kaddour
-* Laurent Kubler (kubler@enst.fr)
-* Vincent Niebel (niebel@enst.fr)
-* Laurent Pautet (pautet@enst.fr)
-* Sebastien Ponce (ponce@enst.fr)
-* Thomas Quinot (quinot@enst.fr)
+* Fabrice Kordon
+* Narinder Kumar 
+* Laurent Kubler
+* Lionel Litty
+* Vincent Niebel
+* Pierre Palatin
+* Bertrand Paquet
+* Laurent Pautet
+* Sebastien Ponce
+* Jerome Roussel
+* Thomas Quinot
+* Nicolas Roche
 * Nicolas Setton
-* Frank Singhoff (singhoff@enst.fr)
-* Samuel Tardieu (sam@enst.fr)
+* Frank Singhoff 
+* Samuel Tardieu
+* Thomas Vergnaud
+* Florian Villoing
+* Guillaume Wisniewski

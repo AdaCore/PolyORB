@@ -1,0 +1,291 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                  PORTABLEINTERCEPTOR.ORBINITINFO.IMPL                    --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with PolyORB.CORBA_P.Interceptors;
+with PolyORB.Exceptions;
+
+package body PortableInterceptor.ORBInitInfo.Impl is
+
+   procedure Raise_DuplicateName (Excp_Memb : in DuplicateName_Members);
+   pragma No_Return (Raise_DuplicateName);
+
+--   procedure Raise_InvalidName (Excp_Memb : in InvalidName_Members);
+--   pragma No_Return (Raise_InvalidName);
+--
+
+   ------------------------------------
+   -- Add_Client_Request_Interceptor --
+   ------------------------------------
+
+   procedure Add_Client_Request_Interceptor
+     (Self        : access Object;
+      Interceptor : in
+        PortableInterceptor.ClientRequestInterceptor.Local_Ref)
+   is
+   begin
+      if Self.Post_Init_Done then
+         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Name : constant String
+           := CORBA.To_Standard_String
+                (PortableInterceptor.ClientRequestInterceptor.Get_Name
+                  (Interceptor));
+      begin
+         if Name /= "" then
+            if
+              PolyORB.CORBA_P.Interceptors.
+                Is_Client_Request_Interceptor_Exists
+                 (Name)
+            then
+               Raise_DuplicateName
+                (DuplicateName_Members'(Name => CORBA.To_CORBA_String (Name)));
+            end if;
+         end if;
+      end;
+
+      PolyORB.CORBA_P.Interceptors.Add_Client_Request_Interceptor
+       (Interceptor);
+   end Add_Client_Request_Interceptor;
+
+--   -------------------------
+--   -- Add_IOR_Interceptor --
+--   -------------------------
+--
+--   procedure Add_IOR_Interceptor
+--     (Self        : access Object;
+--      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref)
+--   is
+--   begin
+--      raise PolyORB.Not_Implemented;
+--   end Add_IOR_Interceptor;
+
+   ------------------------------------
+   -- Add_Server_Request_Interceptor --
+   ------------------------------------
+
+   procedure Add_Server_Request_Interceptor
+     (Self        : access Object;
+      Interceptor : in
+        PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+   is
+   begin
+      if Self.Post_Init_Done then
+         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Name : constant String
+           := CORBA.To_Standard_String
+                (PortableInterceptor.ServerRequestInterceptor.Get_Name
+                  (Interceptor));
+      begin
+         if Name /= "" then
+            if
+              PolyORB.CORBA_P.Interceptors.
+                Is_Server_Request_Interceptor_Exists
+                 (Name)
+            then
+               Raise_DuplicateName
+                (DuplicateName_Members'(Name =>
+                                          CORBA.To_CORBA_String (Name)));
+            end if;
+         end if;
+      end;
+
+      PolyORB.CORBA_P.Interceptors.Add_Server_Request_Interceptor
+       (Interceptor);
+   end Add_Server_Request_Interceptor;
+
+   ----------------------
+   -- Allocate_Slot_Id --
+   ----------------------
+
+   function Allocate_Slot_Id
+     (Self : access Object)
+      return PortableInterceptor.SlotId
+   is
+      pragma Unreferenced (Self);
+
+      Result : PortableInterceptor.SlotId;
+
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Allocate_Slot_Id;
+
+   ----------------
+   -- Get_ORB_Id --
+   ----------------
+
+   function Get_ORB_Id (Self : access Object) return CORBA.String is
+      pragma Unreferenced (Self);
+
+      Result : CORBA.String;
+
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_ORB_Id;
+
+   ----------
+   -- Init --
+   ----------
+
+   procedure Init (Self : access Object) is
+   begin
+      Self.Post_Init_Done := False;
+   end Init;
+
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id : in     String)
+      return Boolean
+   is
+      pragma Unreferenced (Self);
+   begin
+      return CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableInterceptor.ORBInitInfo.Repository_Id)
+        or else CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/CORBA/Object:1.0");
+   end Is_A;
+
+   --------------------
+   -- Post_Init_Done --
+   --------------------
+
+   procedure Post_Init_Done (Self : access Object) is
+   begin
+      pragma Assert (not Self.Post_Init_Done);
+
+      Self.Post_Init_Done := True;
+   end Post_Init_Done;
+
+   -------------------------
+   -- Raise_DuplicateName --
+   -------------------------
+
+   procedure Raise_DuplicateName (Excp_Memb : in DuplicateName_Members) is
+   begin
+      PolyORB.Exceptions.User_Raise_Exception
+        (DuplicateName'Identity,
+         Excp_Memb);
+   end Raise_DuplicateName;
+
+--   -----------------------
+--   -- Raise_InvalidName --
+--   -----------------------
+--
+--   procedure Raise_InvalidName (Excp_Memb : in InvalidName_Members) is
+--   begin
+--      raise InvalidName;
+--   end Raise_InvalidName;
+
+   --------------------------------
+   -- Register_Initial_Reference --
+   --------------------------------
+
+   procedure Register_Initial_Reference
+     (Self : access Object;
+      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId;
+      Obj  : in     CORBA.Object.Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Id);
+      pragma Unreferenced (Obj);
+   begin
+--      if Impl.Object_Ptr (Entity_Of (Self)).Initialization_Complete then
+--         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+--      end if;
+--
+--      --  If string id is empty or id is already registered,
+--      --  then raise InvalidName.
+--
+--      if Id = ""
+--        or else not CORBA.Object.Is_Nil
+--                      (PCIR.Resolve_Initial_References (To_String (Id)))
+--      then
+--         Raise_InvalidName ((null record));
+--      end if;
+--
+--      --  If Ref is null, then raise Bad_Param with minor code 27
+--
+--      if CORBA.Object.Is_Nil (Obj) then
+--         Raise_Bad_Param (Bad_Param_Members'(Minor     => 27,
+--                                             Completed => Completed_No));
+--      end if;
+--
+--      PCIR.Register_Initial_Reference (To_String (Id), Obj);
+
+      raise PolyORB.Not_Implemented;
+   end Register_Initial_Reference;
+
+   --------------------------------
+   -- Resolve_Initial_References --
+   --------------------------------
+
+   function Resolve_Initial_References
+     (Self : access Object;
+      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId)
+      return CORBA.Object.Ref
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Id);
+--      Result : CORBA.Object.Ref
+--        := PolyORB.CORBA_P.Initial_References.Resolve_Initial_References
+--             (To_Standard_String (Id));
+
+      Result : CORBA.Object.Ref;
+   begin
+--      if Impl.Object_Ptr (Entity_Of (Self)).Initialization_Complete then
+--         Raise_Object_Not_Exist (Default_Sys_Member);
+--      end if;
+--
+--      if CORBA.Object.Is_Nil (Result) then
+--         Raise_InvalidName ((null record));
+--      end if;
+--
+--      return Result;
+
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Resolve_Initial_References;
+
+end PortableInterceptor.ORBInitInfo.Impl;

@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $LastChangedRevision$                             --
---                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,7 +20,7 @@
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -80,6 +78,11 @@ package Exp_Dist is
    --  Build stub for a shared passive package. U is the analyzed
    --  compilation unit for a package declaration.
 
+   function Build_Subprogram_Id
+     (Loc : Source_Ptr;
+      E   : Entity_Id) return Node_Id;
+   --  Build a literal representing the remote subprogram identifier of E
+
    function Copy_Specification
      (Loc         : Source_Ptr;
       Spec        : Node_Id;
@@ -98,26 +101,5 @@ package Exp_Dist is
       return Entity_Id;
    --  Given a remote access-to-subprogram type or its equivalent
    --  record type, return the RACW type generated to implement it.
-
-   function Get_Subprogram_Identifier
-     (Def : Entity_Id)
-     return String_Id;
-   --  Given a subprogram defined in a RCI package, get its distribution
-   --  subprogram identifier in the name buffer (the distribution id
-   --  is the non-qualified subprogram name, in the casing used for
-   --  the subprogram declaration; if the name is overloaded, a double
-   --  underscore and a serial number are appended. This identifier is
-   --  used to perform remote calls on the subprogram.
-   --
-   --  Although the DSA receiving stubs will make a caseless
-   --  comparison when receiving a call, the calling stubs
-   --  will create requests with the exact casing of the
-   --  defining unit name of the called subprogram, so
-   --  as to allow calls to subprograms on distributed
-   --  nodes that do distinguish between casings.
-   --
-   --  Another design would be to allow a representation
-   --  clause on subprogram specs:
-   --  for Subp'Distribution_Identifier use "fooBar";
 
 end Exp_Dist;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,20 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with PolyORB.Any;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any.NVList is
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with private;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -49,15 +50,21 @@ package PolyORB.Any.NVList is
    --  Create a NamedValue and add it to this NVList.
 
    procedure Add_Item
-     (Self : Ref;
+     (Self :    Ref;
       Item : in NamedValue);
    --  Add a NamedValue to this NVList.
 
-   function Get_Count (Self : Ref) return PolyORB.Types.Long;
+   function Get_Count
+     (Self : Ref)
+     return PolyORB.Types.Long;
    --  Return the number of items in this NVList.
 
-   procedure Free (Self : Ref);
-   procedure Free_Memory (Self : Ref) renames Free;
+   procedure Free
+     (Self : Ref);
+
+   procedure Free_Memory
+     (Self : Ref)
+     renames Free;
    --  Free and Free_Memory are no-ops in Ada.
 
    ------------------------------------------
@@ -67,29 +74,38 @@ package PolyORB.Any.NVList is
    procedure Create (NVList : out Ref);
    --  Create a new NVList object and return a reference to it.
 
-   function Image (NVList : Ref) return Standard.String;
+   function Image
+     (NVList : Ref)
+     return Standard.String;
    --  For debugging purposes.
 
    package Internals is
 
-      --  The actual implementation of an NVList:
-      --  a sequence of NamedValues.
+      --  The actual implementation of an NVList: a chained list of
+      --  NamedValues.
 
-      package NV_Sequence is new PolyORB.Sequences.Unbounded (NamedValue);
-      type NV_Sequence_Access is access all NV_Sequence.Sequence;
+      package NV_Lists is new PolyORB.Utils.Chained_Lists (NamedValue);
 
-      function List_Of (NVList : Ref) return NV_Sequence_Access;
+      type NV_List_Access is access all NV_Lists.List;
+
+      function List_Of
+        (NVList : Ref)
+        return NV_List_Access;
 
    end Internals;
 
 private
 
-   package NV_Sequence renames Internals.NV_Sequence;
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
 
-   type Object is new PolyORB.Smart_Pointers.Entity with record
-      List : aliased NV_Sequence.Sequence;
-   end record;
+   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
+        List : aliased Internals.NV_Lists.List;
+     end record;
 
    type Object_Ptr is access all Object;
+
+   procedure Finalize
+     (X : in out Object);
 
 end PolyORB.Any.NVList;

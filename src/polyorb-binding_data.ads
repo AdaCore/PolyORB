@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#13 $
-
-with Ada.Finalization;
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#30 $
 
 with PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
@@ -52,8 +52,7 @@ package PolyORB.Binding_Data is
    -- Abstract inter-ORB protocol profile type --
    ----------------------------------------------
 
-   type Profile_Type is abstract
-     new Ada.Finalization.Limited_Controlled with private;
+   type Profile_Type is abstract tagged limited private;
    type Profile_Access is access all Profile_Type'Class;
    --  A profile is an element of information that contains:
    --    - a profile tag identifying a communication system and a
@@ -66,13 +65,18 @@ package PolyORB.Binding_Data is
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
 
+   procedure Release (P : in out Profile_Type) is abstract;
+   --  Free profile data
+
    subtype Profile_Tag is Types.Unsigned_Long;
 
    Tag_Internet_IOP        : constant Profile_Tag;
+   Tag_UIPMC               : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
    Tag_SOAP                : constant Profile_Tag;
+   Tag_DIOP                : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
@@ -81,15 +85,24 @@ package PolyORB.Binding_Data is
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
 
+   function Get_OA
+     (Profile : Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+     is abstract;
+   --  Get the object adapter in which Profile's OID are stored.
+   --  Note that the returned Entity_Ptr cannot be modified nor
+   --  destroyed.
+
    function Get_Object_Key
      (Profile : Profile_Type)
      return Objects.Object_Id_Access;
    --  Retrieve the opaque object key from Profile.
 
-   function Bind_Profile
-     (Profile : Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access
+   procedure Bind_Profile
+     (Profile :     Profile_Type;
+      The_ORB :     Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Exceptions.Error_Container)
       is abstract;
    --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
@@ -156,22 +169,25 @@ private
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_UIPMC               : constant Profile_Tag := 3;
+   --  TAO value :
+   --  Tag_UIPMC               : constant Profile_Tag := 1413566220;
 
    --  Tags defined by PolyORB
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
    Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
+   Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
    Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference
      := (Profile_Preference'First + Profile_Preference'Last) / 2;
 
-   type Profile_Type is
-     abstract new Ada.Finalization.Limited_Controlled with record
-        Object_Id    : Objects.Object_Id_Access;
-        Continuation : PolyORB.Smart_Pointers.Ref;
-     end record;
+   type Profile_Type is abstract tagged limited record
+      Object_Id    : Objects.Object_Id_Access;
+      Continuation : PolyORB.Smart_Pointers.Ref;
+   end record;
 
    type Profile_Factory is abstract tagged limited null record;
 

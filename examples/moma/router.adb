@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Testing MOMA router.
---  XXX Not implemented yet !!!
+--  Sample MOMA router
 
 --  $Id$
 
@@ -42,7 +42,6 @@ with PolyORB.Initialization;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -62,13 +61,16 @@ procedure Router is
    use MOMA.Configuration.Server;
    use MOMA.Types;
 
-   Other_Router   : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
-   Router         : PolyORB.References.Ref;
+   Other_Router   : MOMA.Types.Ref := MOMA.Types.Nil_Ref;
+   Router         : MOMA.Types.Ref;
 
 begin
 
-   --  Argument check.
-   if Argument_Count < 1 or Argument_Count > 2 then
+   --  Argument check
+
+   if Argument_Count < 1
+     or else Argument_Count > 2
+   then
       Put_Line ("usage : router <router_id> [IOR]");
       Put_Line ("where :");
       Put_Line ("-- 'router_id' is a the id of the router");
@@ -77,24 +79,28 @@ begin
    end if;
 
    --  Initialize World
+
    PolyORB.Initialization.Initialize_World;
 
-   --  Find reference to other router if needed.
+   --  Find reference to other router if needed
+
    if Argument_Count = 2 then
-      Other_Router := PolyORB.References.IOR.String_To_Object
-        (PolyORB.Types.To_PolyORB_String (Ada.Command_Line.Argument (2)));
+      PolyORB.References.String_To_Object
+        (Ada.Command_Line.Argument (2), Other_Router);
    end if;
 
-   --  Create one router and output its reference.
+   --  Create one router and output its reference
+
    MOMA.Configuration.Server.Create_Router
       (To_MOMA_String (Ada.Command_Line.Argument (1)),
        Router,
        Other_Router);
-   Put_Line ("Router IOR :");
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (Router)));
 
-   --  Run the server.
+   Put_Line ("Router IOR :");
+   Put_Line (PolyORB.References.IOR.Object_To_String (Router));
+
+   --  Run the server
+
    Run_Server;
 
 end Router;

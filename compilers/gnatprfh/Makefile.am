@@ -5,8 +5,9 @@ PROG=gnatprfh
 all-local: $(PROG)
 
 $(PROG): $(GNATFILES)
-	$(GNATMAKE) -a -I. -I$(srcdir) g-pehama.adb -o $@ \
-		-cargs $(GNATFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -a -m -I. -I$(srcdir) g-pehama.adb -o $@
+#          -cargs $(GNATFLAGS) -bargs $(BARGS) 
+# WAG:3.15 we must compile this executable using specific flags.
 
 GNATFILES=\
 $(srcdir)/g-pehage.adb\
@@ -21,5 +22,5 @@ DISTCLEANFILES = $(PROG)
 force::
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(exec_prefix)/bin/$(PROG)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) $(PROG) $(DESTDIR)$(bindir)/$(PROG)

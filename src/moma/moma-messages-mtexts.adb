@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,8 +41,7 @@ package body MOMA.Messages.MTexts is
    -- Get_Text --
    --------------
 
-   function Get_Text (Self : MText)
-                     return MOMA.Types.String is
+   function Get_Text (Self : MText) return MOMA.Types.String is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Text;
@@ -50,8 +50,7 @@ package body MOMA.Messages.MTexts is
    -- Set_Text --
    --------------
 
-   procedure Set_Text (Self : in out MText;
-                       Value : MOMA.Types.String) is
+   procedure Set_Text (Self : in out MText; Value : MOMA.Types.String) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (Value));
    end Set_Text;
@@ -60,8 +59,7 @@ package body MOMA.Messages.MTexts is
    -- Create_Text_Message --
    -------------------------
 
-   function Create_Text_Message
-     return MText
+   function Create_Text_Message return MText
    is
       Result : MText;
    begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,45 +35,125 @@
 
 --  $Id$
 
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Log;
+with PolyORB.Exceptions;
 
 package body CORBA.ServerRequest is
 
+   use PolyORB.CORBA_P.Interceptors_Hooks;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("corba.serverrequest");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ---------------
+   -- Operation --
+   ---------------
+
    function Operation (O : Object) return Identifier is
    begin
       return Identifier (O.Operation);
    end Operation;
 
+   ---------------
+   -- Arguments --
+   ---------------
+
    procedure Arguments (O : access Object; NV : in out NVList.Ref) is
+      use PolyORB.Exceptions;
+
       PolyORB_Args : PolyORB.Any.NVList.Ref
         := CORBA.NVList.To_PolyORB_Ref (NV);
+      Error : Error_Container;
+
    begin
       PolyORB.Requests.Arguments
-        (PolyORB.Requests.Request_Access (O), PolyORB_Args);
+        (PolyORB.Requests.Request_Access (O), PolyORB_Args, Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
       NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
+
+      if Server_Intermediate /= null then
+         Server_Intermediate (PolyORB.Requests.Request_Access (O), True);
+      end if;
    end Arguments;
 
-   procedure Set_Result (O : access Object; Val : Any)
-   is
+   ----------------
+   -- Set_Result --
+   ----------------
+
+   procedure Set_Result (O : access Object; Val : Any) is
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
+
    begin
       PolyORB.Requests.Set_Result
-        (PolyORB.Requests.Request_Access (O), Val);
+        (PolyORB.Requests.Request_Access (O),
+         CORBA.Internals.To_PolyORB_Any (Val),
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
    end Set_Result;
 
-   procedure Set_Exception (Obj : access Object; Val : Any)
-   is
+   -------------------
+   -- Set_Exception --
+   -------------------
+
+   procedure Set_Exception (Obj : access Object; Val : Any) is
+      use PolyORB.Any;
+      use PolyORB.Any.TypeCode;
+
+      use type PolyORB.Any.TypeCode.Object;
+
+      Exception_Any : constant PolyORB.Any.Any
+        := CORBA.Internals.To_PolyORB_Any (Val);
+
    begin
       pragma Debug
-        (O ("Server notifies exception: " & Image (Val)));
-      Obj.Exception_Info := Val;
+        (O ("Server notifies exception: "
+            & PolyORB.Any.Image (Exception_Any)));
+
+      if Kind (Get_Type (Exception_Any)) /= PolyORB.Any.Tk_Except then
+         declare
+            use PolyORB.Exceptions;
+
+            Error : Error_Container;
+
+            Member : constant System_Exception_Members
+              := (Minor => 21, Completed => Completed_No);
+         begin
+            Throw (Error, Bad_Param_E, Member);
+
+            PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+         end;
+      end if;
+
+      --  Implementation Note: if the Any denotes an unlisted user
+      --  exception, the CORBA specifications (8.3.1) manadate that
+      --
+      --  1. the server receives a BAD_PARAM system exception,
+      --  or
+      --  2. the client will receive an UNKNOWN exception.
+      --
+      --  1. cannot be asserted by our implementation, we retained 2.
+      --  2. is made on the client side, when the middleware processes
+      --  the request.
+
+      Obj.Exception_Info := Exception_Any;
+
+      if Server_Intermediate /= null then
+         Server_Intermediate (PolyORB.Requests.Request_Access (Obj), False);
+      end if;
    end Set_Exception;
 
 end CORBA.ServerRequest;

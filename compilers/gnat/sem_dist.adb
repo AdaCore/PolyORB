@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2004, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,7 +20,7 @@
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -106,6 +104,56 @@ package body Sem_Dist is
 
       end if;
    end Add_Stub_Constructs;
+
+   ---------------------------------------
+   -- Build_RAS_Primitive_Specification --
+   ---------------------------------------
+
+   function Build_RAS_Primitive_Specification
+     (Subp_Spec          : Node_Id;
+      Remote_Object_Type : Node_Id)
+      return Node_Id
+   is
+      Loc : constant Source_Ptr := Sloc (Subp_Spec);
+
+      Primitive_Spec : constant Node_Id
+        := Copy_Specification (Loc,
+             Spec     => Subp_Spec,
+             New_Name => Name_Call);
+
+      Subtype_Mark_For_Self : Node_Id;
+
+   begin
+      if No (Parameter_Specifications (Primitive_Spec)) then
+         Set_Parameter_Specifications (Primitive_Spec, New_List);
+      end if;
+
+      if Nkind (Remote_Object_Type) in N_Entity then
+         Subtype_Mark_For_Self :=
+           New_Occurrence_Of (Remote_Object_Type, Loc);
+      else
+         Subtype_Mark_For_Self := Remote_Object_Type;
+      end if;
+
+      Prepend_To (
+        Parameter_Specifications (Primitive_Spec),
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc, Name_uS),
+          Parameter_Type      =>
+            Make_Access_Definition (Loc,
+              Subtype_Mark =>
+                Subtype_Mark_For_Self)));
+
+      --  Trick later semantic analysis into considering this
+      --  operation as a primitive (dispatching) operation of
+      --  tagged type Obj_Type.
+
+      Set_Comes_From_Source (
+        Defining_Unit_Name (Primitive_Spec), True);
+
+      return Primitive_Spec;
+   end Build_RAS_Primitive_Specification;
 
    -------------------------
    -- Full_Qualified_Name --
@@ -277,7 +325,6 @@ package body Sem_Dist is
 
       Rewrite (N, Convert_To (Typ, Get_Pt_Id_Call));
       Analyze_And_Resolve (N, Typ);
-
    end Process_Partition_Id;
 
    ----------------------------------
@@ -294,11 +341,11 @@ package body Sem_Dist is
       Remote_Subp_Decl      : Node_Id;
       RS_Pkg_Specif         : Node_Id;
       RS_Pkg_E              : Entity_Id;
-      RAS_Type              : Entity_Id;
+      RAS_Type              : Entity_Id := New_Type;
       Async_E               : Entity_Id;
       All_Calls_Remote_E    : Entity_Id;
-      Subp_Id               : String_Id;
       Attribute_Subp        : Entity_Id;
+      Local_Addr            : Node_Id;
 
    begin
       --  Check if we have to expand the access attribute
@@ -307,27 +354,14 @@ package body Sem_Dist is
 
       if not Expander_Active then
          return;
-
-      elsif Ekind (New_Type) = E_Record_Type then
-         RAS_Type := New_Type;
-
-      else
-         --  If the remote type has not been constructed yet, create
-         --  it and its attributes now.
-
-         Attribute_Subp := TSS (New_Type, Name_uRAS_Access);
-
-         if No (Attribute_Subp) then
-            Add_RAST_Features (Parent (New_Type));
-            --  XXX ??? Does this really happen? Normally
-            --  the RAST features should have been added when
-            --  the type was analyzed.
-         end if;
-
-         RAS_Type := Equivalent_Type (New_Type);
       end if;
 
-      Attribute_Subp := TSS (RAS_Type, Name_uRAS_Access);
+      if Ekind (RAS_Type) /= E_Record_Type then
+         RAS_Type := Equivalent_Type (RAS_Type);
+      end if;
+
+      Attribute_Subp := TSS (RAS_Type, TSS_RAS_Access);
+      pragma Assert (Present (Attribute_Subp));
       Remote_Subp_Decl := Unit_Declaration_Node (Remote_Subp);
 
       if Nkind (Remote_Subp_Decl) = N_Subprogram_Body then
@@ -338,31 +372,29 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
-      Subp_Id := Get_Subprogram_Identifier (Remote_Subp);
+      Async_E :=
+        Boolean_Literals (Ekind (Remote_Subp) = E_Procedure
+                            and then Is_Asynchronous (Remote_Subp));
 
-      if Ekind (Remote_Subp) = E_Procedure
-        and then Is_Asynchronous (Remote_Subp)
-      then
-         Async_E := Standard_True;
-      else
-         Async_E := Standard_False;
-      end if;
+      All_Calls_Remote_E :=
+        Boolean_Literals (Has_All_Calls_Remote (RS_Pkg_E));
 
-      if Has_All_Calls_Remote (RS_Pkg_E) then
-         All_Calls_Remote_E := Standard_True;
-      else
-         All_Calls_Remote_E := Standard_False;
-      end if;
+      Local_Addr :=
+        Make_Attribute_Reference (Loc,
+          Prefix         => New_Occurrence_Of (Remote_Subp, Loc),
+          Attribute_Name => Name_Address);
 
       Tick_Access_Conv_Call :=
         Make_Function_Call (Loc,
           Name => New_Occurrence_Of (Attribute_Subp, Loc),
           Parameter_Associations =>
             New_List (
+              Local_Addr,
               Make_String_Literal (Loc, Full_Qualified_Name (RS_Pkg_E)),
-              Make_String_Literal (Loc, Subp_Id),
+              Build_Subprogram_Id (Loc, Remote_Subp),
               New_Occurrence_Of (Async_E, Loc),
               New_Occurrence_Of (All_Calls_Remote_E, Loc)));
+
       Rewrite (N, Tick_Access_Conv_Call);
       Analyze_And_Resolve (N, RAS_Type);
    end Process_Remote_AST_Attribute;
@@ -436,29 +468,13 @@ package body Sem_Dist is
               Abstract_Present => True,
               Tagged_Present   => True,
               Limited_Present  => True,
-              Component_List   => Empty,
-              Null_Present     => True));
+              Null_Present     => True,
+              Component_List   => Empty));
 
-      Prim_Decl :=
-        Make_Abstract_Subprogram_Declaration (Loc,
-          Specification    =>
-            Copy_Specification (Loc,
-              Spec     => Type_Def,
-              New_Name => Name_Call));
-      Prepend_To (
-        Parameter_Specifications (Specification (Prim_Decl)),
-        Make_Parameter_Specification (Loc,
-          Defining_Identifier =>
-            Make_Defining_Identifier (Loc, Name_uS),
-          Parameter_Type      =>
-            Make_Access_Definition (Loc,
-              Subtype_Mark =>
-                New_Occurrence_Of (Obj_Type, Loc))));
-      Set_Comes_From_Source (
-        Defining_Unit_Name (Specification (Prim_Decl)), True);
-      --  Trick later semantic analysis into considering this
-      --  operation as a primitive (dispatching) operation of
-      --  tagged type Obj_Type.
+      Prim_Decl := Make_Abstract_Subprogram_Declaration (Loc,
+        Specification => Build_RAS_Primitive_Specification (
+          Subp_Spec          => Type_Def,
+          Remote_Object_Type => Obj_Type));
 
       RACW_Type_Decl := Make_Full_Type_Declaration (Loc,
         Defining_Identifier => RACW_Type,
@@ -473,11 +489,9 @@ package body Sem_Dist is
                   Name_Class)));
       Set_Is_Remote_Call_Interface (RACW_Type, Is_RCI);
       Set_Is_Remote_Types (RACW_Type, Is_RT);
-      --  XXX RACW RPC Receiver generation should be shorted out for this
-      --      RACW type.
-      --  XXX RACW From_Any generation should be changed for this type
-      --      to always instantiate a stub type, regardless of locality.
-      --  XXX possible predicate: not (Comes_From_Source (Designated_Type))
+      --  ??? Object RPC receiver generation should be bypassed for this
+      --  RACW type, since actually calls will be received by the package
+      --  RPC receiver for the designated RCI subprogram.
 
       Subpkg_Decl :=
         Make_Package_Declaration (Loc,
@@ -494,7 +508,7 @@ package body Sem_Dist is
               New_Occurrence_Of (Subpkg, Loc)));
       Set_Is_Remote_Call_Interface (Subpkg, Is_RCI);
       Set_Is_Remote_Types (Subpkg, Is_RT);
-      Insert_After (N, Subpkg_Decl);
+      Insert_After_And_Analyze (N, Subpkg_Decl);
 
       --  Many parts of the analyzer and expander expect
       --  that the fat pointer type used to implement remote
@@ -510,27 +524,26 @@ package body Sem_Dist is
                   Make_Component_Declaration (Loc,
                     Defining_Identifier =>
                       Make_Defining_Identifier (Loc, Name_Ras),
-                    Subtype_Indication  =>
-                      New_Occurrence_Of (RACW_Type, Loc))))));
-      Insert_After (Subpkg_Decl, Fat_Type_Decl);
+                    Component_Definition =>
+                      Make_Component_Definition (Loc,
+                        Aliased_Present     =>
+                          False,
+                        Subtype_Indication  =>
+                          New_Occurrence_Of (RACW_Type, Loc)))))));
       Set_Equivalent_Type (User_Type, Fat_Type);
       Set_Corresponding_Remote_Type (Fat_Type, User_Type);
+      Insert_After_And_Analyze (Subpkg_Decl, Fat_Type_Decl);
 
       --  The reason we suppress the initialization procedure is that we know
       --  that no initialization is required (even if Initialize_Scalars mode
       --  is active), and there are order of elaboration problems if we do try
-      --  to generate an Init_Proc for this created record type.
+      --  to generate an init proc for this created record type.
 
       Set_Suppress_Init_Proc (Fat_Type);
 
       if Expander_Active then
-         Analyze (Subpkg_Decl);
-         Analyze (Fat_Type_Decl);
-         --  Set up RACW features.
-
          Add_RAST_Features (Parent (User_Type));
       end if;
-
    end Process_Remote_AST_Declaration;
 
    -----------------------
@@ -541,9 +554,6 @@ package body Sem_Dist is
       Loc             : constant Source_Ptr := Sloc (Pref);
       Call_Node       : Node_Id;
       New_Type        : constant Entity_Id := Etype (Pref);
-      RAS             : constant Entity_Id :=
-                          Corresponding_Remote_Type (New_Type);
-      RAS_Decl        : constant Node_Id   := Parent (RAS);
       Explicit_Deref  : constant Node_Id   := Parent (Pref);
       Deref_Subp_Call : constant Node_Id   := Parent (Explicit_Deref);
       Deref_Proc      : Entity_Id;
@@ -575,15 +585,12 @@ package body Sem_Dist is
          return;
       end if;
 
-      Deref_Proc := TSS (New_Type, Name_uRAS_Dereference);
-
       if not Expander_Active then
          return;
-
-      elsif No (Deref_Proc) then
-         Add_RAST_Features (RAS_Decl);
-         Deref_Proc := TSS (New_Type, Name_uRAS_Dereference);
       end if;
+
+      Deref_Proc := TSS (New_Type, TSS_RAS_Dereference);
+      pragma Assert (Present (Deref_Proc));
 
       if Ekind (Deref_Proc) = E_Function then
          Call_Node :=
@@ -643,7 +650,6 @@ package body Sem_Dist is
       if Comes_From_Source (P)
         and then (Is_Remote_Call_Interface (ET)
                    or else Is_Remote_Types (ET))
-        and then Ekind (ET) = E_Record_Type
         and then Present (Corresponding_Remote_Type (ET))
         and then Ekind (Entity (P)) /= E_Function
       then
@@ -705,11 +711,7 @@ package body Sem_Dist is
       Rewrite (N,
         Make_Aggregate (Loc,
           Expressions => New_List (
-            Make_Integer_Literal (Loc, 0),                  -- Ras
-            Make_Integer_Literal (Loc, 0),                  -- Origin
-            Make_Integer_Literal (Loc, 0),                  -- Receiver
-            Make_Integer_Literal (Loc, 0),                  -- Subp_Id
-            New_Occurrence_Of (Standard_False, Loc))));     -- Asyn
+            Make_Null (Loc))));
       Analyze_And_Resolve (N, Target_Type);
       return True;
    end Remote_AST_Null_Value;

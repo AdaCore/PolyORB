@@ -1,0 +1,13 @@
+//testsubgroup forward
+//tsgdescr "Testing forward declaration for the valuetype construct"
+
+
+valuetype AVal;
+
+valuetype BVal  {
+	public AVal Mbr;
+};
+
+valuetype AVal:BVal {};
+
+valuetype CVal:AVal {};

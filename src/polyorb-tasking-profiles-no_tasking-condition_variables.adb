@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -132,9 +133,10 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.no_tasking.condition_variables",
+      (Name      => +"tasking.profiles.no_tasking.condition_variables",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.condition_variables",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.condition_variables",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,24 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with MOMA.Provider.Message_Pool;
-with MOMA.Provider.Routers;
+with PolyORB.MOMA_P.Provider.Message_Pool;
+with PolyORB.MOMA_P.Provider.Routers;
 
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
+with PolyORB.MOMA_P.Exceptions;
 
 package body MOMA.Configuration.Server is
 
-   use PolyORB.Configuration;
-   use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
-   use PolyORB.References;
+   use PolyORB.Minimal_Servant.Tools;
 
    use MOMA.Types;
 
@@ -55,46 +57,60 @@ package body MOMA.Configuration.Server is
    -- Create_Message_Pool --
    -------------------------
 
-   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
-                                  Ref  : out PolyORB.References.Ref)
+   procedure Create_Message_Pool
+     (Pool :     MOMA.Types.Message_Pool;
+      Ref  : out MOMA.Types.Ref)
    is
-      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
-       := new MOMA.Provider.Message_Pool.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Pool.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Pool.Object;
+
+      Error : Error_Container;
 
    begin
       pragma Debug (O ("Creating Message Pool "
                        & To_Standard_String (Get_Name (Pool))));
 
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Pool.If_Desc,
                         MOMA_Type_Id,
-                        Ref);
+                        Ref,
+                        Error);
 
-      MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
+      if Found (Error) then
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      PolyORB.MOMA_P.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
 
    -------------------
    -- Create_Router --
    -------------------
 
-   procedure Create_Router (Id         : MOMA.Types.String;
-                            Ref        : out PolyORB.References.Ref;
-                            Router_Ref : PolyORB.References.Ref :=
-                                            PolyORB.References.Nil_Ref)
+   procedure Create_Router
+     (Id         :     MOMA.Types.String;
+      Ref        : out MOMA.Types.Ref;
+      Router_Ref :     MOMA.Types.Ref := MOMA.Types.Nil_Ref)
    is
-      Router : constant MOMA.Provider.Routers.Router_Acc
-       := new MOMA.Provider.Routers.Router;
+      Router : constant PolyORB.MOMA_P.Provider.Routers.Router_Acc
+       := new PolyORB.MOMA_P.Provider.Routers.Router;
+
+      Error : Error_Container;
 
    begin
       pragma Debug (O ("Creating Router"));
 
-      MOMA.Provider.Routers.Set_Id (Router.all, Id);
       Initiate_Servant (Router,
-                        MOMA.Provider.Routers.If_Desc,
                         MOMA_Type_Id,
-                        Ref);
-      MOMA.Provider.Routers.Set_Self_Ref (Router.all, Ref);
-      MOMA.Provider.Routers.Initialize (Router, Router_Ref);
+                        Ref,
+                        Error);
+
+      if Found (Error) then
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      PolyORB.MOMA_P.Provider.Routers.Set_Id (Router.all, Id);
+      PolyORB.MOMA_P.Provider.Routers.Set_Self_Ref (Router.all, Ref);
+      PolyORB.MOMA_P.Provider.Routers.Initialize (Router, Router_Ref);
    end Create_Router;
 
 end MOMA.Configuration.Server;

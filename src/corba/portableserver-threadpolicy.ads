@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +31,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#3 $
+--  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#5 $
 
 with CORBA.Policy;
 
@@ -38,17 +44,9 @@ package PortableServer.ThreadPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
-     return CORBA.Policy.Ref'Class;
-   --  XXX This function should be in PortableServer,
-   --  yet this would create a circular dependency ...
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.ThreadPolicy.Ref;
-   --  Implementation of CORBA.ORB.Create_Policy.
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref;
 
    function Get_Value
      (Self : Ref)
@@ -56,8 +54,6 @@ package PortableServer.ThreadPolicy is
 
 private
 
-   type Ref is new CORBA.Policy.Ref with record
-      ThreadPolicy : PortableServer.ThreadPolicyValue;
-   end record;
+   type Ref is new CORBA.Policy.Ref with null record;
 
 end PortableServer.ThreadPolicy;

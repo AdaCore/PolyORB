@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,7 +47,10 @@ package PolyORB.Utils.Chained_Lists is
    type Element_Access is access all T;
 
    function Length (L : List) return Natural;
+   --  Return the number of elements in L
+
    function Element (L : List; Index : Natural) return Element_Access;
+   --  Return the element at position Index (0-based) in L.
 
    procedure Extract_First
      (L      : in out List;
@@ -55,17 +59,46 @@ package PolyORB.Utils.Chained_Lists is
    --  and remove it from the list.
 
    function First (L : List) return Iterator;
+   --  Return an iterator on L positioned at L's first element.
+
+   function First (I : Iterator) return Boolean;
+   --  True when I is positioned at the first element of the
+   --  underlying list.
+
    function Value (I : Iterator) return Element_Access;
-   function Last (I : Iterator) return Boolean;
+   --  Return an access to the value of the list element currently
+   --  designated by I.
+
    procedure Next (I : in out Iterator);
+   --  Move I to the next element in the list.
+
+   function Last (L : List) return Iterator;
+   --  Return an iterator position at the end of L (i.e. immediately
+   --  after the last element in L; this iterator has no associated
+   --  value).
+
+   function Last (I : Iterator) return Boolean;
+   --  True when I is positioned at the end of L (i.e. after the
+   --  last element).
 
    procedure Prepend (L : in out List; I : T);
+   --  Prepend value I at the beginning of L.
+
    procedure Append (L : in out List; I : T);
+   --  Append value I at the end of L.
+
+   procedure Insert (L : in out List; I : T; Before : in out Iterator);
+   --  Insert I into L before the designated position.
+
+   procedure Remove (L : in out List; I : in out Iterator);
+   --  Remove the item designated by I from L, and advance I to the next
+   --  item in L.
 
    procedure Remove (L : in out List; I : T);
-   --  Remove all occurences of I from list L.
+   --  Remove all occurences of value I from list L.
 
    Empty : constant List;
+   --  A list that contains no elements.
 
    function "+" (I : T) return List;
    --  Make a list with I as its only element.
@@ -83,6 +116,9 @@ package PolyORB.Utils.Chained_Lists is
    --  Return a copy of list L.
 
    procedure Deallocate (L : in out List);
+   --  Release the storage associated with L.
+
+private
 
    pragma Inline (First);
    pragma Inline (Value);
@@ -90,10 +126,10 @@ package PolyORB.Utils.Chained_Lists is
    pragma Inline (Next);
    pragma Inline (Prepend);
    pragma Inline (Append);
+   pragma Inline (Insert);
+   pragma Inline (Remove);
    pragma Inline ("+");
    pragma Inline ("&");
-
-private
 
    type Node;
    type Node_Access is access all Node;
@@ -102,11 +138,12 @@ private
       Next  : Node_Access;
    end record;
 
-   type Iterator is new Node_Access;
+   type Iterator is record
+     Current, Previous : Node_Access;
+   end record;
 
    type List is record
-      First : Node_Access;
-      Last : Node_Access;
+      First, Last : Node_Access;
    end record;
 
    Empty : constant List := (null, null);

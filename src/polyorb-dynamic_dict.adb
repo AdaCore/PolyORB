@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,6 +35,7 @@
 
 --  $Id$
 
+with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 
 package body PolyORB.Dynamic_Dict is
@@ -44,7 +46,12 @@ package body PolyORB.Dynamic_Dict is
    --------------------------------------------------------
 
    package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (Value);
+      new PolyORB.Utils.HTables.Perfect
+     (Value,
+      PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Hash,
+      PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
 
    use Perfect_Htable;
 
@@ -54,7 +61,7 @@ package body PolyORB.Dynamic_Dict is
 
    procedure Ensure_Initialization;
    pragma Inline (Ensure_Initialization);
-   --  Ensure that T was initialized
+   --  Ensure that T is initialized.
 
    ---------------------------
    -- Ensure_Initialization --
@@ -75,8 +82,7 @@ package body PolyORB.Dynamic_Dict is
 
    function Lookup
      (K : String)
-      return Value
-   is
+      return Value is
    begin
       Ensure_Initialization;
       return Lookup (T, K);
@@ -85,15 +91,12 @@ package body PolyORB.Dynamic_Dict is
    end Lookup;
 
    function Lookup
-     (K : String;
+     (K       : String;
       Default : Value)
-     return Value
-   is
-      V : Value;
+     return Value is
    begin
       Ensure_Initialization;
-      V := Lookup (T, K, Default);
-      return V;
+      return Lookup (T, K, Default);
    end Lookup;
 
    --------------
@@ -102,8 +105,7 @@ package body PolyORB.Dynamic_Dict is
 
    procedure Register
      (K : String;
-      V : Value)
-   is
+      V : Value) is
    begin
       Ensure_Initialization;
       Insert (T, K, V);
@@ -114,8 +116,7 @@ package body PolyORB.Dynamic_Dict is
    ----------------
 
    procedure Unregister
-     (K : String)
-   is
+     (K : String) is
    begin
       Ensure_Initialization;
       Delete (T, K);

@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                     C O S T I M E . T I O . I M P L                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,23 +26,28 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Server_Tools;
-with CORBA;
-with CosTime.TIO.Helper;
-with CosTime.TIO.Skel;
-with CosTime.UTO.Helper;
+--  $Id$
+
+with PolyORB.CORBA_P.Server_Tools;
+
 with CosTime.UTO.Impl;
+
 with PortableServer;
-with Time_Utils;          use Time_Utils;
+with Time_Utils;
+
+with CosTime.TIO.Skel;
+pragma Elaborate (CosTime.TIO.Skel);
+pragma Warnings (Off, CosTime.TIO.Skel);
 
 package body CosTime.TIO.Impl is
 
    use TimeBase;
+   use Time_Utils;
 
    type TIO_Ptr is access Object;
    type UTO_Ptr is access UTO.Impl.Object;
@@ -64,30 +69,30 @@ package body CosTime.TIO.Impl is
       Overlaps   : out IntervalT)
    is
    begin
-      if A_Interval.Upper_Bound < B_Interval.Lower_Bound
-        or else A_Interval.Lower_Bound > B_Interval.Upper_Bound
+      if A_Interval.upper_bound < B_Interval.lower_bound
+        or else A_Interval.lower_bound > B_Interval.upper_bound
       then
          Returns := OTNoOverlap;
-         Overlaps.Lower_Bound :=
-           TimeT'Min (A_Interval.Upper_Bound, B_Interval.Upper_Bound);
-         Overlaps.Upper_Bound :=
-           TimeT'Max (A_Interval.Lower_Bound, B_Interval.Lower_Bound);
-      elsif A_Interval.Lower_Bound <= B_Interval.Lower_Bound
-        and then A_Interval.Upper_Bound >= B_Interval.Upper_Bound
+         Overlaps.lower_bound :=
+           TimeT'Min (A_Interval.upper_bound, B_Interval.upper_bound);
+         Overlaps.upper_bound :=
+           TimeT'Max (A_Interval.lower_bound, B_Interval.lower_bound);
+      elsif A_Interval.lower_bound <= B_Interval.lower_bound
+        and then A_Interval.upper_bound >= B_Interval.upper_bound
       then
          Returns := OTContainer;
          Overlaps := B_Interval;
-      elsif A_Interval.Lower_Bound >= B_Interval.Lower_Bound
-        and then A_Interval.Upper_Bound <= B_Interval.Upper_Bound
+      elsif A_Interval.lower_bound >= B_Interval.lower_bound
+        and then A_Interval.upper_bound <= B_Interval.upper_bound
       then
          Returns := OTContained;
          Overlaps := A_Interval;
       else
          Returns := OTOverlap;
-         Overlaps.Lower_Bound :=
-           TimeT'Max (A_Interval.Lower_Bound, B_Interval.Lower_Bound);
-         Overlaps.Upper_Bound :=
-           TimeT'Min (A_Interval.Upper_Bound, B_Interval.Upper_Bound);
+         Overlaps.lower_bound :=
+           TimeT'Max (A_Interval.lower_bound, B_Interval.lower_bound);
+         Overlaps.upper_bound :=
+           TimeT'Min (A_Interval.upper_bound, B_Interval.upper_bound);
       end if;
    end Do_Overlap;
 
@@ -113,15 +118,18 @@ package body CosTime.TIO.Impl is
       overlap : out CosTime.TIO.Ref;
       Returns : out OverlapType)
    is
+      pragma Warnings (Off);
       A_Interval : IntervalT renames Self.Interval;
       B_Interval : constant IntervalT := get_time_interval (interval);
+      --  XXX is it necessary ?
+      pragma Warnings (On);
       Result     : constant TIO_Ptr := new Object;
    begin
       Do_Overlap (A_Interval => Self.Interval,
                   B_Interval => get_time_interval (interval),
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), overlap);
    end overlaps;
 
@@ -137,15 +145,15 @@ package body CosTime.TIO.Impl is
    is
       Tim        : constant TimeT       := UTO.get_time (time);
       Ina        : constant InaccuracyT := UTO.get_inaccuracy (time);
-      B_Interval : constant IntervalT   := (Lower_Bound => Tim - Ina,
-                                            Upper_Bound => Tim + Ina);
+      B_Interval : constant IntervalT   := (lower_bound => Tim - Ina,
+                                            upper_bound => Tim + Ina);
       Result     : constant TIO_Ptr := new Object;
    begin
       Do_Overlap (A_Interval => Self.Interval,
                   B_Interval => B_Interval,
                   Overlaps   => Result.Interval,
                   Returns    => Returns);
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), overlap);
    end spans;
 
@@ -161,10 +169,10 @@ package body CosTime.TIO.Impl is
       R      : UTO.Ref;
    begin
       Result.Time :=
-        (Self.Interval.Upper_Bound - Self.Interval.Lower_Bound) / 2;
+        (Self.Interval.upper_bound - Self.Interval.lower_bound) / 2;
       Result.Inaccuracy := InaccuracyT
-        (Self.Interval.Upper_Bound - Self.Interval.Lower_Bound);
-      Broca.Server_Tools.Initiate_Servant
+        (Self.Interval.upper_bound - Self.Interval.lower_bound);
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end time;

@@ -23,10 +23,10 @@ $(TREE_FILES): $(srcdir)/nodes.txt $(srcdir)/make_nodes.py
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
-DISTCLEANFILES = $(TREE_FILES) testparser testlexer testgen idlac
+DISTCLEANFILES = testparser testlexer testgen idlac
 
 force::
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) idlac $(DESTDIR)$(exec_prefix)/bin/idlac
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) idlac $(DESTDIR)$(bindir)/idlac

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  String constants.
+--  String constants defined by OMG specifications.
 
 --  $Id$
 
@@ -43,7 +44,8 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_Prefix --
    ----------------
 
-   function OMG_Prefix return String is
+   function OMG_Prefix
+     return String is
    begin
       return Prefix;
    end OMG_Prefix;
@@ -52,7 +54,9 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_RepositoryId --
    ----------------------
 
-   function OMG_RepositoryId (Name : String) return String is
+   function OMG_RepositoryId
+     (Name : String)
+     return String is
    begin
       return "IDL:" & Prefix & "/" & Name & ":" & Version;
    end OMG_RepositoryId;
@@ -61,7 +65,8 @@ package body PolyORB.CORBA_P.Names is
    -- OMG_Version --
    -----------------
 
-   function OMG_Version return String is
+   function OMG_Version
+     return String is
    begin
       return Version;
    end OMG_Version;

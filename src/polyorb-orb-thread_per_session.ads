@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,38 +53,39 @@ package PolyORB.ORB.Thread_Per_Session is
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with private;
 
    type End_Thread_Job is new Jobs.Job with null record;
-   --  this job is used to indicates to a thread associated with a session
-   --  that it has to exit its main loop
+   --  This particular job will be used to indicates to a thread
+   --  associated with a session that it has to exit its main loop.
 
    type End_Thread_Job_Access is access all End_Thread_Job;
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Per_Session_Policy;
       TE  :        Transport_Endpoint_Access);
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
+      ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
    procedure Idle
-     (P : access Thread_Per_Session_Policy;
-      ORB : ORB_Access);
+     (P         : access Thread_Per_Session_Policy;
+      This_Task :        PolyORB.Task_Info.Task_Info;
+      ORB       :        ORB_Access);
 
    procedure Queue_Request_To_Handler
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      Msg : Message'Class);
+      ORB :        ORB_Access;
+      Msg :        Message'Class);
 
    procedure Run (J : access End_Thread_Job);
 
@@ -99,7 +101,7 @@ private
    subtype Request_Queue is Request_Queues.List;
 
    type Request_Queue_Access is access all Request_Queue;
-   --  This queues store the jobs that a thread has to execute
+   --  Request queue attached to a thread
 
    type Session_Thread_Info is new PolyORB.Annotations.Note with record
       Request_Semaphore : Tasking.Semaphores.Semaphore_Access := null;
@@ -112,9 +114,9 @@ private
    type Session_Thread_Info_Access is access all Session_Thread_Info;
 
    procedure Add_Request
-     (S : in Session_Thread_Info;
-      RI : Request_Info);
-   --  add a job to a job queue
+     (S  : in Session_Thread_Info;
+      RI :    Request_Info);
+   --  Add a job to a job queue
 
    type Thread_Per_Session_Policy is new Tasking_Policy_Type with null record;
 

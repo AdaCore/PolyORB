@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,16 +35,18 @@
 
 with MOMA.Messages;
 with MOMA.Destinations;
-with MOMA.Provider.Message_Handler;
+with PolyORB.MOMA_P.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.Annotations;
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
-with PolyORB.Types;
+with PolyORB.MOMA_P.Exceptions;
+with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Types;
 
 package body MOMA.Message_Handlers is
 
@@ -87,18 +90,29 @@ package body MOMA.Message_Handlers is
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
 
-      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
-        new MOMA.Message_Handlers.Message_Handler;
-      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
-        new MOMA.Provider.Message_Handler.Object;
+      use PolyORB.Exceptions;
+
+      Self    : constant MOMA.Message_Handlers.Message_Handler_Acc
+        := new MOMA.Message_Handlers.Message_Handler;
+
+      Servant : constant PolyORB.MOMA_P.Provider.Message_Handler.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Handler.Object;
+
       Servant_Ref : PolyORB.References.Ref;
+
+      Error : Error_Container;
 
    begin
       Initiate_Servant (Servant,
-                        MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
-                        Servant_Ref);
-      MOMA.Provider.Message_Handler.Initialize (Servant, Self);
+                        Servant_Ref,
+                        Error);
+
+      if Found (Error) then
+         PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      PolyORB.MOMA_P.Provider.Message_Handler.Initialize (Servant, Self);
 
       Self.Message_Cons := Message_Cons;
       Self.Servant_Ref := Servant_Ref;
@@ -119,7 +133,7 @@ package body MOMA.Message_Handlers is
 
    procedure Get_Call_Back_Data
      (Self : access Message_Handler;
-      Data : out PolyORB.Annotations.Note'Class) is
+      Data :    out PolyORB.Annotations.Note'Class) is
    begin
       Get_Note (Self.Call_Back_Data, Data);
    end Get_Call_Back_Data;
@@ -139,8 +153,9 @@ package body MOMA.Message_Handlers is
    -- Get_Handler --
    -----------------
 
-   function  Get_Handler (Self : access Message_Handler)
-                         return Handler is
+   function  Get_Handler
+     (Self : access Message_Handler)
+     return Handler is
    begin
       return Self.Handler_Procedure;
    end Get_Handler;
@@ -149,8 +164,9 @@ package body MOMA.Message_Handlers is
    -- Get_Notifier --
    ------------------
 
-   function Get_Notifier (Self : access Message_Handler)
-                         return Notifier is
+   function Get_Notifier
+     (Self : access Message_Handler)
+     return Notifier is
    begin
       return Self.Notifier_Procedure;
    end Get_Notifier;
@@ -184,8 +200,9 @@ package body MOMA.Message_Handlers is
          PolyORB.Any.NVList.Add_Item
            (Arg_List,
             To_PolyORB_String ("Behavior"),
-            To_Any (To_PolyORB_String
-                    (Call_Back_Behavior'Image (Self.Behavior))),
+            PolyORB.Any.To_Any
+            (To_PolyORB_String (Call_Back_Behavior'Image (Self.Behavior))),
+
             PolyORB.Any.ARG_IN);
 
          Result := (Name      => To_PolyORB_String ("Result"),
@@ -214,7 +231,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in MOMA.Types.Call_Back_Behavior)
+      New_Behavior   : in     MOMA.Types.Call_Back_Behavior)
    is
       Previous_Behavior :
         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
@@ -231,7 +248,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Call_Back_Data
      (Self : access Message_Handler;
-      Data : PolyORB.Annotations.Note'Class) is
+      Data :        PolyORB.Annotations.Note'Class) is
    begin
       Set_Note (Self.Call_Back_Data, Data);
    end Set_Call_Back_Data;
@@ -242,10 +259,11 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in Handler;
-      Handle_Behavior         : Boolean := False) is
+      New_Handler_Procedure   : in     Handler;
+      Handle_Behavior         :        Boolean := False) is
    begin
       Self.Handler_Procedure := New_Handler_Procedure;
+
       if Handle_Behavior then
          Set_Behavior (Self, Handle);
       end if;
@@ -257,10 +275,11 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in Notifier;
+      New_Notifier_Procedure  : in     Notifier;
       Notify_Behavior         : Boolean := False) is
    begin
       Self.Notifier_Procedure := New_Notifier_Procedure;
+
       if Notify_Behavior then
          Set_Behavior (Self, Notify);
       end if;
@@ -272,7 +291,8 @@ package body MOMA.Message_Handlers is
 
    procedure Template_Handler
      (Self     : access Message_Handler;
-      Message  : MOMA.Messages.Message'Class) is
+      Message  :        MOMA.Messages.Message'Class)
+   is
       Id : constant String :=
         MOMA.Types.To_Standard_String (MOMA.Messages.Get_Message_Id (Message));
 
@@ -289,10 +309,12 @@ package body MOMA.Message_Handlers is
    -- Template_Notifier --
    -----------------------
 
-   procedure Template_Notifier (Self : access Message_Handler) is
+   procedure Template_Notifier (Self : access Message_Handler)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Message_Handler is being notified of a message"));
       null;

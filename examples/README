@@ -8,7 +8,8 @@ $Id$
 This directory contains a few demonstration of PolyORB's capabilities.
 It is organized around PolyORB application personnalities
 
- common/  : common files used by the different demos,
+ aws/     : AWS demos,
+ bbs/     : Interoperability demo between CORBA and DSA middleware,
  corba/   : CORBA demos,
  dsa/     : Ada 95 Distributed System Annex demos,
  moma/    : MOMA demo,

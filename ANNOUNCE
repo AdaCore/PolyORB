@@ -1,0 +1,136 @@
+Announcing the release of PolyORB 1.0p
+======================================
+
+Ada Core Technologies, ACT Europe, and the PolyORB team are proud to
+announce the first public release of PolyORB:
+  PolyORB 1.0p (http://libre.act-europe.fr/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. It includes:
+
+* an IDL to Ada 95 compiler,
+
+* implementations of the
+  Portable Object Adapter (POA),
+  Dynamic Skeleton Interface (DSI),
+  Dynamic Invocation Interface (DII),
+  and Interface Repository (IR),
+
+* implementations of the COS Naming, COS Event and COS Time services,
+
+* implementations of GIOP 1.0, 1.1, and 1.2.
+
+This CORBA implementation can be configured for full tasking,
+Ravenscar tasking or no tasking runtime, depending on the level of
+desired functionality for the application, and on the resource
+constraints for the target.
+
+This release should be considered as a stable implementation of CORBA
+middleware over PolyORB.
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. They will be included in future
+releases.
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud, and
+Laurent Pautet (Télécom Paris), and Thomas Quinot (ACT Europe).
+Fabrice Kordon (LIP6) also participates in the project.
+
+----------------------------------------------------------------------
+
+			       POLYORB
+
+Distributed applications and middleware
+---------------------------------------
+
+PolyORB aims at providing a uniform solution to build distributed
+applications; relying either on industrial-strength middleware
+standards such as CORBA, the Distributed System Annex of Ada 95,
+distribution programming paradigms such as Web Services, Message
+Oriented Middleware (MOM), or to implement application-specific
+middleware.
+
+Middleware provides a framework that hides the complex issues of
+distribution, and offers the programmer high-level abstractions that
+allow easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications. These standards define two subsystems that
+enable interaction between application partitions:
+
+    * the API seen by the developer's applicative objects;
+
+    * the protocol used by the middleware environment to interact with
+      other nodes in the distributed application.
+
+Middleware implementations also offer programming guidelines as well as
+development tools to ease the construction of large heterogeneous
+distributed systems. Many issues typical to distributed programming may
+still arise: application architectural choice, configuration
+or deployment. Since there is no "one size fits all" architecture,
+choosing the adequate distribution middleware in its most appropriate
+configuration is a key design point that dramatically impacts the
+design and performance of an application.
+
+Consequently, applications need to rapidly tailor middleware to the
+specific distribution model they require. A distribution model is
+defined by the combination of distribution mechanisms made available
+to the application. Common examples of such mechanisms are Remote
+Procedure Call (RPC), Distributed Objects or Message Passing. A
+distribution infrastructure or middleware refers to software that
+supports one (or several) distribution model, e.g.: OMG CORBA, Java
+Remote Method Invocation (RMI), the Distributed System Annex of Ada
+95, Java Message Service (MOM).
+
+
+PolyORB: a generic middleware with an instance per distribution model
+---------------------------------------------------------------------
+
+Typical middleware implementations for one platform support only one
+set of such interfaces, pre-defined configuration capabilities and
+cannot interoperate with other platforms. In addition to traditional
+middleware implementations, PolyORB proposes an original architecture
+to enable support for multiple interoperating distribution models in a
+uniform canvas.
+
+PolyORB is a polymorphic, reusable infrastructure for building or
+prototyping new middleware adapted to specific application needs. It
+provides a set of components on top of which various instances can be
+elaborated. These instances (or personalities) are views on PolyORB
+facilities that are compliant to existing standards, either at the API
+level (application personality) or at the protocol level (protocol
+personality). These personalities are mutually exclusive views of the
+same architecture.
+
+The decoupling of application and protocol personalities, and the
+support for multiple simultaneous personalities within the same
+running middleware, are key features required for the construction of
+interoperable distributed applications. This allows PolyORB to
+communicate with middleware that implement different distribution
+standards: PolyORB provides middleware-to-middleware interoperability
+(M2M).
+
+PolyORB's modularity allows for easy extension and replacement of its
+core and personality components, in order to meet specific requirements.
+In this way, standard or application-specific personalities can be
+created in a streamlined process, from early stage prototyping to
+full-featured implementation. The PolyORB architecture also allows
+the automatic, just-in-time creation of proxies between incompatible
+environments.
+
+PolyORB currently supports the following personalities (in the main
+development branch, available through CVS access):
+
+    * application personalities: CORBA, Distributed System Annex of
+      Ada 95 (DSA), MOMA - MOM for Ada. Interaction between CORBA and
+      DSA partitions has been successfully tested;
+
+    * protocol personalities: SOAP, GIOP (CORBA generic protocol
+      layer) and the following instantiations: IIOP (over TCP/IP), DIOP
+      (over UDP/IP for oneway requests), and MIOP/UIPMC (group
+      communication over multicast/IP)
+
+    * under development: Web Services personality, an adaptation of
+      the AWS API to PolyORB.
+
+Note: PolyORB is the project formerly known as DROOPI, a Distributed
+Reusable Object-Oriented Polymorphic Infrastructure.

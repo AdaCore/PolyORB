@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
+
+with System;
+
+with PolyORB.Opaque; use PolyORB.Opaque;
 
 package body PolyORB.Utils.Buffers is
 
@@ -38,12 +43,16 @@ package body PolyORB.Utils.Buffers is
    -- Rev --
    ---------
 
-   function Rev (Octets : Stream_Element_Array) return Stream_Element_Array is
+   function Rev
+     (Octets : Stream_Element_Array)
+     return Stream_Element_Array
+   is
       Result : Stream_Element_Array (Octets'Range);
    begin
-      for I in Octets'Range loop
-         Result (Octets'Last - I + Octets'First) := Octets (I);
+      for J in Octets'Range loop
+         Result (Octets'Last - J + Octets'First) := Octets (J);
       end loop;
+
       return Result;
    end Rev;
 
@@ -53,9 +62,8 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
-   is
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type := 1) is
    begin
       if Endianness (Buffer.all) = Big_Endian then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
@@ -70,10 +78,9 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array
-   is
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type := 1)
+     return Stream_Element_Array is
    begin
       if Endianness (Buffer.all) = Big_Endian then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
@@ -89,9 +96,8 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
-   is
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type := 1) is
    begin
       if Endianness (Buffer.all) = Host_Order then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
@@ -106,10 +112,9 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
-     return Stream_Element_Array
-   is
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type := 1)
+     return Stream_Element_Array is
    begin
       if Endianness (Buffer.all) = Host_Order then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
@@ -125,8 +130,8 @@ package body PolyORB.Utils.Buffers is
 
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : in Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Octets    : in     Stream_Element_Array;
+      Alignment :        Alignment_Type := 1)
    is
       Data_Address : Opaque_Pointer;
    begin
@@ -137,9 +142,10 @@ package body PolyORB.Utils.Buffers is
          Data_Address);
 
       declare
-         subtype Z_Type is Stream_Element_Array (Octets'Range);
-         Z : Z_Type;
-         for Z'Address use Data_Address;
+         Z_Addr : constant System.Address := Data_Address;
+         Z : Stream_Element_Array (Octets'Range);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
       begin
          Z := Octets;
       end;
@@ -151,8 +157,8 @@ package body PolyORB.Utils.Buffers is
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type := 1)
      return Stream_Element_Array
    is
       Data_Address : Opaque_Pointer;
@@ -160,9 +166,10 @@ package body PolyORB.Utils.Buffers is
       Align_Position (Buffer, Alignment);
       Extract_Data (Buffer, Data_Address, Size);
       declare
-         subtype Z_Type is Stream_Element_Array (0 .. Size - 1);
-         Z : Z_Type;
-         for Z'Address use Data_Address;
+         Z_Addr : constant System.Address := Data_Address;
+         Z : Stream_Element_Array (0 .. Size - 1);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
       begin
          return Z;
       end;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,7 +44,8 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -- Create --
    ------------
 
-   function Create return ORB_Ctrl_Policy_Access is
+   function Create
+     return ORB_Ctrl_Policy_Access is
    begin
       return new ORB_Ctrl_Policy;
    end Create;
@@ -68,20 +70,20 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : ORB_Ctrl_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        ORB_Ctrl_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
 
    begin
       null;
       --  No rule to test.
 
-      --  XXX should we test that Father's POA thread policy is not
-      --  Single or Main thread ?
    end Check_Compatibility;
 
    ------------------------------
@@ -90,8 +92,8 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    function Handle_Request_Execution
      (Self      : access ORB_Ctrl_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with PolyORB.Configuration;
+with PolyORB.Parameters;
 
 with Test_Suite.Test_Case.Local;
 with Test_Suite.Test_Case.Client_Server;
@@ -41,7 +40,7 @@ package body Test_Suite.Test_Case.Parser is
 
    use Ada.Strings.Unbounded;
 
-   use PolyORB.Configuration;
+   use PolyORB.Parameters;
 
    use Test_Suite.Test_Case.Local;
    use Test_Suite.Test_Case.Client_Server;
@@ -60,11 +59,11 @@ package body Test_Suite.Test_Case.Parser is
 
       Test_Id : constant String := Natural'Image (Number);
 
-      Test_Name : constant String :=
-        Scenario & "_" & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
+      Test_Name : constant String
+        := Scenario & "_" & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
 
-      Section : constant String :=
-        "test " & Test_Name;
+      Section : constant String
+        := "test " & Test_Name;
 
       Id_S         : constant String := Get_Conf (Section, "id");
       Test_Type_S  : constant String := Get_Conf (Section, "type");
@@ -72,6 +71,7 @@ package body Test_Suite.Test_Case.Parser is
 
    begin
       --  Is there a test to extract ?
+
       if Id_S = "" and then Test_Type_S = "" then
          declare
             Result : Null_Test;
@@ -85,7 +85,8 @@ package body Test_Suite.Test_Case.Parser is
       Log (Output, " Id      : " & Id_S);
       Log (Output, " Type    : " & Test_Type_S);
 
-      --  Test timeout.
+      --  Test timeout
+
       declare
          Timeout_S : constant String := Get_Conf (Section, "timeout");
       begin
@@ -99,7 +100,8 @@ package body Test_Suite.Test_Case.Parser is
 
       Separator (Output);
 
-      --  Test type.
+      --  Test type
+
       if Test_Type_S = "local" then
          declare
             Command_S : constant String := Get_Conf (Section, "command");
@@ -107,13 +109,16 @@ package body Test_Suite.Test_Case.Parser is
 
             Result : Local_Test;
          begin
-            --  Test Id.
+            --  Test Id
+
             Result.Id := To_Unbounded_String (Id_S);
 
-            --  Test timeout.
+            --  Test timeout
+
             Result.Timeout := Timeout;
 
-            --  Test executable.
+            --  Test executable
+
             Result.Exec.Command := To_Unbounded_String (Command_S);
             Result.Exec.Conf := To_Unbounded_String (Config_S);
 
@@ -126,31 +131,34 @@ package body Test_Suite.Test_Case.Parser is
               := "client " & Scenario & "_"
               & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
 
-            Client_S : constant String :=
-              Get_Conf (Client_Section, "command");
+            Client_S : constant String
+              := Get_Conf (Client_Section, "command");
 
-            Client_Config_S : constant String :=
-              Get_Conf (Client_Section, "config_file");
+            Client_Config_S : constant String
+              := Get_Conf (Client_Section, "config_file");
 
             Server_Section : constant String
               := "server " & Scenario & "_"
               & Test_Id (Test_Id'First + 1 .. Test_Id'Last);
 
-            Server_S : constant String :=
-              Get_Conf (Server_Section, "command");
+            Server_S : constant String
+              := Get_Conf (Server_Section, "command");
 
-            Server_Config_S : constant String :=
-              Get_Conf (Server_Section, "config_file");
+            Server_Config_S : constant String
+              := Get_Conf (Server_Section, "config_file");
 
             Result : Client_Server_Test;
          begin
-            --  Test Id.
+            --  Test Id
+
             Result.Id := To_Unbounded_String (Id_S);
 
-            --  Test timeout.
+            --  Test timeout
+
             Result.Timeout := Timeout;
 
-            --  Test executables.
+            --  Test executables
+
             Result.Server.Command := To_Unbounded_String (Server_S);
             Result.Server.Conf := To_Unbounded_String (Server_Config_S);
 
@@ -166,6 +174,5 @@ package body Test_Suite.Test_Case.Parser is
       end if;
 
    end Extract_Test;
-
 
 end Test_Suite.Test_Case.Parser;

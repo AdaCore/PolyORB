@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,8 +40,9 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-with PolyORB.Sequences.Unbounded;
-pragma Elaborate (PolyORB.Sequences.Unbounded);
+
+with CORBA.Sequences.Unbounded;
+pragma Elaborate (CORBA.Sequences.Unbounded);
 
 package CORBA.ContextList is
 
@@ -71,7 +78,7 @@ package CORBA.ContextList is
 private
    --  The actual implementation of an ExceptionList:
    --  a list of CORBA.String
-   package Context_Sequence is new PolyORB.Sequences.Unbounded (CORBA.String);
+   package Context_Sequence is new CORBA.Sequences.Unbounded (CORBA.String);
 
    type Object is new CORBA.Impl.Object with record
      List : Context_Sequence.Sequence := Context_Sequence.Null_Sequence;

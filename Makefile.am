@@ -1,21 +1,19 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
 
-corba_dir =
-dsa_dir   =
-moma_dir  =
+corba_dir      = idls cos
+dsa_dir        =
+moma_dir       =
+web_common_dir =
 
-giop_dir  =
-soap_dir  =
-srp_dir   =
+giop_dir       =
+soap_dir       =
+srp_dir        =
 
-if DEBUG
-SUBDIRS = compilers idls src cos examples testsuite @APPLI_DIRS@ @PROTO_DIRS@
-else
-SUBDIRS = compilers idls src cos examples @APPLI_DIRS@ @PROTO_DIRS@
-endif
+SUBDIRS = support compilers src @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@  tools
 
 CLEANFILES = config-stamp
+DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
 
 depend:
 	cd src && ${MAKE} depend
@@ -24,5 +22,5 @@ run_tests:
 	cd testsuite && ${MAKE} run_tests
 
 install-exec-local:
-	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
-	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(exec_prefix)/bin/polyorb-config
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(bindir)/polyorb-config

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,18 +38,16 @@
 
 with MOMA.Types;
 
-with PolyORB.Configuration;
-
 package MOMA.Configuration is
 
-   procedure Load_Configuration_File (Conf_File_Name : String)
-    renames PolyORB.Configuration.Load_Configuration_File;
-   --  Load the content of 'Conf_File_Name' into PolyORB configuration table.
+   procedure Load_Configuration_File (Conf_File_Name : String);
+   --  Load the content of Conf_File_Name into PolyORB configuration table.
 
    --  Accessors to MOMA destination configuration files data.
 
-   function Get_Message_Pool (Number : Natural)
-                              return MOMA.Types.Message_Pool;
+   function Get_Message_Pool
+     (Number : Natural)
+     return MOMA.Types.Message_Pool;
    --  Get information about message pool #Number.
 
 end MOMA.Configuration;

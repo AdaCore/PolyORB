@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                        I D L _ F E . P A R S E R                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#15 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -553,6 +562,37 @@ package body Idl_Fe.Parser is
                   end;
             end case;
 
+         when T_Local =>
+            case View_Next_Token is
+               when T_Interface =>
+                  Parse_Interface (Result, Success);
+                  if not Success then
+                     pragma Debug (O2 ("Parse_Definition: end"));
+                     return;
+                  end if;
+
+               when others =>
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + 6;
+                     Errors.Error
+                       (Ada.Characters.Latin_1.Quotation &
+                        "interface" &
+                        Ada.Characters.Latin_1.Quotation &
+                        " expected after the local keyword.",
+                        Errors.Error,
+                        Get_Token_Location);
+                     Success := False;
+                     Result := No_Node;
+                     --  consumes T_Local
+                     Next_Token;
+                     pragma Debug (O2 ("Parse_Definition: end"));
+                     return;
+                  end;
+            end case;
+
          when T_Interface =>
             Parse_Interface (Result, Success);
             if not Success then
@@ -802,11 +842,19 @@ package body Idl_Fe.Parser is
       --  is the interface abstracted
       if Get_Token = T_Abstract then
          Set_Abst (Res, True);
+         Set_Local (Res, False);
+         --  the T_Interface token should "interface"
+         --  (it is already checked)
+         Next_Token;
+      elsif Get_Token = T_Local then
+         Set_Abst (Res, False);
+         Set_Local (Res, True);
          --  the T_Interface token should "interface"
          --  (it is already checked)
          Next_Token;
       else
          Set_Abst (Res, False);
+         Set_Local (Res, False);
       end if;
       Set_Location (Res, Get_Token_Location);
       Set_Initial_Current_Prefix (Res);
@@ -1088,6 +1136,14 @@ package body Idl_Fe.Parser is
                         Errors.Error
                           ("An abstract interface may not inherit from " &
                            "a statefull one.",
+                           Errors.Error,
+                           Get_Token_Location);
+                     end if;
+                     --  verify XXX
+                     if not Local (Result) and Local (Value (Name)) then
+                        Errors.Error
+                          ("An unconstrained interface may not inherit from " &
+                           "a local interface.",
                            Errors.Error,
                            Get_Token_Location);
                      end if;
@@ -1737,7 +1793,7 @@ package body Idl_Fe.Parser is
       Result := Make_ValueType (Get_Previous_Token_Location);
       Set_Abst (Result, Abst);
       Set_Custom (Result, Custom);
-      if (Abst or else Custom) then
+      if Abst or else Custom then
          Set_Location (Result, Get_Previous_Previous_Token_Location);
       else
          Set_Location (Result, Get_Previous_Token_Location);
@@ -4218,26 +4274,26 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Boolean_Literal;
 
-   --------------------------------
-   --  Parse_Positive_Int_Const  --
-   --------------------------------
+   ------------------------------
+   -- Parse_Positive_Int_Const --
+   ------------------------------
+
    procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
       C_Type : Constant_Value_Ptr
         := new Constant_Value (Kind => C_General_Integer);
    begin
-      --  here we can not call parse_const_exp directly since we
-      --  don't have a node specifying the type of the constant
-      --  So, we call parse_or_exp and check the result
+
+      --  We cannot call Parse_Const_Exp directly, since we do
+      --  not have a node specifying the type of the constant,
+      --  so we call Parse_Or_Expr, and then check the result
+      --  against the unsigned type bounds.
+
       Parse_Or_Expr (Result, Success, C_Type);
-      if Expr_Value (Result).Integer_Value < Idl_ULongLong_Min then
-         Errors.Error
-           ("The specified type for this integer constant " &
-            "does not allow a negative value",
-            Errors.Error,
-            Get_Token_Location);
-      end if;
-      if Expr_Value (Result).Integer_Value > Idl_ULongLong_Max then
+      if Success
+        and then Expr_Value (Result).Integer_Value
+        not in Idl_ULongLong_Min .. Idl_ULongLong_Max
+      then
          Errors.Error
            ("The specified type for this integer constant " &
             "does not allow this value",

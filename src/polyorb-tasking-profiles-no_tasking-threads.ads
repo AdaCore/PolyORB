@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,15 +48,14 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    type No_Tasking_Thread_Type is
      new PTT.Thread_Type with private;
 
+   type No_Tasking_Thread_Access is
+     access all No_Tasking_Thread_Type'Class;
+
    function Get_Thread_Id
      (T : access No_Tasking_Thread_Type)
      return PTT.Thread_Id;
-   --  This function has no sense in No_Tasking profile,
-   --  as this profile provides no way to manipulate a Thread_Type.
-   --  It simply raises a Tasking.Tasking_Profile_Error.
-
-   type No_Tasking_Thread_Access
-      is access all No_Tasking_Thread_Type'Class;
+   --  Under No_Tasking profile, this function simply return
+   --  Null_Thread_Id.
 
    -------------------------------
    -- No_Tasking_Thread_Factory --
@@ -88,20 +88,33 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking.Tasking_Profile_Error.
 
-   procedure Set_Priority
-     (TF : access No_Tasking_Thread_Factory_Type;
-      T  : PTT.Thread_Id;
-      P  : System.Any_Priority);
-   --  This procedure does nothing in this profile.
-
    function Get_Current_Thread_Id
      (TF : access No_Tasking_Thread_Factory_Type)
      return PTT.Thread_Id;
+   --  Under No_Tasking profile, this function simply return
+   --  Null_Thread_Id.
 
    function Thread_Id_Image
      (TF  : access No_Tasking_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
+   --  Under No_Tasking profile, this function simply return
+   --  "main_task".
+
+   procedure Set_Priority
+     (TF : access No_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+   pragma No_Return (Set_Priority);
+   --  Setting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   function Get_Priority
+     (TF : access No_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+   --  Getting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
 
 private
 

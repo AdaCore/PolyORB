@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,37 +26,47 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with PolyORB.Configuration;
 with PolyORB.Log;
+with PolyORB.Parameters.File;
 
 with MOMA.Types;
 
 package body MOMA.Configuration is
 
-   use PolyORB.Configuration;
    use PolyORB.Log;
-
-   use MOMA.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.configuration");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   -----------------------------
+   -- Load_Configuration_File --
+   -----------------------------
+
+   procedure Load_Configuration_File (Conf_File_Name : String) is
+   begin
+      PolyORB.Parameters.File.Load_Configuration_File (Conf_File_Name);
+   end Load_Configuration_File;
+
    ----------------------
    -- Get_Message_Pool --
    ----------------------
 
-   function Get_Message_Pool (Number : Natural)
-                              return MOMA.Types.Message_Pool
+   function Get_Message_Pool
+     (Number : Natural)
+     return MOMA.Types.Message_Pool
    is
-      Section : constant String
-        := "destination" & Natural'Image (Number);
+      use PolyORB.Parameters;
+      use MOMA.Types;
+
+      Section : constant String := "destination" & Natural'Image (Number);
 
       Pool_S : constant String := Get_Conf (Section, "type");
       Persistent_S : constant String := Get_Conf (Section, "persistent");
@@ -72,8 +82,10 @@ package body MOMA.Configuration is
 
       if Pool_S = "queue" then
          Set_Type (Result, Queue);
+
       elsif Pool_S = "topic" then
          Set_Type (Result, Topic);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...
@@ -81,8 +93,10 @@ package body MOMA.Configuration is
 
       if Persistent_S = "none" then
          Set_Persistence (Result, None);
+
       elsif Persistent_S = "file" then
-         Set_Persistence (Result, File);
+         Set_Persistence (Result, MOMA.Types.File);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...

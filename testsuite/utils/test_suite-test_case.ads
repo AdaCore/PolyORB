@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -49,27 +50,28 @@ package Test_Suite.Test_Case is
       Id         : Unbounded_String;
       Timeout    : Integer := 0;
    end record;
-   --  Base type for all test.
+   --  Base type for all test
 
    function Run_Test
      (Test_To_Run : Test;
       Output      : Test_Suite_Output'Class)
       return Boolean is abstract;
-   --  Test process associated to a test.
+   --  Test process associated to a test
 
    type Null_Test is new Test with private;
+
    function Run_Test
      (Test_To_Run : Null_Test;
       Output      : Test_Suite_Output'Class)
      return Boolean;
-   --  A 'Null_Test' that does nothing; raises 'Program_Error' if run.
+   --  Null_Test does nothing; raises 'Program_Error' if run
 
    type Executable is record
       Command  : Unbounded_String;
-      --  Command to run.
+      --  Command to run
 
       Conf     : Unbounded_String;
-      --  Associated configuration file if required.
+      --  Associated configuration file if required
    end record;
 
    function Create

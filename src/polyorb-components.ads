@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Abstract components communicating through synchronous messages.
 
 --  $Id$
-
-with Ada.Finalization;
 
 with PolyORB.Sequences.Unbounded;
 
@@ -52,9 +51,7 @@ package PolyORB.Components is
 
    type Null_Message is new Message with private;
 
-   type Component is
-     abstract new Ada.Finalization.Limited_Controlled
-     with private;
+   type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
 
    Unhandled_Message : exception;
@@ -64,13 +61,13 @@ package PolyORB.Components is
 
    procedure Set_Allocation_Class
      (C   : in out Component'Class;
-      CAC : Component_Allocation_Class);
+      CAC :        Component_Allocation_Class);
    --  Set C's allocation class to be CAC.
    --  Its current class must be Auto (the default).
 
    function Handle_Message
      (C : access Component;
-      M : Message'Class)
+      M :        Message'Class)
      return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
@@ -84,8 +81,8 @@ package PolyORB.Components is
    --  to a component, Emit or Emit_No_Reply must be used.
 
    procedure Connect
-     (Port : out Component_Access;
-      Target : Component_Access);
+     (Port   : out Component_Access;
+      Target :     Component_Access);
    --  Connect Port to Target: when Port is emitted with message
    --  M, Target receives M.
 
@@ -101,8 +98,11 @@ package PolyORB.Components is
    --  Emit message Msg on Port. The expected reply must be
    --  Null_Message, and will be discarded.
 
+   procedure Destroy (C : in out Component);
+   --  Destroy component C.
+
    procedure Destroy (C : in out Component_Access);
-   --  Destroy C.
+   --  Destroy the component designated by C and deallocate it.
 
    -------------------------
    -- Component factories --
@@ -122,12 +122,12 @@ package PolyORB.Components is
 
    procedure Subscribe
      (G      : in out Group;
-      Target : Component_Access);
+      Target :        Component_Access);
    --  Subscribe Target to group G.
 
    procedure Unsubscribe
      (G      : in out Group;
-      Target : Component_Access);
+      Target :        Component_Access);
    --  Unsubscribe Target from group G.
 
    type Multicast_Group is new Group with private;
@@ -146,8 +146,7 @@ private
    type Null_Message is new Message with null record;
 
    type Component is
-     abstract new Ada.Finalization.Limited_Controlled
-     with record
+     abstract tagged limited record
         Allocation_Class : Component_Allocation_Class := Auto;
      end record;
 
@@ -164,14 +163,14 @@ private
 
    function Handle_Message
      (Grp : access Multicast_Group;
-      Msg : Message'Class)
+      Msg :        Message'Class)
      return Message'Class;
 
    type Anycast_Group is new Group with null record;
 
    function Handle_Message
      (Grp : access Anycast_Group;
-      Msg : Message'Class)
+      Msg :        Message'Class)
      return Message'Class;
 
 end PolyORB.Components;

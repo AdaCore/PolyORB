@@ -1,36 +1,49 @@
-include $(srcdir)/../../Makefile.common
+include $(top_srcdir)/idls/Makefile.common
 
-CosNaming_IDL=$(srcdir)/CosNaming.idl
-CosNaming_GEN= \
-  cosnaming-bindingiterator-helper.adb \
+alidir = $(includedir)/polyorb/corba/cos
+
+IDL=$(srcdir)/CosNaming.idl
+
+COS_ADAFLAGS = -I$(top_srcdir)/cos/naming
+
+GEN_SPECS_WITH_BODY= \
   cosnaming-bindingiterator-helper.ads \
-  cosnaming-bindingiterator-skel.adb \
   cosnaming-bindingiterator-skel.ads \
-  cosnaming-bindingiterator-stream.adb \
-  cosnaming-bindingiterator-stream.ads \
-  cosnaming-bindingiterator.adb \
   cosnaming-bindingiterator.ads \
-  cosnaming-helper.adb \
   cosnaming-helper.ads \
-  cosnaming-namingcontext-helper.adb \
   cosnaming-namingcontext-helper.ads \
-  cosnaming-namingcontext-skel.adb \
   cosnaming-namingcontext-skel.ads \
-  cosnaming-namingcontext-stream.adb \
-  cosnaming-namingcontext-stream.ads \
-  cosnaming-namingcontext.adb \
-  cosnaming-namingcontext.ads \
-  cosnaming-stream.adb \
-  cosnaming-stream.ads \
-  cosnaming.ads \
-  cosnaming_idl_file.ads
+  cosnaming-namingcontext.ads
 
-DEPS=$(CosNaming_GEN)
+GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 
-CLEANFILES+=	stamp-gen
+GEN_SPECS_NO_BODY= \
+  cosnaming.ads
 
-$(CosNaming_GEN): stamp-gen
+GEN= \
+        $(GEN_SPECS_NO_BODY) \
+        $(GEN_SPECS_WITH_BODY)
 
-stamp-gen: $(CosNaming_IDL) $(IDLAC)
-	touch stamp-gen
-	$(IDLAC) $(CosNaming_IDL) -I$(srcdir)
+$(GEN): $(IDL) $(IDLAC)
+	$(IDLAC) $(IDL) -I$(srcdir)
+	touch $@
+
+$(GEN_BODIES): $(GEN)
+
+DISTCLEANFILES += $(GEN) $(GEN_BODIES)
+
+#
+# Building libpolyorb-corba-cos-naming library
+#
+
+ADA_SPECS_WITH_BODY = \
+        $(GEN_SPECS_WITH_BODY)
+
+ADA_SPECS_NO_BODY = \
+        $(GEN_SPECS_NO_BODY)
+
+lib_LTLIBRARIES = libpolyorb-corba-cos-naming.la
+
+libpolyorb_corba_cos_naming_la_SOURCES = $(GEN_BODIES)
+libpolyorb_corba_cos_naming_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_naming_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

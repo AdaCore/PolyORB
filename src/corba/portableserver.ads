@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,34 +31,46 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with PolyORB.Components;
-with PolyORB.Objects;
+with Ada.Exceptions;
 
-with CORBA;
+with CORBA.Forward;
+pragma Elaborate_All (CORBA.Forward);
+
+with CORBA.Impl;
+with CORBA.Object;
+with CORBA.ServerRequest;
+with CORBA.Sequences.Unbounded;
 
 pragma Warnings (Off);              --  WAG:3.15
 with PolyORB.Any;                   --  WAG:3.15
 pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
 pragma Warnings (On);               --  WAG:3.15
 
-with CORBA.Object;
-with CORBA.Impl;
-with CORBA.Forward;
-pragma Elaborate_All (CORBA.Forward);
-
-with CORBA.ServerRequest;
+with PolyORB.Components;
+with PolyORB.Objects;
 
 package PortableServer is
 
    pragma Elaborate_Body;
 
+   --  forward declaration
+
    package POA_Forward is new CORBA.Forward;
+
+   package IDL_Sequence_POA_Forward is new
+     CORBA.Sequences.Unbounded (POA_Forward.Ref);
+
+   subtype POAList is IDL_Sequence_POA_Forward.Sequence;
+
+   ForwardRequest : exception;
+   NotAGroupObject : exception;
 
    ---------------------------
    -- DynamicImplementation --
@@ -82,13 +99,19 @@ package PortableServer is
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
 
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in     CORBA.ServerRequest.Object_Ptr);
+
+   --  XXX What is the status of these commented spec ?
+
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
    --  pragma Convention (Intrinsic, "=");
 
-   function Get_Default_POA
-     (For_Servant : Servant_Base)
-     return POA_Forward.Ref;
+   --  function Get_Default_POA
+   --   (For_Servant : Servant_Base)
+   --    return POA_Forward.Ref;
 
    --     function Get_Interface
    --       (For_Servant : Servant_Base)
@@ -110,30 +133,23 @@ package PortableServer is
    type ObjectId is new PolyORB.Objects.Object_Id;
 
    function String_To_ObjectId (Id : String) return ObjectId;
-   --  Convert string 'Id' into an ObjectID.
+   --  Convert string Id into an ObjectID.
 
    function ObjectId_To_String (Id : ObjectId) return String;
-   --  Convert ObjectId 'Id' into a string.
+   --  Convert ObjectId Id into a string.
 
    --  XXX these functions are not defined in the CORBA specification,
    --  but defined in various C++ ORB implementation. Moreover, how
    --  can we build an ObjectId without such a conversion function ?
 
-   ------------------------------
-   -- Exception ForwardRequest --
-   ------------------------------
+   type ObjectId_Access is access ObjectId;
 
-   ForwardRequest : exception;
+   package Sequence_IDs
+   is new CORBA.Sequences.Unbounded (ObjectId_Access);
+   --  Implementation note: ObjectId is an unconstrained
+   --  type. Instead, we instantiate a sequence of ObjectId_Access.
 
-   type ForwardRequest_Members is
-     new CORBA.IDL_Exception_Members with
-      record
-         Forward_Reference : CORBA.Object.Ref;
-      end record;
-
-   procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
-      To   : out ForwardRequest_Members);
+   type IDs is new Sequence_IDs.Sequence;
 
    ---------------
    -- Constants --
@@ -177,86 +193,139 @@ package PortableServer is
       USE_DEFAULT_SERVANT,
       USE_SERVANT_MANAGER);
 
+   ------------------------------------------
+   -- PortableServer Exceptions Management --
+   ------------------------------------------
+
+   type ForwardRequest_Members is new CORBA.IDL_Exception_Members with record
+      Forward_Reference : CORBA.Object.Ref;
+   end record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ForwardRequest_Members);
+
+   procedure Raise_ForwardRequest
+     (Excp_Memb : in ForwardRequest_Members);
+   pragma No_Return (Raise_ForwardRequest);
+
+   type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NotAGroupObject_Members);
+
+   procedure Raise_NotAGroupObject
+     (Excp_Memb : in NotAGroupObject_Members);
+   pragma No_Return (Raise_NotAGroupObject);
+
+   --  XXX What is the status of this comment ??
+
+   --  Calling ForwardRequest does not increase the usage counter of
+   --  REFERENCE.  As a result, the user must ensure not to release
+   --  REFERENCE while the exception is processed.
+   --  There is a dilemna here:
+   --  - if we increase the counter, the usage counter will never
+   --    be decreased if get_members is not called
+   --  - if we do not increase it, the object may be deleted
+   --    before the exception is caught.
+
    -----------------------------
    -- Helpers for PolicyValue --
    -----------------------------
 
-   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ThreadPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ThreadPolicyValue;
+   TC_ThreadPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ThreadPolicyValue;
 
    function To_Any
      (Item : in ThreadPolicyValue)
      return CORBA.Any;
 
-   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  LifespanPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return LifespanPolicyValue;
+   TC_LifespanPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return LifespanPolicyValue;
 
    function To_Any
      (Item : in LifespanPolicyValue)
      return CORBA.Any;
 
-   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  IdUniquenessPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return IdUniquenessPolicyValue;
+   TC_IdUniquenessPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdUniquenessPolicyValue;
 
    function To_Any
      (Item : in IdUniquenessPolicyValue)
      return CORBA.Any;
 
-   TC_IdAssignmentPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  IdAssignmentPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return IdAssignmentPolicyValue;
+   TC_IdAssignmentPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdAssignmentPolicyValue;
 
    function To_Any
      (Item : in IdAssignmentPolicyValue)
      return CORBA.Any;
 
-   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ImplicitActivationPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ImplicitActivationPolicyValue;
+   TC_ImplicitActivationPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ImplicitActivationPolicyValue;
 
    function To_Any
      (Item : in ImplicitActivationPolicyValue)
      return CORBA.Any;
 
-   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ServantRetentionPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ServantRetentionPolicyValue;
+   TC_ServantRetentionPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ServantRetentionPolicyValue;
 
    function To_Any
      (Item : in ServantRetentionPolicyValue)
      return CORBA.Any;
 
-   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  RequestProcessingPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return RequestProcessingPolicyValue;
+   TC_RequestProcessingPolicyValue : constant CORBA.TypeCode.Object;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return RequestProcessingPolicyValue;
 
    function To_Any
      (Item : in RequestProcessingPolicyValue)
      return CORBA.Any;
 
-   --  XXX Old AdaBroker-specific spec, kept here for
-   --  now for easy reference. Please do not remove yet.
-
    -------------------------
    -- Specific to PolyORB --
    -------------------------
+
+   --  XXX Old AdaBroker-specific spec, kept here for
+   --  now for easy reference. Please do not remove yet.
+   --  XXX is the above comment still pertinent ?
 
    function Get_Type_Id (For_Servant : Servant)
      return CORBA.RepositoryId;
@@ -264,7 +333,7 @@ package PortableServer is
    type Request_Dispatcher is access procedure
      (For_Servant : in Servant;
       Request     : in CORBA.ServerRequest.Object_Ptr);
-   --  Same signature as primitive 'Invoke' of type
+   --  Same signature as primitive Invoke of type
    --  DynamicImplementation.
 
    type Servant_Class_Predicate is access function
@@ -284,46 +353,45 @@ package PortableServer is
    --  Dispatcher will be ignored and can be null.
    --  NOTE: This procedure is not thread safe.
 
---    --  Calling ForwardRequest does not increase the usage counter of
---    --  REFERENCE.  As a result, the user must ensure not to release
---    --  REFERENCE while the exception is processed.
---    --  There is a dilemna here:
---    --  - if we increase the counter, the usage counter will never
---    --    be decreased if get_members is not called
---    --  - if we do not increase it, the object may be deleted
---    --    before the exception is caught.
---    procedure Raise_Forward_Request (Reference : in CORBA.Object.Ref);
---    pragma No_Return (Raise_Forward_Request);
-
 private
+
+   TC_ThreadPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_LifespanPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_IdUniquenessPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_IdAssignmentPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_ImplicitActivationPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_ServantRetentionPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
+
+   TC_RequestProcessingPolicyValue : constant CORBA.TypeCode.Object
+     := CORBA.TypeCode.Internals.To_CORBA_Object
+     (PolyORB.Any.TypeCode.TC_Enum);
 
    type DynamicImplementation is
      abstract new CORBA.Impl.Object with null record;
 
    function Execute_Servant
      (Self : access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    type Servant_Base is
      abstract new DynamicImplementation with null record;
-
-   procedure Invoke
-     (Self    : access Servant_Base;
-      Request : in CORBA.ServerRequest.Object_Ptr);
-
-   ---------------------------------------
-   -- Information about a skeleton unit --
-   ---------------------------------------
-
-   type Skeleton_Info is record
-      Type_Id    : CORBA.RepositoryId;
-      Is_A       : Servant_Class_Predicate;
-      Dispatcher : Request_Dispatcher;
-   end record;
-
-   function Find_Info
-     (For_Servant : Servant)
-     return Skeleton_Info;
 
 end PortableServer;

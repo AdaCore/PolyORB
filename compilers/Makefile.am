@@ -1,4 +1,4 @@
-corba_dir = idlac 
+corba_dir = @IDLAC@
 dsa_dir   =
 moma_dir  =
 giop_dir  =

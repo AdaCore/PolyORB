@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with GNAT.Directory_Operations.Iteration;
-with PolyORB.Configuration;
+with PolyORB.Parameters.File;
 
 with Test_Suite.Test_Case.Parser;
 
@@ -49,26 +50,27 @@ package body Test_Suite.Scenarios is
       Output        : Test_Suite_Output'Class)
      return String
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
+      use PolyORB.Parameters.File;
 
    begin
       Load_Configuration_File (Scenario_File);
 
       declare
-         Scenario_Name : constant String :=
-           Get_Conf ("scenario", "name");
+         Scenario_Name : constant String
+           := Get_Conf ("scenario", "name");
 
-         Scenario_Id : constant String :=
-           Get_Conf ("scenario", "id");
+         Scenario_Id : constant String
+           := Get_Conf ("scenario", "id");
 
       begin
          Open_Scenario_Output_Context (Output, Scenario_Name);
+
          Log (Output, "Opening scenario #"
               & Positive'Image (Index)
               & ": "
               & Scenario_Name);
          Log (Output, "Description: " & Scenario_Id);
-         Separator (Output);
 
          return Scenario_Name;
       end;
@@ -88,26 +90,31 @@ package body Test_Suite.Scenarios is
 
       Count : Natural := 0;
 
-      Scenario_Name : constant String :=
-        Open_Scenario (Scenario_File, Index, Output);
+      Scenario_Name : constant String
+        := Open_Scenario (Scenario_File, Index, Output);
 
       Result : Boolean := True;
+
    begin
       loop
          declare
-            Extracted_Test : Test'Class :=
-              Extract_Test (Scenario_Name, Count, Output);
+            Extracted_Test : Test'Class
+              := Extract_Test (Scenario_Name, Count, Output);
+
          begin
             exit when Extracted_Test in Null_Test;
 
             Result := Result and Run_Test (Extracted_Test, Output);
             Count := Count + 1;
+
+            delay 1.0;
          end;
       end loop;
 
       Log (Output, "All tests done in scenario: " & Scenario_Name);
-      Close_Scenario_Output_Context (Output, Result);
+      Separator (Output);
 
+      Close_Scenario_Output_Context (Output, Result);
    end Run_Scenario;
 
    -----------------------
@@ -119,9 +126,9 @@ package body Test_Suite.Scenarios is
       Output         : Test_Suite_Output'Class)
    is
       procedure Run_Scenario_Wrapper
-             (Scenario_File : String;
-              Index         : Positive;
-              Quit          : in out Boolean);
+        (Scenario_File : String;
+         Index         : Positive;
+         Quit          : in out Boolean);
 
       procedure Run_Scenario_Wrapper
         (Scenario_File : String;
@@ -137,7 +144,9 @@ package body Test_Suite.Scenarios is
 
    begin
       Log (Output, "Running all scenario from: " & Directory_Name);
-      Run_Scenario_With_Pattern (Directory_Name, "(.*)\.conf");
+      Separator (Output);
+
+      Run_Scenario_With_Pattern (Directory_Name, "(.*)-(.*)\.conf");
    end Run_All_Scenarios;
 
 end Test_Suite.Scenarios;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -77,7 +78,7 @@ package body CORBA.ExceptionList is
       Exc : in CORBA.TypeCode.Object)
    is
    begin
-      Add (+Self, Exc);
+      Add (+Self, CORBA.TypeCode.Internals.To_PolyORB_Object (Exc));
    end Add;
 
    function Item
@@ -86,7 +87,8 @@ package body CORBA.ExceptionList is
       return CORBA.TypeCode.Object
    is
    begin
-      return Item (+Self, PolyORB.Types.Unsigned_Long (Index));
+      return CORBA.TypeCode.Internals.To_CORBA_Object
+        (Item (+Self, PolyORB.Types.Unsigned_Long (Index)));
    end Item;
 
    procedure Remove

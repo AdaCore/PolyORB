@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Helper functions for CORBA servers.
-
---  XXX The Initiatie Server and stuff related to the Root POA should
---  be placed in the CORBA app. personnality init. process !!
 
 --  $Id$
 
@@ -51,7 +49,7 @@ package PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := False);
    --  Start a new ORB, and initialize the Root POA.
-   --  If 'Start_New_Task' is True, a new task will be created and
+   --  If Start_New_Task is True, a new task will be created and
    --  control will be returned to the caller.  Otherwise, the ORB
    --  will be executing in the current context.
    --  If the Initiate_Server_Hook variable is not null, the

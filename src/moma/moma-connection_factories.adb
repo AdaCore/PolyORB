@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,8 +39,9 @@ package body MOMA.Connection_Factories is
    -- Create --
    ------------
 
-   procedure Create (Self     : out Connection_Factory;
-                     Remote   : PolyORB.References.Ref) is
+   procedure Create
+     (Self     : out Connection_Factory;
+      Remote   :     MOMA.Types.Ref) is
    begin
       Set_Ref (Self, Remote);
    end Create;
@@ -48,8 +50,9 @@ package body MOMA.Connection_Factories is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self    : Connection_Factory)
-                     return PolyORB.References.Ref is
+   function Get_Ref
+     (Self    : Connection_Factory)
+     return MOMA.Types.Ref is
    begin
       return Self.Remote;
    end Get_Ref;
@@ -58,8 +61,9 @@ package body MOMA.Connection_Factories is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self    : in out Connection_Factory;
-                      Remote  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self    : in out Connection_Factory;
+      Remote  :        MOMA.Types.Ref) is
    begin
       Self.Remote := Remote;
    end Set_Ref;

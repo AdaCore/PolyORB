@@ -105,11 +105,12 @@ cat >>${BODY} <<EOF
 begin
    Register_Module
      (Module_Info'
-      (Name => +"http_${name}s",
+      (Name      => +"http_${name}s",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end ${UNIT};
 EOF
 chmod -w ${BODY}

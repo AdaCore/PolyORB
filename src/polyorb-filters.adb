@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +37,6 @@
 
 with Ada.Tags;
 
-with PolyORB.Filters.Interface;
 with PolyORB.Log;
 
 package body PolyORB.Filters is
@@ -75,94 +75,50 @@ package body PolyORB.Filters is
       return F.Upper;
    end Upper;
 
-   --------------
-   -- Finalize --
-   --------------
+   -------------
+   -- Destroy --
+   -------------
 
-   procedure Finalize (F : in out Filter) is
+   procedure Destroy (F : in out Filter) is
    begin
       if F.Upper /= null then
          pragma Debug
            (O ("Destroying upper of type "
                & Ada.Tags.External_Tag (F.Upper'Tag)));
-         Destroy (F.Upper);
-         --  XXX WHAT IF F.Upper has not been dynamically allocated?
+         PolyORB.Components.Destroy (F.Upper);
       end if;
-   end Finalize;
-
-   --------------------
-   -- Handle_Message --
-   --------------------
-
-   function Handle_Message
-     (F : access Factory;
-      Msg : Message'Class)
-     return Message'Class is
-   begin
-      if Msg in Interface.Create_Filter_Chain then
-         return Interface.Created_Filter_Chain'
-           (Filter_Chain => Create_Filter_Chain (F));
-      else
-         raise Unhandled_Message;
-      end if;
-   end Handle_Message;
-
-   ---------------------
-   -- Chain_Factories --
-   ---------------------
-
-   procedure Chain_Factories (Factories : Factory_Array) is
-   begin
-      for J in Factories'First .. Factories'Last - 1 loop
-         pragma Debug
-           (O ("Chaining "
-               & Ada.Tags.External_Tag (Factories (J)'Tag)
-               & " to "
-               & Ada.Tags.External_Tag (Factories (J + 1)'Tag)));
-         Connect
-           (Factories (J).Upper,
-            Component_Access (Factories (J + 1)));
-      end loop;
-
-      Factories (Factories'Last).Upper := null;
-   end Chain_Factories;
+   end Destroy;
 
    -------------------------
    -- Create_Filter_Chain --
    -------------------------
 
-   function Create_Filter_Chain (FChain : access Factory)
-     return Filter_Access
+   procedure Create_Filter_Chain
+     (Factories :     Factory_Array;
+      Bottom    : out Filter_Access;
+      Top       : out Filter_Access)
    is
-      F : Filter_Access;
+      Lower_F, F : Filter_Access;
    begin
-      Create (Fact => Factory'Class (FChain.all)'Access, Filt => F);
-      pragma Debug (O ("Created filter of type "
-                       & Ada.Tags.External_Tag (F'Tag)));
-      --  Create new filter.
+      for J in Factories'Range loop
+         Create (Fact => Factories (J), Filt => F);
+         Set_Allocation_Class (F.all, Dynamic);
+         pragma Debug (O ("Created filter of type "
+                          & Ada.Tags.External_Tag (F'Tag)));
+         --  Create new filter.
 
-      if FChain.Upper /= null then
-         declare
-            Reply : constant Message'Class
-              := Emit
-              (FChain.Upper,
-               Interface.Create_Filter_Chain'(null record));
-         begin
-            if not (Reply in Interface.Created_Filter_Chain) then
-               raise Unhandled_Message;
-            end if;
+         Connect_Lower (F, Component_Access (Lower_F));
 
-            declare
-               Upper : constant Filter_Access
-                 := Interface.Created_Filter_Chain
-                 (Reply).Filter_Chain;
-            begin
-               Connect (F.Upper, Component_Access (Upper));
-               Connect_Lower (Upper, Component_Access (F));
-            end;
-         end;
-      end if;
-      return F;
+         if Lower_F /= null then
+            Connect (Lower_F.Upper, Component_Access (F));
+         else
+            Bottom := F;
+         end if;
+
+         Lower_F := F;
+      end loop;
+
+      Top := F;
    end Create_Filter_Chain;
 
 end PolyORB.Filters;

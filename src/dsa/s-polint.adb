@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,46 +43,48 @@ with System.RPC;
 
 with GNAT.HTable;
 
-with CORBA.Object;
-with PolyORB.CORBA_P.Naming_Tools;
-with CosNaming.Helper;
-with CosNaming.NamingContext;
---  XXX THESE DEPS UPON CORBA MUST BE REMOVED!!!!!
---  RCI package references are managed through the CORBA
---  naming service. RCIs also act as naming contexts themselves
---  for the purpose of providing access to each of their subprograms
---  as objects.
-
 with PolyORB.Binding_Data;
+with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
+with PolyORB.Parameters;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects.Interface;
+with PolyORB.Objects;
+pragma Warnings (Off);
+--  WAG:5.01
+--  C926-001
+with PolyORB.Opaque;
+pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
+with PolyORB.POA_Manager;
+with PolyORB.POA_Types;
 with PolyORB.References;
+with PolyORB.Sequences.Unbounded;
+with PolyORB.Sequences.Unbounded.Helper;
 with PolyORB.Servants;
-with PolyORB.Tasking.Soft_Links;
+with PolyORB.Servants.Interface;
+with PolyORB.Services.Naming;
+with PolyORB.Services.Naming.Helper;
+with PolyORB.Services.Naming.NamingContext.Client;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings.Lists;
 
 --  XXX the following are dependant on configuration options
---  and should be moved to a generated unit (à la s-garela).
+--  and should be moved to a generated unit (a la s-garela).
 --  (an OA is required only on server units; any OA is OK
 --  for RCIs without RACWs, but RACWs require a POA).
-
-with PolyORB.POA.Basic_POA;
-with PolyORB.POA_Config.Minimum;
-with PolyORB.POA_Manager;
-with PolyORB.Setup.Proxies_POA;
 
 package body System.PolyORB_Interface is
 
    use Ada.Characters.Handling;
+   use Ada.Streams;
+
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.References;
@@ -90,6 +93,21 @@ package body System.PolyORB_Interface is
    package L is new PolyORB.Log.Facility_Log ("system.polyorb_interface");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   --  A few handy aliases
+
+   package PATC  renames PolyORB.Any.TypeCode;
+   package PSNNC renames PolyORB.Services.Naming.NamingContext;
+   package PTM   renames PolyORB.Tasking.Mutexes;
+
+   --  An opaque octet sequence
+
+   package Octet_Sequences is
+     new PolyORB.Sequences.Unbounded (PolyORB.Types.Octet);
+
+   package Octet_Sequences_Helper is new Octet_Sequences.Helper
+     (Element_From_Any => PolyORB.Any.From_Any,
+      Element_To_Any   => PolyORB.Any.To_Any);
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
@@ -104,6 +122,9 @@ package body System.PolyORB_Interface is
    ------------------------
    -- Local declarations --
    ------------------------
+
+   Critical_Section : PTM.Mutex_Access;
+   --  Protects shared data structures at the DSA personality level.
 
    procedure Initialize;
    --  Initialization procedure to be called during the
@@ -123,13 +144,16 @@ package body System.PolyORB_Interface is
       Is_Local            : Boolean := False;
       --  True if the package is assigned on this partition.
 
+      Known_Partition_ID  : Boolean := False;
+      --  True if the package is not assigned on this partition,
+      --  and we have determined its partition ID.
+
+      RCI_Partition_ID    : RPC.Partition_ID := RPC.Partition_ID'First;
+      --  Cache of RCI's partition ID, if known.
+
    end record;
 
-   No_RCI_Info : RCI_Info;
-   pragma Warnings (Off, No_RCI_Info);
-   --  Never assigned a value.
-
-   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info, No_RCI_Info);
+   package Known_RCIs is new PolyORB.Dynamic_Dict (RCI_Info);
    --  This list is keyed with the lowercased full names of the
    --  RCI units.
 
@@ -139,6 +163,8 @@ package body System.PolyORB_Interface is
    --  To limit the amount of memory leaked by the use of
    --  distributed object stub types, these are referenced
    --  in a hash table and reused whenever possible.
+   --  Access to this hash table is protected by the DSA
+   --  critical section.
 
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
@@ -180,12 +206,33 @@ package body System.PolyORB_Interface is
       return Any;
    --  Construct an Any from an Ada exception raised by a servant.
 
+   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name;
+   --  Construct a name consisting of a single name component with the
+   --  given id and kind.
+
+   function Naming_Context return PSNNC.Ref;
+   --  The naming context used to register all library units in a
+   --  DSA application.
+
+   Naming_Context_Cache : PSNNC.Ref;
+
+   ---------------------
+   -- Allocate_Buffer --
+   ---------------------
+
+   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type) is
+      use type PolyORB.Buffers.Buffer_Access;
+   begin
+      pragma Assert (Stream.Buf = null);
+      Stream.Buf := new PolyORB.Buffers.Buffer_Type;
+   end Allocate_Buffer;
+
    -------------------------
    -- Any_Aggregate_Build --
    -------------------------
 
    function Any_Aggregate_Build
-     (TypeCode : PolyORB.Any.TypeCode.Object;
+     (TypeCode : PATC.Object;
       Contents : Any_Array)
       return Any
    is
@@ -196,6 +243,73 @@ package body System.PolyORB_Interface is
       end loop;
       return Result;
    end Any_Aggregate_Build;
+
+   ---------------------
+   -- Any_Member_Type --
+   ---------------------
+
+   function Any_Member_Type
+     (A     : Any;
+      Index : PolyORB.Types.Unsigned_Long)
+      return PolyORB.Any.TypeCode.Object
+   is
+   begin
+      return PATC.Member_Type
+        (PolyORB.Any.Get_Type (A), Index);
+   end Any_Member_Type;
+
+   ---------------
+   -- Any_To_BS --
+   ---------------
+
+   procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
+      use Ada.Streams;
+      use Octet_Sequences;
+
+      Seq : constant Sequence
+        := Octet_Sequences_Helper.From_Any (Item);
+
+   begin
+      Stream.Arr := new Stream_Element_Array'
+        (1 .. Stream_Element_Offset (Length (Seq)) => 0);
+
+      declare
+         subtype OSEA_T is Element_Array (1 .. Length (Seq));
+         OSEA_Addr : constant System.Address := Stream.Arr (1)'Address;
+         OSEA : OSEA_T;
+         for OSEA'Address use OSEA_Addr;
+         pragma Import (Ada, OSEA);
+      begin
+         OSEA := To_Element_Array (Seq);
+      end;
+      PolyORB.Buffers.Initialize_Buffer
+        (Stream.Buf,
+         Stream.Arr'Length,
+         Stream.Arr (Stream.Arr'First)'Address,
+         PolyORB.Buffers.Endianness_Type'First, --  XXX Irrevelant
+         0);
+   end Any_To_BS;
+
+   ---------------
+   -- BS_To_Any --
+   ---------------
+
+   procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any) is
+      use Octet_Sequences;
+
+      S : PolyORB.Opaque.Zone_Access
+        := new Stream_Element_Array'(
+             PolyORB.Buffers.To_Stream_Element_Array (Stream.Buf));
+
+      subtype OSEA_T is Element_Array (1 .. S'Length);
+      OSEA_Addr : constant System.Address := S (S'First)'Address;
+      OSEA : OSEA_T;
+      for OSEA'Address use OSEA_Addr;
+      pragma Import (Ada, OSEA);
+   begin
+      Item := Octet_Sequences_Helper.To_Any (To_Sequence (OSEA));
+      PolyORB.Opaque.Free (S);
+   end BS_To_Any;
 
    ------------------------
    -- Caseless_String_Eq --
@@ -224,7 +338,6 @@ package body System.PolyORB_Interface is
    function Compare_Content (Left, Right : RACW_Stub_Type_Access)
      return Boolean
    is
-      use Interfaces;
       use System.RPC;
 
       Left_Object, Right_Object : PolyORB.References.Ref;
@@ -234,12 +347,13 @@ package body System.PolyORB_Interface is
       Set (Right_Object, Right.Target);
 
       return Left /= null and then Right /= null
-        and then Left.Origin = Right.Origin
-        and then Left.Receiver = Right.Receiver
-        and then Left.Addr = Right.Addr
         and then PolyORB.References.Is_Same_Object
         (Left_Object, Right_Object);
    end Compare_Content;
+
+   --------------------------
+   -- DSA_Exception_To_Any --
+   --------------------------
 
    function DSA_Exception_To_Any
      (E : Ada.Exceptions.Exception_Occurrence)
@@ -247,8 +361,6 @@ package body System.PolyORB_Interface is
    is
       use PolyORB.Exceptions;
       use PolyORB.Types;
-
-      package PATC renames PolyORB.Any.TypeCode;
 
       Name : constant RepositoryId := Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
@@ -262,7 +374,7 @@ package body System.PolyORB_Interface is
       PATC.Add_Parameter
         (TC, To_Any (To_PolyORB_String ("DSA:")
                        & PolyORB.Types.String (Name)
-                       & PolyORB_Exc_Version));
+                       & ":1.0"));
 
       --  Valuation: Exception_Message
 
@@ -277,6 +389,212 @@ package body System.PolyORB_Interface is
            (To_PolyORB_String (Ada.Exceptions.Exception_Message (E))));
       return Result;
    end DSA_Exception_To_Any;
+
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
+
+   function Execute_Servant
+     (Self : access Servant;
+      Msg  : PolyORB.Components.Message'Class)
+      return PolyORB.Components.Message'Class
+   is
+      use PolyORB.Servants.Interface;
+
+      Result : PolyORB.Components.Null_Message;
+   begin
+      if Msg in Execute_Request then
+         declare
+            EMsg : Execute_Request renames Execute_Request (Msg);
+         begin
+            if Receiving_Stub (Self.Impl_Info.all).Kind = Pkg_Stub then
+
+               --  The base reference for an RCI unit implements operations
+               --  that correspond to the visible subprograms of the unit
+               --  (which are handled by Self.Handler).
+               --  In addition, it implements the following special operations:
+
+               --  XXX these hand-crafted skels should be generated by
+               --  auto-generated ones constructed from a distributed object
+               --  type declaration.
+
+               if PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
+                 = Op_Resolve
+               then
+
+                  -------------
+                  -- resolve --
+                  -------------
+
+                  --  Resolve the name of a remote subprogram declared in
+                  --  this remote call interface unit to the corresponding
+                  --  reference, for the purpose of constructing a remote
+                  --  access-to-subprogram value.
+
+                  --  Code extracted from CosNaming::NamingContext
+                  --  IDL skel.
+
+                  declare
+                     n             : PolyORB.Services.Naming.Name;
+                     pragma Warnings (Off, n);
+                     --  Accessed before it has a value (by To_Any).
+
+                     Arg_Name_n  : constant PolyORB.Types.Identifier :=
+                       To_PolyORB_String ("n");
+                     Argument_n  : constant Any :=
+                       PolyORB.Services.Naming.Helper.To_Any (n);
+
+                     Result      : Object_Ref;
+                     Arg_List    : NVList_Ref;
+                  begin
+                     --  Create argument list
+
+                     NVList_Create (Arg_List);
+                     NVList_Add_Item
+                       (Arg_List,
+                        Arg_Name_n,
+                        Argument_n,
+                        ARG_IN);
+
+                     Request_Arguments (EMsg.Req, Arg_List);
+
+                     declare
+                        package ISNC renames
+                          PolyORB.Services.Naming.SEQUENCE_NameComponent;
+                     begin
+                        --  Convert arguments from their Any
+
+                        n := PolyORB.Services.Naming.Helper.From_Any
+                          (Argument_n);
+
+                        --  Call implementation
+                        Get_RAS_Ref
+                          (Receiving_Stub (Self.Impl_Info.all).Name.all,
+                           PolyORB.Services.Naming.To_Standard_String
+                             (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
+                              Result);
+
+--                 exception
+--                    when E : NotFound =>
+--                       declare
+--                          Members : NotFound_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (EMsg.Req,
+--                        CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+--                    when E : CannotProceed =>
+--                       declare
+--                          Members : CannotProceed_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (EMsg.Req,
+--                        CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+--                    when E : InvalidName =>
+--                       declare
+--                          Members : InvalidName_Members;
+--                       begin
+--                          Get_Members (E, Members);
+--                          CORBA.ServerRequest.Set_Exception
+--                            (Request,
+--                         CosNaming.NamingContext.Helper.To_Any (Members));
+--                          return;
+--                       end;
+                     end;
+
+                     --  Set Result
+
+                     EMsg.Req.Result :=
+                       (Name      => PolyORB.Types.To_PolyORB_String
+                        ("result"),
+                        Arg_Modes => ARG_OUT,
+                        Argument  => PolyORB.Any.ObjRef.To_Any (Result));
+                  end;
+                  goto Request_Completed;
+
+               elsif PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
+                 = Op_Get_Partition_Id
+               then
+
+                  declare
+                     Arg_List    : NVList_Ref;
+                  begin
+
+                     -----------------------
+                     -- _get_partition_id --
+                     -----------------------
+
+                     --  Return the partition identifier assigned to
+                     --  the partition on which this RCI unit resides.
+
+                     NVList_Create (Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List);
+
+                     --  Must call Arguments (with an empty Arg_List)
+                     --  to notify the protocol personality that this
+                     --  request has been completely received.
+
+                     EMsg.Req.Result :=
+                       (Name      => PolyORB.Types.To_PolyORB_String
+                          ("result"),
+                        Arg_Modes => ARG_OUT,
+                        Argument  => TA_I (Integer (Get_Local_Partition_ID)));
+                     goto Request_Completed;
+                  end;
+               end if;
+            end if;
+
+            --  An actual user-defined subprogram:
+            --  perform upcall to implementation.
+
+            pragma Assert (Self.Handler /= null);
+            declare
+               use PolyORB.Exceptions;
+            begin
+               Self.Handler.all (EMsg.Req);
+            exception
+               when E : others =>
+                  EMsg.Req.Exception_Info
+                    := DSA_Exception_To_Any (E);
+                  --  XXX Should map Ada exceptions to Anies
+                  --  correctly!
+            end;
+
+            <<Request_Completed>>
+            return Executed_Request'(Req => EMsg.Req);
+         end;
+      end if;
+      return Result;
+   end Execute_Servant;
+
+   -------------------------
+   -- Extract_Union_Value --
+   -------------------------
+
+   function Extract_Union_Value (U : Any) return Any is
+      U_Type : constant PATC.Object := Get_Type (U);
+      Label_Any : constant Any
+        := PolyORB.Any.Get_Aggregate_Element
+        (U, PATC.Discriminator_Type (U_Type), 0);
+      Value_Type : constant PATC.Object
+        := PATC.Member_Type_With_Label (U_Type, Label_Any);
+   begin
+      return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
+   end Extract_Union_Value;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (X : in out Buffer_Stream_Type) is
+   begin
+      PolyORB.Opaque.Free (X.Arr);
+   end Finalize;
 
    --------------
    -- From_Any --
@@ -383,45 +701,54 @@ package body System.PolyORB_Interface is
 
    function Get_Active_Partition_ID (Name : String) return RPC.Partition_ID
    is
-      Info : constant RCI_Info := Retrieve_RCI_Info (Name);
+      Info : RCI_Info := Retrieve_RCI_Info (Name);
    begin
       if Info.Is_Local then
          return Get_Local_Partition_ID;
       end if;
 
-      declare
-         Request : PolyORB.Requests.Request_Access;
-         Arg_List : PolyORB.Any.NVList.Ref;
-         Result : PolyORB.Any.NamedValue;
-      begin
+      if not Info.Known_Partition_ID then
+         declare
+            Request : PolyORB.Requests.Request_Access;
+            Arg_List : PolyORB.Any.NVList.Ref;
+            Result : PolyORB.Any.NamedValue;
+         begin
 
-         --  XXX This hand-crafted stub should be replaced with
-         --  one automatically generated from a remote object type
-         --  declaration.
+            --  XXX This hand-crafted stub should be replaced with
+            --  one automatically generated from a remote object type
+            --  declaration.
 
-         PolyORB.Any.NVList.Create (Arg_List);
-         Result := (Name => To_PolyORB_String ("result"),
-                    Argument => Get_Empty_Any (TC_I),
-                    Arg_Modes => 0);
+            PolyORB.Any.NVList.Create (Arg_List);
+            Result := (Name => To_PolyORB_String ("result"),
+                       Argument => Get_Empty_Any (TC_I),
+                       Arg_Modes => 0);
 
-         PolyORB.Requests.Create_Request
-           (Target    => Info.Base_Ref,
-            Operation => Op_Get_Partition_Id,
-            Arg_List  => Arg_List,
-            Result    => Result,
-            Req       => Request);
+            PolyORB.Requests.Create_Request
+              (Target    => Info.Base_Ref,
+               Operation => Op_Get_Partition_Id,
+               Arg_List  => Arg_List,
+               Result    => Result,
+               Req       => Request);
 
-         PolyORB.Requests.Invoke (Request);
-         PolyORB.Requests.Destroy_Request
-           (Request);
-
-         return RPC.Partition_ID (FA_I (Result.Argument));
-      end;
+            PolyORB.Requests.Invoke (Request);
+            PolyORB.Requests.Destroy_Request (Request);
+            Info.Known_Partition_ID := True;
+            Info.RCI_Partition_ID   :=
+              RPC.Partition_ID (FA_I (Result.Argument));
+            Known_RCIs.Register (To_Lower (Name), Info);
+         end;
+      end if;
+      pragma Assert (Info.Known_Partition_ID);
+      return Info.RCI_Partition_ID;
    end Get_Active_Partition_ID;
+
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PolyORB.Any.TypeCode.Object;
+      Tc    : PATC.Object;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any is
    begin
@@ -429,11 +756,69 @@ package body System.PolyORB_Interface is
         (Value, Tc, PolyORB.Types.Unsigned_Long (Index));
    end Get_Aggregate_Element;
 
+   -----------------------
+   -- Get_Local_Address --
+   -----------------------
+
+   procedure Get_Local_Address
+     (Ref      : PolyORB.References.Ref;
+      Is_Local : out Boolean;
+      Addr     : out System.Address)
+   is
+      use PolyORB.Exceptions;
+
+      Profiles : constant Profile_Array
+        := PolyORB.References.Profiles_Of (Ref);
+
+      Error : Error_Container;
+
+   begin
+      for J in Profiles'Range loop
+         if PolyORB.ORB.Is_Profile_Local
+           (PolyORB.Setup.The_ORB,
+            Profiles (J))
+         then
+            declare
+               Key : PolyORB.Objects.Object_Id_Access;
+
+            begin
+               PolyORB.Obj_Adapters.Object_Key
+                 (OA      =>  PolyORB.ORB.Object_Adapter
+                  (PolyORB.Setup.The_ORB),
+                  Id      => PolyORB.Binding_Data.Get_Object_Key
+                  (Profiles (J).all),
+                  User_Id => Key,
+                  Error   => Error);
+
+               if not Found (Error) then
+                  Is_Local := True;
+                  Addr := To_Address (Key (Key'Range));
+
+                  PolyORB.Objects.Free (Key);
+                  --  XXX not sure we can do that ...
+
+                  return;
+               elsif Error.Kind = Invalid_Object_Id_E then
+                  Catch (Error);
+
+                  --  This object identifier does not have a
+                  --  user-assigned object key.
+               else
+                  PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+               end if;
+            end;
+         end if;
+      end loop;
+
+      Is_Local := False;
+      Addr := Null_Address;
+   end Get_Local_Address;
+
    ----------------------------
    -- Get_Local_Partition_ID --
    ----------------------------
 
-   Local_Partition_ID : RPC.Partition_ID;
+   Local_Partition_ID           : RPC.Partition_ID;
    Local_Partition_ID_Allocated : Boolean := False;
 
    function Get_Local_Partition_ID return RPC.Partition_ID is
@@ -445,368 +830,60 @@ package body System.PolyORB_Interface is
          --  XXX could set a useful partition name...
          Local_Partition_ID_Allocated := True;
       end if;
+      pragma Assert (Local_Partition_ID_Allocated);
       return Local_Partition_ID;
    end Get_Local_Partition_ID;
 
-   ----------
-   -- Hash --
-   ----------
+   --------------------------------
+   -- Get_Nested_Sequence_Length --
+   --------------------------------
 
-   function Hash_String is new GNAT.HTable.Hash (Hash_Index);
-
-   function Hash (K : RACW_Stub_Type_Access) return Hash_Index
+   function Get_Nested_Sequence_Length
+     (Value : Any;
+      Depth : Positive)
+     return Unsigned
    is
-      K_Ref : PolyORB.References.Ref;
+      use type PolyORB.Types.Unsigned_Long;
+
+      Seq_Any : PolyORB.Any.Any;
+      Tc      : constant PATC.Object := Get_Type (Value);
    begin
-      Set (K_Ref, K.Target);
-      return Hash_String (PolyORB.References.Image (K_Ref));
-   end Hash;
+      pragma Debug (O ("Get_Nested_Sequence_Length: enter, Depth =" & Depth'Img
+                       & ", Tc = " & Image (Tc)));
 
-   ---------------------
-   -- Execute_Servant --
-   ---------------------
-
-   function Execute_Servant
-     (Self : access Servant;
-      Msg  : PolyORB.Components.Message'Class)
-      return PolyORB.Components.Message'Class
-   is
-      use PolyORB.Objects.Interface;
-
-      Result : PolyORB.Components.Null_Message;
-   begin
-      if Msg in Execute_Request then
+      if PATC.Kind (Tc) = Tk_Struct then
          declare
-            EMsg : Execute_Request renames Execute_Request (Msg);
+            Index : constant PolyORB.Types.Unsigned_Long
+              := PATC.Member_Count (Tc) - 1;
          begin
-            if Receiving_Stub (Self.Impl_Info.all).Kind = Pkg_Stub then
+            pragma Debug
+              (O ("Tc is a Tk_Struct, index of last member is" & Index'Img));
 
-               --  The base reference for an RCI unit implements operations
-               --  that correspond to the visible subprograms of the unit
-               --  (which are handled by Self.Handler).
-               --  In addition, it implements the following special operations:
-
-               --  XXX these hand-crafted skels should be generated by
-               --  auto-generated ones constructed from a distributed object
-               --  type declaration.
-
-               if PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Resolve
-               then
-
-                  -------------
-                  -- resolve --
-                  -------------
-
-                  --  Resolve the name of a remote subprogram declared in
-                  --  this remote call interface unit to the corresponding
-                  --  reference, for the purpose of constructing a remote
-                  --  access-to-subprogram value.
-
-                  --  Code extracted from CosNaming::NamingContext
-                  --  IDL skel.
-
-                  declare
-                     use CosNaming;
-                     --  For exception and types.
-
-                     n             : CosNaming.Name;
-                     pragma Warnings (Off, n);
-                     --  Accessed before it has a value (by To_Any).
-
-                     Arg_Name_n  : constant PolyORB.Types.Identifier :=
-                       To_PolyORB_String ("n");
-                     Argument_n  : constant Any :=
-                       CosNaming.Helper.To_Any (n);
-
-                     Result      : Object_Ref;
-                     Arg_List    : NVList_Ref;
-                  begin
-                     --  Create argument list
-
-                     NVList_Create (Arg_List);
-                     NVList_Add_Item
-                       (Arg_List,
-                        Arg_Name_n,
-                        Argument_n,
-                        ARG_IN);
-
-                     Request_Arguments (EMsg.Req, Arg_List);
-
-                     declare
-                        package ISNC renames
-                          IDL_SEQUENCE_CosNaming_NameComponent;
-                     begin
-                        --  Convert arguments from their Any
-
-                        n := CosNaming.Helper.From_Any (Argument_n);
-
-                        --  Call implementation
-                        Get_RAS_Ref
-                          (Receiving_Stub (Self.Impl_Info.all).Name.all,
-                           CosNaming.To_Standard_String
-                             (ISNC.Element_Of (ISNC.Sequence (n), 1).id),
-                              Result);
-
---                 exception
---                    when E : NotFound =>
---                       declare
---                          Members : NotFound_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (EMsg.Req,
---                        CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
---                    when E : CannotProceed =>
---                       declare
---                          Members : CannotProceed_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (EMsg.Req,
---                        CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
---                    when E : InvalidName =>
---                       declare
---                          Members : InvalidName_Members;
---                       begin
---                          Get_Members (E, Members);
---                          CORBA.ServerRequest.Set_Exception
---                            (Request,
---                         CosNaming.NamingContext.Helper.To_Any (Members));
---                          return;
---                       end;
-                     end;
-
-                     --  Set Result
-
-                     EMsg.Req.Result :=
-                       (Name      => PolyORB.Types.To_PolyORB_String
-                        ("result"),
-                        Arg_Modes => ARG_OUT,
-                        Argument  => PolyORB.Any.ObjRef.To_Any (Result));
-                  end;
-                  goto Request_Completed;
-
-               elsif PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Get_Partition_Id
-               then
-
-                  declare
-                     Arg_List    : NVList_Ref;
-                  begin
-
-                     -----------------------
-                     -- _get_partition_id --
-                     -----------------------
-
-                     --  Return the partition identifier assigned to
-                     --  the partition on which this RCI unit resides.
-
-                     NVList_Create (Arg_List);
-                     Request_Arguments (EMsg.Req, Arg_List);
-                     --  Must call Arguments (with an empty Arg_List)
-                     --  to notify the protocol personality that this
-                     --  request has been completely received.
-
-                     EMsg.Req.Result :=
-                       (Name      => PolyORB.Types.To_PolyORB_String
-                          ("result"),
-                        Arg_Modes => ARG_OUT,
-                        Argument  => TA_I (Integer (Get_Local_Partition_ID)));
-                     goto Request_Completed;
-                  end;
-               end if;
-            end if;
-
-            --  An actual user-defined subprogram:
-            --  perform upcall to implementation.
-
-            pragma Assert (Self.Handler /= null);
-            declare
-               use PolyORB.Exceptions;
-            begin
-               Self.Handler.all (EMsg.Req);
-            exception
-               when E : others =>
-                  EMsg.Req.Exception_Info
-                    := DSA_Exception_To_Any (E);
-                  --  XXX Should map Ada exceptions to Anies
-                  --  correctly!
-            end;
-
-            <<Request_Completed>>
-            return Executed_Request'(Req => EMsg.Req);
+            Seq_Any := Get_Aggregate_Element (Value,
+              PATC.Member_Type (Tc, Index),
+              Index);
          end;
+      else
+         pragma Debug (O ("Tc is (assumed to be) a Tk_Sequence"));
+         Seq_Any := Value;
       end if;
-      return Result;
-   end Execute_Servant;
 
-   ----------------
-   -- Initialize --
-   ----------------
+      declare
+         use type Unsigned;
 
-   Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
-
-   procedure Initialize
-   is
-      use PolyORB;
-      use type PolyORB.POA.Obj_Adapter_Access;
-
-      use Receiving_Stub_Lists;
-
-      It : Iterator;
-   begin
-      pragma Assert (Root_POA_Object = null);
-      pragma Debug (O ("Initializing default POA configuration..."));
-      POA_Config.Set_Configuration
-        (new POA_Config.Minimum.Minimum_Configuration);
-
-      pragma Debug (O ("Initializing root POA..."));
-      Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
-      POA.Basic_POA.Create
-        (POA.Basic_POA.Basic_Obj_Adapter (Root_POA_Object.all)'Access);
-
-      ORB.Set_Object_Adapter
-        (Setup.The_ORB, Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
-      --  Link object adapter with ORB.
-
-      POA_Manager.Activate
-        (POA_Manager.POAManager_Access
-           (POA_Manager.Entity_Of (Root_POA_Object.POA_Manager)));
-
-      PolyORB.Setup.Proxies_POA (Root_POA_Object);
-
-      pragma Debug (O ("Initializing DSA library units"));
-      It := First (All_Receiving_Stubs);
-      while not Last (It) loop
-         declare
-            use PolyORB.Obj_Adapters;
-            use PolyORB.ORB;
-            use PolyORB.Setup;
-
-            Stub : Receiving_Stub renames Value (It).all;
-
-         begin
-            pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
-            Setup_Object_RPC_Receiver
-              (Stub.Name.all, Stub.Receiver);
-            --  Establish a child POA for this stub. For RACWs,
-            --  this POA will serve all objects of the same type.
-            --  For RCIs, this POA will serve the base object
-            --  corresponding to the RCI, as well as the sub-objects
-            --  corresponding to each subprogram considered as
-            --  an object (for RAS).
-
-            case Stub.Kind is
-               when Obj_Stub =>
-                  null;
-
-               when Pkg_Stub =>
-                  declare
-                     Key : aliased PolyORB.Objects.Object_Id
-                       := To_Local_Oid (System.Null_Address);
-
-                     Oid : aliased PolyORB.Objects.Object_Id
-                       := PolyORB.Obj_Adapters.Export
-                       (OA  => Servant_Access (Stub.Receiver).Object_Adapter,
-                        Obj => null,
-                        Key => Key'Unchecked_Access);
-
-                     Ref : PolyORB.References.Ref;
-                  begin
-                     Create_Reference
-                       (The_ORB, Oid'Access,
-                        "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
-                        Ref);
-                     pragma Debug
-                       (O ("Registering local RCI: " & Stub.Name.all));
-                     Known_RCIs.Register
-                       (To_Lower (Stub.Name.all), RCI_Info'
-                          (Base_Ref            => Ref,
-                           Is_Local            => True,
-                           Is_All_Calls_Remote =>
-                             Stub.Is_All_Calls_Remote));
-
-                     declare
-                        CRef : CORBA.Object.Ref;
-                        --  XXX SHOULD NOT DEPEND ON CORBA!!!!!
-                     begin
-                        CORBA.Object.Convert_To_CORBA_Ref (Ref, CRef);
-                        PolyORB.CORBA_P.Naming_Tools.Register
-                          (Name => To_Lower (Stub.Name.all) & ".RCI",
-                           Ref => CRef, Rebind => True);
-                        --  XXX Using the CORBA naming service is not
-                        --  necessarily a good idea. Alternative design:
-                        --  use a Boot_Server distributed object dedicated
-                        --  to DSA applications (may be required for
-                        --  validation, because we need to somehow assign
-                        --  Partition_IDs).
-                     end;
-
-                  end;
-            end case;
-         end;
-         Next (It);
-      end loop;
-      pragma Debug (O ("Done initializing DSA."));
-
-      --  Note: currently we keep the All_Receiving_Stubs list
-      --  in memory, because Get_RAS_Ref uses it at a later point.
-      --  An alternative (better) design would store the relevant
-      --  RCI subprogram info in hash tables, and get rid of
-      --  the list after initialization.
-
-   end Initialize;
-
-   -----------------------
-   -- Get_Local_Address --
-   -----------------------
-
-   procedure Get_Local_Address
-     (Ref      : PolyORB.References.Ref;
-      Is_Local : out Boolean;
-      Addr     : out System.Address)
-   is
-      Profiles : constant Profile_Array
-        := PolyORB.References.Profiles_Of (Ref);
-   begin
-      for J in Profiles'Range loop
-         if PolyORB.ORB.Is_Profile_Local
-           (PolyORB.Setup.The_ORB,
-            Profiles (J))
-         then
-            begin
-               declare
-                  Key : constant PolyORB.Objects.Object_Id
-                    := PolyORB.Obj_Adapters.Object_Key
-                    (OA => PolyORB.Obj_Adapters.Obj_Adapter_Access
-                       (Root_POA_Object),
-                     Id => PolyORB.Binding_Data.Get_Object_Key
-                       (Profiles (J).all));
-               begin
-                  Is_Local := True;
-                  Addr := To_Address (Key (Key'Range));
-                  return;
-               end;
-            exception
-               when PolyORB.POA.Invalid_Object_Id =>
-                  --  This object identifier does not have a
-                  --  user-assigned object key.
-                  null;
-
-               when others =>
-                  raise;
-            end;
+         Outer_Length : constant Unsigned
+           := FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
+      begin
+         if Depth = 1 or else Outer_Length = 0 then
+            return Outer_Length;
+         else
+            Seq_Any := PolyORB.Any.Get_Aggregate_Element
+              (Seq_Any, From_Any (PATC.Get_Parameter
+               (Get_Type (Seq_Any), 1)), 1);
+            return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
          end if;
-      end loop;
-
-      Is_Local := False;
-      Addr := Null_Address;
-   end Get_Local_Address;
+      end;
+   end Get_Nested_Sequence_Length;
 
    -----------------
    -- Get_RAS_Ref --
@@ -848,42 +925,40 @@ package body System.PolyORB_Interface is
             All_Stubs :
             while not Last (It) loop
                declare
-                  S : Receiving_Stub renames Value (It).all;
-                  pragma Assert (S.Subp_Info /= Null_Address);
-                  subtype Subp_Info_T is RCI_Subp_Info_Array
-                    (0 .. S.Subp_Info_Len - 1);
-                  package Cvt is
+                  Rec_Stub : Receiving_Stub renames Value (It).all;
+                  pragma Assert (Rec_Stub.Subp_Info /= Null_Address);
+
+                  subtype Subp_Array is RCI_Subp_Info_Array
+                    (0 .. Rec_Stub.Subp_Info_Len - 1);
+
+                  package Subp_Info_Addr_Conv is
                      new System.Address_To_Access_Conversions
-                    (Subp_Info_T);
-                  Subp_Info : constant Cvt.Object_Pointer
-                    := Cvt.To_Pointer (S.Subp_Info);
+                    (Subp_Array);
+
+                  Subp_Info : constant Subp_Info_Addr_Conv.Object_Pointer
+                    := Subp_Info_Addr_Conv.To_Pointer (Rec_Stub.Subp_Info);
                begin
-                  if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
-                     pragma Debug (O ("Found package!"));
+                  if Rec_Stub.Kind = Pkg_Stub
+                    and then To_Lower (Rec_Stub.Name.all) = To_Lower (Pkg_Name)
+                  then
                      for J in Subp_Info'Range loop
                         declare
                            Info : RCI_Subp_Info
                              renames Subp_Info (J);
 
-                           subtype Fixed_Str is
+                           subtype Str is
                              String (1 .. Info.Name_Length);
 
-                           package Str_Addr_Conversion is
+                           package Str_Addr_Conv is
                               new System.Address_To_Access_Conversions
-                             (Fixed_Str);
-                           use Str_Addr_Conversion;
+                             (Str);
                         begin
-                           if To_Pointer (Info.Name).all
+                           if Str_Addr_Conv.To_Pointer (Info.Name).all
                              = Subprogram_Name
                            then
-                              pragma Debug (O ("Found subprogram!"));
-                              Addr := Info.Addr;
-                              Receiver := S.Receiver;
+                              Addr     := Info.Proxy_Addr;
+                              Receiver := Rec_Stub.Receiver;
                               exit All_Stubs;
-                           else
-                              pragma Debug (O ("Skipping subprogram: "
-                                & To_Pointer (Info.Name).all));
-                              null;
                            end if;
                         end;
                      end loop;
@@ -899,13 +974,12 @@ package body System.PolyORB_Interface is
          end;
       else
          declare
-            Ctx : CosNaming.NamingContext.Ref;
+            Ctx_Ref : PSNNC.Ref;
          begin
-            CORBA.Object.Convert_To_CORBA_Ref (Info.Base_Ref, Ctx);
+            PSNNC.Set (Ctx_Ref, Entity_Of (Info.Base_Ref));
 
-            Subp_Ref := CORBA.Object.To_PolyORB_Ref
-              (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (Ctx, Subprogram_Name & ".SUBP"));
+            Subp_Ref := PSNNC.Client.Resolve
+              (Ctx_Ref, To_Name (Subprogram_Name, "SUBP"));
          end;
       end if;
    end Get_RAS_Ref;
@@ -920,9 +994,12 @@ package body System.PolyORB_Interface is
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
-      Last : Integer := Typ'Last;
+      use PolyORB.Exceptions;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
+      Last : Integer := Typ'Last;
+
+      Error : Error_Container;
    begin
       if Last in Typ'Range and then Typ (Last) = ASCII.NUL then
          Last := Last - 1;
@@ -935,16 +1012,35 @@ package body System.PolyORB_Interface is
             Key : aliased PolyORB.Objects.Object_Id
               := To_Local_Oid (Addr);
 
-            Oid : aliased PolyORB.Objects.Object_Id
-              := PolyORB.Obj_Adapters.Export
-              (OA  => Receiver.Object_Adapter,
-               Obj => null,
-               Key => Key'Unchecked_Access);
+            U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+            Oid : PolyORB.POA_Types.Object_Id_Access;
 
          begin
+            PolyORB.POA.Activate_Object
+              (Self      => PolyORB.POA.Obj_Adapter_Access
+                 (Receiver.Object_Adapter),
+               P_Servant => null,
+               Hint      => Key'Unchecked_Access,
+               U_Oid     => U_Oid,
+               Error     => Error);
+
+            if Found (Error) then
+               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+
+            Oid := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+
+            if Found (Error) then
+               PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+            end if;
+
             PolyORB.ORB.Create_Reference
-              (PolyORB.Setup.The_ORB, Oid'Access,
-               "DSA:" & Typ (Typ'First .. Last), Ref);
+              (PolyORB.Setup.The_ORB,
+               Oid,
+               "DSA:" & Typ (Typ'First .. Last),
+               Ref);
+
+            PolyORB.Objects.Free (Oid);
          end;
       end if;
    exception
@@ -966,7 +1062,7 @@ package body System.PolyORB_Interface is
    is
       Answer : RACW_Stub_Type_Access;
    begin
-      PolyORB.Tasking.Soft_Links.Enter_Critical_Section;
+      PTM.Enter (Critical_Section);
       Answer := Objects_HTable.Get (Handler);
       if Answer = null then
          Answer := new RACW_Stub_Type;
@@ -975,10 +1071,7 @@ package body System.PolyORB_Interface is
          --  unique value of a remote access to classwide or
          --  remote access to subprogram type.
 
-         Answer.Origin   := Handler.Origin;
-         Answer.Receiver := Handler.Receiver;
          Answer.Target   := Handler.Target;
-         Answer.Addr     := Handler.Addr;
          Answer.Asynchronous := Handler.Asynchronous;
 
          Objects_HTable.Set (Answer, Answer);
@@ -986,19 +1079,186 @@ package body System.PolyORB_Interface is
          PolyORB.Smart_Pointers.Dec_Usage (Handler.Target);
       end if;
       Handler := Answer;
-      PolyORB.Tasking.Soft_Links.Leave_Critical_Section;
+      PTM.Leave (Critical_Section);
    end Get_Unique_Remote_Pointer;
 
-   ------------------------------
-   -- Request_Raise_Occurrence --
-   ------------------------------
+   ----------
+   -- Hash --
+   ----------
 
-   procedure Request_Raise_Occurrence (R : Request_Access) is
-      use Ada.Exceptions;
+   function Hash_String is new GNAT.HTable.Hash (Hash_Index);
+
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index
+   is
+      K_Ref : PolyORB.References.Ref;
    begin
-      PolyORB.Exceptions.Default_Raise_From_Any (R.Exception_Info);
+      Set (K_Ref, K.Target);
+      return Hash_String (PolyORB.References.Image (K_Ref));
+   end Hash;
 
-   end Request_Raise_Occurrence;
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+   is
+      use PolyORB;
+      use PolyORB.Exceptions;
+
+      use type PolyORB.POA.Obj_Adapter_Access;
+
+      use Receiving_Stub_Lists;
+
+      It : Iterator;
+
+      Error : Error_Container;
+
+   begin
+      PTM.Create (Critical_Section);
+
+      Octet_Sequences_Helper.Initialize (PolyORB.Any.TC_Octet);
+
+      pragma Debug (O ("Initializing DSA library units"));
+      It := First (All_Receiving_Stubs);
+      while not Last (It) loop
+         declare
+            use PolyORB.Obj_Adapters;
+            use PolyORB.ORB;
+            use PolyORB.Setup;
+
+            Stub : Receiving_Stub renames Value (It).all;
+
+         begin
+            pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
+            Setup_Object_RPC_Receiver
+              (Stub.Name.all, Stub.Receiver);
+            --  Establish a child POA for this stub. For RACWs,
+            --  this POA will serve all objects of the same type.
+            --  For RCIs, this POA will serve the base object
+            --  corresponding to the RCI, as well as the sub-objects
+            --  corresponding to each subprogram considered as
+            --  an object (for RAS).
+
+            case Stub.Kind is
+               when Obj_Stub =>
+                  null;
+
+               when Pkg_Stub =>
+                  declare
+                     Key : aliased PolyORB.Objects.Object_Id
+                       := To_Local_Oid (System.Null_Address);
+
+                     U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+                     Oid : PolyORB.POA_Types.Object_Id_Access;
+                     Ref : PolyORB.References.Ref;
+                  begin
+                     PolyORB.POA.Activate_Object
+                       (Self      => PolyORB.POA.Obj_Adapter_Access
+                          (Servant_Access (Stub.Receiver).Object_Adapter),
+                        P_Servant => null,
+                        Hint      => Key'Unchecked_Access,
+                        U_Oid     => U_Oid,
+                        Error     => Error);
+
+                     if Found (Error) then
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+                     end if;
+
+                     Oid := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+                     Create_Reference
+                       (The_ORB,
+                        Oid,
+                        "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
+                        Ref);
+
+                     PolyORB.Objects.Free (Oid);
+
+                     pragma Debug
+                       (O ("Registering local RCI: " & Stub.Name.all));
+
+                     Known_RCIs.Register
+                       (To_Lower (Stub.Name.all), RCI_Info'
+                          (Base_Ref            => Ref,
+                           Is_Local            => True,
+                           Is_All_Calls_Remote =>
+                             Stub.Is_All_Calls_Remote,
+                           Known_Partition_ID  => False,
+                           RCI_Partition_ID    => RPC.Partition_ID'First));
+
+                     begin
+                        PSNNC.Client.Bind
+                          (Self => Naming_Context,
+                           N    => To_Name (To_Lower (Stub.Name.all), "RCI"),
+                           Obj  => Ref);
+                     exception
+                        when others =>
+                           PSNNC.Client.Rebind
+                             (Self => Naming_Context,
+                              N    => To_Name
+                              (To_Lower (Stub.Name.all), "RCI"),
+                              Obj  => Ref);
+
+                     end;
+
+                  end;
+            end case;
+         end;
+         Next (It);
+      end loop;
+      pragma Debug (O ("Done initializing DSA."));
+
+      --  Note: currently we keep the All_Receiving_Stubs list
+      --  in memory, because Get_RAS_Ref uses it at a later point.
+      --  An alternative (better) design would store the relevant
+      --  RCI subprogram info in hash tables, and get rid of
+      --  the list after initialization.
+
+   end Initialize;
+
+   --------------------
+   -- Naming_Context --
+   --------------------
+
+   function Naming_Context return PSNNC.Ref is
+      R : PolyORB.References.Ref;
+   begin
+      if PSNNC.Is_Nil (Naming_Context_Cache) then
+         PolyORB.References.String_To_Object
+           (PolyORB.Parameters.Get_Conf ("dsa", "naming_ior"),
+            R);
+         PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
+      end if;
+
+      return Naming_Context_Cache;
+   end Naming_Context;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Stream : in out Buffer_Stream_Type;
+      Item   : out Stream_Element_Array;
+      Last   : out Stream_Element_Offset)
+   is
+      use PolyORB.Buffers;
+
+      Transfer_Length : constant Stream_Element_Count
+        := Stream_Element_Count'Min
+        (Remaining (Stream.Buf), Item'Length);
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Extract_Data (Stream.Buf, Data, Transfer_Length);
+      Last := Item'First + Transfer_Length - 1;
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'First .. Last);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Item (Item'First .. Last) := Z;
+      end;
+   end Read;
 
    -----------------
    -- RCI_Locator --
@@ -1085,6 +1345,63 @@ package body System.PolyORB_Interface is
         (Value (First (All_Receiving_Stubs)));
    end Register_Pkg_Receiving_Stub;
 
+   --------------------
+   -- Release_Buffer --
+   --------------------
+
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type) is
+   begin
+      PolyORB.Buffers.Release (Stream.Buf);
+   end Release_Buffer;
+
+   -----------------------
+   -- Request_Arguments --
+   -----------------------
+
+   procedure Request_Arguments
+     (R     :        PolyORB.Requests.Request_Access;
+      Args  : in out PolyORB.Any.NVList.Ref)
+   is
+      Error : PolyORB.Exceptions.Error_Container;
+   begin
+      PolyORB.Requests.Arguments (R, Args, Error);
+      if PolyORB.Exceptions.Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Request_Arguments;
+
+   ------------------------------
+   -- Request_Raise_Occurrence --
+   ------------------------------
+
+   procedure Request_Raise_Occurrence (R : in out Request_Access) is
+      use Ada.Exceptions;
+   begin
+      if not Is_Empty (R.Exception_Info) then
+         declare
+            E : constant PolyORB.Any.Any := R.Exception_Info;
+         begin
+            PolyORB.Requests.Destroy_Request (R);
+            PolyORB.Exceptions.Default_Raise_From_Any (E);
+         end;
+      end if;
+   end Request_Raise_Occurrence;
+
+   ---------------------
+   -- Request_Set_Out --
+   ---------------------
+
+   procedure Request_Set_Out
+     (R     : PolyORB.Requests.Request_Access)
+   is
+      Error : PolyORB.Exceptions.Error_Container;
+   begin
+      PolyORB.Requests.Set_Out_Args (R, Error);
+      if PolyORB.Exceptions.Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+   end Request_Set_Out;
+
    -----------------------
    -- Retrieve_RCI_Info --
    -----------------------
@@ -1102,11 +1419,12 @@ package body System.PolyORB_Interface is
          --  Not known yet: we therefore know that it is remote,
          --  and that we need to look it up with the naming service.
          Info := RCI_Info'
-           (Base_Ref => CORBA.Object.To_PolyORB_Ref
-              (PolyORB.CORBA_P.Naming_Tools.Locate
-                 (LName & ".RCI")),
-            Is_Local => False,
-            Is_All_Calls_Remote => True);
+           (Base_Ref => PSNNC.Client.Resolve
+              (Naming_Context, To_Name (LName, "RCI")),
+            Is_Local            => False,
+            Is_All_Calls_Remote => True,
+            Known_Partition_ID  => False,
+            RCI_Partition_ID    => RPC.Partition_ID'First);
          Known_RCIs.Register (LName, Info);
       end if;
       return Info;
@@ -1120,6 +1438,7 @@ package body System.PolyORB_Interface is
      (Name            : String;
       Default_Servant : Servant_Access)
    is
+      use PolyORB.Exceptions;
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
@@ -1128,6 +1447,8 @@ package body System.PolyORB_Interface is
       POA : Obj_Adapter_Access;
       PName : constant PolyORB.Types.String
         := PolyORB.Types.String (To_PolyORB_String (Name));
+
+      Error : Error_Container;
    begin
       --  NOTE: Actually this does more than set up an RPC
       --  receiver. A TypeCode corresponding to the RACW is
@@ -1135,10 +1456,10 @@ package body System.PolyORB_Interface is
       --  client side.)
 
       Default_Servant.Obj_TypeCode := PolyORB.Any.TC_Object;
-      PolyORB.Any.TypeCode.Add_Parameter
+      PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode,
          To_Any (PName));
-      PolyORB.Any.TypeCode.Add_Parameter
+      PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode,
          TA_String ("DSA:" & Name & ":1.0"));
 
@@ -1146,11 +1467,18 @@ package body System.PolyORB_Interface is
          return;
       end if;
 
-      POA := Create_POA
-        (Self         => Root_POA_Object,
+      Create_POA
+        (Self         => PolyORB.POA.Obj_Adapter_Access
+         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)),
          Adapter_Name => PName,
          A_POAManager => null,
-         Policies     => Default_Policies (RACW_POA_Config.all));
+         Policies     => Default_Policies (RACW_POA_Config.all),
+         POA          => POA,
+         Error        => Error);
+
+      if Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
 
       POA.Default_Servant := PolyORB.Servants.Servant_Access
         (Default_Servant);
@@ -1159,8 +1487,45 @@ package body System.PolyORB_Interface is
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
       pragma Assert (Default_Servant.Object_Adapter /= null);
 
-      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
+      Activate (POAManager_Access (Entity_Of (POA.POA_Manager)), Error);
+
+      if Found (Error) then
+         PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
    end Setup_Object_RPC_Receiver;
+
+   --------------
+   -- TC_Build --
+   --------------
+
+   function TC_Build
+     (Base : PATC.Object;
+      Parameters : Any_Array)
+      return PATC.Object
+   is
+      Result : PATC.Object
+        := Base;
+   begin
+      for I in Parameters'Range loop
+         PATC.Add_Parameter
+           (Result, Parameters (I));
+      end loop;
+      return Result;
+   end TC_Build;
+
+   ---------------
+   -- TC_Opaque --
+   ---------------
+
+   function TC_Opaque return PATC.Object
+   is
+      Result : PATC.Object := PATC.TC_Sequence;
+   begin
+      PATC.Add_Parameter (Result, TA_U (0));
+      PATC.Add_Parameter (Result, To_Any (TC_Octet));
+      return Result;
+   end TC_Opaque;
 
    ------------
    -- To_Any --
@@ -1260,24 +1625,41 @@ package body System.PolyORB_Interface is
       return PolyORB.Any.To_Any (PolyORB.Types.To_PolyORB_String (S));
    end TA_String;
 
-   --------------
-   -- TC_Build --
-   --------------
+   -------------
+   -- To_Name --
+   -------------
 
-   function TC_Build
-     (Base : PolyORB.Any.TypeCode.Object;
-      Parameters : Any_Array)
-      return PolyORB.Any.TypeCode.Object
-   is
-      Result : PolyORB.Any.TypeCode.Object
-        := Base;
+   function To_Name (Id, Kind : String) return PolyORB.Services.Naming.Name is
+      use PolyORB.Services.Naming.SEQUENCE_NameComponent;
    begin
-      for I in Parameters'Range loop
-         PolyORB.Any.TypeCode.Add_Parameter
-           (Result, Parameters (I));
-      end loop;
-      return Result;
-   end TC_Build;
+      return PolyORB.Services.Naming.Name
+        (To_Sequence
+         ((1 => (id   => PolyORB.Services.Naming.To_PolyORB_String (Id),
+                 kind => PolyORB.Services.Naming.To_PolyORB_String (Kind)))));
+   end To_Name;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Stream : in out Buffer_Stream_Type;
+      Item   : in Stream_Element_Array)
+   is
+      use PolyORB.Buffers;
+
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Allocate_And_Insert_Cooked_Data (Stream.Buf, Item'Length, Data);
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'Range);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Z := Item;
+      end;
+   end Write;
 
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings;
@@ -1286,20 +1668,18 @@ package body System.PolyORB_Interface is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"dsa",
+      (Name      => +"dsa",
        Conflicts => Empty,
-       Depends => +"orb"
-         & "corba.initial_references"
-         & "poa_config.racws?"
-         & "CosNaming.BindingIterator.Helper"
-         & "CosNaming.Helper"
-         & "CosNaming.NamingContext.Helper"
-         & "tcp_access_points.soap?"
-         & "tcp_access_points.corba?"
-         & "tcp_access_points.srp?",
-       Provides => Empty,
-       Init => Initialize'Access));
-
-   --  XXX should depend on virtual module 'access_points' only.
-
+       Depends   => +"orb"
+       & "poa_config.racws?"   --  XXX see note in the header concerning OAs
+       & "object_adapter?"
+       & "naming.Helper"
+       & "naming.NamingContext.Helper"
+       & "tasking.mutexes"
+       & "access_points?"
+       & "binding_factories"
+       & "references",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end System.PolyORB_Interface;

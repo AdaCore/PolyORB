@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,6 +41,8 @@ with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Exceptions;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.Transport is
 
@@ -57,9 +60,10 @@ package PolyORB.Transport is
       is abstract new Components.Component with private;
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
-   --  A listening transport service access point.
+   --  A listening transport service access point
 
-   function Notepad_Of (TAP : Transport_Access_Point_Access)
+   function Notepad_Of
+     (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  A TAP is an annotable object (cf. PolyORB.Annotations),
@@ -67,14 +71,16 @@ package PolyORB.Transport is
    --  This functions returns an access to TAP's Notepad component.
 
    function Create_Event_Source
-     (TAP : Transport_Access_Point)
+     (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
      return Components.Message'Class;
 
    -----------------------------------------------------------------
@@ -88,26 +94,26 @@ package PolyORB.Transport is
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
-      Upper : Components.Component_Access);
+      Upper :        Components.Component_Access);
    --  Connect the "upper layer" signal of TE to Upper.
 
    type Transport_Endpoint_Access is access all Transport_Endpoint'Class;
    --  An opened transport endpoint.
 
-   function Notepad_Of (TE : Transport_Endpoint_Access)
+   function Notepad_Of
+     (TE : Transport_Endpoint_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
 
-   procedure Destroy (TE : in out Transport_Endpoint_Access);
-   --  Destroy a transport endpoint and the associated protocol stack.
-
    function Handle_Message
      (TE  : access Transport_Endpoint;
-      Msg : Components.Message'Class)
-     return Components.Message'Class;
+      Msg :        Components.Message'Class)
+     return Components.Message'Class
+     is abstract;
 
-   function Upper (TE : Transport_Endpoint_Access)
-                   return Components.Component_Access;
+   function Upper
+     (TE : Transport_Endpoint_Access)
+     return Components.Component_Access;
    --  Return a component access to the upper layer of TE
 
    ----------------------------------------------------
@@ -119,25 +125,19 @@ package PolyORB.Transport is
    --  These primitives are invoked from event-driven ORB
    --  threads, and /must not/ be blocking.
 
-   procedure Accept_Connection
-     (TAP : Transport_Access_Point;
-      TE  : out Transport_Endpoint_Access)
-      is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
-
-   Connection_Closed : exception;
-
    function Create_Event_Source
-     (TE : Transport_Endpoint)
+     (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count)
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
    --  Size is set to the maximum size of the data to be received.
@@ -145,11 +145,17 @@ package PolyORB.Transport is
 
    procedure Write
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffers.Buffer_Access)
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 
-   procedure Close (TE : in out Transport_Endpoint) is abstract;
+   procedure Close (TE : access Transport_Endpoint);
+   --  Dissociate the transport endpoint from any communication
+   --  resource.
+
+   procedure Destroy (TE : in out Transport_Endpoint);
+   --  Destroy any resources allocated to TE.
 
 private
 
@@ -167,6 +173,14 @@ private
 
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
+
+         Dependent_Binding_Object : Smart_Pointers.Ref;
+         --  For server-side transport endpoints, keep a reference
+         --  to the associated binding object as long as the
+         --  transport endpoint is alive.
+
+         Closed : Boolean := False;
+         --  Set to True once Close has been called on this endpoint.
 
          In_Buf : Buffers.Buffer_Access;
          Max    : Ada.Streams.Stream_Element_Count;

@@ -19,8 +19,8 @@ with PortableServer;
 
 package body CORBA.Repository_Root.ExceptionDef.Impl is
 
-   package ExcDef renames IDL_SEQUENCE_CORBA_Repository_Root_ExceptionDef_Forward;
-   package ExcDes renames IDL_SEQUENCE_CORBA_Repository_Root_ExceptionDescription;
+   package ExcDef renames IDL_Sequence_CORBA_ExceptionDef_Forward;
+   package ExcDes renames IDL_Sequence_CORBA_ExceptionDescription;
 
    ----------------------
    --  Procedure init  --

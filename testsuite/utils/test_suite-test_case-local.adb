@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -61,22 +62,49 @@ package body Test_Suite.Test_Case.Local is
         := "./" & To_String (Test_To_Run.Exec.Command);
 
       Test_Result : Boolean;
+
    begin
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      --  Launch Test.
+      --  Reset POLYORB_CONF
+
+      Setenv ("POLYORB_CONF", " ");
+
+      --  Launch Test
+
       Log (Output, "Running: " & Command);
       Separator (Output);
 
-      --  Spawn Executable.
-      Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
+      --  Test the executable actually exists
 
-      --  Redirect Output.
+      if not Is_Regular_File (Command) then
+         Log (Output, Command & " does not exist !");
+         Log (Output, "Aborting test");
+
+         Test_Result := False;
+
+         Close_Test_Output_Context (Output, Test_Result);
+
+         return Test_Result;
+      end if;
+
+      --  Spawn Executable
+
+      Non_Blocking_Spawn
+        (Descriptor  => Fd,
+         Command     => Command,
+         Args        => Null_Argument_List,
+         Buffer_Size => 4096,
+         Err_To_Out  => True);
+
+      --  Redirect Output
+
       Initialize_Filter (Output);
       Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
-      --  Parse output.
+      --  Parse output
+
       Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
       case Result is
          when 1 =>
@@ -88,7 +116,7 @@ package body Test_Suite.Test_Case.Local is
             Test_Result := True;
 
          when Expect_Timeout =>
-            Log (Output, "==> Time Out ! <==");
+            Log (Output, "==> Time out ! <==");
             Test_Result := False;
 
          when others =>
@@ -104,11 +132,12 @@ package body Test_Suite.Test_Case.Local is
    exception
 
       when GNAT.Expect.Process_Died =>
-         --  The process may normally exit or die because of an internal
-         --  error. We cannot judge at this stage.
 
-         Log (Output, "==> Process Terminated <==");
-         Test_Result := True;
+         --  If we catch this exception before the test program
+         --  produces expected output then the test failed.
+
+         Log (Output, "==> Process terminated abnormally <==");
+         Test_Result := False;
 
          Close (Fd);
          Close_Test_Output_Context (Output, Test_Result);

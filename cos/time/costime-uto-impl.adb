@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                     C O S T I M E . U T O . I M P L                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,23 +26,30 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Server_Tools;
-with CosTime.TIO.Helper;
-with CosTime.TIO.Impl;
-with CosTime.UTO.Helper;
-with CosTime.UTO.Skel;
-with Interfaces.C;
+--  $Id$
+
 with PortableServer;
-with System;
-with TimeBase;           use TimeBase;
-with Time_Utils;         use Time_Utils;
+
+with CosTime.TIO.Impl;
+
+with CosTime.UTO.Skel;
+pragma Elaborate (CosTime.UTO.Skel);
+pragma Warnings (Off, CosTime.UTO.Skel);
+
+with TimeBase;
+with Time_Utils;
+
+with PolyORB.CORBA_P.Server_Tools;
 
 package body CosTime.UTO.Impl is
+
+   use TimeBase;
+   use Time_Utils;
 
    type UTO_Ptr is access Object;
    type TIO_Ptr is access CosTime.TIO.Impl.Object;
@@ -61,7 +68,7 @@ package body CosTime.UTO.Impl is
       Result.Time := Self.Time + Current_Time;
       Result.Inaccuracy := Self.Inaccuracy + Current_Inaccuracy;
       Result.Tdf := Self.Tdf + Current_Tdf;
-      Broca.Server_Tools.Initiate_Servant
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end absolute_time;
@@ -71,15 +78,15 @@ package body CosTime.UTO.Impl is
    ------------------
 
    function compare_time
-     (Self : access Object;
+     (Self            : access Object;
       comparison_type : in ComparisonType;
-      uto : in Ref)
+      uto             : in Ref)
      return TimeComparison
    is
       Other_Time : constant TimeT := get_time (uto);
       Other_Tdf  : constant TdfT  := get_tdf (uto);
    begin
-      if Comparison_Type = MidC then
+      if comparison_type = MidC then
          return Compare (Self.Time + Self.Tdf, Other_Time + Other_Tdf);
       else
          declare
@@ -162,9 +169,9 @@ package body CosTime.UTO.Impl is
       Result : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R      : TIO_Forward.Ref;
    begin
-      Result.Interval.Lower_Bound := Self.Time - Self.Tdf;
-      Result.Interval.Upper_Bound := Self.Time + Self.Tdf;
-      Broca.Server_Tools.Initiate_Servant
+      Result.Interval.lower_bound := Self.Time - Self.Tdf;
+      Result.Interval.upper_bound := Self.Time + Self.Tdf;
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end interval;
@@ -175,16 +182,16 @@ package body CosTime.UTO.Impl is
 
    function time_to_interval
      (Self : access Object;
-      uto : in Ref)
+      uto  : in     Ref)
      return TIO_Forward.Ref
    is
       Other_Time : constant TimeT   := get_time (uto);
       Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
       R          : TIO_Forward.Ref;
    begin
-      Result.Interval.Lower_Bound := TimeT'Min (Self.Time, Other_Time);
-      Result.Interval.Upper_Bound := TimeT'Max (Self.Time, Other_Time);
-      Broca.Server_Tools.Initiate_Servant
+      Result.Interval.lower_bound := TimeT'Min (Self.Time, Other_Time);
+      Result.Interval.upper_bound := TimeT'Max (Self.Time, Other_Time);
+      PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return R;
    end time_to_interval;

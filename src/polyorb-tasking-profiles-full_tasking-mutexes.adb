@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -96,7 +97,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
       pragma Warnings (On);
 
-      M : Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
+      M : constant Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
       pragma Debug (O ("Create Mutex"));
       M.The_PO := new Mutex_PO;
@@ -162,7 +163,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
       procedure Leave is
       begin
-         pragma Assert (Locked = True);
+         pragma Assert (Locked);
          pragma Debug (O ("Leave mutex"));
          Locked := False;
       end Leave;
@@ -189,9 +190,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.mutexes",
+      (Name      => +"tasking.profiles.full_tasking.mutexes",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"tasking.mutexes",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"tasking.mutexes",
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;

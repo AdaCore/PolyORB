@@ -1,26 +1,33 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                  A D A _ B E . I D L 2 A D A . S K E L                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2002 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -142,7 +149,7 @@ package body Ada_Be.Idl2Ada.Skel is
             if not Abst (Node) then
                --  No skel or impl packages are generated for
                --  abstract interfaces.
-               Add_With (CU, "PolyORB.Exceptions");
+               Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PortableServer",
                          Use_It => False,
                          Elab_Control => Elaborate_All);
@@ -216,6 +223,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "Type_Id :=");
       PL (CU, "  CORBA.From_Any (Argument_Ü_Type_Id);");
+      NL (CU);
       PL (CU, "--  Call implementation");
       Put (CU, "Result_Ü := ");
 
@@ -342,7 +350,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.Raise_Bad_Operation;");
+      PL (CU, "CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -355,7 +363,8 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "CORBA.ServerRequest.Set_Exception");
       PL (CU, "  (Request,");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.System_Exception_To_Any (E));");
+      PL (CU, "CORBA.Internals.To_CORBA_Any "
+          & "(PolyORB.CORBA_P.Exceptions.System_Exception_To_Any (E)));");
       DI (CU);
       PL (CU, "return;");
       DI (CU);
@@ -363,8 +372,6 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       DI (CU);
       PL (CU, "end Invoke;");
-
-      Divert (CU, Elaboration);
 
       if not Is_Delegate then
          Init (It, Parents (Node));
@@ -377,6 +384,8 @@ package body Ada_Be.Idl2Ada.Skel is
                       No_Warnings => True);
          end loop;
       end if;
+
+      Divert (CU, Deferred_Initialization);
 
       PL (CU, "PortableServer.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");
@@ -423,8 +432,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
 
             declare
-               --  O_Name : constant String
-               --    := Ada_Operation_Name (Node);
                O_Type : constant Node_Id
                  := Operation_Type (Node);
                Response_Expected : constant Boolean
@@ -479,8 +486,11 @@ package body Ada_Be.Idl2Ada.Skel is
                      declare
                         Arg_Name : constant String
                           := Ada_Name (Declarator (P_Node));
+
+                        P_Typ : constant Node_Id := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Helper_Unit (Param_Type (P_Node));
+                          := Ada_Helper_Name (P_Typ);
+
                      begin
 
                         PL (CU, Justify (Arg_Name, Max_Len) & " : "
@@ -491,21 +501,15 @@ package body Ada_Be.Idl2Ada.Skel is
                                & " : constant CORBA.Identifier");
                            PL (CU, "  := CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
+
+                           Add_With (CU, Helper_Name);
+
+                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
+                               & " : CORBA.Any := CORBA.Get_Empty_Any");
+                           PL (CU, "  (" & Ada_Full_TC_Name (P_Typ) & ");");
+
+                           NL (CU);
                         end if;
-
-                        Add_With (CU, Helper_Name);
-
-                        PL (CU, "pragma Warnings (Off);");
-                        --  Using Arg_Name before it has a value.
-                        --  We only need to build an Any here.
-                        Put (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                            & " : CORBA.Any := " & Helper_Name & ".To_Any"
-                            & " (");
-                        Gen_Forward_Conversion
-                          (CU, Param_Type (P_Node), "From_Forward",  Arg_Name);
-                        PL (CU, ");");
-                        PL (CU, "pragma Warnings (On);");
-                        NL (CU);
                      end;
                   end loop;
                end;
@@ -546,8 +550,6 @@ package body Ada_Be.Idl2Ada.Skel is
                                  PL (CU, "CORBA.ARG_INOUT);");
                               when Mode_Out =>
                                  PL (CU, "CORBA.ARG_OUT);");
-                              when others =>
-                                 null;
                            end case;
                            DI (CU);
                         end;
@@ -587,6 +589,7 @@ package body Ada_Be.Idl2Ada.Skel is
                            if Mode (P_Node) = Mode_In
                              or else Mode (P_Node) = Mode_Inout
                            then
+                              Add_With (CU, Helper_Name);
                               PL (CU, Arg_Name & " :=");
                               Put (CU, "  ");
                               Gen_Forward_Conversion
@@ -601,6 +604,7 @@ package body Ada_Be.Idl2Ada.Skel is
                   end loop;
                end;
 
+               NL (CU);
                PL (CU, "--  Call implementation");
 
                if Is_Function then
@@ -618,6 +622,7 @@ package body Ada_Be.Idl2Ada.Skel is
                        & ".Object'Class (Self.all)'Access");
                end;
 
+               II (CU);
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
@@ -625,10 +630,11 @@ package body Ada_Be.Idl2Ada.Skel is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Put (CU, ", " & Ada_Name (Declarator (P_Node)));
+                     Put (CU, "," & ASCII.LF & Ada_Name (Declarator (P_Node)));
                   end loop;
                end;
                PL (CU, ");");
+               DI (CU);
 
                if Raise_Something then
 
@@ -714,8 +720,8 @@ package body Ada_Be.Idl2Ada.Skel is
                                  end if;
 
                                  Add_With (CU, Helper_Name);
-                                 Add_With (CU, "PolyORB.Any");
-                                 PL (CU, "PolyORB.Any.Copy_Any_Value");
+                                 Add_With (CU, "CORBA");
+                                 PL (CU, "CORBA.Internals.Copy_Any_Value");
                                  PL (CU, "  (" & T_Argument & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");

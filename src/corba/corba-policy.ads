@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +31,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  Note: this package specification has been adapted to work around
---  Ada semantics errors present in OMG Ada mapping (version 1.2).
 
 --  $Id$
 
@@ -40,21 +43,37 @@ with CORBA.Sequences.Unbounded;
 
 package CORBA.Policy is
 
-   type Ref is abstract new CORBA.Object.Ref with record
-      Type_Of_Ref : PolicyType;
-   end record;
+   --  Implementation note: The Ada mapping defines
+   --     type Ref is new abstract CORBA.Object.Ref with null record;
+   --  This raises Ada semantics error when defining IDL_Sequence_Policy
+   --  and CORBA.ORB.Create_Policy. We modified type Ref to reduce impacts on
+   --  others parts of this CORBA implementation
 
-   type Ref_Access is access all Ref'Class;
+   type Ref is new CORBA.Object.Ref with null record;
 
-   function Get_Policy_Type (Self : Ref) return PolicyType;
+   function Get_Policy_Type
+     (Self : Ref)
+     return PolicyType;
 
-   function Copy (Self : Ref) return Ref'Class;
+   function Copy
+     (Self : Ref'Class)
+     return Ref'Class;
+
+   --  Destroy unneeded
+   --    procedure Destroy (Self : Ref);
+
+   --  Implementation note: these two Sequence types should be defined
+   --  in package CORBA. Yet, this would create circular dependencies
+   --  between CORBA and CORBA.Sequences.
 
    package IDL_Sequence_Policy is new
-     CORBA.Sequences.Unbounded (Ref_Access);
-   --  Note : Ref is an abstract type, thus we cannot instantiate a
-   --  sequence of Ref, we use a sequence of Ref_Access instead.
+     CORBA.Sequences.Unbounded (Ref);
 
    subtype PolicyList is IDL_Sequence_Policy.Sequence;
+
+   package IDL_Sequence_PolicyType is new
+     CORBA.Sequences.Unbounded (PolicyType);
+
+   subtype PolicyTypeSeq is IDL_Sequence_PolicyType.Sequence;
 
 end CORBA.Policy;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,7 +42,10 @@ package PolyORB.Log is
    --  Log_Levels are used to classify the importance of messages
 
    type Log_Level is
-     (Debug,
+     (Unknown,
+      --  The log level for this facility has not been defined yet.
+
+      Debug,
       --  Developer interest only, should never be displayed
       --  in a production environment.
 
@@ -94,7 +98,7 @@ package PolyORB.Log is
 
    type Configuration_Hook is access
      function (Section, Key, Default : String)
-               return String;
+              return String;
 
    Get_Conf_Hook : Configuration_Hook := null;
    --  When a configuration subsystem is initialized, it may
@@ -103,5 +107,14 @@ package PolyORB.Log is
    --  facility. The configuration values must be in the
    --  section named by Log_Section, and the keys used are
    --  the facility names.
+
+   package Internals is
+
+      procedure Put_Line (S : String);
+      --  Output S to stderr.
+
+      --  Note: this function is to be utilised if and only if we cannot
+      --  instanciate PolyORB.Log.Facility_Log.
+   end Internals;
 
 end PolyORB.Log;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,11 +36,12 @@
 
 --  $Id$
 
-with PolyORB.Configuration;
+with PolyORB.Parameters;
+pragma Elaborate_All (PolyORB.Parameters); --  WAG:3.15
 
 package Test000_Common is
 
-   use PolyORB.Configuration;
+   use PolyORB.Parameters;
 
    Number_Of_Tasks : constant Integer :=
      Get_Conf ("test", "tasking.number_of_tasks", 2);

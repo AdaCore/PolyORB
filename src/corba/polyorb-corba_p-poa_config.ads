@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
+--  Utility package to manipulate Policy list used to set up PolyORB's POA.
 
 --  $Id$
 
@@ -44,5 +44,15 @@ package PolyORB.CORBA_P.POA_Config is
    function Convert_PolicyList
      (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList;
+   --  Convert a CORBA.PolicyList into a PolyORB.POA_Policies.PolicyList
+
+   type Policy_Type_Allocator is
+     access function (Policy : CORBA.Policy.Ref)
+                     return PolyORB.POA_Policies.Policy_Access;
+
+   procedure Register
+     (Policy    : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator);
+   --  Register a constructor function for Policy
 
 end PolyORB.CORBA_P.POA_Config;

@@ -1,51 +1,37 @@
-AUTOMAKE_OPTIONS = no-dependencies
+include $(top_srcdir)/cos/Makefile.common
 
-include $(srcdir)/../Makefile.common
+alidir = $(includedir)/polyorb/corba/cos
 
-#COS_GNATMAKE_FLAGS = -I$(srcdir) \
-#	-I../naming \
-#	-I$(srcdir)/../naming \
-#	-I$(COS_ROOT)/event \
-#	-I$(COS_ROOT)/naming \
-#	-I../../src \
-#	-I$(srcdir)/../../src
-   
-COS_GNATMAKE_FLAGS=-I../../idls/cos/naming \
-    -I../naming \
-    -I../../idls/cos/event    
-# le fichier que l'on veut générer
-# pour l'instant il s'agit d'un fichier qui fait des tests
-PROGS=test_event
+COS_DIRS=$(top_builddir)/idls/cos/event
 
-FORCE= force
+COS_ADAFLAGS = -I$(COS_DIRS)
 
-#COS_DIRS=$(COS_ROOT)/event $(COS_ROOT)/naming
+#
+# Building libpolyorb-corba-cos-event-impl library
+#
 
-IMP_1= \
-coseventcomm-pullsupplier-impl.adb \
-coseventcomm-pullsupplier-impl.ads \
-coseventcomm-pushconsumer-impl.adb \
-coseventcomm-pushconsumer-impl.ads \
-coseventcomm-pullconsumer-impl.adb \
-coseventcomm-pullconsumer-impl.ads \
-coseventcomm-pushsupplier-impl.adb \
-coseventcomm-pushsupplier-impl.ads
+ADA_SPECS_WITH_BODY = \
+	coseventchanneladmin-consumeradmin-impl.ads \
+	coseventchanneladmin-eventchannel-impl.ads \
+	coseventchanneladmin-proxypullconsumer-impl.ads \
+	coseventchanneladmin-proxypullsupplier-impl.ads \
+	coseventchanneladmin-proxypushconsumer-impl.ads \
+	coseventchanneladmin-proxypushsupplier-impl.ads \
+	coseventchanneladmin-supplieradmin-impl.ads \
+	coseventcomm-pullconsumer-impl.ads \
+	coseventcomm-pullsupplier-impl.ads \
+	coseventcomm-pushconsumer-impl.ads \
+	coseventcomm-pushsupplier-impl.ads \
+	costypedeventchanneladmin-typedconsumeradmin-impl.ads \
+	costypedeventchanneladmin-typedeventchannel-impl.ads \
+	costypedeventchanneladmin-typedproxypullsupplier-impl.ads \
+	costypedeventchanneladmin-typedproxypushconsumer-impl.ads \
+	costypedeventchanneladmin-typedsupplieradmin-impl.ads \
+	costypedeventcomm-typedpullsupplier-impl.ads \
+	costypedeventcomm-typedpushconsumer-impl.ads
 
-IMP_2= \
-coseventchanneladmin-consumeradmin-impl.adb \
-coseventchanneladmin-consumeradmin-impl.ads \
-coseventchanneladmin-supplieradmin-impl.adb \
-coseventchanneladmin-supplieradmin-impl.ads \
-coseventchanneladmin-proxypushsupplier-impl.adb \
-coseventchanneladmin-proxypushsupplier-impl.ads \
-coseventchanneladmin-proxypushconsumer-impl.adb \
-coseventchanneladmin-proxypushconsumer-impl.ads \
-coseventchanneladmin-proxypullconsumer-impl.adb \
-coseventchanneladmin-proxypullconsumer-impl.ads \
-coseventchanneladmin-proxypullsupplier-impl.adb \
-coseventchanneladmin-proxypullsupplier-impl.ads \
-coseventchanneladmin-eventchannel-impl.adb \
-coseventchanneladmin-eventchannel-impl.ads
+lib_LTLIBRARIES = libpolyorb-corba-cos-event-impl.la
 
-$(PROGS): force $(IMP_1) $(IMP_2)
-	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
+libpolyorb_corba_cos_event_impl_la_SOURCES =
+libpolyorb_corba_cos_event_impl_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_event_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

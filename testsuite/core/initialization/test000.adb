@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,13 +38,15 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 procedure Test000 is
 
    use Ada.Text_IO;
+
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Report;
    use PolyORB.Utils.Strings;
 
    generic
@@ -65,36 +68,42 @@ procedure Test000 is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"foo",
+      (Name      => +"foo",
        Conflicts => Empty_List,
-       Depends => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
-   Register_Module
-     (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo" & "baz",
-       Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
-   Register_Module
-     (Module_Info'
-      (Name => +"bazooka",
-       Depends => Empty_List,
-       Conflicts => Empty_List,
-       Provides => Empty_List & "baz",
-       Init => Init_Bazooka'Unrestricted_Access));
+       Depends   => Empty_List,
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Foo'Unrestricted_Access));
 
    Register_Module
      (Module_Info'
-      (Name => +"fred",
-       Depends => Empty_List & "bar" & "foo",
+      (Name      => +"bar",
+       Depends   => Empty_List & "foo" & "baz",
+       Conflicts => Empty_List,
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Bar'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name      => +"bazooka",
+       Depends   => Empty_List,
+       Conflicts => Empty_List,
+       Provides  => Empty_List & "baz",
+       Implicit  => False,
+       Init      => Init_Bazooka'Unrestricted_Access));
+
+   Register_Module
+     (Module_Info'
+      (Name      => +"fred",
+       Depends   => Empty_List & "bar" & "foo",
        Conflicts => Empty_List & "bazaar",
-       Provides => Empty_List,
-       Init => Init_Fred'Unrestricted_Access));
+       Provides  => Empty_List,
+       Implicit  => False,
+       Init      => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
 
-   PolyORB.Report.Output ("Test initialization #0", True);
-   PolyORB.Report.End_Report;
+   Output ("Test initialization #0", True);
+   End_Report;
 end Test000;

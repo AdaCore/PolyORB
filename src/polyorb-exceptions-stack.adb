@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#4 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#9 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -139,18 +140,18 @@ package body PolyORB.Exceptions.Stack is
    --------------------------
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
-      Get_Members : Boolean);
+      Get_Members :     Boolean);
    --  Internal implementation of Get_Members and Purge_Members.
    --  If Get_Members is true, the retrieved members object is
    --  assigned to Exc_Mbr, else the object is discarded and no
    --  assignment is made.
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
-      Get_Members : Boolean)
+      Get_Members :     Boolean)
    is
       Exc_Occ_Id : Exc_Occ_Id_Type;
       Current    : Exc_Occ_List;
@@ -188,7 +189,7 @@ package body PolyORB.Exceptions.Stack is
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
-         PolyORB.Exceptions.Raise_Imp_Limit;
+         --  PolyORB.Exceptions.Raise_Imp_Limit;
       end if;
 
       --  Remove member from list.
@@ -204,7 +205,6 @@ package body PolyORB.Exceptions.Stack is
       end if;
 
       --  Update out parameter. An exception can be raised here.
-
 
       if Get_Members then
          Exc_Mbr := Current.Mbr.all;
@@ -234,7 +234,7 @@ package body PolyORB.Exceptions.Stack is
    -----------------
 
    procedure Get_Members
-     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ : in  Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr : out PolyORB.Exceptions.Exception_Members'Class) is
    begin
       Get_Or_Purge_Members (Exc_Occ, Exc_Mbr, Get_Members => True);
@@ -245,7 +245,7 @@ package body PolyORB.Exceptions.Stack is
    -------------------
 
    procedure Purge_Members
-     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence) is
+     (Exc_Occ : in Ada.Exceptions.Exception_Occurrence) is
    begin
       declare
          Dummy : System_Exception_Members;
@@ -387,12 +387,12 @@ package body PolyORB.Exceptions.Stack is
    use PolyORB.Utils.Strings;
 
 begin
-      Register_Module
+   Register_Module
      (Module_Info'
-      (Name => +"exceptions.stack",
+      (Name      => +"exceptions.stack",
        Conflicts => Empty,
-       Depends => +"tasking.soft_links",
-       Provides => Empty,
-       Init => Initialize'Access));
-
+       Depends   => Empty,
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.Exceptions.Stack;

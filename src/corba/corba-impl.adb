@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +41,7 @@ package body CORBA.Impl is
 
    function Execute_Servant
      (Self : access Object;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
       use PolyORB.Components;
@@ -53,7 +54,7 @@ package body CORBA.Impl is
 
    function Execute_Servant
      (Self : access Implementation;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class is
    begin
       return Execute_Servant (Self.As_Object, Msg);
@@ -63,7 +64,8 @@ package body CORBA.Impl is
    -- To_PolyORB_Servant --
    ------------------------
 
-   function To_PolyORB_Servant (S : access Object)
+   function To_PolyORB_Servant
+     (S : access Object)
      return PolyORB.Servants.Servant_Access is
    begin
       return S.Neutral_View'Access;
@@ -73,18 +75,27 @@ package body CORBA.Impl is
    -- To_CORBA_Servant --
    ----------------------
 
-   function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
-     return Object_Ptr is
+   function To_CORBA_Servant
+     (S : PolyORB.Servants.Servant_Access)
+     return Object_Ptr
+   is
+      use type PolyORB.Servants.Servant_Access;
+
    begin
-      return Object_Ptr (Implementation (S.all).As_Object);
+      if S = null then
+         return null;
+      else
+         return Object_Ptr (Implementation (S.all).As_Object);
+      end if;
    end To_CORBA_Servant;
 
    ---------
    -- "=" --
    ---------
 
-   function "=" (X, Y : Implementation) return Boolean
-   is
+   function "="
+     (X, Y : Implementation)
+     return Boolean is
    begin
       raise Program_Error;
       return False;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with PolyORB;
+with PolyORB.CORBA_P.Policy;
 
 package body CORBA.Policy is
+
+   use PolyORB.CORBA_P.Policy;
 
    ---------------------
    -- Get_Policy_Type --
@@ -44,7 +47,7 @@ package body CORBA.Policy is
      (Self : Ref)
      return PolicyType is
    begin
-      return Self.Type_Of_Ref;
+      return Get_Policy_Type (Policy_Object_Type (Entity_Of (Self).all));
    end Get_Policy_Type;
 
    ----------
@@ -52,14 +55,12 @@ package body CORBA.Policy is
    ----------
 
    function Copy
-     (Self : Ref)
-     return Ref'Class is
+     (Self : Ref'Class)
+     return Ref'Class
+   is
+      Result : Ref'Class := Self;
    begin
-      raise PolyORB.Not_Implemented;
-
-      pragma Warnings (Off);
-      return Copy (Self);
-      pragma Warnings (On);
+      return Result;
    end Copy;
 
 end CORBA.Policy;

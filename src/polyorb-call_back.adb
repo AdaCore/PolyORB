@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     P O L Y O R B . C A L L _ B A C K                    --
+--                    P O L Y O R B . C A L L _ B A C K                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with Ada.Tags;
+
 with PolyORB.Log;
-with PolyORB.Components;
+with PolyORB.Servants.Interface;
 with PolyORB.Requests;
-with PolyORB.Objects.Interface;
 
 package body PolyORB.Call_Back is
 
    use PolyORB.Log;
+   use PolyORB.Servants.Interface;
    use PolyORB.Requests;
-   use PolyORB.Objects.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.call_back");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -64,7 +65,7 @@ package body PolyORB.Call_Back is
 
       if S in Executed_Request then
          declare
-            Req : Request_Access
+            Req : constant Request_Access
               := Executed_Request (S).Req;
          begin
             pragma Debug (O (Requests.Image (Req.all)));

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -68,11 +69,20 @@ package body PolyORB.Utils is
          'f' => 15,
          others => -1);
 
+   Need_Escape : constant array (Character) of Boolean
+     := (';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
+         '<' | '>' | '#' | '%' | '"' |
+         '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
+         others => False);
+
    ---------------
    -- Hex_Value --
    ---------------
 
-   function Hex_Value (C : Character) return Integer is
+   function Hex_Value
+     (C : Character)
+     return Integer
+   is
       V : constant Integer := Hex_Val (C);
    begin
       if V = -1 then
@@ -86,16 +96,19 @@ package body PolyORB.Utils is
    -- To_String --
    ---------------
 
-   function To_String (A : Stream_Element_Array) return String
+   function To_String
+     (A : Stream_Element_Array)
+     return String
    is
       S : String (1 .. 2 * A'Length);
    begin
-      for I in A'Range loop
-         S (S'First + 2 * Integer (I - A'First))
-           := Hex (Integer (A (I)) / 16);
-         S (S'First + 2 * Integer (I - A'First) + 1)
-           := Hex (Integer (A (I)) mod 16);
+      for J in A'Range loop
+         S (S'First + 2 * Integer (J - A'First))
+           := Hex (Integer (A (J)) / 16);
+         S (S'First + 2 * Integer (J - A'First) + 1)
+           := Hex (Integer (A (J)) mod 16);
       end loop;
+
       return S;
    end To_String;
 
@@ -103,33 +116,38 @@ package body PolyORB.Utils is
    -- To_Stream_Element_Array --
    -----------------------------
 
-   function To_Stream_Element_Array (S : String) return Stream_Element_Array
+   function To_Stream_Element_Array
+     (S : String)
+     return Stream_Element_Array
    is
       A : Stream_Element_Array (1 .. S'Length / 2);
    begin
-      for I in A'Range loop
-         A (I) :=
+      for J in A'Range loop
+         A (J) :=
            Stream_Element
-           (Hex_Value (S (S'First + 2 * Integer (I - A'First))) * 16
-            + Hex_Value (S (S'First + 2 * Integer (I - A'First) + 1)));
+           (Hex_Value (S (S'First + 2 * Integer (J - A'First))) * 16
+            + Hex_Value (S (S'First + 2 * Integer (J - A'First) + 1)));
       end loop;
+
       return A;
    end To_Stream_Element_Array;
 
-   Need_Escape : constant array (Character) of Boolean
-     := (';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
-         '<' | '>' | '#' | '%' | '"' |
-         '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
-         others => False);
+   ----------------
+   -- URI_Encode --
+   ----------------
 
-   function URI_Encode (S : String) return String is
+   function URI_Encode
+     (S : String)
+     return String
+   is
       Result : String (1 .. 3 * S'Length);
       DI : Integer := Result'First;
    begin
       for SI in S'Range loop
          if Need_Escape (S (SI)) then
             Result (DI .. DI + 2)
-              := '%' & Hex (Character'Pos (S (SI)) / 16)
+              := '%'
+              & Hex (Character'Pos (S (SI)) / 16)
               & Hex (Character'Pos (S (SI)) mod 16);
             DI := DI + 3;
          else
@@ -141,10 +159,18 @@ package body PolyORB.Utils is
             DI := DI + 1;
          end if;
       end loop;
+
       return Result (Result'First .. DI - 1);
    end URI_Encode;
 
-   function URI_Decode (S : String) return String is
+   ----------------
+   -- URI_Decode --
+   ----------------
+
+   function URI_Decode
+     (S : String)
+     return String
+   is
       Result : String (S'Range);
       SI : Integer := S'First;
       DI : Integer := Result'First;
@@ -167,10 +193,18 @@ package body PolyORB.Utils is
          end if;
          DI := DI + 1;
       end loop;
+
       return Result (Result'First .. DI - 1);
    end URI_Decode;
 
-   function Trimmed_Image (I : Integer) return String is
+   -------------------
+   -- Trimmed_Image --
+   -------------------
+
+   function Trimmed_Image
+     (I : Integer)
+     return String
+   is
       R : constant String := Integer'Image (I);
    begin
       if I >= 0 then
@@ -179,6 +213,10 @@ package body PolyORB.Utils is
          return R;
       end if;
    end Trimmed_Image;
+
+   ---------------
+   -- Find_Skip --
+   ---------------
 
    function Find_Skip
      (S     : String;
@@ -196,5 +234,15 @@ package body PolyORB.Utils is
 
       return I;
    end Find_Skip;
+
+   ----------------
+   -- Has_Prefix --
+   ----------------
+
+   function Has_Prefix (S : String; Prefix : String) return Boolean is
+   begin
+      return S'Length >= Prefix'Length
+        and then S (S'First .. S'First + Prefix'Length - 1) = Prefix;
+   end Has_Prefix;
 
 end PolyORB.Utils;

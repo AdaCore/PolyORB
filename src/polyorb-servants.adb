@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Log;
 
 package body PolyORB.Servants is
@@ -47,7 +48,8 @@ package body PolyORB.Servants is
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of (S : Servant_Access)
+   function Notepad_Of
+     (S : Servant_Access)
      return PolyORB.Annotations.Notepad_Access is
    begin
       return S.Notepad'Access;
@@ -59,7 +61,7 @@ package body PolyORB.Servants is
 
    procedure Set_Thread_Policy
      (S  : access Servant;
-      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access) is
+      TP :        POA_Policies.Thread_Policy.ThreadPolicy_Access) is
    begin
       S.TP_Access := TP;
    end Set_Thread_Policy;
@@ -70,11 +72,11 @@ package body PolyORB.Servants is
 
    function Handle_Message
      (S   : access Servant;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
       use PolyORB.POA_Policies.Thread_Policy;
+      use PolyORB.Servants.Interface;
 
    begin
       if Msg in Execute_Request then

@@ -13,7 +13,7 @@
 --
 --    Accessors will have the name Field and Set_Field.
 --
---  $Id: //droopi/main/compilers/idlac/nodes.txt#6 $
+--  $Id: //droopi/main/compilers/idlac/nodes.txt#9 $
 --
 
 START
@@ -67,6 +67,7 @@ Interface <-- Imports
   Contents : Node_List
   Forward : Node_Id
   Abst : Boolean
+  Local : Boolean
 
 Forward_Interface <-- Named
   Forward : Node_Id
@@ -77,6 +78,7 @@ Forward_Interface <-- Named
   --  declaration must then be retrieved from
   --  the actual declaration's Definition.
   Abst : Boolean
+  Local : Boolean
 
 ValueType <-- Imports
   Parents : Node_List

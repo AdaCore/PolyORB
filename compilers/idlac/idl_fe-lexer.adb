@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                         I D L _ F E . L E X E R                          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#12 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -35,6 +44,7 @@ with Ada.Strings.Maps;
 with GNAT.Command_Line;
 with GNAT.Case_Util;
 with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
@@ -62,32 +72,46 @@ package body Idl_Fe.Lexer is
       T_Boolean     => new String'("boolean"),
       T_Case        => new String'("case"),
       T_Char        => new String'("char"),
+      T_Component   => new String'("component"),
       T_Const       => new String'("const"),
+      T_Consumes    => new String'("consumes"),
       T_Context     => new String'("context"),
       T_Custom      => new String'("custom"),
       T_Default     => new String'("default"),
       T_Double      => new String'("double"),
+      T_Emits       => new String'("emits"),
       T_Enum        => new String'("enum"),
+      T_EventType   => new String'("eventtype"),
       T_Exception   => new String'("exception"),
       T_Factory     => new String'("factory"),
       T_False       => new String'("FALSE"),
+      T_Finder      => new String'("finder"),
       T_Fixed       => new String'("fixed"),
       T_Float       => new String'("float"),
+      T_GetRaises   => new String'("getraises"),
+      T_Home        => new String'("home"),
+      T_Import      => new String'("import"),
       T_In          => new String'("in"),
       T_Inout       => new String'("inout"),
       T_Interface   => new String'("interface"),
+      T_Local       => new String'("local"),
       T_Long        => new String'("long"),
       T_Module      => new String'("module"),
+      T_Multiple    => new String'("multiple"),
       T_Native      => new String'("native"),
       T_Object      => new String'("Object"),
       T_Octet       => new String'("octet"),
       T_Oneway      => new String'("oneway"),
       T_Out         => new String'("out"),
+      T_PrimaryKey  => new String'("primarykey"),
       T_Private     => new String'("private"),
+      T_Provides    => new String'("provides"),
       T_Public      => new String'("public"),
+      T_Publishes   => new String'("publishes"),
       T_Raises      => new String'("raises"),
       T_Readonly    => new String'("readonly"),
       T_Sequence    => new String'("sequence"),
+      T_SetRaises   => new String'("setraises"),
       T_Short       => new String'("short"),
       T_String      => new String'("string"),
       T_Struct      => new String'("struct"),
@@ -96,8 +120,11 @@ package body Idl_Fe.Lexer is
       T_True        => new String'("TRUE"),
       T_Truncatable => new String'("truncatable"),
       T_Typedef     => new String'("typedef"),
+      T_TypeId      => new String'("typeid"),
+      T_TypePrefix  => new String'("typeprefix"),
       T_Unsigned    => new String'("unsigned"),
       T_Union       => new String'("union"),
+      T_Uses        => new String'("uses"),
       T_ValueBase   => new String'("ValueBase"),
       T_ValueType   => new String'("valuetype"),
       T_Void        => new String'("void"),
@@ -1035,11 +1062,11 @@ package body Idl_Fe.Lexer is
                      Set_End_Mark_On_Previous_Char;
                      declare
                         use GNAT.OS_Lib;
+                        use GNAT.Directory_Operations;
                         use Errors;
                         use Ada.Strings.Fixed;
                         use Ada.Strings.Maps;
                         use Ada.Strings;
-                        Separator : Natural;
                         Text : constant String := Get_Marked_Text;
                      begin
                         if Text (Text'First) = '<'
@@ -1067,20 +1094,18 @@ package body Idl_Fe.Lexer is
                               Get_Real_Location);
                         end if;
 
-                        Separator := Index
-                          (Text, To_Set (Directory_Separator),
-                           Inside, Backward);
-
-                        if Separator /= 0 then
-                           Current_Location.Dirname := new String'
-                             (Text (Text'First .. Separator - 1));
+                        declare
+                           Dirname : constant String := Dir_Name (Text);
+                        begin
+                           if Dirname /= "" then
+                              Current_Location.Dirname := new String'
+                                (Dirname);
+                           else
+                              Current_Location.Dirname := null;
+                           end if;
                            Current_Location.Filename := new String'
-                             (Text (Separator + 1 .. Text'Last));
-                        else
-                           Current_Location.Dirname := null;
-                           Current_Location.Filename := new String'
-                             (Text (Text'First .. Text'Last));
-                        end if;
+                             (Base_Name (Text));
+                        end;
                      end;
                   <<Ignore_Location>>
                      Skip_Spaces;
@@ -1129,7 +1154,9 @@ package body Idl_Fe.Lexer is
 
    --  Name of the temporary file to be created if the
    --  preprocessor is used.
-   Tmp_File_Name : GNAT.OS_Lib.Temp_File_Name;
+   Tmp_File_Name_Base : GNAT.OS_Lib.Temp_File_Name;
+   Tmp_File_Name : String
+     (Tmp_File_Name_Base'First .. Tmp_File_Name_Base'Last + 4);
 
    --  Manipulation of an array of strings for
    --  the arguments to be given to the preprocessor
@@ -1137,15 +1164,15 @@ package body Idl_Fe.Lexer is
    Arg_Count : Positive := 1;
 
 
-   --------------------
-   --  Add_Argument  --
-   --------------------
+   ------------------
+   -- Add_Argument --
+   ------------------
+
    procedure Add_Argument (Str : String) is
    begin
       Args (Arg_Count) := new String'(Str);
       Arg_Count := Arg_Count + 1;
    end Add_Argument;
-
 
    ----------------------------------------------------
    --  The main methods : initialize and next_token  --
@@ -1405,16 +1432,13 @@ package body Idl_Fe.Lexer is
       Fd           : File_Descriptor;
       Idl_File     : Ada.Text_IO.File_Type;
 
+      CPP_Arg_List : constant Argument_List_Access
+        := Argument_String_To_List
+          (Platform.CPP_Preprocessor);
    begin
-      --  Use default options:
-      --  -E           only preprocess
-      --  -C           do not discard comments
-      --  -x c++       use c++ preprocessor semantic
-      Add_Argument ("-E");
-      Add_Argument ("-C");
-      Add_Argument ("-x");
-      Add_Argument ("c++");
-      Add_Argument ("-ansi");
+      for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
+         Add_Argument (CPP_Arg_List (J).all);
+      end loop;
 
       Goto_Section ("cppargs");
       while Getopt ("*") /= ASCII.Nul loop
@@ -1427,7 +1451,7 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-I");
       Add_Argument (".");
 
-      Create_Temp_File (Fd, Tmp_File_Name);
+      Create_Temp_File (Fd, Tmp_File_Name_Base);
       if Fd = Invalid_FD then
          Errors.Error
            (Ada.Command_Line.Command_Name &
@@ -1436,15 +1460,34 @@ package body Idl_Fe.Lexer is
             Errors.Fatal,
             Get_Real_Location);
       end if;
+      Tmp_File_Name (Tmp_File_Name_Base'Range) := Tmp_File_Name_Base;
+      Tmp_File_Name (Tmp_File_Name'Last - 4 .. Tmp_File_Name'Last)
+        := ".out" & ASCII.NUL;
+
       --  We don't need the fd.
       Close (Fd);
 
       Add_Argument ("-o");
       Add_Argument (Tmp_File_Name);
       Args (Arg_Count) := new String'(Filename);
-      Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
-             Args (1 .. Arg_Count),
-             Spawn_Result);
+
+      declare
+         Preprocessor_Full_Pathname : constant String_Access
+           := Locate_Exec_On_Path (CPP_Arg_List (CPP_Arg_List'First).all);
+      begin
+         if Preprocessor_Full_Pathname = null then
+            Errors.Error
+              ("Cannot find preprocessor "
+               & "'" & CPP_Arg_List (CPP_Arg_List'First).all & "'",
+               Errors.Fatal,
+               Errors.No_Location);
+         end if;
+
+         Spawn (Preprocessor_Full_Pathname.all,
+                Args (Args'First .. Arg_Count),
+                Spawn_Result);
+      end;
+
       pragma Debug (O ("Initialize: preprocessing done"));
       if not Spawn_Result then
          pragma Debug (O ("Initialize: preprocessing failed"));

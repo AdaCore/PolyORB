@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A filter that slices a stream into a set of known-length
---  messages.
+--  A filter that slices a stream into a set of known-length messages.
 
 --  $Id$
 
@@ -51,31 +51,39 @@ package body PolyORB.Filters.Slicers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
 
    procedure Create
      (Fact   : access Slicer_Factory;
-      Slicer : out Filter_Access)
+      Slicer :    out Filter_Access)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Fact);
+      pragma Warnings (On);
+
       use PolyORB.Components;
 
       Res : constant Filter_Access := new Slicer_Filter;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Fact);
-      pragma Warnings (On);
       Set_Allocation_Class (Res.all, Dynamic);
       Slicer_Filter (Res.all).Data_Expected := 0;
       Slicer := Res;
    end Create;
 
+   --------------------
+   -- Handle_Message --
+   --------------------
+
    function Handle_Message
      (F : access Slicer_Filter;
-      S : Components.Message'Class)
+      S :        Components.Message'Class)
      return Components.Message'Class
    is
       Res : Components.Null_Message;
    begin
-      if S in Data_Expected then
+      if S in Data_Expected'Class then
          declare
             DEM : Data_Expected renames Data_Expected (S);
          begin
@@ -157,11 +165,13 @@ package body PolyORB.Filters.Slicers is
         or else S in Set_Server
       then
          return Emit (F.Upper, S);
+
       elsif False
         or else S in Data_Out
         or else S in Disconnect_Request
       then
          return Emit (F.Lower, S);
+
       else
          raise Unhandled_Message;
       end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  A Message_Producer object is the client view of the message sending
 --  process. It is the facade to all communication carried out with
 --  a message pool to send messages; it contains the stub to access
---  'Message_Producer' servants (see MOMA.Provider for more details).
+--  Message_Producer servants (see MOMA.Provider for more details).
 
 --  NOTE: A MOMA client must use only this package to send messages to a
 --  message pool.
@@ -49,7 +50,6 @@ with MOMA.Types;
 
 with PolyORB.Annotations;
 with PolyORB.Call_Back;
-with PolyORB.References;
 
 package MOMA.Message_Producers is
 
@@ -65,32 +65,36 @@ package MOMA.Message_Producers is
    --  CBH            : call back handler associated to the producer.
 
    type CBH_Note is new PolyORB.Annotations.Note with record
-      Dest : PolyORB.References.Ref;
+      Dest : MOMA.Types.Ref;
    end record;
 
-   function Create_Producer (Session  : MOMA.Sessions.Session;
-                             Dest     : MOMA.Destinations.Destination)
-                             return Message_Producer;
+   function Create_Producer
+     (Session  : MOMA.Sessions.Session;
+      Dest     : MOMA.Destinations.Destination)
+     return Message_Producer;
    --  Create a message producer whose destination is a MOM object.
 
-   function Create_Producer (ORB_Object : MOMA.Types.String;
-                             Mesg_Pool  : MOMA.Types.String)
-                             return Message_Producer;
+   function Create_Producer
+     (ORB_Object : MOMA.Types.String;
+      Mesg_Pool  : MOMA.Types.String)
+     return Message_Producer;
    --  Create a message producer whose destination is an ORB object.
 
    procedure Close;
    --  XXX not implemented. Rename it to Destroy ?
 
-   procedure Send (Self    : Message_Producer;
-                   Message : in out MOMA.Messages.Message'Class);
+   procedure Send
+     (Self    :        Message_Producer;
+      Message : in out MOMA.Messages.Message'Class);
    --  Send a Message using the producer Self.
    --  XXX should send asynchronous message !!!
 
-   procedure Send (Self           : Message_Producer;
-                   Message        : MOMA.Messages.Message'Class;
-                   Persistent     : Boolean;
-                   Priority_Value : MOMA.Types.Priority;
-                   TTL            : Time);
+   procedure Send
+     (Self           : Message_Producer;
+      Message        : MOMA.Messages.Message'Class;
+      Persistent     : Boolean;
+      Priority_Value : MOMA.Types.Priority;
+      TTL            : Time);
    --  Same as above, overriding default producer's values.
    --  XXX not implemented.
 
@@ -98,35 +102,49 @@ package MOMA.Message_Producers is
 
    function Get_Persistent (Self : Message_Producer) return Boolean;
 
-   procedure Set_Persistent (Self : in out Message_Producer;
-                             Persistent : Boolean);
+   procedure Set_Persistent
+     (Self       : in out Message_Producer;
+      Persistent :        Boolean);
 
-   function Get_Priority (Self : Message_Producer) return MOMA.Types.Priority;
+   function Get_Priority
+     (Self : Message_Producer)
+     return MOMA.Types.Priority;
 
-   procedure Set_Priority (Self : in out Message_Producer;
-                           Value : MOMA.Types.Priority);
+   procedure Set_Priority
+     (Self  : in out Message_Producer;
+      Value :        MOMA.Types.Priority);
 
-   function Get_Time_To_Live (Self : Message_Producer) return Time;
+   function Get_Time_To_Live
+     (Self : Message_Producer)
+     return Time;
 
-   procedure Set_Time_To_Live (Self : in out Message_Producer;
-                               TTL : Time);
+   procedure Set_Time_To_Live
+     (Self : in out Message_Producer;
+      TTL  :        Time);
 
-   function Get_Ref (Self : Message_Producer) return PolyORB.References.Ref;
+   function Get_Ref
+     (Self : Message_Producer)
+     return MOMA.Types.Ref;
 
-   procedure Set_Ref (Self : in out Message_Producer;
-                      Ref  : PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self : in out Message_Producer;
+      Ref  :        MOMA.Types.Ref);
 
-   function Get_Type_Id_Of (Self : Message_Producer)
-                            return MOMA.Types.String;
+   function Get_Type_Id_Of
+     (Self : Message_Producer)
+     return MOMA.Types.String;
 
-   procedure Set_Type_Id_Of (Self : in out Message_Producer;
-                             Type_Id_Of : MOMA.Types.String);
+   procedure Set_Type_Id_Of
+     (Self       : in out Message_Producer;
+      Type_Id_Of :        MOMA.Types.String);
 
-   function Get_CBH (Self : Message_Producer)
-                    return PolyORB.Call_Back.CBH_Access;
+   function Get_CBH
+     (Self : Message_Producer)
+     return PolyORB.Call_Back.CBH_Access;
 
-   procedure Set_CBH (Self : in out Message_Producer;
-                      CBH  : PolyORB.Call_Back.CBH_Access);
+   procedure Set_CBH
+     (Self : in out Message_Producer;
+      CBH  :        PolyORB.Call_Back.CBH_Access);
 
 private
 
@@ -136,31 +154,33 @@ private
       TTL            : Time;
       Destination    : MOMA.Destinations.Destination;
       Type_Id_Of     : MOMA.Types.String;
-      Ref            : PolyORB.References.Ref;
+      Ref            : MOMA.Types.Ref;
       CBH            : PolyORB.Call_Back.CBH_Access;
    end record;
 
    --  Private accessors to Message_Producer internal data.
 
-   function Get_Destination (Self : Message_Producer)
-                             return MOMA.Destinations.Destination;
+   function Get_Destination
+     (Self : Message_Producer)
+     return MOMA.Destinations.Destination;
 
-   procedure Set_Destination (Self : in out Message_Producer;
-                              Dest : MOMA.Destinations.Destination);
+   procedure Set_Destination
+     (Self : in out Message_Producer;
+      Dest :        MOMA.Destinations.Destination);
 
-   pragma Inline (Get_Persistent,
-                  Set_Persistent,
-                  Get_Priority,
-                  Set_Priority,
-                  Get_Time_To_Live,
-                  Set_Time_To_Live,
-                  Get_Ref,
-                  Set_Ref,
-                  Get_Destination,
-                  Set_Destination,
-                  Get_Type_Id_Of,
-                  Set_Type_Id_Of,
-                  Get_CBH,
-                  Set_CBH);
+   pragma Inline (Get_Persistent);
+   pragma Inline (Set_Persistent);
+   pragma Inline (Get_Priority);
+   pragma Inline (Set_Priority);
+   pragma Inline (Get_Time_To_Live);
+   pragma Inline (Set_Time_To_Live);
+   pragma Inline (Get_Ref);
+   pragma Inline (Set_Ref);
+   pragma Inline (Get_Destination);
+   pragma Inline (Set_Destination);
+   pragma Inline (Get_Type_Id_Of);
+   pragma Inline (Set_Type_Id_Of);
+   pragma Inline (Get_CBH);
+   pragma Inline (Set_CBH);
 
 end MOMA.Message_Producers;

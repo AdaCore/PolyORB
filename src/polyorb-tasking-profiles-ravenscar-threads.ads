@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,18 +38,20 @@
 --  on. This assures that only one task wait on every entry, as
 --  required in the Ravenscar profile.
 
---  The child packages of this package should only be packages
---  providing tasking facilities. Other packages shoud not have access
---  to "suspend" and "resume", the procedures affecting the internal
---  synchronisation object.
-
---  XXX inconsistant, "suspend" and "resume" are used by CV and mutexes !!!
-
 with System;
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
+
+generic
+   Number_Of_Application_Tasks : Integer;
+   --  Number of tasks created by the user.
+
+   Number_Of_System_Tasks      : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
+
+   Task_Priority               : System.Priority;
+   --  Priority of the system tasks.
 
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
@@ -93,13 +96,6 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       P                : Parameterless_Procedure)
      return Thread_Access;
 
-   procedure Set_Priority
-     (TF : access Ravenscar_Thread_Factory_Type;
-      T  : Thread_Id;
-      P  : System.Any_Priority);
-   --  This function has no sense in Ravenscar profile,
-   --  It simply raises a Tasking.Tasking_Profile_Error.
-
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
      return Thread_Id;
@@ -108,6 +104,25 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF : access Ravenscar_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String;
+
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+   pragma No_Return (Set_Priority);
+   --  Setting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   function Get_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+   --  XXX not (yet) implemented,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   -------------------------------------------------
+   --  Ravenscar specific synchronization objects --
+   -------------------------------------------------
 
    --  The following procedures make access to the
    --  profile-specific synchronisation objects, so it should
@@ -160,8 +175,12 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package Synchro_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads + 3);
-   --  XXX + 3 is a temporary workaround for thet leak of Sync objects.
+     (Number_Of_System_Tasks + Number_Of_Application_Tasks);
+   --  The number of synchronization objects is the maximum number of
+   --  tasks. Note that if a task have a synchronization object handle
+   --  and it may NOT be blocked; this mean that if all the tasks have
+   --  an handle, it is not an error per se.
+
 
    type Synchro_Index_Type is new Synchro_Index_Manager.Index_Type;
    --  A Synchro_Index_Type represents an index in a pool of synchro objects.
@@ -186,14 +205,11 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  The call to this procedure free the task waiting
    --  on S.
    --  If no task is about to Wait (that is, if no call to
-   --  Prepare_Wait were done before the call to Resume),
+   --  Prepare_Suspend were done before the call to Resume),
    --  the signal is lost.
 
    function Get_Thread_Index (T : Thread_Id) return Integer;
    --  Return a different integer for each Thread_Id.
-
-   procedure Initialize;
-   --  Initialize the package.
 
 private
 
@@ -213,5 +229,8 @@ private
       --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
       --  corresponding task is waiting.
    end record;
+
+   procedure Initialize;
+   --  Package Initialization procedure.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

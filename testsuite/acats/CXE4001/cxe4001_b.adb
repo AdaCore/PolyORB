@@ -1,9 +1,12 @@
+pragma Style_Checks (Off);
+pragma Warnings (Off);
 
+-----------------------------------------------------------------------------
 
 with CXE4001_Partition_B;
 with CXE4001_Partition_A;
 with Report;
-with System.RPC; 
+with System.RPC;
 procedure CXE4001_B is
 begin
   Report.Test ("CXE4001_B", "Server partition of exception handling test");

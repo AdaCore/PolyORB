@@ -1,0 +1,7 @@
+procedure GNAT.OS_Lib_Close (FD : File_Descriptor; Status : out Boolean) is
+begin
+   @HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS@GNAT.OS_Lib.Close (FD, Status);
+   @MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS@GNAT.OS_Lib.Close (FD);
+   @MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS@Status := True;
+   @MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS@--  We assume everything is ok
+end GNAT.OS_Lib_Close;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,10 +37,7 @@
 
 --  $Id$
 
-with PolyORB.Objects;
-pragma Warnings (Off, PolyORB.Objects);
---  Required in child units.
-
+with PolyORB.Exceptions;
 with PolyORB.Sequences.Unbounded;
 
 package PolyORB.POA_Policies is
@@ -51,16 +49,19 @@ package PolyORB.POA_Policies is
 
    package Policy_Sequences is new PolyORB.Sequences.Unbounded (Policy_Access);
    subtype PolicyList is Policy_Sequences.Sequence;
-   --  type PolicyList_Access is access all PolicyList;
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
-   function Policy_Id (Self : Policy) return String is abstract;
-   --  Return the name of a Policy.
+   function Policy_Id
+     (Self : Policy)
+     return String
+      is abstract;
+   --  Return Policy name.
 
    procedure Check_Compatibility
-     (Self             : Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

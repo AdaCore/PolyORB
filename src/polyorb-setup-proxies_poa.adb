@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . S E T U P . P R O X I E S _ P O A             --
+--           P O L Y O R B . S E T U P . P R O X I E S _ P O A              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,36 +26,53 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
+with PolyORB.Parameters;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Config.Proxies;
 with PolyORB.POA.Basic_POA;
 with PolyORB.Types;
 
 procedure PolyORB.Setup.Proxies_POA
-  (Root_POA_Object : PolyORB.POA.Obj_Adapter_Access)
+  (Root_POA_Object :        PolyORB.POA.Obj_Adapter_Access;
+   Error           : in out PolyORB.Exceptions.Error_Container)
 is
+
    use PolyORB.POA_Manager;
    use PolyORB.POA.Basic_POA;
+
    use type PolyORB.POA.Obj_Adapter_Access;
 
    Proxies_POA_Configuration : POA_Config.Proxies.Configuration;
 
+   Proxy_POA   : PolyORB.POA.Obj_Adapter_Access;
 begin
-   pragma Assert (Root_POA_Object /= null);
-   POA.Basic_POA.Set_Proxies_OA
-     (POA.Basic_POA.Basic_Obj_Adapter_Access (Root_POA_Object),
-      POA.Basic_POA.Basic_Obj_Adapter_Access
-      (POA.Basic_POA.Create_POA
-       (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
-        Types.To_PolyORB_String ("Proxies"),
-        POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
-        POA_Config.Default_Policies
-        (POA_Config.Configuration_Type'Class
-         (Proxies_POA_Configuration)))));
+   if PolyORB.Parameters.Get_Conf ("proxies", "enable_proxies", False) then
+
+      pragma Assert (Root_POA_Object /= null);
+
+      PolyORB.POA.Basic_POA.Create_POA
+        (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
+         Types.To_PolyORB_String ("Proxies"),
+         POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
+         POA_Config.Default_Policies
+         (POA_Config.Configuration_Type'Class (Proxies_POA_Configuration)),
+         Proxy_POA,
+         Error);
+
+      if PolyORB.Exceptions.Found (Error) then
+         return;
+      end if;
+
+      PolyORB.POA.Basic_POA.Set_Proxies_OA
+        (POA.Basic_POA.Basic_Obj_Adapter_Access (Root_POA_Object),
+         POA.Basic_POA.Basic_Obj_Adapter_Access (Proxy_POA));
+   end if;
+
 end PolyORB.Setup.Proxies_POA;

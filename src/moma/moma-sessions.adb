@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -72,12 +73,14 @@ package body MOMA.Sessions is
       Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
      return Session
    is
-      New_Session : Session;
-
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Connection);
       pragma Warnings (On);
+
+      New_Session : Session;
+
+   begin
+
       --  XXX ??? Why
       New_Session.Transacted := Transacted;
       New_Session.Acknowledge_Mode := Acknowledge_Mode;
@@ -121,9 +124,10 @@ package body MOMA.Sessions is
    -- Subscribe --
    ---------------
 
-   procedure Subscribe (Topic : MOMA.Destinations.Destination;
-                        Pool  : MOMA.Destinations.Destination;
-                        Sub   : Boolean := True)
+   procedure Subscribe
+     (Topic : MOMA.Destinations.Destination;
+      Pool  : MOMA.Destinations.Destination;
+      Sub   : Boolean := True)
    is
       use MOMA.Destinations;
       use type MOMA.Types.Destination_Type;

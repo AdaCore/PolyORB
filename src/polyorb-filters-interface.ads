@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,23 +37,15 @@
 
 with Ada.Streams; use Ada.Streams;
 
+with PolyORB.Binding_Objects;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Types;
 
 package PolyORB.Filters.Interface is
 
    pragma Elaborate_Body;
-
-   -----------------------------
-   -- Filter_Factory messages --
-   -----------------------------
-
-   type Create_Filter_Chain is new Message with null record;
-
-   type Created_Filter_Chain is new Message with record
-      Filter_Chain : Filter_Access;
-   end record;
 
    ---------------------
    -- Filter messages --
@@ -62,11 +55,12 @@ package PolyORB.Filters.Interface is
    subtype Data_Unit is Root_Data_Unit'Class;
 
    type Set_Server is new Root_Data_Unit with record
-      Server : Components.Component_Access;
+      Server         : Components.Component_Access;
+      Binding_Object : Binding_Objects.Binding_Object_Access;
    end record;
    --  Direction: from lower to upper.
    --  Semantics: inform stacks participants of the ORB
-   --  component they are working for.
+   --  components they are working for.
 
    type Set_Target_Object is new Root_Data_Unit with record
       Target : PolyORB.Types.String;
@@ -87,13 +81,14 @@ package PolyORB.Filters.Interface is
 
    type Disconnect_Indication is new Root_Data_Unit with null record;
    --  Direction: from lower to upper.
-   --  Semantics: a transport endpoint has been closed.
-   --    upper layers must release all associated resources.
+   --  Semantics: a transport endpoint has been closed, or some other
+   --    condition occured, causing the ORB to determine that the
+   --    protocol layer must be dismantled.
 
    type Disconnect_Request is new Root_Data_Unit with null record;
    --  Direction: from upper to lower.
-   --  Semantics: the upper layer requests that the whole
-   --    protocol stack be disconnected.
+   --  Semantics: the application requests that the whole
+   --    protocol stack be dismantled.
 
    type Data_Expected is new Root_Data_Unit with record
       --  Direction: from upper to lower.
@@ -119,6 +114,14 @@ package PolyORB.Filters.Interface is
 
       Out_Buf : Buffer_Access;
       --  The data to be sent down.
+   end record;
+
+   type Filter_Error is new Root_Data_Unit with record
+      --  Direction: from lower to upper.
+      --  Semantics: an error in the transport or filtering layers
+      --  has occured.
+
+      Error : Exceptions.Error_Container;
    end record;
 
    ---------------------

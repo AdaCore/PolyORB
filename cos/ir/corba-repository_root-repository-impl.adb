@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Object;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
 with CORBA.Repository_Root.FixedDef.Impl;
@@ -165,11 +167,11 @@ package body CORBA.Repository_Root.Repository.Impl is
          when pk_TypeCode =>
             IDL_Type := TC_TypeCode;
          when pk_Principal =>
-            IDL_Type := CORBA.TypeCode.TC_Principal;
+            IDL_Type := TC_Principal;
          when pk_string =>
             IDL_Type := TC_String;
          when pk_objref =>
-            IDL_Type := CORBA.TypeCode.TC_Object;
+            IDL_Type := CORBA.Object.TC_Object;
          when pk_longlong =>
             IDL_Type := TC_Long_Long;
          when pk_ulonglong =>
@@ -181,7 +183,7 @@ package body CORBA.Repository_Root.Repository.Impl is
          when pk_wstring =>
             IDL_Type := TC_Wide_String;
          when pk_value_base =>
-            IDL_Type := CORBA.TypeCode.TC_Value;
+            IDL_Type := TC_Value;
       end case;
 
       --  initialize the object

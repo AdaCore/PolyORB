@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with MOMA.Types;
+with PolyORB;
 
 package body MOMA.Connections is
 
@@ -78,8 +79,9 @@ package body MOMA.Connections is
    -- Get_Client_Id --
    -------------------
 
-   function Get_Client_Id (Self : Connection)
-                           return MOMA.Types.String is
+   function Get_Client_Id
+     (Self : Connection)
+     return MOMA.Types.String is
    begin
       return Self.Client_Id;
    end Get_Client_Id;
@@ -88,8 +90,9 @@ package body MOMA.Connections is
    -- Set_Client_Id --
    -------------------
 
-   procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : MOMA.Types.String) is
+   procedure Set_Client_Id
+     (Self      : in out Connection;
+      Client_Id :        MOMA.Types.String) is
    begin
       Self.Client_Id := Client_Id;
    end Set_Client_Id;
@@ -98,7 +101,9 @@ package body MOMA.Connections is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Connection) return PolyORB.References.Ref is
+   function Get_Ref
+     (Self : Connection)
+     return MOMA.Types.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -107,8 +112,9 @@ package body MOMA.Connections is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self : in out Connection;
-                      Ref  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self : in out Connection;
+      Ref  :        MOMA.Types.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

@@ -1,0 +1,1884 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+@c
+@c                                Style Guide
+@c
+@c  1. Always put a @noindent on the line before the first paragraph
+@c     after any of these commands:
+@c
+@c          @chapter
+@c          @section
+@c          @subsection
+@c          @subsubsection
+@c          @subsubsubsection
+@c
+@c          @end smallexample
+@c          @end itemize
+@c          @end enumerate
+@c
+@c  2. DO NOT use @example. Use @smallexample instead.
+@c     a) DO NOT use highlighting commands (@b{}, @i{}) inside an @smallexample
+@c        context.  These can interfere with the readability of the texi
+@c        source file.  Instead, use one of the following annotated
+@c        @smallexample commands, and preprocess the texi file with the
+@c        gentexifile tool (which generates appropriate highlighting):
+@c        @smallexample @c ada
+@c        @smallexample @c adanocomment
+@c        @smallexample @c projectfile
+@c     b) The "@c ada" markup will result in boldface for reserved words
+@c        and italics for comments
+@c     c) The "@c adanocomment" markup will result only in boldface for
+@c        reserved words (comments are left alone)
+@c     d) The "@c projectfile" markup is like "@c ada" except that the set
+@c        of reserved words include the new reserved words for project files
+@c
+@c  3. Each @chapter, @section, @subsection, @subsubsection, etc.
+@c     command must be preceded by two empty lines
+@c
+@c  4. The @item command should be on a line of its own if it is in an
+@c     @itemize or @enumerate command.
+@c
+@c  5. DO NOT put trailing spaces at the end of a line.  Such spaces will
+@c     cause the document build to fail.
+@c
+@c  6. DO NOT use @cartouche for examples that are longer than around 10 lines.
+@c     This command inhibits page breaks, so long examples in a @cartouche can
+@c     lead to large, ugly patches of empty space on a page.
+@c  
+@c  7. To add an entry to the bibliography, you must:
+@c     * add it to polyorb_ug.bib
+@c     This will generate the correct polyorb_ug_ref.texi file
+@c     You may then cite the correct reference.
+@c
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+@c $Id: //droopi/main/doc/polyorb_ug.texi#25 $
+
+@setfilename polyorb_ug.info
+@settitle PolyORB User's Guide
+
+@setchapternewpage odd
+@syncodeindex fn cp
+
+@c %**end of header
+
+@titlepage
+
+@title PolyORB User's Guide
+@author J@'er@^ome Hugues
+
+@page
+@vskip 0pt plus 1filll
+
+Copyright @copyright{} 2003, 2004, Free Software Foundation
+
+@noindent
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU Free Documentation License'', with the
+Front-Cover Texts being ``PolyORB User's Guide'', and with no
+Back-Cover Texts.  A copy of the license is included in the section
+entitled ``GNU Free Documentation License''.
+
+@end titlepage
+
+@ifinfo
+@node Top, About This Guide, (dir), (dir)
+@top PolyORB User's Guide
+
+PolyORB User's Guide
+
+J@'er@^ome Hugues
+
+Copyright @copyright{} 2003, 2004, Free Software Foundation
+
+@noindent
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``GNU Free Documentation License'', with the
+Front-Cover Texts being ``PolyORB User's Guide'', and with no
+Back-Cover Texts.  A copy of the license is included in the section
+entitled ``GNU Free Documentation License''.
+
+@menu
+* About This Guide::
+* Introduction to PolyORB::
+* Installation::
+* Overview of PolyORB personalities::
+* Building an application with PolyORB::
+* CORBA::
+* GIOP::
+* SOAP::
+* Tools::
+* References::
+* GNU Free Documentation License::
+* Index::
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+About This Guide
+
+* What This Guide Contains::
+* Conventions::
+
+Introduction to PolyORB
+
+* Distributed applications and middleware::
+* PolyORB a generic middleware with an instance per distribution model::
+
+Installation
+
+* Supported Platforms::
+* Build requirements::
+* Build instructions::
+* Building the documentation and PolyORB's examples::
+* Platform notes::
+
+Overview of PolyORB personalities
+
+* Application personalities::
+
+* CORBAoverview::
+* DSAoverview::
+* MOMAoverview::
+* AWSoverview::
+
+* Protocol personalities::
+
+* GIOPoverview::
+* SOAPoverview::
+
+Configuration
+
+* Compile-time configuration::
+* Run-time configuration::
+* Setting up protocol personalities::
+* Activating debug information::
+* Tracing exceptions::
+* polyorb-config::
+
+CORBA
+
+* What you should know before Reading this section::
+* Installing CORBA application personality::
+* Usage of idlac::
+* Resolving names in a CORBA application::
+* Building a CORBA application with PolyORB::
+* Configuring a CORBA application::
+* PolyORB specific APIs::
+
+GIOP
+
+* Installing GIOP protocol personality::
+* GIOP Instances::
+* Configuring the GIOP personality::
+
+SOAP
+
+* Installing SOAP protocol personality::
+* Configuring the SOAP personality::
+
+Tools
+
+* po_catref::
+* po_names::
+
+@end detailmenu
+@end menu
+
+@end ifinfo
+
+@c -------------------------------------------------------------------
+
+@contents
+
+@c -------------------------------------------------------------------
+@node About This Guide
+@unnumbered About This Guide
+@c -------------------------------------------------------------------
+
+@noindent
+This guide describes the use of PolyORB, a middleware that enables
+the constriction of Ada 95 distributed applications.
+
+It describes the features of the middleware and related APIs and
+tools, and details how to use them to build Ada 95 applications.
+
+@menu
+* What This Guide Contains::
+* Conventions::
+@end menu
+
+@c -------------------------------------------------------------------
+@node What This Guide Contains
+@unnumberedsec What This Guide Contains
+@c -------------------------------------------------------------------
+
+@noindent
+This guide contains the following chapters:
+@itemize @bullet
+
+@item @ref{Introduction to PolyORB} provides a brief description of
+middleware and PolyORB's architecture.
+
+@item @ref{Installation} details how to configure and install PolyORB
+on your system.
+
+@item @ref{Overview of PolyORB personalities} enumerates the different
+personalities, or distribution mechanisms, provided by PolyORB.
+
+@item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
+
+@item @ref{GIOP} describes PolyORB's implementation of GIOP, the
+protocol defined as part of CORBA.
+
+@item @ref{SOAP} describes PolyORB's implementation of SOAP.
+
+@item @ref{Tools} describes PolyORB's tools.
+
+@item
+@ref{GNU Free Documentation License}, contains the text of the license
+under which this document is being distributed.
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Conventions
+@unnumberedsec Conventions
+@cindex Conventions
+@cindex Typographical conventions
+@c -------------------------------------------------------------------
+
+@noindent
+Following are examples of the typographical and graphic conventions used
+in this guide:
+
+@itemize @bullet
+@item
+@code{Functions}, @code{utility program names}, @code{standard names},
+and @code{classes}.
+
+@item
+@samp{Option flags}
+
+@item
+@file{File Names}, @file{button names}, and @file{field names}.
+
+@item
+@var{Variables}.
+
+@item
+@emph{Emphasis}.
+
+@item
+[optional information or parameters]
+
+@item
+Examples are described by text
+@smallexample
+and then shown this way.
+@end smallexample
+@end itemize
+
+@noindent
+Commands that are entered by the user are preceded in this manual by
+the characters @w{``@code{$ }''} (dollar sign followed by space). If
+your system uses this sequence as a prompt, then the commands will
+appear exactly as you see them in the manual. If your system uses some
+other prompt, then the command will appear with the @code{$} replaced
+by whatever prompt character you are using.
+
+Full file names are shown with the ``@code{/}'' character
+as the directory separator; e.g., @file{parent-dir/subdir/myfile.adb}.
+If you are using GNAT on a Windows platform, please note that
+the ``@code{\}'' character should be used instead.
+
+@c -------------------------------------------------------------------
+@node Introduction to PolyORB
+@chapter Introduction to PolyORB
+@cindex PolyORB
+@c -------------------------------------------------------------------
+
+@menu
+* Distributed applications and middleware::
+* PolyORB a generic middleware with an instance per distribution model::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Distributed applications and middleware
+@section Distributed applications and middleware
+@c -------------------------------------------------------------------
+
+@c XXX check consistency with ANNOUNCE file
+
+@noindent
+PolyORB aims at providing a uniform solution to build distributed
+applications; relying either on industrial-strength middleware
+standards such as CORBA, the Distributed System Annex of Ada 95,
+distribution programming paradigms such as Web Services, Message
+Oriented Middleware (MOM), or to implement application-specific
+middleware.
+
+Middleware provides a framework that hides the complex issues of
+distribution, and offers the programmer high-level abstractions that
+allow easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications. These standards define two subsystems that
+enable interaction between application partitions:
+
+@itemize @bullet
+@item the API seen by the developer's applicative objects;
+
+@item the protocol used by the middleware environment to interact with 
+other nodes in the distributed application.
+
+
+@end itemize
+
+
+@noindent
+Middleware implementations also offer programming guidelines as well
+as development tools to ease the construction of large heterogeneous
+distributed systems. Many issues typical to distributed programming
+may still arise: application architectural choice, configuration or
+deployment. Since there is no "one size fits all" architecture,
+choosing the adequate distribution middleware in its most appropriate
+configuration is a key design point that dramatically impacts the
+design and performance of an application.
+
+Consequently, applications need to rapidly tailor middleware to the
+specific distribution model they require. A distribution model is
+defined by the combination of distribution mechanisms made available
+to the application. Common examples of such mechanisms are Remote
+Procedure Call (RPC), Distributed Objects or Message Passing. A
+distribution infrastructure or middleware refers to software that
+supports one (or several) distribution model, e.g.: OMG CORBA, Java
+Remote Method Invocation (RMI), the Distributed System Annex of Ada
+95, Java Message Service (MOM).
+
+@c -------------------------------------------------------------------
+@node PolyORB a generic middleware with an instance per distribution model
+@section PolyORB a generic middleware with an instance per distribution model
+@c -------------------------------------------------------------------
+
+@noindent
+Typical middleware implementations for one platform support only one
+set of such interfaces, pre-defined configuration capabilities and
+cannot interoperate with other platforms. In addition to traditional
+middleware implementations, PolyORB proposes an original architecture
+to enable support for multiple interoperating distribution models in a
+uniform canvas.
+
+PolyORB is a polymorphic, reusable infrastructure for building or
+prototyping new middleware adapted to specific application needs. It
+provides a set of components on top of which various instances can be
+elaborated. These instances (or personalities) are views on PolyORB
+facilities that are compliant to existing standards, either at the API
+level (application personality) or at the protocol level (protocol
+personality). These personalities are mutually exclusive views of the
+same architecture.
+
+The decoupling of application and protocol personalities, and the
+support for multiple simultaneous personalities within the same
+running middleware, are key features required for the construction of
+interoperable distributed applications. This allows PolyORB to
+communicate with middleware that implement different distribution
+standards: PolyORB provides middleware-to-middleware interoperability
+(M2M).
+
+PolyORB's modularity allows for easy extension and replacement of its
+core and personality components, in order to meet specific requirements.
+In this way, standard or application-specific personalities can be
+created in a streamlined process, from early stage prototyping to
+full-featured implementation. The PolyORB architecture also allows
+the automatic, just-in-time creation of proxies between incompatible
+environments.
+
+You may find more information on PolyORB, including technical and
+scientific papers on PolyORB, on the project website:
+@url{http://libre.act-europe.fr/polyorb}
+
+@i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
+Reusable Object-Oriented Polymorphic Infrastructure}
+
+@c -------------------------------------------------------------------
+@node Installation
+@chapter Installation
+@c -------------------------------------------------------------------
+
+@menu
+* Supported Platforms::
+* Build requirements::
+* Build instructions::
+* Building the documentation and PolyORB's examples::
+* Platform notes::
+@end menu
+
+@c XXX check consistency with INSTALL file
+
+@c -------------------------------------------------------------------
+@node Supported Platforms
+@section Supported Platforms
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB has been compiled and successfully tested on the following
+platforms:
+
+@itemize @bullet
+@item FreeBSD
+@item HP-UX
+@item Linux
+@item Solaris
+@item Windows
+@end itemize
+
+@noindent
+@emph{Note: PolyORB should compile and run on every target for which
+GNAT and the @code{GNAT.Sockets} package are available.}
+
+@c -------------------------------------------------------------------
+@node Build requirements
+@section Build requirements
+@c -------------------------------------------------------------------
+
+@noindent
+Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a (or later), GCC
+3.4.0 (or later).
+
+Optional: 
+
+@itemize @bullet
+@item XML/Ada (@url{http://libre.act-europe.fr/xmlada/}) if you
+want to build the SOAP protocol personality.
+@end itemize
+
+@noindent
+Note: per construction, the macro @command{configure} used to find
+your GNAT compiler looks first to the executables @command{gnatgcc},
+then @command{adagcc} and finally to @command{gcc} to find out which
+Ada compiler to use. You should be very careful with your path and
+executables if you have multiple GNAT versions installed. See below
+explanations on the ADA environment variable if you need to override
+the default guess.
+
+@c -------------------------------------------------------------------
+@node Build instructions
+@section Build instructions
+@c -------------------------------------------------------------------
+
+@noindent
+To compile and install PolyORB, execute:
+
+
+@smallexample
+  % ./configure [some options]
+  % make              (or gmake if your make is not GNU make)
+  % make install      (ditto)
+@end smallexample
+
+@noindent
+This will install files in standard locations.  If you want to choose
+another prefix than @file{/usr/local}, give configure a
+@option{--prefix=whereveryouwant} argument.
+
+Note: at this time, you MUST use GNU make to compile this software.
+
+@c -------------------------------------------------------------------
+@node Building the documentation and PolyORB's examples
+@section Building the documentation and PolyORB's examples
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB's documentation and examples are built separately.
+
+After building PolyORB, simply run make in the @file{examples} (resp.
+@file{doc}) directory to build the examples (resp. the
+documentation). The build process will only build examples that
+correspond to the personalities you configured.
+
+Note: you may also install PolyORB's documentation in standard
+location typing @command{make install}.
+
+@c -------------------------------------------------------------------
+@subsection Build Options
+@c -------------------------------------------------------------------
+
+@noindent
+Available options for the 'configure' script include:
+
+@itemize @bullet
+
+@item  @option{--with-appli-perso="..."}: application personalities to build
+      
+      Available personalities: AWS, CORBA, DSA, MOMA
+      
+      e.g.   @option{--with-appli-perso="corba moma"} to build both the CORBA 
+             and MOMA personalities
+
+@item  @option{--with-proto-perso="..."}: personalities to build
+      
+      Available personalities: GIOP, SOAP, SRP
+      
+      e.g.   @option{--with-proto-perso="giop soap"} to build both the GIOP 
+             and SOAP personalities
+
+@item  @option{--with-services="..."}: CORBA COS services to build
+      
+      Available services: event, ir, naming, time
+      
+      e.g.  @option{--with-services="event naming"} to build only
+      COS Event and COS Naming.	
+
+By default, only the CORBA and GIOP personalities are built, no CORBA
+Services are built.
+
+@item  @option{--enable-shared}: build shared libraries.
+
+@item  @option{--enable-debug}:  enable debugging information generation 
+and supplementary runtime checks.
+
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@subsection Compiler, Tools and Run-Time libraries Options
+@c -------------------------------------------------------------------
+
+@noindent
+The following environment variables can be used to override configure's
+guess at what compilers to use:
+
+@itemize
+
+@item @code{CC}:  the C compiler
+@item @code{ADA}: the Ada 95 compiler
+@item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
+idlac (only when setting up the CORBA application personality).
+
+@end itemize
+
+@noindent
+For example, if you have two versions of GNAT installed and available
+in your @code{PATH}, and configure picks the wrong one, you can
+indicate what compiler should be used with the following syntax:
+
+@smallexample
+  % ADA=/path/to/good/compiler/gcc ./configure [options]
+@end smallexample
+
+PolyORB will be compiled with GNAT build host's configuration,
+including run-time library. You may override this setting using
+@code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
+variables. See GNAT User's Guide for more details.
+
+NOTE: Developers building PolyORB from the version control repository
+who need to rebuild the configure and Makefile.in files should use the
+script support/reconfig for this purpose.  In addition to the
+requirements above, they will need autoconf 2.57 or newer, and
+automake 1.6.3 or newer.
+
+@c -------------------------------------------------------------------
+@node Platform notes
+@section Platform notes
+@c -------------------------------------------------------------------
+
+@noindent
+Solaris 2.8:
+
+@itemize @bullet
+
+@item /usr/bin/sed and /usr/ucb/sed will silently chop long
+    lines, and /usr/xpg4/bin/sed will enter an endless loop while
+    processing PolyORB files.
+    GNU sed is required to configure and build PolyORB.
+
+@item /usr/ucb/tr does not handle control character escape sequences: it
+    cannot be used to recompute dependencies ('make depend');
+    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
+
+
+@end itemize
+@noindent
+
+@c -------------------------------------------------------------------
+@node Overview of PolyORB personalities
+@chapter Overview of PolyORB personalities
+@cindex Personalities
+@c -------------------------------------------------------------------
+
+@noindent
+A personality is an instantiation of specific PolyORB components. It
+provides the mechanisms specified by a distribution model, e.g. an
+API, a code generator or a protocol stack.
+
+This section provides a brief overview of existing personalities.
+
+@emph{Note: some of these personalities are available only through
+PolyORB's repository.}
+
+@menu
+* Application personalities::
+* Protocol personalities::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Application personalities
+@section Application personalities
+@cindex Application personalities
+@c -------------------------------------------------------------------
+
+@noindent
+Application personalities constitute the adaptation layer between
+application components and middleware. They provide APIs and/or code
+generator to register application entities with PolyORB's core, and
+interoperate with the core to allow the exchange of requests with
+remote entities.
+
+@menu
+* CORBAoverview::
+* DSAoverview::
+* MOMAoverview::
+* AWSoverview::
+@end menu
+
+@c -------------------------------------------------------------------
+@node CORBAoverview
+@subsection CORBA
+@cindex CORBA
+@c -------------------------------------------------------------------
+
+@noindent
+CORBA is OMG specification of a Distributed Object Computing (DOC)
+distribution model (@cite{[OMG02]}). It is now a well-known and
+well-established specification, used in a wide range of industrial
+applications.
+
+PolyORB provides a CORBA-compliant implementation based on mapping of
+the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
+core specifications.
+
+@c -------------------------------------------------------------------
+@node DSAoverview
+@subsection Distributed System Annex of Ada (DSA)
+@cindex Distributed System Annex (DSA)
+@cindex DSA
+@c -------------------------------------------------------------------
+
+@noindent
+The Distributed System Annex of Ada (DSA) @cite{[ISO95]} is a normative
+specification part of the language. It describes remote invocation
+schemes applied to most language constructs.
+
+@c -------------------------------------------------------------------
+@node MOMAoverview
+@subsection Message Oriented Middleware for Ada (MOMA)
+@cindex Message Oriented Middleware for Ada (MOMA)
+@cindex MOMA
+@c -------------------------------------------------------------------
+
+@noindent
+MOMA (Message Oriented Middleware for Ada) provides message passing
+mechanisms. It is an Ada adaptation of Sun's Java Message Service
+(JMS) @cite{[SUN99]}, a standardized API for common message passing
+models.
+
+@c -------------------------------------------------------------------
+@node AWSoverview
+@subsection Ada Web Server (AWS)
+@cindex Ada Web Server (AWS)
+@cindex AWS
+@c -------------------------------------------------------------------
+
+@noindent
+The Web Server personality provides the same API as the Ada Web Server
+project (AWS) @cite{[Obr03]}. It allows for the implementation of web
+services, web server applications, or classical web pages. AWS-based
+servers allow the programmer to directly interact with incoming or
+outgoing @code{HTTP} and @code{SOAP} requests.
+
+@c -------------------------------------------------------------------
+@node Protocol personalities
+@section Protocol personalities
+@cindex Protocol personality
+@c -------------------------------------------------------------------
+
+@noindent
+Protocol personalities handle the mapping of requests
+(representing interactions between application entities) onto messages
+exchanged through a communication network, according to a specific
+protocol.
+
+@menu
+* GIOPoverview::
+* SOAPoverview::
+@end menu
+
+@c -------------------------------------------------------------------
+@node GIOPoverview
+@subsection GIOP
+@cindex GIOP
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP is the transport layer of the CORBA specifications. GIOP is a
+generic protocol. This personality implements GIOP versions from 1.0
+to 1.2 along with the CDR representation scheme to map data types
+between the neutral core layer and CDR streams. It also provides the
+following dedicated instances:
+
+@itemize @bullet
+@item IIOP supports synchronous request semantics over TCP/IP,
+@cindex IIOP
+
+@item MIOP instantiation of GIOP enables group communication over 
+IP multicast,
+@cindex MIOP
+
+@item DIOP relies on UDP/IP communications to transmit one-way 
+requests only.
+@cindex DIOP
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node SOAPoverview
+@subsection SOAP
+@cindex SOAP
+@c -------------------------------------------------------------------
+
+@noindent
+The SOAP protocol @cite{[W3C03]} enables the exchange of structured
+and typed information between peers. It is a self-describing XML
+document @cite{[W3C03]} that defines both its data and
+semantics. Basically, SOAP with @code{HTTP} bindings is used as a
+communication protocol for Web Services.
+
+@c -------------------------------------------------------------------
+@node Building an application with PolyORB
+@chapter Building an application with PolyORB
+@cindex Configuration, PolyORB
+@c -------------------------------------------------------------------
+
+@menu
+* Compile-time configuration::
+* Run-time configuration::
+* Setting up protocol personalities::
+* Activating debug information::
+* Tracing exceptions::
+* polyorb-config::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Compile-time configuration
+@section Compile-time configuration
+@c -------------------------------------------------------------------
+
+@noindent
+The user may configure some elements of a PolyORB application at
+compile-time.
+ 
+@menu
+* Tasking run-times::
+* Middleware tasking policies::
+* Object Adapter::
+* Linking protocol personalities to executable::
+* Sample files::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Tasking run-times
+@subsection Tasking run-times
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides different tasking run-times. The user may select the
+most appropriate one, depending on its application requirements. The
+tasking run-times determine the constructs PolyORB may use for its
+internal synchronizations.
+
+@itemize @bullet
+@item @code{No_Tasking}: There is no dependency on the Ada tasking
+run-time, middleware is mono-task.
+
+@item @code{Full_Tasking}: Middleware uses Ada tasking constructs,
+middleware can be configured for multi-tasking.
+
+@item @code{Ravenscar} : Middleware uses Ada 
+tasking constructs, with the limitations of the Ravenscar profile
+@cite{[DB98]}.  Middleware can be configured for multi-tasking.
+@cindex Ravenscar profile
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Middleware tasking policies
+@subsection Middleware tasking policies
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides several tasking policies. A tasking policy defines
+how threads are used by the middleware to process incoming requests.
+
+@itemize @bullet
+@item @code{No_Tasking}: There is only one task in middleware,
+processing all requests.
+
+@item @code{Thread_Per_Sessions}: One task monitors communication
+entities. One task is spawned for each active connection. This task
+handles all incoming requests on this connection.
+
+@item @code{Thread_Per_Sessions}: One task monitors communication
+entities. One task is spawned for each incoming requests.
+
+@item @code{Thread_Pool}: A set of tasks cooperate to handle all
+incoming requests.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Object Adapter
+@subsection Object Adapter
+@c -------------------------------------------------------------------
+ 
+@b{TO BE WRITTEN}
+
+@c -------------------------------------------------------------------
+@node Linking protocol personalities to executable
+@subsection Linking protocol personalities to executable
+@c -------------------------------------------------------------------
+ 
+@b{TO BE WRITTEN}
+
+@c -------------------------------------------------------------------
+@node Sample files
+@subsection Sample files
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB proposes a set of pre-defined setup packages. You must with
+one of them in your application node to activate the corresponding
+setup.
+
+@itemize @bullet
+@item @code{PolyORB.Setup.Client}: a client node, without tasking
+enabled, configured to use all protocol personalities build with PolyORB.
+
+@item @code{PolyORB.Setup.Ravenscar_TP_Server}: a server node, with tasking
+enabled, configured to use all protocol personalities build with
+PolyORB. Middleware tasking runtime follow Ravenscar's profile
+restrictions. Middleware tasking policies is @code{Thread_Pool}.
+
+@item @code{PolyORB.Setup.Thread_Per_Request_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Per_Request}.
+
+@item @code{PolyORB.Setup.Thread_Per_Session_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Per_Session}.
+
+@item @code{PolyORB.Setup.Thread_Pool_Server}: a server node, 
+with tasking enabled, configured to use all protocol personalities
+build with PolyORB. Middleware tasking policies is
+@code{Thread_Pool}.
+
+@end itemize
+
+@noindent
+To enforce one of these configurations, add a dependency on one of
+these packages. The elaboration of the application (based on Ada
+rules) and the initialization of the partition (based on the
+application personalities mechanisms) will set up properly your
+application.
+
+@c -------------------------------------------------------------------
+@node Run-time configuration
+@section Run-time configuration
+@c -------------------------------------------------------------------
+
+
+@noindent
+The user may configure some elements of a PolyORB application at
+run-time.
+
+@menu 
+* Using a configuration file::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Using a configuration file
+@subsection Using a configuration file
+@cindex @file{polyorb.conf}
+@cindex @code{POLYORB_CONF}
+@c -------------------------------------------------------------------
+
+
+@noindent
+A configuration file may be used to configure a PolyORB node. A sample
+configuration file may be found in @file{src/polyorb.conf}.
+
+The syntax of the configuration file is:
+@itemize @bullet
+@item empty lines and lines that have a '#' in column 1 are ignored;
+
+@item sections can be started by lines of the form
+    @code{[ SECTION-NAME ']'};
+
+@item variable assignments can be performed by lines of the form 
+@code{VARIABLE-NAME '=' VALUE}.
+
+Any variable assignment is local to a section.
+
+Assignments that occur before the first section declaration are
+relative to section [environment].  Section and variable names are
+case sensitive.
+
+A variable @code{Var.Iable} in section @code{[Sec]} can be overridden
+by setting environment variable @code{"POLYORB_SEC_VAR_IABLE"}.
+Furthermore, each time a resolved in that section value starts with
+@code{"file:"}, the contents of the file is used instead.
+@end itemize
+
+@noindent
+Default search path for @file{polyorb.conf} is current
+directory. Environment variable @code{POLYORB_CONF} may be used to
+set up information on configuration file.
+
+PolyORB's configuration file allows the user to 
+@enumerate
+@item enable/disable the output of debug information
+@item set up default reference on naming service
+@item select the default protocol personality
+@item set up each protocol personality
+@end enumerate
+
+@noindent
+The configuration file is read once when running a node, during
+elaboration. Then, proper configuration parameters are selected.
+
+@c -------------------------------------------------------------------
+@node Setting up protocol personalities
+@section Setting up protocol personalities
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB allows the user to activate some of the available protocol
+personalities and to set up preferred protocol. Protocol-specific
+parameters are defined in their respective sections.
+
+@menu
+* Activating/Deactivating protocol personalities::
+* Configuring protocol personality preferences::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Activating/Deactivating protocol personalities
+@subsection Activating/Deactivating protocol personalities
+@cindex Protocol personality, activation
+@c -------------------------------------------------------------------
+
+@noindent
+Protocol activation is controlled by PolyORB's configuration file.
+
+The section @code{[access_points]} control the initialization of
+@emph{access points}. An access point is a node entry point that may
+serve incoming requests.
+
+@smallexample
+[access_points]
+soap=enable
+iiop=enable
+diop=disable
+uipmc=disable
+@end smallexample
+
+@noindent
+This example activates SOAP and IIOP, deactivates DIOP and MIOP.
+
+The section @code{[modules]} controls the activation/deactivation of
+some modules within PolyORB. It is used to enable @emph{bindings} to
+remote entities.
+
+@smallexample
+[modules]
+binding_data.soap=enable
+binding_data.iiop=enable
+binding_data.diop=disable
+binding_data.uipmc=disable
+@end smallexample
+ 
+@noindent
+This example enables the creation of bindings to remote objects using
+SOAP or IIOP. Objects cannot be reached using DIOP or UIPMC.
+
+@emph{Note: by default, all configured personalities are activated.}
+
+@c -------------------------------------------------------------------
+@node Configuring protocol personality preferences
+@subsection Configuring protocol personality preferences
+@c -------------------------------------------------------------------
+
+@noindent
+The user may affect a @emph{preference} to each protocol
+personality. The protocol with the higher preference will be selected
+among possible protocols to send a request to a remote node.  
+
+See @code{polyorb.binding_data.<protocol>.preference} in
+section @code{[protocol]} to set up protocol's preference.
+
+Possible protocols are defined as the protocols available on the
+remote node, as advertised in its @emph{object reference}.  @code{IOR}
+or @code{corbaloc} references may support multiple protocols,
+@code{URI} only support one protocol.
+ 
+Each protocol supports a variety of configuration parameters, please
+refer to the protocols' sections for more details.
+
+@c -------------------------------------------------------------------
+@node Activating debug information
+@section Activating debug information
+@cindex Debug information
+@c -------------------------------------------------------------------
+
+@noindent
+To activate the output of debug information, you must first configure
+and compile PolyORB with debug activate, see help on
+@command{--enable-debug} flag in @ref{Installation}.
+
+To output debug information on a selected package, create a
+configuration file with a @code{[log]} section and the name of the
+packages on which you want debug information:
+
+@smallexample
+# Sample configuration file, output debug for PolyORB.A_Package
+[log]
+polyorb.a_package=debug
+@end smallexample
+
+@noindent
+Note that some packages may not provide such information. See sample
+configuration file the complete list of packages that provide debug.
+
+@c -------------------------------------------------------------------
+@node Tracing exceptions
+@section Tracing exceptions
+@cindex Exceptions
+@c -------------------------------------------------------------------
+
+@noindent
+To trace exception propagations in PolyORB's source code, it is
+necessary to:
+
+@enumerate
+@item compile PolyORB with debug activated,
+@item activate debug information on package @code{PolyORB.Exceptions}.
+@end enumerate
+
+@c -------------------------------------------------------------------
+@node polyorb-config
+@section @command{polyorb-config}
+@cindex @command{polyorb-config} 
+@c -------------------------------------------------------------------
+
+@noindent
+@command{polyorb-config} returns path and library information on
+PolyORB's installation.
+
+
+@smallexample
+
+@c  XXX check consistency with corresponding man page
+
+NAME
+       polyorb-config  - script to get information about the installed version
+       of PolyORB.
+
+SYNOPSIS
+       polyorb-config [--prefix] [--version|-v] [--config] [--libs] [--cflags]
+       [--idls] [--help]
+
+DESCRIPTION
+       polyorb-config  is  a  tool  that is used to determine the compiler and
+       linker flags that should be used to compile and link programs that  use
+       PolyORB.
+
+OPTIONS
+       polyorb-config accepts the following options:
+
+       --prefix
+               Print PolyORB's installation prefix.
+
+       --version
+               Print  the  currently installed version of PolyORB on the stan-
+               dard output.
+
+       --config
+               Print the configuration of the currently installed  version  of
+               PolyORB on the standard output.
+
+       --libs  Print  the  linker  flags  that are necessary to link a PolyORB
+               program.
+
+       --cflags
+               Print the compiler flags that are necessary to compile a  Poly-
+               ORB program.
+
+       --idls
+               Output flags to set up path to CORBA's IDL for idlac.
+
+       --help  Print help message.
+
+
+@end smallexample 
+
+@c -------------------------------------------------------------------
+@node CORBA
+@chapter CORBA
+@cindex CORBA
+@c -------------------------------------------------------------------
+
+@menu
+* What you should know before Reading this section::
+* Installing CORBA application personality::
+* Usage of idlac::
+* Resolving names in a CORBA application::
+* Building a CORBA application with PolyORB::
+* Configuring a CORBA application::
+* PolyORB specific APIs::
+@end menu
+
+
+@c -------------------------------------------------------------------
+@node What you should know before Reading this section
+@section What you should know before Reading this section
+@c -------------------------------------------------------------------
+
+@noindent
+This section assumes that the reader is familiar with the CORBA
+specifications described in @cite{[OMG02a]} and the @emph{IDL-to-Ada}
+mapping defined in @cite{[OMG01]}.
+
+@c -------------------------------------------------------------------
+@node Installing CORBA application personality
+@section Installing CORBA application personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with CORBA
+application personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To build the CORBA application personality, @pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node Usage of idlac
+@section Usage of @command{idlac}
+@cindex @command{idlac}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{idlac} is PolyORB's IDL-to-Ada 95 compiler.
+
+
+@smallexample
+
+@c  XXX check consistency with corresponding man page
+
+NAME
+       idlac - PolyORB's IDL-to-Ada compiler
+
+SYNOPSIS
+       idlac [-E] [-d] [-i] [-k] [-p] [-q] [-noir] idl_file [-cppargs ...]
+
+DESCRIPTION
+       idlac is an IDL-to-Ada compiler, compliant with version 1.2 of the "Ada
+       Language Mapping Specification" produced by the OMG.
+
+OPTIONS
+       idlac accepts the following options:
+
+       -E      Preprocess only.
+
+       -d      Generate delegation package.
+
+       -i      Generate implementation template.
+
+       -k      Keep temporary files.
+
+       -p      Produce source on standard output.
+
+       -q      Be quiet.
+
+       -noir   Don't generate code for interface repository.
+
+       -cppargs ARGS
+               Pass ARGS to the C++ preprocessor.
+
+       -I dir  Shortcut for -cppargs -I dir.
+
+
+@end smallexample
+
+@noindent
+@command{idlac} creates several files :
+
+
+@itemize @bullet
+
+@item  @code{myinterface.ads}, @code{myinterface.adb} : these files contain 
+  the mapping for user defined types (client and server side).
+
+@item @code{myinterface-impl.ads}, @code{myinterface-impl.adb} : 
+  these files are to be filled by the user. They contain the
+  implementation of the server. They are generated only if the -i flag
+  is specified.
+
+@item @code{myinterface.ads}, @code{myinterface.adb} : these files
+  contain the client stubs for the interface.
+
+@item @code{myinterface-skel.ads}, @code{myinterface-skel.adb} : these files
+  contain the server-side skeletons for the interface.
+
+@item @code{myinterface-helper.ads}, @code{myinterface-helper.adb} : these 
+  files contain subprograms to marshal data into CORBA Any containers.
+
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Resolving names in a CORBA application
+@section Resolving names in a CORBA application
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB implements the CORBA COS Naming service.
+
+@menu
+* po_cos_naming::
+* Using the COS Naming::
+@end menu
+
+@c -------------------------------------------------------------------
+@node po_cos_naming
+@subsection @command{po_cos_naming}
+@cindex @command{po_cos_naming}
+@cindex @command{CORBA COS Naming}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_cos_naming} is a stand alone server that supports CORBA
+COS Naming specification. When launched, it returns its @code{IOR}
+that can then be used by other CORBA applications.
+
+@c -------------------------------------------------------------------
+@node Using the COS Naming
+@subsection Using the COS Naming
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides a helper package to manipulate the COS Naming in your
+applications. See @ref{PolyORB specific APIs} for more details.
+
+@c -------------------------------------------------------------------
+@node Building a CORBA application with PolyORB
+@section Building a CORBA application with PolyORB
+@c -------------------------------------------------------------------
+
+@menu
+* echo example::
+* Other examples::
+@end menu
+
+@c -------------------------------------------------------------------
+@node echo example
+@subsection @code{echo} example
+@c -------------------------------------------------------------------
+
+
+@noindent 
+We consider building a simple ``Echo'' CORBA server and client. This
+application echoes a string. The source code for this example is
+located in @file{examples/corba/echo} directory in PolyORB
+distribution. This applications uses only basic elements of CORBA.
+
+To build this application, you need the following pieces of code:
+
+@enumerate
+@item IDL definition of an @code{echo} object
+@item Implementation code for the @code{echo} object
+@item Code for client and server nodes
+@end enumerate
+
+@c -------------------------------------------------------------------
+@subsubsection IDL definition of an @code{echo} object
+@c -------------------------------------------------------------------
+
+@noindent
+This interface defines an @code{echo} object with a unique method
+@code{echoString}. Per construction, this method returns its argument.
+
+@include echo.texi
+
+@c -------------------------------------------------------------------
+@subsubsection Implementation code for the @code{echo} object
+@c -------------------------------------------------------------------
+
+@noindent 
+Package @code{Echo.Impl} is an implementation of this interface. This
+implementation follows the @emph{IDL-to-Ada} mapping.
+
+@include echo-impl-spec.texi
+@include echo-impl-body.texi
+
+@noindent
+@i{Note: @code{Echo.Impl} body requires a dependency on
+@code{Echo.Skel} to ensure the elaboration of skeleton code and the
+correct setup of PolyORB's internals.}
+
+@c -------------------------------------------------------------------
+@subsubsection Test code for client and server nodes
+@c -------------------------------------------------------------------
+
+@noindent
+Client and server code demonstrate how to make a remote invocation on
+a CORBA object, and how to setup an object on a server node.
+
+@emph{Note: the dependency on @code{PolyORB.Setup.Client} or
+@code{PolyORB.Setup.No_Tasking_Server} enforces compile-time
+configuration, @pxref{Sample files}.}
+
+@itemize @bullet
+@item Client code tests a simple remote invocation on
+object. It is a no tasking client. Reference to object is built from
+stringified reference (or @code{IOR}), which is passed through command
+line.
+
+@include client.texi
+
+@item Server code setups a no tasking node. Object is registered to
+the @code{RootPOA}. Then an @code{IOR} reference is built to enable
+interaction with other nodes.
+
+@include server.texi
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@subsubsection Compilation and execution
+@c -------------------------------------------------------------------
+
+@noindent
+To compile this demo, 
+@enumerate
+@item Process the IDL file with @code{idlac}
+@smallexample
+ $ idlac echo.idl
+@end smallexample
+
+@item Compile the client node
+@smallexample
+ $ gnatmake client.adb `polyorb-config`
+@end smallexample
+
+@item Compile the server node
+@smallexample
+ $ gnatmake server.adb `polyorb-config`
+@end smallexample
+
+@end enumerate
+
+@noindent 
+Note the use of backticks (`). This means that
+@command{polyorb-config} is first executed, and then the command line
+is replaced with the output of the script, setting up library and
+include paths and library names.
+
+To run this demo:
+
+@itemize @bullet
+@item run @file{server}, the server outputs its IOR, an hexadecimal
+string with the <IOR:> prefix.
+@smallexample
+$ ./server                     
+Loading configuration from polyorb.conf
+No polyorb.conf configuration file.
+'IOR:01534f410d00000049444c3[..]'
+@end smallexample
+
+@item run @file{client}, passing the complete IOR on the command line
+@smallexample
+$ ./client 'IOR:01534f410d00000049444c3[..]'
+Echoing string: « Hello Ada ! »
+I said : Hello Ada !
+The object answered : Hello Ada !
+@end smallexample
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Other examples
+@subsection Other examples
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB proposes other examples to test other CORBA features. These
+examples are located in @file{example/corba} directory in PolyORB
+distribution.
+
+@itemize @bullet
+@item @file{all_functions} tests CORBA parameters passing mode
+(@code{in}, @code{out}, ..);
+@item @file{all_types} tests CORBA types;
+@item @file{echo} is a simple CORBA demo;
+@item @file{random} is a random number generator;
+@item @file{send} tests MIOP specific API.
+@end itemize
+
+@c -------------------------------------------------------------------
+@node Configuring a CORBA application
+@section Configuring a CORBA application
+@cindex Configuration, CORBA
+@c -------------------------------------------------------------------
+
+@menu
+* Configuring PolyORB::
+* Configuring GIOP protocol stack for PolyORB::
+@end menu
+
+@noindent
+To configure a CORBA application, you need to separately configure
+PolyORB and the GIOP protocol (or any other protocol personality you
+wish to use).
+
+@c -------------------------------------------------------------------
+@node Configuring PolyORB
+@subsection Configuring PolyORB
+@c -------------------------------------------------------------------
+
+@noindent
+Please, refer to @ref{Building an application with PolyORB} for more
+information on PolyORB's configuration.
+
+@c -------------------------------------------------------------------
+@node Configuring GIOP protocol stack for PolyORB
+@subsection Configuring GIOP protocol stack for PolyORB
+@c -------------------------------------------------------------------
+
+@noindent
+The GIOP protocol is separated from the CORBA application
+personality. See @ref{Configuring the GIOP personality} for more
+information on GIOP's configuration.
+
+@c -------------------------------------------------------------------
+@node PolyORB specific APIs
+@section PolyORB's specific APIs
+@c -------------------------------------------------------------------
+
+@menu
+* PolyORB.CORBA_P.CORBALOC::
+* PolyORB.CORBA_P.Naming_Tools::
+* PolyORB.CORBA_P.Server_Tools::
+@end menu
+
+@noindent
+PolyORB defines packages to help in the development of CORBA programs.
+
+@itemize @bullet
+
+@item @ref{PolyORB.CORBA_P.CORBALOC}: 
+
+This package defines a helper function to build a @code{corbaloc}
+stringified reference from a CORBA object reference.
+
+@item @ref{PolyORB.CORBA_P.Naming_Tools}: 
+
+This package defines helper functions to ease interaction with CORBA
+COS Naming.
+
+@item @ref{PolyORB.CORBA_P.Server_Tools}: 
+
+This package defines helper functions to ease set up of a simple CORBA
+Server.
+
+@end itemize
+
+@page
+@node PolyORB.CORBA_P.CORBALOC
+@subsection @code{PolyORB.CORBA_P.CORBALOC}
+@cindex @code{PolyORB.CORBA_P.CORBALOC}
+
+@include polyorb-corba_p-corbaloc.texi
+
+
+@page
+@node PolyORB.CORBA_P.Naming_Tools
+@subsection @code{PolyORB.CORBA_P.Naming_Tools}
+@cindex @code{PolyORB.CORBA_P.Naming_Tools}
+
+@include polyorb-corba_p-naming_tools.texi
+
+@page
+@node PolyORB.CORBA_P.Server_Tools
+@subsection @code{PolyORB.CORBA_P.Server_Tools}
+@cindex @code{PolyORB.CORBA_P.Server_Tools}
+
+@include polyorb-corba_p-server_tools.texi
+
+@c -------------------------------------------------------------------
+@node GIOP
+@chapter GIOP
+@cindex GIOP
+@c -------------------------------------------------------------------
+
+@menu
+* Installing GIOP protocol personality::
+* GIOP Instances::
+* Configuring the GIOP personality::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Installing GIOP protocol personality
+@section Installing GIOP protocol personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with GIOP
+protocol personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To enable the configuration of the GIOP protocol personality,
+@pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node GIOP Instances
+@section GIOP Instances
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP is a generic protocol that can be instantiated for multiple
+transport stacks. PolyORB proposes three different instances.
+
+@menu
+* IIOP::
+* DIOP::
+* MIOP::
+@end menu
+
+@c -------------------------------------------------------------------
+@node IIOP
+@subsection IIOP
+@cindex IIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Internet Inter-ORB Protocol (IIOP) is the default protocol defined by
+the CORBA specifications. It is a TCP/IP, IPv4, based protocol that
+supports the full semantics of CORBA requests.
+
+@c -------------------------------------------------------------------
+@node DIOP
+@subsection DIOP
+@cindex DIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Datagram Inter-ORB Protocol (DIOP) is a specialization of GIOP for the
+UDP/IP protocol stack. It supports only asynchronous (@code{oneway})
+requests.
+
+
+@c -------------------------------------------------------------------
+@node MIOP
+@subsection MIOP
+@cindex MIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Unreliable Multicast Inter-ORB Protocol (MIOP) @cite{[OMG02b]} is a
+specialization of GIOP for IP/multicast protocol stack. It supports
+only asynchronous (@code{oneway}) requests.
+
+@c -------------------------------------------------------------------
+@node Configuring the GIOP personality
+@section Configuring the GIOP personality
+@cindex Configuration, GIOP
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP personality is configured using a configuration
+file. See @ref{Using a configuration file} for more details.
+
+Here is a summary of available parameters for each instance of GIOP.
+
+@menu
+* IIOP Configuration Parameters::
+* DIOP Configuration Parameters::
+* MIOP Configuration Parameters::
+@end menu
+
+@c -------------------------------------------------------------------
+@node IIOP Configuration Parameters
+@subsection IIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+
+###############################################################################
+# IIOP parameters
+#
+
+[iiop]
+
+###############################################################
+# IIOP Global Settings
+
+# Preference level for IIOP
+#polyorb.binding_data.iiop.preference=0
+
+# IIOP's default port
+#polyorb.protocols.iiop.default_port=2809
+
+# Default GIOP/IIOP Version
+#polyorb.protocols.iiop.giop.default_version.major=1
+#polyorb.protocols.iiop.giop.default_version.minor=2
+
+###############################################################
+# IIOP 1.2 specific parameters
+
+# Set to True to enable IIOP 1.2
+#polyorb.protocols.iiop.giop.1.2.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.2.locate_then_request=true
+
+# Maximum message size before fragmenting request
+#polyorb.protocols.iiop.giop.1.2.max_message_size=1000
+
+###############################################################
+# IIOP 1.1 specific parameters
+
+# Set to True to enable IIOP 1.1
+#polyorb.protocols.iiop.giop.1.1.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.1.locate_then_request=true
+
+# Maximum message size before fragmenting request
+#polyorb.protocols.iiop.giop.1.1.max_message_size=1000
+
+###############################################################
+# IIOP 1.0 specific parameters
+
+# Set to True to enable IIOP 1.0
+#polyorb.protocols.iiop.giop.1.0.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.0.locate_then_request=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node DIOP Configuration Parameters
+@subsection DIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+###############################################################
+# DIOP Global Settings
+
+# Preference level for DIOP
+#polyorb.binding_data.diop.preference=0
+
+# DIOP's default port
+#polyorb.protocols.diop.default_port=12345
+
+# Default GIOP/DIOP Version
+#polyorb.protocols.diop.giop.default_version.major=1
+#polyorb.protocols.diop.giop.default_version.minor=2
+
+###############################################################
+# DIOP 1.2 specific parameters
+
+# Set to True to enable DIOP 1.2
+#polyorb.protocols.diop.giop.1.2.enable=true
+
+# Maximum message size
+#polyorb.protocols.diop.giop.1.2.max_message_size=1000
+
+###############################################################
+# DIOP 1.1 specific parameters
+
+# Set to True to enable DIOP 1.1
+#polyorb.protocols.diop.giop.1.1.enable=true
+
+# Maximum message size
+#polyorb.protocols.diop.giop.1.1.max_message_size=1000
+
+###############################################################
+# DIOP 1.0 specific parameters
+
+# Set to True to enable DIOP 1.0
+#polyorb.protocols.diop.giop.1.0.enable=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node MIOP Configuration Parameters
+@subsection MIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+###############################################################################
+# MIOP parameters
+#
+
+[miop]
+
+###############################################################
+# MIOP Global Settings
+
+# Preference level for MIOP
+#polyorb.binding_data.uipmc.preference=0
+
+# Maximum message size
+#polyorb.miop.max_message_size=6000
+
+# Time To Leave parameter
+#polyorb.miop.ttl=15
+
+# Multicast address to use
+#polyorb.miop.multicast_addr=239.239.239.18
+
+# Multicast port to use
+#polyorb.miop.multicast_port=5678
+
+# Set to True to enable MIOP
+#polyorb.protocols.miop.giop.1.2.enable=false
+
+# Maximum message size
+#polyorb.protocols.miop.giop.1.2.max_message_size=1000
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node SOAP
+@chapter SOAP
+@cindex SOAP
+@c -------------------------------------------------------------------
+
+@menu
+* Installing SOAP protocol personality::
+* Configuring the SOAP personality::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Installing SOAP protocol personality
+@section Installing SOAP protocol personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with SOAP
+protocol personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To enable the configuration of the SOAP application personality,
+@pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node Configuring the SOAP personality
+@section Configuring the SOAP personality
+@c -------------------------------------------------------------------
+
+@noindent
+SOAP personality is configured using a configuration
+file. See @ref{Using a configuration file} for more details.
+
+Here is a summary of available parameters for each instance of SOAP.
+
+@smallexample
+###############################################################################
+# SOAP parameters
+#
+
+[soap]
+
+###############################################################
+# SOAP Global Settings
+
+# Preference level for SOAP
+#polyorb.binding_data.soap.preference=0
+
+# SOAP's default port
+#polyorb.protocols.soap.default_port=8080
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node Tools
+@chapter Tools
+@c -------------------------------------------------------------------
+
+@menu
+* po_catref::
+* po_names::
+@end menu
+
+@c -------------------------------------------------------------------
+@node po_catref
+@section @command{po_catref}
+@cindex @command{po_catref}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_catref} is a utility for viewing components of a
+stringified reference (CORBA IOR, corbaloc or URI).
+
+@smallexample
+Usage:
+       po_catref <stringified reference>
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node po_names
+@section @command{po_names}
+@cindex @command{po_names}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_names} is a stand-alone name server. It has an interface
+similar to CORBA COS Naming, without dragging any dependences on CORBA
+mechanisms. This name server is to be used when the CORBA application
+personality is not required, e.g. with the DSA or MOMA application
+personalities.
+
+@c -------------------------------------------------------------------
+@node References
+@appendix References
+@c -------------------------------------------------------------------
+
+@enumerate
+
+@include polyorb_ug_ref.texi
+
+@end enumerate
+
+@c -------------------------------------------------------------------
+@c GNU's FDL
+
+@include gfdl.texi
+
+@c -------------------------------------------------------------------
+@node Index
+@unnumbered Index
+@c -------------------------------------------------------------------
+
+@printindex cp
+
+@bye

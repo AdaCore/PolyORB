@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,6 +47,10 @@ package PolyORB.Annotations is
    type Note is abstract tagged private;
    --  A note that can be attached to an object.
 
+   procedure Destroy (N : in out Note);
+   --  Return any associated resource to the system. This primitive is
+   --  called for every note in a notepad being destroyed.
+
    type Notepad is private;
    type Notepad_Access is access all Notepad;
    --  A space for clients of an object to attach Notes into.
@@ -64,7 +69,7 @@ package PolyORB.Annotations is
                        N : out Note'Class;
                        Default : Note'Class);
    --  Retrieve a note of N's type from NP.
-   --  Return 'Default' if the note cannot be found.
+   --  Return Default if the note cannot be found.
 
    procedure Destroy (NP : in out Notepad);
    --  Removes all notes in NP and return any associated

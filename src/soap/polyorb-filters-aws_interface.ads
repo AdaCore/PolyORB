@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,7 +35,7 @@
 
 --  $Id$
 
-with AWS.Response;
+with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
@@ -64,7 +65,7 @@ package PolyORB.Filters.AWS_Interface is
    type AWS_Response_Out is new Root_Data_Unit with record
       --  Direction: from upper to lower.
       --  Semantics: send AWS response out.
-      Data : AWS.Response.Data;
+      Data : PolyORB.SOAP_P.Response.Data;
    end record;
 
 end PolyORB.Filters.AWS_Interface;

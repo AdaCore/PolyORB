@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,35 +26,42 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    type Unique_Id_Policy is new IdUniquenessPolicy with null record;
+
    type Unique_Id_Policy_Access is access all Unique_Id_Policy;
 
-   function Create return Unique_Id_Policy_Access;
+   function Create
+     return Unique_Id_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Unique_Id_Policy;
-      Other_Policies   : AllPolicies);
+     (Self           :        Unique_Id_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id
      (Self : Unique_Id_Policy)
      return String;
 
    procedure Ensure_Servant_Uniqueness
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access);
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
-   function Activate_Again
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access;
+   procedure Activate_Again
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
+
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,47 +26,59 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.CORBA_P.Policy;
+
+with PolyORB.Smart_Pointers;
+
 package body PortableServer.RequestProcessingPolicy is
 
-   --------------------------------------
-   -- Create_Request_Processing_Policy --
-   --------------------------------------
+   use CORBA.Policy;
 
-   function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
-     return CORBA.Policy.Ref'Class
+   use PolyORB.CORBA_P.Policy;
+
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return Ref
    is
-      Result : PortableServer.RequestProcessingPolicy.Ref;
-   begin
-      Result.Type_Of_Ref := THREAD_POLICY_ID;
-      Result.RequestProcessingPolicy := Value;
-
-      return Result;
-   end Create_Request_Processing_Policy;
-
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   function Create_Policy
-     (The_Type : in CORBA.PolicyType;
-      Val      : CORBA.Any)
-     return PortableServer.RequestProcessingPolicy.Ref
-   is
-      use CORBA;
+      use type CORBA.PolicyType;
 
    begin
-      if The_Type /= THREAD_POLICY_ID then
-         raise Program_Error;
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
+        REQUEST_PROCESSING_POLICY_ID
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      return PortableServer.RequestProcessingPolicy.Ref
-        (Create_Request_Processing_Policy (From_Any (Val)));
-   end Create_Policy;
+      declare
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+           new Policy_Object_Type;
+
+         Result : Ref;
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all),
+                          REQUEST_PROCESSING_POLICY_ID);
+
+         Set_Policy_Value (Policy_Object_Type (Entity.all),
+                           Get_Policy_Value
+                           (Policy_Object_Type
+                            (Entity_Of
+                             (CORBA.Policy.Ref (The_Ref)).all)));
+
+         CORBA.Policy.Set (CORBA.Policy.Ref (Result), Entity);
+
+         return Result;
+      end;
+   end To_Ref;
 
    ---------------
    -- Get_Value --
@@ -76,7 +88,10 @@ package body PortableServer.RequestProcessingPolicy is
      (Self : Ref)
      return PortableServer.RequestProcessingPolicyValue is
    begin
-      return Self.RequestProcessingPolicy;
+      return From_Any (Get_Policy_Value
+                       (Policy_Object_Type
+                        (Entity_Of
+                         (CORBA.Policy.Ref (Self)).all)));
    end Get_Value;
 
 end PortableServer.RequestProcessingPolicy;

@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N.E V E N T C H A N N E L.I M P L  --
+--                 COSEVENTCHANNELADMIN.EVENTCHANNEL.IMPL                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,10 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with PortableServer;
 
 with CosEventChannelAdmin.SupplierAdmin;
 with CosEventChannelAdmin.SupplierAdmin.Impl;
@@ -48,46 +53,30 @@ pragma Elaborate (CosEventChannelAdmin.EventChannel.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.EventChannel.Skel);
 
 with PolyORB.CORBA_P.Server_Tools;
-
-with PortableServer; use PortableServer;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-
 with PolyORB.Log;
-
 
 package body CosEventChannelAdmin.EventChannel.Impl is
 
-   use  PolyORB.CORBA_P.Server_Tools;
+   use PortableServer;
+   use PolyORB.CORBA_P.Server_Tools;
 
-   -----------
-   -- Debug --
-   -----------
-
-   use  PolyORB.Log;
-
+   use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("eventchannel");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   -------------
-   -- Channel --
-   -------------
-
-   type Event_Channel_Record is
-      record
-         This     : Object_Ptr;
-         Consumer : ConsumerAdmin.Impl.Object_Ptr;
-         Supplier : SupplierAdmin.Impl.Object_Ptr;
-      end record;
+   type Event_Channel_Record is record
+      This            : Object_Ptr;
+      Consumer        : ConsumerAdmin.Impl.Object_Ptr;
+      Supplier        : SupplierAdmin.Impl.Object_Ptr;
+   end record;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Object_Ptr
+   function Create
+     return Object_Ptr
    is
       Channel : Object_Ptr;
       My_Ref  : EventChannel.Ref;
@@ -127,11 +116,10 @@ package body CosEventChannelAdmin.EventChannel.Impl is
      return ConsumerAdmin.Ref
    is
       R : ConsumerAdmin.Ref;
-
    begin
       pragma Debug (O ("create consumer admin for channel"));
-
       Servant_To_Reference (Servant (Self.X.Consumer), R);
+
       return R;
    end For_Consumers;
 
@@ -158,7 +146,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
       ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
    end Post;

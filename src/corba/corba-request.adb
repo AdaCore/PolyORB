@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +36,7 @@
 --  $Id$
 
 with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -61,7 +63,7 @@ package body CORBA.Request is
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
@@ -90,7 +92,7 @@ package body CORBA.Request is
       pragma Warnings (On);
       PResult : PolyORB.Any.NamedValue
         := (Name      => PolyORB.Types.Identifier (Result.Name),
-            Argument  => Result.Argument,
+            Argument  => Internals.To_PolyORB_Any (Result.Argument),
             Arg_Modes => PolyORB.Any.Flags (Result.Arg_Modes));
    begin
       PolyORB.Requests.Create_Request
@@ -115,10 +117,10 @@ package body CORBA.Request is
    begin
       --  XXX for now we do everything synchronously; flags
       --  are ignored by P.R.Invoke.
-      PolyORB.Requests.Invoke
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
-      if not Is_Empty (Self.The_Request.Exception_Info) then
+      if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then
          --  XXX warning, should verify that the raised exception
          --  is either a system exception or a declared user
          --  exception before propagating it: if an unknown

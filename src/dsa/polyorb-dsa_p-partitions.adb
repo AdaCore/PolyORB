@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            S Y S T E M . P O L Y O R B . P A R T I T I O N S             --
+--             P O L Y O R B . D S A _ P . P A R T I T I O N S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -81,10 +82,11 @@ package body PolyORB.DSA_P.Partitions is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"dsa.partitions",
+      (Name      => +"dsa.partitions",
        Conflicts => Empty,
-       Depends => +"dsa"
+       Depends   => +"dsa"
          & "tasking.mutexes",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end PolyORB.DSA_P.Partitions;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;
+
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
-with PolyORB.POA;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
@@ -39,7 +42,8 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Create --
    ------------
 
-   function Create return Non_Retain_Policy_Access is
+   function Create
+     return Non_Retain_Policy_Access is
    begin
       return new Non_Retain_Policy;
    end Create;
@@ -49,14 +53,20 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Non_Retain_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Non_Retain_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      use Ada.Tags;
+
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Policies.Request_Processing_Policy;
       use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
    begin
       --  Compatiblity between Non_Retain and Id_Uniqueness done in
@@ -65,19 +75,19 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       --  Non_Retain requires either Use_Default_Servent
       --   or Use_Servant_Manager.
 
-      --  XXX Use_Servant_Manager not implemented !!! Test incomplete.
-
-      for I in Other_Policies'Range loop
-         if Other_Policies (I).all in
-           POA_Policies.Request_Processing_Policy.RequestProcessingPolicy
+      for J in Other_Policies'Range loop
+         if Other_Policies (J).all in RequestProcessingPolicy'Class
+           and then not (Other_Policies (J).all'Tag
+                         = Use_Default_Servant_Policy'Tag
+                         or else Other_Policies (J).all'Tag
+                         = Use_Servant_Manager_Policy'Tag)
          then
-            if not (Other_Policies (I).all in Use_Default_Servant_Policy) then
-               raise PolyORB.POA.Invalid_Policy;
-               --  XXX we may raise an exception, but should we ?
-            end if;
+            Throw
+              (Error,
+               InvalidPolicy_E,
+               InvalidPolicy_Members'(Index => 0));
          end if;
       end loop;
-
 
    end Check_Compatibility;
 
@@ -87,13 +97,14 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    function Policy_Id
      (Self : Non_Retain_Policy)
-     return String is
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
    begin
-      return "SERVANT_RETENTION_POLICY.RETAIN";
+      return "SERVANT_RETENTION_POLICY.NON_RETAIN";
    end Policy_Id;
 
    --------------------------------
@@ -101,19 +112,21 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    --------------------------------
 
    procedure Retain_Servant_Association
-     (Self      : Non_Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      U_Oid     : Unmarshalled_Oid)
+     (Self      :        Non_Retain_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      U_Oid     :        Unmarshalled_Oid;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, P_Servant, U_Oid);
+      pragma Unreferenced (Self, OA, P_Servant, U_Oid, Error);
       pragma Warnings (On);
 
    begin
-      null;
       --  NON_RETAIN: No active object map, nothing to retain,
       --  no way of checking ID uniqueness.
+
+      null;
    end Retain_Servant_Association;
 
    --------------------------------
@@ -121,17 +134,19 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    --------------------------------
 
    procedure Forget_Servant_Association
-     (Self  : Non_Retain_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
+     (Self  :        Non_Retain_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, U_Oid);
+      pragma Unreferenced (Self, OA, U_Oid, Error);
       pragma Warnings (On);
 
    begin
-      null;
       --  NON_RETAIN: Nothing to do.
+
+      null;
    end Forget_Servant_Association;
 
    ----------------------------
@@ -150,6 +165,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    begin
       --  NON_RETAIN: No retained object id available.
+
       return null;
    end Retained_Servant_To_Id;
 
@@ -157,19 +173,45 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    -- Retained_Id_To_Servant --
    ----------------------------
 
-   function Retained_Id_To_Servant
-     (Self  : Non_Retain_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access
+   procedure Retained_Id_To_Servant
+     (Self    :        Non_Retain_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, U_Oid);
+      pragma Unreferenced (Self, OA, U_Oid, Error);
       pragma Warnings (On);
 
    begin
       --  NON_RETAIN: No retained servant available.
-      return null;
+
+      Servant := null;
    end Retained_Id_To_Servant;
+
+   ---------------------------------
+   -- Ensure_Servant_Manager_Type --
+   ---------------------------------
+
+   procedure Ensure_Servant_Manager_Type
+     (Self    :        Non_Retain_Policy;
+      Manager :        ServantManager'Class;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      if Manager not in ServantLocator'Class then
+         Throw (Error,
+                Obj_Adapter_E,
+                System_Exception_Members'(Minor     => 4,
+                                          Completed => Completed_No));
+      end if;
+   end Ensure_Servant_Manager_Type;
 
 end PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;

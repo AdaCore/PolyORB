@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,17 +44,17 @@ package Test_Suite.Scenarios is
       Index         : Positive;
       Output        : Test_Suite_Output'Class)
      return String;
-   --  Open 'Scenario_File'.
+   --  Open scenario Scenario_File
 
    procedure Run_Scenario
      (Scenario_File : String;
       Index         : Positive;
       Output        : Test_Suite_Output'Class);
-   --  Run scenario file.
+   --  Run scenario file
 
    procedure Run_All_Scenarios
      (Directory_Name : String;
       Output         : Test_Suite_Output'Class);
-   --  Run all scenarios from 'Directory_Name' directory.
+   --  Run recursively all scenarios in Directory_Name directory
 
 end Test_Suite.Scenarios;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 2001-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,10 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
 
 package PolyORB.ORB.Thread_Per_Request is
 
@@ -49,31 +51,32 @@ package PolyORB.ORB.Thread_Per_Request is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Request_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
-   procedure Handle_Close_Server_Connection
+   procedure Handle_Close_Connection
      (P   : access Thread_Per_Request_Policy;
       TE  :        Transport_Endpoint_Access);
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
-      ORB : ORB_Access;
+      ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
    procedure Idle
-     (P : access Thread_Per_Request_Policy;
-      ORB : ORB_Access);
+     (P         : access Thread_Per_Request_Policy;
+      This_Task :        PolyORB.Task_Info.Task_Info;
+      ORB       :        ORB_Access);
 
    procedure Queue_Request_To_Handler
      (P   : access Thread_Per_Request_Policy;
-      ORB : ORB_Access;
-      Msg : Message'Class);
+      ORB :        ORB_Access;
+      Msg :        Message'Class);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--          Copyright (C) 2002-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,14 +43,14 @@ package PolyORB.Binding_Data.SRP is
 
    type SRP_Profile_Type is new Profile_Type with private;
 
-   procedure Initialize (P : in out SRP_Profile_Type);
-   procedure Adjust (P : in out SRP_Profile_Type);
-   procedure Finalize (P : in out SRP_Profile_Type);
+   procedure Duplicate  (P1 : SRP_Profile_Type; P2 : out SRP_Profile_Type);
+   procedure Release    (P : in out SRP_Profile_Type);
 
-   function Bind_Profile
-     (Profile : SRP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Bind_Profile
+     (Profile :     SRP_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Exceptions.Error_Container);
 
    function Get_Profile_Tag
      (Profile : SRP_Profile_Type)
@@ -79,6 +80,11 @@ package PolyORB.Binding_Data.SRP is
      return Boolean;
 
    function Image (Prof : SRP_Profile_Type) return String;
+
+   function Get_OA
+     (Profile : SRP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
 
 private
 

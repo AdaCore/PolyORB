@@ -1,3 +1,5 @@
+pragma Style_Checks (Off);
+
 PACKAGE REPORT IS
 
      SUBTYPE FILE_NUM IS INTEGER RANGE 1..5;

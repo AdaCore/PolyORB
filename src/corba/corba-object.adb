@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,9 +39,12 @@
 
 with GNAT.HTable;
 
+with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 with CORBA.AbstractBase;
 with CORBA.Object.Helper;
@@ -98,15 +102,22 @@ package body CORBA.Object is
       Result_Name      : CORBA.String := To_CORBA_String ("Result");
    begin
       if Is_Nil (Self) then
-         raise Constraint_Error;
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         Raise_No_Implement (No_Implement_Members'(Minor     => 3,
+                                                   Completed => Completed_No));
       end if;
 
       --  Create argument list (empty)
+
       CORBA.ORB.Create_List (0, Arg_List);
 
       --  Set result type (maybe void)
-      Result := (Name => CORBA.Identifier (Result_Name),
-                 Argument => Get_Empty_Any (TC_Object),
+
+      Result := (Name      => CORBA.Identifier (Result_Name),
+                 Argument  => Get_Empty_Any (TC_Object),
                  Arg_Modes => 0);
 
       CORBA.Object.Create_Request
@@ -117,12 +128,13 @@ package body CORBA.Object is
       --  Request has been synchronously invoked.
 
       --  Retrieve return value.
+
       return CORBA.Object.Helper.From_Any (Result.Argument);
    end Get_Interface;
 
-   ----------
-   -- Is_A --
-   ----------
+   --------------
+   -- RPC_Is_A --
+   --------------
 
    function RPC_Is_A
      (Self            : in Ref;
@@ -152,22 +164,24 @@ package body CORBA.Object is
       Result_Name      : CORBA.String := To_CORBA_String ("Result");
    begin
       if Is_Nil (Self) then
-         raise Constraint_Error;
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
       end if;
 
       --  Create argument list
+
       CORBA.ORB.Create_List (0, Arg_List);
       CORBA.NVList.Add_Item
         (Arg_List,
          Arg_Name_Type_Id,
          Argument_Type_Id,
          CORBA.ARG_IN);
+
       --  Set result type (maybe void)
+
       Result
-        := (Name => CORBA.Identifier (Result_Name),
-            Argument => Get_Empty_Any
-        (CORBA.TC_Boolean),
-         Arg_Modes => 0);
+        := (Name      => CORBA.Identifier (Result_Name),
+            Argument  => Get_Empty_Any (CORBA.TC_Boolean),
+            Arg_Modes => 0);
 
       CORBA.Object.Create_Request
         (Self, Ctx, Operation_Name, Arg_List, Result, Request, 0);
@@ -177,8 +191,13 @@ package body CORBA.Object is
       --  Request has been synchronously invoked.
 
       --  Retrieve return value.
+
       return CORBA.From_Any (Result.Argument);
    end RPC_Is_A;
+
+   ----------
+   -- Is_A --
+   ----------
 
    function Is_A
      (Self            : in Ref;
@@ -186,17 +205,39 @@ package body CORBA.Object is
      return CORBA.Boolean
    is
    begin
+      if Is_Nil (Self) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
       if Is_Equivalent
         (Logical_Type_Id,
          PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/Object"))
       --  Any object Is_A CORBA::Object.
+      then
+         return True;
+      end if;
 
-        or else Is_Equivalent
+      if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         if PolyORB.CORBA_P.Local.Is_CORBA_Local (Self) then
+            --  For true CORBA local objects call corresponding subprogram.
+            return PolyORB.CORBA_P.Local.Is_A
+                    (PolyORB.CORBA_P.Local.Local_Object_Base_Ref
+                      (Entity_Of (Self)),
+                     Logical_Type_Id);
+         else
+            --  Neutral core object.
+            Raise_No_Implement (No_Implement_Members'
+                                (Minor     => 3,
+                                 Completed => Completed_No));
+
+         end if;
+      end if;
+
+      if Is_Equivalent
         (Logical_Type_Id,
          PolyORB.References.Type_Id_Of
          (To_PolyORB_Ref (Self)))
-      --  Any object is of the class of its
-      --  actual (i. e. most derived) type.
+      --  Any object is of the class of its actual (i. e. most derived) type.
 
       then
          return True;
@@ -222,11 +263,26 @@ package body CORBA.Object is
    is
       use PolyORB.References;
 
-      Left, Right : PolyORB.References.Ref;
+      S_Is_Local : constant Boolean := PolyORB.CORBA_P.Local.Is_Local (Self);
+      O_Is_Local : constant Boolean
+        := PolyORB.CORBA_P.Local.Is_Local (Other_Object);
+
    begin
-      Set (Left, Entity_Of (Self));
-      Set (Right, Entity_Of (Other_Object));
-      return Is_Same_Object (Left, Right);
+      if Is_Nil (Self) or else Is_Nil (Other_Object) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if S_Is_Local or else O_Is_Local then
+         return Entity_Of (Self) = Entity_Of (Other_Object);
+      end if;
+
+      declare
+         Left, Right : PolyORB.References.Ref;
+      begin
+         Set (Left, Entity_Of (Self));
+         Set (Right, Entity_Of (Other_Object));
+         return Is_Same_Object (Left, Right);
+      end;
    end Is_Equivalent;
 
    ------------
@@ -244,11 +300,15 @@ package body CORBA.Object is
 
    function Non_Existent (Self : Ref) return CORBA.Boolean is
    begin
+      if Is_Nil (Self) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         return False;
+      end if;
+
       raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Non_Existent (Self);
-      --  "Possible infinite recursion"
-      pragma Warnings (On);
    end Non_Existent;
 
    --------------------
@@ -264,6 +324,15 @@ package body CORBA.Object is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
    begin
+      if Is_Nil (Self) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         Raise_No_Implement (No_Implement_Members'(Minor     => 4,
+                                                   Completed => Completed_No));
+      end if;
+
       CORBA.Request.Create_Request
         (CORBA.AbstractBase.Ref (Self),
          Ctx,
@@ -289,6 +358,15 @@ package body CORBA.Object is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
    begin
+      if Is_Nil (Self) then
+         CORBA.Raise_Inv_Objref (Default_Sys_Member);
+      end if;
+
+      if PolyORB.CORBA_P.Local.Is_Local (Self) then
+         Raise_No_Implement (No_Implement_Members'(Minor     => 4,
+                                                   Completed => Completed_No));
+      end if;
+
       CORBA.Request.Create_Request
         (CORBA.AbstractBase.Ref (Self),
          Ctx,
@@ -310,10 +388,16 @@ package body CORBA.Object is
       Release (PolyORB.Smart_Pointers.Ref (Self));
    end Release;
 
+   ----------------------
+   -- Object_To_String --
+   ----------------------
+
    function  Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String is
    begin
+      --  Object locality checked inside CORBA.ORB.
+
       return CORBA.ORB.Object_To_String (Obj);
    end Object_To_String;
 
@@ -351,9 +435,9 @@ package body CORBA.Object is
 --       return Result;
 --    end To_CORBA_Object;
 
-   ----------------------
+   -----------------------
    -- To_PolyORB_Object --
-   ----------------------
+   -----------------------
 
    function To_PolyORB_Object
      (R : in Ref)
@@ -396,15 +480,40 @@ package body CORBA.Object is
    -- TC_Object --
    ---------------
 
+   TC_Object_Cache : CORBA.TypeCode.Object;
+
    function TC_Object return CORBA.TypeCode.Object is
-      use PolyORB.Any.TypeCode;
-
-      T : CORBA.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
    begin
-      Add_Parameter (T, To_Any (To_CORBA_String ("Object")));
-      Add_Parameter (T, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
-
-      return T;
+      return TC_Object_Cache;
    end TC_Object;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      TC_Object_Cache := CORBA.TypeCode.Internals.To_CORBA_Object
+        (PolyORB.Any.TypeCode.TC_Object);
+      CORBA.TypeCode.Internals.Add_Parameter
+        (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));
+      CORBA.TypeCode.Internals.Add_Parameter
+        (TC_Object_Cache, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"corba.object",
+       Conflicts => Empty,
+       Depends   => +"corba" & "any",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end CORBA.Object;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +36,7 @@
 
 --  $Id$
 
-with PolyORB.Smart_Pointers;
+with PolyORB.Smart_Pointers;  --  WAG:3.15
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 pragma Warnings (Off, PolyORB.Smart_Pointers);
 --  The dependency and pragma above should not be necessary

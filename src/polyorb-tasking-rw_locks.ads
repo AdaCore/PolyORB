@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#4 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#6 $
 
 with PolyORB.Tasking.Condition_Variables;
 
@@ -72,10 +73,10 @@ package PolyORB.Tasking.Rw_Locks is
    --  Release read mode lock.
 
    function Is_Set_W (L : access Rw_Lock_Type) return Boolean;
-   --  Return 'True' iff the lock is held in write mode.
+   --  Return True if the lock is held in write mode.
 
    function Is_Set_R (L : access Rw_Lock_Type) return Boolean;
-   --  Return 'True' iff the lock is held in read mode.
+   --  Return True if the lock is held in read mode.
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;

@@ -26,7 +26,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
-                   IDL_Access : CORBA.Repository_Root.Visibility) is
+                   IDL_Access : CORBA.Visibility) is
    begin
       Contained.Impl.Init (Contained.Impl.Object_Ptr(Self),
                            Real_Object,
@@ -75,7 +75,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
 
    function get_access
      (Self : access Object)
-     return CORBA.Repository_Root.Visibility
+     return CORBA.Visibility
    is
    begin
       return Self.IDL_Access;
@@ -84,7 +84,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
 
    procedure set_access
      (Self : access Object;
-      To : in CORBA.Repository_Root.Visibility) is
+      To : in CORBA.Visibility) is
    begin
       Self.IDL_Access := To;
    end set_access;

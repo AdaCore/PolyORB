@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -48,15 +49,9 @@ package body PolyORB.Utils.Chained_Lists is
    ------------
 
    procedure Append (L : in out List; I : T) is
-      N : constant Node_Access := new Node'(Next => null, Value => I);
+      L_Last : Iterator := Last (L);
    begin
-      if L.Last = null then
-         L.First := N;
-         L.Last := N;
-      else
-         L.Last.Next := N;
-         L.Last := N;
-      end if;
+      Insert (L, I, Before => L_Last);
    end Append;
 
    ----------------
@@ -151,8 +146,47 @@ package body PolyORB.Utils.Chained_Lists is
 
    function First (L : List) return Iterator is
    begin
-      return Iterator (L.First);
+      return Iterator'(Current => L.First, Previous => null);
    end First;
+
+   -----------
+   -- First --
+   -----------
+
+   function First (I : Iterator) return Boolean is
+   begin
+      return I.Previous = null;
+   end First;
+
+   ------------
+   -- Insert --
+   ------------
+
+   procedure Insert (L : in out List; I : T; Before : in out Iterator)
+   is
+      N : constant Node_Access
+        := new Node'(Next => Before.Current, Value => I);
+   begin
+      if Before.Previous = null then
+         L.First := N;
+      else
+         Before.Previous.Next := N;
+      end if;
+      Before.Previous := N;
+
+      if Before.Current = null then
+         L.Last := N;
+      end if;
+   end Insert;
+
+   ----------
+   -- Last --
+   ----------
+
+   function Last (L : List) return Iterator is
+   begin
+      return Iterator'(Current => null, Previous => L.Last);
+   end Last;
 
    ----------
    -- Last --
@@ -160,7 +194,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Last (I : Iterator) return Boolean is
    begin
-      return I = null;
+      return I.Current = null;
    end Last;
 
    ------------
@@ -184,7 +218,8 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Next (I : in out Iterator) is
    begin
-      I := Iterator (I.Next);
+      I.Previous := I.Current;
+      I.Current  := I.Current.Next;
    end Next;
 
    -------------
@@ -192,11 +227,9 @@ package body PolyORB.Utils.Chained_Lists is
    -------------
 
    procedure Prepend (L : in out List; I : T) is
+      L_First : Iterator := First (L);
    begin
-      L.First := new Node'(Next => L.First, Value => I);
-      if L.Last = null then
-         L.Last := L.First;
-      end if;
+      Insert (L, I, Before => L_First);
    end Prepend;
 
    ------------
@@ -205,26 +238,36 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Remove (L : in out List; I : T)
    is
-      Current  : Node_Access := L.First;
-      Previous : Node_Access := null;
-      Old      : Node_Access := null;
+      It : Iterator := First (L);
    begin
-      while Current /= null loop
-         if Current.Value = I then
-            if Previous = null then
-               L.First  := Current.Next;
-            else
-               Previous.Next := Current.Next;
-            end if;
-            Old := Current;
-            Current := Current.Next;
-            Free (Old);
+      while It.Current /= null loop
+         if It.Current.Value = I then
+            Remove (L, It);
          else
-            Previous := Current;
-            Current := Current.Next;
+            Next (It);
          end if;
       end loop;
-      L.Last := Previous;
+   end Remove;
+
+   ------------
+   -- Remove --
+   ------------
+
+   procedure Remove (L : in out List; I : in out Iterator) is
+      Current : Node_Access := I.Current;
+   begin
+      if I.Previous = null then
+         L.First := Current.Next;
+      else
+         I.Previous.Next := Current.Next;
+      end if;
+
+      if L.Last = Current then
+         L.Last := I.Previous;
+      end if;
+
+      I.Current := Current.Next;
+      Free (Current);
    end Remove;
 
    -----------
@@ -233,7 +276,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Value (I : Iterator) return Element_Access is
    begin
-      return I.Value'Access;
+      return I.Current.Value'Access;
    end Value;
 
    ---------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,32 +26,31 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with Ada.Exceptions;
+with Ada.Text_IO;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Log;
-with PolyORB.Objects.Interface;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 with PolyORB.Types;
+with PolyORB.Exceptions;
 
 package body PolyORB.Test_Object_POA is
 
-   use PolyORB.Any;
-   use PolyORB.Log;
-   use PolyORB.Objects.Interface;
-   use PolyORB.Requests;
+   use Ada.Text_IO;
 
-   package L is new PolyORB.Log.Facility_Log ("corba.test_object");
-   procedure Output (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+   use PolyORB.Any;
+   use PolyORB.Requests;
+   use PolyORB.Servants.Interface;
 
    --------------------------------------
    -- Application part of the servant. --
@@ -66,8 +65,8 @@ package body PolyORB.Test_Object_POA is
       pragma Unreferenced (O);
       pragma Warnings (On);
    begin
-      pragma Debug (Output ("echoString is being executed with argument: "
-                            & PolyORB.Types.To_Standard_String (S)));
+      Put_Line ("echoString is being executed with argument: "
+                & PolyORB.Types.To_Standard_String (S));
       return S;
    end echoString;
 
@@ -80,8 +79,8 @@ package body PolyORB.Test_Object_POA is
       pragma Unreferenced (O);
       pragma Warnings (On);
    begin
-      pragma Debug
-        (Output ("Echo_Integer is being executed with argument" & I'Img));
+      Put_Line ("Echo_Integer is being executed with argument" & I'Img);
+
       return I;
    end echoInteger;
 
@@ -92,58 +91,65 @@ package body PolyORB.Test_Object_POA is
    function Execute_Servant
      (Obj : access My_Object;
       Msg : PolyORB.Components.Message'Class)
-     return PolyORB.Components.Message'Class is
+     return PolyORB.Components.Message'Class
+   is
       use PolyORB.Any.NVList;
-      use PolyORB.Any.NVList.Internals;
       use PolyORB.Types;
    begin
-      pragma Debug (Output ("Handle Message : enter"));
+      Put_Line ("Handle Message : enter");
 
       if Msg in Execute_Request then
          declare
-            Req : Request_Access
+            use PolyORB.Any.NVList.Internals;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
+            use PolyORB.Exceptions;
+
+            Req   : constant Request_Access
               := Execute_Request (Msg).Req;
-            Args : PolyORB.Any.NVList.Ref;
+            Args  : PolyORB.Any.NVList.Ref;
+            Error : Error_Container;
          begin
-            pragma Debug (Output ("The server is executing the request:"
-                                    & PolyORB.Requests.Image (Req.all)));
+            Put_Line ("The server is executing the request:"
+                      & PolyORB.Requests.Image (Req.all));
+
             Create (Args);
             if Req.all.Operation = To_PolyORB_String ("echoString") then
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
                           Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args);
+               Arguments (Req, Args, Error);
 
-               declare
-                  use PolyORB.Any.NVList.Internals;
-                  Args_Sequence : constant NV_Sequence_Access
-                    := List_Of (Args);
-                  echoString_Arg : PolyORB.Types.String :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoString (Obj.all, echoString_Arg));
-                  pragma Debug (Output ("Result: " & Image (Req.Result)));
-               end;
+               if Found (Error) then
+                  raise PolyORB.Unknown;
+                  --  XXX We should do something more constructive
+
+               end if;
+
+               Req.Result.Argument := To_Any
+                 (echoString
+                  (Obj.all,
+                   From_Any
+                   (Value (First (List_Of (Args).all)).Argument)));
+               Put_Line ("Result: " & Image (Req.Result));
+
             elsif Req.all.Operation = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
                                 Arg_Modes => PolyORB.Any.ARG_IN));
-               Arguments (Req, Args);
-               declare
-                  use PolyORB.Any.NVList.Internals;
-                  Args_Sequence : constant NV_Sequence_Access
-                    := List_Of (Args);
-                  echoInteger_Arg : constant PolyORB.Types.Long :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
-               begin
-                  Req.Result.Argument := To_Any
-                    (echoInteger (Obj.all, echoInteger_Arg));
-                  pragma Debug (Output ("Result: " & Image (Req.Result)));
-               end;
+               Arguments (Req, Args, Error);
+
+               if Found (Error) then
+                  raise PolyORB.Unknown;
+                  --  XXX We should do something more constructive
+
+               end if;
+
+               Req.Result.Argument := To_Any
+                 (echoInteger
+                  (Obj.all,
+                   From_Any (Value (First (List_Of (Args).all)).Argument)));
+                  Put_Line ("Result: " & Image (Req.Result));
             else
                raise PolyORB.Components.Unhandled_Message;
             end if;
@@ -155,8 +161,8 @@ package body PolyORB.Test_Object_POA is
 
    exception
       when E : others =>
-         pragma Debug (Output ("Handle_Message: Got exception "
-                          & Ada.Exceptions.Exception_Information (E)));
+         Put_Line ("Handle_Message: Got exception "
+                   & Ada.Exceptions.Exception_Information (E));
          raise;
    end Execute_Servant;
 

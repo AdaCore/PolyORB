@@ -1,31 +1,41 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                               C L I E N T                                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2000 ENST Paris University, France.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  All_Types client.
 
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#16 $
+
+with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -35,7 +45,7 @@ with CORBA.Object;
 with CORBA.ORB;
 
 with all_types.Helper; use all_types, all_types.Helper;
-with Report;    use Report;
+with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Client;
 pragma Warnings (Off, PolyORB.Setup.Client);
@@ -43,23 +53,48 @@ pragma Warnings (Off, PolyORB.Setup.Client);
 with PolyORB.CORBA_P.Naming_Tools; use PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
+
+   use PolyORB.Utils.Report;
+
    Myall_types : all_types.Ref;
    Ok : Boolean;
    Howmany : Integer := 1;
-   Echo_Long_Only : constant Boolean := Ada.Command_Line.Argument_Count = 3
-                      and then Boolean'Value (Ada.Command_Line.Argument (3));
+   Sequence_Length : Integer := 5;
+
+   type Test_Type is (All_Tests, Long_Only, Sequence_Only);
+   What : Test_Type := All_Tests;
 
 begin
+   New_Test ("CORBA Types");
+
    CORBA.ORB.Initialize ("ORB");
-   if Ada.Command_Line.Argument_Count < 1 then
+   if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
         ("usage : client <IOR_string_from_server|name|-i> "
-         & "[howmany [longonly]]");
+         & "[howmany [what]]");
       return;
    end if;
 
-   if Ada.Command_Line.Argument_Count >= 2 then
-      Howmany := Integer'Value (Ada.Command_Line.Argument (2));
+   if Argument_Count >= 2 then
+      Howmany := Integer'Value (Argument (2));
+   end if;
+
+   if Argument_Count >= 3 then
+      declare
+         What_Arg : constant String
+           := Ada.Characters.Handling.To_Lower
+                (Argument (3));
+      begin
+         if What_Arg = "true" or else What_Arg = "long" then
+            What := Long_Only;
+         elsif What_Arg = "sequence" then
+            What := Sequence_Only;
+            if Argument_Count > 3 then
+               Sequence_Length := Integer'Value
+                 (Argument (4));
+            end if;
+         end if;
+      end;
    end if;
 
    if Argument (1) = "-i" then
@@ -76,24 +111,51 @@ begin
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
    while Howmany > 0 loop
-      declare
-         L : constant Unsigned_Long := echoULong (Myall_types, 123);
-      begin
-         if Echo_Long_Only then
-            pragma Assert (L = 123);
-            goto End_Of_Loop;
-            --  We are only doing an echoULong call, and we are
-            --  interested in getting it as fast as possible.
-         end if;
-         Output ("test unsigned_long", L = 123);
-      end;
+
+      if What = All_Tests or else What = Long_Only then
+         declare
+            L : constant Unsigned_Long := echoULong (Myall_types, 123);
+         begin
+            if What = Long_Only then
+               pragma Assert (L = 123);
+               goto End_Of_Loop;
+               --  We are only doing an echoULong call, and we are
+               --  interested in getting it as fast as possible.
+            end if;
+            Output ("test unsigned_long", L = 123);
+         end;
+      end if;
+
+      if What = All_Tests or else What = Sequence_Only then
+         declare
+            X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+         begin
+            for J in 1 .. Sequence_Length loop
+               X := X & CORBA.Short (J);
+            end loop;
+
+            declare
+               Res : constant U_sequence := echoUsequence (Myall_types, X);
+            begin
+               if What = Sequence_Only then
+                  pragma Assert (Res = X);
+                  goto End_Of_Loop;
+               end if;
+
+               Output ("test unbounded sequence", Res = X);
+            end;
+         end;
+      end if;
 
       Output ("test string",
               To_Standard_String
               (echoString
                (Myall_types, To_CORBA_String ("hello distributed world")))
               = "hello distributed world");
+      pragma Warnings (Off);
+      --  Comparison with True
       Output ("test boolean", echoBoolean (Myall_types, True) = True);
+      pragma Warnings (On);
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
@@ -115,15 +177,6 @@ begin
             Output ("test enum", False);
             Ada.Text_IO.Put_Line ("Got exception:");
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-      end;
-
-      --  Unbounded sequences
-      declare
-         X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",
-                 echoUsequence (Myall_types, X) = X);
       end;
 
       --  Bounded sequences
@@ -168,7 +221,7 @@ begin
          X := echoRef (Myall_types, Myall_types);
          Output ("test self reference", True);
 
-         for I in 1 .. 15 loop
+         for I in 1 .. 47 loop
             X := echoRef (X, X);
          end loop;
          Output ("test self reference consistency",
@@ -195,14 +248,13 @@ begin
                (Switch => 1, Counter => 1212),
                (Switch => 2, Flag => True),
                (Switch => 3, Hue => Green));
-         Pass : Boolean := True;
+         Pass : Boolean;
       begin
-         for I in Test_Unions'Range loop
-            Pass := Pass and then echoUnion (Myall_types, Test_Unions (I))
-              = Test_Unions (I);
-            exit when not Pass;
+         for J in Test_Unions'Range loop
+            Pass := echoUnion (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
          end loop;
-         Output ("test union", Pass);
       end;
 
       declare
@@ -210,15 +262,14 @@ begin
            := ((Switch => Red, Foo => 31337),
                (Switch => Green, Bar => 534),
                (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
-         Pass : Boolean := True;
+         Pass : Boolean;
       begin
-         for I in Test_Unions'Range loop
-            Pass := Pass
-              and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
-              = Test_Unions (I);
-            exit when not Pass;
+         for J in Test_Unions'Range loop
+            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union with enum switch "
+                    & Test_Unions (J).Switch'Img, Pass);
          end loop;
-         Output ("test union with enum switch", Pass);
       end;
 
       --  Arrays
@@ -290,8 +341,21 @@ begin
       end;
       Output ("test unknown exception", Ok);
 
+      Ok := False;
+      begin
+         testSystemException (Myall_types, 2485);
+      exception
+         when CORBA.Bad_Param =>
+            Ok := True;
+
+         when E : others =>
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+      Output ("test system exception", Ok);
+
       <<End_Of_Loop>>
       Howmany := Howmany - 1;
    end loop;
 
+   End_Report;
 end Client;

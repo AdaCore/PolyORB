@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . U T I L S . S I M P L E _ F L A G S           --
+--           P O L Y O R B . U T I L S . S I M P L E _ F L A G S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,62 +26,111 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with PolyORB.Log;
-with PolyORB.Types;
 
 package body PolyORB.Utils.Simple_Flags is
 
    use PolyORB.Log;
-   use PolyORB.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.utils.simple_flags");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.utils.simple_flags");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ----------
+   -- Mask --
+   ----------
+
+   function Mask
+     (N : Bit_Count)
+     return Flags_Type
+   is
+   begin
+      pragma Debug (O ("Max bit"
+                       & Bit_Count'Image (Bit_Count'Last)
+                       & "; Mask for "
+                       & Bit_Count'Image (N)
+                       & " : "
+                       & Flags_Type'Image (Shift_Left (1, Natural (N)))));
+      return Shift_Left (1, Natural (N));
+   end Mask;
 
    ------------
    -- Is_Set --
    ------------
 
-   function Is_Set (Flag_To_Test : Flags;
-                    In_Flags     : Flags) return Boolean
+   function Is_Set
+     (Flag_To_Test : Flags_Type;
+      In_Flags     : Flags_Type)
+     return Boolean
    is
-      Result : Boolean;
-      Temp_Flags : Flags := In_Flags;
-      Counter : Flags := 1;
    begin
+      return ((Flag_To_Test and In_Flags) = Flag_To_Test);
+   end Is_Set;
 
-      while Counter /= Flag_To_Test loop
-         Temp_Flags := Temp_Flags / 2;
-         Counter := 2 * Counter;
-      end loop;
+   ------------
+   -- Is_Set --
+   ------------
 
-      Result := not (Temp_Flags mod 2 = 0);
-
-      pragma Debug (O ("Is_Set " & Integer'Image (Integer (Flag_To_Test))
-                       & " in " & Integer'Image (Integer (In_Flags))
-                       & " : " & Boolean'Image (Result)));
-
-      return Result;
+   function Is_Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Boolean
+   is
+      M : constant Flags_Type := Mask (N);
+   begin
+      return Is_Set (M, In_Flags);
    end Is_Set;
 
    ---------
    -- Set --
    ---------
 
-   function Set (Flag_To_Set : Flags;
-                 In_Flags    : Flags) return Flags
+   function Set
+     (Flag_To_Set : Flags_Type;
+      In_Flags    : Flags_Type)
+     return Flags_Type
    is
    begin
-      if not Is_Set (Flag_To_Set, In_Flags) then
-         return In_Flags + Flag_To_Set;
+      return (In_Flags and Flag_To_Set);
+   end Set;
+
+   ---------
+   -- Set --
+   ---------
+
+   function Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Flags_Type
+   is
+      M : constant Flags_Type := Mask (N);
+   begin
+      return Set (M, In_Flags);
+   end Set;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (Flag_Field : in out Flags_Type;
+      N          : Bit_Count;
+      Value      : Boolean)
+   is
+      M : constant Flags_Type := Mask (N);
+   begin
+      if Value then
+         Flag_Field := (Flag_Field and (not M)) or M;
       else
-         return In_Flags;
+         Flag_Field := Flag_Field and (not M);
       end if;
    end Set;
 

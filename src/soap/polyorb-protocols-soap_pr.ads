@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ with PolyORB.ORB;
 with PolyORB.Requests;
 with PolyORB.Types;
 
-with SOAP.Message.Payload;
+with PolyORB.SOAP_P.Message.Payload;
 
 package PolyORB.Protocols.SOAP_Pr is
 
@@ -88,7 +89,7 @@ private
       Entity_Length : Ada.Streams.Stream_Element_Count;
       Role   : PolyORB.ORB.Endpoint_Role;
       Target : PolyORB.Types.String;
-      Current_SOAP_Req : SOAP.Message.Payload.Object_Access;
+      Current_SOAP_Req : PolyORB.SOAP_P.Message.Payload.Object_Access;
       Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 

@@ -1,23 +1,59 @@
 #!/bin/sh
 # @configure_input@
 
-prefix=@prefix@
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+includedir="@includedir@"
+libdir="@libdir@"
 appli="@APPLI_LIST@"
 proto="@PROTO_LIST@"
 services="@SERVICE_LIST@"
 
-polyorb_dir="@XMLADA_INCS@ -I${prefix}/lib/polyorb"
-polyorb_lib="@XMLADA_LIBS@ "
+polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
+polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
+corba_idl_dir=""
 
-for P in $appli $proto
+for P in $appli
 do
- polyorb_dir="$polyorb_dir -I${prefix}/lib/polyorb-${P}"
- polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb-${P}.a"
+ polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xcorba" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/rtcorba -I${includedir}/polyorb/corba/portableinterceptor"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-rtcorba -lpolyorb-corba-portableinterceptor"
+   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
+   for S in $services
+   do
+      polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+   done
+   corba_idl_dir="-I${includedir}/polyorb/corba/cos"
+ fi 
+
+ if [ "x$P" = "xaws" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/web_common"
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+ fi 
 done
 
-# Place this line here to have libpolyorb.a at the end of the 
-# linking command (man ld for more details on link order)
-polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb.a"
+for P in $proto
+do
+ polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+ polyorb_lib="$polyorb_lib -lpolyorb-${P}"
+
+ if [ "x$P" = "xgiop" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/miop"
+   polyorb_lib="$polyorb_lib -lpolyorb-giop-diop -lpolyorb-giop-iiop -lpolyorb-giop-miop"  
+ fi
+
+ if [ "x$P" = "xsoap" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/web_common"
+   polyorb_lib="$polyorb_lib -lpolyorb-web_common"
+ fi
+done
 
 MAJOR=@POLYORB_MAJOR_VERSION@
 MINOR=@POLYORB_MINOR_VERSION@
@@ -29,17 +65,21 @@ Usage: polyorb-config [OPTIONS]
 Options:
         No option:
             Output all the flags (compiler and linker) required
-            to compiler your program
+            to compile your program.
         [--prefix]
             Output the directory in which PolyORB is installed.
         [--version|-v]
-            Output the version of PolyORB
+            Output the version of PolyORB.
         [--config]
             Output PolyORB's configuration parameters.
         [--libs]
             Output the linker flags to use for PolyORB.
         [--cflags]
             Output the compiler flags to use for PolyORB.
+        [--idls]
+            Output flags to set up path to CORBA's IDL for idlac.
+        [--help]
+            Output this message
 EOF
 }
 
@@ -73,6 +113,10 @@ while test $# -gt 0; do
       ;;  
     --libs)
       echo $polyorb_lib
+      exit 0
+      ;;
+    --idls)
+      echo $corba_idl_dir
       exit 0
       ;;
     --cflags)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with CORBA.Policy;
+
 with PortableServer.IdAssignmentPolicy;
 with PortableServer.IdUniquenessPolicy;
 with PortableServer.ImplicitActivationPolicy;
@@ -55,6 +57,7 @@ with PolyORB.POA_Policies.Lifespan_Policy.Transient;
 
 with PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
@@ -62,6 +65,8 @@ with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 with PolyORB.POA_Policies.Thread_Policy.Single_Thread;
 with PolyORB.POA_Policies.Thread_Policy.Main_Thread;
+
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.CORBA_P.POA_Config is
 
@@ -92,6 +97,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    use PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
    use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+   use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
    package RPP renames PolyORB.POA_Policies.Request_Processing_Policy;
 
    use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
@@ -101,6 +107,17 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
    use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
+   type Allocator_Record is record
+      Policy : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator;
+   end record;
+
+   package Allocator_List is
+      new PolyORB.Utils.Chained_Lists (Allocator_Record);
+   use Allocator_List;
+
+   Callbacks : Allocator_List.List;
+
    ------------------------
    -- Convert_PolicyList --
    ------------------------
@@ -109,8 +126,8 @@ package body PolyORB.CORBA_P.POA_Config is
      (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList
    is
-
       package PS renames PolyORB.POA_Policies.Policy_Sequences;
+
       package ISP renames CORBA.Policy.IDL_Sequence_Policy;
 
       CORBA_Policy_Array : constant
@@ -121,16 +138,16 @@ package body PolyORB.CORBA_P.POA_Config is
 
    begin
       for J in CORBA_Policy_Array'Range loop
-         Policy := PortableServer.ThreadPolicy.Get_Policy_Type
-           (PortableServer.ThreadPolicy.Ref (CORBA_Policy_Array (J).all));
+         Policy := CORBA.Policy.Get_Policy_Type (CORBA_Policy_Array (J));
 
          case Policy is
 
             when THREAD_POLICY_ID =>
                declare
                   PolicyValue : constant ThreadPolicyValue
-                    := Get_Value (PortableServer.ThreadPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ThreadPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when ORB_CTRL_MODEL =>
@@ -153,8 +170,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when LIFESPAN_POLICY_ID =>
                declare
                   PolicyValue : constant LifespanPolicyValue
-                    := Get_Value (PortableServer.LifespanPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.LifespanPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when PortableServer.TRANSIENT =>
@@ -173,8 +191,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when ID_UNIQUENESS_POLICY_ID =>
                declare
                   PolicyValue : constant IdUniquenessPolicyValue
-                    := Get_Value (PortableServer.IdUniquenessPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.IdUniquenessPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when UNIQUE_ID =>
@@ -193,8 +212,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when ID_ASSIGNMENT_POLICY_ID =>
                declare
                   PolicyValue : constant IdAssignmentPolicyValue
-                    := Get_Value (PortableServer.IdAssignmentPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.IdAssignmentPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when USER_ID =>
@@ -212,8 +232,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when IMPLICIT_ACTIVATION_POLICY_ID =>
                declare
                   PolicyValue : constant ImplicitActivationPolicyValue
-                    := Get_Value (PortableServer.ImplicitActivationPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ImplicitActivationPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when IMPLICIT_ACTIVATION =>
@@ -233,8 +254,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when SERVANT_RETENTION_POLICY_ID =>
                declare
                   PolicyValue : constant ServantRetentionPolicyValue
-                    := Get_Value (PortableServer.ServantRetentionPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.ServantRetentionPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
                      when RETAIN =>
@@ -254,8 +276,9 @@ package body PolyORB.CORBA_P.POA_Config is
             when REQUEST_PROCESSING_POLICY_ID =>
                declare
                   PolicyValue : constant RequestProcessingPolicyValue
-                    := Get_Value (PortableServer.RequestProcessingPolicy.Ref
-                                  (CORBA_Policy_Array (J).all));
+                    := Get_Value
+                    (PortableServer.RequestProcessingPolicy.To_Ref
+                     (CORBA_Policy_Array (J)));
                begin
                   case PolicyValue is
 
@@ -269,19 +292,53 @@ package body PolyORB.CORBA_P.POA_Config is
                           (Result,
                            Policy_Access (RPP.Use_Default_Servant.Create));
 
-
                      when USE_SERVANT_MANAGER =>
-                        raise Not_Implemented;
+                        PS.Append
+                          (Result,
+                           Policy_Access (RPP.Use_Servant_Manager.Create));
                   end case;
                end;
 
             when others =>
-               raise Program_Error;
+               null;
          end case;
 
+         --  Iterate through allocators' list
+
+         declare
+            Iter : Iterator := First (Callbacks);
+         begin
+            while not Last (Iter) loop
+               declare
+                  Info : constant Allocator_Record := Value (Iter).all;
+
+               begin
+                  if Policy = Info.Policy then
+                     PS.Append (Result,
+                                Info.Allocator.all (CORBA_Policy_Array (J)));
+                     exit;
+                  end if;
+               end;
+               Next (Iter);
+            end loop;
+         end;
       end loop;
 
       return Result;
    end Convert_PolicyList;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Policy    : CORBA.PolicyType;
+      Allocator : Policy_Type_Allocator)
+   is
+      Elt : constant Allocator_Record := (Policy, Allocator);
+
+   begin
+      Append (Callbacks, Elt);
+   end Register;
 
 end PolyORB.CORBA_P.POA_Config;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -74,12 +75,14 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Single_Thread_Policy;
-      Other_Policies : AllPolicies)
+     (Self           :        Single_Thread_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
 
    begin
@@ -108,8 +111,8 @@ package body PolyORB.POA_Policies.Thread_Policy.Single_Thread is
 
    function Handle_Request_Execution
      (Self      : access Single_Thread_Policy;
-      Msg       : PolyORB.Components.Message'Class;
-      Requestor : PolyORB.Components.Component_Access)
+      Msg       :        PolyORB.Components.Message'Class;
+      Requestor :        PolyORB.Components.Component_Access)
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Annotations;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +39,6 @@
 with MOMA.Types;
 
 with PolyORB.Any;
-with PolyORB.References;
 
 package MOMA.Destinations is
 
@@ -50,7 +50,7 @@ package MOMA.Destinations is
 
    function Create_Destination
      (Name    : MOMA.Types.String;
-      Ref     : PolyORB.References.Ref;
+      Ref     : MOMA.Types.Ref;
       Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
       return Destination;
    --  Create a destination structure.
@@ -71,21 +71,26 @@ package MOMA.Destinations is
 
    --  Accessors to Destination internal data.
 
-   function Get_Name (Self : Destination)
+   function Get_Name
+     (Self : Destination)
       return MOMA.Types.String;
 
-   procedure Set_Name (Self : in out Destination;
-                       Name : MOMA.Types.String);
+   procedure Set_Name
+     (Self : in out Destination;
+      Name :        MOMA.Types.String);
 
-   function Get_Kind (Self : Destination)
-      return MOMA.Types.Destination_Type;
+   function Get_Kind
+     (Self : Destination)
+     return MOMA.Types.Destination_Type;
 
-   function Get_Ref (Self : Destination)
-      return PolyORB.References.Ref;
+   function Get_Ref
+     (Self : Destination)
+     return MOMA.Types.Ref;
    --  XXX should be restricted to internal use only ...
 
-   procedure Set_Ref (Self : in out Destination;
-                      Ref  : PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self : in out Destination;
+      Ref  :        MOMA.Types.Ref);
    --  XXX should be restricted to internal use only ...
 
    --  Marshalling support for Destination type.
@@ -93,11 +98,9 @@ package MOMA.Destinations is
    TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
          := PolyORB.Any.TypeCode.TC_Struct;
 
-   function To_Any (Self : Destination)
-      return PolyORB.Any.Any;
+   function To_Any (Self : Destination) return MOMA.Types.Any;
 
-   function From_Any (Self : PolyORB.Any.Any)
-      return Destination;
+   function From_Any (Self : MOMA.Types.Any) return Destination;
 
    procedure Delete;
    --  XXX really useful in this context ?
@@ -106,18 +109,14 @@ private
 
    type Destination is record
       Name : MOMA.Types.String;
-      Ref  : PolyORB.References.Ref;
+      Ref  : MOMA.Types.Ref;
       Kind : MOMA.Types.Destination_Type;
    end record;
-
-   procedure Set_Kind (Self : in out Destination;
-                       Kind : MOMA.Types.Destination_Type);
 
    pragma Inline (Get_Name);
    pragma Inline (Set_Name);
    pragma Inline (Get_Ref);
    pragma Inline (Set_Ref);
-   pragma Inline (Set_Kind);
    pragma Inline (Get_Kind);
 
 end MOMA.Destinations;

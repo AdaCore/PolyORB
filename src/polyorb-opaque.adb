@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,15 +35,14 @@
 
 package body PolyORB.Opaque is
 
+   -------------
+   -- Is_Null --
+   -------------
+
    function Is_Null (P : Opaque_Pointer) return Boolean is
       use type System.Address;
    begin
       return P = System.Null_Address;
    end Is_Null;
-
-   function To_Opaque_Pointer (Z : Zone_Access) return Opaque_Pointer is
-   begin
-      return Z (Z'First)'Address;
-   end To_Opaque_Pointer;
 
 end PolyORB.Opaque;

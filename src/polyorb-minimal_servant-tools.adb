@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,64 +26,27 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
---  XXX a higher level Initialize_OA function, built in concordance
---  with other application personalities, is required for nodes mixing
---  different application personalities .....
-
-with PolyORB.Log;
-with PolyORB.Minimal_Servant;
-with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Exceptions;
+with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Servants;
 with PolyORB.ORB;
+with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Types;
 
 package body PolyORB.Minimal_Servant.Tools is
 
-   use PolyORB.Log;
    use PolyORB.Minimal_Servant;
-   use PolyORB.Setup;
    use PolyORB.Objects;
-   use PolyORB.ORB;
    use PolyORB.Servants;
-
-   package L is new PolyORB.Log.Facility_Log ("polyorb.moma_p.tools");
-   procedure O (Message : in String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   Is_OA_Initialized : Boolean := False;
-
-   procedure Initialize_OA;
-
-   -------------------
-   -- Initialize_OA --
-   -------------------
-
-   procedure Initialize_OA
-   is
-      Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
-   begin
-      if not Is_OA_Initialized then
-
-         pragma Debug (O ("Creating object adapter..."));
-         Obj_Adapter := new PolyORB.Obj_Adapters.Simple.Simple_Obj_Adapter;
-         PolyORB.Obj_Adapters.Create (Obj_Adapter);
-         --  Create object adapter
-
-         Set_Object_Adapter (The_ORB, Obj_Adapter);
-         --  Link object adapter with ORB.
-
-         Is_OA_Initialized := True;
-
-      end if;
-   end Initialize_OA;
+   use PolyORB.Setup;
 
    ----------------------
    -- Initiate_Servant --
@@ -91,36 +54,41 @@ package body PolyORB.Minimal_Servant.Tools is
 
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
-      If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
       Type_Id : in     PolyORB.Types.String;
-      Ref     : out    PolyORB.References.Ref)
+      Ref     :    out PolyORB.References.Ref;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
+
       Servant : constant PolyORB.Servants.Servant_Access
         := To_PolyORB_Servant (Obj);
 
-      Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
+      Obj_Adapter : constant PolyORB.Obj_Adapters.Obj_Adapter_Access
+        := PolyORB.ORB.Object_Adapter (The_ORB);
+
+      Servant_Id : Object_Id_Access;
 
    begin
-      Initialize_OA;
-      Obj_Adapter := PolyORB.ORB.Object_Adapter (The_ORB);
+      PolyORB.Obj_Adapters.Export
+        (Obj_Adapter,
+         Servant,
+         null,
+         Servant_Id,
+         Error);
 
-      declare
-         Servant_Id : constant Object_Id_Access
-           := new Object_Id'(PolyORB.Obj_Adapters.Export (Obj_Adapter,
-                                                          Servant));
-         --  Register it with the SOA.
+      if Found (Error) then
+         return;
+      end if;
 
-      begin
-         PolyORB.Obj_Adapters.Simple.Set_Interface_Description
-           (PolyORB.Obj_Adapters.Simple.Simple_Obj_Adapter
-            (Obj_Adapter.all), Servant_Id, If_Desc);
-         --  Set object description.
+      --  Register object
 
-         Create_Reference (The_ORB,
-                           Servant_Id,
-                           PolyORB.Types.To_Standard_String (Type_Id),
-                           Ref);
-      end;
+      PolyORB.ORB.Create_Reference
+        (The_ORB,
+         Servant_Id,
+         PolyORB.Types.To_Standard_String (Type_Id),
+         Ref);
+
+      Free (Servant_Id);
    end Initiate_Servant;
 
    ----------------

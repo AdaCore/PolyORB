@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  MExecute message type.
 --
 --  A MExecute message derives directly from MMap message.
---  Its payload contains a 'map' type.
+--  Its payload contains a map type.
 --
 --  It should be filled the following way :
 --
@@ -69,13 +70,12 @@ package MOMA.Messages.MExecutes is
 
    --  Accessors to MExecute payload.
 
-   function Get_Parameter (Self : MExecute)
-                           return MOMA.Types.Map;
+   function Get_Parameter (Self : MExecute) return MOMA.Types.Map;
 
-   procedure Set_Parameter (Self : in out MExecute;
-                            Value : MOMA.Types.Map);
+   procedure Set_Parameter (Self : in out MExecute; Value : MOMA.Types.Map);
 
 private
+
    type MExecute is new Message with null record;
 
 end MOMA.Messages.MExecutes;

@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --       C O S E V E N T C O M M . P U L L S U P P L I E R . I M P L        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,8 +42,7 @@ package CosEventComm.PullSupplier.Impl is
    --  This implementation is supposed to be application
    --  dependent. This is an example used to test the event service.
 
-   type Object is
-     new PortableServer.Servant_Base with private;
+   type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
@@ -58,8 +57,8 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Try_Pull
      (Self      : access Object;
-      Has_Event : out CORBA.Boolean;
-      Returns   : out CORBA.Any);
+      Has_Event : out    CORBA.Boolean;
+      Returns   : out    CORBA.Any);
    --  Call by proxy to try yo pull an event
 
    ------------------------
@@ -68,7 +67,7 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Connect_Proxy_Pull_Consumer
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPullConsumer.Ref);
+      Proxy : in     CosEventChannelAdmin.ProxyPullConsumer.Ref);
    --  Call by application to connect object with proxy
 
    function Create return Object_Ptr;
@@ -76,7 +75,7 @@ package CosEventComm.PullSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any);
+      Data : in     CORBA.Any);
    --  Call by application to produce an event
 
 private
@@ -84,10 +83,8 @@ private
    type Pull_Supplier_Record;
    type Pull_Supplier_Access is access Pull_Supplier_Record;
 
-   type Object is
-     new PortableServer.Servant_Base with
-      record
-         X : Pull_Supplier_Access;
-      end record;
+   type Object is new PortableServer.Servant_Base with record
+      X : Pull_Supplier_Access;
+   end record;
 
 end CosEventComm.PullSupplier.Impl;

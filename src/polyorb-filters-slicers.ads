@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A filter that slices a stream into a set of known-length
---  messages.
+--  A filter that slices a stream into a set of known-length messages.
 
 --  $Id$
 
@@ -48,7 +48,7 @@ package PolyORB.Filters.Slicers is
 
    procedure Create
      (Fact   : access Slicer_Factory;
-      Slicer : out Filter_Access);
+      Slicer :    out Filter_Access);
 
    Unexpected_Data : exception;
    --  Raised when unexpected data is received by this filter.
@@ -66,7 +66,7 @@ private
 
    function Handle_Message
      (F : access Slicer_Filter;
-      S : Components.Message'Class)
+      S :        Components.Message'Class)
      return Components.Message'Class;
 
 end PolyORB.Filters.Slicers;

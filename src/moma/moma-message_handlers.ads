@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  A Message_Handler object is the client view of the message handling
 --  process. It is the facade used to define the callback behavior and
 --  procedures, and provides templates ; it contains the stub to access
---  'Message_Handler' servants (see MOMA.Provider for more details).
+--  Message_Handler servants (see MOMA.Provider for more details).
 
 --  NOTE: A MOMA client must use only this package to get a callback for the
 --  messages it receives.
@@ -46,7 +47,6 @@ with MOMA.Sessions;
 with MOMA.Types;
 
 with PolyORB.Annotations;
-with PolyORB.References;
 
 package MOMA.Message_Handlers is
 
@@ -67,8 +67,8 @@ package MOMA.Message_Handlers is
    type Message_Handler_Acc is access Message_Handler;
 
    type Handler is access procedure
-     (Self : access Message_Handler;
-      Message : MOMA.Messages.Message'Class);
+     (Self    : access Message_Handler;
+      Message :        MOMA.Messages.Message'Class);
    --  The procedure to be called when a message is received, if the behavior
    --  is Handle.
 
@@ -87,50 +87,55 @@ package MOMA.Message_Handlers is
    --  If the behavior is Handle and no Handler_Procedure is provided, the
    --  incoming messages will be lost.
 
-   procedure Get_Call_Back_Data (Self : access Message_Handler;
-                                 Data : out PolyORB.Annotations.Note'Class);
+   procedure Get_Call_Back_Data
+     (Self : access Message_Handler;
+      Data :    out PolyORB.Annotations.Note'Class);
    --  Retrieve Call_Back Data for use in Handler or Notifier procedure.
 
-   function Get_Consumer (Self : access Message_Handler)
-      return MOMA.Message_Consumers.Message_Consumer;
+   function Get_Consumer
+     (Self : access Message_Handler)
+     return MOMA.Message_Consumers.Message_Consumer;
 
-   function Get_Handler (Self : access Message_Handler)
-      return Handler;
+   function Get_Handler
+     (Self : access Message_Handler)
+     return Handler;
    --  Get the Handler procedure.
 
-   function Get_Notifier (Self : access Message_Handler)
-      return Notifier;
+   function Get_Notifier
+     (Self : access Message_Handler)
+     return Notifier;
    --  Get the Notifier procedure.
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in MOMA.Types.Call_Back_Behavior);
+      New_Behavior   : in     MOMA.Types.Call_Back_Behavior);
    --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
 
-   procedure Set_Call_Back_Data (Self : access Message_Handler;
-                                 Data : PolyORB.Annotations.Note'Class);
+   procedure Set_Call_Back_Data
+     (Self : access Message_Handler;
+      Data :        PolyORB.Annotations.Note'Class);
    --  Set Call_Back Data for use in Handler or Notifier procedure.
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in Handler;
-      Handle_Behavior         : Boolean := False);
+      New_Handler_Procedure   : in     Handler;
+      Handle_Behavior         :        Boolean := False);
    --  Associate a Handler procedure to the Message Handler.
    --  Replace the current Handler procedure.
    --  The behavior is set to Handle if Handle_Behavior is true.
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in Notifier;
-      Notify_Behavior         : Boolean := False);
+      New_Notifier_Procedure  : in     Notifier;
+      Notify_Behavior         :        Boolean := False);
    --  Associate a Notifier procedure to the Message Handler.
    --  Replace the current Handler procedure.
    --  The behavior is set to Handle if Notify_Behavior is true.
 
    procedure Template_Handler
      (Self     : access Message_Handler;
-      Message  : MOMA.Messages.Message'Class);
+      Message  :        MOMA.Messages.Message'Class);
 
    procedure Template_Notifier (Self : access Message_Handler);
    --  Templates for handler and notifier procedures.
@@ -138,7 +143,7 @@ package MOMA.Message_Handlers is
 private
 
    type Message_Handler is record
-      Servant_Ref          : PolyORB.References.Ref;
+      Servant_Ref          : MOMA.Types.Ref;
       Message_Cons         : MOMA.Message_Consumers.Message_Consumer_Acc;
       Handler_Procedure    : Handler := null;
       Notifier_Procedure   : Notifier := null;

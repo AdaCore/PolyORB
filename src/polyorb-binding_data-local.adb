@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,35 +26,35 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Contact information for an object that exists
---  within the local ORB.
+--  Contact information for an object that exists within the local ORB.
 
 --  $Id$
+
+with PolyORB.ORB;
+with PolyORB.Setup;
 
 package body PolyORB.Binding_Data.Local is
 
    use PolyORB.Objects;
 
-   procedure Initialize (P : in out Local_Profile_Type) is
-   begin
-      P.Object_Id := null;
-   end Initialize;
+   -------------
+   -- Release --
+   -------------
 
-   procedure Adjust (P : in out Local_Profile_Type) is
-   begin
-      if P.Object_Id /= null then
-         P.Object_Id := new Object_Id'(P.Object_Id.all);
-      end if;
-   end Adjust;
-
-   procedure Finalize (P : in out Local_Profile_Type) is
+   procedure Release (P : in out Local_Profile_Type)
+   is
    begin
       Free (P.Object_Id);
-   end Finalize;
+   end Release;
+
+   --------------------------
+   -- Create_Local_Profile --
+   --------------------------
 
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;
@@ -64,52 +64,91 @@ package body PolyORB.Binding_Data.Local is
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
 
-   pragma Warnings (Off);
-   --  Out parameters are not assigned a value.
+   ------------------
+   -- Bind_Profile --
+   -------------------
 
-   function Bind_Profile
-     (Profile : Local_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access is
+   procedure Bind_Profile
+     (Profile :     Local_Profile_Type;
+      The_ORB :     Components.Component_Access;
+      BO_Ref  : out Smart_Pointers.Ref;
+      Error   : out Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); -- WAG:3.15
+      pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);
+      pragma Warnings (On); -- WAG:3.15
+
    begin
       raise Program_Error;
       --  May not happen currently, because the local case
       --  is handled specially in PolyORB.References.Bind,
       --  but could be implemented as (mostly):
---        return Components.Component_Access
---          (Find_Servant
---             (Object_Adapter (Local_ORB), Profile.Object_Id));
-      return null;
+
+      --  Servant := Components.Component_Access
+      --    (Find_Servant
+      --     (Object_Adapter (Local_ORB), Profile.Object_Id));
+      --  Set (BO_Ref, Servant_To_Binding_Object (Servant));
    end Bind_Profile;
 
-   pragma Warnings (On);
+   ---------------------
+   -- Get_Profile_Tag --
+   ---------------------
 
    function Get_Profile_Tag
      (Profile : Local_Profile_Type)
-     return Profile_Tag is
-   begin
+     return Profile_Tag
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Profile);
       pragma Warnings (On);
-      --  Parameter used only to dispatch.
+
+   begin
       return Tag_Local;
    end Get_Profile_Tag;
 
+   ----------------------------
+   -- Get_Profile_Preference --
+   ----------------------------
+
    function Get_Profile_Preference
      (Profile : Local_Profile_Type)
-     return Profile_Preference is
-   begin
+     return Profile_Preference
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Profile);
       pragma Warnings (On);
-      --  Parameter used only to dispatch.
+
+   begin
       return Profile_Preference'Last;
       --  A local profile is always preferred to any other.
+
    end Get_Profile_Preference;
 
-   function Image (Prof : Local_Profile_Type) return String is
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Prof : Local_Profile_Type)
+     return String is
    begin
       return "Object_Id: " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
+
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : Local_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
 
 end PolyORB.Binding_Data.Local;

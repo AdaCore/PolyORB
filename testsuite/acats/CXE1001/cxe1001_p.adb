@@ -1,4 +1,4 @@
-
+pragma Style_Checks (Off);
 ------------------------------------------------------------------------
 
 -- The following are the two library level declarations who's Partition_ID

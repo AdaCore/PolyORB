@@ -2,33 +2,63 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#16 $
+# $Id$
 
-PROJECT=DROOPI
-GNUMAKE=gmake
-export GNUMAKE
+###################################################
+# Usage information
+###################################################
 
 usage () {
-  echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
+  echo "Usage: $0 -m EMAIL_ADDRESS -i SOURCE_DIR -o OUTPUT_DIR -p PROJECT -r [cvs | p4 | none] [ -c CHANGELIST ]"
+  echo "  A notification e-mail will be sent to EMAIL_ADDRESS"
+  echo "  Source code is in SOURCE_DIR"
+  echo "  A symlink tree is made in OUTPUT_DIR/src"
   echo "  Build is done in OUTPUT_DIR/build"
   echo "  Install is done in OUTPUT_DIR/install"
+  echo ""
+  echo "  PROJECT is the name of the project to be built"
+  echo ""
+  echo "  Revision control options:"
+  echo "    cvs   checkout PROJECT from CVS repository"
+  echo "    p4    checkout PROJECT from Perforce repository"
+  echo "    none  use source directory as is, do not attempt to checkout"
+  echo ""
+  echo "  CHANGELIST indicates Perforce change number to use"
+  
   exit 1
 }
 
-while getopts C:c:o:m: opt
+###################################################
+# Set defaults
+###################################################
+
+MAILTO=root
+CM_REPOSITORY=none
+
+###################################################
+# Parse commande line
+###################################################
+
+while getopts c:i:o:m:p:r: opt
 do
   case $opt in
-    C)
-      CLIENT_TOP=$OPTARG
-      ;;
     c)
       CHANGELIST="$OPTARG"
       ;;
+    i)
+      SOURCE_DIR=$OPTARG
+      ;;
     o)
-      OUTDIR=$OPTARG
+      OUTPUT_DIR=$OPTARG
       ;;
     m)
       MAILTO=$OPTARG
+      ;;
+    p)
+      PROJECT=$OPTARG  
+      ;;
+    r)
+      CM_REPOSITORY=$OPTARG
       ;;
     *)
       usage
@@ -36,45 +66,91 @@ do
    esac
 done
 
-if [ "x$OUTDIR" = "x" ]
+if [ "x$OUTPUT_DIR" = "x" ]
 then
   usage
 fi
 
-if [ "x$CLIENT_TOP" = "x" ]
+if [ "x$SOURCE_DIR" = "x" ]
 then
   usage
 fi
 
-: ${MAILTO:=root}
+case "$CM_REPOSITORY" in
+  p4|cvs|none)
+    ;;
+  *)
+    usage
+    ;;
+esac
 
-P4CONFIG=.p4
+###################################################
+# Setup environment
+###################################################
+
+if [ "x$CM_REPOSITORY" = "xp4" ]
+then
+    P4CONFIG=.p4
+    export P4CONFIG
+fi
+
+case ":$PATH:" in
+  *:/usr/local/bin:*)
+    ;;
+  *)
+    PATH=/usr/local/bin:$PATH
+    ;;
+esac
 TMPDIR=/var/tmp
+GNUMAKE=gmake
+LANG=C
 
-export P4CONFIG MAILTO OUTDIR CLIENT_TOP TMPDIR
+export MAILTO OUTPUT_DIR SOURCE_DIR TMPDIR GNUMAKE \
+  PATH LANG
 
 set -e
 umask 022
 
-PIDFILE=$OUTDIR/build.pid
-CHGFILE=$OUTDIR/build.change
-LOGFILE=$OUTDIR/build.log
+PIDFILE=$OUTPUT_DIR/build.pid
+CHGFILE=$OUTPUT_DIR/build.change
+LOGFILE=$OUTPUT_DIR/build.log
 
-# Take mutex
+###################################################
+# Prepare build
+###################################################
+
+# Take mutex.
 
 lockfile $PIDFILE.lock
 trap 'rm -f $PIDFILE.lock' 0
 
 # Determine change level to be built.
 
-cd $CLIENT_TOP
+cd $SOURCE_DIR
 
-if [ "x$CHANGELIST" = x ]
-then
-  CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
-fi
+case "$CM_REPOSITORY" in
+  p4)
+    if [ "$CHANGELIST" = "" ]; then
+      CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
+    fi
+    CM_TAG="$CHANGELIST"
+    ;;
+  cvs)
+    if [ "$CHANGELIST" = "" ]; then
+      CM_TAG="HEAD"
+    else
+      CM_TAG="ch_$CHANGELIST"
+    fi
+    ;;
+  none)
+    CM_TAG="current"
+    ;;
+esac
+export CHANGELIST CM_TAG
 
-# Kill any previous build.
+# Kill any previous build, unless we know for a fact
+# that the build in porgress is building this change
+# or a more recent one.
 
 if [ -f $PIDFILE ]
 then
@@ -83,12 +159,15 @@ then
   then
     # Build in progress.
 
-    [ -f "$CHGFILE" ] && OLDCHG=`cat "$CHGFILE"`
-    if [ "$OLDCHG" -ge "$CHANGELIST" ]
-    then
-      # Already building this changelist or a more recent one.
-      exit 0
+    if [ "$CHANGELIST" != "" && -f "$CHGFILE" ]; then
+      if [ "`cat $CHGFILE`" -ge "$CHANGELIST" ]
+      then
+        # Already building this changelist or a more recent one.
+        exit 0
+      fi
     fi
+
+    # Interrupt current build
     kill $OLDPID > /dev/null 2>&1 || true
   fi
 fi
@@ -99,42 +178,86 @@ exec > $LOGFILE 2>&1
 
 # Prepare execution.
 
-echo "---------- Starting build of ${PROJECT} ch. ${CHANGELIST}: `date`"
-echo "---------- Syncing"
+echo "---------- Starting build of ${PROJECT} at `date`"
+echo "---------- Syncing from repository $CM_REPOSITORY at $CM_TAG"
 
-#p4 sync "#none"
-#rm -fr $CLIENT_TOP/*
-p4 sync @$CHANGELIST
+###################################################
+# Update files
+###################################################
 
-CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
-export CHANGE
+case "$CM_REPOSITORY" in
+  p4)
+    p4 sync @$CM_TAG
+    ;;
+  cvs)
+    cvs update -d -C -r$CM_TAG
+    ;;
+  *)
+    echo "Using currently directory as is"
+    ;;
+esac
 
-/usr/local/bin/rungroup /bin/sh -c '(
+###################################################
+# Launch build process
+###################################################
+
+rungroup /bin/sh -c '(
   set -e
   sleep 10
 
-  echo "---------- Building"
-  [ -x ./support/reconfig ] && ./support/reconfig
-  cd $OUTDIR
+  echo "---------- Preparing source tree"
+  
+  cd $OUTPUT_DIR
+  rm -fr src
+  mkdir src
   mkdir build > /dev/null 2>&1 || true
   mkdir install > /dev/null 2>&1 || true
-  cd build
 
-  if [ -x $CLIENT_TOP/configure ]
+  cd src
+  cat $SOURCE_DIR/MANIFEST |
+  while read file
+  do
+    dir=`dirname "$file"`
+    mkdir -p "$dir"
+    if [ -f "$SOURCE_DIR/$file" ]
+    then
+      ln -s "$SOURCE_DIR/$file" "$file"
+    fi
+  done
+  if [ ! -e testsuite ]
   then
-    $CLIENT_TOP/configure --disable-shared --enable-debug \
+    ln -s "$SOURCE_DIR/testsuite" .
+  fi
+
+  support/reconfig -w
+
+  cd ../build
+
+  echo "---------- Building"
+  if [ -x $OUTPUT_DIR/src/configure ]
+  then
+    $OUTPUT_DIR/src/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
-       --with-services="naming ir" --prefix=$OUTDIR/install
-  fi && ${GNUMAKE} && ${GNUMAKE} install
+       --with-services="naming ir event time" --prefix=$OUTPUT_DIR/install
+  fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE}
+  #  && cd ../testsuite && ${GNUMAKE}
+  # XXX configure is not processing testsuite diectory!
   RC=$?
   exit $RC
 )' &
 
-# The build is now running in background. Save PID and
-# release mutex.
+# The build is now running in background. Save PID and changelist #,
+# and release mutex.
 
 THISPID=$!
 echo $THISPID > $PIDFILE
+if [ "$CHANGELIST" != "" ]; then
+  echo $CHANGELIST > $CHGFILE
+fi
+
+###################################################
+# Analyze build output
+###################################################
 
 trap '' 0
 rm -f $PIDFILE.lock
@@ -148,8 +271,7 @@ if [ $RC = 0 ]
 then
   echo "---------- Build completed successfully: `date`"
   STATUS="completed"
-  OUTPATH=`echo $OUTDIR | sed 's,/usr/home,/infres,'`
-  MSG="Build completed successfully.\\nSee details at $OUTPATH/build.log"
+  MSG="Build completed successfully.\\nSee details at $OUTPUT_DIR/build.log"
   SUCCESS=true
 elif [ $RC -ge 128 ]
 then
@@ -164,9 +286,9 @@ fi
 
 if $SUCCESS
 then
-  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGE $STATUS" $MAILTO
+  echo -e "$MSG" | Mail -s "${PROJECT} build $CM_REPOSITORY $CM_TAG $STATUS" $MAILTO
 else
-  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGE FAILED" $MAILTO
+  cat $OUTPUT_DIR/build.log | Mail -s "${PROJECT} BUILD $CM_REPOSITORY $CM_TAG FAILED" $MAILTO
 fi
 
 lockfile $PIDFILE.lock

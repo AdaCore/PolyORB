@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA_Types;     use PolyORB.POA_Types;
+with PolyORB.Exceptions;
+with PolyORB.POA_Types;
 with PolyORB.Servants;
+
 package PolyORB.POA_Policies.Request_Processing_Policy is
 
+   use PolyORB.POA_Types;
+
    type RequestProcessingPolicy is abstract new Policy with null record;
-   subtype Request_Processing_Policy is RequestProcessingPolicy;
+
    type RequestProcessingPolicy_Access is
      access all RequestProcessingPolicy'Class;
-   subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
 
    procedure Etherealize_All
      (Self  : RequestProcessingPolicy;
@@ -48,11 +52,12 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
 
-   function Id_To_Servant
-     (Self  : RequestProcessingPolicy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-     return Servants.Servant_Access
+   procedure Id_To_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid   :        Unmarshalled_Oid;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.
@@ -67,5 +72,24 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --    If not found in the Active Object Map, asks the servant manager
    --    to create it. If there's not servant manager, raises Obj_Adapter
    --    with minor code 4.
+
+   procedure Set_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Get_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Ensure_Servant_Manager
+     (Self  :        RequestProcessingPolicy;
+      Error : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
 
 end PolyORB.POA_Policies.Request_Processing_Policy;

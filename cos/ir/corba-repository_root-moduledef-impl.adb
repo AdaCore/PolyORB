@@ -174,7 +174,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       use Contained.Impl;
    begin
       pragma Debug (O ("get_absolute_name : enter"));
-      if (Self.Contained_View = null) then
+      if Self.Contained_View = null then
          null;
          pragma Debug (O ("get_absolute_name : Contained_view is null"));
       end if;

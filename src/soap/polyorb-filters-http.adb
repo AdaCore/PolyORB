@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,8 +37,10 @@ with Ada.Characters.Handling;
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 
+with System;
+
 with AWS.MIME;
-with AWS.Response;
+with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
@@ -104,16 +107,16 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Header_Only
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Prepare_General_Header
      (Buf : access Buffer_Type;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Prepare_Message
      (Buf  : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data);
+      RD : PolyORB.SOAP_P.Response.Data);
 
    procedure Error
      (F      : access HTTP_Filter;
@@ -157,11 +160,11 @@ package body PolyORB.Filters.HTTP is
       Clear_Message_State (F);
    end Initialize;
 
-   procedure Finalize (F : in out HTTP_Filter) is
+   procedure Destroy (F : in out HTTP_Filter) is
    begin
       Clear_Message_State (F);
-      Finalize (Filter (F));
-   end Finalize;
+      PolyORB.Filters.Destroy (Filter (F));
+   end Destroy;
 
    Buffer_Size : constant := 1024;
 
@@ -217,13 +220,13 @@ package body PolyORB.Filters.HTTP is
 
          declare
             Buf : Buffer_Access := new Buffer_Type;
-            RD : constant AWS.Response.Data
+            RD : constant PolyORB.SOAP_P.Response.Data
               := AWS_Response_Out (S).Data;
          begin
-            case AWS.Response.Mode (RD) is
-               when AWS.Response.Header =>
+            case PolyORB.SOAP_P.Response.Mode (RD) is
+               when PolyORB.SOAP_P.Response.Header =>
                   Prepare_Header_Only (Buf, F.Version, RD);
-               when AWS.Response.Message =>
+               when PolyORB.SOAP_P.Response.Message =>
                   Prepare_Message (Buf, F.Version, RD);
             end case;
             Emit_No_Reply
@@ -231,12 +234,18 @@ package body PolyORB.Filters.HTTP is
             Release (Buf);
          end;
 
-      elsif S in Set_Server then
-         Emit_No_Reply (F.Upper, S);
+      elsif False
+        or else S in Set_Server
+        or else S in Disconnect_Indication
+      then
+         return Emit (F.Upper, S);
+
       elsif S in Disconnect_Request then
          return Emit (F.Lower, S);
+
       elsif S in AWS_Get_SOAP_Action then
          return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
+
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;
@@ -319,6 +328,8 @@ package body PolyORB.Filters.HTTP is
       -- Process received data --
       ---------------------------
 
+      Show (F.In_Buf);
+
       <<Process_Received_Data>>
 
       if F.State in Line_By_Line then
@@ -335,9 +346,10 @@ package body PolyORB.Filters.HTTP is
          --  Peek at the newly-received data.
 
          declare
-            subtype Z_Type is Stream_Element_Array (0 .. Data_Received - 1);
-            Z : Z_Type;
-            for Z'Address use New_Data;
+            Z_Addr : constant System.Address := New_Data;
+            Z : Stream_Element_Array (0 .. Data_Received - 1);
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
          begin
             Scan_Line :
             for J in Z'Range loop
@@ -418,6 +430,8 @@ package body PolyORB.Filters.HTTP is
          -- Not in a line-by-line state: transferring entity --
          ------------------------------------------------------
 
+         pragma Debug (O ("Transferring entity"));
+
          declare
             use PolyORB.Types;
 
@@ -439,6 +453,9 @@ package body PolyORB.Filters.HTTP is
             end;
 
             F.Transfer_Length := F.Transfer_Length - Data_Processed;
+
+            pragma Debug (O ("F.State:" & F.State'Img));
+            pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
 
             if F.Transfer_Length = 0 then
                if F.Chunked then
@@ -480,6 +497,9 @@ package body PolyORB.Filters.HTTP is
       --  according to the current state information (which
       --  may have been modified by the above processing.
 
+      pragma Debug (O ("F.State:" & F.State'Img));
+      pragma Debug (O ("F.Transfer_Length:" & F.Transfer_Length'Img));
+
       case F.Transfer_Length is
          when -1 =>
             --  Either state is Start_Line, Header, Chunk_Size
@@ -512,6 +532,7 @@ package body PolyORB.Filters.HTTP is
             (PolyORB.Buffers.CDR_Position (F.In_Buf))));
       PolyORB.Buffers.Extract_Data
         (F.In_Buf, Data, Line_Length, Use_Current => True);
+
       declare
          S : String (1 .. Integer (Line_Length) - 2);
          --  Ignore last 2 characters (CR/LF).
@@ -581,6 +602,7 @@ package body PolyORB.Filters.HTTP is
                      F.State := Entity;
                   end if;
                end if;
+               pragma Debug (O ("F.State: " & F.State'Img));
 
             when others =>
                raise Program_Error;
@@ -762,6 +784,8 @@ package body PolyORB.Filters.HTTP is
       S : String)
    is
       use PolyORB.HTTP_Headers;
+
+      pragma Debug (O ("Parse_Header_Line: S=" & S));
 
       Colon : constant Integer := Find (S, S'First, ':');
       Header_Kind : PolyORB.HTTP_Headers.Header;
@@ -1110,7 +1134,7 @@ package body PolyORB.Filters.HTTP is
 
    procedure Prepare_General_Header
      (Buf : access Buffer_Type;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       pragma Warnings (Off);
       pragma Unreferenced (RD);
@@ -1137,10 +1161,10 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Header_Only
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       Status : constant HTTP_Status_Code
-        := AWS.Response.Status_Code (RD);
+        := PolyORB.SOAP_P.Response.Status_Code (RD);
    begin
       Put_Status_Line (Buf, Version, Status);
       Prepare_General_Header (Buf, RD);
@@ -1152,7 +1176,7 @@ package body PolyORB.Filters.HTTP is
          Put_Line
            (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
-                       & AWS.Response.Realm (RD) & """"));
+                       & PolyORB.SOAP_P.Response.Realm (RD) & """"));
       end if;
 
       --  End of header
@@ -1162,38 +1186,38 @@ package body PolyORB.Filters.HTTP is
    procedure Prepare_Message
      (Buf : access Buffer_Type;
       Version : HTTP_Version;
-      RD : AWS.Response.Data)
+      RD : PolyORB.SOAP_P.Response.Data)
    is
       Status : constant HTTP_Status_Code
-        := AWS.Response.Status_Code (RD);
+        := PolyORB.SOAP_P.Response.Status_Code (RD);
    begin
       Put_Status_Line (Buf, Version, Status);
       if Status = S_301_Moved_Permanently then
          Put_Line
-           (Buf, Header (H_Location, AWS.Response.Location (RD)));
+           (Buf, Header (H_Location, PolyORB.SOAP_P.Response.Location (RD)));
       end if;
       Prepare_General_Header (Buf, RD);
 
       Put_Line (Buf, Header
                   (H_Content_Length,
-                   Image (AWS.Response.Content_Length (RD))));
+                   Image (PolyORB.SOAP_P.Response.Content_Length (RD))));
 
       Put_Line (Buf, Header
                   (H_Content_Type,
-                   AWS.Response.Content_Type (RD)));
+                   PolyORB.SOAP_P.Response.Content_Type (RD)));
 
       if Status = S_401_Unauthorized then
          Put_Line
            (Buf, Header (H_WWW_Authenticate,
                        "Basic realm="""
-                       & AWS.Response.Realm (RD) & """"));
+                       & PolyORB.SOAP_P.Response.Realm (RD) & """"));
       end if;
 
       --  End of headers.
 
       New_Line (Buf);
 
-      Put (Buf, AWS.Response.Message_Body (RD));
+      Put (Buf, PolyORB.SOAP_P.Response.Message_Body (RD));
       --  XXX could be more clever and send it chunked...
    end Prepare_Message;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#9 $
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -42,26 +43,19 @@ package body PolyORB.Opaque.Chunk_Pools is
    use Ada.Streams;
    use Chunk_Lists;
 
-   procedure Initialize (X : in out Chunk) is
-   begin
-      pragma Assert (X.Data = null);
-      X.Data := new Ada.Streams.Stream_Element_Array (1 .. X.Size);
-      pragma Assert (X.Data /= null);
-   end Initialize;
-
-   procedure Finalize (X : in out Chunk) is
-   begin
-      Free (X.Data);
-   end Finalize;
+   --------------
+   -- Allocate --
+   --------------
 
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk : out Chunk_Access;
-      Size    : Stream_Element_Count := Default_Chunk_Size)
+      A_Chunk :    out Chunk_Access;
+      Size    :        Stream_Element_Count := Default_Chunk_Size)
    is
       Allocation_Size : Stream_Element_Count;
       New_Chunk       : Chunk_Access;
    begin
+
       if Size <= Default_Chunk_Size then
          Allocation_Size := Default_Chunk_Size;
       else
@@ -69,12 +63,12 @@ package body PolyORB.Opaque.Chunk_Pools is
       end if;
 
       if Allocation_Size = Default_Chunk_Size
-        and then not Pool.Prealloc_Used then
+        and then not Pool.Prealloc_Used
+      then
          New_Chunk := Pool.Prealloc'Access;
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
-         New_Chunk.Data.all := (others => 176);
          New_Chunk.Metadata := Null_Metadata;
       end if;
 
@@ -83,21 +77,30 @@ package body PolyORB.Opaque.Chunk_Pools is
       A_Chunk := New_Chunk;
    end Allocate;
 
+   -------------------
+   -- Chunk_Storage --
+   -------------------
+
    function Chunk_Storage
      (A_Chunk : Chunk_Access)
      return Opaque_Pointer is
    begin
+      pragma Assert (A_Chunk /= null);
       return A_Chunk.Data (A_Chunk.Data'First)'Address;
    end Chunk_Storage;
+
+   -------------
+   -- Release --
+   -------------
 
    procedure Release
      (Pool : access Pool_Type)
    is
-
       procedure Free is new Ada.Unchecked_Deallocation
         (Chunk, Chunk_Access);
 
       It : Chunk_Lists.Iterator := First (Pool.Chunks);
+
    begin
       while not Last (It) loop
          declare
@@ -110,11 +113,18 @@ package body PolyORB.Opaque.Chunk_Pools is
          end;
          Next (It);
       end loop;
+
       Deallocate (Pool.Chunks);
       Pool.Prealloc_Used := False;
    end Release;
 
-   function Metadata (A_Chunk : Chunk_Access) return Metadata_Access is
+   --------------
+   -- Metadata --
+   --------------
+
+   function Metadata
+     (A_Chunk : Chunk_Access)
+     return Metadata_Access is
    begin
       return A_Chunk.Metadata'Access;
    end Metadata;

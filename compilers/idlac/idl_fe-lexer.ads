@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                         I D L _ F E . L E X E R                          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#3 $
 
 with Errors;
 
@@ -36,7 +45,7 @@ package Idl_Fe.Lexer is
 
    --  All the idl_keywords
    --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+   --  IDL Syntax and semantics, CORBA V3.0 § 3.2.4
    --
    --  All the idl tokens.
    type Idl_Token is
@@ -48,32 +57,46 @@ package Idl_Fe.Lexer is
        T_Boolean,
        T_Case,
        T_Char,
+       T_Component,
        T_Const,
+       T_Consumes,
        T_Context,
        T_Custom,
        T_Default,
        T_Double,
+       T_Emits,
        T_Enum,
+       T_EventType,
        T_Exception,
        T_Factory,
        T_False,
+       T_Finder,
        T_Fixed,
        T_Float,
+       T_GetRaises,
+       T_Home,
+       T_Import,
        T_In,
        T_Inout,
        T_Interface,
+       T_Local,
        T_Long,
        T_Module,
+       T_Multiple,
        T_Native,
        T_Object,
        T_Octet,
        T_Oneway,
        T_Out,
+       T_PrimaryKey,
        T_Private,
+       T_Provides,
        T_Public,
+       T_Publishes,
        T_Raises,
        T_Readonly,
        T_Sequence,
+       T_SetRaises,
        T_Short,
        T_String,
        T_Struct,
@@ -82,8 +105,11 @@ package Idl_Fe.Lexer is
        T_True,
        T_Truncatable,
        T_Typedef,
+       T_TypeId,
+       T_TypePrefix,
        T_Unsigned,
        T_Union,
+       T_Uses,
        T_ValueBase,
        T_ValueType,
        T_Void,

@@ -1,8 +1,45 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                              T E S T 0 0 0                               --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  $Id$
+
 with PolyORB.Dynamic_Dict;
 
-with PolyORB.Report;
+with PolyORB.Utils.Report;
 
 procedure Test000 is
+
+   use PolyORB.Utils.Report;
 
    type String_Access is access all String;
 
@@ -53,11 +90,11 @@ procedure Test000 is
             if Result = null
               or else Result.all /= "foo" then
 
-               PolyORB.Report.Output ("Regression occured for key "
-                              & Values (K).all
-                              & " at stage #"
-                              & Integer'Image (J),
-                              False);
+               Output ("Regression occured for key "
+                       & Values (K).all
+                       & " at stage #"
+                       & Integer'Image (J),
+                       False);
                raise Program_Error;
             end if;
          end loop;
@@ -67,10 +104,10 @@ procedure Test000 is
          My_Dict.Unregister (Values (J).all);
       end loop;
 
-      PolyORB.Report.Output ("Regression did not occured", True);
+      Output ("Check no exception is raised", True);
    exception
       when others =>
-         PolyORB.Report.Output ("Regression test failed", False);
+         Output ("Check no exception is raised", False);
 
    end Test_Regression;
 
@@ -105,11 +142,11 @@ procedure Test000 is
                if Content = null
                  or else Value /= Content.all then
 
-                  PolyORB.Report.Output ("Regression occured for key "
-                                 & Key
-                                 & " at stage #"
-                                 & Integer'Image (How_Many),
-                                 False);
+                  Output ("Regression occured for key "
+                          & Key
+                          & " at stage #"
+                          & Integer'Image (How_Many),
+                          False);
                   raise Program_Error;
                end if;
             end;
@@ -130,14 +167,14 @@ procedure Test000 is
             Test_Lookup (J);
          end;
       end loop;
-      PolyORB.Report.Output ("Register", True);
+      Output ("Register", True);
 
    end Test_Register;
 
 begin
-   PolyORB.Report.Output ("Initialization", True);
+   Output ("Initialization", True);
    Test_Register (500);
    Test_Regression;
-   PolyORB.Report.End_Report;
+   End_Report;
 
 end Test000;

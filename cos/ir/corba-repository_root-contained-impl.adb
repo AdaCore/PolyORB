@@ -32,7 +32,6 @@ with CORBA.Repository_Root.ValueDef;
 with CORBA.Repository_Root.StructDef;
 with CORBA.Repository_Root.UnionDef;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
@@ -40,7 +39,7 @@ with PortableServer;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
-   package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+   package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
 
    -----------
    -- Debug --
@@ -113,7 +112,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_All        |
            Dk_Typedef    |
            Dk_None       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
             return Result;
          when
            Dk_Interface  =>
@@ -262,6 +261,9 @@ package body CORBA.Repository_Root.Contained.Impl is
                return Contained.Convert_Forward.To_Forward
                  (Contained.Helper.To_Ref (The_Ref));
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
 
       end case;
    end To_Forward;
@@ -338,6 +340,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                Result := Interfacedef.Impl.Get_Contained_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
       return;
    end To_Contained;
@@ -361,7 +366,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_Fixed      |
            Dk_All        |
            Dk_None       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
             return null;
          when
            --  inherited types
@@ -410,6 +415,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                return Interfacedef.Impl.Get_Contained_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_Contained;
 
@@ -439,7 +447,9 @@ package body CORBA.Repository_Root.Contained.Impl is
           To)) then
          Self.Id := To;
       else
-         PolyORB.Exceptions.Raise_Bad_Param(2);
+         CORBA.Raise_Bad_Param
+           (CORBA.System_Exception_Members'(Minor => 2,
+                                            Completed => CORBA.Completed_No));
       end if;
    end set_id;
 
@@ -471,7 +481,9 @@ package body CORBA.Repository_Root.Contained.Impl is
       then
          Self.Name := To;
       else
-         PolyORB.Exceptions.Raise_Bad_Param(1);
+         CORBA.Raise_Bad_Param
+           (CORBA.System_Exception_Members'(Minor => 1,
+                                            Completed => CORBA.Completed_No));
       end if;
    end set_name;
 
@@ -590,7 +602,7 @@ package body CORBA.Repository_Root.Contained.Impl is
            Dk_Fixed      |
            Dk_All        |
            Dk_None       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
          when
            --  child objects
            Dk_Attribute  |
@@ -639,6 +651,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                return Interfacedef.Impl.Describe (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end describe;
 
@@ -670,7 +685,9 @@ package body CORBA.Repository_Root.Contained.Impl is
       end if;
       -- It must be in the same Repository
       if Rep1 /= Rep2 then
-         PolyORB.Exceptions.Raise_Bad_Param (Minor => 4);
+         CORBA.Raise_Bad_Param
+           (CORBA.System_Exception_Members'(Minor => 4,
+                                            Completed => CORBA.Completed_No));
       else
          --  the move should comply with p10-8 of the IR spec.
          --  (structure and navigation in the IR)
@@ -775,7 +792,7 @@ package body CORBA.Repository_Root.Contained.Impl is
    begin
       --  Should not begin with ::
       if Head (Search, 2) = "::" then
-         PolyORB.Exceptions.Raise_Internal;
+         CORBA.Raise_Internal (Default_Sys_Member);
       end if;
 
       --  Calculate the Index of "::"

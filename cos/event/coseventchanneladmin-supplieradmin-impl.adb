@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N.S U P P L I E R A D M I N.I M P L--
+--                 COSEVENTCHANNELADMIN.SUPPLIERADMIN.IMPL                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,12 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with CORBA.Sequences.Unbounded;
+
+with PortableServer;
 
 with CosEventChannelAdmin.EventChannel.Impl;
 
@@ -51,39 +56,55 @@ with CosEventChannelAdmin.SupplierAdmin.Skel;
 pragma Elaborate (CosEventChannelAdmin.SupplierAdmin.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.SupplierAdmin.Skel);
 
-with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with PolyORB.Sequences.Unbounded;
-
-with PortableServer; use PortableServer;
-
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
 
 package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
+   use CosEventChannelAdmin;
+   use PortableServer;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
-   package L is new PolyORB.Log.Facility_Log ("consumeradmin");
+   package L is new PolyORB.Log.Facility_Log ("supplieradmin");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    package PullConsumers is
-      new PolyORB.Sequences.Unbounded (ProxyPullConsumer.Impl.Object_Ptr);
+      new CORBA.Sequences.Unbounded (ProxyPullConsumer.Impl.Object_Ptr);
 
    package PushConsumers is
-      new PolyORB.Sequences.Unbounded (ProxyPushConsumer.Impl.Object_Ptr);
+      new CORBA.Sequences.Unbounded (ProxyPushConsumer.Impl.Object_Ptr);
 
-   type Supplier_Admin_Record is
-      record
-         This    : Object_Ptr;
-         Channel : EventChannel.Impl.Object_Ptr;
-         Pushs   : PushConsumers.Sequence;
-         Pulls   : PullConsumers.Sequence;
-      end record;
+   type Supplier_Admin_Record is record
+      This    : Object_Ptr;
+      ThisRef : SupplierAdmin.Ref;
+      Channel : EventChannel.Impl.Object_Ptr;
+      Pushs   : PushConsumers.Sequence;
+      Pulls   : PullConsumers.Sequence;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ------------
    -- Create --
@@ -98,11 +119,13 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("create supplier admin"));
 
-      Supplier        := new Object;
-      Supplier.X      := new Supplier_Admin_Record;
+      Supplier           := new Object;
+      Supplier.X         := new Supplier_Admin_Record;
       Supplier.X.This    := Supplier;
       Supplier.X.Channel := Channel;
+
       Initiate_Servant (Servant (Supplier), My_Ref);
+      Supplier.X.ThisRef := My_Ref;
       return Supplier;
    end Create;
 
@@ -120,11 +143,15 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy pull consumer from supplier admin"));
 
-      Enter_Critical_Section;
-      Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
+      Consumer := ProxyPullConsumer.Impl.Create (Self.X.ThisRef);
       PullConsumers.Append (Self.X.Pulls, Consumer);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Consumer), Its_Ref);
+
       return Its_Ref;
    end Obtain_Pull_Consumer;
 
@@ -142,11 +169,15 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy push consumer from supplier admin"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Consumer := ProxyPushConsumer.Impl.Create (Self.X.This);
       PushConsumers.Append (Self.X.Pushs, Consumer);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Consumer), Its_Ref);
+
       return Its_Ref;
    end Obtain_Push_Consumer;
 
@@ -156,7 +187,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
       pragma Debug (O ("post new data from supplier admin to channel"));
 

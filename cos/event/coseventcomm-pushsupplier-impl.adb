@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --       C O S E V E N T C O M M . P U S H S U P P L I E R . I M P L        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,10 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with PortableServer;
 
 with CosEventComm.PushSupplier.Helper;
 pragma Elaborate (CosEventComm.PushSupplier.Helper);
@@ -39,33 +44,51 @@ with CosEventComm.PushSupplier.Skel;
 pragma Elaborate (CosEventComm.PushSupplier.Skel);
 pragma Warnings (Off, CosEventComm.PushSupplier.Skel);
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPushConsumer;
 
-
-with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
-
-with CORBA.Impl;
-pragma Warnings (Off, CORBA.Impl);
-
-with PortableServer; use PortableServer;
-
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Log;
 
 package body CosEventComm.PushSupplier.Impl is
 
-   use  PolyORB.Log;
+   use CosEventChannelAdmin;
+
+   use PortableServer;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Mutexes;
+
+   use PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("pushsupplier");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Push_Supplier_Record is
-      record
-         This  : Object_Ptr;
-         Peer  : ProxyPushConsumer.Ref;
-      end record;
+   type Push_Supplier_Record is record
+      This  : Object_Ptr;
+      Peer  : ProxyPushConsumer.Ref;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ---------------------------------
    -- Connect_Proxy_Push_Consumer --
@@ -73,20 +96,22 @@ package body CosEventComm.PushSupplier.Impl is
 
    procedure Connect_Proxy_Push_Consumer
      (Self  : access Object;
-      Proxy : in CosEventChannelAdmin.ProxyPushConsumer.Ref)
+      Proxy : in     CosEventChannelAdmin.ProxyPushConsumer.Ref)
    is
       My_Ref : PushSupplier.Ref;
 
    begin
       pragma Debug (O ("connect proxy push supplier to push consumer"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       if not ProxyPushConsumer.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
          raise AlreadyConnected;
       end if;
       Self.X.Peer := Proxy;
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
 
       Servant_To_Reference (Servant (Self.X.This), My_Ref);
       ProxyPushConsumer.connect_push_supplier (Proxy, My_Ref);
@@ -104,10 +129,12 @@ package body CosEventComm.PushSupplier.Impl is
    begin
       pragma Debug (O ("create push supplier"));
 
-      Supplier := new Object;
-      Supplier.X := new Push_Supplier_Record;
+      Supplier        := new Object;
+      Supplier.X      := new Push_Supplier_Record;
       Supplier.X.This := Supplier;
+
       Initiate_Servant (Servant (Supplier), My_Ref);
+
       return Supplier;
    end Create;
 
@@ -124,10 +151,12 @@ package body CosEventComm.PushSupplier.Impl is
    begin
       pragma Debug (O ("disconnect push supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Peer        := Self.X.Peer;
       Self.X.Peer := Nil_Ref;
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
 
       if not ProxyPushConsumer.Is_Nil (Peer) then
          ProxyPushConsumer.disconnect_push_consumer (Peer);
@@ -140,16 +169,18 @@ package body CosEventComm.PushSupplier.Impl is
 
    procedure Push
      (Self : access Object;
-      Data : in CORBA.Any)
+      Data : in     CORBA.Any)
    is
       Peer : ProxyPushConsumer.Ref;
 
    begin
       pragma Debug (O ("push new data to push supplier"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Peer := Self.X.Peer;
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
 
       if ProxyPushConsumer.Is_Nil (Peer) then
          raise Disconnected;

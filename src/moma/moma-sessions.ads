@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,10 +53,11 @@ package MOMA.Sessions is
       Acknowledge_Mode : MOMA.Types.Acknowledge_Type;
    end record;
 
-   function Create_Session (Connection       : MOMA.Connections.Connection;
-                            Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return Session;
+   function Create_Session
+     (Connection       : MOMA.Connections.Connection;
+      Transacted       : Boolean;
+      Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+     return Session;
    --  Create a session from a Connection.
 
    procedure Close;
@@ -68,16 +70,18 @@ package MOMA.Sessions is
 
    procedure Rollback;
 
-   procedure Subscribe (Topic : MOMA.Destinations.Destination;
-                        Pool  : MOMA.Destinations.Destination;
-                        Sub   : Boolean := True);
+   procedure Subscribe
+     (Topic : MOMA.Destinations.Destination;
+      Pool  : MOMA.Destinations.Destination;
+      Sub   : Boolean := True);
    --  Subscribe / Unsubscribe a Pool to a Topic.
    --  Topic's reference must be a router.
    --  Pool's reference must be a message pool.
    --  If Sub is true then it is a subscription, if false an unsubscription.
 
-   procedure Unsubscribe (Topic : MOMA.Destinations.Destination;
-                          Pool  : MOMA.Destinations.Destination);
+   procedure Unsubscribe
+     (Topic : MOMA.Destinations.Destination;
+      Pool  : MOMA.Destinations.Destination);
    --  Unsubscribe a Pool from a Topic.
    --  Provided for convenience only, as the Subscribe function may be used
    --  for the same purpose.

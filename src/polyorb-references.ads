@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object references.
+--  References on object exported by the ORB.
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -44,11 +44,12 @@ with PolyORB.Utils.Strings;
 
 package PolyORB.References is
 
-   pragma Elaborate_Body;
+   type Profile_Array is array (Integer range <>) of
+     Binding_Data.Profile_Access;
 
-   package Profile_Seqs is
-      new PolyORB.Sequences.Unbounded (Binding_Data.Profile_Access);
-   subtype Profile_Array is Profile_Seqs.Element_Array;
+   type Profile_Array_Access is access all Profile_Array;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Profile_Array, Profile_Array_Access);
 
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
@@ -56,13 +57,17 @@ package PolyORB.References is
    Nil_Ref : constant Ref;
    --  Nil reference.
 
+   function Is_Exported_Reference (The_Ref : in Ref) return Boolean;
+   --  True iff The_Ref is a non null reference on an object
+   --  exported by the ORB.
+
    function Is_Same_Object (Left, Right : Ref) return Boolean;
    --  True iff it is determined that Left Right designate the
    --  same object.
 
    procedure Create_Reference
-     (Profiles : Profile_Array;
-      Type_Id  : String;
+     (Profiles :     Profile_Array;
+      Type_Id  :     String;
       R        : out Ref);
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
@@ -77,26 +82,12 @@ package PolyORB.References is
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
 
-   procedure Get_Binding_Info
-     (R   :     Ref;
-      BOC : out Components.Component_Access;
-      Pro : out Binding_Data.Profile_Access);
-   --  Retrieve the binding object associated with R, if R is bound.
-   --  Otherwise, return null.
-
-   procedure Set_Binding_Info
-     (R   : Ref;
-      BOC : Components.Component_Access;
-      Pro : Binding_Data.Profile_Access);
-   --  Set BOC to be the binding object associated with R.
-   --  R must not be already bound.
-
-   procedure Share_Binding_Info
-     (Dest   : Ref;
-      Source : Ref);
-
    function Image (R : Ref) return String;
    --  For debugging purposes.
+
+   procedure String_To_Object (Str : String; The_Ref : out Ref);
+   --  Note: String_To_Object must be a procedure so it need not
+   --  be overridden when Ref is derived.
 
    type Ref_Ptr is access all Ref;
    procedure Deallocate is new Ada.Unchecked_Deallocation
@@ -104,14 +95,24 @@ package PolyORB.References is
 
 private
 
+   procedure Get_Binding_Info
+     (R   :     Ref'Class;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access);
+   --  Retrieve the binding object associated with R, if R is bound.
+   --  Otherwise, return null.
+
+   procedure Share_Binding_Info
+     (Dest   : Ref'Class;
+      Source : Ref'Class);
+
    Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
-   subtype Profile_Seq is Profile_Seqs.Sequence;
-
-   type Reference_Info is new PolyORB.Smart_Pointers.Entity with
-      record
+   type Reference_Info is
+     new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
          Type_Id  : Utils.Strings.String_Ptr;
-         Profiles : Profile_Seq;
+         Profiles : Profile_Array_Access;
          --  The collection of tagged profiles that designate
          --  transport access points where this object can be
          --  contacted, together with the object ids to be used.
@@ -134,8 +135,34 @@ private
          --  than in the designated Binding_Object to allow sharing
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
-      end record;
+     end record;
+   type Reference_Info_Access is access all Reference_Info'Class;
+
+   function Ref_Info_Of (R : Ref'Class) return Reference_Info_Access;
+   --  Obtain the object reference information from R.
+
+   --  When an object reference is bound (i.e. associated at
+   --  runtime with a transport service endpoint and a messaging
+   --  protocol stack), it becomes associated with a Binding_Object
+   --  which will remain in existence until all references to
+   --  the object have been finalized (at which time the transport
+   --  connection and protocol stack will be torn down, as a
+   --  result of finalizing the binding object).
 
    procedure Finalize (RI : in out Reference_Info);
+
+   --  Note that Reference_Info must not be an Entity, because the
+   --  Finalize operation would then be called *after* (not *before*)
+   --  the controlled components of Reference_Info (including
+   --  Profiles and Binding_Object_Ref) have been finalized.
+
+   --  XXX the following declarations must be documented.
+
+   type String_To_Object_Func is
+     access function (Str : String) return Ref;
+
+   procedure Register_String_To_Object
+     (Prefix : String;
+      Func   : String_To_Object_Func);
 
 end PolyORB.References;

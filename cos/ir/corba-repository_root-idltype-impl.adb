@@ -14,8 +14,6 @@ with CORBA.Repository_Root.NativeDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
 with CORBA.Repository_Root.TypedefDef.Impl;
 
-with PolyORB.Exceptions;
-
 package body CORBA.Repository_Root.IDLType.Impl is
 
    ------------------
@@ -39,7 +37,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
            Dk_Module     |
            Dk_All        |
            Dk_None       =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (CORBA.Default_Sys_Member);
             return null;
          when
            --  inherited types
@@ -80,6 +78,9 @@ package body CORBA.Repository_Root.IDLType.Impl is
             begin
                return Interfacedef.Impl.Get_IDLType_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_IDLType;
 
@@ -174,7 +175,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
                return ValueBoxdef.Impl.Get_Type (Interm);
             end;
          when others =>
-            PolyORB.Exceptions.Raise_Internal;
+            CORBA.Raise_Internal (Default_Sys_Member);
             return CORBA.TC_Void;
       end case;
 

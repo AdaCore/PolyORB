@@ -1,0 +1,17 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: Valuetype as Member
+
+valuetype Val {
+
+  public Val ValMbr;
+};
+
+struct S {
+  Val valstctMbr;
+};
+
+union U switch (long) {
+  case 1: long x;
+  case 2: Val v;
+  default: S strMbr;
+};

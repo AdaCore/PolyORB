@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,23 +36,15 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Jobs;
 with PolyORB.Requests;
 with PolyORB.Transport;
 with PolyORB.Types;
 
 package PolyORB.ORB.Interface is
 
-   type Queue_Job is new Components.Message with record
-      Job : PolyORB.Jobs.Job_Access;
-   end record;
-   --  Queue Job for execution by the receiving ORB.
-   --  No reply (the job will be executed asynchronously).
-
    type Queue_Request is new Components.Message with record
       Request   : Requests.Request_Access;
       Requestor : Components.Component_Access;
-      --  Requesting_Task : Task_Info.Task_Info_Access;
    end record;
    --  Queue method invocation request Req for execution by Server
    --  on behalf of a remote caller. No reply expected.
@@ -87,6 +80,12 @@ package PolyORB.ORB.Interface is
    --    The expected reply is Oid_Translate.
    --  When replied by object adapter to middleware core:
    --    Returns object id translated to relative URI.
+
+   type Monitor_Access_Point is new Components.Message with record
+      TAP : Transport.Transport_Access_Point_Access;
+   end record;
+   --  A binding object requests that the designated transport
+   --  access point be monitored for incoming data.
 
    type Monitor_Endpoint is new Components.Message with record
       TE : Transport.Transport_Endpoint_Access;

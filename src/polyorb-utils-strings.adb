@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +37,13 @@
 
 package body PolyORB.Utils.Strings is
 
-   function "+" (S : Standard.String) return String_Ptr is
+   ---------
+   -- "+" --
+   ---------
+
+   function "+"
+     (S : Standard.String)
+     return String_Ptr is
    begin
       return new Standard.String'(S);
    end "+";

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
-
---  A dummy data representation method, just for show.
 
 --  $Id$
 
@@ -43,14 +42,22 @@ package body PolyORB.Utils.Text_Buffers is
    use PolyORB.Buffers;
    use PolyORB.Utils.Buffers;
 
+   -------------------
+   -- Marshall_Char --
+   -------------------
+
    procedure Marshall_Char
      (B : access Buffer_Type;
-      C : Character) is
+      C :        Character) is
    begin
       Align_Marshall_Copy
         (B, Stream_Element_Array'
          (1 => Stream_Element (Character'Pos (C))));
    end Marshall_Char;
+
+   ---------------------
+   -- Unmarshall_Char --
+   ---------------------
 
    function Unmarshall_Char
      (B : access Buffer_Type)
@@ -62,23 +69,29 @@ package body PolyORB.Utils.Text_Buffers is
       return Character'Val (A (A'First));
    end Unmarshall_Char;
 
+   ---------------------
+   -- Marshall_String --
+   ---------------------
+
    procedure Marshall_String
      (B : access Buffer_Type;
-      S : String)
-   is
+      S :        String) is
    begin
-      for I in S'Range loop
-         Marshall_Char (B, S (I));
+      for J in S'Range loop
+         Marshall_Char (B, S (J));
       end loop;
    end Marshall_String;
 
+   -----------------------
+   -- Unmarshall_String --
+   -----------------------
+
    procedure Unmarshall_String
      (B : access Buffer_Type;
-      S : out String)
-   is
+      S :    out String) is
    begin
-      for I in S'Range loop
-         S (I) := Unmarshall_Char (B);
+      for J in S'Range loop
+         S (J) := Unmarshall_Char (B);
       end loop;
    end Unmarshall_String;
 

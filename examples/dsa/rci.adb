@@ -1,3 +1,38 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                  R C I                                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  $Id$
+
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
 with Ada.Real_Time; use Ada.Real_Time;
@@ -60,11 +95,43 @@ package body RCI is
       end if;
    end Get_Obj;
 
+   function echoVector (V : Vector) return Vector is
+   begin
+      Put_Line ("Got vector" & Integer'Image (V'First)
+                & " .." & Integer'Image (V'Last) & ":");
+      for J in V'Range loop
+         Put (Integer'Image (V (J)));
+      end loop;
+      New_Line;
+      return V;
+   end echoVector;
+
+   function echoTranspose (M : Matrix) return Matrix is
+   begin
+      Put_Line ("Got matrix:");
+      Put_Line ("Ranges of M : (" & Integer'Image (M'First (1))
+                           & ".." & Integer'Image (M'Last (1))
+                           & ", " & Integer'Image (M'First (2))
+                           & ".." & Integer'Image (M'Last (2)) & ")");
+      for J in M'Range (1) loop
+         for K in M'Range (2) loop
+            Put (" " & Float'Image (M (J, K)));
+         end loop;
+         New_Line;
+      end loop;
+      return Matrices.Transpose (M);
+   end echoTranspose;
+
    function echoString (S : String) return String is
    begin
       Put_Line ("Thus spake my client unto me: «" & S & "».");
       return S;
    end echoString;
+
+   function getRAS return echo_RAS is
+   begin
+      return echoString'Access;
+   end getRAS;
 
    function echoString_Delayed (S : String; Seconds : Integer) return String is
       use Ada.Real_Time;
@@ -79,6 +146,11 @@ package body RCI is
    end Modulus2;
 
    Cookie : Integer := 0;
+
+   function echoC_4_5 (X : C_4_5) return C_4_5 is
+   begin
+      return X;
+   end echoC_4_5;
 
    function Get_Cookie return Integer is
    begin

@@ -1,51 +1,54 @@
-include $(srcdir)/../../Makefile.common
+include $(top_srcdir)/idls/Makefile.common
 
-CosTime_IDL=$(srcdir)/CosTime.idl
-CosTime_GEN= \
-  costime-helper.adb \
+alidir = $(includedir)/polyorb/corba/cos
+
+IDL=$(srcdir)/CosTime.idl
+
+COS_ADAFLAGS = -I$(top_srcdir)/cos/time
+
+GEN_SPECS_WITH_BODY= \
   costime-helper.ads \
-  costime-stream.adb \
-  costime-stream.ads \
-  costime-timeservice-helper.adb \
   costime-timeservice-helper.ads \
-  costime-timeservice-skel.adb \
   costime-timeservice-skel.ads \
-  costime-timeservice-stream.adb \
-  costime-timeservice-stream.ads \
-  costime-timeservice.adb \
   costime-timeservice.ads \
-  costime-tio-helper.adb \
   costime-tio-helper.ads \
-  costime-tio-skel.adb \
   costime-tio-skel.ads \
-  costime-tio-stream.adb \
-  costime-tio-stream.ads \
-  costime-tio.adb \
   costime-tio.ads \
-  costime-uto-helper.adb \
   costime-uto-helper.ads \
-  costime-uto-skel.adb \
   costime-uto-skel.ads \
-  costime-uto-stream.adb \
-  costime-uto-stream.ads \
-  costime-uto.adb \
   costime-uto.ads \
-  costime.adb \
   costime.ads \
-  costime_idl_file.ads \
-  timebase-helper.adb \
-  timebase-helper.ads \
-  timebase-stream.adb \
-  timebase-stream.ads \
-  timebase.ads \
-  timebase_idl_file.ads
+  timebase-helper.ads
 
-DEPS=$(CosTime_GEN)
+GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 
-CLEANFILES+=	stamp-gen
+GEN_SPECS_NO_BODY= \
+  timebase.ads
 
-$(CosTime_GEN): stamp-gen
+GEN= \
+        $(GEN_SPECS_NO_BODY) \
+        $(GEN_SPECS_WITH_BODY)
 
-stamp-gen: $(CosTime_IDL) $(IDLAC)
-	touch stamp-gen
-	$(IDLAC) $(CosTime_IDL) -I$(srcdir)
+$(GEN): $(IDL) $(IDLAC)
+	$(IDLAC) $(IDL) -I$(srcdir)
+	touch $@
+
+$(GEN_BODIES): $(GEN)
+
+DISTCLEANFILES += $(GEN) $(GEN_BODIES)
+
+#
+# Building libpolyorb-corba-cos-time library
+#
+
+ADA_SPECS_WITH_BODY = \
+        $(GEN_SPECS_WITH_BODY)
+
+ADA_SPECS_NO_BODY = \
+        $(GEN_SPECS_NO_BODY)
+
+lib_LTLIBRARIES = libpolyorb-corba-cos-time.la
+
+libpolyorb_corba_cos_time_la_SOURCES = $(GEN_BODIES)
+libpolyorb_corba_cos_time_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_time_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2003 Free Software Fundation              --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,16 +45,16 @@ with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
 with CORBA.Policy;
+with CORBA.Sequences.Unbounded;
 
 with PolyORB.References;
-with PolyORB.Sequences.Unbounded;
 
 package CORBA.ORB is
 
    pragma Elaborate_Body;
 
    package Octet_Sequence is
-      new PolyORB.Sequences.Unbounded (Octet);
+      new CORBA.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
@@ -56,10 +62,10 @@ package CORBA.ORB is
    end record;
 
    package IDL_Sequence_ServiceOption is new
-     PolyORB.Sequences.Unbounded (ServiceOption);
+     CORBA.Sequences.Unbounded (ServiceOption);
 
    package IDL_Sequence_ServiceDetail is new
-     PolyORB.Sequences.Unbounded (ServiceDetail);
+     CORBA.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
       service_options : IDL_Sequence_ServiceOption.Sequence;
@@ -69,13 +75,16 @@ package CORBA.ORB is
    type ObjectId is new CORBA.String;
 
    package IDL_Sequence_ObjectId is new
-     PolyORB.Sequences.Unbounded (ObjectId);
+     CORBA.Sequences.Unbounded (ObjectId);
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
-   function  Object_To_String
+   InvalideName : exception;
+
+   function Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
+   --  Convert reference to IOR
 
    procedure String_To_Object
      (From : in     CORBA.String;
@@ -90,7 +99,7 @@ package CORBA.ORB is
    procedure Create_List
      (New_List : out CORBA.ExceptionList.Ref);
 
-   --  ??? Requires CORBA.OperationDef
+   --  XXX Requires CORBA.OperationDef defined in COS IR
 
    --    procedure Create_Operation_List
    --      (Oper     : in     CORBA.OperationDef.Ref'Class;
@@ -106,9 +115,9 @@ package CORBA.ORB is
       Service_Information :    out ServiceInformation;
       Returns             :    out CORBA.Boolean);
 
-   --  initial reference operations
-
    function List_Initial_Services return ObjectIdList;
+
+   --  Initial reference operations
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
@@ -118,36 +127,38 @@ package CORBA.ORB is
      (Identifier : ObjectId)
      return CORBA.Object.Ref;
 
-   function  Create_Alias_Tc
+   --  Type code creation operations
+
+   function Create_Alias_Tc
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function  Create_Interface_Tc
+   function Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
      return CORBA.TypeCode.Object;
 
-   function  Create_String_Tc
+   function Create_String_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  Create_Wstring_Tc
+   function Create_Wstring_Tc
      (Bound : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
-   function  Create_Fixed_Tc
+   function Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       scale      : in CORBA.Short)
      return CORBA.TypeCode.Object;
 
-   function  Create_Sequence_Tc
+   function Create_Sequence_Tc
      (Bound        : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
      return CORBA.TypeCode.Object;
 
-   function  Create_Recursive_Sequence_Tc
+   function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
@@ -172,19 +183,19 @@ package CORBA.ORB is
    --  Thread related operations
 
    function Work_Pending return Boolean;
+
    procedure Perform_Work;
-   procedure Shutdown (Wait_For_Completion : in Boolean);
+
    procedure Run;
+
+   procedure Shutdown (Wait_For_Completion : in Boolean);
 
    --  Policy related operations
 
    function Create_Policy
      (The_Type : in PolicyType;
-      Val      : Any)
-     return CORBA.Policy.Ref
-     is abstract;
-   --  XXX This function is not marked abstract in the Ada Mapping.
-   --  It should be abstract to be compatible with CORBA.Policy.
+      Val      :    Any)
+     return CORBA.Policy.Ref;
 
    --  The following subprograms are not in CORBA spec.
 
@@ -193,9 +204,26 @@ package CORBA.ORB is
 
    function Create_Reference
      (Object : in CORBA.Object.Ref;
-      Typ : in Standard.String)
+      Typ    : in Standard.String)
      return PolyORB.References.Ref;
    --  Create an object reference that designates object Oid
    --  of type Typ within this ORB.
+
+   -------------------------------------
+   -- CORBA.ORB Exceptions Management --
+   -------------------------------------
+
+   --  InvalidName_Members
+
+   type InvalidName_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members);
+
+   procedure Raise_InvalidName
+     (Excp_Memb : in InvalidName_Members);
+   pragma No_Return (Raise_InvalidName);
 
 end CORBA.ORB;

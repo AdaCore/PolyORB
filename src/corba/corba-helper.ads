@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +31,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.ads#1 $
+--  $Id: //droopi/main/src/corba/corba-helper.ads#3 $
 
 package CORBA.Helper is
 
@@ -45,5 +51,9 @@ package CORBA.Helper is
    function TC_ScopedName return CORBA.TypeCode.Object;
    function From_Any (Item : in CORBA.Any) return CORBA.ScopedName;
    function To_Any (Item : in CORBA.ScopedName) return CORBA.Any;
+
+   function TC_Visibility return CORBA.TypeCode.Object;
+   function From_Any (Item : in CORBA.Any) return CORBA.Visibility;
+   function To_Any (Item : in CORBA.Visibility) return CORBA.Any;
 
 end CORBA.Helper;
