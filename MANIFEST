@@ -177,6 +177,14 @@ doc/architecture.ps
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
+examples/all_functions/Makefile.am
+examples/all_functions/Makefile.in
+examples/all_functions/all_functions-impl.adb
+examples/all_functions/all_functions-impl.ads
+examples/all_functions/all_functions.idl
+examples/all_functions/client.adb
+examples/all_functions/dynclient.adb
+examples/all_functions/server.adb
 examples/all_types/Makefile.am
 examples/all_types/Makefile.in
 examples/all_types/all_types-impl.adb
