@@ -71,16 +71,19 @@ package System.Garlic.Units is
    --  Invalid. Otherwise, it will be set to Undefined.
 
    procedure Register_Unit
-     (Name     : in String;
-      Receiver : in Interfaces.Unsigned_64;
-      Version  : in Types.Version_Type);
-   --  Register locally this unit. The remote registration is postponed and
-   --  will be performed with procedure above.
+     (Partition : in Types.Partition_ID;
+      Name      : in String;
+      Receiver  : in Interfaces.Unsigned_64;
+      Version   : in Types.Version_Type);
+   --  Register locally this unit. The remote registration is
+   --  postponed and will be performed by Register_Units_On_Boot_Server.
 
    procedure Register_Units_On_Boot_Server
-     (Error : in out Utils.Error_Type);
-   --  Register all the units previously locally registered. Then, get back
-   --  info on these units to check that these units are valid.
+     (Partition : in Types.Partition_ID;
+      Error    : in out Utils.Error_Type);
+   --  Register all the units previously declared by partition. Then,
+   --  get back info on these units to check that these units are
+   --  valid.
 
    procedure Shutdown;
    --  Resume tasks waiting for an update of units info table.

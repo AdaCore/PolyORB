@@ -174,7 +174,10 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info);
 
-   function Dump_Request_List (L : Request_List) return String;
+   function Dump_Request_List
+     (List : Request_List;
+      Root : Boolean := True) return String;
+
    procedure Get_Unit_Info
      (Unit  : in Unit_Id;
       Info  : out Unit_Info;
@@ -236,21 +239,23 @@ package body System.Garlic.Units is
    --  Receiver, Partition, Status). This ends up with False to
    --  indicate the end of one of the list.
 
-   type Receiver_Node;
-   type Receiver_List is access Receiver_Node;
-   type Receiver_Node is
+   type Elab_Unit_Node;
+   type Elab_Unit_List is access Elab_Unit_Node;
+   type Elab_Unit_Node is
       record
+         PID      : Partition_ID;
          Name     : String_Access;
          Version  : Version_Type;
          Receiver : Interfaces.Unsigned_64;
-         Next     : Receiver_List;
+         Previous : Elab_Unit_List;
+         Next     : Elab_Unit_List;
       end record;
 
-   Receivers : Receiver_List;
-   --  This is a list of receiver units to register when
-   --  Establish_RPC_Receiver is called.
+   Elab_Units : Elab_Unit_List;
+   --  List of elaborated units to register to the boot server.
 
-   procedure Free is new Unchecked_Deallocation (Receiver_Node, Receiver_List);
+   procedure Free is
+     new Unchecked_Deallocation (Elab_Unit_Node, Elab_Unit_List);
 
    Define_Units : constant Request_Type := (Kind => Define_New_Units);
    Copy_Units   : constant Request_Type := (Kind => Copy_Units_Table);
@@ -299,15 +304,21 @@ package body System.Garlic.Units is
    -- Dump_Request_List --
    -----------------------
 
-   function Dump_Request_List (L : Request_List) return String
+   function Dump_Request_List
+     (List : Request_List;
+      Root : Boolean := True) return String
    is
       Info : Request_Info;
    begin
-      if L /= Null_Request_List then
-         Info := Requests.Get_Component (L);
-         return Info.PID'Img & Dump_Request_List (Info.Next);
+      if List /= Null_Request_List then
+         Info := Requests.Get_Component (List);
+         return Info.PID'Img & Dump_Request_List (Info.Next, False);
       end if;
-      return "";
+      if True then
+         return " no partition";
+      else
+         return "";
+      end if;
    end Dump_Request_List;
 
    --------------------
@@ -470,7 +481,7 @@ package body System.Garlic.Units is
    begin
       pragma Assert (Unit /= Null_Unit_Id);
 
-      if Receivers /= null then
+      if Elab_Units /= null then
 
          --  If the partition is not yet fully elaborated, then look
          --  for unit in the local unit list. Otherwise, we will have
@@ -479,7 +490,7 @@ package body System.Garlic.Units is
          Soft_Links.Enter_Critical_Section;
          declare
             Name : String := Units.Get_Name (Unit);
-            List : Receiver_List := Receivers;
+            List : Elab_Unit_List := Elab_Units;
          begin
             while List /= null loop
                if List.Name.all = Name then
@@ -886,22 +897,30 @@ package body System.Garlic.Units is
    -------------------
 
    procedure Register_Unit
-     (Name     : in String;
-      Receiver : in Interfaces.Unsigned_64;
-      Version  : in Types.Version_Type)
+     (Partition : in Partition_ID;
+      Name      : in String;
+      Receiver  : in Interfaces.Unsigned_64;
+      Version   : in Types.Version_Type)
    is
-      Node : Receiver_List := new Receiver_Node;
+      Node : Elab_Unit_List := new Elab_Unit_Node;
+
    begin
       --  We need this critical section because a package can be
       --  already elaborated and one of its tasks can ask for the
       --  partition id of a local rci unit.
 
       Soft_Links.Enter_Critical_Section;
-      Node.Name     := new String'(Name);
-      Node.Version  := Version;
-      Node.Receiver := Receiver;
-      Node.Next     := Receivers;
-      Receivers     := Node;
+      Node.all :=
+        (PID      => Partition,
+         Name     => new String'(Name),
+         Version  => Version,
+         Receiver => Receiver,
+         Previous => null,
+         Next     => Elab_Units);
+      if Elab_Units /= null then
+         Elab_Units.Previous := Node;
+      end if;
+      Elab_Units := Node;
       Soft_Links.Leave_Critical_Section;
    end Register_Unit;
 
@@ -910,24 +929,64 @@ package body System.Garlic.Units is
    -----------------------------------
 
    procedure Register_Units_On_Boot_Server
-     (Error : in out Error_Type)
+     (Partition : in Partition_ID;
+      Error     : in out Error_Type)
    is
-      List  : Receiver_List := Receivers;
-      Node  : Receiver_List;
+      List  : Elab_Unit_List;
+      Node  : Elab_Unit_List;
+      Next  : Elab_Unit_List;
       Unit  : Unit_Id;
       Info  : Unit_Info;
       Query : aliased Params_Stream_Type (0);
+
    begin
-      Receivers := null;
+      --  Elab_Units include the units of the current partition and
+      --  the passive partitions. Extract from this list the units
+      --  concerning this partition.
+
+      Soft_Links.Enter_Critical_Section;
+      Next := Elab_Units;
+      while Next /= null loop
+         Node := Next;
+         Next := Node.Next;
+
+         if Node.PID = Partition then
+
+            --  This is a special case to remove the first element of
+            --  the double linked list.
+
+            if Node.Previous = null then
+               Elab_Units := Elab_Units.Next;
+               if Elab_Units /= null then
+                  Elab_Units.Previous := null;
+               end if;
+
+            else
+               Node.Previous.Next := Node.Next;
+               if Node.Next /= null then
+                  Node.Next.Previous := Node.Previous;
+               end if;
+            end if;
+
+            --  Add this unit to the list of units registered to this
+            --  partition.
+
+            Node.Next     := List;
+            Node.Previous := null;
+            List          := Node;
+         end if;
+      end loop;
+      Soft_Links.Leave_Critical_Section;
 
       if List /= null then
          Request_Type'Output (Query'Access, Define_Units);
          Boolean'Write       (Query'Access, True);
-         Partition_ID'Write  (Query'Access, Self_PID);
+         Partition_ID'Write  (Query'Access, Partition);
       end if;
 
       Node := List;
       while Node /= null loop
+
          pragma Debug (D ("Register unit " & Node.Name.all));
 
          Boolean'Write      (Query'Access, True);
@@ -936,7 +995,7 @@ package body System.Garlic.Units is
          Version_Type'Write (Query'Access, Node.Version);
          Unit_Status'Write  (Query'Access, Declared);
 
-         Node  := Node.Next;
+         Node := Node.Next;
       end loop;
 
       --  Ask for unit info back.
@@ -961,14 +1020,14 @@ package body System.Garlic.Units is
          end if;
 
          if Info.Status /= Defined
-           or else Info.Partition /= Self_PID
+           or else Info.Partition /= Partition
          then
-            pragma Debug (D ("RCI unit " & List.Name.all &
+            pragma Debug (D ("unit " & List.Name.all &
                              " is already declared"));
             Activate_Shutdown;
             Ada.Exceptions.Raise_Exception
               (Program_Error'Identity,
-               "RCI unit " & List.Name.all & " is already declared");
+               "unit " & List.Name.all & " is already declared");
          end if;
 
          Node := List;
@@ -1141,6 +1200,9 @@ package body System.Garlic.Units is
                Error : Error_Type;
             begin
                Get_Boot_Partition (Partition, Boot, Error);
+               pragma Debug (D ("boot_partition (" &
+                                Partition'Img &
+                                ") =" & Boot'Img));
                if not Found (Error)
                  and then Boot = Self_PID
                then
