@@ -711,11 +711,7 @@ package body Sem_Dist is
       Rewrite (N,
         Make_Aggregate (Loc,
           Expressions => New_List (
-            Make_Integer_Literal (Loc, 0),                  -- Ras
-            Make_Integer_Literal (Loc, 0),                  -- Origin
-            Make_Integer_Literal (Loc, 0),                  -- Receiver
-            Make_Integer_Literal (Loc, 0),                  -- Subp_Id
-            New_Occurrence_Of (Standard_False, Loc))));     -- Asyn
+            Make_Null (Loc))));
       Analyze_And_Resolve (N, Target_Type);
       return True;
    end Remote_AST_Null_Value;
