@@ -1,3 +1,7 @@
+Fri Nov 29 11:47:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe.ads: Default starter is now Ada instead of Shell.
+
 Thu Nov 28 23:56:12 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_utils.ads: New flags.

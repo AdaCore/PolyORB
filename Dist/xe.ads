@@ -154,7 +154,7 @@ package XE is
    function Convert (Item : Boolean) return Int;
    function Convert (Item : Int) return Boolean;
 
-   Starter_Method    : Starter_Method_Type := Shell_Starter;
+   Starter_Method    : Starter_Method_Type := Ada_Starter;
    Version_Checks    : Boolean             := True;
 
    ---------------------
