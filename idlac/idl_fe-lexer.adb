@@ -1170,6 +1170,11 @@ package body Idl_Fe.Lexer is
                Add_Argument (Full_Switch);
             end loop;
 
+            --  Always add the current directory at the end of the
+            --  include list.
+            Add_Argument ("-I");
+            Add_Argument (".");
+
             Create_Temp_File (Fd, Tmp_File_Name);
             if Fd = Invalid_FD then
                Errors.Error
