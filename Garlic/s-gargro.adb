@@ -109,6 +109,8 @@ package body System.Garlic.Group is
          Inner_Query'Access,
          Inner_Reply'Access,
          Error);
+      Deallocate (Inner_Reply);
+
       if Found (Error) then
          Deallocate (Inner_Query);
          return;
