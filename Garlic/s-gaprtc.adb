@@ -52,8 +52,6 @@ with System.Garlic.Table;
 with System.Garlic.Types;                 use System.Garlic.Types;
 with System.Garlic.Utils;                 use System.Garlic.Utils;
 
-with System.Storage_Elements;             use System.Storage_Elements;
-
 package body System.Garlic.Protocols.Tcp is
 
    Private_Debug_Key : constant Debug_Key :=
