@@ -20,7 +20,7 @@ if [ $# = 0 ]; then
    exit 0;
 fi;
 
-dir=polyorb-docs-1.1r
+dir="$1"
 
 ##########################################
 # Building the documentation
