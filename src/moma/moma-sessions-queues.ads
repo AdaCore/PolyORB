@@ -39,6 +39,7 @@ with MOMA.Connections.Queues;
 with MOMA.Destinations;
 with MOMA.Message_Consumers.Queues;
 with MOMA.Message_Producers.Queues;
+with MOMA.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.References;
@@ -61,11 +62,18 @@ package MOMA.Sessions.Queues is
 
    function Create_Receiver (Self : Session_Queue;
                              Dest : MOMA.Destinations.Destination)
-                             return MOMA.Message_Consumers.Queues.Queue;
+                             return MOMA.Message_Consumers.Queues.Queue_Acc;
 
    function Create_Receiver (Queue            : MOMA.Destinations.Destination;
                              Message_Selector : MOMA.Types.String)
                              return MOMA.Message_Consumers.Queues.Queue;
+
+   function Create_Handler
+     (Self  : Session_Queue;
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue_Acc)
+      return MOMA.Provider.Message_Handler.Object_Acc;
+   --  Create a Message Handler associated to the specified Message queue.
+   --  Must set the Handler and Notifier procedures afterwards.
 
    function Create_Sender (Self : Session_Queue;
                            Dest : MOMA.Destinations.Destination)

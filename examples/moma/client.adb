@@ -102,6 +102,7 @@ procedure Client is
    MOMA_Dest_Pool     : MOMA.Destinations.Destination;
    MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
    MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
+   MOMA_Consumer_Acc  : MOMA.Message_Consumers.Queues.Queue_Acc;
 
    Ok : Boolean;
 
@@ -490,7 +491,8 @@ begin
    end if;
 
    --  Create Message Consumer associated to the Session.
-   MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Consumer_Acc := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Consumer := MOMA_Consumer_Acc.all;
 
    --  Subscribe / Unsubscribe to the "Test" topic.
    if Kind = Topic then

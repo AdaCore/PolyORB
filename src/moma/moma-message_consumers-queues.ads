@@ -44,7 +44,7 @@ package MOMA.Message_Consumers.Queues is
 
    type Queue is new Message_Consumer with null record;
 
-   type Queue_Acc is access Queue;
+   type Queue_Acc is access all Queue;
 
    function Get_Queue (Self : Queue) return MOMA.Destinations.Queue;
    --  XXX not implemented.

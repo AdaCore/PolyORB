@@ -37,6 +37,7 @@ with MOMA.Message_Consumers;
 with MOMA.Message_Producers;
 with MOMA.Message_Producers.Queues;
 with MOMA.Provider.Message_Consumer;
+with MOMA.Provider.Message_Handler;
 with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
@@ -94,14 +95,15 @@ package body MOMA.Sessions.Queues is
    function Create_Receiver
      (Self  : Session_Queue;
       Dest  : MOMA.Destinations.Destination)
-      return MOMA.Message_Consumers.Queues.Queue
+      return MOMA.Message_Consumers.Queues.Queue_Acc
    is
       MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
         := new MOMA.Provider.Message_Consumer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
 
-      Consumer : MOMA.Message_Consumers.Queues.Queue;
+      Consumer : MOMA.Message_Consumers.Queues.Queue_Acc :=
+         new MOMA.Message_Consumers.Queues.Queue;
 
    begin
       pragma Warnings (Off);
@@ -116,13 +118,43 @@ package body MOMA.Sessions.Queues is
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref);
 
-      Set_Destination (Consumer, Dest);
-      Set_Ref (Message_Consumer (Consumer), MOMA_Ref);
+      Set_Destination (Consumer.all, Dest);
+      Set_Ref (Message_Consumer (Consumer.all), MOMA_Ref);
       --  XXX Is it really useful to have the Ref to the remote queue in the
       --  Message_Consumer itself ? By construction, this ref is encapsulated
       --  in the MOMA.Provider.Message_Consumer.Object ....
       return Consumer;
    end Create_Receiver;
+
+   ---------------------
+   -- Create_Handler --
+   ---------------------
+
+   function Create_Handler
+     (Self  : Session_Queue;
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue_Acc)
+      return MOMA.Provider.Message_Handler.Object_Acc
+   is
+      Handler : MOMA.Provider.Message_Handler.Object_Acc :=
+         new MOMA.Provider.Message_Handler.Object;
+      Handler_Ref : PolyORB.References.Ref;
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      --  XXX Self is to be used to 'place' the receiver
+      --  using session position in the POA.
+      --  XXX XXX (same as in Create_Receiver)
+      Handler := new MOMA.Provider.Message_Handler.Object;
+      Initiate_Servant (Handler,
+                        MOMA.Provider.Message_Handler.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
+                        Handler_Ref);
+
+      MOMA.Provider.Message_Handler.Initialize (
+         Handler, Message_Queue, Handler_Ref, null, null);
+      return Handler;
+   end Create_Handler;
 
    ---------------------
    -- Create_Receiver --
