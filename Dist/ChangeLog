@@ -1,3 +1,9 @@
+Wed Sep 17 18:15:37 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_lead.adb: Pipe standard error and output to /dev/null for
+	a pragma Starter (Shell) because some systems output the pid of
+	the background process.
+
 Mon Sep 15 15:13:52 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_stubs.adb: Fix Mark_Unit_On_Partition when unit is generic.
