@@ -179,8 +179,164 @@ package body CORBA is
       ------------------
       function Equivalent (Left, Right : in Object)
                            return Boolean is
+         Nb_Param : CORBA.Unsigned_Long := Member_Count (Left);
       begin
-         return Equal (Left, Right);
+         --  comments are from the spec CORBA v2.3 - 10.7.1
+         --  If the result of the kind operation on either TypeCode is
+         --  tk_alias, recursively replace the TypeCode with the result
+         --  of calling content_type, until the kind is no longer tk_alias.
+         if Kind (Left) = Tk_Alias then
+            return Equivalent (Content_Type (Left), Right);
+         end if;
+         if Kind (Right) = Tk_Alias then
+            return Equivalent (Left, Content_Type (Right));
+         end if;
+         --  If results of the kind operation on each typecode differ,
+         --  equivalent returns false.
+         if Kind (Left) /= Kind (Right) then
+            return False;
+         end if;
+         --  If the id operation is valid for the TypeCode kind, equivalent
+         --  returns TRUE if the results of id for both TypeCodes are
+         --  non-empty strings and both strings are equal. If both ids are
+         --  non-empty but are not equal, then equivalent returns FALSE.
+         case Kind (Left) is
+            when Tk_Objref
+              | Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Value
+              | Tk_Valuebox
+              | Tk_Native
+              | Tk_Abstract_Interface
+              | Tk_Except =>
+               declare
+                  Id_Left : RepositoryId := Id (Left);
+                  Id_Right : RepositoryId := Id (Right);
+               begin
+                  if Id_Left /= Null_RepositoryId and
+                    Id_Right /= Null_RepositoryId then
+                     return Id_Left = Id_Right;
+                  end if;
+               end;
+            when others =>
+               null;
+         end case;
+         --  If either or both id is an empty string, or the TypeCode kind
+         --  does not support the id operation, equivalent will perform a
+         --  structural comparison of the TypeCodes by comparing the results
+         --  of the other TypeCode operations in the following bullet items
+         --  (ignoring aliases as described in the first bullet.). The
+         --  structural comparison only calls operations that are valid for
+         --  the given TypeCode kind. If any of these operations do not return
+         --  equal results, then equivalent returns FALSE. If all comparisons
+         --  are equal, equivalent returns true.
+         --    * The results of the name and member_name operations are ignored
+         --  and not compared.
+         --    * The results of the member_count operation are compared.
+         case Kind (Left) is
+            when Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Value
+              | Tk_Except =>
+               if Member_Count (Left) /= Member_Count (Right) then
+                  return False;
+               end if;
+               Nb_Param := Member_Count (Left);
+            when others =>
+               null;
+         end case;
+         --    * The results of the member_type operation for each member
+         --  index are compared by recursively calling equivalent.
+         case Kind (Left) is
+            when Tk_Struct
+              | Tk_Union
+              | Tk_Value
+              | Tk_Except =>
+               for I in 0 .. Nb_Param - 1 loop
+                  if not Equivalent (Member_Type (Left, I),
+                                     Member_Type (Right, I)) then
+                     return False;
+                  end if;
+               end loop;
+            when others =>
+               null;
+         end case;
+         --    * The results of the member_label operation for each member
+         --  index of a union TypeCode are compared for equality. Note that
+         --  this means that unions whose members are not defined in the same
+         --  order are not considered structurally equivalent.
+         if Kind (Left) = Tk_Union then
+            for I in 0 .. Nb_Param - 1 loop
+               if Member_Label (Left, I) /= Member_Label (Right, I) then
+                  return False;
+               end if;
+            end loop;
+         end if;
+         --    * The results of the discriminator_type operation are compared
+         --  by recursively calling equivalent.
+         if Kind (Left) = Tk_Union and then
+            not Equivalent (Discriminator_Type (Left),
+                            Discriminator_Type (Right)) then
+            return False;
+         end if;
+         --    * The results of the default_index operation are compared.
+         if Kind (Left) = Tk_Union and then
+           Default_Index (Left) /= Default_Index (Right) then
+            return False;
+         end if;
+         --    * The results of the length operation are compared.
+         case Kind (Left) is
+            when Tk_String
+              | Tk_Sequence
+              | Tk_Array =>
+               if Length (Left) /= Length (Right) then
+                  return False;
+               end if;
+            when others =>
+               null;
+         end case;
+         --    * The results of the discriminator_type operation are compared
+         --  by recursively calling equivalent.
+         case Kind (Left) is
+            when Tk_Sequence
+              | Tk_Array
+              | Tk_Valuebox =>
+               if not Equivalent (Content_Type (Left),
+                                  Content_Type (Right)) then
+                  return False;
+               end if;
+            when others =>
+               null;
+         end case;
+         --    * The results of the digits and scale operations are compared.
+         if Kind (Left) = Tk_Fixed then
+            if Fixed_Digits (Left) /= Fixed_Digits (Right) or
+              Fixed_Scale (Left) /= Fixed_Scale (Right) then
+               return False;
+            end if;
+         end if;
+         --  not in spec but to be compared
+         if Kind (Left) = Tk_Value then
+            --  member_visibility
+            for I in 0 .. Nb_Param - 1 loop
+               if Member_Visibility (Left, I) /=
+                 Member_Visibility (Right, I) then
+                  return False;
+               end if;
+            end loop;
+            --  type_modifier
+            if Type_Modifier (Left) /= Type_Modifier (Right) then
+               return False;
+            end if;
+            --  concrete base type
+            if not Equivalent (Concrete_Base_Type (Left),
+                               Concrete_Base_Type (Right)) then
+               return False;
+            end if;
+         end if;
+         return True;
       end Equivalent;
 
 
@@ -190,7 +346,7 @@ package body CORBA is
       function Get_Compact_TypeCode (Self : in Object)
                                      return Object is
       begin
-         return TC_Null;
+         return Self;
       end Get_Compact_TypeCode;
 
       ------------
@@ -314,32 +470,32 @@ package body CORBA is
          case Kind (Self) is
             when Tk_Struct
               | Tk_Except =>
-               if Param_Nb < 2 * Index + 2 then
+               if Param_Nb < 2 * Index + 4 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               Res := From_Any (Get_Parameter (Self, 2 * Index + 1));
+               Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
                return Identifier (Res);
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 3 then
+               if Param_Nb < 3 * Index + 6 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 2));
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 5));
                return Identifier (Res);
             when Tk_Enum =>
-               if Param_Nb < Index + 2 then
+               if Param_Nb < Index + 3 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               Res := From_Any (Get_Parameter (Self, Index + 1));
+               Res := From_Any (Get_Parameter (Self, Index + 2));
                return Identifier (Res);
             when Tk_Value =>
-               if Param_Nb < 3 * Index + 4 then
+               if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 3));
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
                return Identifier (Res);
             when others =>
                declare
@@ -366,23 +522,23 @@ package body CORBA is
          case Kind (Self) is
             when Tk_Struct
               | Tk_Except =>
-               if Param_Nb < 2 * Index + 2 then
+               if Param_Nb < 2 * Index + 4 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 2 * Index));
+               return From_Any (Get_Parameter (Self, 2 * Index + 2));
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 3 then
+               if Param_Nb < 3 * Index + 6 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 1));
+               return From_Any (Get_Parameter (Self, 3 * Index + 4));
             when Tk_Value =>
-               if Param_Nb < 3 * Index + 4 then
+               if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 2));
+               return From_Any (Get_Parameter (Self, 3 * Index + 5));
             when others =>
                declare
                   Member : BadKind_Members;
@@ -407,11 +563,11 @@ package body CORBA is
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 3 then
+               if Param_Nb < 3 * Index + 6 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index));
+               return From_Any (Get_Parameter (Self, 3 * Index + 3));
             when others =>
                declare
                   Member : BadKind_Members;
@@ -459,11 +615,18 @@ package body CORBA is
                Param_Nb := Param_Nb / 3 - 1;
                for I in 1 .. Param_Nb loop
                   if Kind (Get_Type (Get_Parameter (Self, 3 * I)))
-                    = Tk_Null then
-                     return CORBA.Long (I);
+                    = Tk_Octet then
+                     declare
+                        Val : CORBA.Octet :=
+                          From_Any (Get_Parameter (Self, 3 * I));
+                     begin
+                        if Val = 0 then
+                           return CORBA.Long (I - 1);
+                        end if;
+                     end;
                   end if;
                end loop;
-               return 0;
+               return -1;
             when others =>
                declare
                   Member : BadKind_Members;
@@ -573,11 +736,11 @@ package body CORBA is
                   Param_Nb : Unsigned_Long := Parameter_Count (Self);
                   Res : Short;
                begin
-                  if Param_Nb < 3 * Index + 4 then
+                  if Param_Nb < 3 * Index + 7 then
                      Broca.Exceptions.User_Raise_Exception
                        (Bounds'Identity, Member);
                   end if;
-                  Res := From_Any (Get_Parameter (Self, 3 * Index));
+                  Res := From_Any (Get_Parameter (Self, 3 * Index + 3));
                   return Visibility (Res);
                end;
             when others =>
@@ -828,6 +991,70 @@ package body CORBA is
       begin
          return PTC_Wide_String;
       end TC_Wide_String;
+
+      -----------------
+      --  TC_Struct  --
+      -----------------
+      function TC_Struct return TypeCode.Object is
+      begin
+         return PTC_Struct;
+      end TC_Struct;
+
+      ----------------
+      --  TC_Union  --
+      ----------------
+      function TC_Union return TypeCode.Object is
+      begin
+         return PTC_Union;
+      end TC_Union;
+
+      ---------------
+      --  TC_Enum  --
+      ---------------
+      function TC_Enum return TypeCode.Object is
+      begin
+         return PTC_Enum;
+      end TC_Enum;
+
+      ----------------
+      --  TC_Alias  --
+      ----------------
+      function TC_Alias return TypeCode.Object is
+      begin
+         return PTC_Alias;
+      end TC_Alias;
+
+      -----------------
+      --  TC_Except  --
+      -----------------
+      function TC_Except return TypeCode.Object is
+      begin
+         return PTC_Except;
+      end TC_Except;
+
+      -----------------
+      --  TC_Objref  --
+      -----------------
+      function TC_Objref return TypeCode.Object is
+      begin
+         return PTC_Objref;
+      end TC_Objref;
+
+      ----------------
+      --  TC_Fixed  --
+      ----------------
+      function TC_Fixed return TypeCode.Object is
+      begin
+         return PTC_Fixed;
+      end TC_Fixed;
+
+      -------------------
+      --  TC_Sequence  --
+      -------------------
+      function TC_Sequence return TypeCode.Object is
+      begin
+         return PTC_Sequence;
+      end TC_Sequence;
 
       -----------------------
       --  Parameter_Count  --
