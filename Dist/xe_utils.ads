@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            1.14                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -40,6 +40,9 @@ package XE_Utils is
    ALI_Suffix   : Name_Id;
    ADS_Suffix   : Name_Id;
    ADB_Suffix   : Name_Id;
+
+   Spec_Suffix  : Name_Id;
+   Body_Suffix  : Name_Id;
 
    Com_Sep_Id   : Name_Id;
    Dir_Sep_Id   : Name_Id;
@@ -76,6 +79,9 @@ package XE_Utils is
    procedure Delete (File : File_Name_Type);
 
    procedure Unlink_File (File : File_Name_Type);
+
+   procedure Write_Stamp
+     (File : in Name_Id);
 
    procedure Write_Str
      (File : in File_Descriptor;

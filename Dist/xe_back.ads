@@ -2,11 +2,11 @@
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
---                              X E _ P C S                                 --
+--                             X E _ B A C K                                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                            1.9                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,24 +25,8 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
-with Opt;
-with Fname;
-with Namet;            use Namet;
-with Osint;            use Osint;
-with Types;            use Types;
-with Output;           use Output;
-with ALI;              use ALI;
-with GNAT.Os_Lib;      use GNAT.Os_Lib;
-with XE_Utils;         use XE_Utils;
-with XE;               use XE;
-procedure XE_PCS is
-   Text      : Text_Buffer_Ptr;
-   RNS_Lib   : File_Name_Type;
-   RNS_Ali   : ALI_Id;
-   RNS_Name  : Unit_Name_Type;
-   Partition : PID_Type;
-begin
-   null; --  XXXXX
-end XE_PCS;
+package XE_Back is
 
+   procedure Back;
 
+end XE_Back;

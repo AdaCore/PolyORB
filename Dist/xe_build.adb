@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.18                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -33,10 +33,10 @@ with Types;            use Types;
 with Output;           use Output;
 with XE_Usage;
 with XE_Parse;         use XE_Parse;
+with XE_Back;          use XE_Back;
 with XE_Scan;          use XE_Scan;
 with XE_Stubs;
 with XE_Lead;
-with XE_PCS;
 with XE_Check;         use XE_Check;
 with XE_Utils;         use XE_Utils;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
@@ -52,6 +52,11 @@ begin
    Initialize (Make);
    Namet.Initialize;
    Csets.Initialize;
+
+   if Building_Script then
+      Verbose_Mode := False;
+      Quiet_Output := True;
+   end if;
 
    Opt.Check_Source_Files := False;
    Opt.All_Sources        := False;
@@ -101,6 +106,7 @@ begin
       Configuration_File := File_Name;
 
       Parse;
+      Back;
 
       Get_Name_String (Configuration_File);
       Name_Len := Name_Len - 4;
@@ -117,79 +123,13 @@ begin
          raise Fatal_Error;
       end if;
 
-      XE_PCS;
       Check;
 
       if not Quiet_Output then
-         Write_Str (" -------------------------------");
-         Write_Eol;
-         Write_Str (" ----- Configuration report ----");
-         Write_Eol;
-         Write_Str (" -------------------------------");
-         Write_Eol;
-         Write_Str ("Configuration :");
-         Write_Eol;
-         Write_Str ("   Name    : ");
-         Write_Name (Configuration);
-         Write_Eol;
-         Write_Str ("   Starter : ");
-         case Starter_Method is
-            when Ada_Starter =>
-               Write_Str ("Ada code");
-            when Shell_Starter =>
-               Write_Str ("shell script");
-            when None_Starter =>
-               Write_Str ("none");
-         end case;
-         Write_Eol;
-         for P in Partitions.First .. Partitions.Last loop
-            declare
-               I : Partition_Type renames Partitions.Table (P);
-               U : CUID_Type;
-            begin
-               Write_Str ("Partition ");
-               Write_Name (I.Name);
-               Write_Eol;
-               if I.Main_Subprogram /= No_Name then
-                  Write_Str ("   Main    : ");
-                  Write_Name (I.Main_Subprogram);
-                  Write_Eol;
-               end if;
-               if I.Host.Name /= No_Host_Name then
-                  Write_Str ("   Host    : ");
-                  if I.Host.Func then
-                     Write_Str ("function call :: ");
-                  end if;
-                  Write_Name (I.Host.Name);
-                  Write_Eol;
-               end if;
-               if I.Storage_Dir /= No_Storage_Dir then
-                  Write_Str ("   Storage : ");
-                  Write_Name (I.Storage_Dir);
-                  Write_Eol;
-               end if;
-               if I.First_Unit /= Null_CUID then
-                  Write_Str ("   Units   : ");
-                  U := I.First_Unit;
-                  while U /= Null_CUID loop
-                     Write_Name (CUnit.Table (U).CUname);
-                     Write_Char (' ');
-                     if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-                        Write_Str ("(rci) ");
-                     end if;
-                     U := CUnit.Table (U).Next;
-                  end loop;
-                  Write_Eol;
-               end if;
-            end;
-         end loop;
-         Write_Str (" -------------------------------");
-         Write_Eol;
-
+         Show_Configuration;
       end if;
 
       if More_Source_Files then
-         Starter_Method := None_Starter;
          for P in Partitions.First .. Partitions.Last loop
             Partitions.Table (P).To_Build := False;
          end loop;

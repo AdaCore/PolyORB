@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.22                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -44,8 +44,12 @@ procedure XE_Lead is
    procedure Set_Launcher       (Partition  : in PID_Type);
 
    procedure Set_Host           (Partition : in PID_Type) is
+      Host : Host_Id := Partitions.Table (Partition).Host;
    begin
-      if Partitions.Table (Partition).Host.Name = No_Host_Name then
+      if Host = Null_Host then
+         Host := Default_Host;
+      end if;
+      if Hosts.Table (Host).Name = No_Name then
          Write_Str  (FD, "echo '");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, " host: '");
@@ -54,16 +58,35 @@ procedure XE_Lead is
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST");
          Write_Eol  (FD);
-      elsif Partitions.Table (Partition).Host.Func then
+
+      --  XXXX : These tests should not occur there (xe_check)
+      elsif not Hosts.Table (Host).Static then
+         if Starter_Method = Ada_Starter and then
+            Hosts.Table (Host).Import = Shell_Import then
+            Write_Program_Name;
+            Write_Str  (": Starter method is Ada when function ");
+            Write_Name (Hosts.Table (Host).Name);
+            Write_Str  (" is imported from Shell");
+            Write_Eol;
+            raise Parsing_Error;
+         elsif Starter_Method = Shell_Starter and then
+            Hosts.Table (Host).Import = Ada_Import then
+            Write_Program_Name;
+            Write_Str  (": Starter method is Shell when function ");
+            Write_Name (Hosts.Table (Host).Name);
+            Write_Str  (" is imported from Ada");
+            Write_Eol;
+            raise Parsing_Error;
+         end if;
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST=`");
-         Write_Name (FD, Partitions.Table (Partition).Host.Name);
+         Write_Name (FD, Hosts.Table (Host).External);
          Write_Str  (FD, "`");
          Write_Eol  (FD);
       else
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST=");
-         Write_Name (FD, Partitions.Table (Partition).Host.Name);
+         Write_Name (FD, Hosts.Table (Host).Name);
          Write_Eol  (FD);
       end if;
    end Set_Host;
@@ -91,11 +114,31 @@ procedure XE_Lead is
                Write_Str  (FD, "/");
             end if;
          end;
-      else
+      elsif Default_Storage_Dir = Null_Name then
          Write_Str  (FD, "`pwd`/");
+      else
+         Write_Name (FD, Default_Storage_Dir & Dir_Sep_Id);
       end if;
+
       Write_Name (FD, Partitions.Table (Partition).Name);
       Write_Str  (FD, " --boot_server $BOOT_SERVER");
+
+      declare
+         Cmd : Command_Line_Type;
+      begin
+         if Partitions.Table (Partition).Command_Line = No_Command_Line then
+            Cmd := Default_Command_Line;
+         else
+            Cmd := Partitions.Table (Partition).Command_Line;
+         end if;
+
+         if Cmd /= No_Command_Line then
+            Write_Str (FD, " ");
+            Write_Name (FD, Cmd);
+            Write_Str (FD, " ");
+         end if;
+      end;
+
       if Partition /= Main_Partition then
          Write_Str (FD, " --detach &""");
       end if;
@@ -131,6 +174,13 @@ begin
 
          Create (FD, Main_Subprogram, True);
 
+         if Building_Script then
+            Write_Str  ("cat >");
+            Write_Name (Main_Subprogram);
+            Write_Str  (" <<EOF");
+            Write_Eol;
+         end if;
+
          Write_Str (FD, "#! /bin/sh");
          Write_Eol (FD);
          Write_Str (FD, "PATH=/usr/ucb:${PATH}");
@@ -152,6 +202,11 @@ begin
 
          Close (FD);
 
+         if Building_Script then
+            Write_Str ("EOF");
+            Write_Eol;
+         end if;
+
       when Ada_Starter =>
 
          for PID in Partitions.First .. Partitions.Last loop
@@ -159,18 +214,20 @@ begin
                declare
                   PName : constant Partition_Name_Type :=
                     Partitions.Table (PID).Name;
+                  Dir   : Storage_Dir_Name_Type;
                begin
-                  if Partitions.Table (PID).Storage_Dir =
-                    No_Storage_Dir then
+                  Dir := Partitions.Table (PID).Storage_Dir;
+                  if Dir = No_Storage_Dir then
+                     Dir := Default_Storage_Dir;
+                  end if;
+                  if Dir = No_Storage_Dir then
                      Copy_With_File_Stamp
                        (Source         => PName,
                         Target         => Main_Subprogram,
                         Maybe_Symbolic => True);
                   else
                      Copy_With_File_Stamp
-                       (Source         =>
-                          Partitions.Table (PID).Storage_Dir &
-                          Dir_Sep_Id & PName,
+                       (Source         => Dir & Dir_Sep_Id & PName,
                         Target         => Main_Subprogram,
                         Maybe_Symbolic => True);
                   end if;

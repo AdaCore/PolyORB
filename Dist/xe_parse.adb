@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.21                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -28,30 +28,265 @@
 with Osint;            use Osint;
 with Output;           use Output;
 with Namet;            use Namet;
-with Types;            use Types;
+with Types;
 with XE_Scan;          use XE_Scan;
 with XE_Utils;         use XE_Utils;
 with XE;               use XE;
+with Table;
 
 package body XE_Parse is
 
-   type Predefined_Object is
-      record
-         Oname : Name_Id;
-         Otype : Predefined_Type;
+   use type Types.Name_Id;
+   use type Types.Unit_Name_Type;
+   use type Types.Int;
 
-      end record;
+   subtype Name_Id        is Types.Name_Id;
+   subtype Unit_Name_Type is Types.Unit_Name_Type;
+   subtype Int            is Types.Int;
 
-   procedure Legal_Partition_Name (Name : Name_Id);
-   function  Get_Defined_PID (Name : Name_Id) return PID_Type;
+   Null_Name : constant Name_Id := Types.No_Name;
 
-   --  XXXXX: temporary.
-   Pgm_S_Method : Name_Id;
-   Pgm_SM_Ada   : Name_Id;
-   Pgm_SM_Shell : Name_Id;
-   Pgm_SM_None  : Name_Id;
+   Attribute_Prefix : Name_Id;
+   Type_Prefix      : Name_Id;
+   Pragma_Prefix    : Name_Id;
 
-   Max_Line_Length   : constant Natural := 1024;
+   Unique     : constant Boolean := True;
+   Not_Unique : constant Boolean := False;
+
+   procedure Print_Configuration;
+   --  Print node tree for debugging purpose. The global variable
+   --  Configuration_Node is used as tree root.
+
+   procedure Print
+     (Node : in Node_Id;
+      Head : in String);
+   --  Print any node with string Head at the beginning of each line.
+
+   procedure Print
+     (Node : in Type_Id;
+      Head : in String);
+   --  Print a type node with its attributes. Attributes are printed
+   --  with their values.
+
+   procedure Print
+     (Node : in Variable_Id;
+      Head : in String);
+   --  Print a variable node with its value and its attributes.
+   --  Attributes are printed with their values.
+
+   procedure Print
+     (Node : in Parameter_Id;
+      Head : in String);
+   --  Print a parameter node with its value.
+
+   procedure Print
+     (Node : in Component_Id;
+      Head : in String;
+      Data : in Boolean);
+   --  Print a component node. If Data is true, print only component values.
+   --  If not, print only component attributes.
+
+   procedure Print
+     (Node : in Subprogram_Id;
+      Head : in String);
+   --  Print a subprogram node with its formal parameter list.
+
+   procedure Print
+     (Node : in Statement_Id;
+      Head : in String);
+   --  Print a statement node. This procedure currently doesn't print
+   --  the actual parameters.
+
+   procedure Print
+     (Node : in Configuration_Id;
+      Head : in String);
+   --  Print a configuration node.
+
+   procedure Has_Not_Been_Already_Declared
+     (Declaration_Name : in  Name_Id);
+   --  Check that this declaration has not been already done.
+
+   procedure Search_Declaration
+     (Declaration_Name : in  Name_Id;
+      Declaration_Node : out Node_Id);
+   --  Search for the first occurrence of a declaration of name
+   --  Declaration_Name. If unsuccessful, returns Null_Node.
+
+   procedure Search_Subprogram
+     (Subprogram_Name : in  Name_Id;
+      Subprogram_Node : out Subprogram_Id);
+   --  Search for the first occurrence of a subprogram of name
+   --  Subprogram_Name. If unsuccessful, returns Null_Subprogram.
+
+   procedure Search_Type
+     (Type_Name : in  Name_Id;
+      Type_Kind : out Predefined_Type;
+      Type_Node : out Type_Id);
+   --  Search for the first occurrence of a type of name Type_Name.
+   --  If unsuccessful, returns Null_Type. If successful, Type_Kind
+   --  is set to its predefined type enumeration litteral. Otherwise,
+   --  it is set to Pre_Type_Unknown.
+
+   procedure Search_Pragma
+     (Pragma_Name : in  Name_Id;
+      Pragma_Kind : out Pragma_Type;
+      Pragma_Node : out Subprogram_Id);
+   --  Search for the first occurrence of a pragma of name Pragma_Name.
+   --  If unsuccessful, returns Null_Pragma. If successful, Pragma_Kind
+   --  is set to its pragma type enumeration litteral. Otherwise,
+   --  it is set to Pragma_Unknown.
+
+
+   procedure Search_Component
+     (Component_Name : in  Name_Id;
+      Type_Node      : in  Type_Id;
+      Component_Node : out Component_Id);
+   --  Search for the first occurrence of a component of name Component_Name
+   --  in a type Type_Node. If unsuccessful, returns Null_Component.
+
+   procedure Search_Component
+     (Component_Name : in  Name_Id;
+      Variable_Node  : in  Variable_Id;
+      Component_Node : out Component_Id);
+   --  Search for the first occurrence of a component of name Component_Name
+   --  in a variable Variable_Node. If unsuccessful, returns Null_Component.
+
+
+   procedure Search_Variable
+     (Variable_Name : in  Name_Id;
+      Variable_Node : out Variable_Id);
+   --  Search for the first occurrence of a variable of name
+   --  Variable_Name. If unsuccessful, returns Null_Variable.
+
+   procedure Search_Actual_Parameter
+     (Actual_Name : in  Name_Id;
+      Actual_Type : in  Type_Id;
+      Actual_Node : out Variable_Id);
+   --  Similar to Search_Variable but with a additional restrictions.
+   --  Variable_Node type should be Actual_Type.
+
+   type Convention_Type is (Unknown, Named, Positional);
+   procedure Search_Matching_Parameter
+     (Subprogram_Node : Subprogram_Id;
+      Convention      : Convention_Type;
+      Formal_Name     : in out Name_Id;
+      Parameter_Node  : in out Parameter_Id);
+   --  Search for a formal parameter that has no actual associated parameter.
+   --  This choice should follow Convention requirements. If Convention
+   --  is Named, then returns Parameter_Node of name Formal_Name. If
+   --  is Positional, returns the next unmatched parameter and returns
+   --  also its name in Formal_Name.
+
+   procedure Search_Function_Returned_Parameter
+     (Function_Node  : in Subprogram_Id;
+      Parameter_Node : out Parameter_Id);
+   --  Search for the last parameter of this subprogram. This is by
+   --  convention the returned parameter.
+
+   procedure Append_Declaration
+     (Configuration_Node : in Configuration_Id;
+      Declaration_Node   : in Node_Id)
+     renames XE.Append_Configuration_Declaration;
+
+   procedure Unmark_Subprogram_Parameters
+     (Subprogram_Node : Subprogram_Id;
+      N_Parameter     : out Int);
+   --  Unmark all subprogram parameter. Marking a formal parameter means
+   --  that this parameter has a corresponding actual parameter.
+
+   procedure Update_Variable
+     (Conf_Node     : in  Configuration_Id;
+      Variable_Name : in  Name_Id;
+      Variable_Type : in  Type_Id;
+      Variable_Node : out Variable_Id);
+   --  Update an old variable into the configuration context. This variable
+   --  of name Variable_Name has a corresponding type, indicated by the
+   --  type node Variable_Type.
+
+   procedure Declare_Type
+     (Conf_Node : in  Configuration_Id;
+      Type_Name : in  Name_Id;
+      Type_Kind : in  Predefined_Type;
+      Structure : in  Boolean;
+      Type_Node : out Type_Id);
+   --  Declare a new type into the configuration context. Provide the
+   --  type name and a possible predefined enumeration litteral.
+   --  Structure indicates that this type has several fields.
+
+   procedure Declare_Variable
+     (Conf_Node     : in  Configuration_Id;
+      Variable_Name : in  Name_Id;
+      Variable_Type : in  Type_Id;
+      Is_Unique     : in  Boolean;
+      Variable_Node : out Variable_Id);
+   --  Declare a new variable into the configuration context. This variable
+   --  of name Variable_Name has a corresponding type, indicated by the
+   --  type node Variable_Type.
+
+   procedure Declare_Attribute
+     (Type_Node          : in Type_Id;
+      Attribute_Name     : in Name_Id;
+      Attr_Type_Node     : in Type_Id;
+      Attribute_Kind     : in Attribute_Type;
+      Attribute_Node     : out Attribute_Id);
+   --  Declare an attribute for a given type. This procedure creates
+   --  a component of type Attr_Type_Node and includes it in the type
+   --  component list.
+
+   procedure Declare_Attribute
+     (Variable_Node      : in Variable_Id;
+      Attribute_Name     : in Name_Id;
+      Attribute_Node     : out Attribute_Id);
+   --  Declare an attribute for a given variable. This procedure creates
+   --  a copy of the attribute that can be found into the variable type node.
+
+   procedure Declare_Component
+     (Variable_Node      : in Variable_Id;
+      Component_Name     : in Name_Id;
+      Component_Type     : in Type_Id;
+      Component_Value    : in Variable_Id;
+      Is_An_Attribute    : in Boolean;
+      Component_Node     : out Component_Id);
+   --  Declare a component for a given variable. This component is
+   --  possibly an attribute and is initialized to Component_Value.
+   --  The component type is given by Component_Type.
+
+   procedure Declare_Subprogram
+     (Subprogram_Name  : in  Name_Id;
+      Is_A_Procedure   : in  Boolean;
+      Subprogram_Node  : out Subprogram_Id);
+   --  Declare a subprogram into the configuration context. This subprogram
+   --  is possibly a function. At this point, the subprogram has no
+   --  parameter.
+
+   procedure Declare_Subprogram_Parameter
+     (Parameter_Name  : in  Name_Id;
+      Para_Type_Node  : in  Type_Id;
+      Subprogram_Node : in  Subprogram_Id;
+      Parameter_Node  : out Parameter_Id);
+   --  Declare a parameter for a declared subprogram. The last parameter
+   --  corresponds to a returned value when the subprogram is a function.
+
+   procedure Declare_Procedure_Call
+     (Subprogram_Node : in Subprogram_Id);
+   --  Declare a call to a procedure. A statement node is created and
+   --  contains an entire copy of the subprogram node.
+
+   procedure Assign_Variable
+     (Source, Target : Variable_Id);
+   --  Mostly, assign a formal parameter to a given value in case
+   --  of a procedure call.
+
+   function Is_Expression_Of_Type
+     (Expr_Node : in Node_Id;
+      Type_Node : in Type_Id)
+      return Boolean;
+   --  When Expr_Node is a variable, compares the given type and the
+   --  variable type. When Expr_Node is a function, compares the given
+   --  type and the type of the returned parameter.
+
+
+   -- Token subprograms --
 
    procedure Take_Token (T : Token_Type);
    procedure Take_Token (L : Token_List_Type);
@@ -82,25 +317,20 @@ package body XE_Parse is
    procedure T_Arrow;
    procedure T_EOF;
    procedure T_Semicolon;
+   procedure T_Return;
 
-   procedure P_Configuration_End;
-   procedure P_Pragma;
-   procedure P_Pragma_Starter;
-   procedure P_Main_Subprogram;
-   procedure P_Partition_Clause;
-   procedure P_Full_Ada_Identifier;
+   procedure P_Configuration_Declaration;
    procedure P_Configuration_Body;
-   function  P_Attribute_Name
-     return Attribute_Type;
-   procedure P_Package_Enumeration
-     (Partition : in Name_Id);
-   function  P_Object_Declaration
-     (Prev : in Name_Id;
-      Many : in Int)
-      return Predefined_Object;
-   procedure Init_Previous_Object
-     (Prev : in Name_Id;
-      Next : in Predefined_Object);
+   procedure P_Configuration_End;
+   procedure P_Main_Declaration;
+   procedure P_Function_Declaration;
+   procedure P_Pragma;
+   procedure P_Representation_Clause;
+   procedure P_Full_Ada_Identifier;
+
+   procedure P_Aggregate_Assignement     (Variable_Node   : in Variable_Id);
+   procedure P_Variable_List_Declaration (Previous_Name   : in Name_Id);
+   procedure Associate_Actual_To_Formal  (Subprogram_Node : in Subprogram_Id);
 
    --------------
    -- No_Match --
@@ -126,8 +356,8 @@ package body XE_Parse is
    procedure No_Match (T : Token_Type) is
    begin
       Write_Location (Get_Token_Location);
-      Write_Str ("missing ");
       Write_Token (T);
+      Write_Str (" was expected");
       Write_Eol;
       raise Parsing_Error;
    end No_Match;
@@ -171,142 +401,308 @@ package body XE_Parse is
       No_Match (L);
    end Take_Token;
 
+   ----------------------
+   -- T_String_Literal --
+   ----------------------
+
    procedure T_String_Literal is
    begin
       Take_Token (Tok_String_Literal);
    end T_String_Literal;
+
+   ------------------
+   -- T_Identifier --
+   ------------------
 
    procedure T_Identifier is
    begin
       Take_Token (Tok_Identifier);
    end T_Identifier;
 
+   -----------
+   -- T_Dot --
+   -----------
+
    procedure T_Dot is
    begin
       Take_Token (Tok_Dot);
    end T_Dot;
+
+   ------------------
+   -- T_Apostrophe --
+   ------------------
 
    procedure T_Apostrophe is
    begin
       Take_Token (Tok_Apostrophe);
    end T_Apostrophe;
 
+   ------------------
+   -- T_Left_Paren --
+   ------------------
+
    procedure T_Left_Paren is
    begin
       Take_Token (Tok_Left_Paren);
    end T_Left_Paren;
+
+   -------------------
+   -- T_Right_Paren --
+   -------------------
 
    procedure T_Right_Paren is
    begin
       Take_Token (Tok_Right_Paren);
    end T_Right_Paren;
 
+   -------------
+   -- T_Comma --
+   -------------
+
    procedure T_Comma is
    begin
       Take_Token (Tok_Comma);
    end T_Comma;
+
+   -------------------
+   -- T_Colon_Equal --
+   -------------------
 
    procedure T_Colon_Equal is
    begin
       Take_Token (Tok_Colon_Equal);
    end T_Colon_Equal;
 
+   -------------
+   -- T_Colon --
+   -------------
+
    procedure T_Colon is
    begin
       Take_Token (Tok_Colon);
    end T_Colon;
+
+   ---------------------
+   -- T_Configuration --
+   ---------------------
 
    procedure T_Configuration is
    begin
       Take_Token (Tok_Configuration);
    end T_Configuration;
 
+   --------------
+   -- T_Pragma --
+   --------------
+
    procedure T_Pragma is
    begin
       Take_Token (Tok_Pragma);
    end T_Pragma;
+
+   -----------------
+   -- T_Procedure --
+   -----------------
 
    procedure T_Procedure is
    begin
       Take_Token (Tok_Procedure);
    end T_Procedure;
 
+   ----------
+   -- T_Is --
+   ----------
+
    procedure T_Is is
    begin
       Take_Token (Tok_Is);
    end T_Is;
+
+   ----------
+   -- T_In --
+   ----------
 
    procedure T_In is
    begin
       Take_Token (Tok_In);
    end T_In;
 
+   -----------
+   -- T_For --
+   -----------
+
    procedure T_For is
    begin
       Take_Token (Tok_For);
    end T_For;
+
+   -----------
+   -- T_Use --
+   -----------
 
    procedure T_Use is
    begin
       Take_Token (Tok_Use);
    end T_Use;
 
+   --------------
+   -- T_Return --
+   --------------
+
+   procedure T_Return is
+   begin
+      Take_Token (Tok_Return);
+   end T_Return;
+
+   ----------------
+   -- T_Function --
+   ----------------
+
    procedure T_Function is
    begin
       Take_Token (Tok_Function);
    end T_Function;
+
+   -----------
+   -- T_End --
+   -----------
 
    procedure T_End is
    begin
       Take_Token (Tok_End);
    end T_End;
 
+   -------------
+   -- T_Arrow --
+   -------------
+
    procedure T_Arrow is
    begin
       Take_Token (Tok_Arrow);
    end T_Arrow;
+
+   -----------
+   -- T_EOF --
+   -----------
 
    procedure T_EOF is
    begin
       Take_Token (Tok_EOF);
    end T_EOF;
 
+   -----------------
+   -- T_Semicolon --
+   -----------------
+
    procedure T_Semicolon is
    begin
       Take_Token (Tok_Semicolon);
    end T_Semicolon;
 
-   ----------------------
-   -- P_Attribute_Name --
-   ----------------------
+   ----------------------------
+   -- P_Function_Declaration --
+   ----------------------------
 
-   function P_Attribute_Name return Attribute_Type is
-      Attribute : Attribute_Type;
+   procedure P_Function_Declaration is
+      Function_Name  : Name_Id;
+      Function_Node  : Subprogram_Id;
+      Parameter_Name : Name_Id;
+      Parameter_Node : Parameter_Id;
+      Para_Type_Name : Name_Id;
+      Para_Type_Node : Type_Id;
+      Para_Type_Kind : Predefined_Type;
    begin
 
-      T_Identifier;
+      --  The following is the only allowed signature :
+      --     function <F> (<X> : String) return String;
+      --  where <F> and <X> are to be defined.
 
-      Attribute := Get_Attribute (Token_Name);
-      if Attribute = Att_Unknown then
+      --  Token FUNCTION has already been parsed.
+      T_Identifier;
+      Function_Name := Token_Name;
+
+      --  Create a new subprogram node for this newly declared function.
+      Declare_Subprogram
+        (Function_Name,
+         False,
+         Function_Node);
+
+      T_Left_Paren;
+
+      --  Get parameter <X>.
+      T_Identifier;
+      Parameter_Name := Token_Name;
+
+      T_Colon;
+
+      --  Get parameter type.
+      T_Identifier;
+      Para_Type_Name := Token_Name;
+
+      Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
+
+      --  String is the only expected type.
+      if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
-         Write_Str (": host or storage_dir attribute was expected");
+         Write_Str  (": ");
+         Write_Name (Para_Type_Name);
+         Write_Str  (" is not an expected type");
          Write_Eol;
          raise Parsing_Error;
       end if;
-      return Attribute;
 
-   end P_Attribute_Name;
+      --  Declare <X> as a formal parameter.
+      Declare_Subprogram_Parameter
+        (Parameter_Name,
+         Para_Type_Node,
+         Function_Node,
+         Parameter_Node);
+
+      T_Right_Paren;
+      T_Return;
+
+      --  Get returned parameter type.
+      T_Identifier;
+      Para_Type_Name := Token_Name;
+
+      Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
+
+      --  String is the only
+      if Para_Type_Node /= String_Type_Node then
+         Write_Location (Get_Token_Location);
+         Write_Str  (": ");
+         Write_Name (Para_Type_Name);
+         Write_Str  (" is not an expected type");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
+
+      --  Declare returned parameter type. As a naming convention
+      --  we use reserved keyword "return" for this anonymous parameter.
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("return"),
+         Para_Type_Node,
+         Function_Node,
+         Parameter_Node);
+
+      T_Semicolon;
+
+   end P_Function_Declaration;
 
    -------------------------
    -- P_Configuration_End --
    -------------------------
 
    procedure P_Configuration_End is
+      Conf : Node_Id;
    begin
-
       Take_Token ((Tok_Identifier, Tok_Semicolon));
+
+      --  Check that the configuration name is matching the current
+      --  configuration name.
       if Token = Tok_Identifier then
-         if Token_Name /= Configuration then
+         Search_Declaration (Token_Name, Conf);
+         if not Is_Configuration (Conf) then
             Write_Location (Get_Token_Location);
             Write_Str ("name mismatch");
             Write_Eol;
@@ -322,165 +718,226 @@ package body XE_Parse is
    --------------
 
    procedure P_Pragma is
+      Pragma_Kind : Pragma_Type;
+      Pragma_Node : Subprogram_Id;
+      Pragma_Name : Name_Id;
    begin
+
+      --  Token PRAGMA has already been parsed.
       T_Identifier;
-      if Get_Pragma (Token_Name) /= Pgm_Starter then
+
+      --  Known pragmas are prefixed by Pragma_Prefix.
+      Pragma_Name := Pragma_Prefix & Token_Name;
+
+      --  Is this pragma a legal pragma.
+      Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
+      if Pragma_Kind = Pragma_Unknown then
          Write_Location (Get_Token_Location);
          Write_Str  (": pragma ");
          Write_Name (Token_Name);
          Write_Str  (" not supported");
          Write_Eol;
-      end if;
-      P_Pragma_Starter;
-      T_Semicolon;
-   end P_Pragma;
-
-   ----------------------
-   -- P_Pragma_Starter --
-   ----------------------
-
-   procedure P_Pragma_Starter is
-   begin
-      T_Left_Paren;
-      T_Identifier;
-      if Token_Name = Pgm_S_Method then
-         T_Arrow;
-         T_Identifier;
-      end if;
-      if Token_Name = Pgm_SM_Ada then
-         Starter_Method := Ada_Starter;
-      elsif Token_Name = Pgm_SM_Shell then
-         Starter_Method := Shell_Starter;
-      elsif Token_Name = Pgm_SM_None  then
-         Starter_Method := None_Starter;
-      else
-         Write_Location (Get_Token_Location);
-         Write_Str (": unexpected pragma argument");
-         Write_Eol;
          raise Parsing_Error;
       end if;
-      T_Right_Paren;
-   end P_Pragma_Starter;
+
+      --  Parse a pragma as a procedure call.
+      Associate_Actual_To_Formal (Pragma_Node);
+
+      --  When successful, declare the procedure call node.
+      Declare_Procedure_Call (Pragma_Node);
+
+   end P_Pragma;
 
    -----------------------
-   -- P_Main_subprogram --
+   -- P_Main_Subprogram --
    -----------------------
 
-   procedure P_Main_Subprogram is
-      Unit      : Unit_Name_Type;
-      Partition : PID_Type;
+   procedure P_Main_Declaration is
+      Unit_Name      : Name_Id;
+      Unit_Node      : Variable_Id;
+      Partition_Name : Name_Id;
+      Partition_Node : Variable_Id;
+      Component_Node : Component_Id;
    begin
 
-      --  main_subprogram_declaration
+      --  Token PROCEDURE has already been parsed.
       T_Identifier;
 
-      Unit := Token_Name;
+      Unit_Name := Token_Name;
+      Search_Variable
+        (Unit_Name,
+         Unit_Node);
+
+      --  Is this unit already declared ?
+      if Unit_Node /= Null_Variable then
+         if Get_Variable_Type (Unit_Node) /= Ada_Unit_Type_Node then
+            Write_Location (Get_Token_Location);
+            Write_Str  (": variable is not declared as an Ada unit");
+            Write_Eol;
+            raise Parsing_Error;
+         end if;
+
+      --  Ada_Unit_Type is a extensible enumeration type. Declares
+      --  a new enumeration litteral for this special type.
+      else
+         Declare_Variable
+           (Configuration_Node,
+            Unit_Name,
+            Ada_Unit_Type_Node,
+            Unique,
+            Unit_Node);
+      end if;
 
       T_Is;
       T_In;
+
+      --  This should be an already declared variable.
       T_Identifier;
+      Partition_Name := Token_Name;
+      Search_Variable
+        (Partition_Name,
+         Partition_Node);
 
-      Partition := Get_Defined_PID (Token_Name);
-
-      Add_Conf_Unit (Unit, Partition);
-      if Partitions.Table (Partition).Main_Subprogram = No_Name then
-         Partitions.Table (Partition).Main_Subprogram := Unit;
-         Main_Partition  := Partition;
-         Main_Subprogram := Unit;
-      else
+      --  This variable has to be already declared. Its type has to be
+      --  of the predefined type Partition_Type_Node.
+      if Partition_Node = Null_Variable or else
+         Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
          Write_Location (Get_Token_Location);
-         Write_Str ("a partition has at most one main subprogram");
+         Write_Str  ("variable has not been declared as a partition");
          Write_Eol;
          raise Parsing_Error;
       end if;
 
+      --  Partition_Type_Node is an unconstraint array type. In this
+      --  context, Partition_Node has a new element Unit_Node.
+      --  As a naming convention, we use the reserved keyword "others"
+      --  to indicate a main subprogram.
+      Declare_Component
+        (Variable_Node      => Partition_Node,
+         Component_Name     => Str_To_Id ("others"),
+         Component_Type     => Ada_Unit_Type_Node,
+         Component_Value    => Unit_Node,
+         Is_An_Attribute    => False,
+         Component_Node     => Component_Node);
+
       T_Semicolon;
 
-   end P_Main_Subprogram;
+   end P_Main_Declaration;
 
-   ------------------------
-   -- P_Partition_Clause --
-   ------------------------
+   -----------------------------
+   -- P_Representation_Clause --
+   -----------------------------
 
-   procedure P_Partition_Clause is
-      Attribute : Attribute_Type;
-      Partition : PID_Type;
-      All_PIDs  : Boolean := False;
-      Func      : Boolean := False;
+   procedure P_Representation_Clause is
+      Direct_Name : Name_Id;
+      Direct_Node : Node_Id;
+      Direct_Type : Type_Id;
+      Attr_Name   : Name_Id;
+      Attr_Node   : Attribute_Id;
+      Attr_Type   : Type_Id;
+      Comp_Node   : Component_Id;
+      Expr_Name   : Name_Id;
+      Expr_Node   : Node_Id;
+      Is_A_Type   : Boolean;
    begin
 
+      --  Token FOR has already been parsed.
       T_Identifier;
+      Direct_Name := Token_Name;
+      Search_Declaration (Direct_Name, Direct_Node);
 
-      if Token_Name = Configuration then
-         All_PIDs := True;
+      --  This identifier has to be already declared.
+      if Direct_Node /= Null_Node then
+
+         --  If legal, retrieve variable Direct_Node type.
+         if Is_Variable (Direct_Node) then
+            Direct_Type := Get_Variable_Type (Variable_Id (Direct_Node));
+            Is_A_Type := False;
+
+         elsif Is_Type (Direct_Node) then
+            Direct_Type := Type_Id (Direct_Node);
+            Is_A_Type := True;
+
+         --  Only variables and types are subject to representation clause.
+         else
+            Write_Location (Get_Token_Location);
+            Write_Str (": identifier is neither a variable");
+            Write_Str (" nor a predefined type");
+            Write_Eol;
+            raise Parsing_Error;
+         end if;
 
       else
-         Partition := Get_Defined_PID (Token_Name);
-
+         Write_Location (Get_Token_Location);
+         Write_Str (": identifier is undefined");
+         Write_Eol;
+         raise Parsing_Error;
       end if;
 
       T_Apostrophe;
-      Attribute := P_Attribute_Name;
+
+      --  Get the attribute name.
+      T_Identifier;
+      Attr_Name := Token_Name;
+
+      --  Attributes are always prefixed by Attribute_Prefix.
+      Search_Component
+        (Attribute_Prefix & Attr_Name,
+         Direct_Type,
+         Comp_Node);
+
+      --  Check that this attribute is a legal attribute for the given type.
+      if Comp_Node = Null_Component or else
+         not Is_Component_An_Attribute (Comp_Node) then
+         Write_Location (Get_Token_Location);
+         Write_Str  ("no such attribute");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
+
+      --  If variable, duplicate attribute for the variable only.
+      if not Is_A_Type then
+         Declare_Attribute
+           (Variable_Id (Direct_Node),
+            Attr_Name,
+            Attr_Node);
+      else
+         Attr_Node := Attribute_Id (Comp_Node);
+      end if;
+
       T_Use;
+      Take_Token ((Tok_Identifier, Tok_String_Literal));
+      Expr_Name := Token_Name;
 
-      Take_Token ((Tok_Function, Tok_Identifier, Tok_String_Literal));
-
-      if Attribute = Att_Host then
-         if Token = Tok_Function then
-            Func := True;
-            Take_Token ((Tok_Identifier, Tok_String_Literal));
-         end if;
-      end if;
-
-      if Token = Tok_Identifier then
-         P_Full_Ada_Identifier;
-      end if;
-
-      if Attribute = Att_Host then
-         declare
-            Host : Host_Type := (Func, Host_Name_Type (Token_Name));
-         begin
-            if All_PIDs then
-               for PID in Partitions.First .. Partitions.Last loop
-                  if Partitions.Table (PID).Host = Default_Host then
-                     Partitions.Table (PID).Host := Host;
-                  end if;
-               end loop;
-               Default_Host := Host;
-
-            else
-               Partitions.Table (Partition).Host := Host;
-
-            end if;
-
-         end;
+      --  If string literal, declare an anonymous variable.
+      if Token = Tok_String_Literal then
+         Declare_Variable
+           (Configuration_Node,
+            Expr_Name,
+            String_Type_Node,
+            Unique,
+            Variable_Id (Expr_Node));
 
       else
-         declare
-            Storage_Dir : Storage_Dir_Name_Type
-                        := Storage_Dir_Name_Type (Token_Name);
-         begin
-            if All_PIDs then
-               for PID in Partitions.First .. Partitions.Last loop
-                  if Partitions.Table (PID).Storage_Dir =
-                     Default_Storage_Dir then
-                     Partitions.Table (PID).Storage_Dir := Storage_Dir;
-                  end if;
-               end loop;
-               Default_Storage_Dir := Storage_Dir;
-
-            else
-               Partitions.Table (Partition).Storage_Dir := Storage_Dir;
-
-            end if;
-
-         end;
-
+         Search_Declaration (Expr_Name, Expr_Node);
       end if;
+
+      Attr_Type := Get_Component_Type (Component_Id (Attr_Node));
+
+      --  Only string literal or function returning string are allowed.
+      if not Is_Expression_Of_Type (Expr_Node, Attr_Type) then
+         Write_Location (Get_Token_Location);
+         Write_Str (": invalid expression");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
+
+      --  Set attribute to the given value.
+      Set_Component_Value (Component_Id (Attr_Node), Expr_Node);
 
       T_Semicolon;
 
-   end P_Partition_Clause;
+   end P_Representation_Clause;
 
    ---------------------------
    -- P_Full_Ada_Identifier --
@@ -493,6 +950,8 @@ package body XE_Parse is
       loop
          Location := Get_Token_Location;
          Next_Token;
+
+         --  If token is '.' then continue ...
          if Token = Tok_Dot then
             T_Identifier;
             Identifier := Identifier & Dot_Sep_Id & Token_Name;
@@ -503,29 +962,45 @@ package body XE_Parse is
             exit;
          end if;
       end loop;
+
    end P_Full_Ada_Identifier;
 
-   ---------------------------
-   -- P_Package_Enumeration --
-   ---------------------------
+   -----------------------------
+   -- P_Aggregate_Assignement --
+   -----------------------------
 
-   procedure P_Package_Enumeration
-     (Partition : in Partition_Name_Type) is
-      PID      : PID_Type;
+   procedure P_Aggregate_Assignement (Variable_Node : in Variable_Id) is
+      Expression_Name : Name_Id;
+      Expression_Node : Variable_Id;
+      Component_Node  : Component_Id;
    begin
-
-      --  partition_definition
-      PID := Get_Defined_PID (Partition);
-
-      --  unit name set
       T_Left_Paren;
-
       loop
-
          Take_Token ((Tok_Identifier, Tok_Right_Paren));
          exit when Token = Tok_Right_Paren;
+
+         --  Ada unit names are allowed.
          P_Full_Ada_Identifier;
-         Add_Conf_Unit (Token_Name, PID);
+         Expression_Name := Token_Name;
+
+         --  Increase the ada unit enumeration type.
+         Declare_Variable
+           (Configuration_Node,
+            Expression_Name,
+            Ada_Unit_Type_Node,
+            Unique,
+            Expression_Node);
+
+         --  As a naming convention, we use the reserved keyword "record"
+         --  as a anonymous component name.
+         Declare_Component
+           (Variable_Node      => Variable_Node,
+            Component_Name     => Str_To_Id ("record"),
+            Component_Type     => Ada_Unit_Type_Node,
+            Component_Value    => Expression_Node,
+            Is_An_Attribute    => False,
+            Component_Node     => Component_Node);
+
          Take_Token ((Tok_Comma, Tok_Right_Paren));
          exit when Token = Tok_Right_Paren;
 
@@ -533,164 +1008,358 @@ package body XE_Parse is
 
       T_Semicolon;
 
-   end P_Package_Enumeration;
+   end P_Aggregate_Assignement;
 
-   --------------------------
-   -- P_Object_Declaration --
-   --------------------------
+   ---------------------------------
+   -- P_Variable_List_Declaration --
+   ---------------------------------
 
-   function P_Object_Declaration
-     (Prev : in Name_Id;
-      Many : in Int)
-      return Predefined_Object is
-      Next   : Name_Id;
-      Object : Predefined_Object;
+   procedure P_Variable_List_Declaration
+     (Previous_Name : in Name_Id) is
+      Previous_Node : Variable_Id;
+      Variable_Name : Name_Id;
+      Variable_Node : Variable_Id;
+      Var_Type_Name : Name_Id;
+      Var_Type_Node : Type_Id;
+      Var_Type_Kind : Predefined_Type;
    begin
 
       Take_Token ((Tok_Comma, Tok_Colon));
 
-      --  New declarations follow
+      --  Is it a list of identifiers ?
       if Token = Tok_Comma then
+
          T_Identifier;
-         Next   := Token_Name;
-         Object := P_Object_Declaration (Next, Many + 1);
-         Init_Previous_Object (Next, Object);
-         Object.Oname := Next;
-         return Object;
+         Variable_Name := Token_Name;
 
-      end if;
+         --  Declare a temporary variable of any type.
+         Declare_Variable
+           (Configuration_Node,
+            Previous_Name,
+            Partition_Type_Node, --  Temporary
+            Unique,
+            Previous_Node);
 
-      --  Predefined type
-      T_Identifier;
-      Object.Oname := Prev;
-      Object.Otype := Get_Predefined_Type (Token_Name);
-      case Object.Otype is
-         when Pre_Type_Partition =>
-            Legal_Partition_Name (Prev);
-            Create_Partition (Prev);
-         when others =>
+         --  Call recursively P_Variable_List_Declaration until the
+         --  end of list. Variable_Node is a node to the next
+         --  declared variable.
+         P_Variable_List_Declaration (Variable_Name);
+         Search_Variable (Variable_Name, Variable_Node);
+
+         --  Update the temporary variable type with variable_node type
+         Update_Variable
+           (Conf_Node          => Configuration_Node,
+            Variable_Name      => Previous_Name,
+            Variable_Type      => Get_Variable_Type (Variable_Node),
+            Variable_Node      => Previous_Node);
+
+         --  If previous variable has been initialized, initialize
+         --  this newly declared variable as well.
+         Assign_Variable (Variable_Node, Previous_Node);
+
+      else
+
+         --  The following identifier is a type.
+         T_Identifier;
+         Var_Type_Name := Token_Name;
+
+         --  Has this type been declared ?
+         Search_Type
+           (Var_Type_Name,
+            Var_Type_Kind,
+            Var_Type_Node);
+
+         if Var_Type_Node = Null_Type then
             Write_Location (Get_Token_Location);
-            Write_Str ("predefined type was expected");
+            Write_Str ("unexpected type");
             Write_Eol;
             raise Parsing_Error;
-      end case;
+         end if;
 
-      Take_Token ((Tok_Semicolon, Tok_Colon_Equal));
+         --  Declare this new variable of type Var_Type_Node.
+         Declare_Variable
+           (Configuration_Node,
+            Previous_Name,
+            Var_Type_Node,
+            Unique,
+            Previous_Node);
 
-      --  Initialisation
-      if Token = Tok_Colon_Equal then
-         case Object.Otype is
-            when Pre_Type_Partition =>
-               P_Package_Enumeration (Prev);
-            when others =>
-               raise Parsing_Error;
-         end case;
+         Take_Token ((Tok_Semicolon, Tok_Colon_Equal));
+
+         --  Is there an initilization ?
+         if Token = Tok_Colon_Equal then
+            P_Aggregate_Assignement (Previous_Node);
+         end if;
+
       end if;
-      if Many > 0 then
-         Copy_Partition (Prev, Many);
-      end if;
-      return Object;
 
-   end P_Object_Declaration;
+   end P_Variable_List_Declaration;
 
    --------------------------
    -- P_Configuration_Body --
    --------------------------
 
    procedure P_Configuration_Body is
+      Name : Name_Id;
    begin
       loop
-
          Take_Token
            ((Tok_Identifier,
              Tok_Null,
              Tok_End));
-
          case Token is
             when Tok_Identifier =>
-               T_Colon_Equal;
-               P_Package_Enumeration (Token_Name);
+
+               --  This is an assignement. Includes a list of ada units
+               --  into a partition.
+               declare
+                  Variable_Node : Variable_Id;
+               begin
+                  Name := Token_Name;
+                  Search_Variable (Name, Variable_Node);
+                  if Variable_Node = Null_Variable then
+                     Write_Location (Get_Token_Location);
+                     Write_Name (Name);
+                     Write_Str (" has not been declared");
+                     Write_Eol;
+                     raise Parsing_Error;
+                  end if;
+                  T_Colon_Equal;
+
+                  --  Read the ada units aggregate.
+                  P_Aggregate_Assignement (Variable_Node);
+
+               end;
 
             when Tok_End        =>
                P_Configuration_End; exit;
 
             when others         =>  null;
+
          end case;
 
       end loop;
 
    end P_Configuration_Body;
 
-   ----------------------------
-   -- Init_Previous_Object --
-   ----------------------------
+   --------------------------------
+   -- Associate_Actual_To_Formal --
+   --------------------------------
 
-   procedure Init_Previous_Object
-     (Prev : in Name_Id;
-      Next : in Predefined_Object) is
-      PID : PID_Type;
+   procedure Associate_Actual_To_Formal
+     (Subprogram_Node : in Subprogram_Id) is
+      Convention     : Convention_Type := Unknown;
+      Actual_Name    : Name_Id;
+      Formal_Name    : Name_Id;
+      Actual_Node    : Variable_Id;
+      Formal_Node    : Parameter_Id;
+      Literal_Node   : Variable_Id;
+      N_Parameter    : Int;
+      Param_Location : Location_Type;
+      List_Location  : Location_Type;
    begin
-      if Prev = Next.Oname then
-         return;
+
+      --  There are no matching (marked) parameters. When a formal
+      --  parameter has an associated actual parameter, mark the
+      --  formal parameter and set the formal parameter value to
+      --  the actual parameter.
+      Unmark_Subprogram_Parameters (Subprogram_Node, N_Parameter);
+
+      List_Location := Get_Token_Location;
+
+      --  At the beginning, convention is unknown.
+      if N_Parameter > 0 then
+         T_Left_Paren;
+         loop
+            Param_Location := Get_Token_Location;
+            if Convention = Named then
+               T_Identifier;
+            else
+               Take_Token ((Tok_Identifier, Tok_String_Literal));
+               if Token = Tok_String_Literal then
+                  Convention := Positional;
+                  Declare_Variable
+                    (Configuration_Node,
+                     Token_Name,
+                     String_Type_Node,
+                     Unique,
+                     Literal_Node);
+               end if;
+            end if;
+
+            --  Note that this formal parameter could be a actual parameter
+            --  if convention is positional, or if convention is unknown
+            --  and no arrow is following.
+            Formal_Name := Token_Name;
+            case Convention is
+               when Unknown =>
+                  Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
+                  if Token = Tok_Arrow then
+
+                     --  This is definitively a named convention.
+                     --  Formal_Name is correct, read Actual_Name.
+                     Convention := Named;
+                     Take_Token ((Tok_String_Literal, Tok_Identifier));
+                     Actual_Name := Token_Name;
+                     if Token = Tok_String_Literal then
+                        Declare_Variable
+                          (Configuration_Node,
+                           Actual_Name,
+                           String_Type_Node,
+                           Unique,
+                           Literal_Node);
+                     end if;
+                     Take_Token ((Tok_Comma, Tok_Right_Paren));
+                  else
+
+                     --  This is definitively a positional convention.
+                     --  Ignore Formal_Name, actually we read Actual_Name.
+                     Convention  := Positional;
+                     Actual_Name := Formal_Name;
+                  end if;
+
+               when Positional =>
+
+                  --  This is a positional convention and Formal_Name
+                  --  should be reassigned to Actual_Name.
+                  Actual_Name := Formal_Name;
+                  Take_Token ((Tok_Comma, Tok_Right_Paren));
+
+               when Named =>
+
+                  --  This is a named convention. We need to read Actual_Name.
+                  T_Arrow;
+                  Take_Token ((Tok_String_Literal, Tok_Identifier));
+                  Actual_Name := Token_Name;
+                  if Token = Tok_String_Literal then
+                     Declare_Variable
+                       (Configuration_Node,
+                        Actual_Name,
+                        String_Type_Node,
+                        Unique,
+                        Literal_Node);
+                  end if;
+                  Take_Token ((Tok_Comma, Tok_Right_Paren));
+            end case;
+
+            --  If convention = named, check that such a formal parameter
+            --     belongs to the subprogram parameter list.
+            --  If convention = positional, retrieve the first unmarked
+            --     (unmatched) parameter (name and node).
+            Search_Matching_Parameter
+              (Subprogram_Node,
+               Convention,
+               Formal_Name,
+               Formal_Node);
+
+            if Formal_Node = Null_Parameter then
+               Write_Location (Param_Location);
+               Write_Str ("formal parameter mismatch");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Is there a constant of formal parameter type ?
+            Search_Actual_Parameter
+              (Actual_Name,
+               Get_Parameter_Type (Formal_Node),
+               Actual_Node);
+
+            if Actual_Node = Null_Variable then
+               Write_Location (Param_Location);
+               Write_Str ("actual parameter mismatch");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Mark the matching parameter and set its value to actual
+            --  parameter value.
+            Set_Parameter_Mark (Formal_Node, 1);
+            Assign_Variable (Actual_Node, Variable_Id (Formal_Node));
+
+            --  There is one less parameter to match.
+            N_Parameter := N_Parameter - 1;
+
+            if Token = Tok_Right_Paren then
+               exit when N_Parameter = 0;
+               Write_Location (Get_Token_Location);
+               Write_Str (": missing parameters");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+         end loop;
+
       end if;
-      case Next.Otype is
-         when Pre_Type_Partition =>
-            PID := Get_Defined_PID (Next.Oname) - 1;
-            Legal_Partition_Name (Prev);
-            Set_PID (Prev, PID);
-            Partitions.Table (PID).Name := Prev;
-         when others =>
-            Write_Location (Get_Token_Location);
-            Write_Str ("predefined type was expected");
-            Write_Eol;
-            raise Parsing_Error;
-      end case;
-   end Init_Previous_Object;
+
+      T_Semicolon;
+
+   end Associate_Actual_To_Formal;
+
+   ---------------------------------
+   -- P_Configuration_Declaration --
+   ---------------------------------
+
+   procedure P_Configuration_Declaration is
+      Conf_Name : Name_Id;
+      Conf_Node : Configuration_Id;
+   begin
+
+      --  Nothing very specific here.
+      T_Configuration;
+      T_Identifier;
+      Conf_Name := Token_Name;
+      T_Is;
+      Create_Configuration (Conf_Node, Conf_Name);
+
+      --  Append the root configuration to the new one.
+      Append_Declaration   (Conf_Node, Node_Id (Configuration_Node));
+
+      --  Now, the new configuration is the root configuration.
+      Configuration_Node := Conf_Node;
+
+   end P_Configuration_Declaration;
 
    -----------
    -- Parse --
    -----------
 
    procedure Parse is
-      Object : Predefined_Object;
    begin  --  Parse
 
       Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
 
       Load_File (Configuration_File);
 
-      T_Configuration;
-      T_Identifier;
-      Configuration := Token_Name;
-      T_Is;
+      P_Configuration_Declaration;
 
       loop
 
          Take_Token
            ((Tok_Identifier,
              Tok_Procedure,
+             Tok_Function,
              Tok_For,
              Tok_Pragma,
              Tok_Begin,
              Tok_End));
 
          case Token is
+
+            when Tok_Function   =>
+               P_Function_Declaration;
+
             when Tok_Procedure  =>
-               P_Main_Subprogram;
+               P_Main_Declaration;
 
             when Tok_For        =>
-               P_Partition_Clause;
+               P_Representation_Clause;
 
             when Tok_Pragma     =>
                P_Pragma;
 
             when Tok_Identifier =>
-               declare
-                  Name : Name_Id := Token_Name;
-               begin
-                  Object := P_Object_Declaration (Name, 0);
-                  Init_Previous_Object (Name, Object);
-               end;
+               P_Variable_List_Declaration (Token_Name);
 
             when Tok_Begin      =>
                P_Configuration_Body;
@@ -707,6 +1376,10 @@ package body XE_Parse is
 
       T_EOF;
 
+      if Verbose_Mode then
+         Print_Configuration;
+      end if;
+
    end Parse;
 
    ----------------
@@ -714,47 +1387,1123 @@ package body XE_Parse is
    ----------------
 
    procedure Initialize is
+
+      Attribute_Node : Attribute_Id;
+      Variable_Node  : Variable_Id;
+      Parameter_Node : Parameter_Id;
+
    begin
-      Set_Attribute ("host",        Att_Host);
-      Set_Attribute ("storage_dir", Att_Storage_Dir);
 
-      Set_Predefined_Type ("partition", Pre_Type_Partition);
+      Attribute_Prefix := Str_To_Id ("attr__");
+      Pragma_Prefix    := Str_To_Id ("pragma__");
+      Type_Prefix      := Str_To_Id ("type__");
 
-      Set_Pragma    ("starter",     Pgm_Starter);
-      Pgm_S_Method := Register ("method");
-      Pgm_SM_Ada   := Register ("ada");
-      Pgm_SM_Shell := Register ("shell");
-      Pgm_SM_None  := Register ("none");
+      --  As a naming convention, we use the reserved keyword "private"
+      --  for the standard configuration name.
+      Create_Configuration
+        (Configuration_Node,
+         Str_To_Id ("private"));
+
+      --  type type__subprogram
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("subprogram"),
+         Type_Kind    => Pre_Type_Subprogram,
+         Structure    => False,
+         Type_Node    => Subprogram_Type_Node);
+
+      --  type string is ...
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("string"),
+         Type_Kind    => Pre_Type_String,
+         Structure    => False,
+         Type_Node    => String_Type_Node);
+
+      --  type Partition is (<configuration dependent>);
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("partition"),
+         Type_Kind    => Pre_Type_Partition,
+         Structure    => True,
+         Type_Node    => Partition_Type_Node);
+
+      Declare_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("main"),
+         Attr_Type_Node => String_Type_Node,
+         Attribute_Kind => Attribute_Main,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("host"),
+         Attr_Type_Node => String_Type_Node,
+         Attribute_Kind => Attribute_Host,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("storage_dir"),
+         Attr_Type_Node => String_Type_Node,
+         Attribute_Kind => Attribute_Storage_Dir,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("command_line"),
+         Attr_Type_Node => String_Type_Node,
+         Attribute_Kind => Attribute_Command_Line,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
+         Type_Kind    => Pre_Type_Ada_Unit,
+         Structure    => False,
+         Type_Node    => Ada_Unit_Type_Node);
+
+      --  type Starter_Type is (Ada, Shell, None);
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("starter"),
+         Type_Kind    => Pre_Type_Starter,
+         Structure    => False,
+         Type_Node    => Starter_Type_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("ada"),
+         Starter_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Convert (Ada_Starter));
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("shell"),
+         Starter_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Convert (Shell_Starter));
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("none"),
+         Starter_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Convert (None_Starter));
+
+      --  type Boolean_Type is (False, True);
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Str_To_Id ("boolean"),
+         Type_Kind    => Pre_Type_Boolean,
+         Structure    => False,
+         Type_Node    => Boolean_Type_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("true"),
+         Boolean_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("false"),
+         Boolean_Type_Node,
+         Unique,
+         Variable_Node);
+
+      --  type Convention_Type is (Ada, Shell);
+      Declare_Type
+        (Conf_Node    => Configuration_Node,
+         Type_Name    => Type_Prefix & Str_To_Id ("convention"),
+         Type_Kind    => Pre_Type_Convention,
+         Structure    => False,
+         Type_Node    => Convention_Type_Node);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("ada"),
+         Convention_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Convert (Ada_Import));
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("shell"),
+         Convention_Type_Node,
+         Not_Unique,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, Convert (Shell_Import));
+
+      --  pragma starter ... or
+      --  procedure pragma__starter
+      --    (method : starter__type);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("starter"),
+         True,
+         Pragma_Starter_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Subprogram_Mark (Pragma_Starter_Node, Convert (Pragma_Starter));
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("method"),
+         Starter_Type_Node,
+         Pragma_Starter_Node,
+         Parameter_Node);
+
+      --  pragma Import ... or
+      --  procedure pragma__import
+      --    (convention : convention__type;
+      --     entity     : procedure;
+      --     link_name  : string);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("import"),
+         True,
+         Pragma_Import_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Subprogram_Mark (Pragma_Import_Node, Convert (Pragma_Import));
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("convention"),
+         Convention_Type_Node,
+         Pragma_Import_Node,
+         Parameter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("entity"),
+         Subprogram_Type_Node,
+         Pragma_Import_Node,
+         Parameter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("link_name"),
+         String_Type_Node,
+         Pragma_Import_Node,
+         Parameter_Node);
+
+      --  pragma invocation_key ... or
+      --  procedure pragma__starter
+      --    (method : starter__type);
+
+      Declare_Subprogram
+        (Pragma_Prefix & Str_To_Id ("invocation"),
+         True,
+         Pragma_Invocation_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Subprogram_Mark
+        (Pragma_Invocation_Node,
+         Convert (Pragma_Invocation));
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_name"),
+         String_Type_Node,
+         Pragma_Invocation_Node,
+         Parameter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_data"),
+         String_Type_Node,
+         Pragma_Invocation_Node,
+         Parameter_Node);
+
+      if Verbose_Mode then
+         Print_Configuration;
+      end if;
 
    end Initialize;
 
-   function Get_Defined_PID (Name : Name_Id) return PID_Type is
-      PID : PID_Type;
-   begin
-      Legal_Partition_Name (Name);
-      PID := Get_PID (Name);
-      if PID = Null_PID then
-         Write_Location (Get_Token_Location);
-         Write_Str ("partition ");
-         Write_Name (Name);
-         Write_Str (" has not been declared");
-         Write_Eol;
-         raise Parsing_Error;
-      end if;
-      return PID;
-   end Get_Defined_PID;
+   ---------------------
+   -- Update_Variable --
+   ---------------------
 
-   procedure Legal_Partition_Name (Name : Name_Id) is
-      PID : PID_Type;
+   procedure Update_Variable
+     (Conf_Node     : in  Configuration_Id;
+      Variable_Name : in  Name_Id;
+      Variable_Type : in  Type_Id;
+      Variable_Node : out Variable_Id) is
+      V : Variable_Id;
    begin
-      PID := Get_PID (Name);
-      if PID = Wrong_PID then
+
+      Search_Variable (Variable_Name, V);
+      Set_Variable_Type  (V, Variable_Type);
+      Variable_Node := V;
+
+   end Update_Variable;
+
+   ------------------------
+   -- Declare_Subprogram --
+   ------------------------
+
+   procedure Declare_Subprogram
+     (Subprogram_Name  : in  Name_Id;
+      Is_A_Procedure   : in  Boolean;
+      Subprogram_Node  : out Subprogram_Id) is
+      Node : Subprogram_Id;
+      Junk : Variable_Id;
+   begin
+
+      Has_Not_Been_Already_Declared (Subprogram_Name);
+
+      Create_Subprogram         (Node, Subprogram_Name);
+      Subprogram_Is_A_Procedure (Node, Is_A_Procedure);
+      Append_Declaration        (Configuration_Node, Node_Id (Node));
+      Subprogram_Node := Node;
+
+      --  We create a variable of type Subprogram_Type_Node to handle
+      --  a pragma statement like a procedure call. The variable value is
+      --  a reference to the previous subprogram node.
+      Declare_Variable
+        (Configuration_Node,
+         Subprogram_Name,
+         Subprogram_Type_Node,
+         Not_Unique,
+         Junk);
+
+      Set_Variable_Value (Junk, Variable_Id (Node));
+
+   end Declare_Subprogram;
+
+   ----------------------------------
+   -- Declare_Subprogram_Parameter --
+   ----------------------------------
+
+   procedure Declare_Subprogram_Parameter
+     (Parameter_Name  : in  Name_Id;
+      Para_Type_Node  : in  Type_Id;
+      Subprogram_Node : in  Subprogram_Id;
+      Parameter_Node  : out Parameter_Id) is
+      Node : Parameter_Id;
+   begin
+
+      Create_Parameter           (Node, Parameter_Name);
+      Set_Parameter_Type         (Node, Para_Type_Node);
+      Add_Subprogram_Parameter   (Subprogram_Node, Node);
+      Parameter_Node := Node;
+
+   end Declare_Subprogram_Parameter;
+
+   ------------------
+   -- Declare_Type --
+   ------------------
+
+   procedure Declare_Type
+     (Conf_Node : in  Configuration_Id;
+      Type_Name : in  Name_Id;
+      Type_Kind : in  Predefined_Type;
+      Structure : in  Boolean;
+      Type_Node : out Type_Id) is
+      T : Type_Id;
+   begin
+
+      Has_Not_Been_Already_Declared (Type_Name);
+      Create_Type         (T, Type_Name);
+      Type_Is_A_Structure (T, Structure);
+      Set_Type_Mark       (T, Convert (Type_Kind));
+      Append_Declaration  (Conf_Node, Node_Id (T));
+      Type_Node := T;
+
+   end Declare_Type;
+
+   ----------------------
+   -- Declare_Variable --
+   ----------------------
+
+   procedure Declare_Variable
+     (Conf_Node     : in  Configuration_Id;
+      Variable_Name : in  Name_Id;
+      Variable_Type : in  Type_Id;
+      Is_Unique     : in  Boolean;
+      Variable_Node : out Variable_Id) is
+      V : Variable_Id;
+   begin
+
+      if Is_Unique then
+         Has_Not_Been_Already_Declared (Variable_Name);
+      end if;
+      Create_Variable    (V, Variable_Name);
+      Append_Declaration (Conf_Node, Node_Id (V));
+      Set_Variable_Type  (V, Variable_Type);
+      Variable_Node := V;
+
+   end Declare_Variable;
+
+   -----------------------
+   -- Declare_Attribute --
+   -----------------------
+
+   procedure Declare_Attribute
+     (Variable_Node      : in Variable_Id;
+      Attribute_Name     : in Name_Id;
+      Attribute_Node     : out Attribute_Id) is
+      A : Component_Id;
+      T : Type_Id;
+      K : Int;
+      N : Name_Id;
+   begin
+
+      --  Attributes are always prefixed by Attribute_Prefix.
+      N := Attribute_Prefix & Attribute_Name;
+
+      --  Is this attribute a legal attribute for varaible type ?
+      T := Get_Variable_Type (Variable_Node);
+      Search_Component (N, T, A);
+      if A = Null_Component then
          Write_Location (Get_Token_Location);
-         Write_Name (Name);
-         Write_Str  (" is not a legal partition name");
+         Write_Str ("no such attribute for variable");
          Write_Eol;
          raise Parsing_Error;
       end if;
-   end Legal_Partition_Name;
+
+      --  Make a copy of the type attribute.
+      T := Get_Component_Type   (A);
+      K := Get_Component_Mark   (A);
+      Create_Component          (A, N);
+      Set_Component_Type        (A, T);
+      Component_Is_An_Attribute (A, True);
+      Add_Variable_Component    (Variable_Node, A);
+      Set_Component_Mark        (Component_Id (A), K);
+      Attribute_Node            := Attribute_Id (A);
+
+   end Declare_Attribute;
+
+   -----------------------
+   -- Declare_Attribute --
+   -----------------------
+
+   procedure Declare_Attribute
+     (Type_Node          : in Type_Id;
+      Attribute_Name     : in Name_Id;
+      Attr_Type_Node     : in Type_Id;
+      Attribute_Kind     : in Attribute_Type;
+      Attribute_Node     : out Attribute_Id) is
+      A : Component_Id;
+      N : Name_Id;
+   begin
+
+      --  Attributes are always prefixed bt Attribute_Prefix.
+      N := Attribute_Prefix & Attribute_Name;
+
+      Create_Component        (A, N);
+      Set_Component_Type      (A, Attr_Type_Node);
+      Component_Is_An_Attribute (A, True);
+      Add_Type_Component      (Type_Node, A);
+      Set_Component_Mark      (Component_Id (A), Convert (Attribute_Kind));
+      Attribute_Node          := Attribute_Id (A);
+
+   end Declare_Attribute;
+
+   -----------------------
+   -- Declare_Component --
+   -----------------------
+
+   procedure Declare_Component
+     (Variable_Node      : in Variable_Id;
+      Component_Name     : in Name_Id;
+      Component_Type     : in Type_Id;
+      Component_Value    : in Variable_Id;
+      Is_An_Attribute    : in Boolean;
+      Component_Node     : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      Create_Component        (C, Component_Name);
+      Set_Component_Type      (C, Component_Type);
+      Set_Component_Value     (C, Node_Id (Component_Value));
+      Component_Is_An_Attribute (C, Is_An_Attribute);
+      Add_Variable_Component  (Variable_Node, C);
+      Component_Node := C;
+
+   end Declare_Component;
+
+   ----------------------------
+   -- Declare_Procedure_Call --
+   ----------------------------
+
+   procedure Declare_Procedure_Call
+     (Subprogram_Node : in Subprogram_Id) is
+      New_Statement  : Statement_Id;
+      Old_Subprogram : Subprogram_Id;
+      New_Subprogram : Subprogram_Id;
+      Old_Parameter  : Parameter_Id;
+      New_Parameter  : Parameter_Id;
+   begin
+
+      Old_Subprogram := Subprogram_Node;
+
+      --  As a naming convention, the reserved keyword "do" indicates
+      --  a procedure call.
+      Create_Statement
+        (New_Statement,
+         Str_To_Id ("do"));
+
+      --  Make a entire copy of subprogram node.
+      Create_Subprogram
+        (New_Subprogram,
+         Get_Node_Name (Node_Id (Old_Subprogram)));
+      Set_Subprogram_Mark
+        (New_Subprogram,
+         Get_Subprogram_Mark (Old_Subprogram));
+      Subprogram_Is_A_Procedure
+        (New_Subprogram,
+         Is_Subprogram_A_Procedure (Old_Subprogram));
+
+      --  ... even parameter nodes ...
+      First_Subprogram_Parameter
+        (Old_Subprogram,
+         Old_Parameter);
+      while Old_Parameter /= Null_Parameter loop
+
+         --  Make a copy of parameters.
+         Declare_Subprogram_Parameter
+           (Get_Node_Name (Node_Id (Old_Parameter)),
+            Get_Parameter_Type (Old_Parameter),
+            New_Subprogram,
+            New_Parameter);
+
+         --  and assign the formal parameters as they were during
+         --  the parameter matching phase.
+         Assign_Variable
+           (Get_Variable_Value (Variable_Id (Old_Parameter)),
+            Variable_Id (New_Parameter));
+
+         Set_Parameter_Mark (New_Parameter, 1);
+         Next_Subprogram_Parameter (Old_Parameter);
+
+      end loop;
+
+      Set_Subprogram_Call (New_Statement, New_Subprogram);
+
+      Append_Declaration
+        (Configuration_Node,
+         Node_Id (New_Statement));
+
+   end Declare_Procedure_Call;
+
+   ---------------------
+   -- Assign_Variable --
+   ---------------------
+
+   procedure Assign_Variable
+     (Source, Target : Variable_Id) is
+      C : Component_Id;
+      X : Component_Id;
+      V : Variable_Id;
+      T : Type_Id;
+      N : Name_Id;
+   begin
+      pragma Assert (Get_Variable_Type (Source) = Get_Variable_Type (Target));
+
+      T := Get_Variable_Type (Source);
+
+      --  Do we need to assign a list or a single element ?
+      if Is_Type_A_Structure (T) then
+
+         --  Assign a list ...
+         First_Variable_Component (Source, C);
+
+         --  As a naming convention, we use the reserved keyword "record"
+         --  for a anonymous component name.
+         N := Str_To_Id ("record");
+         while C /= Null_Component loop
+            if not Is_Component_An_Attribute (C) then
+               V := Variable_Id (Get_Component_Value (C));
+               T := Get_Variable_Type (V);
+               Declare_Component (Target, N, T, V, False, X);
+            end if;
+            Next_Variable_Component (C);
+         end loop;
+      else
+
+         --  Assign a single element.
+         Set_Variable_Value (Target, Source);
+
+      end if;
+
+   end Assign_Variable;
+
+   ---------------------------
+   -- Is_Expression_Of_Type --
+   ---------------------------
+
+   function Is_Expression_Of_Type
+     (Expr_Node : in Node_Id;
+      Type_Node : in Type_Id)
+      return Boolean is
+      Parameter : Parameter_Id;
+      Func_Node : Subprogram_Id;
+   begin
+
+      --  If variable, check the variable type with the given type.
+      if Is_Variable (Expr_Node) then
+         return Get_Variable_Type (Variable_Id (Expr_Node)) = Type_Node;
+
+      --  If subprogram, check the subprogram is a function
+      --  and the returned value type with the given type.
+      elsif Is_Subprogram (Expr_Node) and then
+        not Is_Subprogram_A_Procedure (Subprogram_Id (Expr_Node)) then
+         Func_Node := Subprogram_Id (Expr_Node);
+         Search_Function_Returned_Parameter (Func_Node, Parameter);
+         return Get_Variable_Type (Variable_Id (Parameter)) = Type_Node;
+
+      else
+         return False;
+      end if;
+
+   end Is_Expression_Of_Type;
+
+   -----------------------------------
+   -- Has_Not_Been_Already_Declared --
+   -----------------------------------
+
+   procedure Has_Not_Been_Already_Declared
+     (Declaration_Name : in Name_Id) is
+      Node : Node_Id;
+   begin
+      Search_Declaration (Declaration_Name, Node);
+      if Node = Null_Node then
+         return;
+      elsif Is_Variable (Node) and then
+         Convert (Get_Type_Mark (Get_Variable_Type (Variable_Id (Node)))) /=
+         Pre_Type_Unknown then
+         return;
+      end if;
+      Write_Location (Get_Token_Location);
+      Write_Name (Declaration_Name);
+      Write_Str (" conflicts with a previous declaration");
+      Write_Eol;
+      raise Parsing_Error;
+   end Has_Not_Been_Already_Declared;
+
+   ----------------------------------------
+   -- Search_Function_Returned_Parameter --
+   ----------------------------------------
+
+   procedure Search_Function_Returned_Parameter
+     (Function_Node  : in Subprogram_Id;
+      Parameter_Node : out Parameter_Id) is
+      Prev, Next : Parameter_Id;
+   begin
+      pragma Assert (not Is_Subprogram_A_Procedure (Function_Node));
+
+      --  Basically, look for the last parameter.
+      Prev := Null_Parameter;
+      First_Subprogram_Parameter (Function_Node, Next);
+      while Next /= Null_Parameter loop
+         Prev := Next;
+         Next_Subprogram_Parameter (Next);
+      end loop;
+      Parameter_Node := Parameter_Id (Prev);
+
+   end Search_Function_Returned_Parameter;
+
+   -----------------------------
+   -- Search_Actual_Parameter --
+   -----------------------------
+
+   procedure Search_Actual_Parameter
+     (Actual_Name : in  Name_Id;
+      Actual_Type : in  Type_Id;
+      Actual_Node : out Variable_Id) is
+      Actual : Node_Id;
+   begin
+      First_Configuration_Declaration (Configuration_Node, Actual);
+      while Actual /= Null_Node loop
+         if Is_Variable       (Actual) and then
+            Get_Node_Name     (Actual) = Actual_Name and then
+            Get_Variable_Type (Variable_Id (Actual)) = Actual_Type then
+            Actual_Node := Variable_Id (Actual);
+            return;
+         end if;
+         Next_Configuration_Declaration (Actual);
+      end loop;
+
+      Write_Location (Get_Token_Location);
+      Write_Str  (": identifier ");
+      Write_Name (Actual_Name);
+      Write_Str  (" is undefined");
+      Write_Eol;
+      raise Parsing_Error;
+
+   end Search_Actual_Parameter;
+
+   ------------------------
+   -- Search_Declaration --
+   ------------------------
+
+   procedure Search_Declaration
+     (Declaration_Name : in Name_Id;
+      Declaration_Node : out Node_Id) is
+      Node : Node_Id;
+      Name : Name_Id;
+   begin
+      First_Configuration_Declaration (Configuration_Node, Node);
+      while Node /= Null_Node loop
+         Name := Get_Node_Name (Node);
+         exit when Name = Declaration_Name;
+         Next_Configuration_Declaration (Node);
+      end loop;
+      Declaration_Node := Node;
+   end Search_Declaration;
+
+   ----------------------
+   -- Search_Component --
+   ----------------------
+
+   procedure Search_Component
+     (Component_Name : in  Name_Id;
+      Type_Node      : in  Type_Id;
+      Component_Node : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      First_Type_Component (Type_Node, C);
+      while C /= Null_Component loop
+         exit when Get_Node_Name (Node_Id (C)) = Component_Name;
+         Next_Type_Component (C);
+      end loop;
+      Component_Node := C;
+
+   end Search_Component;
+
+   ----------------------
+   -- Search_Component --
+   ----------------------
+
+   procedure Search_Component
+     (Component_Name : in  Name_Id;
+      Variable_Node  : in  Variable_Id;
+      Component_Node : out Component_Id) is
+      C : Component_Id;
+   begin
+
+      First_Variable_Component (Variable_Node, C);
+      while C /= Null_Component loop
+         exit when Get_Node_Name (Node_Id (C)) = Component_Name;
+         Next_Variable_Component (C);
+      end loop;
+      Component_Node := C;
+
+   end Search_Component;
+
+   ---------------------
+   -- Search_Variable --
+   ---------------------
+
+   procedure Search_Variable
+     (Variable_Name : in  Name_Id;
+      Variable_Node : out Variable_Id) is
+      Node : Node_Id;
+   begin
+
+      Search_Declaration (Variable_Name, Node);
+      if Node /= Null_Node  and then
+         not Is_Variable (Node) then
+         Node := Null_Node;
+      end if;
+      Variable_Node := Variable_Id (Node);
+
+   end Search_Variable;
+
+   -----------------------
+   -- Search_Subprogram --
+   -----------------------
+
+   procedure Search_Subprogram
+     (Subprogram_Name : in  Name_Id;
+      Subprogram_Node : out Subprogram_Id) is
+      Node : Node_Id;
+   begin
+
+      Search_Declaration (Subprogram_Name, Node);
+      if Node /= Null_Node and then
+         not Is_Subprogram (Node) then
+         Node := Null_Node;
+      end if;
+      Subprogram_Node := Subprogram_Id (Node);
+
+   end Search_Subprogram;
+
+   -------------------
+   -- Search_Pragma --
+   -------------------
+
+   procedure Search_Pragma
+     (Pragma_Name : in  Name_Id;
+      Pragma_Kind : out Pragma_Type;
+      Pragma_Node : out Subprogram_Id) is
+      Node : Subprogram_Id;
+   begin
+
+      Search_Subprogram (Pragma_Name, Node);
+      Pragma_Kind := Convert (Get_Subprogram_Mark (Node));
+      Pragma_Node := Node;
+
+   end Search_Pragma;
+
+   -----------------
+   -- Search_Type --
+   -----------------
+
+   procedure Search_Type
+     (Type_Name : in  Name_Id;
+      Type_Kind : out Predefined_Type;
+      Type_Node : out Type_Id) is
+      Node : Node_Id;
+   begin
+
+      Search_Declaration (Type_Name, Node);
+      if Node /= Null_Node and then
+         not Is_Type (Node) then
+         Node := Null_Node;
+      end if;
+      Type_Node := Type_Id (Node);
+      if Node /= Null_Node then
+         Type_Kind := Convert (Get_Type_Mark (Type_Id (Node)));
+      else
+         Type_Kind := Pre_Type_Unknown;
+      end if;
+
+   end Search_Type;
+
+   ----------------------------------
+   -- Unmark_Subprogram_Parameters --
+   ----------------------------------
+
+   procedure Unmark_Subprogram_Parameters
+     (Subprogram_Node : Subprogram_Id;
+      N_Parameter     : out Int) is
+      Count : Int    := 0;
+      Parameter_Node  : Parameter_Id;
+   begin
+
+      First_Subprogram_Parameter (Subprogram_Node, Parameter_Node);
+      while Parameter_Node /= Null_Parameter loop
+         Set_Parameter_Mark (Parameter_Node, 0);
+         Count := Count + 1;
+         Next_Subprogram_Parameter (Parameter_Node);
+      end loop;
+      N_Parameter := Count;
+
+   end Unmark_Subprogram_Parameters;
+
+   -------------------------------
+   -- Search_Matching_Parameter --
+   -------------------------------
+
+   procedure Search_Matching_Parameter
+     (Subprogram_Node : Subprogram_Id;
+      Convention      : Convention_Type;
+      Formal_Name     : in out Name_Id;
+      Parameter_Node  : in out Parameter_Id) is
+   begin
+
+      First_Subprogram_Parameter (Subprogram_Node, Parameter_Node);
+      while Parameter_Node /= Null_Parameter loop
+         case Convention is
+
+            --  If Positional, find the first unmarked parameter.
+            when Positional =>
+               if Get_Parameter_Mark (Parameter_Node) = 0 then
+                  Set_Parameter_Mark (Parameter_Node, 1);
+                  Formal_Name := Get_Node_Name (Node_Id (Parameter_Node));
+                  return;
+               end if;
+
+            --  If Named, use Formal_Name to return format parameter node.
+            when Named =>
+               if Get_Node_Name (Node_Id (Parameter_Node)) = Formal_Name then
+                  return;
+               end if;
+
+            when Unknown =>
+               raise Parsing_Error;
+         end case;
+         Next_Subprogram_Parameter (Parameter_Node);
+      end loop;
+
+      Write_Location (Get_Token_Location);
+      Write_Str  (": no matching parameter");
+      Write_Eol;
+      raise Parsing_Error;
+
+   end Search_Matching_Parameter;
+
+   -------------------------
+   -- Print_Configuration --
+   -------------------------
+
+   procedure Print_Configuration is
+      Node : Node_Id;
+   begin
+      Write_Eol;
+      Write_Str ("configuration");
+      Write_Eol;
+      Write_Str ("=============");
+      Write_Eol;
+      Write_Eol;
+      First_Configuration_Declaration (Configuration_Node, Node);
+      Print (Node, "");
+   end Print_Configuration;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Variable_Id;
+      Head : in String) is
+      T : Type_Id;
+      C : Component_Id;
+      H : String (1 .. Head'Length + 6) := (others => ' ');
+   begin
+      Write_Str  (Head);
+      Write_Str  ("Type : ");
+      T := Get_Variable_Type (Node);
+      Write_Name (Get_Node_Name (Node_Id (T)));
+      Write_Eol;
+      Write_Str  (Head);
+      Write_Str  ("Mark : ");
+      Write_Int (Get_Variable_Mark (Node));
+      Write_Eol;
+      if Is_Type_A_Structure (T) then
+         Write_Str  (Head);
+         Write_Str  ("    Data :");
+         Write_Eol;
+         First_Variable_Component (Node, C);
+         while C /= Null_Component loop
+            Print (C, H, True);
+            Next_Variable_Component (C);
+         end loop;
+         Write_Str  (Head);
+         Write_Str  ("    Attr :");
+         Write_Eol;
+         First_Variable_Component (Node, C);
+         while C /= Null_Component loop
+            Print (C, H, False);
+            Next_Variable_Component (C);
+         end loop;
+      elsif Get_Variable_Value (Node) /= Null_Variable then
+         Write_Str  (Head);
+         Write_Str  ("    Data :");
+         Write_Eol;
+         Write_Str  (Head);
+         Write_Str  ("       ");
+         Write_Name (Get_Node_Name (Node_Id (Get_Variable_Value (Node))));
+         Write_Eol;
+      end if;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Type_Id;
+      Head : in String) is
+      C : Component_Id;
+      H : String (1 .. Head'Length + 6) := (others => ' ');
+   begin
+      First_Type_Component (Node, C);
+      if C /= Null_Component then
+         Write_Str  (Head);
+         Write_Str  ("   Attr : ");
+         Write_Eol;
+         while C /= Null_Component loop
+            Print (C, H, False);
+            Next_Type_Component (C);
+         end loop;
+      end if;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Component_Id;
+      Head : in String;
+      Data : in Boolean) is
+      Item  : Node_Id;
+      Value : Node_Id;
+   begin
+      if not Data and then Is_Component_An_Attribute (Node) then
+         Write_Str  (Head);
+         Write_Name (Get_Node_Name (Node_Id (Node)));
+         Write_Str  (" : ");
+         Item := Node_Id (Get_Component_Type (Node));
+         Write_Name (Get_Node_Name (Item));
+         Value := Get_Component_Value (Node);
+         if Value /= Null_Node then
+            Write_Eol;
+            Write_Str (Head);
+            Write_Str ("   = (");
+            Write_Name (Get_Node_Name (Node_Id (Value)));
+            Write_Str  (", ");
+            if Is_Subprogram (Value) then
+               Write_Int  (Get_Subprogram_Mark (Subprogram_Id (Value)));
+            elsif Is_Variable (Value) then
+               Write_Int  (Get_Variable_Mark (Variable_Id (Value)));
+            else
+               Write_Str ("<none>");
+            end if;
+            Write_Str (")");
+         end if;
+         Write_Eol;
+      elsif Data and then not Is_Component_An_Attribute (Node) then
+         Write_Str  (Head);
+         Write_Name (Get_Node_Name (Node_Id (Node)));
+         Write_Str  (" : ");
+         Item := Get_Component_Value (Node);
+         Write_Name (Get_Node_Name (Item));
+         Write_Eol;
+      end if;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Parameter_Id;
+      Head : in String) is
+      Item  : Type_Id;
+   begin
+      Write_Str  (Head);
+      Write_Name (Get_Node_Name (Node_Id (Node)));
+      Write_Str  (" : ");
+      Item := Get_Parameter_Type (Node);
+      Write_Name (Get_Node_Name (Node_Id (Item)));
+      if Get_Parameter_Mark (Node) /= 0 then
+         declare
+            H : String (1 .. Head'Length + 3) := (others => ' ');
+            V : Variable_Id;
+         begin
+            V := Get_Variable_Value (Variable_Id (Node));
+            Write_Str (" := ");
+            Write_Name (Get_Node_Name (Node_Id (V)));
+         end;
+      end if;
+      Write_Eol;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Subprogram_Id;
+      Head : in String) is
+      H : String (1 .. Head'Length + 6) := (others => ' ');
+      P : Parameter_Id;
+   begin
+      Write_Str (Head);
+      Write_Str  ("    Mark : ");
+      Write_Int (Get_Subprogram_Mark (Node));
+      Write_Eol;
+      Write_Str  (Head);
+      Write_Str  ("    Para :");
+      Write_Eol;
+      First_Subprogram_Parameter (Node, P);
+      while P /= Null_Parameter loop
+         Print (P, H);
+         Next_Subprogram_Parameter (P);
+      end loop;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Statement_Id;
+      Head : in String) is
+      S : Subprogram_Id;
+   begin
+      S := Get_Subprogram_Call (Node);
+      Write_Str  (Head);
+      Write_Str  ("Call : ");
+      Write_Name (Get_Node_Name (Node_Id (S)));
+      Write_Eol;
+      Print (S, Head);
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Configuration_Id;
+      Head : in String) is
+   begin
+      null;
+   end Print;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print
+     (Node : in Node_Id;
+      Head : in String) is
+      Next : Node_Id;
+   begin
+      Write_Str  (Head);
+      Write_Str  ("Name : ");
+      Write_Name (Get_Node_Name (Node));
+      Write_Eol;
+      Write_Str (Head);
+      Write_Str ("Kind : ");
+      if Is_Variable (Node) then
+         Write_Str ("variable");
+         Write_Eol;
+         Print (Variable_Id (Node), Head);
+      elsif Is_Type (Node) then
+         Write_Str ("type");
+         Write_Eol;
+         Print (Type_Id (Node), Head);
+      elsif Is_Subprogram (Node) then
+         Write_Str ("subprogram");
+         Write_Eol;
+         Print (Subprogram_Id (Node), Head);
+      elsif Is_Configuration (Node) then
+         Write_Str ("configuration");
+         Write_Eol;
+         Print (Configuration_Id (Node), Head);
+      elsif Is_Statement (Node) then
+         Write_Str ("statement");
+         Write_Eol;
+         Print (Statement_Id (Node), Head);
+      else
+         Write_Str ("unknown");
+         Write_Eol;
+      end if;
+      Write_Eol;
+      Next := Node;
+      Next_Configuration_Declaration (Next);
+      if Next /= Null_Node then
+         Print (Next, Head);
+      end if;
+   end Print;
 
 end XE_Parse;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.16                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -91,6 +91,8 @@ package body XE_Scan is
             Write_Str ("end of file");
          when Tok_Semicolon =>
             Write_Str (""";""");
+         when Tok_Return =>
+            Write_Str ("""return""");
          when Tok_Unknown =>
             Write_Str ("");
       end case;
@@ -147,6 +149,7 @@ package body XE_Scan is
       Set_Token ("end",           Tok_End);
       Set_Token ("begin",         Tok_Begin);
       Set_Token ("null",          Tok_Null);
+      Set_Token ("return",        Tok_Return);
       Set_Token ("mod",           Tok_Unknown);
       Set_Token ("rem",           Tok_Unknown);
       Set_Token ("new",           Tok_Unknown);
@@ -187,7 +190,6 @@ package body XE_Scan is
       Set_Token ("if",            Tok_Unknown);
       Set_Token ("raise",         Tok_Unknown);
       Set_Token ("requeue",       Tok_Unknown);
-      Set_Token ("return",        Tok_Unknown);
       Set_Token ("select",        Tok_Unknown);
       Set_Token ("terminate",     Tok_Unknown);
       Set_Token ("until",         Tok_Unknown);
@@ -202,11 +204,9 @@ package body XE_Scan is
       Set_Token ("subtype",       Tok_Unknown);
       Set_Token ("generic",       Tok_Unknown);
       Set_Token ("package",       Tok_Unknown);
-      Set_Token ("generic",       Tok_Unknown);
       Set_Token ("private",       Tok_Unknown);
       Set_Token ("with",          Tok_Unknown);
       Set_Token ("separate",      Tok_Unknown);
-      Set_Token ("generic",       Tok_Unknown);
 
    end Initialize;
 
@@ -265,7 +265,11 @@ package body XE_Scan is
                      end if;
                      Scan_Ptr := Scan_Ptr + 1;
                   end loop;
-                  Found := False;
+                  if Token = Tok_EOF then
+                     Found := True;
+                  else
+                     Found := False;
+                  end if;
 
                else
 
@@ -411,7 +415,9 @@ package body XE_Scan is
          Write_Location (Token_Location);
          Write_Str ("character '");
          Write_Char (Buffer (Scan_Ptr));
-         Write_Str ("' not allowed");
+         Write_Str ("' not allowed (");
+         Write_Int (Character'Pos (Buffer (Scan_Ptr)));
+         Write_Str (")");
          Write_Eol;
          raise Scanning_Error;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.8                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -25,6 +25,7 @@
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
+with XE;             use XE;
 with Osint;          use Osint;
 with Output;         use Output;
 
@@ -32,6 +33,11 @@ procedure XE_Usage is
 
 begin
 
+   if Verbose_Mode then
+      Write_Str ("GNATDIST @dsa_version@ / GNAT @gnat_version@");
+      Write_Str (" Copyright 1996 Free Software Foundation, Inc.");
+      Write_Eol;
+   end if;
    Write_Str ("Usage: ");
    Osint.Write_Program_Name;
    Write_Str (" [options] name[.cfg] {[partition]}");
@@ -39,6 +45,8 @@ begin
    Write_Eol;
    Write_Eol;
 
+   Write_Str ("  -l   Output commands to build application manually");
+   Write_Eol;
    Write_Str ("  -n   No file stamp consistency check");
    Write_Eol;
    Write_Str ("  -q   Be quiet, do not display partitioning operations");

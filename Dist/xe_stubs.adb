@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                          GNATDIST COMPONENTS                             --
 --                                                                          --
@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.34                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -35,10 +35,13 @@ with XE_Defs;          use XE_Defs;
 with XE_Utils;         use XE_Utils;
 with XE;               use XE;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
+with Unchecked_Deallocation;
 
 procedure XE_Stubs is
 
    Separator : Character renames GNAT.Os_Lib.Directory_Separator;
+
+   procedure Deallocate is new Unchecked_Deallocation (String, String_Access);
 
    --  Local subprograms
 
@@ -63,6 +66,10 @@ procedure XE_Stubs is
 
    procedure Build_Stub (UID : in CUID_Type);
    --  Create the caller stub and the receiver stub for a RCI unit.
+
+   procedure Update_Switch (S : in out String_Access);
+   --  For a given '-I' switch (or equivalent -L -a*), update it
+   --  if it is a relative path and add ../.. at the beginning.
 
    ------------------------
    -- Write_Caller_Withs --
@@ -158,11 +165,31 @@ procedure XE_Stubs is
       Fname : File_Name_Type := DSA_Dir & Dir_Sep_Id &
                                 PName & Dir_Sep_Id &
                                 PName & ADB_Suffix;
+      Host  : Host_Id;
+      Main  : Main_Subprogram_Type;
 
    begin
 
-      if Is_Regular_File (Fname) and then
-         Later (Fname, Configuration_File) then
+      if not Is_Regular_File (Fname) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Fname);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+      elsif Later (Configuration_File, Fname) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Fname);
+            Write_Stamp (Fname);
+            Write_Str (" is newer than ");
+            Write_Name (Configuration_File);
+            Write_Stamp (Configuration_File);
+            Write_Eol;
+         end if;
+      else
          return;
       end if;
 
@@ -172,6 +199,12 @@ procedure XE_Stubs is
 
       Create (FD, Fname);
 
+      if Building_Script then
+         Write_Str ("cat >");
+         Write_Name (Fname);
+         Write_Str (" <<EOF");
+         Write_Eol;
+      end if;
 
       --  Force the RCI receivers to be present on the partition.
       Write_Eol (FD);
@@ -189,7 +222,7 @@ procedure XE_Stubs is
       end loop;
 
       --  Need the RCI callers to compare their version with the
-      --  receiver version stored on the RNS.
+      --  receiver version.
       Write_Eol (FD);
       Write_Str (FD, "--  RCI caller units");
       Write_Eol (FD);
@@ -218,7 +251,11 @@ procedure XE_Stubs is
       Write_Eol (FD);
       Write_Str (FD, "--  System");
       Write_Eol (FD);
-      Write_Str (FD, "with system.garlic.heart;");
+      Write_Str (FD, "with system.garlic.startup;");
+      Write_Eol (FD);
+      Write_Str (FD, "pragma elaborate_all (system.garlic.startup);");
+      Write_Eol (FD);
+      Write_Str (FD, "with system.garlic.heart");
       Write_Eol (FD);
       Write_Str (FD, "with system.partition_interface;");
       Write_Eol (FD);
@@ -252,9 +289,8 @@ procedure XE_Stubs is
       Write_Eol  (FD);
 
       if PID = Main_Partition then
-
          if Starter_Method = Ada_Starter and
-           Partitions.First /= Partitions.Last then
+            Partitions.First /= Partitions.Last then
             Write_Str (FD, "   if not system.garlic.options");
             Write_Str (FD, ".get_nolaunch then");
             Write_Eol (FD);
@@ -262,31 +298,48 @@ procedure XE_Stubs is
                if Partition /= Main_Partition then
                   Write_Str (FD, "      system.garlic.remote.full_launch");
                   Write_Eol (FD);
-                  if Partitions.Table (Partition).Host.Name = No_Host_Name then
+                  if Partitions.Table (Partition).Host = Null_Host then
+                     Host := Default_Host;
+                  else
+                     Host := Partitions.Table (Partition).Host;
+                  end if;
+                  if Host = Null_Host then
                      Write_Str  (FD, "         (host            => ");
                      Write_Str  (FD, "system.garlic.remote.get_host (""");
                      Write_Name (FD, Partitions.Table (Partition) .Name);
                      Write_Str  (FD, """),");
                   else
-                     Write_Str  (FD, "         (host            => """);
-                     if Partitions.Table (Partition).Host.Func then
-                        Write_Str (FD, "`");
-                        Write_Name (FD,
-                                    Partitions.Table (Partition).Host.Name);
-                        Write_Str (FD, "`");
+                     Write_Str  (FD, "         (host            => ");
+                     if not Hosts.Table (Host).Static then
+                        if Hosts.Table (Host).Import = Shell_Import then
+                           Write_Str (FD, """`");
+                           Write_Name (FD, Hosts.Table (Host).External);
+                           Write_Str (FD, "`""");
+                        elsif Hosts.Table (Host).Import = Ada_Import then
+                           Write_Name (FD, Hosts.Table (Host).External);
+                           Write_Str (FD, "(");
+                           Write_Name (FD, Partitions.Table (Partition).Name);
+                           Write_Str (FD, ")");
+                        end if;
                      else
-                        Write_Name (FD,
-                                    Partitions.Table (Partition).Host.Name);
+                        Write_Str  (FD, """");
+                        Write_Name (FD, Hosts.Table (Host).Name);
+                        Write_Str  (FD, """");
                      end if;
-                     Write_Str  (FD, """,");
+                     Write_Str  (FD, ",");
                   end if;
                   Write_Eol (FD);
                   Write_Str (FD, "          executable_name => """);
 
                   Write_Executable_Name : declare
-                     Dir : constant Name_Id :=
-                       Partitions.Table (Partition).Storage_Dir;
+                     Dir : Name_Id
+                       := Partitions.Table (Partition).Storage_Dir;
                   begin
+
+                     if Dir = No_Storage_Dir then
+                        Dir := Default_Storage_Dir;
+                     end if;
+
                      if Dir = No_Storage_Dir then
 
                         --  No storage dir means current directory
@@ -314,6 +367,24 @@ procedure XE_Stubs is
 
                      Write_Name (FD, Partitions.Table (Partition) .Name);
                   end Write_Executable_Name;
+
+                  Write_Command_Line : declare
+                     Cmd : Name_Id
+                       := Partitions.Table (Partition).Command_Line;
+                  begin
+
+                     if Cmd = No_Command_Line then
+                        Cmd := Default_Command_Line;
+                     end if;
+
+                     if Cmd /= No_Command_Line then
+                        Write_Str (FD, " ");
+                        Get_Name_String (Cmd);
+                        Write_Str (FD, Name_Buffer (1 .. Name_Len));
+                     end if;
+
+
+                  end Write_Command_Line;
 
                   Write_Str (FD, """,");
                   Write_Eol (FD);
@@ -383,6 +454,17 @@ procedure XE_Stubs is
          Write_Eol  (FD);
          Write_Str  (FD, "   end select;");
          Write_Eol  (FD);
+      else
+         Main := Partitions.Table (PID).Main_Subprogram;
+         if Main = No_Main_Subprogram then
+            Main := Default_Main;
+         end if;
+         if Main /= No_Name then
+            Write_Str  (FD, "   ");
+            Write_Name (FD, Main);
+            Write_Str  (FD, ";");
+            Write_Eol  (FD);
+         end if;
       end if;
 
       Write_Str  (FD, "end ");
@@ -390,6 +472,11 @@ procedure XE_Stubs is
       Write_Str  (FD, ";");
       Write_Eol  (FD);
       Close (FD);
+
+      if Building_Script then
+         Write_Str ("EOF");
+         Write_Eol;
+      end if;
 
       if not Quiet_Output then
          Write_Program_Name;
@@ -494,6 +581,7 @@ procedure XE_Stubs is
       Name            : Name_Id := CUnit.Table (UID).CUname;
       Full_RCI_Spec   : Name_Id;
       Full_RCI_Body   : Name_Id;
+      Full_ALI_File   : Name_Id;
       RCI_Spec        : Name_Id;
       RCI_Body        : Name_Id;
       Caller_Body     : Name_Id;
@@ -515,18 +603,86 @@ procedure XE_Stubs is
       Receiver_Object := Receiver_Dir & Dir_Sep_Id & Name & Obj_Suffix;
       Caller_ALI      := Caller_Dir & Dir_Sep_Id & Name & ALI_Suffix;
       Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Name & ALI_Suffix;
+      Full_ALI_File   := ALIs.Table (CUnit.Table (UID).My_ALI).Afile;
 
       --  Do we need to regenerate the caller stub and its ali.
-      if not Is_Regular_File (Caller_Body) or else
-         Later (Full_RCI_Spec, Caller_Body) then
+      if not Obsolete and then not Is_Regular_File (Caller_Body) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_Body);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then Later (Full_RCI_Spec, Caller_Body) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_Body);
+            Write_Stamp (Caller_Body);
+            Write_Str (" is older than ");
+            Write_Name (Full_RCI_Spec);
+            Write_Stamp (Full_RCI_Spec);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
-      if not Is_Regular_File (Caller_Object) or else
-         Later (Caller_Body, Caller_Object) then
+      if not Obsolete and then not Is_Regular_File (Caller_Object) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_Object);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then Later (Caller_Body, Caller_Object) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_Body);
+            Write_Stamp (Caller_Body);
+            Write_Str (" is older than ");
+            Write_Name (Caller_Object);
+            Write_Stamp (Caller_Object);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
-      if not Is_Regular_File (Caller_ALI) or else
-         Later (Caller_Body, Caller_ALI) then
+      if not Obsolete and then not Is_Regular_File (Caller_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_ALI);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then  Later (Caller_Body, Caller_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Caller_Body);
+            Write_Stamp (Caller_Body);
+            Write_Str (" is older than ");
+            Write_Name (Caller_ALI);
+            Write_Stamp (Caller_ALI);
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      end if;
+      if not Obsolete and then Later (Full_ALI_File, Caller_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Full_ALI_File);
+            Write_Stamp (Full_ALI_File);
+            Write_Str (" is older than ");
+            Write_Name (Caller_ALI);
+            Write_Stamp (Caller_ALI);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
 
@@ -562,16 +718,83 @@ procedure XE_Stubs is
       --  Do we need to generate the receiver stub and its ali.
       Obsolete := False;
 
-      if not Is_Regular_File (Receiver_Body) or else
-         Later (Full_RCI_Body, Receiver_Body) then
+      if not Obsolete and then not Is_Regular_File (Receiver_Body) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Receiver_Body);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then Later (Full_RCI_Body, Receiver_Body) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Full_RCI_Body);
+            Write_Stamp (Full_RCI_Body);
+            Write_Str (" is older than ");
+            Write_Name (Receiver_Body);
+            Write_Stamp (Receiver_Body);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
-      if not Is_Regular_File (Receiver_Object) or else
-         Later (Receiver_Body, Receiver_Object) then
+      if not Obsolete and then not Is_Regular_File (Receiver_Object) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Receiver_Object);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then Later (Receiver_Body, Receiver_Object) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Receiver_Body);
+            Write_Stamp (Receiver_Body);
+            Write_Str (" is older than ");
+            Write_Name (Receiver_Object);
+            Write_Stamp (Receiver_Object);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
-      if not Is_Regular_File (Receiver_ALI) or else
-         Later (Receiver_Body, Receiver_ALI) then
+      if not Obsolete and then not Is_Regular_File (Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Receiver_ALI);
+            Write_Str (" does not exist");
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      elsif not Obsolete and then Later (Receiver_Body, Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Receiver_Body);
+            Write_Stamp (Receiver_Body);
+            Write_Str (" is older than ");
+            Write_Name (Receiver_ALI);
+            Write_Stamp (Receiver_ALI);
+            Write_Eol;
+         end if;
+         Obsolete := True;
+      end if;
+      if not Obsolete and then Later (Full_ALI_File, Receiver_ALI) then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": ");
+            Write_Name (Full_ALI_File);
+            Write_Stamp (Full_ALI_File);
+            Write_Str (" is older than ");
+            Write_Name (Receiver_ALI);
+            Write_Stamp (Receiver_ALI);
+            Write_Eol;
+         end if;
          Obsolete := True;
       end if;
 
@@ -601,6 +824,48 @@ procedure XE_Stubs is
 
    end Build_Stub;
 
+   procedure Update_Switch (S : in out String_Access) is
+
+      procedure Update (S : in out String_Access; I : Natural);
+
+      procedure Update (S : in out String_Access; I : Natural) is
+
+         T : String (S'First .. S'Last + 6);
+         N : Natural := I - 1;
+
+      begin
+         T (S'First .. N) := S (S'First .. N);
+         N := N + 1;
+         T (N .. N + 5) := "../../";
+         N := N + 6;
+         T (N .. T'Last) := S (I .. S'Last);
+         Deallocate (S);
+         S := new String'(T);
+      end Update;
+
+      N : Natural := S'First + 1;
+
+   begin
+      case S (N) is
+         when 'a' =>
+            case S (N + 1) is
+               when 'L' | 'O' | 'I' =>
+                  if S (N + 2) /= Separator then
+                     Update (S, N + 2);
+                  end if;
+               when others =>
+                  null;
+            end case;
+         when 'I' | 'L' | 'A' =>
+            if S (N + 1) /= Separator and then
+               S (N + 1) /= '-' then
+               Update (S, N + 1);
+            end if;
+         when others =>
+            null;
+      end case;
+   end Update_Switch;
+
 begin
 
    if not Is_Directory (Caller_Dir) then
@@ -624,6 +889,18 @@ begin
          end if;
          Build_Stub (CUID);
       end if;
+   end loop;
+
+   for S in Gcc_Switches.First .. Gcc_Switches.Last loop
+      Update_Switch (Gcc_Switches.Table (S));
+   end loop;
+
+   for S in Linker_Switches.First .. Linker_Switches.Last loop
+      Update_Switch (Linker_Switches.Table (S));
+   end loop;
+
+   for S in Binder_Switches.First .. Binder_Switches.Last loop
+      Update_Switch (Binder_Switches.Table (S));
    end loop;
 
    --  Create and fill partition directories.
@@ -660,12 +937,19 @@ begin
          declare
 
             Exec_Name : Name_Id := Partitions.Table (PID).Name;
+            Dir_Name  : Name_Id;
 
          begin
 
+            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+               Dir_Name := Default_Storage_Dir;
+            else
+               Dir_Name := Partitions.Table (PID).Storage_Dir;
+            end if;
+
             --  Bind and link are performed in the partition directory
             --  dsa/<partition_name>. We compute relative output.
-            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+            if Dir_Name  = No_Storage_Dir then
 
                Exec_Name := G_Parent_Dir & Dir_Sep_Id & Exec_Name;
 
@@ -673,30 +957,29 @@ begin
 
                declare
 
-                  Dir : Name_Id := Partitions.Table (PID).Storage_Dir;
-                  Str : String (1 .. Strlen (Dir));
+                  Str : String (1 .. Strlen (Dir_Name));
 
                begin
 
-                  Get_Name_String (Dir);
+                  Get_Name_String (Dir_Name);
                   Str := Name_Buffer (1 .. Name_Len);
 
                   --  Is it a relative storage directory ?
                   if Str (1) /= Separator then
 
                      --  Create dir before changing directory,
-                     if not Is_Directory (Dir) then
-                        Create_Dir (Dir);
+                     if not Is_Directory (Dir_Name) then
+                        Create_Dir (Dir_Name);
                      end if;
-                     Dir := G_Parent_Dir & Dir_Sep_Id & Dir;
+                     Dir_Name := G_Parent_Dir & Dir_Sep_Id & Dir_Name;
 
-                  elsif not Is_Directory (Dir) then
+                  elsif not Is_Directory (Dir_Name) then
 
-                     Create_Dir (Dir);
+                     Create_Dir (Dir_Name);
 
                   end if;
 
-                  Exec_Name := Dir & Dir_Sep_Id & Exec_Name;
+                  Exec_Name := Dir_Name & Dir_Sep_Id & Exec_Name;
 
                end;
 

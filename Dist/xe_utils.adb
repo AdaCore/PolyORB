@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.24                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -72,17 +72,16 @@ package body XE_Utils is
    end Locate;
 
    GNAT_Verbose   : String_Access;
-   Output_Option  : String_Access := new String'("-o");
-   XE_Gcc         : String_Access := Locate ("xe-gcc");
-   Gcc            : String_Access := Locate ("gcc");
-   Gnatmake       : String_Access := Locate ("gnatmake");
-   Gnatbind       : String_Access := Locate ("gnatbind");
-   Gnatlink       : String_Access := Locate ("gnatlink");
-   Mkdir          : String_Access := Locate ("mkdir");
-   Copy           : String_Access := Locate ("cp");
-   Link           : String_Access := Locate ("ln", False);
-   Chmod          : String_Access := Locate ("chmod");
-   Rm             : String_Access := Locate ("rm");
+   Output_Option  : constant String_Access := new String'("-o");
+   XE_Gcc         : constant String_Access := Locate ("xe-gcc");
+   Gcc            : constant String_Access := Locate ("gcc");
+   Mkdir          : constant String_Access := Locate ("mkdir");
+   Copy           : constant String_Access := Locate ("cp");
+   Link           : constant String_Access := Locate ("ln", False);
+   Chmod          : constant String_Access := Locate ("chmod");
+   Rm             : constant String_Access := Locate ("rm");
+   Gnatbind       : constant String_Access := Locate ("gnatbind");
+   Gnatlink       : constant String_Access := Locate ("gnatlink");
 
    EOL : constant String (1 .. 1) := (others => Ascii.LF);
 
@@ -90,6 +89,7 @@ package body XE_Utils is
    Symbolic              : constant String_Access := new String' ("-s");
    Force                 : constant String_Access := new String' ("-f");
    Compile_Flag          : constant String_Access := new String' ("-c");
+   Exclude_File_Flag     : constant String_Access := new String' ("-x");
    Receiver_Build_Flag   : constant String_Access := new String' ("-gnatzr");
    Caller_Build_Flag     : constant String_Access := new String' ("-gnatzc");
    Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzR");
@@ -97,10 +97,6 @@ package body XE_Utils is
 
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
-
-   Cargs_Flag       : constant String_Access := new String' ("-cargs");
-   Bargs_Flag       : constant String_Access := new String' ("-bargs");
-   Largs_Flag       : constant String_Access := new String' ("-largs");
 
    Sem_Only_Flag    : constant String_Access := new String' ("-gnatc");
    --  Workaround : bad object file generated during stub generation
@@ -111,7 +107,9 @@ package body XE_Utils is
    I_G_Parent_Dir   : constant String_Access := new String' ("-I../..");
 
    L_Current_Dir    : constant String_Access := new String' ("-L.");
+   L_Caller_Dir     : constant String_Access := new String' ("-L../caller");
    L_DSA_Caller_Dir : constant String_Access := new String' ("-Ldsa/caller");
+   L_G_Parent_Dir   : constant String_Access := new String' ("-L../..");
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
@@ -125,18 +123,20 @@ package body XE_Utils is
    --  Execute xe-gcc and add gnatdist compilation flags
 
    procedure Execute_Gcc
-     (Flags : Argument_List;
-      File : String_Access);
+     (File : File_Name_Type;
+      Args : Argument_List);
    --  Execute gcc and add gnatdist compilation flags
 
-   procedure Execute_Gnatmake
-     (Prog  : File_Name_Type;
-      Exec  : File_Name_Type;
-      Margs : Argument_List;
-      Cargs : Argument_List;
-      Bargs : Argument_List;
-      Largs : Argument_List);
-   --  Execute gnatmake and add gnatdist flags
+   procedure Execute_Bind
+     (Lib  : File_Name_Type;
+      Args : Argument_List);
+   --  Execute gnatbind and add gnatdist flags
+
+   procedure Execute_Link
+     (Lib  : File_Name_Type;
+      Exec : File_Name_Type;
+      Args : Argument_List);
+   --  Execute gnatlink and add gnatdist flags
 
    -----------
    -- Later --
@@ -168,12 +168,10 @@ package body XE_Utils is
       Success : Boolean := False;
    begin
 
-      if Verbose_Mode then
+      if Verbose_Mode or else Building_Script then
          Write_Str (Prog.all);
          for Index in Args'Range loop
-            if Args (Index) = null then
-               Write_Str (" <null>");
-            else
+            if Args (Index) /= null then
                Write_Str (" ");
                Write_Str (Args (Index).all);
             end if;
@@ -261,6 +259,12 @@ package body XE_Utils is
          raise XE.Fatal_Error;
       end if;
 
+      if Building_Script then
+         Write_Str ("cd ");
+         Write_Name (To);
+         Write_Eol;
+      end if;
+
    end Change_Dir;
 
    ----------------
@@ -284,6 +288,17 @@ package body XE_Utils is
       end loop;
    end Create_Dir;
 
+   -----------------
+   -- Write_Stamp --
+   -----------------
+
+   procedure Write_Stamp (File : Name_Id) is
+   begin
+      Write_Str (" (");
+      Write_Str (Source_File_Stamp (File));
+      Write_Str (")");
+   end Write_Stamp;
+
    ---------------
    -- Write_Str --
    ---------------
@@ -301,6 +316,10 @@ package body XE_Utils is
          Write_Str ("error : disk full");
          Write_Eol;
          raise XE.Fatal_Error;
+      end if;
+
+      if Building_Script then
+         Write_Str (Line);
       end if;
 
    end Write_Str;
@@ -328,6 +347,10 @@ package body XE_Utils is
          raise XE.Fatal_Error;
       end if;
 
+      if Building_Script then
+         Write_Str (Name_Buffer (1 .. Name_Len));
+      end if;
+
    end Write_Name;
 
    ---------------
@@ -346,6 +369,10 @@ package body XE_Utils is
          Write_Str ("error : disk full");
          Write_Eol;
          raise XE.Fatal_Error;
+      end if;
+
+      if Building_Script then
+         Write_Eol;
       end if;
 
    end Write_Eol;
@@ -440,148 +467,149 @@ package body XE_Utils is
    -----------------
 
    procedure Execute_Gcc
-     (Flags : Argument_List;
-      File  : String_Access) is
-      N : Natural := 1;
-      L : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 1 + Flags'Length + 1;
-      A : Argument_List (1 .. L);
+     (File : File_Name_Type;
+      Args : Argument_List) is
+
+      Length      : constant Natural
+        := Gcc_Switches.Last - Gcc_Switches.First + 1 + Args'Length + 2;
+
+      Gcc_Flags   : Argument_List (1 .. Length);
+
+      File_Name   : String (1 .. Strlen (File));
+
+      N_Gcc_Flags : Natural range 0 .. Length := 0;
+
    begin
-      for I in Flags'Range loop
-         A (N) := Flags (I);
-         N := N + 1;
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
+
+      Get_Name_String (File);
+      File_Name := Name_Buffer (1 .. Name_Len);
+
+      N_Gcc_Flags := N_Gcc_Flags + 1;
+      Gcc_Flags (N_Gcc_Flags) := new String'(File_Name);
+
+      for I in Args'Range loop
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Args (I);
       end loop;
+
       for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         A (N) := Gcc_Switches.Table (I);
-         N := N + 1;
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Gcc_Switches.Table (I);
       end loop;
-      A (N) := File;
-      Execute (Gcc, A);
+
+      Execute (Gcc, Gcc_Flags);
+
    end Execute_Gcc;
 
-   ----------------------
-   -- Execute_Gnatmake --
-   ----------------------
+   ------------------
+   -- Execute_Bind --
+   ------------------
 
-   procedure Execute_Gnatmake
-     (Prog  : File_Name_Type;
-      Exec  : File_Name_Type;
-      Margs : Argument_List;
-      Cargs : Argument_List;
-      Bargs : Argument_List;
-      Largs : Argument_List) is
+   procedure Execute_Bind
+     (Lib  : File_Name_Type;
+      Args : Argument_List) is
 
-      ALI_File : constant File_Name_Type := Prog & ALI_Suffix;
-      ALI_Name : String (1 .. Strlen (ALI_File));
+
+      Length : constant Positive :=
+        Args'Length + Binder_Switches.Last - Binder_Switches.First + 3;
+
+      Bind_Flags   : Argument_List (1 .. Length);
+
+      Lib_Name     : String (1 .. Strlen (Lib));
+
+      N_Bind_Flags : Natural range 0 .. Length := 0;
 
    begin
 
-      if not Opt.Force_Compilations and then
-        Is_Regular_File (Exec) and then
-        (not Sources_Modified) and then
-        Source_File_Stamp (Exec) > Most_Recent_Stamp then
-         return;
-      end if;
+      N_Bind_Flags := N_Bind_Flags + 1;
+      Bind_Flags (N_Bind_Flags) := Exclude_File_Flag;
 
-      Gnatmake_Execution :
-      declare
-         Gnatmake_Length : constant Natural :=
-           1 + Margs'Length + 1 + 1 + Cargs'Length +
-           Gcc_Switches.Last - Gcc_Switches.First + 1;
-         Gnatmake_Args   : Argument_List (1 .. Gnatmake_Length);
-         N               : Positive := 1;
-         Prog_Name       : String (1 .. Strlen (Prog));
-      begin
-         Get_Name_String (Prog);
-         Prog_Name := Name_Buffer (1 .. Name_Len);
-         Gnatmake_Args (N) := new String'(Prog_Name);
-         N := N + 1;
-         Gnatmake_Args (N) := Compile_Flag;
-         N := N + 1;
-         if Opt.Force_Compilations then
-            Gnatmake_Args (N) := Force;
-            N := N + 1;
-         end if;
-         for I in Margs'Range loop
-            Gnatmake_Args (N) := Margs (I);
-            N := N + 1;
-         end loop;
-         if Gcc_Switches.First <= Gcc_Switches.Last or else
-           0 < Cargs'Length then
-            Gnatmake_Args (N) := Cargs_Flag;
-            N := N + 1;
-            for I in Cargs'Range loop
-               Gnatmake_Args (N) := Cargs (I);
-               N := N + 1;
-            end loop;
-            for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-               Gnatmake_Args (N) := Gcc_Switches.Table (I);
-               N := N + 1;
-            end loop;
-         end if;
-         Execute (Gnatmake, Gnatmake_Args (1 .. N - 1));
-      end Gnatmake_Execution;
+      --  various arguments
 
-      Gnatbind_Execution :
-      declare
-         Gnatbind_Length : constant Natural :=
-           1 + Bargs'Length + 1 +
-           Binder_Switches.Last - Binder_Switches.First + 1;
-         Gnatbind_Args   : Argument_List (1 .. Gnatbind_Length);
-         N               : Positive := 1;
-      begin
-         Get_Name_String (ALI_File);
-         ALI_Name := Name_Buffer (1 .. Name_Len);
-         for I in Bargs'Range loop
-            Gnatbind_Args (N) := Bargs (I);
-            N := N + 1;
-         end loop;
-         if Verbose_Mode then
-            Gnatbind_Args (N) := GNAT_Verbose;
-            N := N + 1;
-         end if;
-         for I in Binder_Switches.First .. Binder_Switches.Last loop
-            Gnatbind_Args (N) := Binder_Switches.Table (I);
-            N := N + 1;
-         end loop;
-         Gnatbind_Args (N) := new String'(ALI_Name);
-         N := N + 1;
-         Execute (Gnatbind, Gnatbind_Args (1 .. N - 1));
-      end Gnatbind_Execution;
+      for I in Args'Range loop
+         N_Bind_Flags := N_Bind_Flags + 1;
+         Bind_Flags (N_Bind_Flags) := Args (I);
+      end loop;
 
-      Gnatlink_Execution :
-      declare
-         Gnatlink_Length : constant Natural :=
-           1 + Largs'Length + 3 +
-           Linker_Switches.Last - Linker_Switches.First + 1;
-         Gnatlink_Args   : Argument_List (1 .. Gnatlink_Length);
-         Exec_Name       : String (1 .. Strlen (Exec));
-         N               : Positive := 1;
-      begin
-         Get_Name_String (Exec);
-         Exec_Name := Name_Buffer (1 .. Name_Len);
-         Gnatlink_Args (N) := Output_Option;
-         N := N + 1;
-         Gnatlink_Args (N) := new String'(Exec_Name);
-         N := N + 1;
-         for I in Largs'Range loop
-            Gnatlink_Args (N) := Largs (I);
-            N := N + 1;
-         end loop;
-         if Verbose_Mode then
-            Gnatlink_Args (N) := GNAT_Verbose;
-            N := N + 1;
-         end if;
-         for I in Linker_Switches.First .. Linker_Switches.Last loop
-            Gnatlink_Args (N) := Linker_Switches.Table (I);
-            N := N + 1;
-         end loop;
-         Gnatlink_Args (N) := new String'(ALI_Name);
-         N := N + 1;
-         Execute (Gnatlink, Gnatlink_Args (1 .. N - 1));
-      end Gnatlink_Execution;
+      for I in Binder_Switches.First .. Binder_Switches.Last loop
+         N_Bind_Flags := N_Bind_Flags + 1;
+         Bind_Flags (N_Bind_Flags) := Binder_Switches.Table (I);
+      end loop;
 
-   end Execute_Gnatmake;
+      --  <unit name>
+
+      Get_Name_String (Lib);
+      Lib_Name := Name_Buffer (1 .. Name_Len);
+      N_Bind_Flags := N_Bind_Flags + 1;
+      Bind_Flags (N_Bind_Flags) := new String'(Lib_Name);
+
+      --  Call gnatbind
+
+      Execute (Gnatbind, Bind_Flags (1 .. N_Bind_Flags));
+
+   end Execute_Bind;
+
+   ------------------
+   -- Execute_Link --
+   ------------------
+
+   procedure Execute_Link
+     (Lib  : File_Name_Type;
+      Exec : File_Name_Type;
+      Args : Argument_List) is
+
+
+      Length : constant Positive :=
+        2 +            --  -o <executable name>
+        1 +            --  <unit_name>
+        Args'Length +
+        Linker_Switches.Last - Linker_Switches.First + 1;
+
+      Link_Flags   : Argument_List (1 .. Length);
+
+      Lib_Name     : String (1 .. Strlen (Lib));
+      Exec_Name    : String (1 .. Strlen (Exec));
+
+      N_Link_Flags : Natural range 0 .. Length := 0;
+
+   begin
+
+      --  -o <executable name>
+
+      Get_Name_String (Exec);
+      Exec_Name := Name_Buffer (1 .. Name_Len);
+      N_Link_Flags := N_Link_Flags + 1;
+      Link_Flags (N_Link_Flags) := Output_Option;
+      N_Link_Flags := N_Link_Flags + 1;
+      Link_Flags (N_Link_Flags) := new String'(Exec_Name);
+
+      --  various arguments
+
+      for I in Args'Range loop
+         N_Link_Flags := N_Link_Flags + 1;
+         Link_Flags (N_Link_Flags) := Args (I);
+      end loop;
+
+      --  <unit name>
+
+      Get_Name_String (Lib);
+      Lib_Name := Name_Buffer (1 .. Name_Len);
+      N_Link_Flags := N_Link_Flags + 1;
+      Link_Flags (N_Link_Flags) := new String'(Lib_Name);
+
+      for I in Linker_Switches.First .. Linker_Switches.Last loop
+         N_Link_Flags := N_Link_Flags + 1;
+         Link_Flags (N_Link_Flags) := Linker_Switches.Table (I);
+      end loop;
+
+      --  Call gnatmake
+
+      Execute (Gnatlink, Link_Flags (1 .. N_Link_Flags));
+
+   end Execute_Link;
 
    ---------------------
    -- Write_Unit_Name --
@@ -655,20 +683,33 @@ package body XE_Utils is
    procedure Build_Partition (Partition : Name_Id; Exec : File_Name_Type) is
    begin
       Change_Dir (DSA_Dir & Dir_Sep_Id & Partition);
-      Execute_Gnatmake
-        (Partition,
-         Exec,
-         (GNAT_Verbose,
-          I_Current_Dir,
-          I_Caller_Dir,
-          I_G_Parent_Dir,
-          I_GARLIC_Dir),
-         No_Args,
+
+      Execute_Gcc
+        (Partition & ADB_Suffix,
          (I_Current_Dir,
           I_Caller_Dir,
-          I_G_Parent_Dir,
-          I_GARLIC_Dir),
-         (1 => L_GARLIC_Dir));
+          I_G_Parent_Dir)
+         );
+
+      --  I_Garlic_Dir is not included here because it was added by the
+      --  gnatdist shell script. If in the future gnatdist becomes this
+      --  executable, the I_Garlic_Dir directive will be needed here.
+
+      Execute_Bind
+        (Partition & ALI_Suffix,
+         (I_Current_Dir,
+          I_Caller_Dir,
+          I_G_Parent_Dir)
+         );
+      Execute_Link
+        (Partition & ALI_Suffix,
+         Exec,
+         (L_Current_Dir,
+          L_Caller_Dir,
+          L_G_Parent_Dir,
+          L_GARLIC_Dir)
+         );
+
       Change_Dir (G_Parent_Dir);
    end Build_Partition;
 
@@ -677,18 +718,14 @@ package body XE_Utils is
    ------------------------
 
    procedure Compile_RCI_Caller (Source : File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Source_Name     : String (1 .. Source_Name_Len);
    begin
       Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
       Execute_Gcc
-        ((Compile_Flag,
-          Caller_Compile_Flag,
+        (Source,
+         (Caller_Compile_Flag,
           I_G_Parent_Dir,
-          I_GARLIC_Dir),
-         new String' (Source_Name));
+          I_GARLIC_Dir)
+         );
    end Compile_RCI_Caller;
 
    --------------------------
@@ -696,18 +733,14 @@ package body XE_Utils is
    --------------------------
 
    procedure Compile_RCI_Receiver (Source : File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Source_Name     : String (1 .. Source_Name_Len);
    begin
       Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
       Execute_Gcc
-        ((Compile_Flag,
-          Receiver_Compile_Flag,
+        (Source,
+         (Receiver_Compile_Flag,
           I_G_Parent_Dir,
-          I_GARLIC_Dir),
-         new String' (Source_Name));
+          I_GARLIC_Dir)
+         );
    end Compile_RCI_Receiver;
 
    ----------------------
@@ -772,6 +805,9 @@ package body XE_Utils is
       ADS_Suffix     := Register (".ads");
       ADB_Suffix     := Register (".adb");
 
+      Spec_Suffix    := Register ("%s");
+      Body_Suffix    := Register ("%b");
+
       Dir_Sep_Id     := Register (Dir_Sep);
       Dot_Sep_Id     := Register (".");
 
@@ -782,17 +818,6 @@ package body XE_Utils is
 
       Parent_Dir     := Register ("..");
       G_Parent_Dir   := Parent_Dir & Dir_Sep_Id & Parent_Dir;
-
-      Output_Option  := new String'("-o");
-      XE_Gcc         := Locate ("xe-gcc");
-      Gcc            := Locate ("gcc");
-      Gnatmake       := Locate ("gnatmake");
-      Gnatbind       := Locate ("gnatbind");
-      Gnatlink       := Locate ("gnatlink");
-      Mkdir          := Locate ("mkdir");
-      Copy           := Locate ("cp");
-      Link           := Locate ("ln", False);
-      Chmod          := Locate ("chmod");
 
       declare
          GARLIC_Dir  : constant String_Access := Get_GARLIC_Dir;

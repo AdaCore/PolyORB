@@ -8,12 +8,9 @@ SED=@SED@
 AWK=@AWK@
 
 ${SED} "
-s/system\.rpc\.general/system.garlic.startup/g
+s/system\.rpc\.general/system\.garlic.services/g
 s/register_server_elaboration/register_receiving_stub/g
-s/'write;/'write/g
-s/'read;/'read/g
-s/'output;/'output/g
-s/'input;/'input/g
+s/ada\.exceptions\.exception_occurrence'\([^ ]*\)/ada\.exceptions\.streams\.exception_occurrence_\\1_attribute/g
 " ${NAME}  | ${AWK} '
 BEGIN {wait = 0; skipline = 0}
 /^package body/{

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            1.24                              --
+--                            $Revision$                              --
 --                                                                          --
 --           Copyright (C) 1996 Free Software Foundation, Inc.              --
 --                                                                          --
@@ -65,7 +65,7 @@ package body XE_Check is
             Stamp    : Time_Stamp_Type;
             Internal : Boolean;
          begin
-            Display_Commands (Verbose_Mode);
+            Display_Commands (Verbose_Mode or Building_Script);
             for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
                Args (Switch) := Gcc_Switches.Table (Switch);
             end loop;
@@ -73,22 +73,21 @@ package body XE_Check is
                Name := CUnit.Table (CUID).CUname;
 
                Look_For_Full_File_Name :
-                  begin
-                     Full_Name := Name & ADB_Suffix;
+               begin
+                  Full_Name := Get_File_Name (Name & Body_Suffix);
+                  if Full_Source_Name (Full_Name) = No_File then
+                     Full_Name := Get_File_Name (Name & Spec_Suffix);
                      if Full_Source_Name (Full_Name) = No_File then
-                        Full_Name := Name & ADS_Suffix;
-                        if Full_Source_Name (Full_Name) = No_File then
-                           Osint.Write_Program_Name;
-                           Write_Str (": """);
-                           Write_Name (Name);
-                           Write_Str (""" cannot be found");
-                           Exit_Program (E_Fatal);
-                        end if;
+                        Osint.Write_Program_Name;
+                        Write_Str (": """);
+                        Write_Name (Name);
+                        Write_Str (""" cannot be found");
+                        Write_Eol;
+                        Exit_Program (E_Fatal);
                      end if;
-                     Internal := Is_Predefined_File_Name (Full_Name);
-                  end Look_For_Full_File_Name;
-
-               Opt.Check_Object_Consistency := True;
+                  end if;
+                  Internal := Is_Predefined_File_Name (Full_Name);
+               end Look_For_Full_File_Name;
 
                Compile_Sources
                  (Main_Source           => Full_Name,
@@ -103,10 +102,12 @@ package body XE_Check is
                                            not Internal,
                   Initialize_Ali_Data   => False,
                   Max_Process           => 1);
+
                if Compiled = No_File then
                   Maybe_Most_Recent_Stamp (Stamp);
                else
-                  Sources_Modified := True;
+                  --  Sources_Modified := True;
+                  null;
                end if;
             end loop;
          end;
