@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //depot/adabroker/main/broca/Utils/update-headers.el#2 $
+;;; $Id: //depot/adabroker/release-1/utils/update-headers.el#1 $
 ;;;
 ;;; This file contains the update-header command which can be used to
 ;;; update headers depending on the header.txt file in the current directory.

@@ -1,6 +1,6 @@
 #! /usr/bin/env perl
 #
-# $Id: //depot/adabroker/main/broca/Utils/normalize.pl#1 $
+# $Id: //depot/adabroker/release-1/utils/normalize.pl#1 $
 #
 # This package adjusts correctly any file given on the command
 # line. If a line looks like: -- (blanks) $, Revision: NNN, $ (blanks) --

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //depot/adabroker/main/broca/Utils/make_distrib#7 $
+# $Id: //depot/adabroker/release-1/utils/make_distrib#1 $
 #
 # This script builds a compressed archive suitable for distribution.
 #

@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: //depot/adabroker/main/broca/Utils/mangle.sh#1 $
+# $Id: //depot/adabroker/release-1/utils/mangle.sh#1 $
 #
 # Usage: mangle.sh [-d]
 #

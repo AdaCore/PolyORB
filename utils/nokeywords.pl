@@ -1,6 +1,6 @@
 #! /usr/local/bin/perl -pi.bak
 #
-# $Id: //depot/adabroker/main/broca/Utils/nokeywords.pl#1 $
+# $Id: //depot/adabroker/release-1/utils/nokeywords.pl#1 $
 #
 # This programs removes all the ending -- on files given on the command
 # line. A typical use with zsh is:
