@@ -4,7 +4,7 @@ package body M1.Echo.Impl is
                         return CORBA.String is
    begin
       return CORBA.String (Mesg);
-   end EchoString;
+   end EchoMy_String;
 
 end M1.Echo.Impl;
 
