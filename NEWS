@@ -27,6 +27,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 1.2r (released 2004-12-17)
+
+This release contains a CORBA-compatible instantiation of the PolyORB
+generic middleware. In addition to the 1.1r release, it includes:
+- extended support for CORBA and GIOP specifications,
+- support for PortableInterceptors,
+- support for RT-CORBA 1.1,
+- fixes for several bugs and memory leaks,
+- several additions to the User's Guide.
+
+PolyORB now includes the Message Oriented Middleware for Ada (MOMA)
+personality. It proposes an API comparable to Sun's Java Message
+Service (JMS). It supports Publish/Subscribe and Point-to-Point.
+
+PolyORB neutral core middleware now supports more concurrency
+policies. It implements the No Tasking, Basic, Leader/Followers and
+Half Sync/Half Async design patterns.
+
 * PolyORB 1.1r (released 2004-06-07)
 
 This release contains a CORBA-compatible instantiation of the PolyORB
