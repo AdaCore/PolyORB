@@ -1246,6 +1246,15 @@ package body XE_Utils is
    end SG;
 
    ---------
+   -- SGF --
+   ---------
+
+   function SGF (X : String) return Name_Id is
+   begin
+      return SGF (Str_To_Id (X));
+   end SGF;
+
+   ---------
    -- SGP --
    ---------
 
@@ -1266,6 +1275,19 @@ package body XE_Utils is
       Get_Name_String_And_Append (CN);
       return SG (Name_Find);
    end SGP;
+
+   ---------
+   -- SGF --
+   ---------
+
+   function SGF (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Filters.");
+      Get_Name_String_And_Append (CN);
+      return SG (Name_Find);
+   end SGF;
 
    ---------
    -- SGS --

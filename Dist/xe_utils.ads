@@ -96,10 +96,12 @@ package XE_Utils is
    function C   (S : String) return Types.Name_Id;
    function S   (X : String) return Types.Name_Id;
    function SG  (X : String) return Types.Name_Id;
+   function SGF (X : String) return Types.Name_Id;
    function SGP (X : String) return Types.Name_Id;
    function SGS (X : String) return Types.Name_Id;
    function S   (N : Types.Name_Id) return Types.Name_Id;
    function SG  (N : Types.Name_Id) return Types.Name_Id;
+   function SGF (N : Types.Name_Id) return Types.Name_Id;
    function SGP (N : Types.Name_Id) return Types.Name_Id;
    function SGS (N : Types.Name_Id) return Types.Name_Id;
 
