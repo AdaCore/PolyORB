@@ -108,7 +108,7 @@ procedure Test000 is
       --  POA2 Creation.
       OA2 := PolyORB.POA.Basic_POA.Create_POA
         (Basic_Obj_Adapter (OA1.all)'Access,
-         To_PolyORB_String ("POA2"), PM1, Policies);
+         To_PolyORB_String ("POA2"), null, Policies);
 
       --  POA3 Creation.
       OA3 := PolyORB.POA.Basic_POA.Create_POA
@@ -132,10 +132,16 @@ procedure Test000 is
       Report.Output ("Raised Adapter_Already_Exists", Ok);
 
       Ok := False;
-      if OA2.POA_Manager = OA3.POA_Manager then
+      if OA1.POA_Manager = OA3.POA_Manager then
          Ok := True;
       end if;
       Report.Output ("Same POA Manager", Ok);
+
+      Ok := False;
+      if OA1.POA_Manager /= OA2.POA_Manager then
+         Ok := True;
+      end if;
+      Report.Output ("Implicit creation of a POA Manager", Ok);
 
       --  POA recursive destruction.
       PolyORB.POA.Basic_POA.Destroy
