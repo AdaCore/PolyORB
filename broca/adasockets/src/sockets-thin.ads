@@ -40,8 +40,8 @@
 
 with Interfaces.C.Pointers;
 with Interfaces.C.Strings;
-with Sockets.Links;
-pragma Warning (Off, Sockets.Links);
+with Sockets.Link;
+pragma Warning (Off, Sockets.Link);
 with System;
 
 package Sockets.Thin is
