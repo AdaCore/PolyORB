@@ -7,9 +7,9 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I$(COS_ROOT)/naming \
 	-I../../src \
 	-I$(srcdir)/../../src \
-	-I../../adasockets/src \
-	-I$(srcdir)/../../adasockets/src \
-	-g -O2 -m -gnata
+	$(ADASOCKETS_INCLUDE) \
+	-g -O2 -m -gnata \
+	-largs $(ADASOCKETS_LIBS)
 
 PROGS=test_event
 

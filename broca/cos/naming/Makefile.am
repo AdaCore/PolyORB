@@ -6,9 +6,9 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../../src \
 	-I$(srcdir)/../../src \
 	-I$(COS_DIRS) \
-	-I../../adasockets/src \
-	-I$(srcdir)/../../adasockets/src \
-	-g -O2 -m -gnata
+	$(ADASOCKETS_INLUDE) \
+	-g -O2 -m -gnata \
+	-largs $(ADASOCKETS_LIBS)
 
 PROGS= ab_names test_naming
 
