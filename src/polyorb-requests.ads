@@ -225,7 +225,7 @@ package PolyORB.Requests is
         := Any.ExceptionList.Nil_Ref;
       Req                        :    out Request_Access;
       Req_Flags                  : in     Flags
-        := 0;
+        := Default_Flags;
       Deferred_Arguments_Session : in     Components.Component_Access
         := null;
       Identification             : in     Arguments_Identification
@@ -234,7 +234,9 @@ package PolyORB.Requests is
         := null);
 
    procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
-   --  Run Self
+   --  Run Self.
+   --  XXX Invoke_Flags is currently set to 0, and not use. It is kept
+   --  for future use.
 
    procedure Arguments
      (Self           :        Request_Access;

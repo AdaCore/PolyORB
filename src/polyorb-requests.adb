@@ -100,7 +100,7 @@ package body PolyORB.Requests is
         := Any.ExceptionList.Nil_Ref;
       Req                        :    out Request_Access;
       Req_Flags                  : in     Flags
-        := 0;
+        := Default_Flags;
       Deferred_Arguments_Session : in     Components.Component_Access
         := null;
       Identification             : in     Arguments_Identification
@@ -123,12 +123,7 @@ package body PolyORB.Requests is
       Req.Result.Arg_Modes := Any.ARG_OUT;
       Req.Exc_List   := Exc_List;
       Req.Args_Ident := Identification;
-
-      if Req_Flags = 0 then
-         Req.Req_Flags := Default_Flags;
-      else
-         Req.Req_Flags := Req_Flags;
-      end if;
+      Req.Req_Flags  := Req_Flags;
 
       Set_Request_QoS (Req, Fetch_QoS (Req.Target));
 
@@ -177,16 +172,15 @@ package body PolyORB.Requests is
          Queue_Request'
          (Request   => Self,
           Requestor => Self.Requesting_Component));
-      --   Requestor => null));
 
-      --  Execute the ORB until the request is completed.
+      --  Execute the ORB until the request is completed
+
       PolyORB.ORB.Run
         (The_ORB,
          Exit_Condition_T'
          (Condition => Self.Completed'Access,
           Task_Info => Self.Requesting_Task'Access),
          May_Poll => True);
-
    end Invoke;
 
    -----------------------------------
