@@ -1,3 +1,26 @@
+2000-12-07  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* Makefile.am, Makefile.in: Add b~* files to the CLEANFILES
+
+	* xe_check.adb: Add System.Partition_Interface and System.RPC
+	units to the unit check list. They may not appear in the
+	dependencies of user units (only the stubs and skels will always
+	depend on these units). For this reason, if an internal GARLIC
+	unit is in the path, it may not be recompiled even with flag
+	-a. We add these two units to force consistency check in such
+	situation.
+
+	* xe_stubs.adb: Remove useless -I flags. Remove directory
+	information issued by garlic compilation flags cooking.
+
+	* xe_utils.adb, xe_utils.ads: Define configuration suffix. Remove
+	useless -I flags. Cook garlic compilation flags. Add garlic in src
+	and lib search dir, add -I- to enable garlic unit local
+	recompilation and also to mimic gnatmake behaviour, add primary
+	dir to src and lib search dir.
+
+	* xe_build.adb: Use configuration suffix from XE_Utils.
+
 2000-11-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb: Set new parameter And_Save for procedure
