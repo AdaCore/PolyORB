@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#13 $
+# $Id: //droopi/main/utils/make_distrib#14 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -172,8 +172,9 @@ for f in `cat ${dir}/MANIFEST`; do
     echo "FATAL: ${dir}/${f} is not a regular file."
     exit 1
   fi
+  echo ${dir}/${f} >> MANIFEST.local
 done
-tar cf ${dir}.tar `sed s,^,${dir}/, < ${dir}/MANIFEST`
+tar -cf ${dir}.tar -T MANIFEST.local
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
 mv ${dir}.tar.gz ${prev}
