@@ -873,6 +873,8 @@ src/polyorb-utils-report.adb
 src/polyorb-utils-report.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
+src/polyorb-utils-sockets.adb
+src/polyorb-utils-sockets.ads
 src/polyorb-utils-strings-lists.adb
 src/polyorb-utils-strings-lists.ads
 src/polyorb-utils-strings.adb
