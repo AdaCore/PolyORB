@@ -467,10 +467,14 @@ package body Broca.GIOP is
          Reply_Status := Unmarshall (Message_Body_Buffer'Access);
          case Reply_Status is
             when Broca.GIOP.No_Exception =>
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is No_Exception"));
                Result := Sr_Reply;
                return;
 
             when Broca.GIOP.System_Exception =>
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is System_Exception"));
                Broca.CDR.Unmarshall_And_Raise
                  (Message_Body_Buffer'Access);
 
@@ -495,6 +499,8 @@ package body Broca.GIOP is
                return;
 
             when Broca.GIOP.User_Exception =>
+               pragma Debug (O ("Send_Request_Send : reply "
+                                & "status is User_Exception"));
                Result := Sr_User_Exception;
                return;
 

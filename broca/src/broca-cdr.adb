@@ -2333,6 +2333,12 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.AbstractBase.Ref'Class) is
    begin
+      --  !!!!!!!!!!!!!!!!!
+      --  FIXME: I've just noticed that abstract interfaces must be
+      --  encoded as unions
+      --  with a boolean discriminator, cf spec and change code below.
+      --  !!!!!!!!!!!!!!!!!
+
       --  1. if Data is a valuetype, call the valuetype marshalling function
       if Data in CORBA.Value.Base'Class then
          Broca.Value.Stream.Marshall (Buffer,
