@@ -28,6 +28,13 @@
 ./Examples/all_types/client.adb
 ./Examples/all_types/dir.mk
 ./Examples/all_types/server.adb
+./Examples/tasking/GNUmakefile
+./Examples/tasking/client.adb
+./Examples/tasking/dir.mk
+./Examples/tasking/sema-impl.adb
+./Examples/tasking/sema-impl.ads
+./Examples/tasking/sema.idl
+./Examples/tasking/server.adb
 ./Examples/naming_service/GNUmakefile
 ./Examples/naming_service/client.adb
 ./Examples/naming_service/dir.mk
