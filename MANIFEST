@@ -293,8 +293,8 @@ examples/moma/client_call_back_procedures.adb
 examples/moma/client_call_back_procedures.ads
 examples/moma/router.adb
 examples/moma/server.adb
-examples/polyorb/Makefile.am                       
-examples/polyorb/Makefile.in               
+examples/polyorb/Makefile.am
+examples/polyorb/Makefile.in
 examples/polyorb/README
 examples/polyorb/polyorb-setup-test_soa.adb
 examples/polyorb/polyorb-setup-test_soa.ads
