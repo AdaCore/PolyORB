@@ -1,3 +1,14 @@
+1998-02-18  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garuti.adb: Use GNAT.OS_Lib to get Errno instead of
+	System.Garlic.OS_Lib.
+
+	* s-ganobl.adb: Likewise.
+
+	* s-garnam.adb: Likewise.
+
+	* s-gaosli.ads: Replace s-gaosli.ads.in now that C_Errno is gone.
+
 1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpcpoo.adb: Move with clause from s-rpcpoo.ads to here.

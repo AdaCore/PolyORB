@@ -1,3 +1,8 @@
+1998-02-18  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Do not test for Errno anymore since it is
+	available in GNAT.OS_Lib.
+
 1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Correct typo.
