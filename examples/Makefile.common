@@ -18,6 +18,8 @@ srp_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../src/srp -I$(EXAMPLES_ROOT)/../src/srp
 naming_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming -I$(EXAMPLES_ROOT)/../cos/naming \
            -I$(EXAMPLES_ROOT)/../idls/cos/naming
 
+ir_inc=-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/ir -I$(EXAMPLES_ROOT)/../cos/ir
+
 POLYORB_INCS = -I$(srcdir) -I$(srcdir)/$(EXAMPLES_ROOT)/../src -I$(EXAMPLES_ROOT)/../src \
                $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
@@ -38,9 +40,9 @@ GNATMAKE_FLAGS = \
 
 CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb $(EXAMPLE)-ir_info.adb $(EXAMPLE)-ir_info.ads $(EXAMPLE)_idl_file-ir_info.adb $(EXAMPLE)_idl_file-ir_info.ads
 
-DISTCLEANFILES = client server $(EXTRA)
+DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 
-all-local: err client server $(EXTRA)
+all-local:  @APPLI_EXES@ @SERVICE_EXES@
 
 SUFFIXES = .idl .ads .adb
 
@@ -50,7 +52,7 @@ SUFFIXES = .idl .ads .adb
 .idl.adb:
 	$(IDLAC) $(IDLAC_FLAGS) $<
 
-client server $(EXTRA): force $(EXAMPLE).ads
+@APPLI_EXES@ @SERVICE_EXES@: force $(EXAMPLE).ads
 	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
 force: src

@@ -1,10 +1,10 @@
-CORBA_DIR = corba 
-GIOP_DIR = giop
-MOMA_DIR = moma
-SOAP_DIR = soap
-SRP_DIR = srp
+corba_dir = corba 
+giop_dir = giop
+moma_dir = moma
+soap_dir = soap
+srp_dir = srp
 
-SUBDIRS = . $(CORBA_DIR) $(GIOP_DIR) $(MOMA_DIR) $(SOAP_DIR) $(SRP_DIR)
+SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@
 
 include $(srcdir)/Makefile.common
 

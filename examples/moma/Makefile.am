@@ -1,11 +1,9 @@
 EXAMPLES_ROOT=	..
 EXAMPLE= moma_dummy
 
-ERR = $(error PolyORB not configured to generate MOMA applications !)
-
-if ENABLE_MOMA
-   ERR=  
-endif
+corba_exe=
+dsa_exe=
+moma_exe= client server
 
 include $(srcdir)/../Makefile.common
 

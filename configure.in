@@ -112,49 +112,56 @@ AC_ARG_WITH(services,
   SERVICE_LIST=" "
 ])
 AC_MSG_RESULT(${SERVICE_LIST})
+AC_SUBST(SERVICE_LIST)
 
 ##########################################
 # Update Makefiles' subdirectory lists
 ##########################################
 
 APPLI_DIRS=""
-APPLI_LIBS=""
+APPLI_EXES=""
 APPLI_INCS=""
+APPLI_LIBS=""
 
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
    APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
    APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
+   APPLI_EXES="${APPLI_EXES} "'$'"(${P}_exe)"
 done
-AC_SUBST(APPLI_DIRS)
-AC_SUBST(APPLI_LIBS)
-AC_SUBST(APPLI_INCS)
 
+AC_SUBST(APPLI_DIRS)
+AC_SUBST(APPLI_EXES)
+AC_SUBST(APPLI_INCS)
+AC_SUBST(APPLI_LIBS)
 
 PROTO_DIRS=""
-PROTO_LIBS=""
 PROTO_INCS=""
+PROTO_LIBS=""
 
 for P in ${PROTO_LIST}
 do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
-   PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
    PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
+   PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
 done
+
 AC_SUBST(PROTO_DIRS)
-AC_SUBST(PROTO_LIBS)
 AC_SUBST(PROTO_INCS)
+AC_SUBST(PROTO_LIBS)
 
 SERVICE_INCS=""
+SERVICE_EXES=""
 
 for P in ${SERVICE_LIST}
 do
    SERVICE_INCS="${SERVICE_INCS} "'$'"(${P}_inc)"
+   SERVICE_EXES="${SERVICE_EXES} "'$'"(${P}_exe)"
 done
 
 AC_SUBST(SERVICE_INCS)
-AC_SUBST(SERVICE_LIST)
+AC_SUBST(SERVICE_EXES)
 
 ##########################################
 # Test : if SOAP personality is built,
@@ -258,32 +265,6 @@ done
 
 AC_SUBST_FILE(PROTO_CLIENT_WITHS)
 AC_SUBST_FILE(PROTO_SERVER_WITHS)
-
-##########################################
-# Switches required to build relevant
-# examples only.
-##########################################
-
-corba_enabled=`echo "${APPLI_LIST}" | ${AWK} '/corba/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_CORBA, test x$corba_enabled = xyes)
-
-dsa_enabled=`echo "${APPLI_LIST}" | ${AWK} '/dsa/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_DSA, test x$dsa_enabled = xyes)
-
-moma_enabled=`echo "${APPLI_LIST}" | ${AWK} '/moma/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_MOMA, test x$moma_enabled = xyes)
-
-giop_enabled=`echo "${PROTO_LIST}" | ${AWK} '/giop/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_GIOP, test x$giop_enabled = xyes)
-
-soap_enabled=`echo "${PROTO_LIST}" | ${AWK} '/soap/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
-
-srp_enabled=`echo "${PROTO_LIST}" | ${AWK} '/srp/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_SRP, test x$srp_enabled = xyes)
-
-ir_enabled=`echo "${SERVICE_LIST}" | ${AWK} '/ir/{print "yes"}'`
-AM_CONDITIONAL(ENABLE_IR, test x$ir_enabled = xyes)
 
 ##########################################
 # Output generated files

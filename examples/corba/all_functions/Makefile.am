@@ -3,11 +3,8 @@ EXAMPLE = all_functions
 
 #EXTRA = dynclient
 
-ERR = $(error PolyORB not configured to generate CORBA applications !)
-
-if ENABLE_CORBA
-   ERR=  
-   COS=cos
-endif
+corba_exe=client server
+dsa_exe=
+moma_exe=
 
 include $(srcdir)/../../Makefile.common

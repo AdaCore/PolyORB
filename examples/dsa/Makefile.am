@@ -3,11 +3,9 @@ EXAMPLE = dsa-dummy
 
 GNAT_SRC=$(srcdir)/../../compilers/gnat
 
-ERR = $(error PolyORB not configured to generate DSA applications !)
-
-if ENABLE_DSA
-   ERR=  
-endif
+corba_exe=
+dsa_exe=client server
+moma_exe=
 
 EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(GNAT_SRC) -gnatD
 server_FLAGS=	-Aserver.stubs
