@@ -35,12 +35,19 @@
 
 with CORBA.Object;
 
+with PolyORB.Annotations;
 with PolyORB.CORBA_P.Initial_References;
+with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.Initialization;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Strings;
 
 package body CORBA.PolicyCurrent is
+
+   use PolyORB.Annotations;
+   use PolyORB.CORBA_P.Policy_Management;
+   use PolyORB.Tasking.Threads.Annotations;
 
    ----------
    -- Is_A --
@@ -93,14 +100,15 @@ package body CORBA.PolicyCurrent is
      return CORBA.Policy.PolicyList
    is
       pragma Unreferenced (Self);
-      pragma Unreferenced (TS);
 
-      Result : CORBA.Policy.PolicyList;
+      Notepad : Notepad_Access;
+      Note : Policy_Manager_Note;
    begin
+      Notepad := Get_Current_Thread_Notepad;
 
-      --  Insert implementation of get_policy_overrides
+      Get_Note (Notepad.all, Note, Empty_Policy_Manager_Note);
 
-      return Result;
+      return Get_Policy_Overrides (Note.Overrides, TS);
    end Get_Policy_Overrides;
 
    --------------------------
@@ -128,14 +136,28 @@ package body CORBA.PolicyCurrent is
       Set_Add  : in     CORBA.SetOverrideType)
    is
       pragma Unreferenced (Self);
-      pragma Unreferenced (Policies);
-      pragma Unreferenced (Set_Add);
 
+      Notepad    : Notepad_Access;
+      Note    : Policy_Manager_Note;
+      Indexes : CORBA.Short;
    begin
+      Notepad := Get_Current_Thread_Notepad;
 
-      --  Insert implementation of set_policy_overrides
+      if Set_Add = ADD_OVERRIDE then
+         Get_Note (Notepad.all, Note, Empty_Policy_Manager_Note);
+      end if;
 
-      null;
+      Add_Policy_Overrides (Note.Overrides, Policies, Thread_Level);
+
+      Check_Compatibility (Note.Overrides, Indexes);
+
+      if Indexes /= 0 then
+         raise PolyORB.Not_Implemented;
+         --  XXX We must raise CORBA.InvalidPolicies exception, but it
+         --  is not (yet) defined in CORBA package.
+      end if;
+
+      Set_Note (Notepad.all, Note);
    end Set_Policy_Overrides;
 
    -----------------------------
