@@ -1,19 +1,15 @@
 include $(srcdir)/../Makefile.common
 
-GNATMAKE_FLAGS = -I$(srcdir) \
+COS_GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../naming \
 	-I$(srcdir)/../naming \
 	-I$(COS_ROOT)/event \
 	-I$(COS_ROOT)/naming \
 	-I../../src \
-	-I$(srcdir)/../../src \
-	$(ADASOCKETS_INCLUDE) \
-	-g -O2 -m -gnata \
-	-largs $(ADASOCKETS_LIBS)
+	-I$(srcdir)/../../src
 
 PROGS=test_event
 
-COS_ROOT=../../idls/cos
 COS_DIRS=$(COS_ROOT)/event $(COS_ROOT)/naming
 
 IMP_1= \
