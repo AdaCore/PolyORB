@@ -62,6 +62,12 @@ package body Sequences.Unbounded is
    Initial_Size   : constant Natural := 3;
    Increment_Size : constant Natural := 2;
 
+   Null_Contents : Element_Array_Access;
+
+   function Get_Null_Contents return Element_Array_Access;
+   pragma Inline (Get_Null_Contents);
+   --  Obtain a pointer to a global zero-length element array.
+
    procedure Allocate
      (Source : in out Sequence;
       Length : in Natural);
@@ -79,6 +85,21 @@ package body Sequences.Unbounded is
    --  Compute appropriate Length. If Length = 0, return 0. If not,
    --  return Initial_Size + N * Increment_Size where N is the
    --  smallest integer such that Length < Initial_Size + N * Increment_Size.
+
+   function Get_Null_Contents return Element_Array_Access
+   is
+      Null_Element : Element;
+      pragma Warnings (Off, Null_Element);
+      --  Not initialised explicitly.
+   begin
+      if Null_Contents = null then
+         Null_Contents := new Element_Array'(1 .. 0 => Null_Element);
+      end if;
+
+      pragma Assert (Null_Contents /= null);
+
+      return Null_Contents;
+   end Get_Null_Contents;
 
    ---------
    -- "=" --
@@ -287,7 +308,7 @@ package body Sequences.Unbounded is
       Content : Element_Array_Access;
 
    begin
-      if Object.Content /= Null_Sequence.Content then
+      if Object.Content /= Get_Null_Contents then
          Content := Object.Content;
          Object.Content := new Element_Array (1 .. Content'Length);
          Object.Content (1 .. Object.Length) := Content (1 .. Object.Length);
@@ -305,7 +326,7 @@ package body Sequences.Unbounded is
       if Length > 0 then
          Source.Content := new Element_Array (1 .. Round (Length));
       else
-         Source.Content := Null_Sequence.Content;
+         Source.Content := Get_Null_Contents;
       end if;
       Source.Length := Length;
    end Allocate;
@@ -513,7 +534,7 @@ package body Sequences.Unbounded is
       procedure Deallocate is new Ada.Unchecked_Deallocation
         (Element_Array, Element_Array_Access);
    begin
-      if X /= Null_Sequence.Content then
+      if X /= Get_Null_Contents then
          Deallocate (X);
       end if;
    end Free;
@@ -631,7 +652,7 @@ package body Sequences.Unbounded is
    procedure Initialize (Object : in out Sequence) is
    begin
       Object.Length  := 0;
-      Object.Content := Null_Sequence.Content;
+      Object.Content := Get_Null_Contents;
    end Initialize;
 
    ------------
@@ -703,15 +724,11 @@ package body Sequences.Unbounded is
    -- Null_Sequence --
    -------------------
 
-   function Null_Sequence return Sequence
-   is
-      Null_Element : Element;
-      pragma Warnings (Off, Null_Element);
-      --  Not explicitly initialised.
+   function Null_Sequence return Sequence is
    begin
       return (Ada.Finalization.Controlled with
               Length  => 0,
-              Content => new Element_Array (1 .. 0));
+              Content => Get_Null_Contents);
    end Null_Sequence;
 
    ------------
