@@ -57,21 +57,19 @@ package body Test_Servant is
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
    begin
       if Msg in Execute_Request then
          declare
             Req : Request_Access
               := Execute_Request (Msg).Req;
-            Args_Sequence :
-              constant PolyORB.Any.NVList.Internals.NV_Sequence_Access
-              := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
          begin
 
             if Req.all.Operation = "echoInteger" then
                declare
-                  echoInteger_Arg : constant PolyORB.Types.Long :=
-                    From_Any (NV_Sequence.Element_Of
-                              (Args_Sequence.all, 1).Argument);
+                  echoInteger_Arg : constant PolyORB.Types.Long
+                    := From_Any
+                    (Value (First (List_Of (Req.Args).all)).Argument);
                begin
                   Req.Result.Argument := To_Any
                     (echoInteger (S.all, echoInteger_Arg));
