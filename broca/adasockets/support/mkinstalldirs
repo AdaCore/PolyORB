@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: //depot/adabroker/main/broca/adasockets/support/mkinstalldirs#1 $
+# $Id: //depot/adabroker/main/broca/adasockets/support/mkinstalldirs#2 $
 
 errstatus=0
 
