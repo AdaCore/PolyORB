@@ -133,10 +133,10 @@ private
 
    procedure Gen_Operation_Profile
      (CU          : in out Compilation_Unit;
-      Object_Type : in String;
-      Node        : in Node_Id;
-      With_Name   : in Boolean := True;
-      Delegate    : in Boolean := False);
+      Node        : in     Node_Id;
+      Object_Type : in     String;
+      With_Name   : in     Boolean          := True;
+      Is_Delegate : in     Boolean          := False);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.

@@ -1,12 +1,12 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---            A D A _ B E . I D L 2 A D A . S K E L                         --
+--                  A D A _ B E . I D L 2 A D A . S K E L                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -23,6 +23,8 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -49,16 +51,16 @@ package body Ada_Be.Idl2Ada.Skel is
    Want_Interface_Repository : constant Boolean := False;
 
    procedure Gen_Is_A
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
    --  Generate server-side support for the Is_A
    --  operation.
 
    procedure Gen_Body_Common_Start
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
    --  generates code for skel_body that is common
    --  for interfaces and valuetypes supporting interfaces
    --  at the beginning of the package.
@@ -73,16 +75,16 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------
 
    procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
          when K_ValueType =>
             --  ValueTypes cannot have delegates
-            pragma Assert (SK = Skeleton);
+            pragma Assert (not Is_Delegate);
 
             if Supports (Node) /= Nil_List then
                Add_Elaborate_Body (CU);
@@ -92,7 +94,7 @@ package body Ada_Be.Idl2Ada.Skel is
             if not Abst (Node) then
                --  No skel or impl packages are generated for
                --  abstract interfaces.
-               if SK = Skeleton then
+               if not Is_Delegate then
                   Add_Elaborate_Body (CU);
                end if;
             end if;
@@ -107,19 +109,19 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------
 
    procedure Gen_Node_Body
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
 
          when K_ValueType =>
-            pragma Assert (SK = Skeleton);
+            pragma Assert (not Is_Delegate);
             if Supports (Node) /= Nil_List then
-               Gen_Body_Common_Start (CU, SK, Node);
-               Gen_Is_A (CU, SK, Node);
+               Gen_Body_Common_Start (CU, Node, Is_Delegate);
+               Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Invoke (CU, Node);
 
                declare
@@ -145,7 +147,7 @@ package body Ada_Be.Idl2Ada.Skel is
                          Use_It => False,
                          Elab_Control => Elaborate_All);
 
---                if SK = Skeleton then
+--                if not Is_Delegate then
 --                   Add_With (CU, Ada_Full_Name (Node) & Impl.Suffix);
 --                   NL (CU);
 --                   PL (CU,
@@ -155,8 +157,8 @@ package body Ada_Be.Idl2Ada.Skel is
 --                       & ".Object'Class;");
 --                end if;
 
-               Gen_Body_Common_Start (CU, SK, Node);
-               Gen_Is_A (CU, SK, Node);
+               Gen_Body_Common_Start (CU, Node, Is_Delegate);
+               Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Invoke (CU, Node);
             end if;
 
@@ -174,9 +176,9 @@ package body Ada_Be.Idl2Ada.Skel is
    --------------
 
    procedure Gen_Is_A
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
@@ -227,7 +229,7 @@ package body Ada_Be.Idl2Ada.Skel is
       if NK = K_Interface then
          Put (CU, Ada_Full_Name (Node));
       else
-         pragma Assert (SK = Skeleton);
+         pragma Assert (not Is_Delegate);
          Add_With (CU,
                    Ada_Full_Name (Node)
                    & Ada_Be.Idl2Ada.Value_Skel.Suffix);
@@ -259,14 +261,13 @@ package body Ada_Be.Idl2Ada.Skel is
    ----------------------------
 
    procedure Gen_Body_Common_Start
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK : constant Node_Kind := Kind (Node);
    begin
-      pragma Assert ((NK = K_Interface)
-                     or else (NK = K_ValueType));
+      pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       Add_With (CU, "PortableServer");
       Add_With (CU, "CORBA", Elab_Control => Elaborate_All);
       --  CORBA.To_CORBA_String is used in skel elab.
@@ -287,7 +288,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "begin");
       II (CU);
       Put (CU, "return Obj.all in ");
-      if SK = Delegate then
+      if Is_Delegate then
          Put (CU, "Object'Class");
       elsif NK = K_Interface then
          Add_With (CU,
@@ -332,9 +333,9 @@ package body Ada_Be.Idl2Ada.Skel is
    -------------------------
 
    procedure Gen_Body_Common_End
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id)
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
    is
       NK     : constant Node_Kind := Kind (Node);
       It     : Node_Iterator;
@@ -348,7 +349,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
       Divert (CU, Elaboration);
 
-      if SK = Skeleton then
+      if not Is_Delegate then
          Init (It, Parents (Node));
          while not Is_End (It) loop
             Get_Next_Node (It, P_Node);
@@ -362,7 +363,7 @@ package body Ada_Be.Idl2Ada.Skel is
       Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
       PL (CU, "." & Repository_Id_Name (Node) &"),");
-      if SK = Skeleton then
+      if not Is_Delegate then
          PL (CU, "   Servant_Is_A'Access,");
          PL (CU, "   Invoke'Access);");
       else
@@ -375,12 +376,13 @@ package body Ada_Be.Idl2Ada.Skel is
    -- Suffix --
    ------------
 
-   function Suffix (SK : Skel_Kind) return String is
+   function Suffix (Is_Delegate : in Boolean) return String is
    begin
-      case SK is
-         when Skeleton => return ".Skel";
-         when Delegate => return ".Delegate";
-      end case;
+      if Is_Delegate then
+         return ".Delegate";
+      else
+         return ".Skel";
+      end if;
    end Suffix;
 
    ----------------

@@ -79,9 +79,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                        & Opname
                        & "_Type is access ");
                   Gen_Operation_Profile
-                    (CU,
-                     "CORBA.Impl.Object_Ptr",
-                     Node,
+                    (CU, Node, "CORBA.Impl.Object_Ptr",
                      With_Name => False);
                   PL (CU, ";");
                   NL (CU);
@@ -147,9 +145,8 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             begin
                Add_With (CU, V_Impl_Name);
                Gen_Operation_Profile
-                 (CU,
-                  "CORBA.Impl.Object_Ptr",
-                  Node);
+                 (CU, Node,
+                  "CORBA.Impl.Object_Ptr");
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);

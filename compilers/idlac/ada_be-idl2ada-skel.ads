@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---            A D A _ B E . I D L 2 A D A . S K E L                         --
+--                  A D A _ B E . I D L 2 A D A . S K E L                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -24,6 +24,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
@@ -32,24 +34,22 @@ private package Ada_Be.Idl2Ada.Skel is
    --  This package contains the code common to the skeleton and the
    --  delegate packages.
 
-   type Skel_Kind is (Skeleton, Delegate);
-
-   function Suffix (SK : Skel_Kind) return String;
+   function Suffix (Is_Delegate : in Boolean) return String;
 
    procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
 
    procedure Gen_Node_Body
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
 
    procedure Gen_Body_Common_End
-     (CU   : in out Compilation_Unit;
-      SK   : in Skel_Kind;
-      Node : in Node_Id);
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
    --  generates code for skel_body that is common
    --  for interfaces and valuetypes supporting interfaces
    --  at the end of the package.
