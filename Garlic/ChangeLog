@@ -1,3 +1,9 @@
+Tue Feb  4 14:56:48 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Commented out an ATC which makes everything
+	  block. Without this ATC, termination may fail in some peculiar
+	  cases (see comment in file, prefixed with 'XXXXX').
+
 Mon Feb  3 20:20:56 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Removed the kludge about Unit_Name. Since we are

@@ -679,10 +679,15 @@ package body System.Garlic.TCP is
         Stream_Element_Count_Length;
       Header        : aliased Params_Stream_Type (Header_Length);
    begin
-      select
-         Shutdown_Keeper.Wait;
-         raise Communication_Error;
-      then abort
+      --  XXXXX The following select-then abort construct is commented out
+      --  since this leads in GNAT 3.09 to bogus runtime locking. This may
+      --  hardly be a problem, except that this may block the termination.
+      --  In the meantime, it has been replaced with a begin-end block
+      --  select
+      --    Shutdown_Keeper.Wait;
+      --    raise Communication_Error;
+      --  then abort
+      begin
          Partition_Map.Lock (Partition);
          Partition_Map.Get (Partition) (Remote_Data);
          if Remote_Data.Queried and then not Remote_Data.Known then
@@ -784,7 +789,8 @@ package body System.Garlic.TCP is
                Partition_Map.Unlock (Partition);
                raise Communication_Error;
          end;
-      end select;
+      --  XXXXX Should be end select (see above)
+      end;
    end Send;
 
    --------------------------
