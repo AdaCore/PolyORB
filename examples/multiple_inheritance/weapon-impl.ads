@@ -42,7 +42,4 @@ private
 
    type Object is new Corba.Object.Object with null record;
 
-End Echo.Impl ;
-
-
-
+End Weapon.Impl ;

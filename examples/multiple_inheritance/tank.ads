@@ -66,8 +66,8 @@ private
    end record;
 
    type Ref is new Vehicle with record
-      Fils : Access Ref := Ref;
+      AdaBroker_pere2 : access Weapon ;
    end record;
 
-End Echo ;
+end Tank ;
 

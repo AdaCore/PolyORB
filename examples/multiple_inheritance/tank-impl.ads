@@ -3,7 +3,7 @@
 ----     This in an example which is hand-written                       ----
 ----     for the Tank object                                            ----
 ----                                                                    ----
-----                package Tank                                        ----
+----                package Tank.Impl                                   ----
 ----                                                                    ----
 ----                author : Sebastien Ponce                            ----
 ----                                                                    ----
@@ -53,4 +53,4 @@ private
 
    type Object is new Tank.Impl.Object with null record;
 
-End Echo ;
+End Tank.Impl ;

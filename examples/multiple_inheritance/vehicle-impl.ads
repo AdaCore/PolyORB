@@ -50,7 +50,7 @@ private
       Mark: Corba.String ;
    end record ;
 
-End Echo.Impl ;
+End Vehicle.Impl ;
 
 
 
