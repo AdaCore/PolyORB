@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                            E C H O . I M P L                             --
+--                               C L I E N T                                --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -31,28 +31,87 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer;
-with RTCORBA;
+--   echo client.
 
-package Echo.Impl is
+--  $Id: //droopi/main/examples/corba/rtcorba/server_declared/client.adb#1 $
 
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+with Ada.Command_Line;
+with Ada.Text_IO;
+with CORBA.ORB;
 
-   type Object is new PortableServer.Servant_Base with record
-      Priority : RTCORBA.Priority;
-   end record;
+with Echo.Helper;
 
-   type Object_Acc is access Object;
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
-   function EchoString
-     (Self : access Object;
-      Mesg : in     CORBA.String)
-     return CORBA.String;
+with PolyORB.Utils.Report;
 
-   Echo_Objects : Objects;
+procedure Client is
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+   use PolyORB.Utils.Report;
 
-   function Echoers (Self : access Object) return Objects;
+   Sent_Msg, Rcvd_Msg : CORBA.String;
+   myecho : Echo.Ref;
+   Echo_Objects : Echo.Objects;
 
-end Echo.Impl;
+begin
+   New_Test ("SERVER_DECLARED client");
+
+   CORBA.ORB.Initialize ("ORB");
+   if Argument_Count /= 1 then
+      Put_Line ("usage : client <IOR_string_from_server>|-i");
+      return;
+   end if;
+
+   --  Getting the CORBA.Object
+
+   CORBA.ORB.String_To_Object
+     (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), myecho);
+
+   --  Checking if it worked
+
+   if Echo.Is_Nil (myecho) then
+      Put_Line ("main : cannot invoke on a nil reference");
+      return;
+   end if;
+
+   --  Retrieving echo objects
+
+   Echo_Objects := Echo.echoers (myecho);
+
+   for J in Echo_Objects'Range loop
+
+      --  Sending message
+
+      Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
+
+      begin
+         Rcvd_Msg := Echo.echoString (Echo.Helper.To_Ref (Echo_Objects (J)),
+                                      Sent_Msg);
+
+         Output ("Execution on servant #" & Integer'Image (J), True);
+
+      exception
+         when others =>
+            Output ("Execution on servant #" & Integer'Image (J), False);
+      end;
+
+   end loop;
+
+   End_Report;
+
+exception
+   when E : CORBA.Transient =>
+      declare
+         Memb : CORBA.System_Exception_Members;
+      begin
+         CORBA.Get_Members (E, Memb);
+         Put ("received exception transient, minor");
+         Put (CORBA.Unsigned_Long'Image (Memb.Minor));
+         Put (", completion status: ");
+         Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
+
+         End_Report;
+      end;
+end Client;

@@ -258,19 +258,6 @@ begin
 
       Output ("Implicit activation of an object with these policies", True);
 
-      --  Output object IOR
-
-      Put_Line ("IOR of object #1, at RTCORBA priority"
-                & RTCORBA.Priority'Image (Default_Priority_1));
-
-      New_Line;
-      Put_Line
-        ("'"
-         & CORBA.To_Standard_String
-         (CORBA.Object.Object_To_String (Ref_Server_1))
-         & "'");
-      New_Line;
-
       --  Test #2
 
       New_Test ("Setting up Child_POA #2");
@@ -332,19 +319,6 @@ begin
          PortableServer.Servant (Obj_Server_2));
 
       Output ("Implicit activation of an object with these policies", True);
-
-      --  Output object IOR
-
-      Put_Line ("IOR of object #2, at RTCORBA priority"
-                & RTCORBA.Priority'Image (Default_Priority_2));
-
-      New_Line;
-      Put_Line
-        ("'"
-         & CORBA.To_Standard_String
-         (CORBA.Object.Object_To_String (Ref_Server_2))
-         & "'");
-      New_Line;
 
       --  Test #3
 
@@ -431,7 +405,35 @@ begin
          Ref_Server_3 := PortableServer.POA.Id_To_Reference
            (PortableServer.POA.Ref (Child_POA_Server_3), Oid);
 
-         --  Output object IOR
+         --  Building array of objects for client processing
+
+         Echo.Impl.Echo_Objects (0) := Ref_Server_1;
+         Echo.Impl.Echo_Objects (1) := Ref_Server_2;
+         Echo.Impl.Echo_Objects (2) := Ref_Server_3;
+
+         --  Output object IORs
+
+         Put_Line ("IOR of object #1, at RTCORBA priority"
+                   & RTCORBA.Priority'Image (Default_Priority_1));
+
+         New_Line;
+         Put_Line
+           ("'"
+            & CORBA.To_Standard_String
+            (CORBA.Object.Object_To_String (Ref_Server_1))
+            & "'");
+         New_Line;
+
+         Put_Line ("IOR of object #2, at RTCORBA priority"
+                   & RTCORBA.Priority'Image (Default_Priority_2));
+
+         New_Line;
+         Put_Line
+           ("'"
+            & CORBA.To_Standard_String
+            (CORBA.Object.Object_To_String (Ref_Server_2))
+            & "'");
+         New_Line;
 
          Put_Line ("IOR of object #3, at RTCORBA priority"
                    & RTCORBA.Priority'Image (Default_Priority_2));

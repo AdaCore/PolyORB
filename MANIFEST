@@ -295,6 +295,7 @@ examples/corba/rtcorba/client_propagated/echo.idl
 examples/corba/rtcorba/client_propagated/server.adb
 examples/corba/rtcorba/server_declared/Makefile.am
 examples/corba/rtcorba/server_declared/Makefile.in
+examples/corba/rtcorba/server_declared/client.adb
 examples/corba/rtcorba/server_declared/echo-impl.adb
 examples/corba/rtcorba/server_declared/echo-impl.ads
 examples/corba/rtcorba/server_declared/echo.idl

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -95,14 +95,27 @@ package body Echo.Impl is
       --  Test wether execution priority matches setup priority
 
       PolyORB.Utils.Report.Output
-        ("Execution priority conformant",
+        ("Execution priority conformant with set up priority",
          Rounded_Priority = RTCORBA.NativePriority (Ada_Priority));
 
-      Put_Line
-        ("Echoing string: « " & CORBA.To_Standard_String (Mesg)
-         & " »");
+      if Rounded_Priority /= RTCORBA.NativePriority (Ada_Priority) then
+         CORBA.Raise_Internal
+           (CORBA.System_Exception_Members'(Minor     => 0,
+                                            Completed => CORBA.Completed_No));
+      end if;
+
       return Mesg;
    end EchoString;
 
+   -------------
+   -- Echoers --
+   -------------
+
+   function Echoers (Self : access Object) return Objects is
+      pragma Unreferenced (Self);
+
+   begin
+      return Echo_Objects;
+   end Echoers;
 end Echo.Impl;
 

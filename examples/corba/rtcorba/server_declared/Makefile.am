@@ -1,6 +1,6 @@
 EXAMPLE=	echo
 
-corba_exe=server
+corba_exe=server client
 dsa_exe=
 moma_exe=
 
