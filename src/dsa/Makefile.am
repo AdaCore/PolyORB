@@ -6,6 +6,7 @@ alidir = $(includedir)/polyorb/dsa
 
 ADA_SPECS_WITH_BODY = \
 	s-polint.ads \
+	s-parint.ads \
 	polyorb-dsa_p-exceptions.ads \
 	polyorb-poa_config-racws.ads
 
