@@ -327,7 +327,7 @@ package body CORBA.ORB is
       return CORBA.String is
    begin
       return PolyORB.References.IOR.Object_To_String
-        ((Ref => CORBA.Object.To_PolyORB_Ref (Obj)));
+        ((Ref => CORBA.Object.To_PolyORB_Ref (CORBA.Object.Ref (Obj))));
    end Object_To_String;
 
    ----------------------
