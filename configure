@@ -1125,7 +1125,9 @@ else
   sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
   i?86-*-linux)        PLATFORM_SPECIFIC=a;;
+  i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
+  mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;
   *)                   { echo "configure: error: Unsupported platform "${target}"" 1>&2; exit 1; };;
 esac
 fi
@@ -1135,7 +1137,9 @@ case "${PLATFORM_SPECIFIC}" in
    s) PSNAME="Solaris";;
    u) PSNAME="SunOS";;
    a) PSNAME="Linux";;
+   w) PSNAME="Windows NT";;
    g) PSNAME="SGI";;
+   x) PSNAME="SNI";;
    e) PSNAME="Empty";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac
@@ -1144,7 +1148,7 @@ echo "$ac_t""$PSNAME" 1>&6
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1148: checking for get_errno in -lgnat" >&5
+echo "configure:1152: checking for get_errno in -lgnat" >&5
 ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1152,7 +1156,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1156 "configure"
+#line 1160 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1163,7 +1167,7 @@ int main() {
 get_errno()
 ; return 0; }
 EOF
-if { (eval echo configure:1167: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1171: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1194,6 +1198,19 @@ if test "${with_extra_libs+set}" = set; then
   EXTRA_LIBS="${withval}"
 fi
 
+
+#
+# Check if gnatmake -s is ok (smart recompilation)
+#
+echo $ac_n "checking if gnatmake supports -s""... $ac_c" 1>&6
+echo "configure:1207: checking if gnatmake supports -s" >&5
+if gnatmake -s -a -gnatg ada > /dev/null 2>&1; then
+   GNATMAKE="gnatmake -s"
+   echo "$ac_t""yes" 1>&6
+else
+   GNATMAKE="gnatmake"
+   echo "$ac_t""no" 1>&6
+fi
 
 #
 # Output
@@ -1387,6 +1404,7 @@ s%@SET_MAKE@%$SET_MAKE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
 s%@CERRNO@%$CERRNO%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
+s%@GNATMAKE@%$GNATMAKE%g
 
 CEOF
 EOF

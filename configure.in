@@ -138,7 +138,9 @@ AC_ARG_WITH(platform,
   sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
   i?86-*-linux)        PLATFORM_SPECIFIC=a;;
+  i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
+  mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;
   *)                   ]AC_MSG_ERROR([Unsupported platform "${target}"])[;;
 esac])
 AC_SUBST(PLATFORM_SPECIFIC)
@@ -146,7 +148,9 @@ AC_SUBST(PLATFORM_SPECIFIC)
    s) PSNAME="Solaris";;
    u) PSNAME="SunOS";;
    a) PSNAME="Linux";;
+   w) PSNAME="Windows NT";;
    g) PSNAME="SGI";;
+   x) PSNAME="SNI";;
    e) PSNAME="Empty";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac]
@@ -163,6 +167,18 @@ AC_ARG_WITH(extra-libs,
  [  --with-extra-libs=libs  Add extra libraries when building a program],
  [EXTRA_LIBS="${withval}"])
 AC_SUBST(EXTRA_LIBS)
+#
+# Check if gnatmake -s is ok (smart recompilation)
+#
+AC_MSG_CHECKING(if gnatmake supports -s)
+if gnatmake -s -a -gnatg ada > /dev/null 2>&1; then
+   GNATMAKE="gnatmake -s"
+   AC_MSG_RESULT(yes)
+else
+   GNATMAKE="gnatmake"
+   AC_MSG_RESULT(no)
+fi
+AC_SUBST(GNATMAKE)
 #
 # Output
 #
