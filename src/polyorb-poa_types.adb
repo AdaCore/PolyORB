@@ -183,9 +183,7 @@ package body PolyORB.POA_Types is
    procedure Get_Boolean
      (SEA : in     Stream_Element_Array;
       SEI : in out Stream_Element_Offset;
-      Boo :    out Types.Boolean)
-   is
-      R : Types.Unsigned_Long := 0;
+      Boo :    out Types.Boolean) is
    begin
       case SEA (SEI) is
          when 0 =>
