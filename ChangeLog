@@ -1,3 +1,7 @@
+2000-11-14  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* MANIFEST: Add prj hierarchy needed to build gnatdist.
+
 2000-10-20  Pascal Obry  <obry@gnat.com>
 
 	* configure, configure.in: add support for platform specific

@@ -393,6 +393,17 @@ ada/osint.adb
 ada/osint.ads
 ada/output.adb
 ada/output.ads
+ada/prj-com.ads
+ada/prj-env.adb
+ada/prj-env.ads
+ada/prj-ext.adb
+ada/prj-ext.ads
+ada/prj-pars.adb
+ada/prj-pars.ads
+ada/prj-util.adb
+ada/prj-util.ads
+ada/prj.adb
+ada/prj.ads
 ada/rident.ads
 ada/sdefault.ads
 ada/sfn_scan.adb
