@@ -1,0 +1,6 @@
+WARNING : In file CosNotifyFilter.idl, line 105 :
+   
+   readonly attribute CORBA::TypeCode value_type;
+
+has been commented out, as it prevented normal compiling of this idl file.
+idlac cannot find the CORBA::TypeCode definition (from CORBA_InterfaceRepository.idl)
