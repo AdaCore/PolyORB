@@ -31,14 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;
+
 with Broca.Exceptions;
 with Broca.Debug;
 
 with Broca.Configuration;
 pragma Elaborate (Broca.Configuration);
 pragma Warnings (Off, Broca.Configuration);
-
-with Ada.Tags;
 
 package body CORBA is
 
@@ -1304,130 +1304,265 @@ package body CORBA is
          return False;
       end if;
       pragma Debug (O ("Equal (Any) : passed typecode test"));
-      case TypeCode.Kind (Get_Type (Left)) is
+      case TypeCode.Kind (Get_Precise_Type (Left)) is
          when Tk_Null | Tk_Void =>
             pragma Debug (O ("Equal (Any, Null or Void) : end"));
             return True;
          when Tk_Short =>
-            pragma Debug (O ("Equal (Any, Short) : end"));
-            return Content_Short_Ptr (Get_Value (Left)).Value.all =
-              Content_Short_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Short := From_Any (Left);
+               R : Short := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Short) : end"));
+               return L = R;
+            end;
          when Tk_Long =>
-            pragma Debug (O ("Equal (Any, Long) : end"));
-            return Content_Long_Ptr (Get_Value (Left)).Value.all =
-              Content_Long_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Long := From_Any (Left);
+               R : Long := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Long) : end"));
+               return L = R;
+            end;
          when Tk_Ushort =>
-            pragma Debug (O ("Equal (Any, Ushort) : end"));
-            return Content_UShort_Ptr (Get_Value (Left)).Value.all =
-              Content_UShort_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Unsigned_Short := From_Any (Left);
+               R : Unsigned_Short := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Ushort) : end"));
+               return L = R;
+            end;
          when Tk_Ulong =>
-            pragma Debug (O ("Equal (Any, Ulong) : end"));
-            return Content_ULong_Ptr (Get_Value (Left)).Value.all =
-              Content_ULong_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Unsigned_Long := From_Any (Left);
+               R : Unsigned_Long := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Ulong) : end"));
+               return L = R;
+            end;
          when Tk_Float =>
-            pragma Debug (O ("Equal (Any, Float) : end"));
-            return Content_Float_Ptr (Get_Value (Left)).Value.all =
-              Content_Float_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Float := From_Any (Left);
+               R : Float := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Float) : end"));
+               return L = R;
+            end;
          when Tk_Double =>
-            pragma Debug (O ("Equal (Any, Double) : end"));
-            return Content_Double_Ptr (Get_Value (Left)).Value.all =
-              Content_Double_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Double := From_Any (Left);
+               R : Double := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Double) : end"));
+               return L = R;
+            end;
          when Tk_Boolean =>
-            pragma Debug (O ("Equal (Any, Boolean) : end"));
-            return Content_Boolean_Ptr (Get_Value (Left)).Value.all =
-              Content_Boolean_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Boolean := From_Any (Left);
+               R : Boolean := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Boolean) : end"));
+               return L = R;
+            end;
          when Tk_Char =>
-            pragma Debug (O ("Equal (Any, Char) : end"));
-            return Content_Char_Ptr (Get_Value (Left)).Value.all =
-              Content_Char_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Char := From_Any (Left);
+               R : Char := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Char) : end"));
+               return L = R;
+            end;
          when Tk_Octet =>
-            pragma Debug (O ("Equal (Any, Octet) : end"));
-            return Content_Octet_Ptr (Get_Value (Left)).Value.all =
-              Content_Octet_Ptr (Get_Value (Right)).Value.all;
+            declare
+               L : Octet := From_Any (Left);
+               R : Octet := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Octet) : end"));
+               return L = R;
+            end;
          when Tk_Any =>
-            pragma Debug (O ("Equal (Any, Any) : end"));
-            return Equal (Content_Any_Ptr (Get_Value (Left)).Value.all,
-                          Content_Any_Ptr (Get_Value (Right)).Value.all);
+            declare
+               L : Any := From_Any (Left);
+               R : Any := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Any) : end"));
+               return Equal (L, R);
+            end;
          when Tk_TypeCode =>
-            pragma Debug (O ("Equal (Any, TypeCode) : end"));
-            return TypeCode.Equal
-              (Content_TypeCode_Ptr (Get_Value (Left)).Value.all,
-               Content_TypeCode_Ptr (Get_Value (Right)).Value.all);
-
+            declare
+               L : TypeCode.Object := From_Any (Left);
+               R : TypeCode.Object := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, TypeCode) : end"));
+               return TypeCode.Equal (R, L);
+            end;
          when Tk_Principal =>
+            --  FIXME : to be done
             pragma Debug (O ("Equal (Any, Principal) : end"
                              & " NON IMPLEMENTED -> TRUE"));
             return True;
-
          when Tk_Objref =>
-            pragma Debug (O ("Equal (Any, ObjRef) : end"
-                             & " NON IMPLEMENTED -> TRUE"));
-            return True;
---          return Object.Is_Equivalent (Object.From_Any (Left),
---                                       Object.From_Any (Right));
-         when Tk_Struct | Tk_Union =>
-            pragma Debug (O ("Equal (Any, Struct or Union) : end"
-                             & " NON IMPLEMENTED -> TRUE"));
-            return True;
-            --  agregate comparison (recursive)
---          declare
---             N : CORBA.Long;
---             Cl1, Cl2 : Content_List;
---          begin
---             Cl1 := Content_Agregat_Ptr (Get_Value (Left)).Value;
---             Cl2 := Content_Agregat_Ptr (Get_Value (Right)).Value;
---             N := Agregate_Count (Cl1);
---             if (N /= Agregate_Count (Cl2)) then
---                return False;
---             end if;
---                declare
---                   Res : CORBA.Boolean := True;
---                   Tc : TypeCode.Object := Get_Type (Left);
---                   Any_Member_Tc : TypeCode.Object;
---                begin
---                   for I in 0 .. N - 1 loop
---                      Any_Member_Tc := TypeCode.From_Any
---                        (TypeCode.Parameter
---                      (Tc,
---                       TypeCode.Member_Index
---                       (TypeCode.Kind (Get_Type (Left)), I)));
---                      Res := Res and
---                        Equal
---                        (Get_Any_Agregate_Member (Left, Any_Member_Tc, I),
---                         Get_Any_Agregate_Member (Right, Any_Member_Tc, I));
---                      if Res = False then
---                         return False;
---                      end if;
---                   end loop;
---                   return True;
---                end;
---             end;
-
-         when Tk_String =>
-            pragma Debug (O ("Equal (Any, String) : end"
-                             & " NON IMPLEMENTED -> TRUE"));
-            return True;
-
+            declare
+--               L : CORBA.Object.Ref := CORBA.Object.Helper.From_Any (Left);
+--               R : CORBA.Object.Ref := CORBA.Object.Helper.From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, ObjRef) : end"));
+               --  FIXME : is_equivalent has to be implemented
+               return True;
+               --  return CORBA.Object.Is_Equivalent (L, R);
+            end;
+         when Tk_Struct
+           | Tk_Except =>
+            declare
+               List_Type : CORBA.TypeCode.Object := Get_Precise_Type (Left);
+               Member_Type : CORBA.TypeCode.Object;
+            begin
+               --  for each member in the aggregate, compare both values
+               for I in 0 .. CORBA.TypeCode.Member_Count (List_Type) - 1 loop
+                  Member_Type := CORBA.TypeCode.Member_Type (List_Type, I);
+                  if not Equal (Get_Aggregate_Element (Left, Member_Type, I),
+                                Get_Aggregate_Element (Right, Member_Type, I))
+                  then
+                     pragma Debug (O ("Equal (Any, Struct or Except) : end"));
+                     return False;
+                  end if;
+               end loop;
+               pragma Debug (O ("Equal (Any, Struct or Except) : end"));
+               return True;
+            end;
+         when Tk_Union =>
+            declare
+               List_Type : CORBA.TypeCode.Object := Get_Precise_Type (Left);
+               Switch_Type : CORBA.TypeCode.Object :=
+                 CORBA.TypeCode.Discriminator_Type (List_Type);
+               Member_Type : CORBA.TypeCode.Object;
+            begin
+               --  first compares the switch value
+               if not Equal (Get_Aggregate_Element (Left, Switch_Type,
+                                                    CORBA.Unsigned_Long (0)),
+                             Get_Aggregate_Element (Right, Switch_Type,
+                                                    CORBA.Unsigned_Long (0)))
+               then
+                  pragma Debug (O ("Equal (Any, Union) : end"));
+                  return False;
+               end if;
+               declare
+                  Switch_Label : CORBA.Any :=
+                    Get_Aggregate_Element (Left, Switch_Type,
+                                           CORBA.Unsigned_Long (0));
+               begin
+                  --  then, for each member in the aggregate,
+                  --  compares both values
+                  for I in 1 .. CORBA.TypeCode.Member_Count_With_Label
+                    (List_Type, Switch_Label) loop
+                     Member_Type := CORBA.TypeCode.Member_Type_With_Label
+                       (List_Type, Switch_Label, I - 1);
+                     if not Equal
+                       (Get_Aggregate_Element (Left, Member_Type, I),
+                        Get_Aggregate_Element (Right, Member_Type, I))
+                     then
+                        pragma Debug (O ("Equal (Any, Union) : end"));
+                        return False;
+                     end if;
+                  end loop;
+                  pragma Debug (O ("Equal (Any,Union) : end"));
+                  return True;
+               end;
+            end;
          when Tk_Enum =>
             pragma Debug (O ("Equal (Any, Enum) : end"));
+            --  compares the only element of both aggregate : an unsigned long
+            return Equal
+              (Get_Aggregate_Element (Left, CORBA.TC_Unsigned_Long,
+                                      CORBA.Unsigned_Long (0)),
+               Get_Aggregate_Element (Right, CORBA.TC_Unsigned_Long,
+                                      CORBA.Unsigned_Long (0)));
+         when Tk_Sequence
+           | Tk_Array =>
             declare
-               --  first retrieves the content_list corresponding to
-               --  each any, since these are aggregates
-               List_Left : Content_List :=
-                 Content_Aggregate_Ptr (Get_Value (Left)).Value;
-               List_Right : Content_List :=
-                 Content_Aggregate_Ptr (Get_Value (Right)).Value;
+               List_Type : CORBA.TypeCode.Object := Get_Precise_Type (Left);
+               Member_Type : CORBA.TypeCode.Object :=
+                 CORBA.TypeCode.Content_Type (List_Type);
             begin
-               --  then compares the first element of each list since
-               --  they are anys contaning unsigned longs.
-               return Content_ULong_Ptr (List_Left.The_Value).Value.all =
-                 Content_ULong_Ptr (List_Right.The_Value).Value.all;
+               --  for each member in the aggregate, compare both values
+               for I in 0 .. CORBA.TypeCode.Length (List_Type) - 1 loop
+                  if not Equal (Get_Aggregate_Element (Left, Member_Type, I),
+                                Get_Aggregate_Element (Right, Member_Type, I))
+                  then
+                     pragma Debug (O ("Equal (Any, Sequence or Array) : end"));
+                     return False;
+                  end if;
+               end loop;
+               pragma Debug (O ("Equal (Any, Sequence or Array) : end"));
+               return True;
             end;
-
-         when others =>
-            pragma Debug (O ("Equal (Any, other) : end"
-                             & " NON IMPLEMENTED -> FALSE"));
-            return False;
+         when Tk_Fixed
+           | Tk_Value
+           | Tk_Valuebox
+           | Tk_Abstract_Interface =>
+            --  FIXME : to be done
+            pragma Debug (O ("Equal (Any, Fixed or Value or ValueBox "
+                             & "or Abstract_Interface) : end"
+                             & " NON IMPLEMENTED -> TRUE"));
+            return True;
+         when Tk_String =>
+            declare
+               L : String := From_Any (Left);
+               R : String := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, String) : end"));
+               return L = R;
+            end;
+         when Tk_Alias =>
+            --  we should never be here, since the case statement uses the
+            --  precise type of the anys, that is an unaliased type
+            pragma Debug (O ("Equal (Any, Alias) : end with exception"));
+            Broca.Exceptions.Raise_Internal;
+         when Tk_Longlong =>
+            declare
+               L : Long_Long := From_Any (Left);
+               R : Long_Long := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Long_Long) : end"));
+               return L = R;
+            end;
+         when Tk_Ulonglong =>
+            declare
+               L : Unsigned_Long_Long := From_Any (Left);
+               R : Unsigned_Long_Long := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Unsigned_Long_Long) : end"));
+               return L = R;
+            end;
+         when Tk_Longdouble =>
+            declare
+               L : Long_Double := From_Any (Left);
+               R : Long_Double := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Long_Double) : end"));
+               return L = R;
+            end;
+         when Tk_Widechar =>
+            declare
+               L : Wchar := From_Any (Left);
+               R : Wchar := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Wchar) : end"));
+               return L = R;
+            end;
+         when Tk_Wstring =>
+            declare
+               L : CORBA.Wide_String := From_Any (Left);
+               R : CORBA.Wide_String := From_Any (Right);
+            begin
+               pragma Debug (O ("Equal (Any, Wide_String) : end"));
+               return L = R;
+            end;
+         when Tk_Native =>
+            --  FIXME : to be done
+            pragma Debug (O ("Equal (Any, Native) : end"
+                             & " NON IMPLEMENTED -> TRUE"));
+            return True;
       end case;
    end "=";
 
@@ -2217,14 +2352,9 @@ package body CORBA is
    --  Get_Aggregate_Count  --
    ---------------------------
    function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long is
-      N : CORBA.Unsigned_Long := 0;
-      Ptr : Content_List := Content_Aggregate_Ptr (Get_Value (Value)).Value;
    begin
-      while Ptr /= null loop
-         N := N + 1;
-         Ptr := Ptr.Next;
-      end loop;
-      return N;
+      return Get_Content_List_Length (Content_Aggregate_Ptr
+                                      (Get_Value (Value)).Value);
    end Get_Aggregate_Count;
 
    -----------------------------
@@ -2339,6 +2469,21 @@ package body CORBA is
       end if;
       pragma Debug (O2 ("Deep_Deallocate : end"));
    end Deep_Deallocate;
+
+   -------------------------------
+   --  Get_Content_List_Length  --
+   -------------------------------
+   function Get_Content_List_Length (List : in Content_List)
+     return CORBA.Unsigned_Long is
+      Ptr : Content_List := List;
+      N : CORBA.Unsigned_Long := 0;
+   begin
+      while Ptr /= null loop
+         N := N + 1;
+         Ptr := Ptr.Next;
+      end loop;
+      return N;
+   end Get_Content_List_Length;
 
    -----------------
    --  Duplicate  --

@@ -1159,6 +1159,8 @@ private
    procedure Deep_Deallocate (List : in out Content_List);
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Content_Cell, Content_List);
+   function Get_Content_List_Length (List : in Content_List)
+     return CORBA.Unsigned_Long;
 
    --  for complex types that could be defined in Idl
    --  content_aggregate will be used.
