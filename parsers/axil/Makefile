@@ -1,7 +1,7 @@
 GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
 GNATMAKE = gnatmake
 INCLUDE = -I../common_files/
-IAC_PATH = ../iac/
+IAC_PATH = ../iac
 CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
 NODESTEMP = nodes.tmp
 
@@ -22,14 +22,14 @@ lexer:
 nutils:
 	${CMD} nutils
 
-mknodes: ../common_files/mknodes.adb
-	$(GNATMAKE) -I. ../common_files/mknodes.adb
+mknodes: ${IAC_PATH}/mknodes.adb
+	$(GNATMAKE) -I. -I${IAC_PATH} ${INCLUDE} ${IAC_PATH}/mknodes.adb
 
 nodes: nodes.ads nodes.adb debug
 	${CMD} nodes
 
-nodes.ads nodes.adb : nodes.idl
-	$(IAC_PATH)mknodes nodes.idl > $(NODESTEMP)
+nodes.ads nodes.adb : nodes.idl mknodes
+	./mknodes nodes.idl > $(NODESTEMP)
 	-gnatchop -w ${NODESTEMP}
 	-rm -f ${NODESTEMP}
 
