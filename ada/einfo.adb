@@ -40,7 +40,6 @@ with Atree;  use Atree;
 with Namet;  use Namet;
 with Nlists; use Nlists;
 with Sinfo;  use Sinfo;
-with Snames; use Snames;
 with Stand;  use Stand;
 with Output; use Output;
 
@@ -4730,6 +4729,76 @@ package body Einfo is
          end if;
       end if;
    end First_Subtype;
+
+   -------------------------------------
+   -- Get_Attribute_Definition_Clause --
+   -------------------------------------
+
+   function Get_Attribute_Definition_Clause
+     (E    : Entity_Id;
+      Id   : Attribute_Id)
+      return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := First_Rep_Item (E);
+      while Present (N) loop
+         if Nkind (N) = N_Attribute_Definition_Clause
+           and then Get_Attribute_Id (Chars (N)) = Id
+         then
+            return N;
+         else
+            Next_Rep_Item (N);
+         end if;
+      end loop;
+
+      return Empty;
+   end Get_Attribute_Definition_Clause;
+
+   --------------------
+   -- Get_Rep_Pragma --
+   --------------------
+
+   function Get_Rep_Pragma (E : Entity_Id; Nam : Name_Id) return Node_Id is
+      N   : Node_Id;
+      Typ : Entity_Id;
+
+   begin
+      N := First_Rep_Item (E);
+
+      while Present (N) loop
+         if Nkind (N) = N_Pragma and then Chars (N) = Nam then
+
+            if Nam = Name_Stream_Convert then
+
+               --  For tagged types this pragma is not inherited, so we
+               --  must verify that it is defined for the given type and
+               --  not an ancestor.
+
+               Typ := Entity (Expression
+                       (First (Pragma_Argument_Associations (N))));
+
+               if not Is_Tagged_Type (E)
+                 or else E = Typ
+                 or else (Is_Private_Type (Typ)
+                           and then E = Full_View (Typ))
+               then
+                  return N;
+               else
+                  Next_Rep_Item (N);
+               end if;
+
+            else
+               return N;
+            end if;
+         else
+            Next_Rep_Item (N);
+         end if;
+      end loop;
+
+      return Empty;
+   end Get_Rep_Pragma;
 
    ------------------------
    -- Has_Attach_Handler --

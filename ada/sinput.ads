@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -489,6 +489,7 @@ package Sinput is
    --  is why the somewhat cryptic use of brackets is acceptable).
 
    procedure wl (P : Source_Ptr);
+   pragma Export (Ada, wl);
    --  Equivalent to Write_Location (P); Write_Eol; for calls from GDB
 
    procedure Write_Time_Stamp (S : Source_File_Index);

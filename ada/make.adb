@@ -62,6 +62,7 @@ with Snames;   use Snames;
 with Stringt;  use Stringt;
 with Switch;   use Switch;
 with Switch.M; use Switch.M;
+with Targparm;
 
 with System.WCh_Con; use System.WCh_Con;
 
@@ -436,6 +437,9 @@ package body Make is
 
    Object_Suffix     : constant String := Get_Object_Suffix.all;
    Executable_Suffix : constant String := Get_Executable_Suffix.all;
+
+   Syntax_Only : Boolean := False;
+   --  Set to True when compiling with -gnats
 
    Display_Executed_Programs : Boolean := True;
    --  Set to True if name of commands should be output on stderr.
@@ -1315,6 +1319,7 @@ package body Make is
          Source_Unit      : Unit_Name_Type;
          Mapping_File     : Temp_File_Name := No_Mapping_File;
          Use_Mapping_File : Boolean        := False;
+         Syntax_Only      : Boolean        := False;
       end record;
 
       Running_Compile : array (1 .. Max_Process) of Compilation_Data;
@@ -1465,6 +1470,7 @@ package body Make is
          Running_Compile (OC1).Source_Unit      := Uname;
          Running_Compile (OC1).Mapping_File     := Mfile;
          Running_Compile (OC1).Use_Mapping_File := UMfile;
+         Running_Compile (OC1).Syntax_Only      := Syntax_Only;
 
          Outstanding_Compiles := OC1;
       end Add_Process;
@@ -1500,6 +1506,7 @@ package body Make is
                Sfile := Running_Compile (J).Full_Source_File;
                Afile := Running_Compile (J).Lib_File;
                Uname := Running_Compile (J).Source_Unit;
+               Syntax_Only := Running_Compile (J).Syntax_Only;
 
                --  If a mapping file was used by this compilation,
                --  get its file name for reuse by a subsequent compilation
@@ -1827,6 +1834,34 @@ package body Make is
       --  Start of processing for Compile
 
       begin
+         --  By default, Syntax_Only is False
+
+         Syntax_Only := False;
+
+         for J in Args'Range loop
+            if Args (J).all = "-gnats" then
+
+               --  If we compile with -gnats, the bind step and the link step
+               --  are inhibited. Also, we set Syntax_Only to True, so that
+               --  we don't fail when we don't find the ALI file, after
+               --  compilation.
+
+               Do_Bind_Step := False;
+               Do_Link_Step := False;
+               Syntax_Only  := True;
+
+            elsif Args (J).all = "-gnatc" then
+
+               --  If we compile with -gnatc, the bind step and the link step
+               --  are inhibited. We set Syntax_Only to True for the case when
+               --  -gnats was previously specified.
+
+               Do_Bind_Step := False;
+               Do_Link_Step := False;
+               Syntax_Only  := False;
+            end if;
+         end loop;
+
          Comp_Args (Comp_Next) := Comp_Flag;
          Comp_Next := Comp_Next + 1;
 
@@ -1966,7 +2001,6 @@ package body Make is
 
       procedure Get_Mapping_File is
       begin
-
          --  If there is a mapping file ready to be reused, reuse it
 
          if Last_Mapping_File_Name > 0 then
@@ -2308,7 +2342,7 @@ package body Make is
                --  However, we record a failure only if not already done.
 
                else
-                  if Compilation_OK then
+                  if Compilation_OK and not Syntax_Only then
                      Inform
                        (Lib_File,
                         "WARNING: ALI or object file not found after compile");
@@ -2630,8 +2664,15 @@ package body Make is
       end if;
 
       if Opt.Verbose_Mode then
+         Targparm.Get_Target_Parameters;
+
          Write_Eol;
          Write_Str ("GNATMAKE ");
+
+         if Targparm.High_Integrity_Mode_On_Target then
+            Write_Str ("Pro High Integrity ");
+         end if;
+
          Write_Str (Gnatvsn.Gnat_Version_String);
          Write_Str (" Copyright 1995-2002 Free Software Foundation, Inc.");
          Write_Eol;

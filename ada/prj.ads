@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,9 +52,6 @@ package Prj is
    Default_Ada_Impl_Suffix : Name_Id;
    --  The Name_Id for the standard GNAT suffix for Ada body source file
    --  name ".adb". Initialized by Prj.Initialize.
-
-   type Put_Line_Access is access procedure (Line : String);
-   --  Use to customize error reporting in Prj.Proc and Prj.Nmsc.
 
    type Verbosity is (Default, Medium, High);
    --  Verbosity when parsing GNAT Project Files
@@ -457,6 +454,11 @@ package Prj is
      Table_Increment      => 100,
      Table_Name           => "Prj.Projects");
    --  The set of all project files.
+
+   type Put_Line_Access is access procedure
+     (Line    : String;
+      Project : Project_Id);
+   --  Use to customize error reporting in Prj.Proc and Prj.Nmsc.
 
    procedure Expect (The_Token : Token_Type; Token_Image : String);
    --  Check that the current token is The_Token. If it is not, then

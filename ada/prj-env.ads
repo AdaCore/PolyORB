@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc        --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,6 +61,16 @@ package Prj.Env is
    function Ada_Include_Path (Project : Project_Id) return String_Access;
    --  Get the ADA_INCLUDE_PATH of a Project file. For the first call, compute
    --  it and cache it.
+
+   function Ada_Include_Path
+     (Project   : Project_Id;
+      Recursive : Boolean)
+      return      String;
+   --  Get the ADA_INCLUDE_PATH of a Project file. If Recursive it True,
+   --  get all the source directories of the imported and modified project
+   --  files (recursively). If Recursive is False, just get the path for the
+   --  source directories of Project. Note: the resulting String may be empty
+   --  if there is no source directory in the project file.
 
    function Ada_Objects_Path
      (Project             : Project_Id;

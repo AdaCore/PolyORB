@@ -26,31 +26,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Errout;
+with Hostparm;
+with MLib.Tgt;
+with Namet;    use Namet;
+with Osint;    use Osint;
+with Output;   use Output;
+with Prj.Com;  use Prj.Com;
+with Prj.Env;  use Prj.Env;
+with Prj.Util; use Prj.Util;
+with Snames;   use Snames;
+with Stringt;  use Stringt;
+with Types;    use Types;
+
 with Ada.Characters.Handling;    use Ada.Characters.Handling;
 with Ada.Strings;                use Ada.Strings;
 with Ada.Strings.Fixed;          use Ada.Strings.Fixed;
 with Ada.Strings.Maps.Constants; use Ada.Strings.Maps.Constants;
-with Errout;                     use Errout;
+
 with GNAT.Case_Util;             use GNAT.Case_Util;
 with GNAT.Directory_Operations;  use GNAT.Directory_Operations;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
-with Hostparm;
-with MLib.Tgt;
-with Namet;                      use Namet;
-with Osint;                      use Osint;
-with Output;                     use Output;
-with Prj.Com;                    use Prj.Com;
-with Prj.Env;                    use Prj.Env;
-with Prj.Util;                   use Prj.Util;
-with Snames;                     use Snames;
-with Stringt;                    use Stringt;
-with Types;                      use Types;
 
 package body Prj.Nmsc is
 
-   Dir_Sep      : Character renames GNAT.OS_Lib.Directory_Separator;
+   Dir_Sep : Character renames GNAT.OS_Lib.Directory_Separator;
 
-   Error_Report : Put_Line_Access := null;
+   Error_Report    : Put_Line_Access := null;
+   Current_Project : Project_Id := No_Project;
 
    procedure Check_Ada_Naming_Scheme (Naming : Naming_Data);
    --  Check that the package Naming is correct.
@@ -91,12 +94,9 @@ package body Prj.Nmsc is
       Project            : Project_Id;
       Data               : in out Project_Data;
       Location           : Source_Ptr;
-      Current_Source     : in out String_List_Id;
-      Error_If_Not_Found : Boolean);
+      Current_Source     : in out String_List_Id);
    --  Put a unit in the list of units of a project, if the file name
-   --  corresponds to a valid unit name. If Error_If_Not_Found is True and
-   --  the source cannot be found or is not a valid source file name, then
-   --  an error is reported.
+   --  corresponds to a valid unit name.
 
    procedure Show_Source_Dirs (Project : Project_Id);
    --  List all the source directories of a project.
@@ -165,7 +165,7 @@ package body Prj.Nmsc is
             Check_Ada_Name (Element.Index, Unit_Name);
 
             if Unit_Name = No_Name then
-               Error_Msg_Name_1 := Element.Index;
+               Errout.Error_Msg_Name_1 := Element.Index;
                Error_Msg
                  ("{ is not a valid unit name.",
                   Element.Value.Location);
@@ -261,8 +261,7 @@ package body Prj.Nmsc is
                                  Project            => Project,
                                  Data               => Data,
                                  Location           => No_Location,
-                                 Current_Source     => Current_Source,
-                                 Error_If_Not_Found => False);
+                                 Current_Source     => Current_Source);
 
                            else
                               if Current_Verbosity = High then
@@ -315,17 +314,19 @@ package body Prj.Nmsc is
          Path       : Name_Id;
 
          Found      : Boolean := False;
+         Fname      : String  := File_Name;
 
       begin
+         Canonical_Case_File_Name (Fname);
+         Name_Len := Fname'Length;
+         Name_Buffer (1 .. Name_Len) := Fname;
+         File := Name_Find;
+
          if Current_Verbosity = High then
             Write_Str  ("   Checking """);
-            Write_Str  (File_Name);
+            Write_Str  (Fname);
             Write_Line (""".");
          end if;
-
-         Name_Len := File_Name'Length;
-         Name_Buffer (1 .. Name_Len) := File_Name;
-         File := Name_Find;
 
          --  We look in all source directories for this file name
 
@@ -340,7 +341,7 @@ package body Prj.Nmsc is
 
             Path_Name :=
               Locate_Regular_File
-              (File_Name,
+              (Fname,
                Get_Name_String (Element.Value));
 
             if Path_Name /= null then
@@ -352,8 +353,7 @@ package body Prj.Nmsc is
                Name_Buffer (1 .. Name_Len) := Path_Name.all;
                Path := Name_Find;
 
-               --  Register the source. Report an error if the file does not
-               --  correspond to a source.
+               --  Register the source if it is an Ada compilation unit..
 
                Record_Source
                  (File_Name          => File,
@@ -361,8 +361,7 @@ package body Prj.Nmsc is
                   Project            => Project,
                   Data               => Data,
                   Location           => Location,
-                  Current_Source     => Current_Source,
-                  Error_If_Not_Found => True);
+                  Current_Source     => Current_Source);
                Found := True;
                exit;
 
@@ -379,7 +378,7 @@ package body Prj.Nmsc is
          --  in a source list file is not found.
 
          if not Found then
-            Error_Msg_Name_1 := File;
+            Errout.Error_Msg_Name_1 := File;
             Error_Msg ("source file { cannot be found", Location);
          end if;
 
@@ -416,7 +415,9 @@ package body Prj.Nmsc is
                Prj.Util.Get_Line (File, Line, Last);
 
                --  If the line is not empty and does not start with "--",
-               --  then it must contains a file name.
+               --  then it should contain a file name. However, if the
+               --  file name does not exist, it may be for another language
+               --  and we don't fail.
 
                if Last /= 0
                  and then (Last = 1 or else Line (1 .. 2) /= "--")
@@ -445,7 +446,8 @@ package body Prj.Nmsc is
    begin
       Language_Independent_Check (Project, Report_Error);
 
-      Error_Report := Report_Error;
+      Error_Report    := Report_Error;
+      Current_Project := Project;
 
       Data      := Projects.Table (Project);
       Languages := Prj.Util.Value_Of (Name_Languages, Data.Decl.Attributes);
@@ -621,7 +623,7 @@ package body Prj.Nmsc is
                         else
                            Name_Len := Casing_Image'Length;
                            Name_Buffer (1 .. Name_Len) := Casing_Image;
-                           Error_Msg_Name_1 := Name_Find;
+                           Errout.Error_Msg_Name_1 := Name_Find;
                            Error_Msg
                              ("{ is not a correct Casing",
                               Casing_String.Location);
@@ -818,7 +820,7 @@ package body Prj.Nmsc is
                   begin
                      if Source_File_Path_Name'Length = 0 then
                         String_To_Name_Buffer (Source_List_File.Value);
-                        Error_Msg_Name_1 := Name_Find;
+                        Errout.Error_Msg_Name_1 := Name_Find;
                         Error_Msg
                           ("file with sources { does not exist",
                            Source_List_File.Location);
@@ -1002,18 +1004,18 @@ package body Prj.Nmsc is
             --   - start with an '_' followed by an alphanumeric
 
             if Is_Illegal_Suffix
-              (Specification_Suffix, Dot_Replacement = ".")
+                 (Specification_Suffix, Dot_Replacement = ".")
             then
-               Error_Msg_Name_1 := Naming.Current_Spec_Suffix;
+               Errout.Error_Msg_Name_1 := Naming.Current_Spec_Suffix;
                Error_Msg
                  ("{ is illegal for Specification_Suffix",
                   Naming.Spec_Suffix_Loc);
             end if;
 
             if Is_Illegal_Suffix
-              (Implementation_Suffix, Dot_Replacement = ".")
+                 (Implementation_Suffix, Dot_Replacement = ".")
             then
-               Error_Msg_Name_1 := Naming.Current_Impl_Suffix;
+               Errout.Error_Msg_Name_1 := Naming.Current_Impl_Suffix;
                Error_Msg
                  ("{ is illegal for Implementation_Suffix",
                   Naming.Impl_Suffix_Loc);
@@ -1021,9 +1023,9 @@ package body Prj.Nmsc is
 
             if Implementation_Suffix /= Separate_Suffix then
                if Is_Illegal_Suffix
-                 (Separate_Suffix, Dot_Replacement = ".")
+                    (Separate_Suffix, Dot_Replacement = ".")
                then
-                  Error_Msg_Name_1 := Naming.Separate_Suffix;
+                  Errout.Error_Msg_Name_1 := Naming.Separate_Suffix;
                   Error_Msg
                     ("{ is illegal for Separate_Suffix",
                      Naming.Sep_Suffix_Loc);
@@ -1142,11 +1144,9 @@ package body Prj.Nmsc is
             Add ('"');
 
             case Msg_Name is
-               when 1 => Add (Error_Msg_Name_1);
-
-               when 2 => Add (Error_Msg_Name_2);
-
-               when 3 => Add (Error_Msg_Name_3);
+               when 1 => Add (Errout.Error_Msg_Name_1);
+               when 2 => Add (Errout.Error_Msg_Name_2);
+               when 3 => Add (Errout.Error_Msg_Name_3);
 
                when others => null;
             end case;
@@ -1159,7 +1159,7 @@ package body Prj.Nmsc is
 
       end loop;
 
-      Error_Report (Error_Buffer (1 .. Error_Last));
+      Error_Report (Error_Buffer (1 .. Error_Last), Current_Project);
    end Error_Msg;
 
    ---------------------
@@ -1583,6 +1583,8 @@ package body Prj.Nmsc is
                The_Path_Last := The_Path_Last - 1;
             end if;
 
+            Canonical_Case_File_Name (The_Path);
+
             if Current_Verbosity = High then
                Write_Str  ("   ");
                Write_Line (The_Path (The_Path'First .. The_Path_Last));
@@ -1632,11 +1634,13 @@ package body Prj.Nmsc is
                   --  Avoid . and ..
 
                   declare
-                     Path_Name : constant String :=
+                     Path_Name : String :=
                                    The_Path (The_Path'First .. The_Path_Last) &
                                    Name (1 .. Last);
 
                   begin
+                     Canonical_Case_File_Name (Path_Name);
+
                      if Is_Directory (Path_Name) then
 
                         --  We have found a new subdirectory,
@@ -1665,6 +1669,7 @@ package body Prj.Nmsc is
          end if;
 
          String_To_Name_Buffer (From);
+         Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
          Directory    := Name_Buffer (1 .. Name_Len);
          Directory_Id := Name_Find;
 
@@ -1709,7 +1714,7 @@ package body Prj.Nmsc is
 
             begin
                if Root = No_Name then
-                  Error_Msg_Name_1 := Base_Dir;
+                  Errout.Error_Msg_Name_1 := Base_Dir;
                   if Location = No_Location then
                      Error_Msg ("{ is not a valid directory.", Data.Location);
                   else
@@ -1743,7 +1748,7 @@ package body Prj.Nmsc is
 
             begin
                if Path_Name = No_Name then
-                  Error_Msg_Name_1 := Directory_Id;
+                  Errout.Error_Msg_Name_1 := Directory_Id;
                   if Location = No_Location then
                      Error_Msg ("{ is not a valid directory", Data.Location);
                   else
@@ -1834,7 +1839,7 @@ package body Prj.Nmsc is
                     Locate_Directory (Dir_Id, Data.Directory);
 
                   if Data.Object_Directory = No_Name then
-                     Error_Msg_Name_1 := Dir_Id;
+                     Errout.Error_Msg_Name_1 := Dir_Id;
                      Error_Msg
                        ("the object directory { cannot be found",
                         Data.Location);
@@ -1890,7 +1895,7 @@ package body Prj.Nmsc is
                     Locate_Directory (Dir_Id, Data.Directory);
 
                   if Data.Exec_Directory = No_Name then
-                     Error_Msg_Name_1 := Dir_Id;
+                     Errout.Error_Msg_Name_1 := Dir_Id;
                      Error_Msg
                        ("the exec directory { cannot be found",
                         Data.Location);
@@ -2332,6 +2337,17 @@ package body Prj.Nmsc is
                end loop;
             end;
 
+            --  Get the exceptions, if any
+
+            Data.Naming.Specification_Exceptions :=
+              Util.Value_Of
+                (Name_Specification_Exceptions,
+                 In_Arrays => Naming.Decl.Arrays);
+
+            Data.Naming.Implementation_Exceptions :=
+              Util.Value_Of
+                (Name_Implementation_Exceptions,
+                 In_Arrays => Naming.Decl.Arrays);
          end if;
       end;
 
@@ -2429,8 +2445,7 @@ package body Prj.Nmsc is
       Project            : Project_Id;
       Data               : in out Project_Data;
       Location           : Source_Ptr;
-      Current_Source     : in out String_List_Id;
-      Error_If_Not_Found : Boolean)
+      Current_Source     : in out String_List_Id)
    is
       Unit_Name    : Name_Id;
       Unit_Kind    : Spec_Or_Body;
@@ -2449,11 +2464,7 @@ package body Prj.Nmsc is
          Needs_Pragma => Needs_Pragma);
 
       if Unit_Name = No_Name then
-         if Error_If_Not_Found then
-            Error_Msg_Name_1 := File_Name;
-            Error_Msg ("{ is not a valid source file name", Location);
-
-         elsif Current_Verbosity = High then
+         if Current_Verbosity = High then
             Write_Str  ("   """);
             Write_Str  (Get_Name_String (File_Name));
             Write_Line (""" is not a valid source file name (ignored).");
@@ -2522,18 +2533,18 @@ package body Prj.Nmsc is
                      The_Location := Projects.Table (Project).Location;
                   end if;
 
-                  Error_Msg_Name_1 := Unit_Name;
+                  Errout.Error_Msg_Name_1 := Unit_Name;
                   Error_Msg ("duplicate source {", The_Location);
 
-                  Error_Msg_Name_1 :=
+                  Errout.Error_Msg_Name_1 :=
                     Projects.Table
                       (The_Unit_Data.File_Names (Unit_Kind).Project).Name;
-                  Error_Msg_Name_2 :=
+                  Errout.Error_Msg_Name_2 :=
                     The_Unit_Data.File_Names (Unit_Kind).Path;
                   Error_Msg ("\   project file {, {", The_Location);
 
-                  Error_Msg_Name_1 := Projects.Table (Project).Name;
-                  Error_Msg_Name_2 := Path_Name;
+                  Errout.Error_Msg_Name_1 := Projects.Table (Project).Name;
+                  Errout.Error_Msg_Name_2 := Path_Name;
                   Error_Msg ("\   project file {, {", The_Location);
 
                end if;

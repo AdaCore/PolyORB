@@ -26,18 +26,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Errout;     use Errout;
-with Namet;      use Namet;
-with Prj.Strt;
-with Prj.Tree;   use Prj.Tree;
-with Scans;      use Scans;
-with Sinfo;      use Sinfo;
-with Types;      use Types;
-with Prj.Attr;   use Prj.Attr;
+with Errout;   use Errout;
+with Namet;    use Namet;
+with Prj.Strt; use Prj.Strt;
+with Prj.Tree; use Prj.Tree;
+with Scans;    use Scans;
+with Sinfo;    use Sinfo;
+with Types;    use Types;
+with Prj.Attr; use Prj.Attr;
 
 package body Prj.Dect is
 
    type Zone is (In_Project, In_Package, In_Case_Construction);
+   --  Needs a comment ???
 
    procedure Parse_Attribute_Declaration
      (Attribute         : out Project_Node_Id;
@@ -132,12 +133,6 @@ package body Prj.Dect is
          Set_Name_Of (Attribute, To => Token_Name);
          Set_Location_Of (Attribute, To => Token_Ptr);
 
-         if Attributes.Table (Current_Attribute).Kind_2 =
-                            Case_Insensitive_Associative_Array
-         then
-            Set_Case_Insensitive (Attribute, To => True);
-         end if;
-
          while Current_Attribute /= Empty_Attribute
            and then
              Attributes.Table (Current_Attribute).Name /= Token_Name
@@ -150,6 +145,11 @@ package body Prj.Dect is
                        Get_Name_String (Name_Of (Attribute)) &
                        """",
                        Token_Ptr);
+
+         elsif Attributes.Table (Current_Attribute).Kind_2 =
+                            Case_Insensitive_Associative_Array
+         then
+            Set_Case_Insensitive (Attribute, To => True);
          end if;
 
          Scan;
@@ -208,7 +208,7 @@ package body Prj.Dect is
             Expression          : Project_Node_Id     := Empty_Node;
 
          begin
-            Prj.Strt.Parse_Expression
+            Parse_Expression
               (Expression      => Expression,
                Current_Project => Current_Project,
                Current_Package => Current_Package);
@@ -270,7 +270,7 @@ package body Prj.Dect is
 
       if Token = Tok_Identifier then
          Variable_Location := Token_Ptr;
-         Prj.Strt.Parse_Variable_Reference
+         Parse_Variable_Reference
            (Variable        => Case_Variable,
             Current_Project => Current_Project,
             Current_Package => Current_Package);
@@ -303,7 +303,7 @@ package body Prj.Dect is
          Scan;
       end if;
 
-      Prj.Strt.Start_New_Case_Construction (String_Type);
+      Start_New_Case_Construction (String_Type);
 
       When_Loop :
 
@@ -354,7 +354,7 @@ package body Prj.Dect is
             exit When_Loop;
 
          else
-            Prj.Strt.Parse_Choice_List (First_Choice => First_Choice);
+            Parse_Choice_List (First_Choice => First_Choice);
             Set_First_Choice_Of (Current_Item, To => First_Choice);
 
             Expect (Tok_Arrow, "=>");
@@ -372,7 +372,7 @@ package body Prj.Dect is
          end if;
       end loop When_Loop;
 
-      Prj.Strt.End_Case_Construction;
+      End_Case_Construction;
 
       Expect (Tok_End, "end case");
 
@@ -789,7 +789,7 @@ package body Prj.Dect is
          Scan;
       end if;
 
-      Prj.Strt.Parse_String_Type_List (First_String => First_String);
+      Parse_String_Type_List (First_String => First_String);
       Set_First_Literal_String (String_Type, To => First_String);
 
       Expect (Tok_Right_Paren, ")");
@@ -921,7 +921,7 @@ package body Prj.Dect is
 
       Expression_Location := Token_Ptr;
 
-      Prj.Strt.Parse_Expression
+      Parse_Expression
         (Expression      => Expression,
          Current_Project => Current_Project,
          Current_Package => Current_Package);

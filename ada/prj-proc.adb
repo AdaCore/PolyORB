@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------------
 
 with Errout;   use Errout;
-with GNAT.Case_Util; use GNAT.Case_Util;
 with Namet;    use Namet;
 with Opt;
 with Output;   use Output;
@@ -37,7 +36,7 @@ with Prj.Ext;  use Prj.Ext;
 with Prj.Nmsc; use Prj.Nmsc;
 with Stringt;  use Stringt;
 
-with GNAT.Case_Util;
+with GNAT.Case_Util; use GNAT.Case_Util;
 with GNAT.HTable;
 
 package body Prj.Proc is
@@ -77,13 +76,13 @@ package body Prj.Proc is
      (Project   : Project_Id;
       With_Name : Name_Id)
       return      Project_Id;
-   --  Find an imported or modified project of Project whose name is With_Name.
+   --  Find an imported or modified project of Project whose name is With_Name
 
    function Package_From
      (Project   : Project_Id;
       With_Name : Name_Id)
       return      Package_Id;
-   --  Find the package of Project whose name is With_Name.
+   --  Find the package of Project whose name is With_Name
 
    procedure Process_Declarative_Items
      (Project           : Project_Id;
@@ -110,10 +109,9 @@ package body Prj.Proc is
    --  main project Project. Project is set to No_Project if errors occurred.
 
    procedure Recursive_Check (Project : Project_Id);
-   --  If Project is marked as not checked, mark it as checked,
-   --  call Check_Naming_Scheme for the project, then call itself
-   --  for a possible modified project and all the imported projects
-   --  of Project.
+   --  If Project is marked as not checked, mark it as checked, call
+   --  Check_Naming_Scheme for the project, then call itself for a
+   --  possible modified project and all the imported projects of Project.
 
    ---------
    -- Add --
@@ -680,7 +678,8 @@ package body Prj.Proc is
                      else
                         Error_Report
                           ("""" & Get_Name_String (Name) &
-                           """ is an undefined external reference");
+                           """ is an undefined external reference",
+                           Project);
                      end if;
 
                      Value := Empty_String;
@@ -982,7 +981,8 @@ package body Prj.Proc is
                         else
                            Error_Report
                              ("no value defined for " &
-                              Get_Name_String (Error_Msg_Name_1));
+                              Get_Name_String (Error_Msg_Name_1),
+                              Project);
                         end if;
 
                      else
@@ -1018,7 +1018,8 @@ package body Prj.Proc is
                                     Get_Name_String (Error_Msg_Name_1) &
                                     """ is illegal for typed string """ &
                                     Get_Name_String (Error_Msg_Name_2) &
-                                    """");
+                                    """",
+                                    Project);
                               end if;
                            end if;
                         end;

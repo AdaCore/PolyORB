@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -57,7 +57,7 @@ package body Debug is
    --  dn   Generate messages for node/list allocation
    --  do   Print source from tree (original code only)
    --  dp   Generate messages for parser scope stack push/pops
-   --  dq
+   --  dq   No auto-alignment of small records
    --  dr   Generate parser resynchronization messages
    --  ds   Print source from tree (including original and generated stuff)
    --  dt   Print full tree
@@ -80,7 +80,7 @@ package body Debug is
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK   Kill all error messages
    --  dL   Output trace information on elaboration checking
-   --  dM   Modified ali file output
+   --  dM
    --  dN   Do not generate file/line exception messages
    --  dO   Output immediate error messages
    --  dP   Do not check for controlled objects in preelaborable packages
@@ -285,11 +285,6 @@ package body Debug is
    --       attempting to generate code with this flag set may blow up.
    --       The flag also forces the use of 64-bits for Long_Integer.
 
-   --  dM   Generate modified ALI output. Several ALI extensions are being
-   --       developed for version 3.15w, and this switch is used to enable
-   --       these extensions. This switch will disappear when this work is
-   --       completed.
-
    --  dn   Generate messages for node/list allocation. Each time a node or
    --       list header is allocated, a line of output is generated. Certain
    --       other basic tree operations also cause a line of output to be
@@ -308,6 +303,12 @@ package body Debug is
    --       output by the parser each time the parser scope stack is either
    --       pushed or popped. Useful in debugging situations where the
    --       parser scope stack ends up incorrectly synchronized
+
+   --  dq   In layout version 1.38, 2002/01/12, a circuit was implemented
+   --       to give decent default alignment to short records that had no
+   --       specific alignment set. This debug option restores the previous
+   --       behavior of giving such records poor alignments, typically 1.
+   --       This may be useful in dealing with transition.
 
    --  dr   Generate parser resynchronization messages. Normally the parser
    --       resynchronizes quietly. With this debug option, two messages

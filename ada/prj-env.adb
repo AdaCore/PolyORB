@@ -75,6 +75,10 @@ package body Prj.Env is
    --  Returns the path name of the spec of a unit.
    --  Compute it first, if necessary.
 
+   procedure Add_To_Path (Source_Dirs : String_List_Id);
+   --  Add to Ada_Path_Buffer all the source directories in string list
+   --  Source_Dirs, if any. Increment Ada_Path_Length.
+
    procedure Add_To_Path (Path : String);
    --  Add Path to global variable Ada_Path_Buffer
    --  Increment Ada_Path_Length
@@ -106,29 +110,10 @@ package body Prj.Env is
                Data : Project_Data := Projects.Table (Project);
                List : Project_List := Data.Imported_Projects;
 
-               Current : String_List_Id := Data.Source_Dirs;
-               Source_Dir : String_Element;
-
             begin
                --  Add to path all source directories of this project
 
-               while Current /= Nil_String loop
-                  if Ada_Path_Length > 0 then
-                     Add_To_Path (Path => (1 => Path_Separator));
-                  end if;
-
-                  Source_Dir := String_Elements.Table (Current);
-                  String_To_Name_Buffer (Source_Dir.Value);
-
-                  declare
-                     New_Path : constant String :=
-                       Name_Buffer (1 .. Name_Len);
-                  begin
-                     Add_To_Path (New_Path);
-                  end;
-
-                  Current := Source_Dir.Next;
-               end loop;
+               Add_To_Path (Data.Source_Dirs);
 
                --  Call Add to the project being modified, if any
 
@@ -165,6 +150,21 @@ package body Prj.Env is
       end if;
 
       return Projects.Table (Project).Include_Path;
+   end Ada_Include_Path;
+
+   function Ada_Include_Path
+     (Project   : Project_Id;
+      Recursive : Boolean)
+      return      String
+   is
+   begin
+      if Recursive then
+         return Ada_Include_Path (Project).all;
+      else
+         Ada_Path_Length := 0;
+         Add_To_Path (Projects.Table (Project).Source_Dirs);
+         return Ada_Path_Buffer (1 .. Ada_Path_Length);
+      end if;
    end Ada_Include_Path;
 
    ----------------------
@@ -274,6 +274,30 @@ package body Prj.Env is
    -----------------
    -- Add_To_Path --
    -----------------
+
+   procedure Add_To_Path (Source_Dirs : String_List_Id) is
+      Current    : String_List_Id := Source_Dirs;
+      Source_Dir : String_Element;
+
+   begin
+      while Current /= Nil_String loop
+         if Ada_Path_Length > 0 then
+            Add_To_Path (Path => (1 => Path_Separator));
+         end if;
+
+         Source_Dir := String_Elements.Table (Current);
+         String_To_Name_Buffer (Source_Dir.Value);
+
+         declare
+            New_Path : constant String :=
+              Name_Buffer (1 .. Name_Len);
+         begin
+            Add_To_Path (New_Path);
+         end;
+
+         Current := Source_Dir.Next;
+      end loop;
+   end Add_To_Path;
 
    procedure Add_To_Path (Path : String) is
    begin

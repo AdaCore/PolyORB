@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -406,6 +406,18 @@ package body Errout is
    --  Outputs up to N levels of qualification for the given entity. For
    --  example, the entity A.B.C.D will output B.C. if N = 2.
 
+   function Special_Msg_Delete
+     (Msg  : String;
+      N    : Node_Or_Entity_Id;
+      E    : Node_Or_Entity_Id)
+      return Boolean;
+   --  This function is called from Error_Msg_NEL, passing the message Msg,
+   --  node N on which the error is to be posted, and the entity or node E
+   --  to be used for an & insertion in the message if any. The job of this
+   --  procedure is to test for certain cascaded messages that we would like
+   --  to suppress. If the message is to be suppressed then we return True.
+   --  If the message should be generated (the normal case) False is returned.
+
    procedure Test_Warning_Msg (Msg : String);
    --  Sets Is_Warning_Msg true if Msg is a warning message (contains a
    --  question mark character), and False otherwise.
@@ -512,6 +524,10 @@ package body Errout is
       --  one in the case where one has an Instance tag). Note that we
       --  always know that Keep has at least as many continuations as
       --  Delete (since we always delete the shorter sequence).
+
+      ----------------
+      -- Delete_Msg --
+      ----------------
 
       procedure Delete_Msg (Delete, Keep : Error_Msg_Id) is
          D, K : Error_Msg_Id;
@@ -1251,6 +1267,10 @@ package body Errout is
       Flag_Location : Source_Ptr)
    is
    begin
+      if Special_Msg_Delete (Msg, N, E) then
+         return;
+      end if;
+
       if No_Warnings (N) or else No_Warnings (E) then
          Test_Warning_Msg (Msg);
 
@@ -2919,6 +2939,17 @@ package body Errout is
          Set_Error_Posted (P);
          exit when Nkind (P) not in N_Subexpr;
       end loop;
+
+      --  A special check, if we just posted an error on an attribute
+      --  definition clause, then also set the entity involved as posted.
+      --  For example, this stops complaining about the alignment after
+      --  complaining about the size, which is likely to be useless.
+
+      if Nkind (P) = N_Attribute_Definition_Clause then
+         if Is_Entity_Name (Name (P)) then
+            Set_Error_Posted (Entity (Name (P)));
+         end if;
+      end if;
    end Set_Posted;
 
    -----------------------
@@ -2994,6 +3025,66 @@ package body Errout is
          Warnings.Table (Warnings.Last).Stop := Loc;
       end if;
    end Set_Warnings_Mode_On;
+
+   ------------------------
+   -- Special_Msg_Delete --
+   ------------------------
+
+   function Special_Msg_Delete
+     (Msg  : String;
+      N    : Node_Or_Entity_Id;
+      E    : Node_Or_Entity_Id)
+      return Boolean
+   is
+   begin
+      --  Never delete messages in -gnatdO mode
+
+      if Debug_Flag_OO then
+         return False;
+
+      --  When an atomic object refers to a non-atomic type in the same
+      --  scope, we implicitly make the type atomic. In the non-error
+      --  case this is surely safe (and in fact prevents an error from
+      --  occurring if the type is not atomic by default). But if the
+      --  object cannot be made atomic, then we introduce an extra junk
+      --  message by this manipulation, which we get rid of here.
+
+      --  We identify this case by the fact that it references a type for
+      --  which Is_Atomic is set, but there is no Atomic pragma setting it.
+
+      elsif Msg = "atomic access to & cannot be guaranteed"
+        and then Is_Type (E)
+        and then Is_Atomic (E)
+        and then No (Get_Rep_Pragma (E, Name_Atomic))
+      then
+         return True;
+
+      --  When a size is wrong for a frozen type there is no explicit
+      --  size clause, and other errors have occurred, suppress the
+      --  message, since it is likely that this size error is a cascaded
+      --  result of other errors. The reason we eliminate unfrozen types
+      --  is that messages issued before the freeze type are for sure OK.
+
+      elsif Msg = "size for& too small, minimum allowed is ^"
+        and then Is_Frozen (E)
+        and then Serious_Errors_Detected > 0
+        and then Nkind (N) /= N_Component_Clause
+        and then Nkind (Parent (N)) /= N_Component_Clause
+        and then
+          No (Get_Attribute_Definition_Clause (E, Attribute_Size))
+        and then
+          No (Get_Attribute_Definition_Clause (E, Attribute_Object_Size))
+        and then
+          No (Get_Attribute_Definition_Clause (E, Attribute_Value_Size))
+      then
+         return True;
+
+      --  All special tests complete, so go ahead with message
+
+      else
+         return False;
+      end if;
+   end Special_Msg_Delete;
 
    ------------------------------
    -- Test_Warning_Serious_Msg --

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -336,6 +336,7 @@ package Namet is
    --  the name table). If Id is Error_Name, or No_Name, no text is output.
 
    procedure wn (Id : Name_Id);
+   pragma Export (Ada, wn);
    --  Like Write_Name, but includes new line at end. Intended for use
    --  from the debugger only.
 

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -46,7 +46,7 @@ package Rident is
       No_Abort_Statements,                     -- (RM D.7(5), H.4(3))
       No_Access_Subprograms,                   -- (RM H.4(17))
       No_Allocators,                           -- (RM H.4(7))
-      No_Asynchronous_Control,                 -- (RM D.9(10))
+      No_Asynchronous_Control,                 -- (RM D.7(10))
       No_Calendar,                             -- GNAT
       No_Delay,                                -- (RM H.4(21))
       No_Dispatch,                             -- (RM H.4(19))
@@ -143,28 +143,4 @@ package Rident is
      Max_Tasks,                               -- (RM D.7(19), H.4(3))
      Not_A_Restriction_Parameter_Id);
 
-   --  The following array defines those restrictions that should be output
-   --  if the gnatbind -r switch is used. Not all restrictions are output
-   --  for the reasons given below in the list, and this array is used to
-   --  test whether the corresponding pragma should be listed. True means
-   --  that it should not be listed.
-
-   No_Restriction_List : array (Restriction_Id) of Boolean :=
-     (
-      No_Implicit_Conditionals => True,
-      --  This could modify and pessimize generated code
-
-      No_Implicit_Dynamic_Code => True,
-      --  This could modify and pessimize generated code
-
-      No_Implicit_Loops        => True,
-      --  This could modify and pessimize generated code
-
-      No_Recursion             => True,
-      --  Not checkable at compile time
-
-      No_Reentrancy            => True,
-      --  Not checkable at compile time
-
-      others                   => False);
 end Rident;

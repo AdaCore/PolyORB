@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Snames; use Snames;
 with Types;  use Types;
 with Uintp;  use Uintp;
 with Urealp; use Urealp;
@@ -1369,7 +1370,7 @@ package Einfo is
 
 --    Has_Primitive_Operations (Flag120) [base type only]
 --       Present in all type entities. Set if at least one primitive operation
---       is defined on the type. This flag is not yet properly set ???
+--       is defined for the type.
 
 --    Has_Private_Ancestor (synthesized)
 --       Applies to all type and subtype entities. Returns True if at least
@@ -5617,6 +5618,20 @@ package Einfo is
 
    procedure Append_Entity (Id : Entity_Id; V : Entity_Id);
    --  Add an entity to the list of entities declared in the scope V
+
+   function Get_Rep_Pragma (E : Entity_Id; Nam : Name_Id) return Node_Id;
+   --  Searches the Rep_Item chain for the given entity E, for an instance
+   --  of a representation pragma with the given name Nam. If found then
+   --  the value returned is the N_Pragma node, otherwise Empty is returned.
+
+   function Get_Attribute_Definition_Clause
+     (E    : Entity_Id;
+      Id   : Attribute_Id)
+      return Node_Id;
+   --  Searches the Rep_Item chain for a given entity E, for an instance
+   --  of an attribute definition clause with the given attibute Id Id. If
+   --  found, the value returned is the N_Attribute_Definition_Clause node,
+   --  otherwise Empty is returned.
 
    function Is_Entity_Name (N : Node_Id) return Boolean;
    --  Test if the node N is the name of an entity (i.e. is an identifier,
