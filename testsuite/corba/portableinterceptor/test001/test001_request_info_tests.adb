@@ -36,6 +36,7 @@ with CORBA.Repository_Root;
 
 with Dynamic;
 with IOP;
+with Messaging;
 
 with Test001_Globals;
 with Test001_Interface.Helper;
@@ -47,6 +48,7 @@ package body Test001_Request_Info_Tests is
    use CORBA.TypeCode;
    use Dynamic;
    use IOP;
+   use Messaging;
    use PortableInterceptor;
    use PortableInterceptor.RequestInfo;
    use Test001_Globals;
@@ -698,14 +700,38 @@ package body Test001_Request_Info_Tests is
      (Point : in Interception_Point;
       Info  : in PortableInterceptor.RequestInfo.Local_Ref'Class)
    is
-      pragma Unreferenced (Info);
-
       Operation : constant String := "sync_scope";
+      Valid     : constant Boolean := Point /= Send_Poll;
+      Aux       : SyncScope;
 
    begin
-      --  XXX Not yet implemented in RequestInfo
+      Aux := Get_Sync_Scope (Info);
 
-      Output (Point, Operation, False, " (NO TEST)");
+      --  We test only non oneway operation, thus Sync_Scope always
+      --  will be Sync_With_Target
+      if Valid
+        and then Aux = Sync_With_Target
+      then
+         Output (Point, Operation, True);
+      else
+         Output (Point, Operation, False);
+      end if;
+
+   exception
+      when E : Bad_Inv_Order =>
+         declare
+            Members : System_Exception_Members;
+         begin
+            Get_Members (E, Members);
+            if not Valid and then Members.Minor = 14 then
+               Output (Point, Operation, True);
+            else
+               Output (Point, Operation, False);
+            end if;
+         end;
+
+      when others =>
+         Output (Point, Operation, False);
    end Test_Sync_Scope;
 
 end Test001_Request_Info_Tests;
