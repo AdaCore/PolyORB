@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.10 $
+//                            $Revision: 1.11 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -331,7 +331,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	"      Bod : Broca.Exceptions.IDL_Exception_Members_Ptr;\n"
 	"   begin\n"
 	"      Bod := new " + get_ada_local_name () + "_Members;\n"
-	"      Broca.Marshalling.Unmarshall_Skip_String (Stream);\n"
+	"      Broca.Marshalling.Skip_String (Stream);\n"
 	"      Unmarshall (Stream, " 
 	+ get_ada_local_name () + "_Members (Bod.all));\n"
 	"      Broca.Exceptions.User_Raise_Exception\n"
