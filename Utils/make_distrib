@@ -31,9 +31,16 @@ if [ -f Utils/VERSION.INFO ]; then
   . Utils/VERSION.INFO
   rm -f Utils/VERSION.INFO
 fi
+echo Doing the necessary date modifications
+find . -name configure.in -exec touch {} \;
+sleep 1
 find . -name aclocal.m4 -exec touch {} \;
+sleep 1
 find . -name Makefile.in -exec touch {} \;
+sleep 1
 find . -name configure -exec touch {} \;
+sleep 1
+echo Configuring then erasing configuration files
 ./configure
 make distclean
 chmod -R og=u-w .
