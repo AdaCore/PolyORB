@@ -1,3 +1,9 @@
+Thu Mar 13 17:19:15 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* Makefile.am: Add LightBank.
+
+	* Makefile.in: Modified (Makefile.am).
+
 Wed Feb 12 11:12:15 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* Eratho/README: Add several comments on client/server
