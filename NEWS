@@ -1,3 +1,27 @@
+Changes since GLADE 3.12a
+=========================
+
+New Functionnalities
+--------------------
+
+*   Partition_ID is now unlimited (it was bounded to 64 in the previous
+    versions). Partition ids of pure client partitions are now recycled.
+
+Bug Fixes
+---------
+
+*   Boot mirror group communication has been improved (less messages and
+    better performance).
+
+*   Fix several memory leaks. All terminated tasks are now recycled
+    for later use instead of being deallocated.
+
+*   Remove potential deadlocks.
+
+*   Fix incorrect deletions in gnatdist (remove obj and ali files of rci
+    unit in partition directory when it is no longer configured on the
+    partition).
+
 Changes since GLADE 3.11b
 =========================
 
