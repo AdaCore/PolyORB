@@ -122,7 +122,6 @@ AC_DEFUN(AM_CROSS_PROG_GNATMAKE,
  fi
 ])
 
-
 dnl Usage: AM_CROSS_PROG_CC
 dnl Look for CC for the target (same as the host one if host and
 dnl target are equal)
@@ -136,3 +135,26 @@ AC_DEFUN(AM_CROSS_PROG_CC,
    AC_CHECK_PROGS(CC_FOR_TARGET, [$target_alias-$CC $target-$CC])
  fi
 ])
+
+dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
+dnl Determine whether GNAT.Sockets has a Copy operation.
+
+AC_DEFUN(AM_HAS_GNAT_SOCKETS_COPY,
+[AC_REQUIRE([AM_PROG_ADA])
+AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
+OLDADA=$ADA
+ADA=$ADA_FOR_TARGET
+AM_TRY_ADA([check.adb],
+[with GNAT.Sockets;
+procedure Check is
+   S1, S2 : GNAT.Sockets.Socket_Set_Type;
+begin
+   GNAT.Sockets.Copy (S1, S2);
+end Check;
+], [AC_MSG_RESULT(yes)
+MISS_GNAT_SOCKETS_COPY="--  "],
+[AC_MSG_RESULT(no)
+HAVE_GNAT_SOCKETS_COPY="--  "])
+ADA=$OLDADA
+AC_SUBST(MISS_GNAT_SOCKETS_COPY)dnl
+AC_SUBST(HAVE_GNAT_SOCKETS_COPY)])

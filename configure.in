@@ -27,6 +27,7 @@ AC_CHECK_PROG(SED, sed, sed)
 AC_CHECK_PROG(PYTHON, python, python)
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
+AM_HAS_GNAT_SOCKETS_COPY
 AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
 AC_EXEEXT
 AM_PROG_GNATMAKE
@@ -327,6 +328,7 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
+	src/polyorb-sockets_copy.adb
 	idls/Makefile
 	idls/cos/Makefile
 	idls/cos/event/Makefile

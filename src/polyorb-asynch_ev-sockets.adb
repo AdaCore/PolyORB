@@ -35,8 +35,8 @@
 --  $Id$
 
 with PolyORB.Constants;
-
 with PolyORB.Log;
+with PolyORB.Sockets_Copy;
 
 package body PolyORB.Asynch_Ev.Sockets is
 
@@ -123,7 +123,7 @@ package body PolyORB.Asynch_Ev.Sockets is
       Status : Selector_Status;
 
    begin
-      Copy (Source => AEM.Monitored_Set, Target => R_Set);
+      PolyORB.Sockets_Copy (Source => AEM.Monitored_Set, Target => R_Set);
       PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then

@@ -88,6 +88,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tcp_access_points.ads \
 		polyorb-smart_pointers.ads \
+		polyorb-sockets_copy.ads \
 		polyorb-tasking-advanced_mutexes.ads \
 		polyorb-tasking-mutexes.ads \
 		polyorb-tasking-condition_variables.ads \

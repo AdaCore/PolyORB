@@ -770,6 +770,8 @@ src/polyorb-setup.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads
+src/polyorb-sockets_copy.adb.in
+src/polyorb-sockets_copy.ads
 src/polyorb-storage_pools.ads
 src/polyorb-task_info.adb
 src/polyorb-task_info.ads
@@ -786,8 +788,8 @@ src/polyorb-tasking-profiles-full_tasking-mutexes.adb
 src/polyorb-tasking-profiles-full_tasking-mutexes.ads
 src/polyorb-tasking-profiles-full_tasking-threads.adb
 src/polyorb-tasking-profiles-full_tasking-threads.ads
-src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads
 src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.adb
+src/polyorb-tasking-profiles-full_tasking-threads_dynamic_priorities.ads
 src/polyorb-tasking-profiles-full_tasking.ads
 src/polyorb-tasking-profiles-no_tasking-condition_variables.adb
 src/polyorb-tasking-profiles-no_tasking-condition_variables.ads
