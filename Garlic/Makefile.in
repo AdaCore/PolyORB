@@ -134,18 +134,16 @@ SOURCES =  $(PROTOCOLSSOURCES) $(FILTERSSOURCES) $(COMMONSOURCES)
 CLEANFILES = lib*.a *.ali *.o split b_*.c b~*.ad[bs] 	s-gaprco.adb s-galiop.ads 	inlining gnatlib/* constants_nodef 	b_gaprco$(EXEECT) isthrbio$(EXEEXT) 	$(FILTERSOBJECTS)
 
 
-DISTCLEANFILES = config.h Makefile.fil
+DISTCLEANFILES = Makefile.fil
 
 SUFFIXES = .adb .ads .ali .o .xrb
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  s-gaplsp.ads
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-DIST_COMMON =  ./stamp-h.in ChangeLog Makefile.am Makefile.in TODO \
-config.h.in s-gaplsp.ads.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO s-gaplsp.ads.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -161,34 +159,6 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-
-config.h: stamp-h
-	@if test ! -f $@; then \
-		rm -f stamp-h; \
-		$(MAKE) stamp-h; \
-	else :; fi
-stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=Garlic/config.h \
-	     $(SHELL) ./config.status
-	@echo timestamp > stamp-h 2> /dev/null
-$(srcdir)/config.h.in: $(srcdir)/stamp-h.in
-	@if test ! -f $@; then \
-		rm -f $(srcdir)/stamp-h.in; \
-		$(MAKE) $(srcdir)/stamp-h.in; \
-	else :; fi
-$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOHEADER)
-	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
-
-mostlyclean-hdr:
-
-clean-hdr:
-
-distclean-hdr:
-	-rm -f config.h
-
-maintainer-clean-hdr:
 s-gaplsp.ads: $(top_builddir)/config.status s-gaplsp.ads.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 tags: TAGS
@@ -218,9 +188,6 @@ check-am: all-am
 check: check-am
 installcheck-am:
 installcheck: installcheck-am
-all-recursive-am: config.h
-	$(MAKE) $(AM_MAKEFLAGS) all-recursive
-
 install-exec-am:
 install-exec: install-exec-am
 
@@ -232,7 +199,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile config.h all-local
+all-am: Makefile all-local
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -250,28 +217,26 @@ distclean-generic:
 	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-hdr mostlyclean-generic
+mostlyclean-am:  mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-hdr clean-generic mostlyclean-am
+clean-am:  clean-generic mostlyclean-am
 
 clean: clean-am
 
-distclean-am:  distclean-hdr distclean-generic clean-am
+distclean-am:  distclean-generic clean-am
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-generic \
-		distclean-am
+maintainer-clean-am:  maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-tags distdir info-am info dvi-am dvi check check-am installcheck-am \
-installcheck all-recursive-am install-exec-am install-exec \
+.PHONY: tags distdir info-am info dvi-am dvi check check-am \
+installcheck-am installcheck install-exec-am install-exec \
 install-data-local install-data-am install-data install-am install \
 uninstall-am uninstall all-local all-redirect all-am all installdirs \
 mostlyclean-generic distclean-generic clean-generic \
@@ -294,9 +259,6 @@ Makefile: Makefile.fil
 .ads.ali:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-constants_nodef: $(srcdir)/constants.c config.h
-	$(CC) -o constants_nodef -I. -UCONSTANT_NAME $(srcdir)/constants.c
-
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
 
@@ -311,12 +273,6 @@ s-garrem.adb:
 	fi
 
 force:
-
-platformfile: $(CONSTANTS_SH) split constants_nodef config.h
-	@echo Generating $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads
-	$(CONSTANTS_SH) $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads \
-		$(srcdir) "$(PSNAME)" gasoco.txt
-	@echo $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads generated
 
 s-galiop.ads:
 	@echo "private package System.Garlic.Linker_Options is" >s-galiop.ads

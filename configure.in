@@ -2,7 +2,7 @@
 # $Id$
 #
 AC_INIT(Dist/xe.ads)
-AM_CONFIG_HEADER(Garlic/config.h)
+#AM_CONFIG_HEADER(Garlic/config.h)
 AC_CONFIG_AUX_DIR(support)
 #
 # Package description
@@ -50,7 +50,7 @@ AC_GNAT_SOURCE
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
-AM_ADA_PREREQ(980803, 3.11b-beta)
+AM_ADA_PREREQ(20010122, 3.14)
 #
 # Platform specific
 #
@@ -296,12 +296,12 @@ AC_SUBST(EXTRA_LIBS)
 #
 # Header files, only when not cross-compiling
 #
-if test $target = $host; then
-AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
-AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h])
-AC_CHECK_HEADERS([sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h])
-AC_CHECK_HEADERS([sys/conf.h sys/param.h time.h])
-fi
+#if test $target = $host; then
+#AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
+#AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h])
+#AC_CHECK_HEADERS([sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h])
+#AC_CHECK_HEADERS([sys/conf.h sys/param.h time.h])
+#fi
 #
 # Output
 #

@@ -1,5 +1,8 @@
 2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
 
+	* configure.in: Remove configuration of remaining GARLIC sockets
+	stuff. Update GNAT prerequisite.
+ 
 	* MANIFEST, Makefile.am, Makefile.in, configure.in, configure:
 	Remove socket packages configuration and use GNAT.Sockets instead.
 

@@ -113,13 +113,12 @@ gnatdist_LDADD =
 CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)              xe_defs.adb xe_sysdep.adb sdefault.adb
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_HEADER = ../Garlic/config.h
 CONFIG_CLEAN_FILES = 
 bin_PROGRAMS =  gnatdist$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) -I../Garlic
+DEFS = @DEFS@ -I. -I$(srcdir) 
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@

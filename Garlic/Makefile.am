@@ -128,7 +128,7 @@ CLEANFILES = lib*.a *.ali *.o split b_*.c b~*.ad[bs]\
 	b_gaprco$(EXEECT) isthrbio$(EXEEXT)\
 	$(FILTERSOBJECTS)
 
-DISTCLEANFILES = config.h Makefile.fil
+DISTCLEANFILES = Makefile.fil
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
@@ -144,9 +144,6 @@ SUFFIXES = .adb .ads .ali .o .xrb
 .ads.ali:
 	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-constants_nodef: $(srcdir)/constants.c config.h
-	$(CC) -o constants_nodef -I. -UCONSTANT_NAME $(srcdir)/constants.c
-
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
 
@@ -161,12 +158,6 @@ s-garrem.adb:
 	fi
 
 force:
-
-platformfile: $(CONSTANTS_SH) split constants_nodef config.h
-	@echo Generating $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads
-	$(CONSTANTS_SH) $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads \
-		$(srcdir) "$(PSNAME)" gasoco.txt
-	@echo $(srcdir)/5$(PLATFORM_SPECIFIC)gasoco.ads generated
 
 s-galiop.ads:
 	@echo "private package System.Garlic.Linker_Options is" >s-galiop.ads

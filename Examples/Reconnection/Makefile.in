@@ -112,7 +112,6 @@ CFGFILE = reconnection.cfg
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
 DISTCLEANFILES = $(CLEANFILES)
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_HEADER = ../../Garlic/config.h
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README Makefile.am Makefile.in
 

@@ -108,7 +108,6 @@ SUBDIRS = Eratho Bank LightBank Messages Filters Reconnection MultiPro MultiSto
 CLEANFILES = check-stamp
 DISTCLEANFILES = check-config
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_HEADER = ../Garlic/config.h
 CONFIG_CLEAN_FILES =  check-config
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in check-config.in
 
