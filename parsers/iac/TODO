@@ -4,6 +4,8 @@ Frontend
 
 * Implement abstract and local interfaces
 
+* Fix constant declaration referencing enumerato
+
 
 Backend Ada
 
@@ -14,8 +16,6 @@ Backend Ada
 * Implement interfaces (inherited interfaces)
 
 * Implement sequences
-
-* Implement Repository_Id
 
 
 IDL backend
