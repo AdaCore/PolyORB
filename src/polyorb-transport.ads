@@ -74,9 +74,9 @@ package PolyORB.Transport is
      (TAP : access Transport_Access_Point)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TAP as an asyncrhonous event source.
-   --  This function MUST create an Event Handler for this acces point.
-   --  The Event Handler will be referenced by the AES.Handler Note.
+   --  Create a view of TAP as an asyncrhonous event source. The AES_Note
+   --  on the newly-created event source must be associated to TAP's
+   --  event handler.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
@@ -129,9 +129,9 @@ package PolyORB.Transport is
      (TE : access Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
-   --  Create a view of TE as an asyncrhonous event source.
-   --  This function MUST create an Event Handler for this acces point.
-   --  The Event Handler will be referenced by the AES.Handler Note.
+   --  Create a view of TE as an asyncrhonous event source. The AES_Note
+   --  on the newly-created event source must be associated to TE's
+   --  event handler.
 
    procedure Read
      (TE     : in out Transport_Endpoint;

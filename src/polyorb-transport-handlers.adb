@@ -63,17 +63,37 @@ package body PolyORB.Transport.Handlers is
    begin
 
       if Reply in Filters.Interface.Filter_Error then
+
+         --  Notify the tasking policy that an endpoint is being destroyed.
+
          Handle_Close_Connection
            (H.ORB.Tasking_Policy, H.TE);
-         --  Notify the tasking policy that an endpoint is being destroyed.
+
+         --  Close the endpoint.
 
          Emit_No_Reply
            (Component_Access (H.TE),
             Filters.Interface.Disconnect_Indication'(null record));
-         --  Close the endpoint.
 
-         Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
-         --  Possibly finalize it.
+         declare
+            Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref
+              := H.TE.Dependent_Binding_Object;
+            pragma Unreferenced (Dependent_Binding_Object);
+         begin
+
+            --  Detach the TE from its dependent binding object. This
+            --  must be done while ensuring that the reference counter
+            --  on the BO is still non-zero, otherwise this could
+            --  cause the TE to be destroyed before it is completely
+            --  detached.
+
+            Smart_Pointers.Set (H.TE.Dependent_Binding_Object, null);
+
+            --  The complete binding object will be finalised when
+            --  this block is exited if it is not referenced anymore.
+
+         end;
+
       else
          null;
       end if;
