@@ -807,7 +807,7 @@ package body XE_List is
                end loop;
 
             when others =>
-               raise Program_Error;
+               null;
          end case;
       end loop;
       Parser.Close;
