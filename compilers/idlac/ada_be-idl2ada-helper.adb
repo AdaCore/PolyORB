@@ -1491,6 +1491,7 @@ package body Ada_Be.Idl2Ada.Helper is
             It   : Node_Iterator;
             Case_Node : Node_Id;
             I : Long_Integer := 0;
+            Has_Default : Boolean := False;
          begin
             Init (It, Cases (Node));
             while not Is_End (It) loop
@@ -1501,6 +1502,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   First_Label : Boolean := True;
                begin
                   if Default_Index (Node) = I then
+                     Has_Default := True;
                      Put (CU, "when others");
                   else
                      Init (It2, Labels (Case_Node));
@@ -1538,7 +1540,11 @@ package body Ada_Be.Idl2Ada.Helper is
                   DI (CU);
                end;
             end loop;
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
          end;
+
          DI (CU);
          PL (CU, "end case;");
          PL (CU, "return Result;");
@@ -1575,6 +1581,7 @@ package body Ada_Be.Idl2Ada.Helper is
             It   : Node_Iterator;
             Case_Node : Node_Id;
             I : Long_Integer := 0;
+            Has_Default : Boolean := False;
          begin
             Init (It, Cases (Node));
             while not Is_End (It) loop
@@ -1587,6 +1594,7 @@ package body Ada_Be.Idl2Ada.Helper is
                begin
                   if Default_Index (Node) = I then
                      Put (CU, "when others");
+                     Has_Default := True;
                   else
                      Init (It2, Labels (Case_Node));
                      while not Is_End (It2) loop
@@ -1615,6 +1623,9 @@ package body Ada_Be.Idl2Ada.Helper is
                   DI (CU);
                end;
             end loop;
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
          end;
 
          DI (CU);
