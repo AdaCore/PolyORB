@@ -27,6 +27,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+* PolyORB 1.1r (released 2004-06-07)
+
+This release contains a CORBA-compatible instantiation of the PolyORB
+generic middleware. In addition to the 1.0 release, it includes:
+- a significant increase in performance (30%-40%),
+- fixes for several bugs and memory leaks,
+- extended support for CORBA and GIOP specifications,
+- the PolyORB User's Guide,
+- the MIOP/UIPMC protocol stack, Unreliable Multicast Inter-ORB Protocol,
+  following the OMG standard,
+- the DIOP protocol stack, Datagram-based Inter-ORB Protocol, a
+  specialization of GIOP for oneway requests.
+
 * PolyORB 1.O (released 2003-06-16)
 
 This release contains a CORBA-compliant instantiation of the PolyORB
