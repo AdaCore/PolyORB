@@ -109,6 +109,13 @@ package body System.Garlic.Group is
          Inner_Query'Access,
          Inner_Reply'Access,
          Error);
+
+      --  In the general case, a query receives a reply. But in the
+      --  case of a group query, the reply is used on the querying
+      --  partition only.  If the partition is not the querying
+      --  partition, the query can be modified and the reply is
+      --  not used.
+
       Deallocate (Inner_Reply);
 
       if Found (Error) then

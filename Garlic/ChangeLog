@@ -4,6 +4,9 @@
         closed. Reduce memory leaks on tasks (no deallocation of primary
         and secondary stack once a task is terminated.
 
+        * s-gargro.adb: Deallocate Inner_Reply. It can be not empty and
+        not use at all.
+
         * s-gartyp.ads, s-garuni.ads, s-parint.adb: Use Version_Type
         instead of String_Access to define unit versions. Prevent some
         memory leaks.
