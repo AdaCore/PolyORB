@@ -30,11 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolyORB components
+--  Any's that contain object references.
 
 --  $Id$
-
---  Any's that contain object references.
 
 with PolyORB.Locks;
 
@@ -91,7 +89,7 @@ package body PolyORB.Any.ObjRef is
       end if;
 
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all := new Content_ObjRef'

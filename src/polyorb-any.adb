@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#18 $
+--  $Id: //droopi/main/src/polyorb-any.adb#19 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1894,7 +1894,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Octet_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -1914,7 +1914,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Short_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -1938,7 +1938,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -1958,7 +1958,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Long_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -1978,7 +1978,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_UShort_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -1998,7 +1998,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_ULong_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2019,7 +2019,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_ULong_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2040,7 +2040,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Boolean_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2060,7 +2060,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Char_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2080,7 +2080,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Wchar_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2100,7 +2100,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2120,7 +2120,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Wide_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2140,7 +2140,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Float_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2160,7 +2160,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2181,7 +2181,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Long_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2201,7 +2201,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_TypeCode_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2221,7 +2221,7 @@ package body PolyORB.Any is
          raise TypeCode.Bad_TypeCode;
       end if;
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= Null_Content_Ptr then
+      if Any_Value.The_Value.all /= null then
          Content_Any_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
@@ -2248,7 +2248,7 @@ package body PolyORB.Any is
       end if;
       pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
       Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all = Null_Content_Ptr then
+      if Any_Value.The_Value.all = null then
          Any_Value.The_Value.all :=
           new Content_Aggregate'(Value => Null_Content_List);
       end if;
@@ -2387,7 +2387,7 @@ package body PolyORB.Any is
          --  deallocate old Dest contents and duplicate
          --  Src contents.
 
-         if Dest.The_Value.all /= Null_Content_Ptr then
+         if Dest.The_Value.all /= null then
             Deallocate (Dest.The_Value.all);
             --  We can do a simple deallocate/replacement here
             --  because The_Value.all.all is not alised (ie
@@ -2911,7 +2911,7 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Initialize"));
       Object.Ref_Counter := new Natural'(1);
       PolyORB.Locks.Create (Object.Any_Lock);
-      Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
+      Object.The_Value := new Any_Content_Ptr'(null);
    end Initialize;
 
    --------------
@@ -2926,14 +2926,14 @@ package body PolyORB.Any is
       else
          pragma Assert (Object.Any_Lock /= null);
          Value := Get_Value (Object);
-         if Value /= Null_Content_Ptr then
+         if Value /= null then
             pragma Debug (O2 ("Adjust : object type is "
                               & Ada.Tags.External_Tag
                               (Value.all'Tag)));
             Object.The_Value :=
              new Any_Content_Ptr'(Duplicate (Value));
          else
-            Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
+            Object.The_Value := new Any_Content_Ptr'(null);
          end if;
          pragma Debug (O2 ("Adjust : Duplication processed"));
          Object.Ref_Counter := new Natural'(1);
@@ -2981,22 +2981,20 @@ package body PolyORB.Any is
    --  Get_Value_Ptr  --
    ---------------------
    function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr is
-      Content : Any_Content_Ptr_Ptr;
+      Content_Ptr : Any_Content_Ptr_Ptr;
    begin
       Lock_R (Obj.Any_Lock);
-      Content := Obj.The_Value;
+      Content_Ptr := Obj.The_Value;
       Unlock_R (Obj.Any_Lock);
-      return Content;
+      return Content_Ptr;
    end Get_Value_Ptr;
 
    -----------------
    --  Get_Value  --
    -----------------
    function Get_Value (Obj : Any) return Any_Content_Ptr is
-      Content : Any_Content_Ptr_Ptr;
    begin
-      Content := Get_Value_Ptr (Obj);
-      return Content.all;
+      return Get_Value_Ptr (Obj).all;
    end Get_Value;
 
    -------------------
@@ -3040,7 +3038,7 @@ package body PolyORB.Any is
          pragma Debug (O2 ("Dec_Usage : lock released"));
       else
          pragma Debug (O2 ("Dec_Usage : about to release the any"));
-         if Obj.The_Value.all /= Null_Content_Ptr then
+         if Obj.The_Value.all /= null then
             pragma Debug (O2 ("Dec_Usage : deallocation of a "
                               & Ada.Tags.External_Tag
                               (Obj.The_Value.all'Tag)));

@@ -1706,22 +1706,16 @@ package body PolyORB.Representations.CDR is
             end;
          when Tk_Enum =>
             declare
-               Arg : PolyORB.Any.Any;
+               Arg : PolyORB.Any.Any
+                 := Get_Empty_Any_Aggregate (Get_Type (Result));
+               Val : PolyORB.Any.Any
+                 := Get_Empty_Any (TC_Unsigned_Long);
             begin
-               Set_Any_Aggregate_Value (Result);
-               if Is_Empty then
-                  Arg := Get_Empty_Any (TC_Unsigned_Long);
-               else
-                  Arg := Get_Aggregate_Element
-                    (Result,
-                     TC_Unsigned_Long,
-                     PolyORB.Types.Unsigned_Long (0));
-               end if;
-               Unmarshall_To_Any (Buffer, Arg);
-               if Is_Empty then
-                  Add_Aggregate_Element (Result, Arg);
-               end if;
+               Unmarshall_To_Any (Buffer, Val);
+               Add_Aggregate_Element (Arg, Val);
+               Copy_Any_Value (Result, Arg);
             end;
+
          when Tk_String =>
             declare
                S : PolyORB.Types.String := Unmarshall (Buffer);

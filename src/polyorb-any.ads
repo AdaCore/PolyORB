@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#10 $
+--  $Id: //droopi/main/src/polyorb-any.ads#11 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -699,7 +699,6 @@ private
    --  to manipulate this list.
 
 
-   Null_Content_Ptr : constant Any_Content_Ptr := null;
    type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
    Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
 
