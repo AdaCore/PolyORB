@@ -4,7 +4,6 @@ with Ada.Real_Time;
 with Ada.Exceptions;
 
 with Droopi.Annotations;
-with Droopi.Components;
 with Droopi.Constants;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
@@ -15,7 +14,6 @@ with Droopi.Objects.Interface;
 with Droopi.ORB.Interface;
 with Droopi.Task_Info;
 with Droopi.References.Binding;
-with Droopi.Requests;
 with Droopi.Soft_Links;
 with Droopi.Transport;
 
@@ -34,20 +32,6 @@ package body Droopi.ORB is
    package L is new Droopi.Log.Facility_Log ("droopi.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
-
-   --------------------------------------------
-   -- Job type for method execution requests --
-   --------------------------------------------
-
-   type Request_Job is new Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
-
-   --  type Request_Job_Access is access all Request_Job;
-
-   procedure Run (J : access Request_Job);
 
    ---------------------------------------
    -- Tasking policy generic operations --
@@ -128,46 +112,6 @@ package body Droopi.ORB is
       end if;
    end Try_Perform_Work;
 
-   type AES_Note_Kind is
-     (A_TAP_AES,
-      --  Annotation for an asynchronous event source
-      --  associated with a transport access point.
-
-      A_TE_AES
-      --  Annotation for an asynchronous event source
-      --  associated with a transport endpoint.
-      );
-
-   type AES_Note_Data (Kind : AES_Note_Kind := AES_Note_Kind'First)
-   is record
-      case Kind is
-         when A_TAP_AES =>
-            TAP : Transport_Access_Point_Access;
-            --  Factory of Transport_Endpoint components.
-
-            Filter_Factory_Chain : Filters.Factory_Access;
-            --  Factory of Filter (protocol stack) components.
-
-            Profile_Factory : Binding_Data.Profile_Factory_Access;
-            --  Factory of profiles capable of associating the
-            --  address of TAP and the specification of the
-            --  protocol implemented by Filter_Factory_Chain
-            --  with an object id.
-
-         when A_TE_AES =>
-            TE : Transport_Endpoint_Access;
-            --  Transport_Endpoint component (connected to a
-            --  protocol stack).
-      end case;
-   end record;
-
-   type AES_Note is new Note with record
-      D : AES_Note_Data;
-   end record;
-
-   type TAP_Note is new Note with record
-      Profile_Factory : Binding_Data.Profile_Factory_Access;
-   end record;
 
    procedure Handle_Event
      (ORB : access ORB_Type;
@@ -181,9 +125,13 @@ package body Droopi.ORB is
       Note : AES_Note;
 
    begin
+
+      pragma Debug (O (" handle_event : enter "));
+
       Get_Note (Notepad_Of (AES).all, Note);
       case Note.D.Kind is
          when A_TAP_AES =>
+            pragma Debug (O ("A_TAP_AES"));
             declare
                New_TE     : Transport_Endpoint_Access;
             begin
@@ -198,6 +146,8 @@ package body Droopi.ORB is
             --  Continue monitoring the TAP's AES.
 
          when A_TE_AES =>
+            pragma Debug (O ("A_TE_AES"));
+
             begin
                Emit_No_Reply
                  (Component_Access (Note.D.TE),
@@ -547,6 +497,7 @@ package body Droopi.ORB is
      (ORB : access ORB_Type;
       AES : Asynch_Ev_Source_Access) is
    begin
+
       pragma Assert (AES /= null);
 
       Enter (ORB.ORB_Lock.all);

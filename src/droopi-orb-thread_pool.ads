@@ -31,6 +31,11 @@ package Droopi.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access);
 
+   procedure Queue_Request_To_Handler
+     (P   : access Thread_Pool_Policy;
+      ORB : ORB_Access;
+      Msg : Message'Class);
+
    procedure Initialize
      (ORB               : ORB_Type;
       Number_Of_Threads : Positive;

@@ -1,6 +1,5 @@
 --  $Id$
 
-
 with Droopi.Log;
 with Droopi.Jobs;
 with Droopi.Components;
@@ -155,6 +154,21 @@ package body Droopi.ORB.Thread_Pool is
       --  When in Thread_Pool mode, threads should not be allowed
       --  to go idle, but should be blocked when the request queue is empty.
    end Idle;
+
+   ------------------------------
+   -- Queue_Request_To_Handler --
+   ------------------------------
+
+   procedure Queue_Request_To_Handler
+     (P   : access Thread_Pool_Policy;
+      ORB : ORB_Access;
+      Msg : Message'Class)
+   is
+   begin
+      Emit_No_Reply
+        (Component_Access (ORB),
+         Msg);
+   end Queue_Request_To_Handler;
 
    ----------------
    -- Initialize --

@@ -3,6 +3,9 @@
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 pragma Warnings (Off);
 with System.Soft_Links;
 pragma Warnings (On);
@@ -13,11 +16,16 @@ with Droopi.Soft_Links;  use Droopi.Soft_Links;
 package body Droopi.Protected_Objects is
 
    use Ada.Task_Identification;
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.protected_objects");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    Critical_Section : Protected_Adv_Mutex_Type;
 
    protected type Barrier_PO is
-      entry Wait;
+      entry Barrier_Wait;
       procedure Signal (How_Many : Positive := 1);
       procedure Signal_All (Permanent : Boolean);
    private
@@ -95,21 +103,21 @@ package body Droopi.Protected_Objects is
             if Permanent then
                Perm := True;
             else
-               Free := Free + Wait'Count;
+               Free := Free + Barrier_Wait'Count;
             end if;
          end if;
       end Signal_All;
 
       ---------------------
-      -- Barrier_PO.Wait --
+      -- Barrier_PO.Barrier_Wait --
       ---------------------
 
-      entry Wait when Perm or else Free > 0 is
+      entry Barrier_Wait when Perm or else Free > 0 is
       begin
          if not Perm then
             Free := Free - 1;
          end if;
-      end Wait;
+      end Barrier_Wait;
 
    end Barrier_PO;
 
@@ -184,6 +192,8 @@ package body Droopi.Protected_Objects is
 
    procedure Destroy (M : in out Protected_Adv_Mutex_Type) is
    begin
+      pragma Debug (O ("orb destroying lock !!"));
+
       Free (M.X.Mutex);
       Free (M.X);
    end Destroy;
@@ -274,14 +284,27 @@ package body Droopi.Protected_Objects is
    procedure Leave (M : in Protected_Adv_Mutex_Type) is
    begin
       pragma Assert (M.X /= null
-                     and then M.X.Mutex /= null
-                     and then M.X.Current = Current_Task
-                     and then M.X.Level > 0);
-      M.X.Level := M.X.Level - 1;
-      if M.X.Level = 0 then
-         M.X.Current := Null_Task_Id;
-         M.X.Mutex.Leave;
+                       and then M.X.Mutex /= null
+                       and then M.X.Current = Current_Task
+                       and then M.X.Level > 0);
+
+      pragma Debug (O ("orb : leaving"));
+      if M.X = null then
+         null;
+         pragma Debug (O ("orb : mutex null"));
       end if;
+
+      M.X.Level := M.X.Level - 1;
+
+      pragma Debug (O ("orb : checking level"));
+      if M.X.Level = 0 then
+         pragma Debug (O ("orb : level = 0"));
+         M.X.Current := Null_Task_Id;
+         pragma Debug (O ("orb : setting current to nukl"));
+         M.X.Mutex.Leave;
+         pragma Debug (O ("orb : mutex left"));
+      end if;
+      pragma Debug (O ("orb : leave left"));
    end Leave;
 
    -----------
@@ -381,7 +404,7 @@ package body Droopi.Protected_Objects is
    procedure Wait (B : in Protected_Barrier_Type) is
    begin
       pragma Assert (B.X /= null);
-      B.X.Wait;
+      B.X.Barrier_Wait;
    end Wait;
 
    ----------------

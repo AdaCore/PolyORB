@@ -66,4 +66,19 @@ package body Droopi.ORB.Task_Policies is
       --  block the whole system forever.
    end Idle;
 
+   ------------------------------
+   -- Queue_Request_To_Handler --
+   ------------------------------
+
+   procedure Queue_Request_To_Handler
+     (P   : access Thread_Pool_Policy;
+      ORB : ORB_Access;
+      Msg : Message'Class)
+   is
+   begin
+      Emit_No_Reply
+        (Component_Access (ORB),
+         Msg);
+   end Queue_Request_To_Handler;
+
 end Droopi.ORB.Task_Policies;

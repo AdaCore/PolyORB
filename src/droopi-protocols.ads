@@ -8,6 +8,8 @@ with Droopi.Buffers;
 with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
 with Droopi.Requests; use Droopi.Requests;
+with Droopi.Soft_Links; use Droopi.Soft_Links;
+with Droopi.ORB.Interface;
 
 package Droopi.Protocols is
 
@@ -31,11 +33,28 @@ package Droopi.Protocols is
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
 
+   --  XXXXX: does not create request_watcher !
+
    --  XXXXX: Filter_Access should be Filter_Access
 
    procedure Destroy_Session (S : in out Session_Access);
    --  Destroy the session associated with S, return any associated
    --  resources to the system, and assign null to S.
+
+   procedure Set_Request_Watcher
+     (S : in Session_Access;
+      W : Droopi.Soft_Links.Watcher_Access);
+   --
+
+   function Get_Request_Watcher
+     (S : in Session_Access)
+     return Droopi.Soft_Links.Watcher_Access;
+   --  Return the request watcher associated with session.
+
+   function Get_Pending_Request
+     (S : in Session_Access)
+     return ORB.Interface.Queue_Request;
+   --  Return the request watcher associated with session.
 
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
@@ -118,7 +137,9 @@ private
    type Protocol is abstract new Filters.Factory with null record;
 
    type Session is abstract new Filters.Filter with record
-      Server : Components.Component_Access;
+      Server          : Components.Component_Access;
+      Request_Watcher : Droopi.Soft_Links.Watcher_Access := null;
+      Pending_Request : ORB.Interface.Queue_Request;
    end record;
 
    procedure Expect_Data

@@ -34,6 +34,11 @@ package Droopi.ORB.Task_Policies is
 
    procedure Idle (P : access No_Tasking; ORB : ORB_Access);
 
+   procedure Queue_Request_To_Handler
+     (P   : access No_Tasking;
+      ORB : ORB_Access;
+      Msg : Message'Class);
+
 private
 
    type No_Tasking is new Tasking_Policy_Type with null record;

@@ -3,6 +3,8 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+with Ada.Text_IO;
+
 with Droopi.Filters.Interface;
 with Droopi.Objects.Interface;
 
@@ -11,6 +13,7 @@ package body Droopi.Protocols is
    use Droopi.Components;
    use Droopi.Filters.Interface;
    use Droopi.Objects.Interface;
+   use Droopi.ORB.Interface;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
@@ -19,6 +22,7 @@ package body Droopi.Protocols is
    begin
       Free (S);
    end Destroy_Session;
+
 
    function Handle_Message
      (Sess : access Session;
@@ -41,6 +45,10 @@ package body Droopi.Protocols is
          Send_Reply
            (Session_Access (Sess),
             Executed_Request (S).Req.all);
+      elsif S in Queue_Request then
+         Ada.Text_IO.Put_Line ("message is queue request");
+         Sess.Pending_Request := Queue_Request (S);
+         Droopi.Soft_Links.Update (Sess.Request_Watcher);
       else
          raise Components.Unhandled_Message;
       end if;
@@ -57,5 +65,41 @@ package body Droopi.Protocols is
          Msg    => Data_Expected'
            (In_Buf => In_Buf, Max => Max));
    end Expect_Data;
+
+   -------------------------
+   -- Get_Request_Watcher --
+   -------------------------
+
+   function Get_Request_Watcher
+     (S : in Session_Access)
+     return Droopi.Soft_Links.Watcher_Access
+   is
+   begin
+      return S.Request_Watcher;
+   end Get_Request_Watcher;
+
+   -------------------------
+   -- Set_Request_Watcher --
+   -------------------------
+
+   procedure Set_Request_Watcher
+     (S : in Session_Access;
+      W : Droopi.Soft_Links.Watcher_Access)
+   is
+   begin
+      S.Request_Watcher := W;
+   end Set_Request_Watcher;
+
+   -------------------------
+   -- Get_Pending_Request --
+   -------------------------
+
+   function Get_Pending_Request
+     (S : in Session_Access)
+     return ORB.Interface.Queue_Request
+   is
+   begin
+      return S.Pending_Request;
+   end Get_Pending_Request;
 
 end Droopi.Protocols;

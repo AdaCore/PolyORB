@@ -7,6 +7,9 @@
 
 with Sequences.Unbounded;
 
+with Droopi.Annotations;
+
+with Droopi.Requests;
 with Droopi.Asynch_Ev;
 with Droopi.Binding_Data;
 with Droopi.Components;
@@ -22,7 +25,9 @@ with Droopi.Task_Info;
 package Droopi.ORB is
 
    use Droopi.Asynch_Ev;
+   use Droopi.Annotations;
    use Droopi.Transport;
+   use Droopi.Components;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -92,6 +97,11 @@ package Droopi.ORB is
       ORB : ORB_Access) is abstract;
    --  Called by a task that has nothing to do in order
    --  to wait until there may be anything to do.
+
+   procedure Queue_Request_To_Handler
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access;
+      Msg : Message'Class) is abstract;
 
    ------------------------------
    -- Server object operations --
@@ -269,5 +279,62 @@ private
       AES : Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB.
+
+
+   --
+
+
+   type AES_Note_Kind is
+     (A_TAP_AES,
+      --  Annotation for an asynchronous event source
+      --  associated with a transport access point.
+
+      A_TE_AES
+      --  Annotation for an asynchronous event source
+      --  associated with a transport endpoint.
+      );
+
+   type AES_Note_Data (Kind : AES_Note_Kind := AES_Note_Kind'First)
+   is record
+      case Kind is
+         when A_TAP_AES =>
+            TAP : Transport_Access_Point_Access;
+            --  Factory of Transport_Endpoint components.
+
+            Filter_Factory_Chain : Filters.Factory_Access;
+            --  Factory of Filter (protocol stack) components.
+
+            Profile_Factory : Binding_Data.Profile_Factory_Access;
+            --  Factory of profiles capable of associating the
+            --  address of TAP and the specification of the
+            --  protocol implemented by Filter_Factory_Chain
+            --  with an object id.
+
+         when A_TE_AES =>
+            TE : Transport_Endpoint_Access;
+            --  Transport_Endpoint component (connected to a
+            --  protocol stack).
+      end case;
+   end record;
+
+   type AES_Note is new Note with record
+      D : AES_Note_Data;
+   end record;
+
+   type TAP_Note is new Note with record
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+   end record;
+
+   --------------------------------------------
+   -- Job type for method execution requests --
+   --------------------------------------------
+
+   type Request_Job is new Jobs.Job with record
+      ORB       : ORB_Access;
+      Request   : Requests.Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
+
+   procedure Run (J : access Request_Job);
 
 end Droopi.ORB;
