@@ -762,6 +762,8 @@ src/polyorb-protocols.adb
 src/polyorb-protocols.ads
 src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
+src/polyorb-references-corbaloc.adb
+src/polyorb-references-corbaloc.ads
 src/polyorb-references-ior.adb
 src/polyorb-references-ior.ads
 src/polyorb-references.adb
