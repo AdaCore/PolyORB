@@ -28,6 +28,48 @@
 	order to retrieve respectively the Union_Type and the
 	Switch_Alternative of these entities.
 
+2004-06-08  Saber Souli <souli@enst.fr>
+	
+	* backend-be_ada.adb: Add Visit_Enumeration_Type function and
+	handle Enumeration_Type declaration. Add
+	Visit_Constant_Declaration function. It only ignore constant
+	declaration expanded by iac frontend for enumerators.
+
+	* backend-be_ada-nutils.adb: Add Mk_Node_Enumeration_Type function
+	in order to create Enumeration_Type node. Add
+	Mk_Node_Type_Declaration function in order to create
+	Type_Declaration node.
+
+	* backend-be_ada-files_generation.adb: - Add
+	Generate_Enumeration_Type procedure : output the source code for
+	Enumeration_Type declaration.  - Add Generate_Identifier procedure
+	: Output Identifier Name.
+	    
+2004-06-07  Saber Souli <souli@enst.fr>
+	
+	* backend-be_ada.adb: Handle interface operations and generate
+	the appropriate Ada function or procedure. Handle the Declarators
+	list in Attribute_Declaration. Handle simple Type_Declaration
+	(function Visite_Type_Declaration).
+
+	* backend-be_ada-nutils.adb: Add function
+	Mk_Node_Simple_Derived_Type_Def and create a simple derived type
+	declaration.
+	
+	* backend-be_ada-debug.adb: Add procedure W_Small_Indents in order
+	to write a small indentation for making the IAC source code output
+	identical to the output of IDLAC.
+	
+	* backend-be_ada-files_generation.adb: Use W_Small_Indents. 
+	
+	* nodes.idl: Add Ada_Node to manage scoped name reference in
+	Type_Declaration.
+	
+	* be-adatree-design.txt : Ada tree production design
+	document.
+	
+	* be-design.txt : Ada Backend Architecture"Draft". 
+   
 2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* mknodes.adb: Debug is now a sibling from Nodes.
@@ -62,7 +104,28 @@
 	* backend-config.adb: Initialize configure procedure for backends
 	IDL and Ada.
 
+2004-05-31  Saber Souli <souli@enst.fr>
 	
+	* backend-be_ada.adb : This package Visit IDL tree nodes, and
+	generate the appropriate Ada node following the ADA Language
+	Specification. Actually I didn't take in consideration specific
+	mapping introduced by using PolyORB, I let this in later stage,
+	after completing all the OMG mappings specification. 
+	Here are the actual mapping implemented : Module, Interface (only
+	attribute setter and getter generation is completed),
+	typedef (Not completed yet), Base type mapping.  
+	
+	* backend-be_ada-nutils.ads,backend-be_ada-nutils.adb: Contain
+	several routines to simplify the creation of ada tree nodes.
+	
+	* backend-be_ada-nodes.idl: Add Derived_Type_Spec in order to
+	declare derived types. Same for Record_Type_Spec. Add
+	Ada_Function_Spec and Ada_Procedure_Spec to manage subprogram
+	declarations.
+	
+	* backend-be_ada-debug.adb: ease debug of the Ada tree.
+	
+	* backend-be_ada-file_generation: Output ada file source.
 
 2004-05-31  Laurent Pautet  <pautet@dorine.enst.fr>
 

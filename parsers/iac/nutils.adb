@@ -345,6 +345,28 @@ package body Nutils is
       return N;
    end New_Node;
 
+   --------------
+   -- Operator --
+   --------------
+
+   function Operator (E : Node_Id) return Operator_Type is
+      O : Operator_Id;
+   begin
+      O := Nodes.Operator (E);
+      return Operator_Type'Val (O);
+   end Operator;
+
+   --------------------
+   -- Parameter_Mode --
+   --------------------
+
+   function Parameter_Mode (E : Node_Id) return Mode_Type is
+      M : Mode_Id;
+   begin
+      M := Nodes.Parameter_Mode (E);
+      return Mode_Type'Val (M);
+   end Parameter_Mode;
+
    ---------------------------
    -- Remove_Node_From_List --
    ---------------------------
@@ -371,5 +393,27 @@ package body Nutils is
          end loop;
       end if;
    end Remove_Node_From_List;
+
+   ------------------
+   -- Set_Operator --
+   ------------------
+
+   procedure Set_Operator (E : Node_Id; O : Operator_Type) is
+      B : Byte;
+   begin
+      B := Operator_Type'Pos (O);
+      Set_Operator (E, Operator_Id (B));
+   end Set_Operator;
+
+   ------------------------
+   -- Set_Parameter_Mode --
+   ------------------------
+
+   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
+      B : Byte;
+   begin
+      B := Mode_Type'Pos (M);
+      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
+   end Set_Parameter_Mode;
 
 end Nutils;

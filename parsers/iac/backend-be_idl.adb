@@ -295,6 +295,7 @@ package body Backend.BE_IDL is
          Write_Space;
          Write_Str (Image (Value (E)));
       end if;
+      Write_Space;
       Write (T_Colon);
       Write_Eol;
    end Generate_Case_Label;
@@ -620,6 +621,7 @@ package body Backend.BE_IDL is
          end loop;
          if M then
             Decrement_Indentation;
+            Write_Indentation;
             Write (T_Right_Brace);
          end if;
       end if;

@@ -1,3 +1,4 @@
+with Lexer;     use Lexer;
 with Locations; use Locations;
 with Nodes;     use Nodes;
 with Types;     use Types;
@@ -32,6 +33,12 @@ package Nutils is
    procedure Bind_Identifier_To_Entity  (N : Node_Id; E : Node_Id);
    procedure Bind_Declarator_To_Entity  (D : Node_Id; E : Node_Id);
    procedure Bind_Declarators_To_Entity (D : List_Id; E : Node_Id);
+
+   function Operator (E : Node_Id) return Operator_Type;
+   procedure Set_Operator (E : Node_Id; O : Operator_Type);
+
+   function Parameter_Mode (E : Node_Id) return Mode_Type;
+   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
 
    function Make_Scoped_Name
      (Loc        : Location;

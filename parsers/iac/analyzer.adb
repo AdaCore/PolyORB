@@ -570,38 +570,70 @@ package body Analyzer is
 
    procedure Analyze_Operation_Declaration (E : Node_Id)
    is
-      C : Node_Id;
-      L : List_Id;
+      Node   : Node_Id;
+      List   : List_Id;
+      Oneway : Boolean := Is_Oneway (E);
+      TSpec  : Node_Id;
+
    begin
-      Analyze (Type_Spec (E));
+      TSpec := Type_Spec (E);
+      Analyze (TSpec);
+
+      --  Use Oneway to check that this operation is a possible oneway
+      --  operation.
+
+      TSpec := Resolve_Type (TSpec);
+      if Oneway and then Kind (TSpec) /= K_Void then
+         Oneway := False;
+         Error_Loc (1) := Loc (Type_Spec (E));
+         Error_Name (1) := IDL_Name (Identifier (TSpec));
+         DE ("oneway operation cannot return%");
+      end if;
+
       Enter_Name_In_Scope (Identifier (E));
 
-      L := Parameters (E);
-      if not Is_Empty (L) then
+      --  Analyze parameters
+
+      List := Parameters (E);
+      if not Is_Empty (List) then
          Push_Scope (E);
-         C := First_Node (L);
-         while Present (C) loop
-            Analyze (C);
-            C := Next_Node (C);
+         Node := First_Node (List);
+         while Present (Node) loop
+            Analyze (Node);
+            if Oneway and then Parameter_Mode (Node) /= T_In then
+               Oneway := False;
+               Error_Loc (1) := Loc (Node);
+               DE ("oneway operation can only have ""in"" parameters");
+            end if;
+            Node := Next_Node (Node);
          end loop;
          Pop_Scope;
       end if;
 
-      L := Exceptions (E);
-      if not Is_Empty (L) then
-         C := First_Node (L);
-         while Present (C) loop
-            Analyze (C);
-            C := Next_Node (C);
+      --  Analyze exceptions
+
+      List := Exceptions (E);
+      if not Is_Empty (List) then
+         Node := First_Node (List);
+         while Present (Node) loop
+            Analyze (Node);
+            if Oneway then
+               Oneway := False;
+               Error_Loc (1) := Loc (Node);
+               DE ("oneway operation cannot raise exceptions");
+            end if;
+            Node := Next_Node (Node);
          end loop;
       end if;
 
-      L := Contexts (E);
-      if not Is_Empty (L) then
-         C := First_Node (L);
-         while Present (C) loop
-            Analyze (C);
-            C := Next_Node (C);
+      --  Analyze contexts
+
+      List := Contexts (E);
+      if not Is_Empty (List) then
+         Node := First_Node (List);
+         while Present (Node) loop
+            Analyze (Node);
+            Node := Next_Node (Node);
          end loop;
       end if;
    end Analyze_Operation_Declaration;

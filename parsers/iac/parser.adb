@@ -26,13 +26,6 @@ package body Parser is
    --  Return true when the type specifier N belongs to the restricted
    --  parameter type specifier set.
 
-   function Operator (E : Node_Id) return Operator_Type;
-   procedure Set_Operator (E : Node_Id; O : Operator_Type);
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type;
-   pragma Unreferenced (Parameter_Mode);
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
-
    Sequencing_Level : Natural := 0;
 
    function P_No_Such_Node return Node_Id;
@@ -157,17 +150,6 @@ package body Parser is
             return False;
       end case;
    end Is_Param_Type_Spec;
-
-   --------------
-   -- Operator --
-   --------------
-
-   function Operator (E : Node_Id) return Operator_Type is
-      O : Operator_Id;
-   begin
-      O := Nodes.Operator (E);
-      return Operator_Type'Val (O);
-   end Operator;
 
    -----------------------------
    -- P_Attribute_Declaration --
@@ -2905,17 +2887,6 @@ package body Parser is
       return Value_Spec;
    end P_Value_Spec;
 
-   --------------------
-   -- Parameter_Mode --
-   --------------------
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
-   begin
-      M := Parameter_Mode (E);
-      return Mode_Type'Val (M);
-   end Parameter_Mode;
-
    -------------
    -- Process --
    -------------
@@ -2996,27 +2967,5 @@ package body Parser is
       end loop;
       return Node_Id (Get_Name_Table_Info (Name_Find));
    end Resolve_Base_Type;
-
-   ------------------
-   -- Set_Operator --
-   ------------------
-
-   procedure Set_Operator (E : Node_Id; O : Operator_Type) is
-      B : Byte;
-   begin
-      B := Operator_Type'Pos (O);
-      Set_Operator (E, Operator_Id (B));
-   end Set_Operator;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-   begin
-      B := Mode_Type'Pos (M);
-      Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Parser;
