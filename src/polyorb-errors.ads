@@ -51,10 +51,9 @@ package PolyORB.Errors is
    --   - Exception Member.
 
    type Exception_Members is abstract tagged null record;
-   --  Base type for all PolyORB exception members. A member is a record
-   --  attached to an exception that allows the programmer to pass
-   --  arguments when an exception is raised. The default Member record is
-   --  abstract and empty but all other records will inherit from it.
+   --  Base type for all PolyORB exception members. A member is a
+   --  record attached to an exception that allows the programmer to
+   --  pass arguments when an exception is raised.
 
    type Exception_Members_Access is access all Exception_Members'Class;
 
@@ -240,19 +239,19 @@ package PolyORB.Errors is
    end record;
 
    function Found (Error : Error_Container) return Boolean;
-   --  True iff Error is not null.
+   --  True iff Error is not No_Error
 
    procedure Throw
      (Error  : in out Error_Container;
       Kind   : in     Error_Id;
       Member : in     Exception_Members'Class);
-   --  Generates an error whith Kind and Member information.
+   --  Generates an error whith Kind and Member information
 
    procedure Catch (Error : in out Error_Container);
-   --  Acknowledge Error and reset its content.
+   --  Acknowledge Error and reset its content
 
    function Is_Error (Error : in Error_Container) return Boolean;
-   --  True iff Error is not No_Error;
+   --  True iff Error is not No_Error
 
    function Error_To_Any (Error : in Error_Container) return PolyORB.Any.Any;
 
@@ -264,20 +263,20 @@ package PolyORB.Errors is
    --  NameSpace:Root'Separator' .. Version
 
    PolyORB_Exc_NameSpace : constant String;
-   --  PolyORB exceptions namespace.
+   --  PolyORB exceptions namespace
 
    PolyORB_Exc_Root      : constant String;
-   --  PolyORB exceptions root.
+   --  PolyORB exceptions root
 
    PolyORB_Exc_Separator : constant String;
-   --  PolyORB exceptions separator.
+   --  PolyORB exceptions separator
 
    PolyORB_Exc_Prefix    : constant String;
    --  Concantenation of PolyORB_Exc_NameSpace, PolyORB_Root and
-   --  PolyORB_Separator.
+   --  PolyORB_Separator
 
    PolyORB_Exc_Version   : constant String;
-   --  PolyORB exceptions version.
+   --  PolyORB exceptions version
 
 private
 
