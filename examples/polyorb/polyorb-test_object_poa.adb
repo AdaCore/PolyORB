@@ -151,12 +151,13 @@ package body PolyORB.Test_Object_POA is
                    From_Any (Value (First (List_Of (Args).all)).Argument)));
                   Put_Line ("Result: " & Image (Req.Result));
             else
-               raise PolyORB.Components.Unhandled_Message;
+               raise Program_Error;
             end if;
             return Executed_Request'(Req => Req);
          end;
+
       else
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
    exception

@@ -107,13 +107,13 @@ package body Ping_Object is
                Req.Result.Argument := To_Any
                  (Get_Empty_Any (TypeCode.TC_Void));
             else
-               raise PolyORB.Components.Unhandled_Message;
+               raise Program_Error;
             end if;
 
             return Executed_Request'(Req => Req);
          end;
       else
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
    exception

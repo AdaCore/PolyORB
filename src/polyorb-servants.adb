@@ -79,7 +79,7 @@ package body PolyORB.Servants is
             PolyORB.Components.Component_Access (S));
 
       else
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
    end Handle_Message;
 

@@ -246,7 +246,7 @@ package body PolyORB.Filters.Fragmenter is
          return Emit (F.Lower, S);
 
       else
-         raise Unhandled_Message;
+         raise Program_Error;
       end if;
    end Handle_Message;
 

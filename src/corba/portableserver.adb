@@ -161,7 +161,7 @@ package body PortableServer is
 
       else
          pragma Debug (O ("Execute_Servant: bad message, leave"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
 
       end if;
    end Execute_Servant;

@@ -167,12 +167,12 @@ package body PolyORB.Test_Object_SOA is
                   Put_Line ("Result: " & Image (Req.Result));
                end;
             else
-               raise PolyORB.Components.Unhandled_Message;
+               raise Program_Error;
             end if;
             return Executed_Request'(Req => Req);
          end;
       else
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
    exception

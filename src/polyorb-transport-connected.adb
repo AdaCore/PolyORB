@@ -188,9 +188,10 @@ package body PolyORB.Transport.Connected is
 
       elsif Msg in Disconnect_Request then
          Close (Transport_Endpoint'Class (TE.all)'Access);
+
       else
-         --  Must not happen.
-         raise Components.Unhandled_Message;
+         --  Must not happen
+         raise Program_Error;
       end if;
       return Nothing;
    end Handle_Message;

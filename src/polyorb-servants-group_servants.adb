@@ -90,7 +90,7 @@ package body PolyORB.Servants.Group_Servants is
          when Not_Ready =>
             Leave (Self.Mutex);
 
-            raise Unhandled_Message;
+            raise Program_Error;
 
          when Wait_First =>
             --  Wait for first argument ask

@@ -62,7 +62,7 @@ package body PolyORB.Transport is
       Msg :        Components.Message'Class)
      return Components.Message'Class is
    begin
-      raise Unhandled_Message;
+      raise Program_Error;
       --  Small is beautiful.
 
       pragma Warnings (Off);

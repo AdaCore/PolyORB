@@ -188,7 +188,7 @@ package body PolyORB.Transport.Datagram is
 
       else
          --  Must not happen
-         raise Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Nothing;

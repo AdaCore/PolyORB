@@ -245,7 +245,7 @@ package body PolyORB.Filters.HTTP is
          return AWS_SOAP_Action'(SOAP_Action => F.SOAP_Action);
 
       else
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Res;

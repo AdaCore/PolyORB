@@ -52,8 +52,6 @@ package PolyORB.Components is
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
 
-   Unhandled_Message : exception;
-
    type Component_Allocation_Class is
      (Auto, Dynamic);
 
@@ -106,8 +104,7 @@ package PolyORB.Components is
    -- Component factories --
    -------------------------
 
-   type Component_Factory is access function
-     return Component_Access;
+   type Component_Factory is access function return Component_Access;
 
 private
 

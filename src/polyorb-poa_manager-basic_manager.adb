@@ -440,7 +440,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Leave (S.PM.Lock);
       else
          pragma Debug (O ("Message not in Execute_Request"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Null_Message;

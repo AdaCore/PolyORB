@@ -1217,7 +1217,7 @@ package body PolyORB.ORB is
       else
          pragma Debug (O ("ORB received unhandled message of type "
                           & Ada.Tags.External_Tag (Msg'Tag)));
-         raise Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Nothing;

@@ -248,7 +248,7 @@ package body PolyORB.Protocols is
          return Emit (Lower (Sess), S);
 
       else
-         raise Components.Unhandled_Message;
+         raise Program_Error;
       end if;
 
       return Nothing;

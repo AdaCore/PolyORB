@@ -430,7 +430,7 @@ package body AWS.Server.Servants is
          end;
       else
          pragma Debug (O ("Execute_Servant: this is not a request!"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
    end Execute_Servant;
 
@@ -465,7 +465,7 @@ package body AWS.Server.Servants is
          end;
       else
          pragma Debug (O ("Execute_Servant: this is not a request!"));
-         raise PolyORB.Components.Unhandled_Message;
+         raise Program_Error;
       end if;
    end Execute_Servant;
 

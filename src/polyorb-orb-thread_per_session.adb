@@ -296,9 +296,10 @@ package body PolyORB.ORB.Thread_Per_Session is
       if Msg in Interface.Queue_Request then
          Emit_No_Reply
            (Component_Access (ORB), Msg);
+
       else
          pragma Debug (O ("Queue Request To Handler"));
-         raise Unhandled_Message;
+         raise Program_Error;
       end if;
    end Queue_Request_To_Handler;
 
