@@ -43,9 +43,9 @@ with Snames;   use Snames;
 with Stand;    use Stand;
 with Stringt;  use Stringt;
 with Tbuild;   use Tbuild;
-with Ttypes;   use Ttypes;
+--  with Ttypes;   use Ttypes;
 with Exp_Tss;  use Exp_Tss;
-with Uintp;    use Uintp;
+--  with Uintp;    use Uintp;
 
 package body Exp_Hlpr is
 
@@ -108,8 +108,8 @@ package body Exp_Hlpr is
       --  if Typ is incomplete.
 
       --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
-      FST     : constant Entity_Id  := First_Subtype (U_Type);
-      P_Size  : constant Uint       := Esize (FST);
+      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
+      --  P_Size  : constant Uint       := Esize (FST);
 
       Fnam : Entity_Id := Empty;
       Lib_RE  : RE_Id := RE_Null;
@@ -141,103 +141,63 @@ package body Exp_Hlpr is
 
       --  Floating point types
 
-      elsif Is_Floating_Point_Type (U_Type) then
+      elsif U_Type = Standard_Short_Float then
+         Lib_RE := RE_TC_SF;
 
-         if U_Type = Standard_Short_Float then
-            Lib_RE := RE_TC_SF;
+      elsif U_Type = Standard_Float then
+         Lib_RE := RE_TC_F;
 
-         elsif U_Type = Standard_Float then
-            Lib_RE := RE_TC_F;
+      elsif U_Type = Standard_Long_Float then
+         Lib_RE := RE_TC_LF;
 
-         elsif U_Type = Standard_Long_Float then
-            Lib_RE := RE_TC_LF;
+      elsif U_Type = Standard_Long_Long_Float then
+         Lib_RE := RE_TC_LLF;
 
-         else pragma Assert (U_Type = Standard_Long_Long_Float);
-            Lib_RE := RE_TC_LLF;
-         end if;
+      --  Integer types
 
-      --  Signed integer types. Also includes signed fixed-point types and
-      --  enumeration types with a signed representation.
-
-      --  Note on signed integer types. We do not consider types as signed for
-      --  this purpose if they have no negative numbers, or if they have biased
-      --  representation. The reason is that the value in either case basically
-      --  represents an unsigned value.
-
-      --  For example, consider:
-
-      --     type W is range 0 .. 2**32 - 1;
-      --     for W'Size use 32;
-
-      --  This is a signed type, but the representation is unsigned, and may
-      --  be outside the range of a 32-bit signed integer, so this must be
-      --  treated as 32-bit unsigned.
-
-      --  Similarly, if we have
-
-      --     type W is range -1 .. +254;
-      --     for W'Size use 8;
-
-      --  then the representation is unsigned
-
-      elsif not Is_Unsigned_Type (FST)
-        and then
-          (Is_Fixed_Point_Type (U_Type)
-             or else
-           Is_Enumeration_Type (U_Type)
-             or else
-           (Is_Signed_Integer_Type (U_Type)
-              and then not Has_Biased_Representation (FST)))
-      then
-         if P_Size <= Standard_Short_Short_Integer_Size then
+      elsif U_Type = Standard_Short_Short_Integer then
             Lib_RE := RE_TC_SSI;
 
-         elsif P_Size <= Standard_Short_Integer_Size then
-            Lib_RE := RE_TC_SI;
+      elsif U_Type = Standard_Short_Integer then
+         Lib_RE := RE_TC_SI;
 
-         elsif P_Size <= Standard_Integer_Size then
-            Lib_RE := RE_TC_I;
+      elsif U_Type = Standard_Integer then
+         Lib_RE := RE_TC_I;
 
-         elsif P_Size <= Standard_Long_Integer_Size then
-            Lib_RE := RE_TC_LI;
+      elsif U_Type = Standard_Long_Integer then
+         Lib_RE := RE_TC_LI;
 
-         else
-            Lib_RE := RE_TC_LLI;
-         end if;
+      elsif U_Type = Standard_Long_Long_Integer then
+         Lib_RE := RE_TC_LLI;
 
-      --  Unsigned integer types, also includes unsigned fixed-point types
-      --  and enumeration types with an unsigned representation (note that
-      --  we know they are unsigned because we already tested for signed).
+      --  Unsigned integer types
 
-      --  Also includes signed integer types that are unsigned in the sense
-      --  that they do not include negative numbers. See above for details.
+      elsif U_Type = Standard_Short_Short_Integer then
+         Lib_RE := RE_TC_SSU;
 
-      elsif Is_Modular_Integer_Type    (U_Type)
-        or else Is_Fixed_Point_Type    (U_Type)
-        or else Is_Signed_Integer_Type (U_Type)
-      then
-         if P_Size <= Standard_Short_Short_Integer_Size then
-            Lib_RE := RE_TC_SSU;
+      elsif U_Type = Standard_Short_Integer then
+         Lib_RE := RE_TC_SU;
 
-         elsif P_Size <= Standard_Short_Integer_Size then
-            Lib_RE := RE_TC_SU;
+      elsif U_Type = Standard_Integer then
+         Lib_RE := RE_TC_U;
 
-         elsif P_Size <= Standard_Integer_Size then
-            Lib_RE := RE_TC_U;
+      elsif U_Type = Standard_Long_Integer then
+         Lib_RE := RE_TC_LU;
 
-         elsif P_Size <= Standard_Long_Integer_Size then
-            Lib_RE := RE_TC_LU;
+      elsif U_Type = Standard_Long_Long_Integer then
+         Lib_RE := RE_TC_LLU;
 
-         else
-            Lib_RE := RE_TC_LLU;
-         end if;
+      --  Access types
 
-      elsif Is_Access_Type (U_Type) then
-         if P_Size > System_Address_Size then
-            Lib_RE := RE_TC_AD;
-         else
-            Lib_RE := RE_TC_AS;
-         end if;
+--        elsif Is_Access_Type (U_Type) then
+--           if P_Size > System_Address_Size then
+--              Lib_RE := RE_TC_AD;
+--           else
+--              Lib_RE := RE_TC_AS;
+--           end if;
+
+      --  Other (non-primitive) types
+
       else
          declare
             Decl : Entity_Id;
@@ -266,14 +226,57 @@ package body Exp_Hlpr is
    -----------------------------
 
    procedure Build_TypeCode_Function
-     (Loc : Source_Ptr;
-      Typ : Entity_Id;
+     (Loc  :     Source_Ptr;
+      Typ  :     Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id)
    is
       Spec : Node_Id;
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
+
+      function Build_TC_Alias_Call
+        (Loc            : Source_Ptr;
+         Name_String    : String_Id;
+         Repo_Id_String : String_Id;
+         Base_TypeCode  : Node_Id)
+         return Node_Id;
+      --  Construct a call to TC_Alias to build a typecode
+      --  with the specified name, repository id and base type.
+
+      function Build_TC_Alias_Call
+        (Loc            : Source_Ptr;
+         Name_String    : String_Id;
+         Repo_Id_String : String_Id;
+         Base_TypeCode  : Node_Id)
+         return Node_Id
+      is
+      begin
+         return Make_Function_Call (Loc,
+                  Name =>
+                    New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+                  Parameter_Associations => New_List (
+                    New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
+                    Make_Aggregate (Loc,
+                      Expressions =>
+                        New_List (
+                          Make_Function_Call (Loc,
+                            Name =>
+                              New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                            Parameter_Associations => New_List (
+                              Make_String_Literal (Loc, Name_String))),
+                          Make_Function_Call (Loc,
+                            Name =>
+                              New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                            Parameter_Associations => New_List (
+                              Make_String_Literal (Loc, Repo_Id_String))),
+                          Make_Function_Call (Loc,
+                            Name =>
+                              New_Occurrence_Of (RTE (RE_TA_TC), Loc),
+                            Parameter_Associations => New_List (
+                              Base_TypeCode))))));
+      end Build_TC_Alias_Call;
+
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
 
@@ -287,39 +290,33 @@ package body Exp_Hlpr is
         and then not Is_Tagged_Type (Typ)
       then
          Get_Name_String (Chars
-           (Defining_Identifier (Declaration_Node (Typ))));
+                            (Defining_Identifier (Declaration_Node (Typ))));
+
          declare
+            D_Node : constant Node_Id := Declaration_Node (Typ);
+            Parent_Type : Entity_Id := Etype (Typ);
             Name_String : constant String_Id := String_From_Name_Buffer;
-            Repo_Id_String : String_Id := Name_String;
+            Repo_Id_String : constant String_Id := Name_String;
+            --  XXX should compute a proper repository id!
          begin
+            if Is_Enumeration_Type (Typ)
+              and then Nkind (D_Node) = N_Subtype_Declaration
+              and then Nkind (Original_Node (D_Node))
+              /= N_Subtype_Declaration
+            then
+
+               --  Parent_Type is the implicit intermediate base type
+               --  created by Build_Derived_Enumeration_Type.
+
+               Parent_Type := Etype (Parent_Type);
+            end if;
 
             Append_To (Stms,
               Make_Return_Statement (Loc,
-                Expression =>
-                  Make_Function_Call (Loc,
-                    Name =>
-                      New_Occurrence_Of (RTE (RE_TC_Build), Loc),
-                    Parameter_Associations => New_List (
-                      New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
-                      Make_Aggregate (Loc,
-                        Expressions =>
-                          New_List (
-                            Make_Function_Call (Loc,
-                              Name =>
-                                New_Occurrence_Of (RTE (RE_TA_String), Loc),
-                              Parameter_Associations => New_List (
-                                Make_String_Literal (Loc, Name_String))),
-                            Make_Function_Call (Loc,
-                              Name =>
-                                New_Occurrence_Of (RTE (RE_TA_String), Loc),
-                              Parameter_Associations => New_List (
-                                Make_String_Literal (Loc, Repo_Id_String))),
-                            Make_Function_Call (Loc,
-                              Name =>
-                                New_Occurrence_Of (RTE (RE_TA_TC), Loc),
-                              Parameter_Associations => New_List (
-                                Build_TypeCode_Call
-                                  (Loc, Etype (Typ))))))))));
+                Expression => Build_TC_Alias_Call (Loc,
+                  Name_String,
+                  Repo_Id_String,
+                  Build_TypeCode_Call (Loc, Parent_Type))));
          end;
       else
          declare
