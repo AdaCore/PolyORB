@@ -36,12 +36,14 @@
 with Ada.Tags;
 
 with PolyORB.CORBA_P.Names;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Annotations;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Servants.Interface;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
 
 package body PortableServer is
@@ -80,6 +82,25 @@ package body PortableServer is
    Null_Dispatcher_Note : constant Dispatcher_Note
      := (PolyORB.Annotations.Note with Skeleton => null);
 
+   procedure Default_Invoke
+     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+      Request : in     PolyORB.Requests.Request_Access);
+   --  This is the default server side invocation handler.
+
+   --------------------
+   -- Default_Invoke --
+   --------------------
+
+   procedure Default_Invoke
+     (Servant : access PolyORB.Smart_Pointers.Entity'Class;
+      Request : in     PolyORB.Requests.Request_Access)
+   is
+   begin
+      Invoke (DynamicImplementation'Class (Servant.all)'Access,
+              Request);
+      --  Redispatch
+   end Default_Invoke;
+
    ---------------------
    -- Execute_Servant --
    ---------------------
@@ -103,11 +124,11 @@ package body PortableServer is
             R : constant Request_Access := Execute_Request (Msg).Req;
             Error : Error_Container;
          begin
-            Invoke (DynamicImplementation'Class (Self.all)'Access,
-                    CORBA.ServerRequest.Object_Ptr (R));
-            --  Redispatch
+            PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
+              (DynamicImplementation'Class (Self.all)'Access, R);
 
-            pragma Debug (O ("Execute_Servant: executed, setting out args"));
+            pragma Debug
+              (O ("Execute_Servant: executed, setting out args"));
             Set_Out_Args (R, Error);
 
             if Found (Error) then
@@ -517,4 +538,6 @@ package body PortableServer is
       return Result;
    end To_Any;
 
+begin
+   PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke := Default_Invoke'Access;
 end PortableServer;

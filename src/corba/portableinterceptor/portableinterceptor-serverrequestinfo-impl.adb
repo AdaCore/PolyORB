@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               PORTABLEINTERCEPTOR.CLIENTREQUESTINFO.IMPL                 --
+--               PORTABLEINTERCEPTOR.SERVERREQUESTINFO.IMPL                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,13 +32,32 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with PortableInterceptor.RequestInfo;
 
-with PolyORB.Any;
-with PolyORB.CORBA_P.Interceptors;
+with PolyORB.CORBA_P.Interceptors; use PolyORB.CORBA_P.Interceptors;
 
-package body PortableInterceptor.ClientRequestInfo.Impl is
+package body PortableInterceptor.ServerRequestInfo.Impl is
 
-   use PolyORB.CORBA_P.Interceptors;
+--   -------------------------------
+--   -- Add_Reply_Service_Context --
+--   -------------------------------
+--
+--   procedure Add_Reply_Service_Context
+--     (Self            : access Object;
+--      Service_Context : in     CORBA.IOP.ServiceContext;
+--      Replace         : in     CORBA.Boolean);
+
+--   --------------------
+--   -- Get_Adapter_Id --
+--   --------------------
+--
+--   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+
+--   ----------------------
+--   -- Get_Adapter_Name --
+--   ----------------------
+--
+--   function Get_Adapter_Name (Self : access Object) return AdapterName;
 
    -------------------
    -- Get_Arguments --
@@ -49,10 +68,20 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       return Dynamic.ParameterList
    is
    begin
-      if Self.Point /= Send_Request and Self.Point /= Receive_Reply then
+      if Self.Point /= Receive_Request and Self.Point /= Send_Reply then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
+      end if;
+
+      --  If Receive_Request interception point called from Set_Exception
+      --  then the arguments is not available and No_Resource (with minor
+      --  code 1) raised. If Set_Exception called after Arguments then
+      --  interception point called only once from Arguments.
+      if not Self.Args_Present then
+         CORBA.Raise_No_Resources
+          (CORBA.No_Resources_Members'(Minor     => 1,
+                                       Completed => CORBA.Completed_No));
       end if;
 
       return
@@ -69,7 +98,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       return Dynamic.ContextList
    is
    begin
-      if Self.Point = Send_Poll then
+      if Self.Point = Receive_Request_Service_Contexts then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -80,24 +109,6 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Contexts;
 
-   --------------------------
-   -- Get_Effective_Target --
-   --------------------------
-
-   function Get_Effective_Target
-     (Self : access Object)
-      return CORBA.Object.Ref
-   is
-      pragma Unreferenced (Self);
-      Result : CORBA.Object.Ref;
-
-   begin
---      CORBA.Object.Convert_To_CORBA_Ref (Self.Request.Target, Result);
-
-      raise PolyORB.Not_Implemented;
-      return Result;
-   end Get_Effective_Target;
-
    --------------------
    -- Get_Exceptions --
    --------------------
@@ -107,7 +118,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       return Dynamic.ExceptionList
    is
    begin
-      if Self.Point = Send_Poll then
+      if Self.Point = Receive_Request_Service_Contexts then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -124,10 +135,10 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Get_Forward_Reference
      (Self : access Object)
-      return CORBA.Object.Ref
+     return CORBA.Object.Ref
    is
    begin
-      if Self.Point /= Receive_Other then
+      if Self.Point /= Send_Other then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -138,6 +149,12 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Forward_Reference;
 
+--   -------------------
+--   -- Get_Object_Id --
+--   -------------------
+--
+--   function Get_Object_Id (Self : access Object) return ObjectId;
+
    ---------------------------
    -- Get_Operation_Context --
    ---------------------------
@@ -147,7 +164,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       return Dynamic.RequestContext
    is
    begin
-      if Self.Point = Send_Poll then
+      if Self.Point /= Receive_Request and Self.Point /= Send_Reply then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -158,56 +175,40 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Operation_Context;
 
-   ----------------------------
-   -- Get_Received_Exception --
-   ----------------------------
+   ----------------
+   -- Get_ORB_Id --
+   ----------------
 
-   function Get_Received_Exception
-     (Self : access Object)
-      return CORBA.Any
-   is
+   function Get_ORB_Id (Self : access Object) return ORBId is
+      Result : ORBId;
    begin
-      if Self.Point /= Receive_Exception then
+      if Self.Point = Receive_Request_Service_Contexts then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return CORBA.Internals.To_CORBA_Any (Self.Request.Exception_Info);
-   end Get_Received_Exception;
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_ORB_Id;
 
-   -------------------------------
-   -- Get_Received_Exception_Id --
-   -------------------------------
-
-   function Get_Received_Exception_Id
-     (Self : access Object)
-      return CORBA.RepositoryId
-   is
-   begin
-      if Self.Point /= Receive_Exception then
-         CORBA.Raise_Bad_Inv_Order
-          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
-                                        Completed => CORBA.Completed_No));
-      end if;
-
-      return
-        CORBA.RepositoryId
-         (PolyORB.Any.TypeCode.Id
-           (PolyORB.Any.Get_Type (Self.Request.Exception_Info)));
-   end Get_Received_Exception_Id;
+--   -------------------------------
+--   -- Get_Reply_Service_Context --
+--   -------------------------------
+--
+--   function Get_Reply_Service_Context
+--     (Self : access Object;
+--      id : in IOP.ServiceId)
+--      return IOP.ServiceContext;
 
    ----------------------
    -- Get_Reply_Status --
    ----------------------
 
-   function Get_Reply_Status
-     (Self : access Object)
-      return ReplyStatus
-   is
+   function Get_Reply_Status (Self : access Object) return ReplyStatus is
    begin
-      if Self.Point /= Send_Request
-        and then Self.Point /= Send_Poll
+      if Self.Point = Receive_Request_Service_Contexts
+        or else Self.Point = Receive_Request
       then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
@@ -219,20 +220,46 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Reply_Status;
 
-   ------------------------
-   -- Get_Request_Policy --
-   ------------------------
+   ----------------
+   -- Get_Result --
+   ----------------
 
-   function Get_Request_Policy
-     (Self     : access Object;
-      IDL_Type : in     CORBA.PolicyType)
-      return CORBA.Policy.Ref
-   is
-      pragma Unreferenced (IDL_Type);
-      Result : CORBA.Policy.Ref;
-
+   function Get_Result (Self : access Object) return CORBA.Any is
    begin
-      if Self.Point = Send_Poll then
+      if Self.Point /= Send_Reply then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return
+        RequestInfo.Impl.Get_Result
+         (RequestInfo.Impl.Object (Self.all)'Access);
+   end Get_Result;
+
+   ---------------------------
+   -- Get_Sending_Exception --
+   ---------------------------
+
+   function Get_Sending_Exception (Self : access Object) return CORBA.Any is
+   begin
+      if Self.Point /= Send_Exception then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return CORBA.Internals.To_CORBA_Any (Self.Request.Exception_Info);
+   end Get_Sending_Exception;
+
+   -------------------
+   -- Get_Server_Id --
+   -------------------
+
+   function Get_Server_Id (Self : access Object) return ServerId is
+      Result : ServerId;
+   begin
+      if Self.Point = Receive_Request_Service_Contexts then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
@@ -240,54 +267,62 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
       raise PolyORB.Not_Implemented;
       return Result;
-   end Get_Request_Policy;
+   end Get_Server_Id;
 
-   ----------------
-   -- Get_Result --
-   ----------------
+   -----------------------
+   -- Get_Server_Policy --
+   -----------------------
 
-   function Get_Result
-     (Self : access Object)
-      return CORBA.Any
+   function Get_Server_Policy
+     (Self   : access Object;
+      A_Type : in     CORBA.PolicyType)
+      return CORBA.Policy.Ref
    is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (A_Type);
+
+      Result : CORBA.Policy.Ref;
    begin
-      if Self.Point /= Receive_Reply then
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Server_Policy;
+
+   ---------------------------------------
+   -- Get_Target_Most_Derived_Interface --
+   ---------------------------------------
+
+   function Get_Target_Most_Derived_Interface
+     (Self : access Object)
+      return CORBA.RepositoryId
+   is
+      Result : CORBA.RepositoryId;
+   begin
+      if Self.Point /= Receive_Request then
          CORBA.Raise_Bad_Inv_Order
           (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
                                         Completed => CORBA.Completed_No));
       end if;
 
-      return RequestInfo.Impl.Get_Result
-              (RequestInfo.Impl.Object (Self.all)'Access);
-   end Get_Result;
-
-   ----------------
-   -- Get_Target --
-   ----------------
-
-   function Get_Target
-     (Self : access Object)
-      return CORBA.Object.Ref
-   is
-   begin
-      return Self.Target;
-   end Get_Target;
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Target_Most_Derived_Interface;
 
    ----------
    -- Init --
    ----------
 
    procedure Init
-     (Self    : access Object;
-      Point   : in     Client_Interception_Point;
-      Request : in     PolyORB.Requests.Request_Access;
-      Target  : in     CORBA.Object.Ref)
+     (Self         : access Object;
+      Point        : in     Server_Interception_Point;
+      Request      : in     PolyORB.Requests.Request_Access;
+      Args_Present : in     Boolean)
    is
    begin
-      RequestInfo.Impl.Init (RequestInfo.Impl.Object_Ptr (Self), Request);
-      Self.Point   := Point;
-      Self.Request := Request;
-      Self.Target  := Target;
+      RequestInfo.Impl.Init
+       (RequestInfo.Impl.Object (Self.all)'Access, Request);
+      Self.Point        := Point;
+      Self.Request      := Request;
+      Self.Args_Present := Args_Present;
    end Init;
 
    ----------
@@ -296,54 +331,56 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 
    function Is_A
      (Self            : access Object;
-      Logical_Type_Id : in     String)
+      Logical_Type_Id : in     Standard.String)
       return Boolean
    is
       pragma Unreferenced (Self);
-
    begin
       return CORBA.Is_Equivalent
         (Logical_Type_Id,
-         PortableInterceptor.ClientRequestInfo.Repository_Id)
+         PortableInterceptor.ServerRequestInfo.Repository_Id)
         or else CORBA.Is_Equivalent
           (Logical_Type_Id,
            "IDL:omg.org/CORBA/Object:1.0")
         or else CORBA.Is_Equivalent
-          (Logical_Type_Id,
-           PortableInterceptor.RequestInfo.Repository_Id);
+           (Logical_Type_Id,
+         PortableInterceptor.RequestInfo.Repository_Id);
    end Is_A;
 
---   function Get_Effective_Profile
---     (Self : access Object)
---      return IOP.TaggedProfile;
---
---   function Get_Effective_Component
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponent;
---
---   function Get_Effective_Components
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponentSeq;
---
---   procedure Add_Request_Service_Context
---     (Self            : access Object;
---      Service_Context : in     IOP.ServiceContext;
---      Replace         : in     CORBA.Boolean);
---
---   function Get_Sync_Scope
---     (Self : access Object)
---      return Messaging.SyncScope;
---
---   function Get_Request_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
+   --------------
+   -- Set_Slot --
+   --------------
 
-end PortableInterceptor.ClientRequestInfo.Impl;
+   procedure Set_Slot
+     (Self : access Object;
+      Id   : in     PortableInterceptor.SlotId;
+      Data : in     CORBA.Any)
+   is
+   begin
+      raise PolyORB.Not_Implemented;
+   end Set_Slot;
+
+   -----------------
+   -- Target_Is_A --
+   -----------------
+
+   function Target_Is_A
+     (Self : access Object;
+      Id   : in     CORBA.RepositoryId)
+      return CORBA.Boolean
+   is
+      pragma Unreferenced (Id);
+
+      Result : constant CORBA.Boolean := False;
+   begin
+      if Self.Point /= Receive_Request then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Target_Is_A;
+
+end PortableInterceptor.ServerRequestInfo.Impl;

@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . C O R B A _ P . I N T E R C E P T O R S          --
+--              PORTABLEINTERCEPTOR.SERVERREQUESTINTERCEPTOR                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,74 +36,56 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Annotations;
-with PolyORB.Any;
-with PortableInterceptor.ClientRequestInterceptor;
-with PortableInterceptor.ORBInitializer;
-with PortableInterceptor.ServerRequestInterceptor;
+with PortableInterceptor.ServerRequestInfo;
+with PortableInterceptor.Interceptor;
 
-package PolyORB.CORBA_P.Interceptors is
+package PortableInterceptor.ServerRequestInterceptor is
 
-   --  Client interceptors
+   type Local_Ref is
+     new PortableInterceptor.Interceptor.Local_Ref with null record;
 
-   type Client_Interception_Point is
-     (Send_Request,
-      Send_Poll,
-      Receive_Reply,
-      Receive_Exception,
-      Receive_Other);
+   procedure Receive_Request_Service_Contexts
+     (Self : in Local_Ref;
+      RI   : in PortableInterceptor.ServerRequestInfo.Local_Ref);
 
-   function Is_Client_Request_Interceptor_Exists
-     (Name : in String)
-      return Boolean;
+   procedure Receive_Request
+     (Self : in Local_Ref;
+      RI   : in PortableInterceptor.ServerRequestInfo.Local_Ref);
 
-   procedure Add_Client_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref);
+   procedure Send_Reply
+     (Self : in Local_Ref;
+      RI   : in PortableInterceptor.ServerRequestInfo.Local_Ref);
 
-   --  Server interceptors
+   procedure Send_Exception
+     (Self : in Local_Ref;
+      RI   : in PortableInterceptor.ServerRequestInfo.Local_Ref);
 
-   type Server_Interception_Point is
-     (Receive_Request_Service_Contexts,
-      Receive_Request,
-      Send_Reply,
-      Send_Exception,
-      Send_Other);
+   procedure Send_Other
+     (Self : in Local_Ref;
+      RI   : in PortableInterceptor.ServerRequestInfo.Local_Ref);
 
-   function Is_Server_Request_Interceptor_Exists
-     (Name : in String)
-      return Boolean;
+   --  Repository_Ids
 
-   procedure Add_Server_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref);
+   ServerRequestInterceptor_Root_Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableInterceptor/ServerRequestInterceptor";
 
-   --  ORB Initializers
+   Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id & ":1.0";
 
-   procedure Register_ORB_Initializer
-     (Init : in PortableInterceptor.ORBInitializer.Local_Ref);
-   --  Register Interceptor initializer object
+   Receive_Request_Service_Contexts_Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id
+          & "/receive_request_service_contexts:1.0";
 
-   procedure Call_ORB_Initializers;
-   --  Call pre_init and post_init operations for all registered initializers.
-   --  XXX  This is a temporary workaround, and after improvement of
-   --  PolyORB initialization these operations must be called from ORB_init.
+   Receive_Request_Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id & "/receive_request:1.0";
 
---   procedure Pre_Init_Interceptors
---     (Info : in PortableInterceptor.ORBInitInfo.Local_Ref);
---   --  Call Pre_Init method on all registered initializers.
---
---   procedure Post_Init_Interceptors
---     (Info : in PortableInterceptor.ORBInitInfo.Local_Ref);
---   --  Call Post_Init method on all registered initializers.
+   Send_Reply_Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id & "/send_reply:1.0";
 
-private
+   Send_Exception_Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id & "/send_exception:1.0";
 
-   --  Server interceptors
+   Send_Other_Repository_Id : constant Standard.String
+     := ServerRequestInterceptor_Root_Repository_Id & "/send_other:1.0";
 
-   type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
-      Last_Interceptor    : Natural;
-      Forward_Request     : Boolean;
-      Exception_Info      : PolyORB.Any.Any;
-      Intermediate_Called : Boolean;
-   end record;
-
-end PolyORB.CORBA_P.Interceptors;
+end PortableInterceptor.ServerRequestInterceptor;

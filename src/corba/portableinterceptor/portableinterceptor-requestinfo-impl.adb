@@ -37,6 +37,51 @@ with PolyORB;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
+   -------------------
+   -- Get_Arguments --
+   -------------------
+
+   function Get_Arguments
+     (Self : access Object)
+      return Dynamic.ParameterList
+   is
+      pragma Unreferenced (Self);
+
+      Result : Dynamic.ParameterList;
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Arguments;
+
+   ------------------
+   -- Get_Contexts --
+   ------------------
+
+   function Get_Contexts (Self : access Object) return Dynamic.ContextList is
+      pragma Unreferenced (Self);
+
+      Result : Dynamic.ContextList;
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Contexts;
+
+   --------------------
+   -- Get_Exceptions --
+   --------------------
+
+   function Get_Exceptions
+     (Self : access Object)
+      return Dynamic.ExceptionList
+   is
+      pragma Unreferenced (Self);
+
+      Result : Dynamic.ExceptionList;
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Exceptions;
+
    ---------------------------
    -- Get_Forward_Reference --
    ---------------------------
@@ -63,10 +108,24 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Operation (Self : access Object) return CORBA.String is
    begin
---      return CORBA.String (Self.Request.Operation);
-      raise PolyORB.Not_Implemented;
-      return CORBA.To_CORBA_String ("");
+      return CORBA.String (Self.Request.Operation);
    end Get_Operation;
+
+   ---------------------------
+   -- Get_Operation_Context --
+   ---------------------------
+
+   function Get_Operation_Context
+     (Self : access Object)
+      return Dynamic.RequestContext
+   is
+      pragma Unreferenced (Self);
+
+      Result : Dynamic.RequestContext;
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Operation_Context;
 
    ----------------------
    -- Get_Reply_Status --
@@ -133,6 +192,7 @@ package body PortableInterceptor.RequestInfo.Impl is
       pragma Unreferenced (Self);
    begin
       --  In current PolyORB implementation all request are synchronous.
+      raise PolyORB.Not_Implemented;
       return True;
    end Get_Response_Expected;
 
@@ -141,19 +201,8 @@ package body PortableInterceptor.RequestInfo.Impl is
    ----------------
 
    function Get_Result (Self : access Object) return CORBA.Any is
-      pragma Unreferenced (Self);
-
-      Result : CORBA.Any;
    begin
---      if Self.Kind /= Receive_Reply and Self.Kind /= Send_Reply then
---         CORBA.Raise_Bad_Inv_Order
---          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
---                                        Completed => CORBA.Completed_No));
---      end if;
---
---      return Self.Request.Result.Argument;
-      raise PolyORB.Not_Implemented;
-      return Result;
+      return CORBA.Internals.To_CORBA_Any (Self.Request.Result.Argument);
    end Get_Result;
 
    --------------
@@ -193,22 +242,6 @@ package body PortableInterceptor.RequestInfo.Impl is
            "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
---   function Get_Request_Id
---     (Self : access Object)
---      return CORBA.Unsigned_Long;
---
---   function Get_Arguments
---     (Self : access Object)
---      return Dynamic.ParameterList;
---
---   function Get_Exceptions
---     (Self : access Object)
---      return Dynamic.ExceptionList;
---
---   function Get_Contexts
---     (Self : access Object)
---      return Dynamic.ContextList;
---
 --   function Get_Operation_Context
 --     (Self : access Object)
 --      return Dynamic.RequestContext;

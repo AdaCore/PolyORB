@@ -78,27 +78,26 @@ package body PortableInterceptor.ORBInitInfo is
 --        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
 --         Interceptor);
 --   end Add_IOR_Interceptor;
---
---   ------------------------------------
---   -- Add_Server_Request_Interceptor --
---   ------------------------------------
---
---   procedure Add_Server_Request_Interceptor
---     (Self        : in Local_Ref;
---      Interceptor : in
---        PortableInterceptor.ServerRequestInterceptor.Local_Ref)
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      PortableInterceptor.ORBInitInfo.Impl.Add_Server_Request_Interceptor
---        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
---         Interceptor);
---   end Add_Server_Request_Interceptor;
+
+   ------------------------------------
+   -- Add_Server_Request_Interceptor --
+   ------------------------------------
+
+   procedure Add_Server_Request_Interceptor
+     (Self        : in Local_Ref;
+      Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      PortableInterceptor.ORBInitInfo.Impl.Add_Server_Request_Interceptor
+        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
+         Interceptor);
+   end Add_Server_Request_Interceptor;
 
    ----------------------
    -- Allocate_Slot_Id --

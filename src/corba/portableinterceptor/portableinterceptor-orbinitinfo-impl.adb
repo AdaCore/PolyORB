@@ -90,43 +90,43 @@ package body PortableInterceptor.ORBInitInfo.Impl is
 --   begin
 --      raise PolyORB.Not_Implemented;
 --   end Add_IOR_Interceptor;
---
---   ------------------------------------
---   -- Add_Server_Request_Interceptor --
---   ------------------------------------
---
---   procedure Add_Server_Request_Interceptor
---     (Self        : access Object;
---      Interceptor : in
---        PortableInterceptor.ServerRequestInterceptor.Local_Ref)
---   is
---   begin
---      if Self.Post_Init_Done then
---         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
---      end if;
---
---      declare
---         Name : constant String
---           := CORBA.To_Standard_String
---                (PortableInterceptor.ServerRequestInterceptor.Get_Name
---                  (Interceptor));
---      begin
---         if Name /= "" then
---            if
---              PolyORB.CORBA_P.Interceptors.
---                Is_Server_Request_Interceptor_Exists
---                 (Name)
---            then
---               Raise_DuplicateName
---                (DuplicateName_Members'(Name =>
---                                          CORBA.To_CORBA_String (Name)));
---            end if;
---         end if;
---      end;
---
---      PolyORB.CORBA_P.Interceptors.Add_Server_Request_Interceptor
---       (Interceptor);
---   end Add_Server_Request_Interceptor;
+
+   ------------------------------------
+   -- Add_Server_Request_Interceptor --
+   ------------------------------------
+
+   procedure Add_Server_Request_Interceptor
+     (Self        : access Object;
+      Interceptor : in
+        PortableInterceptor.ServerRequestInterceptor.Local_Ref)
+   is
+   begin
+      if Self.Post_Init_Done then
+         CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Name : constant String
+           := CORBA.To_Standard_String
+                (PortableInterceptor.ServerRequestInterceptor.Get_Name
+                  (Interceptor));
+      begin
+         if Name /= "" then
+            if
+              PolyORB.CORBA_P.Interceptors.
+                Is_Server_Request_Interceptor_Exists
+                 (Name)
+            then
+               Raise_DuplicateName
+                (DuplicateName_Members'(Name =>
+                                          CORBA.To_CORBA_String (Name)));
+            end if;
+         end if;
+      end;
+
+      PolyORB.CORBA_P.Interceptors.Add_Server_Request_Interceptor
+       (Interceptor);
+   end Add_Server_Request_Interceptor;
 
    ----------------------
    -- Allocate_Slot_Id --

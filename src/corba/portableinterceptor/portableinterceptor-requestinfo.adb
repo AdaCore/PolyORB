@@ -37,62 +37,62 @@ with PortableInterceptor.RequestInfo.Impl;
 
 package body PortableInterceptor.RequestInfo is
 
---   -------------------
---   -- Get_Arguments --
---   -------------------
---
---   function Get_Arguments
---     (Self : in Local_Ref)
---      return Dynamic.ParameterList
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Arguments
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
---   end Get_Arguments;
+   -------------------
+   -- Get_Arguments --
+   -------------------
 
---   ------------------
---   -- Get_Contexts --
---   ------------------
---
---   function Get_Contexts
---     (Self : in Local_Ref)
---      return Dynamic.ContextList
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Contexts
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
---   end Get_Contexts;
+   function Get_Arguments
+     (Self : in Local_Ref)
+      return Dynamic.ParameterList
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
 
---   --------------------
---   -- Get_Exceptions --
---   --------------------
---
---   function Get_Exceptions
---     (Self : in Local_Ref)
---      return Dynamic.ExceptionList
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Exceptions
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
---   end Get_Exceptions;
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Arguments
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Arguments;
+
+   ------------------
+   -- Get_Contexts --
+   ------------------
+
+   function Get_Contexts
+     (Self : in Local_Ref)
+      return Dynamic.ContextList
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Contexts
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Contexts;
+
+   --------------------
+   -- Get_Exceptions --
+   --------------------
+
+   function Get_Exceptions
+     (Self : in Local_Ref)
+      return Dynamic.ExceptionList
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Exceptions
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Exceptions;
 
    ---------------------------
    -- Get_Forward_Reference --
@@ -134,24 +134,24 @@ package body PortableInterceptor.RequestInfo is
         (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
    end Get_Operation;
 
---   ---------------------------
---   -- Get_Operation_Context --
---   ---------------------------
---
---   function Get_Operation_Context
---     (Self : in Local_Ref)
---      return Dynamic.RequestContext
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Operation_Context
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
---   end Get_Operation_Context;
+   ---------------------------
+   -- Get_Operation_Context --
+   ---------------------------
+
+   function Get_Operation_Context
+     (Self : in Local_Ref)
+      return Dynamic.RequestContext
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Operation_Context
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Operation_Context;
 
 --   -------------------------------
 --   -- Get_Reply_Service_Context --

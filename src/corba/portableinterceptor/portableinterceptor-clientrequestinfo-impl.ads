@@ -39,6 +39,7 @@
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.Requests;
 
+with Dynamic;
 with PortableInterceptor.RequestInfo.Impl;
 
 package PortableInterceptor.ClientRequestInfo.Impl is
@@ -110,21 +111,21 @@ private
 
    --  Derived from RequestInfo
 
---   function Get_Arguments
---     (Self : access Object)
---      return Dynamic.ParameterList;
---
---   function Get_Exceptions
---     (Self : access Object)
---      return Dynamic.ExceptionList;
---
---   function Get_Contexts
---     (Self : access Object)
---      return Dynamic.ContextList;
---
---   function Get_Operation_Context
---     (Self : access Object)
---      return Dynamic.RequestContext;
+   function Get_Arguments
+     (Self : access Object)
+      return Dynamic.ParameterList;
+
+   function Get_Exceptions
+     (Self : access Object)
+      return Dynamic.ExceptionList;
+
+   function Get_Contexts
+     (Self : access Object)
+      return Dynamic.ContextList;
+
+   function Get_Operation_Context
+     (Self : access Object)
+      return Dynamic.RequestContext;
 
    function Get_Result
      (Self : access Object)

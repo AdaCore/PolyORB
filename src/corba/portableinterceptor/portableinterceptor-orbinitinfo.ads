@@ -41,6 +41,7 @@ with Ada.Exceptions;
 with CORBA.Object;
 
 with PortableInterceptor.ClientRequestInterceptor;
+with PortableInterceptor.ServerRequestInterceptor;
 
 package PortableInterceptor.ORBInitInfo is
 
@@ -101,11 +102,11 @@ package PortableInterceptor.ORBInitInfo is
      (Self        : in Local_Ref;
       Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref);
 
---   procedure Add_Server_Request_Interceptor
---     (Self        : in Local_Ref;
---      Interceptor : in
---        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
---
+   procedure Add_Server_Request_Interceptor
+     (Self        : in Local_Ref;
+      Interceptor : in
+        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
+
 --   procedure Add_IOR_Interceptor
 --     (Self        : in Local_Ref;
 --      Interceptor : in PortableInterceptor.IORInterceptor.Local_Ref);

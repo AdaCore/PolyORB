@@ -37,6 +37,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
+with Dynamic;
 
 package PortableInterceptor.RequestInfo is
 
@@ -50,21 +51,21 @@ package PortableInterceptor.RequestInfo is
      (Self : in Local_Ref)
       return CORBA.String;
 
---   function Get_Arguments
---     (Self : in Local_Ref)
---      return Dynamic.ParameterList;
---
---   function Get_Exceptions
---     (Self : in Local_Ref)
---      return Dynamic.ExceptionList;
---
---   function Get_Contexts
---     (Self : in Local_Ref)
---      return Dynamic.ContextList;
---
---   function Get_Operation_Context
---     (Self : in Local_Ref)
---      return Dynamic.RequestContext;
+   function Get_Arguments
+     (Self : in Local_Ref)
+      return Dynamic.ParameterList;
+
+   function Get_Exceptions
+     (Self : in Local_Ref)
+      return Dynamic.ExceptionList;
+
+   function Get_Contexts
+     (Self : in Local_Ref)
+      return Dynamic.ContextList;
+
+   function Get_Operation_Context
+     (Self : in Local_Ref)
+      return Dynamic.RequestContext;
 
    function Get_Result
      (Self : in Local_Ref)

@@ -78,11 +78,11 @@ package PortableInterceptor.ORBInitInfo.Impl is
       Interceptor : in
         PortableInterceptor.ClientRequestInterceptor.Local_Ref);
 
---   procedure Add_Server_Request_Interceptor
---     (Self        : access Object;
---      Interceptor : in
---        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
---
+   procedure Add_Server_Request_Interceptor
+     (Self        : access Object;
+      Interceptor : in
+        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
+
 --   procedure Add_IOR_Interceptor
 --     (Self        : access Object;
 --      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref);

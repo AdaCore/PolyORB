@@ -34,6 +34,7 @@
 --  Hook to set up request's invoke method used by the CORBA personality.
 
 with PolyORB.Requests;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.CORBA_P.Interceptors_Hooks is
 
@@ -41,6 +42,23 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
      (Self  : in PolyORB.Requests.Request_Access;
       Flags : in PolyORB.Requests.Flags);
 
+   type Server_Invoke_Handler is access procedure
+     (Self    : access PolyORB.Smart_Pointers.Entity'Class;
+      --  Actually must be PortableServer.DynamicImplementation'Class.
+      Request : in     PolyORB.Requests.Request_Access);
+
+   type Server_Intermediate_Handler is access procedure
+     (Self           : in PolyORB.Requests.Request_Access;
+      From_Agruments : in Boolean);
+
    Client_Invoke : Client_Invoke_Handler := PolyORB.Requests.Invoke'Access;
+
+   Server_Invoke : Server_Invoke_Handler := null;
+   --  Server side hook initialized in PortableServer module.
+
+   Server_Intermediate : Server_Intermediate_Handler := null;
+   --  This hook used for call intermediate interception point Receive_Request.
+   --  If program don't use PortableInterceptors this variable have null
+   --  value.
 
 end PolyORB.CORBA_P.Interceptors_Hooks;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  C O R B A . S E R V E R R E Q U E S T                   --
+--            PORTABLEINTERCEPTOR.SERVERREQUESTINTERCEPTOR.IMPL             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,94 +31,98 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Mapping for the standard ServerRequest interface
+package body PortableInterceptor.ServerRequestInterceptor.Impl is
 
---  $Id$
+   ----------
+   -- Is_A --
+   ----------
 
-with PolyORB.Any.NVList;
-with PolyORB.CORBA_P.Interceptors_Hooks;
-with PolyORB.Log;
-with PolyORB.Exceptions;
-
-package body CORBA.ServerRequest is
-
-   use PolyORB.CORBA_P.Interceptors_Hooks;
-   use PolyORB.Log;
-
-   package L is new PolyORB.Log.Facility_Log ("corba.serverrequest");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
-
-   ---------------
-   -- Operation --
-   ---------------
-
-   function Operation
-     (O : Object)
-     return Identifier is
-   begin
-      return Identifier (O.Operation);
-   end Operation;
-
-   ---------------
-   -- Arguments --
-   ---------------
-
-   procedure Arguments
-     (O  : access Object;
-      NV : in out NVList.Ref)
+   function Is_A
+     (Self            : access Object;
+      Logical_Type_Id : in     Standard.String)
+      return Boolean
    is
-      use PolyORB.Exceptions;
-
-      PolyORB_Args : PolyORB.Any.NVList.Ref
-        := CORBA.NVList.To_PolyORB_Ref (NV);
-      Error : Error_Container;
+      pragma Unreferenced (Self);
    begin
-      PolyORB.Requests.Arguments
-        (PolyORB.Requests.Request_Access (O), PolyORB_Args, Error);
+      return CORBA.Is_Equivalent
+        (Logical_Type_Id,
+         PortableInterceptor.ServerRequestInterceptor.Repository_Id)
+        or else CORBA.Is_Equivalent
+          (Logical_Type_Id,
+           "IDL:omg.org/CORBA/Object:1.0")
+        or else CORBA.Is_Equivalent
+           (Logical_Type_Id,
+            PortableInterceptor.Interceptor.Repository_Id);
+   end Is_A;
 
-      if Found (Error) then
-         raise PolyORB.Unknown;
-         --  XXX we should do something if we find a PolyORB exception
+   ---------------------
+   -- Receive_Request --
+   ---------------------
 
-      end if;
+   procedure Receive_Request
+     (Self : access Object;
+      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (RI);
+   begin
+      null;
+   end Receive_Request;
 
-      NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
+   --------------------------------------
+   -- Receive_Request_Service_Contexts --
+   --------------------------------------
 
-      if Server_Intermediate /= null then
-         Server_Intermediate (PolyORB.Requests.Request_Access (O), True);
-      end if;
-   end Arguments;
+   procedure Receive_Request_Service_Contexts
+     (Self : access Object;
+      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (RI);
+   begin
+      null;
+   end Receive_Request_Service_Contexts;
+
+   --------------------
+   -- Send_Exception --
+   --------------------
+
+   procedure Send_Exception
+     (Self : access Object;
+      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (RI);
+   begin
+      null;
+   end Send_Exception;
 
    ----------------
-   -- Set_Result --
+   -- Send_Other --
    ----------------
 
-   procedure Set_Result
-     (O   : access Object;
-      Val :        Any) is
+   procedure Send_Other
+     (Self : access Object;
+      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (RI);
    begin
-      PolyORB.Requests.Set_Result
-        (PolyORB.Requests.Request_Access (O),
-         CORBA.Internals.To_PolyORB_Any (Val));
-   end Set_Result;
+      null;
+   end Send_Other;
 
-   -------------------
-   -- Set_Exception --
-   -------------------
+   ----------------
+   -- Send_Reply --
+   ----------------
 
-   procedure Set_Exception
-     (Obj : access Object;
-      Val :        Any) is
+   procedure Send_Reply
+     (Self : access Object;
+      RI   : in     PortableInterceptor.ServerRequestInfo.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (RI);
    begin
-      pragma Debug
-        (O ("Server notifies exception: "
-            & PolyORB.Any.Image (CORBA.Internals.To_PolyORB_Any (Val))));
-      Obj.Exception_Info := CORBA.Internals.To_PolyORB_Any (Val);
+      null;
+   end Send_Reply;
 
-      if Server_Intermediate /= null then
-         Server_Intermediate (PolyORB.Requests.Request_Access (Obj), False);
-      end if;
-   end Set_Exception;
-
-end CORBA.ServerRequest;
+end PortableInterceptor.ServerRequestInterceptor.Impl;

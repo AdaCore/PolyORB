@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  PORTABLEINTERCEPTOR.REQUESTINFO.IMPL                    --
+--               PORTABLEINTERCEPTOR.SERVERREQUESTINFO.IMPL                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,35 +36,87 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Local;
-with Dynamic;
+with CORBA;
+with CORBA.Policy;
+with PolyORB.CORBA_P.Interceptors;
 with PolyORB.Requests;
 
-package PortableInterceptor.RequestInfo.Impl is
+with Dynamic;
+with PortableInterceptor.RequestInfo.Impl;
 
-   type Object is new CORBA.Local.Object with private;
+package PortableInterceptor.ServerRequestInfo.Impl is
+
+   type Object is
+     new PortableInterceptor.RequestInfo.Impl.Object with private;
 
    type Object_Ptr is access all Object'Class;
 
-   function Get_Request_Id
-     (Self : access Object)
-      return CORBA.Unsigned_Long;
+   --  Initialize object implementation.
+   procedure Init
+     (Self         : access Object;
+      Point        : in
+        PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
+      Request      : in     PolyORB.Requests.Request_Access;
+      Args_Present : in     Boolean);
 
-   function Get_Operation
-     (Self : access Object)
-      return CORBA.String;
+   function Get_Sending_Exception (Self : access Object) return CORBA.Any;
 
-   function Get_Arguments
-     (Self : access Object)
-      return Dynamic.ParameterList;
+   function Get_Server_Id (Self : access Object) return ServerId;
 
-   function Get_Exceptions
-     (Self : access Object)
-      return Dynamic.ExceptionList;
+   function Get_ORB_Id (Self : access Object) return ORBId;
 
-   function Get_Contexts
+--   function Get_Adapter_Name (Self : access Object) return AdapterName;
+
+--   function Get_Object_Id (Self : access Object) return ObjectId;
+
+--   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+
+   function Get_Target_Most_Derived_Interface
      (Self : access Object)
-      return Dynamic.ContextList;
+      return CORBA.RepositoryId;
+
+   function Get_Server_Policy
+     (Self   : access Object;
+      A_Type : in     CORBA.PolicyType)
+      return CORBA.Policy.Ref;
+
+   procedure Set_Slot
+     (Self : access Object;
+      Id   : in     PortableInterceptor.SlotId;
+      Data : in     CORBA.Any);
+
+   function Target_Is_A
+     (Self : access Object;
+      Id   : in     CORBA.RepositoryId)
+      return CORBA.Boolean;
+
+--   procedure Add_Reply_Service_Context
+--     (Self            : access Object;
+--      Service_Context : in     CORBA.IOP.ServiceContext;
+--      Replace         : in     CORBA.Boolean);
+
+   function Is_A
+     (Self : access Object;
+      Logical_Type_Id : Standard.String)
+      return Boolean;
+
+private
+
+   type Object is
+     new PortableInterceptor.RequestInfo.Impl.Object with
+   record
+      Point        : PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
+      Request      : PolyORB.Requests.Request_Access;
+      Args_Present : Boolean;
+   end record;
+
+   --  Derived from RequestInfo.
+
+   function Get_Arguments (Self : access Object) return Dynamic.ParameterList;
+
+   function Get_Exceptions (Self : access Object) return Dynamic.ExceptionList;
+
+   function Get_Contexts (Self : access Object) return Dynamic.ContextList;
 
    function Get_Operation_Context
      (Self : access Object)
@@ -74,14 +126,6 @@ package PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
       return CORBA.Any;
 
-   function Get_Response_Expected
-     (Self : access Object)
-      return CORBA.Boolean;
-
---   function Get_Sync_Scope
---     (Self : access Object)
---      return Messaging.SyncScope;
-
    function Get_Reply_Status
      (Self : access Object)
       return ReplyStatus;
@@ -90,36 +134,9 @@ package PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
      return CORBA.Object.Ref;
 
-   function Get_Slot
-     (Self : access Object;
-      Id   : in     SlotId)
-      return CORBA.Any;
-
---   function Get_Request_Service_Context
+--   function get_reply_service_context
 --     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
+--      id : in IOP.ServiceId)
+--     return IOP.ServiceContext;
 
-   function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : in    String)
-     return Boolean;
-
-   procedure Init
-     (Self    : access Object;
-      Request : in     PolyORB.Requests.Request_Access);
-   --  Implementation Note: This procedure initialize a RequestInfo
-   --  object. It is specific to PolyORB. You should not use it.
-
-private
-
-   type Object is new CORBA.Local.Object with record
-      Request : PolyORB.Requests.Request_Access;
-   end record;
-
-end PortableInterceptor.RequestInfo.Impl;
+end PortableInterceptor.ServerRequestInfo.Impl;

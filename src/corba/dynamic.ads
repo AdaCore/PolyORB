@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . C O R B A _ P . I N T E R C E P T O R S          --
+--                              D Y N A M I C                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,74 +31,56 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Annotations;
-with PolyORB.Any;
-with PortableInterceptor.ClientRequestInterceptor;
-with PortableInterceptor.ORBInitializer;
-with PortableInterceptor.ServerRequestInterceptor;
+--  $Id$
 
-package PolyORB.CORBA_P.Interceptors is
+with CORBA.Sequences.Unbounded;
+pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
-   --  Client interceptors
+package Dynamic is
 
-   type Client_Interception_Point is
-     (Send_Request,
-      Send_Poll,
-      Receive_Reply,
-      Receive_Exception,
-      Receive_Other);
-
-   function Is_Client_Request_Interceptor_Exists
-     (Name : in String)
-      return Boolean;
-
-   procedure Add_Client_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ClientRequestInterceptor.Local_Ref);
-
-   --  Server interceptors
-
-   type Server_Interception_Point is
-     (Receive_Request_Service_Contexts,
-      Receive_Request,
-      Send_Reply,
-      Send_Exception,
-      Send_Other);
-
-   function Is_Server_Request_Interceptor_Exists
-     (Name : in String)
-      return Boolean;
-
-   procedure Add_Server_Request_Interceptor
-     (Interceptor : in PortableInterceptor.ServerRequestInterceptor.Local_Ref);
-
-   --  ORB Initializers
-
-   procedure Register_ORB_Initializer
-     (Init : in PortableInterceptor.ORBInitializer.Local_Ref);
-   --  Register Interceptor initializer object
-
-   procedure Call_ORB_Initializers;
-   --  Call pre_init and post_init operations for all registered initializers.
-   --  XXX  This is a temporary workaround, and after improvement of
-   --  PolyORB initialization these operations must be called from ORB_init.
-
---   procedure Pre_Init_Interceptors
---     (Info : in PortableInterceptor.ORBInitInfo.Local_Ref);
---   --  Call Pre_Init method on all registered initializers.
---
---   procedure Post_Init_Interceptors
---     (Info : in PortableInterceptor.ORBInitInfo.Local_Ref);
---   --  Call Post_Init method on all registered initializers.
-
-private
-
-   --  Server interceptors
-
-   type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
-      Last_Interceptor    : Natural;
-      Forward_Request     : Boolean;
-      Exception_Info      : PolyORB.Any.Any;
-      Intermediate_Called : Boolean;
+   type Parameter is record
+      Argument : CORBA.Any;
+      --      Mode     : CORBA.ParameterMode;
    end record;
 
-end PolyORB.CORBA_P.Interceptors;
+   package IDL_SEQUENCE_Dynamic_Parameter is
+      new CORBA.Sequences.Unbounded (Dynamic.Parameter);
+
+   type ParameterList is
+      new IDL_SEQUENCE_Dynamic_Parameter.Sequence;
+
+   --  XXX This type temporary replace CORBA::StringSeq type.
+   package IDL_Sequence_String is new CORBA.Sequences.Unbounded (CORBA.String);
+
+   type ContextList is new IDL_Sequence_String.Sequence;
+
+   package IDL_SEQUENCE_CORBA_TypeCode is
+      new CORBA.Sequences.Unbounded (CORBA.TypeCode.Object);
+
+   type ExceptionList is
+      new Dynamic.IDL_SEQUENCE_CORBA_TypeCode.Sequence;
+
+   type RequestContext is
+      new IDL_Sequence_String.Sequence;
+
+   --  Repository_Ids
+
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic:1.0";
+
+   Parameter_Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic/Parameter:1.0";
+
+   ParameterList_Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic/ParameterList:1.0";
+
+   ContextList_Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic/ContextList:1.0";
+
+   ExceptionList_Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic/ExceptionList:1.0";
+
+   RequestContext_Repository_Id : constant Standard.String
+     := "IDL:omg.org/Dynamic/RequestContext:1.0";
+
+end Dynamic;

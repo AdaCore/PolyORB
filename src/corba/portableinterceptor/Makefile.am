@@ -21,9 +21,14 @@ ADA_SPECS_WITH_BODY = \
 	portableinterceptor-orbinitinfo.ads \
 	portableinterceptor-orbinitinfo-impl.ads \
 	portableinterceptor-requestinfo.ads \
-	portableinterceptor-requestinfo-impl.ads
+        portableinterceptor-requestinfo-impl.ads \
+        portableinterceptor-serverrequestinfo.ads \
+        portableinterceptor-serverrequestinfo-impl.ads \
+        portableinterceptor-serverrequestinterceptor.ads \
+        portableinterceptor-serverrequestinterceptor-impl.ads
 
-ADA_SPECS = $(ADA_SPECS_WITH_BODY)
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	dynamic.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
