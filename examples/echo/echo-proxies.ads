@@ -34,7 +34,7 @@ package Echo.Proxies is
                          return Corba.Unsigned_Long ;
 
    procedure Marshal_Arguments(Self: in EchoString_Proxy ;
-                               Giop_Client: in out Giop_C.Object) ;
+                               Giop_Client: in Giop_C.Object) ;
 
    procedure Unmarshal_Returned_Values(Self: in out EchoString_Proxy ;
                                        Giop_Client: in Giop_C.Object) ;

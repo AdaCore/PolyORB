@@ -1,4 +1,4 @@
-GNATGCC = gnatgcc -gnatf
+GNATGCC = gnatgcc -gnatf -gnata
 DO_NOT_LINK = -c
 BIND = gnatbind
 LINK = gnatlink

@@ -11,7 +11,7 @@
 ----------------------------------------------------------------------------
 
 with Ada.exceptions ;
--- with Omniproxycallwrapper ;
+with Omniproxycallwrapper ;
 with Echo.Proxies ;
 with Corba.Object ; use Corba.Object ;
 with Corba ;
@@ -66,7 +66,7 @@ package body Echo is
       Output(Debug, "Echo.echoString : creating call desc") ;
       Opcd := Echo.Proxies.Create(Message) ;
       Output(Debug, "Echo.echoString : call desc created, invoking method") ;
-      -- OmniProxyCallWrapper.Invoke(Self, Opcd) ;
+      OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       Output(Debug, "Echo.echoString : method echoString invoked") ;
       Result := Echo.Proxies.Get_Result(Opcd) ;
       Echo.Proxies.Free(Opcd) ;

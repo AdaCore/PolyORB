@@ -11,7 +11,7 @@
 
 with Corba ;
 with Omni ;
-with Netbufferedstream ;
+with Netbufferedstream ; use Netbufferedstream ;
 
 use type Corba.Unsigned_Long ;
 
@@ -50,6 +50,7 @@ package body Echo.Proxies is
       Corba.Free(Self.Private_Result) ;
    end ;
 
+
    -- Aligned_Size
    --------------
    function Aligned_Size(Self: in EchoString_Proxy;
@@ -65,10 +66,9 @@ package body Echo.Proxies is
    -- Marshal_Arguments
    -------------------
    procedure Marshal_Arguments(Self: in EchoString_Proxy ;
-                               Giop_Client: in out Giop_C.Object ) is
+                               Giop_Client: in Giop_C.Object ) is
    begin
-      null ;
-      -- Netbufferedstream.Marshall(Self.Arg_Msg.all,Giop_Client);
+      Marshall(Self.Arg_Msg.all,Giop_Client);
    end;
 
    -- UnMarshal_Return_Values
@@ -77,9 +77,7 @@ package body Echo.Proxies is
                                        Giop_Client: in Giop_C.Object) is
       Result : Corba.String ;
    begin
-      Result := Corba.To_Corba_String("") ;
-      -- To compile !!
-      -- Result := Netbufferedstream.Unmarshall(Result, Giop_Client) ;
+      Unmarshall(Result, Giop_Client) ;
       Self.Private_Result := new Corba.String'(Result) ;
    end ;
 
@@ -92,3 +90,6 @@ package body Echo.Proxies is
    end ;
 
 end Echo.Proxies ;
+
+
+
