@@ -7,6 +7,8 @@ with Broca.Debug;
 
 with PortableServer.POA;
 
+with CosNaming; use CosNaming;
+
 with CosNaming.BindingIterator;
 with CosNaming.BindingIterator.Impl;
 with CosNaming.BindingIterator.Helper;
@@ -27,7 +29,9 @@ package body CosNaming.NamingContext.Impl is
      := Broca.Debug.Is_Active ("cosnaming.namingcontext");
    procedure O is new Broca.Debug.Output (Flag);
 
-   package Names renames CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
+   type String_Access is access String;
+
+   package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
 
    Null_NC : constant NameComponent
      := (Istring (Ada.Strings.Unbounded.Null_Unbounded_String),
@@ -55,14 +59,14 @@ package body CosNaming.NamingContext.Impl is
       Equal      => Equal);
 
    function Encode
-     (Ctx : NamingContext_Ptr;
+     (Ctx : Object_Ptr;
       N   : NameComponent)
      return String;
    --  Encode this name component using the naming context internal
    --  id, the name component name and name component type.
 
    procedure Append_BO_To_NC
-     (NC  : in NamingContext_Ptr;
+     (NC  : in Object_Ptr;
       Key : in String;
       BN  : in NameComponent;
       BT  : in BindingType;
@@ -73,7 +77,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Display_NC
      (Text : in String;
-      NC   : in NamingContext_Ptr);
+      NC   : in Object_Ptr);
    --  Display the list of bound objects of naming context NC with a
    --  output title Text.
 
@@ -90,13 +94,13 @@ package body CosNaming.NamingContext.Impl is
    --  (thread safe).
 
    function Look_For_BO_In_NC
-     (NC  : NamingContext_Ptr;
+     (NC  : Object_Ptr;
       Key : String)
      return Bound_Object_Ptr;
    --  Look for a bound object in a naming context NC using its Key.
 
    procedure Remove_BO_From_NC
-     (NC : in     NamingContext_Ptr;
+     (NC : in     Object_Ptr;
       BO : in out Bound_Object_Ptr);
    --  Remove a bound object from a naming context NC.
 
@@ -104,7 +108,7 @@ package body CosNaming.NamingContext.Impl is
    --  Basic function which returns a sequence of one name component.
 
    procedure Valid
-     (NC     : NamingContext_Ptr;
+     (NC     : Object_Ptr;
       Locked : Boolean := False);
    --  Check whether NC is null. If null, raise an exception and
    --  unlock global lock if locked.
@@ -148,7 +152,7 @@ package body CosNaming.NamingContext.Impl is
    ---------------------
 
    procedure Append_BO_To_NC
-     (NC  : in NamingContext_Ptr;
+     (NC  : in Object_Ptr;
       Key : in String;
       BN  : in NameComponent;
       BT  : in BindingType;
@@ -189,7 +193,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind
      (Self : access Object;
-      N    : in CosNaming.Name;
+      N    : in Name;
       Obj  : in CORBA.Object.Ref)
    is
       Len  : Natural;
@@ -225,8 +229,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref)
+      N    : in Name;
+      NC   : in NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -262,8 +266,8 @@ package body CosNaming.NamingContext.Impl is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in CosNaming.Name)
-     return CosNaming.NamingContext.Ref
+      N    : in Name)
+     return NamingContext.Ref
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -301,7 +305,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Display_NC
      (Text : in String;
-      NC   : in NamingContext_Ptr)
+      NC   : in Object_Ptr)
    is
       BO : Bound_Object_Ptr;
 
@@ -331,7 +335,7 @@ package body CosNaming.NamingContext.Impl is
    ------------
 
    function Encode
-     (Ctx : NamingContext_Ptr;
+     (Ctx : Object_Ptr;
       N   : NameComponent)
      return String
    is
@@ -463,15 +467,15 @@ package body CosNaming.NamingContext.Impl is
    procedure List
      (Self     : access Object;
       How_Many : in CORBA.Unsigned_Long;
-      BL       : out CosNaming.BindingList;
-      BI       : out CosNaming.BindingIterator_Forward.Ref)
+      BL       : out BindingList;
+      BI       : out BindingIterator_Forward.Ref)
    is
-      use CosNaming.BindingIterator.Impl;
+      use BindingIterator.Impl;
 
       Len  : Natural := 0;
       Size : Natural := Natural (How_Many);
       Head : Bound_Object_Ptr;
-      Iter : BindingIterator_Ptr;
+      Iter : BindingIterator.Impl.Object_Ptr;
       Oid  : PortableServer.ObjectId;
       Ref  : CORBA.Object.Ref;
 
@@ -508,7 +512,7 @@ package body CosNaming.NamingContext.Impl is
          end;
       end if;
 
-      Iter       := new CosNaming.BindingIterator.Impl.Object;
+      Iter       := new BindingIterator.Impl.Object;
       Iter.Index := Size + 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
@@ -534,7 +538,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------------
 
    function Look_For_BO_In_NC
-     (NC  : NamingContext_Ptr;
+     (NC  : Object_Ptr;
       Key : String)
      return Bound_Object_Ptr is
    begin
@@ -548,7 +552,7 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return CosNaming.NamingContext.Ref is
+     return NamingContext.Ref is
    begin
       return New_Context;
    end New_Context;
@@ -558,9 +562,9 @@ package body CosNaming.NamingContext.Impl is
    -----------------
 
    function New_Context
-     return CosNaming.NamingContext.Ref
+     return NamingContext.Ref
    is
-      Obj : NamingContext_Ptr;
+      Obj : Object_Ptr;
       Ref : CORBA.Object.Ref;
 
    begin
@@ -577,7 +581,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind
      (Self : access Object;
-      N    : in CosNaming.Name;
+      N    : in Name;
       Obj  : in CORBA.Object.Ref)
    is
       Len  : Natural;
@@ -636,8 +640,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref)
+      N    : in Name;
+      NC   : in NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -695,7 +699,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------------
 
    procedure Remove_BO_From_NC
-     (NC : in     NamingContext_Ptr;
+     (NC : in     Object_Ptr;
       BO : in out Bound_Object_Ptr) is
    begin
       Valid (NC, True);
@@ -731,7 +735,7 @@ package body CosNaming.NamingContext.Impl is
 
    function Resolve
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : in Name)
      return CORBA.Object.Ref
    is
       Len  : Natural;
@@ -789,7 +793,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Unbind
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : in Name)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -834,7 +838,7 @@ package body CosNaming.NamingContext.Impl is
    -----------
 
    procedure Valid
-     (NC     : NamingContext_Ptr;
+     (NC     : Object_Ptr;
       Locked : Boolean := False) is
    begin
       if NC = null then

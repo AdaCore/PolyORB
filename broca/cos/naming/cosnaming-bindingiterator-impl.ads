@@ -13,7 +13,7 @@ package CosNaming.BindingIterator.Impl is
          Index : Natural;
          Table : Binding_Element_Array_Ptr;
       end record;
-   type BindingIterator_Ptr is access all Object'Class;
+   type Object_Ptr is access all Object'Class;
 
    procedure Next_One
      (Self    : access Object;
