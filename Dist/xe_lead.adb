@@ -129,9 +129,9 @@ procedure XE_Lead is
          Write_Str  (FD, Get_Rsh_Options & ' ' & Ext_Quote);
       end if;
 
-      Write_Str  (FD, (1 => Int_Quote));
+      --  Write_Str  (FD, (1 => Int_Quote));
       Write_Name (FD, Get_Absolute_Exec (Partition));
-      Write_Str  (FD, (1 => Int_Quote));
+      --  Write_Str  (FD, (1 => Int_Quote));
 
       Write_Str  (FD, " --boot_location " &
                   Int_Quote & "$BOOT_LOCATION" & Int_Quote);
