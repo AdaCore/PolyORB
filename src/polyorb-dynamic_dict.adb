@@ -66,10 +66,10 @@ package body PolyORB.Dynamic_Dict is
    is
    begin
       if T_Initialize = False then
-         Initialize (T.T.all, Prime, Max);
+         Initialize (T, Prime, Max);
          T_Initialize := True;
       end if;
-      return Lookup (T.T.all, K);
+      return Lookup (T, K);
       exception
          when No_Key => raise Key_Not_Found;
    end Lookup;
@@ -82,10 +82,10 @@ package body PolyORB.Dynamic_Dict is
       V : Value;
    begin
       if T_Initialize = False then
-         Initialize (T.T.all, Prime, Max);
+         Initialize (T, Prime, Max);
          T_Initialize := True;
       end if;
-      V := Lookup (T.T.all, K, Default);
+      V := Lookup (T, K, Default);
       return V;
    end Lookup;
 
@@ -95,10 +95,10 @@ package body PolyORB.Dynamic_Dict is
    is
    begin
       if T_Initialize = False then
-         Initialize (T.T.all, Prime, Max);
+         Initialize (T, Prime, Max);
          T_Initialize := True;
       end if;
-      Insert (T.T.all, K, V);
+      Insert (T, K, V);
    end Register;
 
    procedure Unregister
@@ -107,11 +107,11 @@ package body PolyORB.Dynamic_Dict is
       V : Value;
    begin
       if T_Initialize = False then
-         Initialize (T.T.all, Prime, Max);
+         Initialize (T, Prime, Max);
          T_Initialize := True;
       end if;
-      V := Lookup (T.T.all, K);
-      Delete (T.T.all, K);
+      V := Lookup (T, K);
+      Delete (T, K);
    exception
       when No_Key => raise Key_Not_Found;
    end Unregister;

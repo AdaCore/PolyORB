@@ -56,7 +56,7 @@ package PolyORB.Utils.HTables.Perfect is
 
 
    procedure Initialize
-     (T      : out Table;
+     (T      : out Table_Instance;
       Prime  : Natural;
       Max    : Natural);
    --  Initialize the hash table and allocate some internal
@@ -64,11 +64,11 @@ package PolyORB.Utils.HTables.Perfect is
    --  number of elements to store.
 
    procedure Finalize
-     (T : in out Table);
+     (T : in out Table_Instance);
    --  Deallocate all the internal structures.
 
    function Lookup
-     (T     : Table;
+     (T     : Table_Instance;
       Key   : String;
       Error_Value : Item)
       return Item;
@@ -78,7 +78,7 @@ package PolyORB.Utils.HTables.Perfect is
 
 
    function Lookup
-     (T     : Table;
+     (T     : Table_Instance;
       Key   : String)
       return Item;
    --  Find key in hash table and return the associated Item.
@@ -86,7 +86,7 @@ package PolyORB.Utils.HTables.Perfect is
    --  When Key does not exist, the function raise No_Key exception
 
    procedure Insert
-     (T     : in out Table;
+     (T     : Table_Instance;
       Key   : String;
       Value : Item);
    --  Insert (Key, Value) in hash table.
@@ -97,7 +97,7 @@ package PolyORB.Utils.HTables.Perfect is
    --  addition,it inserts Value in the table Items (see below)
 
    procedure Delete
-     (T   : in out Table;
+     (T   : Table_Instance;
       Key : String);
    --  Delete key in hash table. In case of a non-existing Key, Delete
    --  ignores deletion. Key is the string to hash. This procedure only put
