@@ -38,11 +38,15 @@ adasockets/src/stamp-h.in
 examples/Makefile.am
 examples/Makefile.in
 examples/Makefile.common
+examples/all_functions/Makefile.am
+examples/all_functions/Makefile.in
 examples/all_functions/all_functions-impl.adb
 examples/all_functions/all_functions-impl.ads
 examples/all_functions/all_functions.idl
 examples/all_functions/client.adb
 examples/all_functions/server.adb
+examples/all_types/Makefile.am
+examples/all_types/Makefile.in
 examples/all_types/all_types-impl.adb
 examples/all_types/all_types-impl.ads
 examples/all_types/all_types.idl
@@ -51,6 +55,8 @@ examples/all_types/client.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
 examples/all_types/server.adb
+examples/echo/Makefile.am
+examples/echo/Makefile.in
 examples/echo/broca.opt
 examples/echo/client.adb
 examples/echo/echo-impl.adb
@@ -62,6 +68,8 @@ examples/generic/genericserver.ads
 examples/generic/header.txt
 examples/generic/report.adb
 examples/generic/report.ads
+examples/module/Makefile.am
+examples/module/Makefile.in
 examples/module/broca.opt
 examples/module/client.adb
 examples/module/header.txt
@@ -70,6 +78,8 @@ examples/module/m1-echo-impl.ads
 examples/module/module.idl
 examples/module/server.adb
 examples/random/IOR
+examples/random/Makefile.am
+examples/random/Makefile.in
 examples/random/broca.opt
 examples/random/client.adb
 examples/random/header.txt
