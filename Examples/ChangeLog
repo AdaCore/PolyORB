@@ -4,7 +4,8 @@ Tue Apr 29 12:26:03 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 Fri Apr 25 18:11:52 1997  Laurent Pautet <pautet@inf.enst.fr>
 
-	* Makefile.am, Makefile.in: get rid of RACW in distrib.
+	* Makefile.am, Makefile.in: get rid of RACW in distrib. Use Eratho
+     examples instead of RACW.
 
 Thu Apr 24 14:01:26 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
