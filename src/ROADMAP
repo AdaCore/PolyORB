@@ -23,7 +23,12 @@ to output debugging, diagnostics and error messages.
 ./polyorb-configuration.ads
 
 User control of various middleware aspects is implemented
-through a generic configuration framework.
+through a generic configuration framework. 
+
+At start-up, PolyORB will search for various configuration files,
+containing application profiles. See 'polyorb.conf' for a detail
+of PolyORB generic configuration, 'moma/*.conf' for MOMA specific
+configuration files.
 
 ./polyorb-types.ads
 
@@ -44,6 +49,8 @@ Uses protected objects.
 Implementation of soft_links for a context without tasking.
 All synchronisation operations are replaced with empty placeholders,
 since there is actually only one task in the application.
+
+XXX irrelevant, what is the new implementation, if it exists ???
 
 ./polyorb-locks.ads
 
@@ -71,7 +78,8 @@ Efficient dictionnary of key-value pairs.
 Software modules manager for initialization of the middleware.
 Each module is registered with this package, indicating its
 dependencies. Initialization is performed as a topological
-sort of the dependency lattice.
+sort of the dependency lattice. A check is performed to
+control consistency of the tree.
 
 ./polyorb-utils-chained_lists.ads
 
@@ -80,9 +88,12 @@ Generic chain list facility with generic iterator
 ./polyorb-utils-dynamic_tables.ads
 ./polyorb-utils-htables-perfect.ads
 ./polyorb-utils-htables.ads
-
 ./polyorb-utils-semaphores.ads
+
 ./polyorb-utils-simple_flags.ads
+
+Utility functions to provide binary flag sets.
+
 ./polyorb-utils-strings-lists.ads
 ./polyorb-utils-strings.ads
 
@@ -118,7 +129,7 @@ factories, transport access points, object adapters).
 
 ./polyorb-binding_data.ads
 
-Client-side remote binding object factories
+Client-side remote binding object factories.
 
 ./polyorb-references.ads
 
@@ -186,6 +197,13 @@ A Session is the actual object that implements one particular
 protocols. Protocols are factories of Sessions, and are used
 as parts of binding object factories.
 
+./polyorb-sequences.ads
+./polyorb-sequences-bounded.ads
+./polyorb-sequences-unbounded.ads
+
+{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.)
+Notionally based on Ada.Strings.Unbounded.
+
 4. Protocol personalities
 -------------------------
 
@@ -193,16 +211,16 @@ as parts of binding object factories.
 
 Directory containing the SOAP protocol personality.
 
-./corba/polyorb-corba_p-*.ads
+./corba/polyorb-protocol-giop-*
 
-PolyORB-specific components of the CORBA personality. This includes
-internal utility components, as well as some tools that can be used
-directly by application developers (eg PolyORB.CORBA_P.Server_Tools).
+GIOP protocol personality. GIOP revisions 1.0, 1.1, 1.2 are implemented.
 
 ./srp/
 
-The Simple Request Protocol, a simple HTTP-like protocol for
-rapid prototyping of PolyORB functionalities.
+The Simple Request Protocol, a simple HTTP-like protocol for rapid
+prototyping of PolyORB functionalities. It is incomplete and provided
+solely to test simple method invocations. May be useful to invoke 'by
+hand' servants and test some particular configurations.
 
 5. Application layer framework and support functionalities
 ----------------------------------------------------------
@@ -238,17 +256,18 @@ Base class for all application objects.
 
 ./corba/corba-*.ads
 
-Standard CORBA packages
+Standard CORBA packages.
+
+./corba/polyorb-corba_p-*.ads
+
+PolyORB-specific components of the CORBA personality. This includes
+internal utility components, as well as some tools that can be used
+directly by application developers (eg PolyORB.CORBA_P.Server_Tools).
 
 ./moma/
 
 Directory containing the MOMA (Message-Oriented Middleware for Ada)
 applicative personality.
 
-./sequences.ads
-./sequences-bounded.ads
-./sequences-unbounded.ads
 
-{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.
-Notionally based on Ada.Strings.Unbounded.)
 
