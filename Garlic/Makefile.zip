@@ -21,7 +21,7 @@ $(ZIPLIB): make-zipdir $(ZIPLIBOBJS)
 	$(AR) rc $(ZIPLIB) $(ZIPLIBOBJS)
 
 zlib/%.o: $(srcdir)/zlib/%.c
-	$(CC) -c $(CFLAGS) -I$(srcdir)/zlib -o $@ $<
+	$(CC) -c -O2 -I$(srcdir)/zlib -o $@ $<
 
 install-zip-libs: $(ZIPLIB)
 	${INSTALL} zlib/libz.a ${GARLIC}
