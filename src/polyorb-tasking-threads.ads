@@ -54,7 +54,7 @@ package PolyORB.Tasking.Threads is
    -- Runnable --
    --------------
 
-   type Runnable is abstract tagged null record;
+   type Runnable is abstract tagged limited null record;
    --  Runnable is a type for elementary jobs.
 
    type Runnable_Access is access all Runnable'Class;
@@ -62,6 +62,22 @@ package PolyORB.Tasking.Threads is
    procedure Run (R : access Runnable)
      is abstract;
    --  main procedure for the Runnable.
+
+   type Runnable_Controller is tagged limited null record;
+   --  A Runnable_Controller is used by the tasking runtime to
+   --  control the deallocation of the Runnable. You may have
+   --  to extends this type to personalize the deallocation of your
+   --  Runnable objects. For example, this implementation suppose
+   --  that your Runnable have been allocated on the heap; it
+   --  will fail if it is allocated in an other way.
+
+   type Runnable_Controller_Access is access all Runnable_Controller'Class;
+
+   procedure Free_Runnable
+     (C : in out Runnable_Controller;
+      R : in out Runnable_Access);
+   --  The purpose of this method is to Free the Runnable.
+   --  By default, it just make a call to Unchecked_Deallocation.
 
    ----------------
    -- Thread Ids --
@@ -134,7 +150,8 @@ package PolyORB.Tasking.Threads is
      (TF               : access Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
+      R                : Runnable_Access;
+      C                : Runnable_Controller_Access)
      return Thread_Access
      is abstract;
    --  Create a Thread according to the tasking profile.  R is the
@@ -151,11 +168,12 @@ package PolyORB.Tasking.Threads is
    --  * if it can do neither of this two possibilities, it failed
    --  returning an exception. The type of the exception is profile
    --  dependant.
+   --  The deallocation is delegated to C, and is the responsablity of
+   --  the tasking runtime. C should be allocated on the heap, as
+   --  we deallocate it with Unchecked_Deallocation.
    --  Note that the main context is associated to a preallocated Thread
-   --  at initialisation time, in order to be able to use PolyORB.Tasking
+   --  at initialization time, in order to be able to use PolyORB.Tasking
    --  API in this context.
-   --  For every tasking profile, this function uses dynamic allocation to
-   --  copy R.
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;

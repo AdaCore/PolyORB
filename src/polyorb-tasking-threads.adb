@@ -32,12 +32,32 @@
 
 --  $Id$
 
+with Unchecked_Deallocation;
+
 package body PolyORB.Tasking.Threads is
 
    My_Thread_Factory : Thread_Factory_Access;
    --  Thread_Factory of the chosen profile.
 
    Initialised       : Boolean := False;
+
+   procedure Free is new Unchecked_Deallocation
+     (Runnable'Class, Runnable_Access);
+
+   -------------------
+   -- Free_Runnable --
+   -------------------
+
+   procedure Free_Runnable
+     (C : in out Runnable_Controller;
+      R : in out Runnable_Access) is
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
+   begin
+      Free (R);
+   end Free_Runnable;
+
 
    ------------------------
    -- Get_Thread_Factory --

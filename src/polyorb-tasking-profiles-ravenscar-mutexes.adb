@@ -33,36 +33,47 @@
 
 --  Implementation of synchronisation objects under the ravenscar profile.
 
-with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Profiles.Ravenscar.Threads;
-
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
-   use PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
-   package PTT renames PolyORB.Tasking.Threads;
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.ravenscar.mutexes");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    package PTM renames PolyORB.Tasking.Mutexes;
 
    type Queued_Thread is record
       --  Element of a queue of Thread; see comment for Thread_Queue.
 
-      This       : Ravenscar_Thread_Id;
-      Next       : Extended_Thread_Index;
+      Sync       : Synchro_Index_Type;
+      --  Synchro object the Thread is waiting on.
+
+      Next       : Extended_Synchro_Index;
+      --  Next Thread in the queue.
+
       Is_Waiting : Boolean;
+      --  True if the thread is waiting.
+
    end record;
 
-   type Thread_Queue is array (Thread_Index) of Queued_Thread;
+   type Thread_Queue is array (Synchro_Index_Type) of Queued_Thread;
    --  Implementation of a queue using an array.
-   --  Each element of the array contain an access to a Thread,
+   --  Each element of the array represent a waiting thread, and
+   --  contain an access to the synchro object on which it is waiting,
    --  and the index of the Thread following it in the queue.
    --  This queue  is used by a Mutex to record the tasks that
    --  wait for it.
-   --  The place of a Thread in the array doesn't change during execution;
-   --  The only thing that changes is the index of the Thread that follows it
-   --  in the queue. If it is not queued, it is set to Null_Thread_Index.
+   --  The place of a Thread in the array change at every suspending call;
+   --  It is determinate by the index of its current synchro object.
+   --  Each element of the array contain an access to a Thread,
+   --  and the index of the Thread following it in the queue.
 
    type Mutex_Pool_Type is array (Mutex_Index_Type)
      of aliased Ravenscar_Mutex_Type;
@@ -79,15 +90,14 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
       procedure Test_And_Set_Entry
         (Result : out Boolean;
-         Place  : Thread_Index;
-         T      : Ravenscar_Thread_Id);
+         Place  : Synchro_Index_Type);
       --  Test if the task can enter the Mutex (i.e, if no other
       --  task own the monitor). If so, it take it; If it cannot,
       --  it is queued.
 
       procedure Leave
         (Someone_Is_Waiting : out Boolean;
-         To_Free            : out Ravenscar_Thread_Id);
+         To_Free            : out Synchro_Index_Type);
       --  Free the Mutex.
 
       procedure Initialize (N : Mutex_Index_Type);
@@ -95,8 +105,17 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    private
       My_Index         : Mutex_Index_Type;
-      Owner            : Extended_Thread_Index;
+      --  Index of the Mutex in the pool.
+
+      Next             : Extended_Synchro_Index;
+      --  Index of the next Thread to resume in Waiters.
+
       Waiters          : Thread_Queue;
+      --  Queue of the Threads waiting for the mutex.
+
+      Is_Taken         : Boolean := False;
+      --  is True if someone owns the Mutex; False otherwise.
+
    end Mutex_PO;
 
    type Mutex_PO_Arr is array (Mutex_Index_Manager.Index_Type)
@@ -148,22 +167,17 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    procedure Enter (M : in out Ravenscar_Mutex_Type) is
       Exit_Condition : Boolean;
-      Place          : Thread_Index;
-      My_TF          : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Current_Thread_Id : constant Ravenscar_Thread_Id
-        := Ravenscar_Thread_Id (PTT.Get_Current_Thread_Id (My_TF));
+      S              : Synchro_Index_Type;
    begin
-      Place := Get_Thread_Index (Current_Thread_Id);
-      Prepare_Deterministic_Suspend (Current_Thread_Id);
+      pragma Debug (O ("Enter"));
+      S := Prepare_Suspend;
       The_Mutex_PO_Arr (M.Id).Test_And_Set_Entry
         (Exit_Condition,
-         Place,
-         Current_Thread_Id);
+         S);
       if not Exit_Condition then
-         Deterministic_Suspend (Current_Thread_Id);
+         Suspend (S);
       else
-         Prepare_Deterministic_Suspend (Current_Thread_Id, False);
+         Abort_Suspend (S);
       end if;
    end Enter;
 
@@ -186,13 +200,14 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -----------
 
    procedure Leave (M : in out Ravenscar_Mutex_Type) is
-      To_Free            : Ravenscar_Thread_Id;
+      To_Free            : Synchro_Index_Type;
       Someone_Is_Waiting : Boolean;
    begin
+      pragma Debug (O ("Leave"));
       The_Mutex_PO_Arr (M.Id).Leave (Someone_Is_Waiting, To_Free);
 
       if Someone_Is_Waiting then
-         Deterministic_Resume (To_Free);
+         Resume (To_Free);
       end if;
    end Leave;
 
@@ -205,37 +220,33 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       function Check_Queue_Consistency return Boolean is
          type Bool_Arr is array (Waiters'Range) of Boolean;
          Marked  : Bool_Arr;
-         Current : Extended_Thread_Index := Owner;
+         Current : Extended_Synchro_Index := Next;
       begin
-         if Owner /= Null_Thread_Index then
-            if Waiters (Owner).Is_Waiting then
-               --  The Owner should not be waiting for this mutex!
-               return False;
-            end if;
-
-            Current := Waiters (Owner).Next;
-         end if;
-
          for J in Marked'Range loop
             Marked (J) := False;
          end loop;
-         while Current /= Null_Thread_Index loop
+         while Current /= Null_Synchro_Index loop
 
-            if Marked (Current) then
+            if Marked (Synchro_Index_Type (Current)) then
                --  Loop in the queue
+               pragma Debug (O ("loop in the queue!!!"));
                return False;
             end if;
 
-            if not Waiters (Current).Is_Waiting then
+            if not Waiters (Synchro_Index_Type (Current)).Is_Waiting then
                --  Someone is in the queue, but does not wait.
+               pragma Debug (O ("active task in the queue!!! Id= "
+                                & Integer'Image (Current)));
                return False;
             end if;
 
-            Marked (Current) := True;
-            Current := Waiters (Current).Next;
+            Marked (Synchro_Index_Type (Current)) := True;
+            Current := Waiters (Synchro_Index_Type (Current)).Next;
          end loop;
 
-         return True;
+         return Is_Taken or Next = Null_Synchro_Index;
+         --  The queue is not empty only if the mutex is not taken.
+
       end Check_Queue_Consistency;
 
       -------------------------
@@ -245,9 +256,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
       procedure Initialize (N : Mutex_Index_Type) is
       begin
          My_Index := N;
-         Owner := Null_Thread_Index;
+         Next := Null_Synchro_Index;
+         Is_Taken := False;
          for J in Waiters'Range loop
-            Waiters (J).Next := Null_Thread_Index;
+            Waiters (J).Next := Null_Synchro_Index;
             Waiters (J).Is_Waiting  := False;
          end loop;
          pragma Assert (Check_Queue_Consistency);
@@ -259,26 +271,26 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
       procedure Leave
         (Someone_Is_Waiting : out Boolean;
-         To_Free            : out Ravenscar_Thread_Id) is
-         Former_Owner : constant Extended_Thread_Index := Owner;
+         To_Free            : out Synchro_Index_Type) is
+         Former_Next : constant Extended_Synchro_Index := Next;
       begin
          pragma Assert (Check_Queue_Consistency);
-         pragma Assert (Owner /= Null_Thread_Index);
 
-         if Waiters (Former_Owner).Next /= Null_Thread_Index then
-            Owner := Waiters (Former_Owner).Next;
-            pragma Assert (Waiters (Owner).Is_Waiting = True);
-            Someone_Is_Waiting := True;
-            To_Free := Waiters (Owner).This;
-            Waiters (Owner).Is_Waiting := False;
+         if Former_Next /= Null_Synchro_Index then
+            Next := Waiters (Synchro_Index_Type (Former_Next)).Next;
+            pragma Assert
+              (Waiters (Synchro_Index_Type (Former_Next)).Is_Waiting = True);
+            Is_Taken := True;
+            To_Free := Waiters (Synchro_Index_Type (Former_Next)).Sync;
+            Waiters (Synchro_Index_Type (Former_Next)).Is_Waiting := False;
+            Waiters (Synchro_Index_Type (Former_Next)).Next
+              := Null_Synchro_Index;
          else
-            Someone_Is_Waiting := False;
-            Owner := Null_Thread_Index;
+            Is_Taken := False;
+            Next := Null_Synchro_Index;
          end if;
 
-         Waiters (Former_Owner).Is_Waiting := False;
-         Waiters (Former_Owner).Next := Null_Thread_Index;
-
+         Someone_Is_Waiting := Is_Taken;
          pragma Assert (Check_Queue_Consistency);
       end Leave;
 
@@ -288,44 +300,42 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
       procedure Test_And_Set_Entry
         (Result : out Boolean;
-         Place  : Thread_Index;
-         T      : Ravenscar_Thread_Id) is
-         Current   : Extended_Thread_Index;
-         Precedent : Extended_Thread_Index;
+         Place  : Synchro_Index_Type) is
+         Current   : Extended_Synchro_Index;
+         Precedent : Extended_Synchro_Index;
       begin
          pragma Assert (Check_Queue_Consistency);
-         Result :=  Owner = Null_Thread_Index;
-         pragma Assert (Owner = Null_Thread_Index
-                        or else Waiters (Owner).This /= T);
-         --  Fail if we try to enter the Mutex for the second time
+         Result := not Is_Taken;
 
          Waiters (Place).Is_Waiting := True;
-         Waiters (Place).This := T;
+         Waiters (Place).Sync := Place;
 
          if not Result then
-
             --  This loop search the rank of T in the queue:
-            Current := Waiters (Owner).Next;
-            Precedent := Null_Thread_Index;
-            while Current /= Null_Thread_Index loop
+            Current := Next;
+            Precedent := Null_Synchro_Index;
+            while Current /= Null_Synchro_Index loop
                --  XXX compare the Priorities...
                Precedent := Current;
-               Current := Waiters (Current).Next;
+               Current := Waiters (Synchro_Index_Type (Current)).Next;
             end loop;
          end if;
 
          --  Now we insert T in the queue:
          if Result then
-            Owner := Place;
-            Waiters (Place).Next := Null_Thread_Index;
-            Waiters (Place).Is_Waiting := False;
-         elsif Precedent = Null_Thread_Index then
+            Is_Taken := True;
+            pragma Assert (Next = Null_Synchro_Index);
+            --  XXX useless
+            --  If this assertion fails, it means that the mutex
+            --  is not taken BUT the queue is not empty!
+         elsif Precedent = Null_Synchro_Index then
             Waiters (Place).Is_Waiting := True;
-            Waiters (Place).Next := Waiters (Owner).Next;
-            Waiters (Owner).Next := Place;
+            Waiters (Place).Next := Next;
+            Next := Extended_Synchro_Index (Place);
          else
             Waiters (Place).Is_Waiting := True;
-            Waiters (Precedent).Next := Place;
+            Waiters (Synchro_Index_Type (Precedent)).Next
+              := Extended_Synchro_Index (Place);
             Waiters (Place).Next := Current;
          end if;
 

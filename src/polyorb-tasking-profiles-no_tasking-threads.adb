@@ -131,13 +131,15 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
+      R                : Runnable_Access;
+      C                : Runnable_Controller_Access)
      return Thread_Access is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Unreferenced (Name);
       pragma Unreferenced (Default_Priority);
       pragma Unreferenced (R);
+      pragma Unreferenced (C);
       pragma Warnings (On);
    begin
       raise Tasking.Tasking_Profile_Error;

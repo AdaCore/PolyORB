@@ -99,7 +99,8 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads is
      (TF               : access No_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
+      R                : Runnable_Access;
+      C                : Runnable_Controller_Access)
      return Thread_Access;
    --  This function has no sense in No_Tasking profile.
    --  It simply raises a Tasking.Tasking_Profile_Error.

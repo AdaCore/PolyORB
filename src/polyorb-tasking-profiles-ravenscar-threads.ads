@@ -46,6 +46,8 @@
 --  synchronisation object.
 
 with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
+with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 with System;
 
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
@@ -88,7 +90,8 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
+      R                : Runnable_Access;
+      C                : Runnable_Controller_Access)
      return Thread_Access;
 
    function Run_In_Task
@@ -115,25 +118,17 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       Target : Thread_Id_Access);
 
    --  The following procedures make access to the
-   --  internal synchronisation objects, so it should
+   --  profile-specific synchronisation objects, so it should
    --  only be used by other packages that thread pool ones,
    --  and synchronisations.
-   --  We have two different types of operation : the deterministic
-   --  and non-deterministic ones. They play the same role, but
-   --  the deterministic one are to use in tagged types/packages that assure
-   --  a deterministic delay for the execution of its procedures.
-   --  A mutex with a bounded queue is a good example.
-   --
+
    --  Semantics:
 
-   --  (the following rules applies also for deterministic
-   --  procedures)
-   --
    --  A thread has three states : Prepared, Waiting, Free.  It is
    --  initialy Free.
    --  If it is Free, it can become Prepared after a call to Prepare_Suspend.
    --  If it is Prepared, it can become Waiting after a call to Suspend,
-   --  or it can become Free by a call to Prepare_Suspend (False).
+   --  or it can become Free by a call to Abort_Suspend.
    --  If it is Waiting, it can become Free by a call (by another thread)
    --  to Resume.
    --  Any other transition makes no sense, and will raise an Assertion
@@ -149,11 +144,11 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --
    --  2:
    --  prepare_suspend
-   --  prepare_suspend (False)
+   --  abort_suspend
    --
    --  3:
    --  prepare_suspend
-   --  prepare_suspend (False)
+   --  abort_suspend
    --  prepare_suspend
    --  suspend
 
@@ -164,61 +159,43 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  suspend
    --
    --  2:
-   --  prepare_suspend (False)
+   --  abort_suspend
    --
    --  3:
    --  prepare_suspend
-   --  prepare_suspend (False)
-   --  prepare_suspend (False)
+   --  abort_suspend
+   --  abort_suspend
 
-   --  XXX Note that the use of two-phases suspends (Prepare_Suspend - Suspend)
-   --  is more a way to check the integrity of the Ravenscar profile that
-   --  a real need of the synchronisations objects.
-   --  It may disappear in the future.
+   package Synchro_Index_Manager is
+      new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
+     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads + 3);
+   --  XXX + 3 is a temporary workaround for thet leak of Sync objects.
 
-   procedure Prepare_Suspend
-     (T     : Ravenscar_Thread_Id;
-      State : Boolean := True);
-   --  This procedure registers thread-safely the task given in
-   --  parameter as a suspending task. It MUST be called before a
+   type Synchro_Index_Type is new Synchro_Index_Manager.Index_Type;
+   --  A Synchro_Index_Type represents an index in a pool of synchro objects.
+   --  The synchro objects are managed by pools, and are reallocated
+   --  at every call to a suspension functionality.
+
+   function Prepare_Suspend return Synchro_Index_Type;
+   --  This function registers thread-safely the current task
+   --  as a suspending task. It MUST be called before a
    --  corresponding Suspend.
-   --  If State = False, it abort the previous call to Prepare_Suspend.
 
-   procedure Prepare_Deterministic_Suspend
-     (T    : Ravenscar_Thread_Id;
-     State : Boolean := True);
-   --  This procedure is only used for deterministic suspension:
-   --  for example, the wait in a bounded FIFO for
-   --  a mutex.
-   --  The same conditions that Prepare_Suspend applies.
+   procedure Abort_Suspend (S : Synchro_Index_Type);
+   --  This function abort the previous call to Prepare_Suspend.
 
-   procedure Suspend (T : Ravenscar_Thread_Id);
-   --  Calling this procedure, the current task awaits on the internal
-   --  synchronisation. The task that calls Suspend MUST have called
-   --  Prepare_Suspend before; Otherwise, it will raise an assertion.
-   --  The calling task MUST be the one which abstraction
-   --  is "T". Otherwise, it would wait on a synchronisation
-   --  object that doesn't belong to her, which would
-   --  raise a Program_Error if another task call
-   --  "Suspend" on the same synchronisation object.
+   procedure Suspend (S : Synchro_Index_Type);
+   --  Calling this procedure, the current task awaits on S (that is,
+   --  wait that another thread call Resume on S). The task that calls
+   --  Suspend MUST have called Prepare_Suspend before; Otherwise, it
+   --  will raise an assertion.
 
-   procedure Deterministic_Suspend (T : Ravenscar_Thread_Id);
-   --  This procedure is only used for deterministic suspension:
-   --  for example, the wait in a bounded FIFO for
-   --  a mutex.
-   --  The same conditions that Suspend applies.
-
-   procedure Resume (T : Ravenscar_Thread_Id);
+   procedure Resume (S : Synchro_Index_Type);
    --  The call to this procedure free the task waiting
-   --  on the internal synchronisation object of "T".
+   --  on S.
    --  If no task is about to Wait (that is, if no call to
    --  Prepare_Wait were done before the call to Resume),
    --  the signal is lost.
-
-   procedure Deterministic_Resume (T : Ravenscar_Thread_Id);
-   --  The call to this procedure free the task waiting
-   --  on the internal synchronisation object of "T" dedicated
-   --  to the deterministic suspension.
 
    function Get_Thread_Index (T : Ravenscar_Thread_Id)
                              return Integer;
@@ -231,6 +208,14 @@ private
 
    type Ravenscar_Thread_Id is new Thread_Id with record
       Id : Integer;
+      --  Index of the thread in the thread pool.
+
+      Sync_Id : Synchro_Index_Type;
+      pragma Atomic (Sync_Id);
+      --  if the thread is available to be allocated to a caller of
+      --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
+      --  corresponding task is waiting.
+
    end record;
 
    type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type with record
@@ -241,9 +226,20 @@ private
      := new Ravenscar_Thread_Factory_Type;
 
    type Ravenscar_Thread_Type is new Thread_Type with record
-      Id   : aliased Ravenscar_Thread_Id;
+      Id      : aliased Ravenscar_Thread_Id;
       --  Id of the Thread.
-
    end record;
+
+   package Thread_Index_Manager is
+      new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
+     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads - 1);
+
+   subtype Task_Index_Type is Thread_Index_Manager.Index_Type;
+   --  Type of the Ids of the Threads that are not the one of the main task.
+
+   subtype Thread_Index_Type is Integer
+     range Task_Index_Type'First .. Task_Index_Type'Last + 1;
+   --  Type of the Ids of all the Threads, including the one
+   --  of the main task
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;
