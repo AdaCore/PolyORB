@@ -105,14 +105,12 @@ examples/all_types/Makefile.in
 examples/all_types/all_types-impl.adb
 examples/all_types/all_types-impl.ads
 examples/all_types/all_types.idl
-examples/all_types/broca.opt
 examples/all_types/client.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
 examples/all_types/server.adb
 examples/echo/Makefile.am
 examples/echo/Makefile.in
-examples/echo/broca.opt
 examples/echo/client.adb
 examples/echo/echo-impl.adb
 examples/echo/echo-impl.ads
@@ -125,7 +123,6 @@ examples/generic/report.adb
 examples/generic/report.ads
 examples/module/Makefile.am
 examples/module/Makefile.in
-examples/module/broca.opt
 examples/module/client.adb
 examples/module/header.txt
 examples/module/m1-echo-impl.adb
@@ -135,7 +132,6 @@ examples/module/server.adb
 examples/random/IOR
 examples/random/Makefile.am
 examples/random/Makefile.in
-examples/random/broca.opt
 examples/random/client.adb
 examples/random/header.txt
 examples/random/random-impl.adb
@@ -234,10 +230,6 @@ src/broca-buffers-io_operations.adb
 src/broca-buffers-io_operations.ads
 src/broca-buffers.adb
 src/broca-buffers.ads
-src/broca-cdr-fixed_point.adb
-src/broca-cdr-fixed_point.ads
-src/broca-cdr-refs.adb
-src/broca-cdr-refs.ads
 src/broca-cdr.adb
 src/broca-cdr.ads
 src/broca-debug.adb
@@ -305,9 +297,7 @@ src/corba-policy.adb
 src/corba-policy.ads
 src/corba-request.adb
 src/corba-request.ads
-src/corba-sequences-bounded.adb
 src/corba-sequences-bounded.ads
-src/corba-sequences-unbounded.adb
 src/corba-sequences-unbounded.ads
 src/corba-sequences.ads
 src/corba.adb
