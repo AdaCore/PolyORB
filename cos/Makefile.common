@@ -25,12 +25,10 @@ GNATMAKE_FLAGS = \
 	-I$(srcdir) \
 	-I$(srcdir)/$(COS_ROOT)/../src \
 	-I$(srcdir)/$(COS_ROOT)/../src/corba \
-	-I$(srcdir)/$(COS_ROOT)/../src/giop \
 	-I$(srcdir)/$(COS_ROOT)/../src/soap \
 	-I$(srcdir)/$(COS_ROOT)/../src/srp \
 	-I$(COS_ROOT)/../src \
 	-I$(COS_ROOT)/../src/corba \
-	-I$(COS_ROOT)/../src/giop \
 	-I$(COS_ROOT)/../src/soap \
 	-I$(COS_ROOT)/../src/srp \
 	$(XMLADA_INCLUDE) \

@@ -53,12 +53,10 @@ $(TESTS): force
 	-I$(srcdir) \
 	-I$(srcdir)/../src \
 	-I$(srcdir)/../src/corba \
-	-I$(srcdir)/../src/giop \
 	-I$(srcdir)/../src/soap \
 	-I$(srcdir)/../src/srp \
 	-I../src \
 	-I../src/corba \
-	-I../src/giop \
 	-I../src/soap \
 	-I../src/srp \
 	$(XMLADA_INCLUDE) \
