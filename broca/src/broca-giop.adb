@@ -292,6 +292,8 @@ package body Broca.GIOP is
      (Principal : Ada.Strings.Unbounded.Unbounded_String
         := Nobody_Principal) is
    begin
+      pragma Debug (O ("Setting default requsting principal to:"));
+      pragma Debug (O (Ada.Strings.Unbounded.To_String (Principal)));
       Default_Principal := Principal;
    end Set_Default_Principal;
 
