@@ -582,11 +582,6 @@ private
       Next : Identifier_Definition_List;
    end record;
 
-   --  Adds an identifier definition to a scope
-   procedure Add_Identifier_Definition
-     (Scope : Node_Id;
-      Identifier : in Identifier_Definition_Acc);
-
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type;
