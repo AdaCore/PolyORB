@@ -38,7 +38,7 @@ with PolyORB.Types;
 
 package body PolyORB.Object_Maps.System is
 
-   use Map_Entry_Seqs;
+   use Map_Entry_Tables;
 
    use PolyORB.Log;
    use PolyORB.POA_Types;
@@ -47,6 +47,26 @@ package body PolyORB.Object_Maps.System is
    package L is new Log.Facility_Log ("polyorb.object_maps.system");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization
+     (O_Map : access System_Object_Map);
+   pragma Inline (Ensure_Initialization);
+
+   procedure Ensure_Initialization
+     (O_Map : access System_Object_Map) is
+   begin
+      if O_Map.Initialized then
+         pragma Debug (O ("Already initialized"));
+         return;
+      end if;
+      pragma Debug (O ("Initializing"));
+      Initialize (O_Map.System_Map);
+      O_Map.Initialized := True;
+   end Ensure_Initialization;
 
    ---------
    -- Add --
@@ -63,25 +83,28 @@ package body PolyORB.Object_Maps.System is
          raise Program_Error;
       end if;
 
-      declare
-         Elts  : constant Element_Array
-           := To_Element_Array (O_Map.System_Map);
+      Ensure_Initialization (O_Map);
 
-      begin
-         for J in Elts'Range loop
-            if Is_Null (Elts (J)) then
-               pragma Debug (O ("Replacing element" & Integer'Image (J)));
-               Replace_Element (O_Map.System_Map, 1 + J - Elts'First, Obj);
-               return J;
-            end if;
-         end loop;
+      --  First try to reuse one slice in object map
 
-         pragma Debug (O ("Appending element"));
-         Append (O_Map.System_Map, Obj);
+      for J in First (O_Map.System_Map) .. Last (O_Map.System_Map) loop
+         if Is_Null (O_Map.System_Map.Table (J)) then
+            pragma Debug (O ("Replacing element" & Integer'Image (J)));
+            O_Map.System_Map.Table (1 + J - First (O_Map.System_Map)) := Obj;
 
-         pragma Debug (O ("Add: leave"));
-         return Elts'Last + 1;
-      end;
+            pragma Debug (O ("Add: leave"));
+            return J;
+         end if;
+      end loop;
+
+      --  else, allocate one new element in table
+
+      pragma Debug (O ("Appending element"));
+      Increment_Last (O_Map.System_Map);
+      O_Map.System_Map.Table (Last (O_Map.System_Map)) := Obj;
+
+      pragma Debug (O ("Add: leave"));
+      return Last (O_Map.System_Map);
    end Add;
 
    procedure Add
@@ -91,15 +114,15 @@ package body PolyORB.Object_Maps.System is
    is
       use type PolyORB.Servants.Servant_Access;
 
-      Elts  : constant Element_Array := To_Element_Array (O_Map.System_Map);
-
    begin
       pragma Debug (O ("Add: enter"));
 
+      Ensure_Initialization (O_Map);
+
       if False
         or else not Obj.Oid.System_Generated
-        or else (not Is_Null (Element_Of (O_Map.System_Map, Index))
-                 and then Element_Of (O_Map.System_Map, Index).Servant /= null)
+        or else (not Is_Null (O_Map.System_Map.Table (Index))
+                 and then O_Map.System_Map.Table (Index).Servant /= null)
       then
          --  We cannot add Obj at Index if it is not system generated,
          --  or if a servant is already set for a non null entry at Index.
@@ -107,23 +130,18 @@ package body PolyORB.Object_Maps.System is
          raise Program_Error;
       end if;
 
-      if not Is_Null (Element_Of (O_Map.System_Map, Index)) then
+      if not Is_Null (O_Map.System_Map.Table (Index)) then
 
          --  An incomplete object map entry has been previously
          --  created to reserve Index in this active object map.
          --  We now free it.
 
-         declare
-            Incomplete_Obj : Object_Map_Entry_Access
-              := Element_Of (O_Map.System_Map, Index);
-         begin
-            Free (Incomplete_Obj);
-         end;
+         Free (O_Map.System_Map.Table (Index));
       end if;
 
       --  Add new object map entry.
 
-      Replace_Element (O_Map.System_Map, 1 + Index - Elts'First, Obj);
+      O_Map.System_Map.Table (1 + Index - First (O_Map.System_Map)) := Obj;
 
       pragma Debug (O ("Add: leave"));
    end Add;
@@ -140,13 +158,14 @@ package body PolyORB.Object_Maps.System is
       pragma Debug (O ("Get_By_Id: enter"));
       pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
-      if not Item.System_Generated then
+      if not Item.System_Generated
+        or else not O_Map.Initialized then
          raise Program_Error;
       end if;
 
       pragma Debug (O ("System generated OID, directly return element"));
-      return Get_Element (O_Map.System_Map,
-                          Integer'Value (To_Standard_String (Item.Id)));
+      return O_Map.System_Map.Table
+        (Integer'Value (To_Standard_String (Item.Id)));
    end Get_By_Id;
 
    --------------------
@@ -160,21 +179,22 @@ package body PolyORB.Object_Maps.System is
    is
       use type PolyORB.Servants.Servant_Access;
 
-      Elts : constant Element_Array
-        := To_Element_Array (O_Map.System_Map);
-
    begin
       pragma Debug (O ("Get_By_Servant: enter"));
 
-      pragma Debug (O ("Object_Map'Size: " & Integer'Image (Elts'Last)));
-      for J in Elts'Range loop
-         if not Is_Null (Elts (J)) then
-            pragma Debug (O ("Examinating elt: "
-                             & To_Standard_String (Elts (J).Oid.Id)));
+      if not O_Map.Initialized then
+         raise Program_Error;
+      end if;
 
-            if Elts (J).Servant = Item then
+      for J in First (O_Map.System_Map) .. Last (O_Map.System_Map) loop
+         if not Is_Null (O_Map.System_Map.Table (J)) then
+            pragma Debug (O ("Examinating elt: "
+                             & To_Standard_String
+                             (O_Map.System_Map.Table (J).Oid.Id)));
+
+            if O_Map.System_Map.Table (J).Servant = Item then
                pragma Debug (O ("Found !"));
-               return Elts (J);
+               return O_Map.System_Map.Table (J);
             end if;
          end if;
       end loop;
@@ -199,7 +219,8 @@ package body PolyORB.Object_Maps.System is
       pragma Debug (O ("Remove_By_Id: enter"));
       pragma Debug (O ("Looking for: " & To_Standard_String (Item.Id)));
 
-      if not Item.System_Generated then
+      if not Item.System_Generated
+        or else not O_Map.Initialized then
          raise Program_Error;
       end if;
 
@@ -210,8 +231,8 @@ package body PolyORB.Object_Maps.System is
            := Integer'Value (To_Standard_String (Item.Id));
 
       begin
-         Old_Entry := Element_Of (O_Map.System_Map, Index);
-         Replace_Element (O_Map.System_Map, Index, null);
+         Old_Entry := O_Map.System_Map.Table (Index);
+         O_Map.System_Map.Table (Index) := null;
          return Old_Entry;
       end;
 
