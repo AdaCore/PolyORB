@@ -109,11 +109,7 @@ dnl Look for an Ada compiler (ADA environment variable, then gcc, then $CC)
 AC_DEFUN(AM_PROG_ADA,
 [AC_BEFORE([$0], [AM_TRY_ADA])
 AC_REQUIRE([AC_PROG_CC])
-AC_CHECK_PROGS(ADA, gnatmake gcc gnatgcc adagcc)
-if test -z "$ADA"; then
-  AC_MSG_RESULT([  Tentatively using $CC as an Ada compiler])
-  ADA="$CC"
-fi])
+AC_CHECK_PROGS(ADA, gnatmake)])
 
 dnl Usage: AM_TRY_ADA(filename, content, success, failure)
 dnl Compile an Ada program and report its success or failure

@@ -2438,7 +2438,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-for ac_prog in gnatmake gcc gnatgcc adagcc
+for ac_prog in gnatmake
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -2478,11 +2478,6 @@ fi
   test -n "$ADA" && break
 done
 
-if test -z "$ADA"; then
-  echo "$as_me:$LINENO: result:   Tentatively using $CC as an Ada compiler" >&5
-echo "${ECHO_T}  Tentatively using $CC as an Ada compiler" >&6
-  ADA="$CC"
-fi
 
 echo "$as_me:$LINENO: checking if the$crossflagmsg Ada compiler works" >&5
 echo $ECHO_N "checking if the$crossflagmsg Ada compiler works... $ECHO_C" >&6
