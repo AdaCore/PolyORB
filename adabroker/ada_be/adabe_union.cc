@@ -39,7 +39,12 @@ adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
            return get_ada_name();}
       return get_ada_full_name();	   
   */
-
+void
+adabe_union::produce_adb(dep_list with,string &String, string &previousdefinition) {
+  /*
+      if (!is_imported(with)) return get_ada_name();}
+      return get_ada_full_name();	   
+  */
 IMPL_NARROW_METHODS1(adabe_union, AST_Union);
 IMPL_NARROW_FROM_DECL(adabe_union);
 IMPL_NARROW_FROM_SCOPE(adabe_union);

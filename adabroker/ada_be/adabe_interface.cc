@@ -91,6 +91,7 @@ String += "\n end " + get_ada_name() + "\n"
 */
 
 
+adabe_interface::produce_adb(dep_list with,string &String, string &previousdefinition);
 
 
 //  void produce_adb(std::fstream& s);

@@ -41,17 +41,17 @@ adabe_union_branch::produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	case AST_Expression::EV_bool:
 	  return ((v->u.bval == 0) ? "FALSE" : "TRUE");
 
-	case AST_Expression::EV_char:          \\\\\\\\\\\\\\\\\\\\un char ????????????????
+	case AST_Expression::EV_char:         
 	  {
-	    char c = v->u.cval;
-	    if (c >= ' ' && c <= '~')
-	      s << "'" << c << "'";
-	    else {
-	      s << "'\\"
-		<< (int) ((c & 0100) >> 6)
-		<< (int) ((c & 070) >> 3)
-		<< (int) (c & 007)
-		<< "'";
+	    return (c = v->u.cval);
+//	    if (c >= ' ' && c <= '~')
+//	      s << "'" << c << "'";
+//	    else {
+//	      s << "'\\"
+//		<< (int) ((c & 0100) >> 6)
+//		<< (int) ((c & 070) >> 3)
+//		<< (int) (c & 007)
+//		<< "'";
 	    }
 	  }
 	  break;

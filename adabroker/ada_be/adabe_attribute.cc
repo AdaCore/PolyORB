@@ -23,7 +23,8 @@ adabe_attribute::produce_ads(dep_list with,string &String, string &previousdefin
 
 
 */
-
+adabe_attribute::produce_adb(dep_list with,string &String, string &previousdefinition);
+/*
 
 
 //  void produce_adb(std::fstream& s);

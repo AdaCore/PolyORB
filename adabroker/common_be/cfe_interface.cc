@@ -27,11 +27,12 @@
 
 /*
   $Log: cfe_interface.cc,v $
-  Revision 1.4  1999/03/02 12:25:25  niebel
-  some modifications
+  Revision 1.5  1999/03/02 17:28:12  niebel
+  The produce_adb is added to this class
 
   Revision 1.3  1999/03/01 23:27:54  niebel
   modification to allow different BE (the adabroker and the omniidl2 back-end)
+
 
   Revision 1.2  1999/03/01 19:48:01  niebel
   modification of the mapping of expressions in the union
@@ -210,7 +211,7 @@ void
 BE_produce() //////////////////// revoir les catchs a cause des o2be 
 {
   try {
-    if (strcmp(idl_global::be(),"c")==0) o2be_global::root()->produce()
+    if (strcmp(idl_global::be(),"c")==0) o2be_global::root()->produce()//////////////////////////////////
     else if (strcmp(idl_global::be(),"ada")==0) adabe_global::root()->produce();
   }
   catch (o2be_fe_error &ex) {

@@ -80,7 +80,9 @@ public:
   DEF_NARROW_FROM_DECL(adabe_predefined_type);
 
   void produce_ads (dep_list with,string &String, string &previousdefinition);
+  void produce_adb (dep_list with,string &String, string &previousdefinition);
   //produce the ada name of the type
+  
 private:
   string get_ada_predefined_type(void);
   //determine the ada name of the type
@@ -175,8 +177,10 @@ public:
 
   adabe_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
   // constructor
-  produce_ads (dep_list with,string &String, string &previousdefinition)
+  produce_ads (dep_list with,string &String, string &previousdefinition);
   //produce a field in the header
+  produce_adb (dep_list with,string &String, string &previousdefinition);    
+  //produce a field in the body
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
 
@@ -199,6 +203,8 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an union in the header
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the union in the body
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -245,6 +251,8 @@ public:
   //produce the structure in the header
   string dump_name(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the structure in the body
 };
 
 
@@ -324,7 +332,9 @@ public:
 		UTL_StrList *p);
   //constructor
   produce_ads(dep_list with,string &String, string &previousdefinition);
-  //produce an argument of an operation
+  //produce an argument of an operation in the header
+  produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an argument of an operation in the body
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
 
@@ -345,6 +355,8 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the header
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an attribute in the body
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -369,7 +381,9 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_operation);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
-  //produce an operation 
+  //produce an operation in the header
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an operation in the body
 
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -418,6 +432,8 @@ public:
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the header
+  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  //produce an interface in the body
   
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
@@ -507,54 +523,54 @@ private:
 class adabe_global {
 private:
   static adabe_root* myself;
-  //  static char*      pd_hdrsuffix;
-  //  static char*      pd_skelsuffix;
-  //  static char*      pd_dynskelsuffix;
-  //  static size_t     pd_suffixlen;
-  //  static int        pd_aflag;      // generate stub for 'any' type
-  //  static int        pd_fflag;      // generate stub for float and double
-  //  static int        pd_qflag;      // always use fully qualified name
-  //  static int        pd_mflag;      // generate stub to work around MSVC bugs
+ //////////////  static char*      pd_hdrsuffix;
+ //////////////  static char*      pd_skelsuffix;
+ //////////////  static char*      pd_dynskelsuffix;
+ //////////////  static size_t     pd_suffixlen;
+ //////////////  static int        pd_aflag;      // generate stub for 'any' type
+ //////////////  static int        pd_fflag;      // generate stub for float and double
+ //////////////  static int        pd_qflag;      // always use fully qualified name
+ //////////////  static int        pd_mflag;      // generate stub to work around MSVC bugs
 
 public:
-  //  static void set_aflag(int f) { pd_aflag = f; }
-  //  static int aflag() { return pd_aflag; }
+ //////////////  static void set_aflag(int f) { pd_aflag = f; }
+ //////////////  static int aflag() { return pd_aflag; }
 
-  //  static void set_fflag(int f) { pd_fflag = f; }
-  //  static int fflag() { return pd_fflag; }
+ //////////////  static void set_fflag(int f) { pd_fflag = f; }
+ //////////////  static int fflag() { return pd_fflag; }
 
-  //  static void set_qflag(int f) { pd_qflag = f; }
-  //  static int qflag() { return pd_qflag; }
+ //////////////  static void set_qflag(int f) { pd_qflag = f; }
+ //////////////  static int qflag() { return pd_qflag; }
 
-  //  static void set_mflag(int f) { pd_mflag = f; }
-  //  static int mflag() { return pd_mflag; }
+ //////////////  static void set_mflag(int f) { pd_mflag = f; }
+ //////////////  static int mflag() { return pd_mflag; }
 
-  //  static int suffixlen() { return pd_suffixlen; }
+ //////////////  static int suffixlen() { return pd_suffixlen; }
 
-  //  static void set_hdrsuffix(char* h) {
-  //    pd_hdrsuffix = new char[strlen(h)+1];
-  //    if (strlen(h) > pd_suffixlen)
-  //      pd_suffixlen = strlen(h);
-  //   strcpy(pd_hdrsuffix,h);
-  //   return;
-  // }
+ //////////////  static void set_hdrsuffix(char* h) {
+ //////////////    pd_hdrsuffix = new char[strlen(h)+1];
+ //////////////    if (strlen(h) > pd_suffixlen)
+ //////////////      pd_suffixlen = strlen(h);
+ //////////////   strcpy(pd_hdrsuffix,h);
+ //////////////   return;
+ ////////////// }
 
-  //  static void set_skelsuffix(char* c) {
-  //  pd_skelsuffix = new char[strlen(c) + 1];
-  //  if (strlen(c) > pd_suffixlen)
-  //    pd_suffixlen = strlen(c);
-  //  strcpy(pd_skelsuffix, c);
-  //  }
-  //  static void set_dynskelsuffix(char* c) {
-  //  pd_dynskelsuffix = new char[strlen(c) + 1];
-  //  if (strlen(c) > pd_suffixlen)
-  //    pd_suffixlen = strlen(c);
-  //  strcpy(pd_dynskelsuffix, c);
-  //  }
+ //////////////  static void set_skelsuffix(char* c) {
+ //////////////  pd_skelsuffix = new char[strlen(c) + 1];
+ //////////////  if (strlen(c) > pd_suffixlen)
+ //////////////    pd_suffixlen = strlen(c);
+ //////////////  strcpy(pd_skelsuffix, c);
+ //////////////  }
+ //////////////  static void set_dynskelsuffix(char* c) {
+ //////////////  pd_dynskelsuffix = new char[strlen(c) + 1];
+ //////////////  if (strlen(c) > pd_suffixlen)
+ //////////////    pd_suffixlen = strlen(c);
+ //////////////  strcpy(pd_dynskelsuffix, c);
+ //////////////  }
 
-  //  static char* hdrsuffix()     { return pd_hdrsuffix;     }
-  //  static char* skelsuffix()    { return pd_skelsuffix;    }
-  //  static char* dynskelsuffix() { return pd_dynskelsuffix; }
+ //////////////  static char* hdrsuffix()     { return pd_hdrsuffix;     }
+ //////////////  static char* skelsuffix()    { return pd_skelsuffix;    }
+ //////////////  static char* dynskelsuffix() { return pd_dynskelsuffix; }
 
   static void set_root(adabe_root *v) { myself = v; }
   static adabe_root *root() { return myself; }
