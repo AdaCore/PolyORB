@@ -65,7 +65,7 @@ package body CORBA.Object.Helper is
                             Value : in CORBA.Object.Ref) is
       use CORBA.TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Objref then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;

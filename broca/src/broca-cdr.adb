@@ -742,7 +742,12 @@ package body Broca.CDR is
          when Tk_Principal =>
             Marshall (Buffer, CORBA.Unsigned_Long'(13));
          when Tk_Objref =>
+            pragma Debug (O ("Marshall (TypeCode) : dealing with an ObjRef"));
             Marshall (Buffer, CORBA.Unsigned_Long'(14));
+            pragma Debug (O ("Marshall (TypeCode) : it has "
+                             & CORBA.Unsigned_Long'Image
+                             (CORBA.TypeCode.Parameter_Count (Data))
+                             & " parameters"));
             Marshall (Buffer, CORBA.TypeCode.Id (Data));
             Marshall (Buffer, CORBA.TypeCode.Name (Data));
          when Tk_Struct =>

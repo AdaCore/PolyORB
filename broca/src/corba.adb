@@ -1802,7 +1802,7 @@ package body CORBA is
                             Value : CORBA.Octet) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Octet then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Octet then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1821,7 +1821,7 @@ package body CORBA is
                             Value : in CORBA.Short) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Short then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Short then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1844,7 +1844,7 @@ package body CORBA is
                             Value : in CORBA.Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Long then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Long then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1863,7 +1863,7 @@ package body CORBA is
                             Value : in CORBA.Long_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Longlong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Longlong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1882,7 +1882,7 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Short) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ushort then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ushort then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1901,7 +1901,7 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ulong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Ulong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1920,7 +1920,8 @@ package body CORBA is
                             Value : in CORBA.Unsigned_Long_Long) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Ulonglong then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Ulonglong then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1940,7 +1941,7 @@ package body CORBA is
                             Value : in CORBA.Boolean) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Boolean then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Boolean then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1959,7 +1960,7 @@ package body CORBA is
                             Value : in CORBA.Char) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Char then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Char then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1978,7 +1979,7 @@ package body CORBA is
                             Value : in CORBA.Wchar) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Widechar then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Widechar then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -1997,7 +1998,7 @@ package body CORBA is
                             Value : in CORBA.String) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_String then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_String then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2016,7 +2017,7 @@ package body CORBA is
                             Value : in CORBA.Wide_String) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Wstring then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Wstring then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2035,7 +2036,7 @@ package body CORBA is
                             Value : in CORBA.Float) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Float then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Float then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2054,7 +2055,7 @@ package body CORBA is
                             Value : in CORBA.Double) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Double then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Double then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2073,7 +2074,8 @@ package body CORBA is
                             Value : in CORBA.Long_Double) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Longdouble then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /=
+        Tk_Longdouble then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2092,7 +2094,7 @@ package body CORBA is
                             Value : in CORBA.TypeCode.Object) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_TypeCode then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_TypeCode then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;
@@ -2111,7 +2113,7 @@ package body CORBA is
                             Value : in CORBA.Any) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Any then
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Any then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
       Any_Value.Any_Lock.Lock_W;

@@ -604,13 +604,6 @@ package body Ada_Be.Idl2Ada is
                               Put (Stubs_Spec, "Module ");
                            when K_Interface =>
                               Put (Stubs_Spec, "Interface ");
-                              --  in case of a forward declaration
-                              if Forward (Decl_Node) /= No_Node then
-                                 Helper.Gen_Forward_Interface_Spec
-                                   (Helper_Spec, Decl_Node);
-                                 Helper.Gen_Forward_Interface_Body
-                                   (Helper_Body, Decl_Node);
-                              end if;
                            when K_ValueType =>
                               Put (Stubs_Spec, "ValueType ");
                            when others =>
@@ -623,6 +616,13 @@ package body Ada_Be.Idl2Ada is
                      end if;
                      Gen_Scope (Decl_Node, Implement, To_Stdout);
                   else
+                     if Kind (Decl_Node) = K_Forward_Interface then
+                        --  in case of a forward declaration
+                        Helper.Gen_Forward_Interface_Spec
+                          (Helper_Spec, Decl_Node);
+                        Helper.Gen_Forward_Interface_Body
+                          (Helper_Body, Decl_Node);
+                     end if;
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Decl_Node);
                      Gen_Node_Stubs_Body

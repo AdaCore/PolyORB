@@ -355,9 +355,9 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Unchecked_To_<reference>
       declare
          Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Forward (Node));
+           := Ada_Type_Defining_Name (Node);
          Type_Name : constant String
-           := Ada_Type_Name (Forward (Node));
+           := Ada_Type_Name (Node);
       begin
          Add_With (CU, "CORBA.Object");
          NL (CU);
@@ -372,7 +372,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  TypeCode
       NL (CU);
       Add_With (CU, "CORBA");
-      PL (CU, Ada_TC_Name (Forward (Node))
+      PL (CU, Ada_TC_Name (Node)
           & " : CORBA.TypeCode.Object := ");
       II (CU);
       PL (CU, "CORBA.TypeCode.TC_ObjRef;");
@@ -380,12 +380,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
       --  From_Any
       NL (CU);
-      Gen_From_Any_Profile (CU, Forward (Node));
+      Gen_From_Any_Profile (CU, Node);
       PL (CU, ";");
 
       --  To_Any
       NL (CU);
-      Gen_To_Any_Profile (CU, Forward (Node));
+      Gen_To_Any_Profile (CU,  Node);
       PL (CU, ";");
 
       --  Fill in typecode TC_<name of the type>
@@ -659,9 +659,9 @@ package body Ada_Be.Idl2Ada.Helper is
 
       declare
          Short_Type_Name : constant String
-           := Ada_Type_Defining_Name (Forward (Node));
+           := Ada_Type_Defining_Name (Node);
          Type_Name : constant String
-           := Ada_Type_Name (Forward (Node));
+           := Ada_Type_Name (Node);
       begin
          Add_With (CU, "Broca.Refs");
          Add_With (CU, "Broca.Exceptions");
@@ -677,7 +677,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU, Ada_Name (Forward (Node)) & ".Set (Result,");
+         PL (CU, Ada_Name (Node) & ".Set (Result,");
          PL (CU,
              "     CORBA.Object.Object_Of (The_Ref));");
          PL (CU, "return Result;");
@@ -699,7 +699,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "begin");
          II (CU);
          PL (CU, "if CORBA.Object.Is_A (The_Ref, """
-             & Idl_Repository_Id (Node) & """) then");
+             & Idl_Repository_Id (Forward (Node)) & """) then");
          II (CU);
          PL (CU, "return Unchecked_To_"
              & Short_Type_Name
@@ -716,12 +716,12 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Add_With (CU, "CORBA.Object.Helper");
       NL (CU);
-      Gen_From_Any_Profile (CU, Forward (Node));
+      Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
       PL (CU, "begin");
       II (CU);
       PL (CU, "return To_"
-          & Ada_Type_Defining_Name (Forward (Node))
+          & Ada_Type_Defining_Name (Node)
           & " (CORBA.Object.Helper."
           & "From_Any (Item));");
       DI (CU);
@@ -731,7 +731,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Add_With (CU, "CORBA.Object.Helper");
       NL (CU);
-      Gen_To_Any_Profile (CU, Forward (Node));
+      Gen_To_Any_Profile (CU, Node);
       PL (CU, " is");
       PL (CU, "begin");
       II (CU);
@@ -751,16 +751,16 @@ package body Ada_Be.Idl2Ada.Helper is
           & Ada_Name (Forward (Node))
           & """);");
       PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
-          & Idl_Repository_Id (Forward (Node))
+          & Idl_Repository_Id (Node)
           & """);");
       DI (CU);
       PL (CU, "begin");
       II (CU);
       PL (CU, "CORBA.TypeCode.Add_Parameter ("
-          & Ada_TC_Name (Forward (Node))
+          & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Name));");
       PL (CU, "CORBA.TypeCode.Add_Parameter ("
-          & Ada_TC_Name (Forward (Node))
+          & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
       DI (CU);
       PL (CU, "end;");
