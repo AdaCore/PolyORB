@@ -22,9 +22,9 @@ package Droopi.Binding_Data.IIOP is
      return Objects.Object_Id;
 
    procedure Bind_Profile
-     (Profile : IIOP_Profile_Type;
-      TE      : out Transport.Transport_Endpoint_Access;
-      Filt    : out Components.Component_Access);
+     (Profile   : IIOP_Profile_Type;
+      TE        : out Transport.Transport_Endpoint_Access;
+      Filter    : out Components.Component_Access);
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)

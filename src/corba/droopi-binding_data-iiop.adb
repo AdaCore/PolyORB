@@ -64,7 +64,7 @@ package body Droopi.Binding_Data.IIOP is
    procedure Bind_Profile
      (Profile : IIOP_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
-      Filt    : out Components.Component_Access)
+      Filter    : out Components.Component_Access)
    is
       use Droopi.Components;
       use Droopi.Protocols;
@@ -88,7 +88,10 @@ package body Droopi.Binding_Data.IIOP is
       Chain_Factories ((0 => Sli'Unchecked_Access,
                         1 => Pro'Unchecked_Access));
 
-      Filt := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+      Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+
+      --  XXX Session must be an access to the lowest filter in
+      --  the stack (=> the Slicer).
 
       --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
