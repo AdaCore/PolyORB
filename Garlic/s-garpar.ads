@@ -66,17 +66,23 @@ package System.Garlic.Partitions is
       Error          : in out Exceptions.Error_Type);
    --  Return the pid of the partition used to boot Partition.
 
-   procedure Get_Net_Location
+   procedure Get_Is_Active_Partition
      (Partition : in Types.Partition_ID;
-      Location  : out Physical_Location.Location_Type;
+      Active    : out Boolean;
       Error     : in out Exceptions.Error_Type);
-   --  Return the location of a partition
+   --  Return whether a partition is active or not.
 
    procedure Get_Mem_Location
      (Partition : in Types.Partition_ID;
       Location  : out Utils.String_Access;
       Error     : in out Exceptions.Error_Type);
-   --  Return the location of a partition
+   --  Return the memory location of a partition
+
+   procedure Get_Net_Location
+     (Partition : in Types.Partition_ID;
+      Location  : out Physical_Location.Location_Type;
+      Error     : in out Exceptions.Error_Type);
+   --  Return the network location of a partition
 
    procedure Get_Name
      (Partition : in Types.Partition_ID;

@@ -454,6 +454,22 @@ package body System.Garlic.Partitions is
       Boot_Partition := Info.Boot_Partition;
    end Get_Boot_Partition;
 
+   -----------------------------
+   -- Get_Is_Active_Partition --
+   -----------------------------
+
+   procedure Get_Is_Active_Partition
+     (Partition : in Partition_ID;
+      Active    : out Boolean;
+      Error     : in out Error_Type)
+   is
+      Info : Partition_Info;
+
+   begin
+      Get_Partition_Info (Partition, Info, Error);
+      Active := Info.Is_Active_Part;
+   end Get_Is_Active_Partition;
+
    ----------------------
    -- Get_Mem_Location --
    ----------------------
