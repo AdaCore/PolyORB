@@ -14,6 +14,7 @@ with Ada.Exceptions;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Opaque;  use Droopi.Opaque;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 with CORBA;
 with Droopi.CORBA_P.Exceptions;
