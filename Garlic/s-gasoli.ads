@@ -35,6 +35,9 @@
 
 with System.Garlic.Types;
 
+with System.Tasking.Stages;
+pragma Warnings (Off, System.Tasking.Stages);
+
 package System.Garlic.Soft_Links is
 
    pragma Elaborate_Body;
