@@ -12,9 +12,15 @@ with Droopi.Objects;
 with Droopi.ORB.Task_Policies;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
+
+--  with Droopi.Protocols.GIOP;
+--  pragma Warnings (Off, Droopi.Protocols.GIOP);
+--  XXX not referenced.
+
 with Droopi.References;
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
+with Droopi.Task_Info;
 with Droopi.Test_Object;
 with Droopi.Transport.Sockets;
 
@@ -47,20 +53,21 @@ begin
    Put ("Initializing subsystems...");
 
    Droopi.Log.Initialize;
+   Put (" logging");
    --  Logging subsystem. Start this one first so we can debug
    --  problems in others.
 
-   Put (" logging");
-
    Droopi.No_Tasking.Initialize;
+   Put (" no-tasking");
    --  Setup soft links.
 
-   Put (" no-tasking");
-
    Droopi.Smart_Pointers.Initialize;
+   Put (" smart-pointers");
    --  Depends on Soft_Links.
 
-   Put (" smart-pointers");
+   Droopi.Task_Info.Initialize;
+   Put (" task-info");
+   --  Depends on Soft_Links.
 
    Setup.The_ORB := new ORB.ORB_Type
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
