@@ -37,6 +37,11 @@ package body Ada_Be.Source_Streams is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.source_streams");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   --  User-defined diversion identifiers are allocated on a system-wide basis.
+
+   Diversions_Allocation : array (Diversion) of Boolean
+     := (Predefined_Diversions'Range => True, others => False);
+
    --  Semantic dependencies
 
    type Dependency_Node is record
@@ -144,21 +149,60 @@ package body Ada_Be.Source_Streams is
 
    --  Source streams (global)
 
+   function Allocate_User_Diversion
+     return Diversion is
+   begin
+      for I in User_Diversions'Range loop
+         if not Diversions_Allocation (I) then
+            Diversions_Allocation (I) := True;
+            return I;
+         end if;
+      end loop;
+
+      raise Program_Error;
+      --  Too many diversions open.
+   end Allocate_User_Diversion;
+
    procedure Divert
      (CU     : in out Compilation_Unit;
       Whence : Diversion) is
    begin
-      if not (False
-        or else Whence = Visible_Declarations
-        or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
-        or else (Whence = Elaboration and then CU.Kind = Unit_Body)
-        or else (Whence = Generic_Formals and then CU.Kind = Unit_Spec))
+      if not
+        (Diversions_Allocation (Whence)
+         and then (False
+           or else Whence in User_Diversions'Range
+           or else Whence = Visible_Declarations
+           or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
+           or else (Whence = Elaboration and then CU.Kind = Unit_Body)
+           or else (Whence = Generic_Formals and then CU.Kind = Unit_Spec)))
       then
          raise Program_Error;
       end if;
 
       CU.Current_Diversion := Whence;
    end Divert;
+
+   procedure Undivert
+     (CU : in out Compilation_Unit;
+      D  : Diversion)
+   is
+      Div : Diversion_Data renames CU.Diversions (D);
+      Empty_Diversion : Diversion_Data;
+   begin
+      if not Diversions_Allocation (D) then
+         raise Program_Error;
+      end if;
+
+      if not (Div.Empty) then
+         CU.Diversions (CU.Current_Diversion).At_BOL := False;
+         --  The indentation must be made in diversion D.
+
+         Put (CU, To_String (Div.Library_Item));
+      end if;
+
+      CU.Diversions (D) := Empty_Diversion;
+      --  Reset diversion D to empty state.
+   end Undivert;
 
    function New_Package
      (Name : String;
@@ -415,11 +459,11 @@ package body Ada_Be.Source_Streams is
       Free (Object.Library_Unit);
    end Finalize;
 
-   procedure Finalize (Object : in out Compilation_Unit) is
+   procedure Finalize (CU : in out Compilation_Unit) is
    begin
-      if Object.Context_Clause /= null then
-         Finalize (Object.Context_Clause.all);
-         Free (Object.Context_Clause);
+      if CU.Context_Clause /= null then
+         Finalize (CU.Context_Clause.all);
+         Free (CU.Context_Clause);
       end if;
    end Finalize;
 

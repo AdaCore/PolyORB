@@ -41,6 +41,11 @@ package body Ada_Be.Idl2Ada.Helper is
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada.helper");
    procedure O is new Ada_Be.Debug.Output (Flag);
 
+   --  Helpers need a special diversion for the initialization procedure.
+
+   Deferred_Initialization : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+
    ----------------------------------------
    -- Specialised generation subprograms --
    ----------------------------------------
@@ -233,9 +238,10 @@ package body Ada_Be.Idl2Ada.Helper is
       end case;
    end Gen_Node_Spec;
 
-   ---------------------
-   --  Gen_Scope_Body --
-   ---------------------
+   --------------------
+   -- Gen_Scope_Body --
+   --------------------
+
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
@@ -372,9 +378,10 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
    end Gen_Interface_Spec;
 
-   ----------------------------------
-   --  Gen_Forward_Interface_Spec  --
-   ----------------------------------
+   --------------------------------
+   -- Gen_Forward_Interface_Spec --
+   --------------------------------
+
    procedure Gen_Forward_Interface_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
@@ -420,6 +427,44 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_Elaborate_Body (CU);
       end if;
    end Gen_Forward_Interface_Spec;
+
+   procedure Gen_Spec_Postlude
+     (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Visible_Declarations);
+      NL (CU);
+      PL (CU, "procedure Deferred_Initialization;");
+   end Gen_Spec_Postlude;
+
+   procedure Gen_Body_Prelude
+     (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Deferred_Initialization);
+      PL (CU, "procedure Deferred_Initialization is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "if not Deferred_Initialization_Done then");
+      II (CU);
+      Divert (CU, Visible_Declarations);
+   end Gen_Body_Prelude;
+
+   procedure Gen_Body_Postlude
+     (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Deferred_Initialization);
+      DI (CU);
+      PL (CU, "end if;");
+      NL (CU);
+      PL (CU, "Deferred_Initialization_Done := True;");
+      DI (CU);
+      PL (CU, "end Deferred_Initialization;");
+
+      Divert (CU, Visible_Declarations);
+      NL (CU);
+      PL (CU, "Deferred_Initialization_Done : Boolean := False;");
+      NL (CU);
+      Undivert (CU, Deferred_Initialization);
+   end Gen_Body_Postlude;
 
    ------------------------
    -- Gen_ValueType_Spec --
@@ -652,7 +697,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in the typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "declare");
          II (CU);
@@ -775,7 +820,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in the typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "declare");
          II (CU);
@@ -899,7 +944,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          PL (CU, "declare");
          II (CU);
          Add_With (CU, "CORBA");
@@ -1225,7 +1270,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "declare");
          II (CU);
@@ -1348,7 +1393,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in the typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "begin");
          II (CU);
@@ -1580,7 +1625,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "declare");
          II (CU);
@@ -1947,7 +1992,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          PL (CU, "declare");
          II (CU);
@@ -2139,7 +2184,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          --  Fill in typecode TC_<name of the type>
 
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          Add_With (CU, "CORBA");
          Put (CU, "CORBA.TypeCode.Add_Parameter ("
@@ -2219,7 +2264,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " renames CDR_" & Type_Name
              & ".To_Any;");
          --  Fill in typecode TC_<name of the type>
-         Divert (CU, Elaboration);
+         Divert (CU, Deferred_Initialization);
          NL (CU);
          Put (CU, "CORBA.TypeCode.Add_Parameter ("
              & Ada_TC_Name (Decl_Node)

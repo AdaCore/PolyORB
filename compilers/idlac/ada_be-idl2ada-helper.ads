@@ -52,4 +52,19 @@ private package Ada_Be.Idl2Ada.Helper is
    --  Generate the body of the helper package for a forward interface
    --  declaration called directly by ada_be.idl2ada.gen_scope
 
+   procedure Gen_Spec_Postlude
+     (CU : in out Compilation_Unit);
+   --  Called after the generation of the last node for the
+   --  specification of an helper package.
+
+   procedure Gen_Body_Prelude
+     (CU : in out Compilation_Unit);
+   --  Called before the generation of the first node for the
+   --  body of an helper package.
+
+   procedure Gen_Body_Postlude
+     (CU : in out Compilation_Unit);
+   --  Called after the generation of the last node for the
+   --  body of an helper package.
+
 end Ada_Be.Idl2Ada.Helper;

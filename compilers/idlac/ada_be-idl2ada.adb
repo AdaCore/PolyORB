@@ -312,6 +312,7 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       --  Helper package
+      Helper.Gen_Body_Prelude (Helper_Body);
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
@@ -375,8 +376,10 @@ package body Ada_Be.Idl2Ada is
          end loop;
       end;
 
-      Gen_Convert_Forward_Declaration (Stubs_Spec,
-                                       Node);
+      Gen_Convert_Forward_Declaration (Stubs_Spec, Node);
+
+      Helper.Gen_Spec_Postlude (Helper_Spec);
+      Helper.Gen_Body_Postlude (Helper_Body);
 
       if Supports (Node) /= Nil_List then
          Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
@@ -601,6 +604,8 @@ package body Ada_Be.Idl2Ada is
         New_Package (Delegate_Name, Unit_Body);
 
    begin
+      Helper.Gen_Body_Prelude (Helper_Body);
+
       case Kind (Node) is
          when K_ValueType =>
             raise Program_Error;
@@ -832,8 +837,7 @@ package body Ada_Be.Idl2Ada is
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
 
-            Gen_Convert_Forward_Declaration (Stubs_Spec,
-                                             Node);
+            Gen_Convert_Forward_Declaration (Stubs_Spec, Node);
 
             if not Abst (Node) then
 
@@ -926,6 +930,9 @@ package body Ada_Be.Idl2Ada is
 
             null;
       end case;
+
+      Helper.Gen_Spec_Postlude (Helper_Spec);
+      Helper.Gen_Body_Postlude (Helper_Body);
 
       --  No skel and impl packages are generated
       --  for abstract interfaces.
