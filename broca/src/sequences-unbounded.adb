@@ -340,8 +340,7 @@ package body Sequences.Unbounded is
 
    begin
       Reallocate (Source, Old_Length + New_Item'Length);
-      Source.Content (Old_Length + 1 .. Source.Length)
-        := New_Item;
+      Source.Content (Old_Length + 1 .. Source.Length) := New_Item;
    end Append;
 
    ------------
@@ -650,8 +649,7 @@ package body Sequences.Unbounded is
       Allocate (Result, Source.Length + Length);
       Result.Content (1 .. Before - 1)
         := Source.Content (1 .. Before - 1);
-      Result.Content (Before .. Before + Length - 1)
-        := New_Item;
+      Result.Content (Before .. Before + Length - 1) := New_Item;
       Result.Content (Before + Length .. Result.Length)
         := Source.Content (Before .. Source.Length);
 
@@ -688,8 +686,7 @@ package body Sequences.Unbounded is
 
       Source.Content (Before + Item_Length .. Source.Length)
         := Old_Content (Before .. Old_Length);
-      Source.Content (Before .. Before + Item_Length - 1)
-        := New_Item;
+      Source.Content (Before .. Before + Item_Length - 1) := New_Item;
 
       if Reallocated then
          Free (Old_Content);
@@ -730,7 +727,8 @@ package body Sequences.Unbounded is
       end if;
 
       Allocate (Result, Result.Length);
-      Result.Content (1 .. Position - 1) := Source.Content (1 .. Position - 1);
+      Result.Content (1 .. Position - 1)
+        := Source.Content (1 .. Position - 1);
       Result.Content (Position .. Result.Length) := New_Item;
 
       return Result;
