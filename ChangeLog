@@ -1,3 +1,10 @@
+Fri Feb 14 11:36:11 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Use \${top_srcdir}/dir when building with VPATH
+	  and relative $top_srcdir.
+
+Thu Feb 13 12:11:26 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
 	* configure.in: Test for non-blocking I/Os when compiling the TCP
 	  module to avoid sometimes trying to compile a non-compilable file.
 
