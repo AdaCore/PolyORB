@@ -33,17 +33,35 @@ package body Locked_Queue is
       end Leave;
    end Lock;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (Q : in out Queue)
+   is
+      Next : Queue_Node_Access;
+   begin
+      Q.State_Lock.Enter;
+      while Q.First /= null loop
+         Next := Q.First.Next;
+         Free (Q.First);
+         Q.First := Next;
+      end loop;
+      Q.State_Lock.Leave;
+   end Destroy;
+
    ------------
    -- Create --
    ------------
 
    procedure Create
-     (Result    :    out Queue;
+     (Q         :    out Queue;
       Max_Count : in     Positive)
    is
    begin
-      Result.Max_Count := Max_Count;
-      Result.Empty_Lock.Enter;
+      Q.Max_Count := Max_Count;
+      Q.Empty_Lock.Enter;
    end Create;
 
    ---------

@@ -13,9 +13,13 @@ package Locked_Queue is
    type Queue is limited private;
 
    procedure Create
-     (Result    :    out Queue;
+     (Q         :    out Queue;
       Max_Count : in     Positive);
    --  Creates a queue with a limitation of Max_Count individuals.
+
+   procedure Destroy
+     (Q : in out Queue);
+   --  Destroys a queue and frees memory.
 
    procedure Add
      (Q : in out Queue;
