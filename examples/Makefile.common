@@ -58,7 +58,6 @@ SUFFIXES = .idl .ads .adb
 force: src
 
 src:
+	cd $(top_builddir)/compilers && $(MAKE)
+	cd $(top_builddir)/cos && $(MAKE)
 	cd $(top_builddir)/src && $(MAKE)
-
-err:
-	$(ERR)
