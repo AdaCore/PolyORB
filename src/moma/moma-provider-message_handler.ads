@@ -58,17 +58,19 @@ package MOMA.Provider.Message_Handler is
 
    type Object_Acc is access Object;
 
-   type Handler is access procedure (Message_Queue : Queue;
-                                     Message : MOMA.Messages.Message'Class);
+   type Handler is access procedure (
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue;
+      Message : MOMA.Messages.Message'Class);
    --  The procedure to be called when a message is received.
 
-   type Notifier is access procedure (Message_Queue : Queue);
+   type Notifier is access procedure (
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue);
 
-   function Initialize (Message_Queue : Queue_Acc;
-                        New_Notifier_Procedure : in Notifier := null;
-                        New_Handler_Procedure : in Handler := null
-   )
-     return PolyORB.References.Ref;
+   procedure Initialize (Self : in out Object_Acc;
+                         Message_Queue : Queue_Acc;
+                         Self_Ref : PolyORB.References.Ref;
+                         New_Notifier_Procedure : in Notifier := null;
+                         New_Handler_Procedure : in Handler := null);
    --  Initialize the Message_Handler and return its Reference.
    --  If both Notifier and Handler procedure are given a not null value,
    --  the Behavior is set to Notify and the Handler procedure will be
@@ -96,6 +98,13 @@ package MOMA.Provider.Message_Handler is
    procedure Set_Queue (Self : access Object;
                         New_Queue : Queue_Acc);
    --  Set the message queue which handles the messages.
+
+   procedure Template_Handler (
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue;
+      Message : MOMA.Messages.Message'Class);
+   procedure Template_Notifier (
+      Message_Queue : MOMA.Message_Consumers.Queues.Queue);
+   --  Templates for handler and notifier proceddures
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
