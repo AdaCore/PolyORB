@@ -61,11 +61,14 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
+ADA = @ADA@
+ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
+GNATLS = @GNATLS@
 GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
@@ -100,13 +103,14 @@ gnatdist_LDADD =
 GNATMAKE = gnatmake
 
 CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb sdefault.adb
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+CONFIG_HEADER = ../[Garlic/config.h]
 CONFIG_CLEAN_FILES = 
 bin_PROGRAMS =  gnatdist$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
-DEFS = @DEFS@ -I. -I$(srcdir) 
+DEFS = @DEFS@ -I. -I$(srcdir) -I../[Garlic
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
