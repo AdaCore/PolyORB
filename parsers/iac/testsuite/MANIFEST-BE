@@ -1,5 +1,5 @@
 be-testsuite/interface001/be.idl
 be-testsuite/interface002/be.idl
 be-testsuite/interface003/be.idl
-#be-testsuite/module001/be.idl
-
+be-testsuite/module001/be.idl
+be-testsuite/module002/be.idl

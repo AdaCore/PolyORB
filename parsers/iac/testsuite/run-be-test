@@ -9,5 +9,3 @@ if [ $? != 0 ]; then
 echo "Failed"
 fi;
 rm -f iac.out idlac.out GN*
-
-

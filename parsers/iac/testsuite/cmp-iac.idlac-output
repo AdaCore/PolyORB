@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 $filename = @ARGV[1]; 
+#$opt = @ARGV[2];
 $output = 'iac -ada $filename > iac.out'; 
 $output = 'idlac -p $filename > idlac.out'; 
  
@@ -10,6 +11,7 @@ open (IDLAC, "idlac.out") || die "Erreur d'ouverture de idlac.out";
 $LastTab1 = $#Tab1; 
 $LastTab2 = $#Tab2; 
 $i2 = 0; 
+$retry = 20; 
 for ($i1=0; $i1 <= $LastTab1;$i1++)
 {
   
@@ -19,15 +21,20 @@ for ($i1=0; $i1 <= $LastTab1;$i1++)
   } 
   if ($i2> $LastTab2) 
   {
-      die ("iac: @Tab[$i1]"); 
+      if ($retry > 0)
+      {
+	  $i2 = 0; 
+	  $retry--;
+      }
+      else  
+      {
+	  die ("iac: @Tab1[$i1]"); 
+      }
   }
+
+  if ($opt eq "-v") 
+  {
+      print "iac:$Tab1[$i1]\n";
+      print "idlac:$Tab2[$i2]\n";
+  }    
 }
-
-
-
-
-
-
-
-
-
