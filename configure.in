@@ -389,7 +389,6 @@ AC_OUTPUT([
 	src/dsa/Makefile
 	src/giop/Makefile
 	src/moma/Makefile
-	src/aws/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
@@ -458,7 +457,7 @@ ${RM} ${PROTO_SERVER_WITHS}
 #
 # XXX Should we add src/soap/gnat.adc ?
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/aws/gnat.adc
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc 
 do
   if test ! -f "$a"
   then

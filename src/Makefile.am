@@ -2,7 +2,6 @@ corba_dir=	corba
 dsa_dir=	dsa
 giop_dir=	giop
 moma_dir=	moma
-aws_dir=	aws
 soap_dir=	soap
 srp_dir=	srp
 
