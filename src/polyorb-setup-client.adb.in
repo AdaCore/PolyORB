@@ -13,8 +13,12 @@ pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
 pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
 
 with PolyORB.ORB.No_Tasking;
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Tasking.Soft_Links;
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 @PROTO_CLIENT_WITHS@
 
 package body PolyORB.Setup.Client is
