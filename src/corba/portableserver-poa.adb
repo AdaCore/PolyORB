@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#33 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#34 $
 
 with Ada.Exceptions;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.POA;

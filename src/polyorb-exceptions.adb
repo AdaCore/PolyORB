@@ -45,6 +45,8 @@ pragma Warnings (On);
 with PolyORB.Any;
 with PolyORB.Exceptions.Stack;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;

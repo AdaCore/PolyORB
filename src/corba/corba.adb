@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#20 $
+--  $Id: //droopi/main/src/corba/corba.adb#21 $
 
 with Ada.Characters.Handling;
 
@@ -38,6 +38,8 @@ with PolyORB.CORBA_P.Exceptions;
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 

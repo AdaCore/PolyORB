@@ -30,10 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#10 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#11 $
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
