@@ -91,14 +91,14 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   //  else 
   //    body += "array (Integer range <>) of " + type_name +" ;\n";
   //  body += "\n";
-  body += "\n   package IDL_SEQUENCE_" + short_type_name + " is new\n";
-  body += "      Corba.Sequences." + is_bounded;
+  body += "\n   package IDL_SEQUENCE_" + short_type_name + " is new ";
+  body += "Corba.Sequences." + is_bounded;
   if (bounded) {
     body += "(" + type_name + ", ";
-    body += seq_size_st + ");\n";
+    body += seq_size_st + ") ;\n\n";
   }
   else
-    body += "(" + type_name +");\n";
+    body += "(" + type_name +") ;\n\n";
   set_already_defined();
 }
 void

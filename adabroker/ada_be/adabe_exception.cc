@@ -49,11 +49,11 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
     }
   if (first)
     {
-      body += "null record ;\n";
+      body += "null record ;\n\n";
     }
   else
     {
-      body += "   end record ;\n";
+      body += "   end record ;\n\n";
     }
   
   body += "   ";
@@ -62,7 +62,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   body += repositoryID();
   body += "\") ;\n";
   body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurrence ;\n";
-  body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n";
+  body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n\n\n";
 }
 
 void

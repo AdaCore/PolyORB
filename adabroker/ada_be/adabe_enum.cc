@@ -37,9 +37,10 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
       if (!activator.is_done()) body += ", ";
     }
   body +=" ) ;\n";
-  body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
+  body += "   type " + get_ada_local_name() + "_Ptr is access ";
+  body += get_ada_local_name() + " ;\n\n";
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
+  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";  
   set_already_defined();
 }
 

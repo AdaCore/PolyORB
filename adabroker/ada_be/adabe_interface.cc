@@ -132,7 +132,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
     }
   body += "   type Ref_Ptr is access all Ref ;\n\n";
   body += "   Nil_Ref : aliased constant Ref ;\n";
-  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n\n\n";
+  body += "   function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref ;\n";
   body += tmp;
 
   // instructions
@@ -159,7 +159,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 #endif
 	if (e->node_type() != AST_Decl::NT_enum_val) {
 	  e->produce_ads(with, tmp1, tmp2);
-	  body += "\n" + tmp2 + tmp1;
+	  body += tmp2 + tmp1;
 	}
 	i.next();
       }
@@ -175,7 +175,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "                              return Corba.String ;\n\n";
   body += "   function Is_A(The_Ref : in Ref ;\n";
   body += "                 Repo_Id : in Corba.String)\n";
-  body += "                 return Corba.Boolean ;\n";
+  body += "                 return Corba.Boolean ;\n\n";
   body += "   function Is_A(Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean ;\n\n";
   body += "   function Get_Nil_Ref(Self : in Ref)\n";

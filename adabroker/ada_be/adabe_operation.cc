@@ -31,7 +31,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ";\n";
+	  body += " ;\n";
 	  body += "             " + space ;
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
@@ -42,7 +42,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
       body += ")\n";
       body += "             " + space + "return "; 
       AST_Decl *b = return_type();
-      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;\n";
+      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;\n\n\n";
     }
   else
     {
@@ -63,7 +63,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	AST_Decl *b = return_type();
 	body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
 	}
-      body += " ) ;\n";
+      body += " ) ;\n\n\n";
     }
   set_already_defined ();
 }

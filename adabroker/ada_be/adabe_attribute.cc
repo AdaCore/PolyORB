@@ -16,7 +16,7 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
   compute_ada_name();
   body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
-  body += "                  " + space + "return "; 
+  body += "                 " + space + "return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " ;\n\n";
@@ -24,10 +24,10 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
     {
       body += "   procedure Set_" + get_ada_local_name();
       body += "(Self : in Ref ;\n";
-      body += "                   " + space + "To : in ";
+      body += "                  " + space + "To : in ";
       body += name;
-      body += ") ;\n";
-    }
+      body += ") ;\n\n\n";
+    } else body += "\n";
 }
 
 void

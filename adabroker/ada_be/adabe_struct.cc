@@ -22,10 +22,11 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }
-  body += "   end record;\n";
-  body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
+  body += "   end record ;\n";
+  body += "   type " + get_ada_local_name() + "_Ptr is access ";
+  body += get_ada_local_name() + " ;\n\n";
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
+  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
   set_already_defined();
 }
 

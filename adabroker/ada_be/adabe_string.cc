@@ -104,18 +104,18 @@ void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
   
   if (evaluate(max_size()->ev())==0)
     {
-      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n";
+      body+= "   type " + get_ada_local_name() + " is new Corba.String ;\n\n\n";
     }
   else
     {
       
       body += "   package Corba.Bounded_String_" + to_string(max_size()->ev());
-      body += " is\n\t\t new Corba.Bounded_String(";
+      body += " is new Corba.Bounded_String(";
       body +=  to_string(max_size()->ev());
       body += ") ;\n\n";
-      body += "   type "+ get_ada_local_name() + " is\n\t\t new Corba.Bounded_String_";
+      body += "   type "+ get_ada_local_name() + " is new Corba.Bounded_String_";
       body += to_string(max_size()->ev());
-      body += ".Bounded_String ;\n\n";
+      body += ".Bounded_String ;\n\n\n";
     }
 
   set_already_defined();
