@@ -395,7 +395,7 @@ package PolyORB.Any is
       -----------------------------------------------------
 
       --  NOTE: TypeCode internal chained list cannot be easily converted to
-      --  an instance of PolyORB.Utils.Lists : at this point, Any is
+      --  an instance of PolyORB.Utils.Chained_Lists : at this point, Any is
       --  still the public view of a private type.
 
       type Cell;
