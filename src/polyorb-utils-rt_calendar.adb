@@ -34,11 +34,13 @@
 
 --  $Id$
 
---  This package implements the basic operations of ada.calendar,
---  using ada.real_time. To do so, a part of the code comes from
---  the Linux-x86 GNAT implementation of ada.calendar, and thus is
---  likely to have the same limitations and compatibility issues with
---  others platforms. See the GNAT Reference Manual for details.
+--  This package implements the basic operations of Ada.Calendar,
+--  using Ada.Real_Time to avoid Ada.Calendar issues concering
+--  tasking. A part of the code comes from the Linux-x86
+--  GNAT implementation of Ada.Calendar, and thus is likely to have
+--  the same limitations and compatibility issues with others
+--  platforms. See the GNAT Reference Manual for details.
+
 
 with Ada.Real_Time;
 with Ada.Unchecked_Conversion;
