@@ -1,3 +1,4 @@
+aclocal.m4
 compilers/idlac/ada_be.ads
 compilers/idlac/ada_be-constants.ads
 compilers/idlac/ada_be-debug.adb
