@@ -62,7 +62,7 @@ package CORBA.AbstractBase is
    function Object_Of (Self : Ref) return CORBA.Impl.Object_Ptr;
 
 
-   --  Adabroker specific, temporrily to switch to spec
+   --  Adabroker specific, temporarily to switch to spec
    --  2.3 and still provide coherent reference counting
 
    procedure Set (Self : in out Ref;
