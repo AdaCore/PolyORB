@@ -34,6 +34,7 @@
 
 with MOMA.Provider.Message_Consumer;
 with MOMA.Provider.Message_Producer;
+with MOMA.Provider.Message_Handler;
 
 with PolyORB;
 with PolyORB.Annotations;
@@ -89,11 +90,13 @@ package body MOMA.Sessions is
    function Create_Handler
      (Self           : Session;
       Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
-      return MOMA.Provider.Message_Handler.Object_Acc
+      return MOMA.Message_Handlers.Message_Handler_Acc
    is
-      Handler : MOMA.Provider.Message_Handler.Object_Acc :=
+      Handler : MOMA.Message_Handlers.Message_Handler_Acc :=
+         new MOMA.Message_Handlers.Message_Handler;
+      Servant : MOMA.Provider.Message_Handler.Object_Acc :=
          new MOMA.Provider.Message_Handler.Object;
-      Handler_Ref : PolyORB.References.Ref;
+      Servant_Ref : PolyORB.References.Ref;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -101,14 +104,12 @@ package body MOMA.Sessions is
       --  XXX Self is to be used to 'place' the receiver
       --  using session position in the POA.
       --  XXX XXX (same as in Create_Receiver)
-      Handler := new MOMA.Provider.Message_Handler.Object;
-      Initiate_Servant (Handler,
+      Initiate_Servant (Servant,
                         MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
-                        Handler_Ref);
-
-      MOMA.Provider.Message_Handler.Initialize (
-         Handler, Message_Cons, Handler_Ref, null, null);
+                        Servant_Ref);
+      MOMA.Message_Handlers.Initialize (
+         Handler, Message_Cons, Servant_Ref, null, null);
       return Handler;
    end Create_Handler;
 

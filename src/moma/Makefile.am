@@ -12,6 +12,7 @@ ADA_SPECS_WITH_BODY = \
 	moma-connections.ads \
 	moma-destinations.ads \
 	moma-message_consumers.ads \
+	moma-message_handlers.ads \
 	moma-message_producers.ads \
 	moma-messages-manys.ads \
 	moma-messages-mbytes.ads \

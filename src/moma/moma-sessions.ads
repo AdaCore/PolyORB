@@ -42,7 +42,7 @@
 with MOMA.Destinations;
 with MOMA.Message_Consumers;
 with MOMA.Message_Producers;
-with MOMA.Provider.Message_Handler;
+with MOMA.Message_Handlers;
 with MOMA.Types;
 
 with PolyORB.References;
@@ -78,7 +78,7 @@ package MOMA.Sessions is
    function Create_Handler
      (Self           : Session;
       Message_Cons   : MOMA.Message_Consumers.Message_Consumer_Acc)
-      return MOMA.Provider.Message_Handler.Object_Acc;
+      return MOMA.Message_Handlers.Message_Handler_Acc;
    --  Create a Message Handler associated to the specified Message consumer.
    --  Must set the Handler and Notifier procedures afterwards.
 
