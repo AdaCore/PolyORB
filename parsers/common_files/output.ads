@@ -92,6 +92,7 @@ pragma Elaborate_Body (Output);
    procedure Decrement_Indentation;
    procedure Increment_Indentation;
 
+   procedure Set_Space_Increment (Value : Natural);
    procedure Write_Indentation;
    procedure Write_Space;
 

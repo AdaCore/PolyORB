@@ -44,7 +44,7 @@ package body Scopes is
 
    procedure Enter_Name_In_Scope (N : Node_Id)
    is
-      E : constant Node_Id := Node (N);
+      E : constant Node_Id := Corresponding_Entity (N);
       S : constant Node_Id := Current_Scope;
       C : constant Node_Id := Node_In_Current_Scope (N);
       H : Node_Id;
@@ -62,7 +62,7 @@ package body Scopes is
          elsif Kind (C) = K_Module
            and then Kind (E) = K_Module
          then
-            null;
+            Set_Scoped_Identifiers (E, Scoped_Identifiers (C));
 
          --  This scoped name is already in the scope
 
@@ -72,8 +72,6 @@ package body Scopes is
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
                Set_Forward             (C, E);
-               Set_Scope               (H, No_Node);
-               Set_Potential_Scope     (H, No_Node);
                Set_Explicitely_Visible (H, False);
                Set_Implicitely_Visible (H, False);
                Remove_From_Homonyms    (H);
@@ -93,12 +91,12 @@ package body Scopes is
       end if;
 
       Insert_Into_Homonyms    (N);
-      if No (Scope (N)) then
-         Set_Scope (N, S);
+      if No (Scope_Entity (N)) then
+         Set_Scope_Entity (N, S);
       end if;
       Set_Potential_Scope     (N, S);
       Set_Explicitely_Visible (N, True);
-      Set_Next_Node           (N, Scoped_Identifiers (S));
+      Set_Next_Entity         (N, Scoped_Identifiers (S));
       Set_Scoped_Identifiers  (S, N);
    end Enter_Name_In_Scope;
 
@@ -110,7 +108,7 @@ package body Scopes is
    begin
       Init;
       Increment_Last;
-      Root_Name := No_Name;
+      IDL_Spec_Name := No_Name;
    end Initialize;
 
    --------------------------
@@ -153,7 +151,7 @@ package body Scopes is
    begin
       --  Scoped names are in the scope but cannot be made visible
 
-      if Kind (Node (N)) = K_Scoped_Name then
+      if Kind (Corresponding_Entity (N)) = K_Scoped_Name then
          return;
       end if;
 
@@ -184,6 +182,7 @@ package body Scopes is
    is
       C : Node_Id := Scoped_Identifiers (S);
       X : constant Name_Id := Name (N);
+
    begin
       --  Loop through scope S to find N. Entities potentially in the
       --  scope are present in S but they are not candidates here. As
@@ -191,12 +190,12 @@ package body Scopes is
       --  always present in the homonyms chain.
 
       while Present (C) loop
-         if Scope (C) = S
+         if Scope_Entity (C) = S
            and then Name (C) = X
          then
-            return Node (C);
+            return Corresponding_Entity (C);
          end if;
-         C := Next_Node (C);
+         C := Next_Entity (C);
       end loop;
 
       return No_Node;
@@ -213,7 +212,7 @@ package body Scopes is
       X : Node_Id;
    begin
       while Present (H) loop
-         X := Node (H);
+         X := Corresponding_Entity (H);
 
          if Potential_Scope (H) = S then
             return X;
@@ -291,16 +290,18 @@ package body Scopes is
             Set_Explicitely_Visible (C, False);
             Remove_From_Homonyms (C);
             if Export then
-               E := Node (C);
+               E := Corresponding_Entity (C);
                if Kind (E) = K_Scoped_Name then
                   N := Identifier (E);
                   N := Make_Identifier
-                    (Loc (N), Name (N), Node (N), Scope (N));
+                    (Loc (N), Name (N),
+                     Corresponding_Entity (N),
+                     Scope_Entity (N));
                   Set_Potential_Scope  (N, S);
                   Enter_Name_In_Scope  (N);
                end if;
             end if;
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
       end;
 
@@ -319,11 +320,13 @@ package body Scopes is
    -- Push_Scope --
    ----------------
 
-   procedure Push_Scope (S : Node_Id)
-   is
+   procedure Push_Scope (S : Node_Id) is
+      I : Node_Id;
+
    begin
       Increment_Last;
       Table (Last).Node := S;
+
       if D_Scopes then
          W_Str      ("push scope """);
          if Kind (S) /= K_Specification then
@@ -337,6 +340,14 @@ package body Scopes is
          end if;
          W_Eol;
       end if;
+
+      I := Scoped_Identifiers (S);
+      while Present (I) loop
+         Insert_Into_Homonyms (I);
+         Set_Explicitely_Visible (I, True);
+         Set_Scope_Entity (I, S);
+         I := Next_Entity (I);
+      end loop;
    end Push_Scope;
 
    --------------------------
@@ -390,7 +401,7 @@ package body Scopes is
       E : Node_Id;
    begin
       if Present (H) then
-         E := Node (H);
+         E := Corresponding_Entity (H);
 
          --  The current visible entity has already been entered in the scope
 
@@ -399,7 +410,7 @@ package body Scopes is
          end if;
 
          if Explicitely_Visible (H) then
-            return Node (H);
+            return Corresponding_Entity (H);
 
          elsif Implicitely_Visible (H) then
             H := Homonym (H);
@@ -420,7 +431,7 @@ package body Scopes is
                return No_Node;
 
             else
-               return Node (First_Homonym (N));
+               return Corresponding_Entity (First_Homonym (N));
             end if;
          end if;
       end if;
@@ -459,7 +470,7 @@ package body Scopes is
    begin
       W_Str (Image (Loc (N)));
       W_Str ("(");
-      if Kind (Node (N)) = K_Scoped_Name then
+      if Kind (Corresponding_Entity (N)) = K_Scoped_Name then
          W_Str ("S");
       elsif Explicitely_Visible (N) then
          W_Str ("V");
@@ -486,7 +497,7 @@ package body Scopes is
          W_Str (" [");
          W_Homonyms (C);
          W_Str ("]");
-         C := Next_Node (C);
+         C := Next_Entity (C);
          exit when No (C);
          W_Str (" ");
       end loop;

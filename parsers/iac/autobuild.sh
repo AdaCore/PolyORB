@@ -1,4 +1,3 @@
-#Autobuild
+#!/bin/sh
 make clean
 make
-

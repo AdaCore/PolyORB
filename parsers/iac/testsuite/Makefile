@@ -223,7 +223,7 @@ mostlyclean distclean maintainer-clean
 all:
 	@for i in `cat MANIFEST | grep -v '^#'`; do \
 	  echo $$i; \
-	  run-test $$i; \
+	  ./run-test $$i; \
 	done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

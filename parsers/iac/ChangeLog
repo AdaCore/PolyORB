@@ -1,3 +1,132 @@
+2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-generator.adb, backend-be_ada-nutils.adb,
+	backend-be_ada-nodes.idl, backend-be_ada-nutils.ads,
+	backend-be_ada.adb: Generate object declaration and in particular
+	constant declaration.
+
+2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
+	
+	* backend-be_ada-nutils.adb: Add Make_Array_Type_Definition and
+	Make_Range_Constraints in order to map complex declarators.
+
+	* backend-be_ada-generator.adb: Replace Write_Token with Write.
+	Generate array type definition. Fix several missing end of line.
+
+	* backend-be_ada-nodes.idl: Add Range_Constraints and
+	Range_Constraint to handle complex declarators.
+
+	* backend-be_ada-debug.adb, backend-be_ada-debug.ads: Output
+	values.
+
+	* scopes.adb: When re-entering a module, re-introduce all
+	the scoped identifiers in the new scope, in their homonyms chain
+	and make them visible.
+
+	* backend-be_ada.adb: When visiting a scoped name which designates
+	a constant, output its value instead of the scoped name. Map
+	complex declarators for type definition and structure
+	members. Comment Visit_Operation_Declaration.
+
+	* backend-be_idl.adb: Remove space between array sizes and
+	declarator in a complex declarator to match omniorb output. Output
+	properly empty exception. Output literals and string types.
+
+2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-generator.adb: Do invoke specific Generate, use
+	dispatching one instead. Remove Generate_Qualified_Identifier
+	since Generate_Defining_Identifier does the job.
+
+	* backend-be_ada-nutils.adb, backend-be_ada.adb: Fix
+	Make_Fully_Qualified_Identifier in order not to have specification
+	identifier as a prefix.
+
+2004-06-23  Saber Souli   <souli@enst.fr>
+	* backend-be_ada.adb : Fixed void operation handling bug.
+	Add an empty body for subprograms. Handle nested blocs. 
+
+	* backend-be_ada-generator.adb : Add Token_Type to handle ada
+	keyword and graphic characters. add  Generate_Qualified_Name (N :
+	Node_Id) to a full qualified name. Add
+	Generate_Subprogram_Implementation  : generate a subprogram
+	body. Add  Image function : returns the image of a Token_Type. Add
+	Write_Token : a procedure that print the image of a given
+	Token_Type. 
+
+2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* lexer.adb, lexer.ads: Add CORBA 3.0 keywords.
+
+	* frontend-nodes.idl, frontend-nutils.ads, frontend-nutils.adb:
+	Add function Length.
+
+	* Makefile: Invoke run-test right from the Makefile.
+
+2004-06-23  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* values.adb: Format float image in such a way that we do not have
+	useless zeros.
+
+	* frontend-debug.adb: Use Parameter_Mode.
+
+	* backend-be_ada.adb: Handle inout and out parameters in
+	functions.
+
+	* analyzer.adb: Handle forward entities when resolving types.
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
+	backend-be_ada-nodes.idl: Replace subprogram_specification with
+	specification to match GNAT tree.
+
+	* scopes.adb: Do not reset scope to No_Node for forward entities
+	as they can be visited mater on and need to have a scope anyway.
+
+
+2004-06-22  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* frontend-nutils.adb, frontend-nutils.ads, backend-be_idl.adb:
+	Define a new converter function for parameters to fix output bug.
+
+	* backend-be_ada*: Merge be_a into be_ada.
+
+	* backend-be_a-generator.adb, backend-be_a-nutils.adb,
+	backend-be_a-nutils.adb, backend-be_a-nutils.ads,
+	backend-be_a-nodes.idl, backend-be_a.adb: Implement designator,
+	structure type, with clause (automatically added but should not be
+	replicated), operation declaration,
+
+	* analyzer.adb, scopes.adb, scopes.ads, parser.adb,
+	backend-be_ada.adb, backend-be_idl.adb, frontend-nutils.adb,
+	frontend-nodes.idl, frontend-nutils.ads, frontend-debug.adb,
+	backend-be_ada-nutils.adb, backend-be_ada-nutils.ads, mknodes.adb:
+	Clarification between nodes and entities. Clarification of
+	Mode_Id.
+
+2004-06-21  Saber Souli <souli@enst.fr>
+	* backend-be_ada.adb : Handle complex declarator. Now the backend
+	map all the list of declarators. Generate library file (IDL). Add
+	append_type_to_package_spec (T:Node_Id ; P : node_id): a function
+	that add the type <T> in the specification part of the package P.  
+	    
+2004-06-21  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_a.adb, backend-be_a-nutils.adb: Clarification between
+	nodes and entities. Start implementing type declaration and
+	designator and module.
+
+	* backend-be_a-generator.adb: Fix output problem on
+	Record_Extension_Part.
+
+	* scopes.adb, parser.adb, backend-be_idl.adb, frontend-nodes.idl:
+	Clarification between nodes and entities.
+
+2004-06-15  Saber Souli   <souli@enst.fr>
+  	* output.ads, output.adb 
+	Add procedure Set_Space_Increment (Value : Natural); to change the
+	Space_Increment and so enable dealling with different
+	indentations. 
+	
 2004-06-15  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-nutils.adb, backend-be_ada-generator.adb,

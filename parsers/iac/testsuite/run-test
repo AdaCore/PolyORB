@@ -1,5 +1,6 @@
 #!/bin/sh
-PATH=$PWD:$PWD/..:$PATH
+DIR=`dirname $0`
+PATH=$PWD:$PWD/$DIR:$PATH
 if [ -d $1 ]; then
   DIR=$1;
   FILE=`ls $DIR/*.idl| awk 'BEGIN{IFS="/"}{print $NF;exit}'`
@@ -20,7 +21,8 @@ if [ -f test.out ]; then
 else
   test ! -s $LOG
 fi
-if [ $? != 0 ]; then
+CODE=$?
+if [ $CODE != 0 ]; then
   OUT=FAILED;
   echo "$DIR $OUT" | awk '{printf ("%-20s%20s\n", $1, $2)}'
   echo "--------------- expected output ------------------"
@@ -31,3 +33,4 @@ if [ $? != 0 ]; then
   cat $LOG
   echo "--------------------------------------------------"
 fi;
+exit $CODE

@@ -1,5 +1,0 @@
-package requests
-  data request
-  --  data structure for neutral requests
-  end request;
-end requests;

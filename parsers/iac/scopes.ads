@@ -4,11 +4,11 @@ with Types; use Types;
 
 package Scopes is
 
-   --  Scope and Visibility:
+   --  Scope_Entity and Visibility:
    --  ---------------------
    --
-   --  To handle scope, iac uses two dedicated node attributes : Scope
-   --  and Potential_Scope. Scope designates the regular scope of the
+   --  To handle scope, iac uses two dedicated node attributes : Scope_Entity
+   --  and Potential_Scope. Scope_Entity designates the regular scope of the
    --  corresponding entity when Potential_Scope designates the scope
    --  in which the entity has been imported. Imports occur for type
    --  names and inherited interfaces.
@@ -68,8 +68,8 @@ package Scopes is
    --  Detect naming conflict with N. In case of success, add N to the
    --  current scope.
 
-   Root      : Node_Id;
-   Root_Name : Name_Id;
+   IDL_Spec           : Node_Id;
+   IDL_Spec_Name      : Name_Id;
 
 end Scopes;
 

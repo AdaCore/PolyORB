@@ -75,6 +75,55 @@ package body Values is
 
          when K_Float .. K_Long_Double =>
             Add_Str_To_Name_Buffer (Long_Double'Image (V.FVal));
+            declare
+               Index : Natural := Name_Len;
+
+            begin
+
+               --  Find exponent if any
+
+               while Index > 0 and then Name_Buffer (Index) /= 'E' loop
+                  Index := Index - 1;
+               end loop;
+
+               --  Remove leading zero in exponent part.
+
+               if Index > 0 then
+                  Index := Index + 2;
+                  while Index <= Name_Len
+                    and then Name_Buffer (Index) = '0'
+                  loop
+                     Name_Buffer (Index .. Name_Len - 1) :=
+                       Name_Buffer (Index + 1 .. Name_Len);
+                     Name_Len := Name_Len - 1;
+                  end loop;
+
+                  --  Remove exponent
+
+                  if Index > Name_Len then
+                     Name_Len := Name_Len - 2;
+                     Index := Name_Len;
+
+                  else
+                     Index := Name_Len;
+                     while Name_Buffer (Index) /= 'E' loop
+                        Index := Index - 1;
+                     end loop;
+                     Index := Index - 1;
+                  end if;
+
+               end if;
+
+               --  Remove trailing zero in fraction part.
+
+               while Name_Buffer (Index) = '0' loop
+                  exit when Name_Buffer (Index - 1) = '.';
+                  Name_Buffer (Index .. Name_Len - 1) :=
+                    Name_Buffer (Index + 1 .. Name_Len);
+                  Name_Len := Name_Len - 1;
+                  Index    := Index - 1;
+               end loop;
+            end;
 
          when K_Char | K_Wide_Char =>
             if V.K = K_Wide_Char then

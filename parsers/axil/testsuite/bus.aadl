@@ -1,6 +1,0 @@
-bus ethernet
-end ethernet;
-
-bus implementation ethernet.eth100
-
-end ethernet.eth100;

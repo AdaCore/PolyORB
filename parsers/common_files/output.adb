@@ -131,6 +131,15 @@ package body Output is
       N_Space := N_Space + Space_Increment;
    end Increment_Indentation;
 
+   -------------------------
+   -- Set_Space_Increment --
+   -------------------------
+
+   procedure Set_Space_Increment (Value : Natural) is
+   begin
+      Space_Increment := Value;
+   end Set_Space_Increment;
+
    ------------------------
    -- Set_Standard_Error --
    ------------------------

@@ -1,34 +1,40 @@
-with Lexer;     use Lexer;
+with GNAT.Table;
+
 with Locations; use Locations;
 with Namet;     use Namet;
+with Utils;     use Utils;
+with Values;    use Values;
 
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Frontend.Nodes;
 
 package body Backend.BE_Ada.Nutils is
 
-   use Inheritance_Stack;
+   package BEN renames Backend.BE_Ada.Nodes;
+
+   type Entity_Stack_Entry is record
+      Current_Package : Node_Id;
+      Current_Entity  : Node_Id;
+   end record;
+
+   No_Depth : constant Int := -1;
+   package Entity_Stack is
+      new GNAT.Table (Entity_Stack_Entry, Int, No_Depth + 1, 10, 10);
+
+   use Entity_Stack;
+
+   function Make_Withed_Package (N : Node_Id) return Node_Id;
+
+   CORBA_Type : array (FEN.K_Float .. FEN.K_Value_Base) of Name_Id;
 
    -------------------------
    -- Append_Node_To_List --
    -------------------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id) is
+   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
       Last : Node_Id;
-      List_Kind : Node_Kind;
+
    begin
-
-      --  XXX Tres mauvais !
-
-      if L = No_List then
-         case Kind (E) is
-            when K_Declaration_List =>
-               List_Kind := K_Declaration_List;
-            when others =>
-               List_Kind := K_List_Id;
-         end case;
-         L := New_List (List_Kind, No_Location);
-      end if;
-
       Last := Last_Node (L);
       if No (Last) then
          Set_First_Node (L, E);
@@ -42,99 +48,72 @@ package body Backend.BE_Ada.Nutils is
       end loop;
    end Append_Node_To_List;
 
+   ---------------
+   -- Copy_Node --
+   ---------------
+
+   function Copy_Node (N : Node_Id) return Node_Id is
+      C : Node_Id;
+
+   begin
+      case Kind (N) is
+         when K_Designator =>
+            C := New_Node (K_Designator);
+            Set_Defining_Identifier (C, Defining_Identifier (N));
+            Set_Parent_Unit_Name (C, Parent_Unit_Name (N));
+
+         when K_Defining_Identifier =>
+            C := New_Node (K_Defining_Identifier);
+            Set_Name (C, Name (N));
+            Set_Parent_Unit_Name (C, Parent_Unit_Name (N));
+
+         when others =>
+            raise Program_Error;
+      end case;
+      return C;
+   end Copy_Node;
+
+   --------------------
+   -- Current_Entity --
+   --------------------
+
+   function Current_Entity return Node_Id is
+   begin
+      if Last = No_Depth then
+         return No_Node;
+      else
+         return Table (Last).Current_Entity;
+      end if;
+   end Current_Entity;
+
    ---------------------
    -- Current_Package --
    ---------------------
 
    function Current_Package return Node_Id is
    begin
-      if Last = No_Inheritance_Depth then
+      if Last = No_Depth then
          return No_Node;
       else
-         return Table (Last).Node;
+         return Table (Last).Current_Package;
       end if;
    end Current_Package;
 
-   ------------------
-   -- Push_Package --
-   ------------------
+   ------------------------
+   -- Declare_CORBA_Type --
+   ------------------------
 
-   procedure Push_Package (E : Node_Id) is
+   procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "") is
    begin
-      Increment_Last;
-      Table (Last).Node := E;
-   end Push_Package;
-
-   -----------------
-   -- Pop_Package --
-   -----------------
-
-   procedure Pop_Package is
-   begin
-      if Last > No_Inheritance_Depth then
-         Decrement_Last;
+      if S'Length = 0 then
+         Set_Str_To_Name_Buffer (FEN.Node_Kind'Image (K));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
       else
-         null;  --  maybe it's better to raise an exception.
+         Set_Str_To_Name_Buffer (S);
       end if;
-   end Pop_Package;
-
-   ------------------
-   -- Package_Name --
-   ------------------
-
-   function Package_Name (E : Node_Id) return String is
-   begin
-      return Get_Name_String (Name (Identifier (E)));
-   end Package_Name;
-
-   -----------------------
-   -- Full_Package_Name --
-   -----------------------
-
-   function Full_Package_Name (E : Node_Id) return String is
-      P : Node_Id;
-   begin
-      P := Parent (E);
-      if Present (P) then
-         Set_Str_To_Name_Buffer (Full_Package_Name (P));
-         Add_Char_To_Name_Buffer ('.');
-         Get_Name_String_And_Append (Name (Identifier (E)));
-         return Name_Buffer (1 .. Name_Len);
-      else
-         return Get_Name_String (Name (Identifier (E)));
-      end if;
-   end Full_Package_Name;
-
-   --------------
-   -- New_Node --
-   --------------
-
-   function New_Node
-     (Kind : Node_Kind;
-      Loc : Location)
-     return Node_Id is
-      N : Node_Id;
-   begin
-      Entries.Increment_Last;
-      N := Entries.Last;
-      Entries.Table (N) := Default_Node;
-      Set_Kind (N, Kind);
-      Set_Loc  (N, Loc);
-
-      return N;
-   end New_Node;
-
-   --------------
-   -- New_List --
-   --------------
-
-   function New_List
-     (Kind : Node_Kind;
-      Loc  : Location)
-     return List_Id is
-   begin
-      return List_Id (New_Node (Kind, Loc));
-   end New_List;
+      Capitalize (Name_Buffer (1 .. Name_Len));
+      CORBA_Type (K) := Name_Find;
+   end Declare_CORBA_Type;
 
    --------------
    -- Is_Empty --
@@ -145,12 +124,456 @@ package body Backend.BE_Ada.Nutils is
       return L = No_List or else No (First_Node (L));
    end Is_Empty;
 
+   --------------------------------
+   -- Make_Array_Type_Definition --
+   --------------------------------
+
+   function Make_Array_Type_Definition
+     (Range_Constraints    : List_Id;
+      Component_Definition : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (BEN.K_Array_Type_Definition);
+      Set_Range_Constraints (N, Range_Constraints);
+      Set_Component_Definition (N, Component_Definition);
+      return N;
+   end Make_Array_Type_Definition;
+
+   --------------------------------
+   -- Make_Component_Declaration --
+   --------------------------------
+
+   function Make_Component_Declaration
+     (Defining_Identifier : Node_Id;
+      Subtype_Indication  : Node_Id)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Component_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Subtype_Indication (N, Subtype_Indication);
+      return N;
+   end Make_Component_Declaration;
+
+   ------------------------------
+   -- Make_Defining_Identifier --
+   ------------------------------
+
+   function Make_Defining_Identifier (Entity : Node_Id) return Node_Id is
+      use FEN;
+
+      I : Node_Id := Entity;
+
+   begin
+      if FEN.Kind (Entity) /= FEN.K_Identifier then
+         I := FEN.Identifier (Entity);
+      end if;
+      return Make_Defining_Identifier (IDL_Name (I));
+   end Make_Defining_Identifier;
+
+   ------------------------------
+   -- Make_Defining_Identifier --
+   ------------------------------
+
+   function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Defining_Identifier);
+      Set_Name (N, To_Ada_Name (Name));
+      return N;
+   end Make_Defining_Identifier;
+
+   ----------------------------------
+   -- Make_Derived_Type_Definition --
+   ----------------------------------
+
+   function Make_Derived_Type_Definition
+     (Subtype_Indication    : Node_Id;
+      Record_Extension_Part : Node_Id;
+      Is_Abstract_Type      : Boolean := False)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Derived_Type_Definition);
+      Set_Is_Abstract_Type (N, Is_Abstract_Type);
+      Set_Subtype_Indication (N, Subtype_Indication);
+      Set_Record_Extension_Part (N, Record_Extension_Part);
+      return N;
+   end Make_Derived_Type_Definition;
+
+   ---------------------
+   -- Make_Designator --
+   ---------------------
+
+   function Make_Designator (Entity : Node_Id) return Node_Id is
+      use FEN;
+      I : Node_Id;
+      P : Node_Id;
+      N : Node_Id;
+      K : FEN.Node_Kind;
+      R : Node_Id;
+
+   begin
+      K := FEN.Kind (Entity);
+      if K = FEN.K_Scoped_Name then
+         R := Reference (Entity);
+         if Kind (BE_Node (R)) = K_Specification then
+            return No_Node;
+         end if;
+         N := New_Node (K_Designator);
+         Set_Defining_Identifier (N, Make_Defining_Identifier (R));
+         P := Parent_Entity (Entity);
+         if Present (P) then
+            Set_Parent_Unit_Name (N, Make_Designator (P));
+         end if;
+
+      elsif K in FEN.K_Float .. FEN.K_Value_Base then
+         Set_Str_To_Name_Buffer ("CORBA");
+         I := Make_Defining_Identifier (Name_Find);
+         P := New_Node (K_Designator);
+         Set_Defining_Identifier (P, I);
+         I := Make_Defining_Identifier (CORBA_Type (K));
+         N := New_Node (K_Designator);
+         Set_Defining_Identifier (N, I);
+         Set_Parent_Unit_Name (N, P);
+
+      else
+         raise Program_Error;
+      end if;
+
+      P := Parent_Unit_Name (N);
+      if Present (P) then
+         Append_Node_To_List
+           (Make_Withed_Package (P), Withed_Packages (Current_Package));
+      end if;
+
+      return N;
+   end Make_Designator;
+
+   --------------------------------------
+   -- Make_Enumeration_Type_Definition --
+   --------------------------------------
+
+   function Make_Enumeration_Type_Definition
+     (Enumeration_Literals : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Enumeration_Type_Definition);
+      Set_Enumeration_Literals (N, Enumeration_Literals);
+      return N;
+   end Make_Enumeration_Type_Definition;
+
+   --------------------------------
+   -- Make_Full_Type_Declaration --
+   --------------------------------
+
+   function Make_Full_Type_Declaration
+     (Defining_Identifier : Node_Id;
+      Type_Definition     : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Full_Type_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Type_Definition (N, Type_Definition);
+      return N;
+   end Make_Full_Type_Declaration;
+
+   -------------------------------------
+   -- Make_Fully_Qualified_Identifier --
+   -------------------------------------
+
+   function Make_Fully_Qualified_Identifier
+     (Entity : Node_Id)
+     return Node_Id is
+      use FEN;
+
+      N : Node_Id;
+      P : Node_Id;
+      I : Node_Id;
+
+   begin
+      I := FEN.Identifier (Entity);
+      Get_Name_String (IDL_Name (I));
+      if Kind (Entity) = K_Specification then
+         Add_Str_To_Name_Buffer ("_IDL_File");
+      end if;
+      N := Make_Defining_Identifier (Name_Find);
+      P := FEN.Scope_Entity (I);
+      if Present (P)
+        and then FEN.Kind (P) /= FEN.K_Specification
+      then
+         Set_Parent_Unit_Name (N, Make_Fully_Qualified_Identifier (P));
+      end if;
+      return N;
+   end Make_Fully_Qualified_Identifier;
+
+   ------------------
+   -- Make_Literal --
+   ------------------
+
+   function Make_Literal
+     (Value : Value_Id)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Literal);
+      Set_Value (N, Value);
+      return N;
+   end Make_Literal;
+
+   -----------------------------
+   -- Make_Object_Declaration --
+   -----------------------------
+
+   function Make_Object_Declaration
+     (Defining_Identifier : Node_Id;
+      Constant_Present    : Boolean;
+      Object_Definition   : Node_Id;
+      Expression          : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Object_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Constant_Present (N, Constant_Present);
+      Set_Object_Definition (N, Object_Definition);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Object_Declaration;
+
+   ----------------------------------
+   -- Make_Parameter_Specification --
+   ----------------------------------
+
+   function Make_Parameter_Specification
+     (Defining_Identifier : Node_Id;
+      Subtype_Mark        : Node_Id;
+      Parameter_Mode      : Mode_Id := Mode_In)
+      return                Node_Id
+   is
+      P : Node_Id;
+
+   begin
+      P := New_Node (K_Parameter_Specification);
+      Set_Defining_Identifier (P, Defining_Identifier);
+      Set_Parameter_Type (P, Subtype_Mark);
+      Set_Parameter_Mode (P, Parameter_Mode);
+      return P;
+   end Make_Parameter_Specification;
+
+   ----------------------------
+   -- Make_Range_Constraints --
+   ----------------------------
+
+   function Make_Range_Constraints
+     (Array_Sizes : List_Id)
+     return List_Id
+   is
+      L : List_Id;
+      S : Node_Id;
+      R : Node_Id;
+      V : Value_Type;
+
+   begin
+      L := New_List (K_Range_Constraints);
+      S := FEN.First_Entity (Array_Sizes);
+      while Present (S) loop
+         R := New_Node (K_Range_Constraint);
+         Set_First (R, Int0_Val);
+         V := Value (FEN.Value (S));
+         V.IVal := V.IVal - 1;
+         Set_Last (R, New_Value (V));
+         Append_Node_To_List (R, L);
+         S := FEN.Next_Entity (S);
+      end loop;
+      return L;
+   end Make_Range_Constraints;
+
+   ----------------------------
+   -- Make_Record_Definition --
+   ----------------------------
+
+   function Make_Record_Definition
+     (Component_List : List_Id)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Record_Definition);
+      Set_Component_List (N, Component_List);
+      return N;
+   end Make_Record_Definition;
+
+   ---------------------------------
+   -- Make_Record_Type_Definition --
+   ---------------------------------
+
+   function Make_Record_Type_Definition
+     (Record_Definition : Node_Id;
+      Is_Abstract_Type  : Boolean := False;
+      Is_Tagged_Type    : Boolean := False;
+      Is_Limited_Type   : Boolean := False)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Record_Type_Definition);
+      Set_Is_Abstract_Type (N, Is_Abstract_Type);
+      Set_Is_Tagged_Type (N, Is_Tagged_Type);
+      Set_Is_Limited_Type (N, Is_Limited_Type);
+      Set_Record_Definition (N, Record_Definition);
+      return N;
+   end Make_Record_Type_Definition;
+
+   ------------------------------------
+   -- Make_Subprogram_Implementation --
+   ------------------------------------
+
+   function Make_Subprogram_Implementation
+     (Specification : Node_Id;
+      Declarations  : List_Id;
+      Statements    : List_Id)
+
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Subprogram_Implementation);
+      Set_Specification (N, Specification);
+      Set_Declarations (N, Declarations);
+      Set_Statements (N, Statements);
+      return N;
+   end Make_Subprogram_Implementation;
+
+   -----------------------------------
+   -- Make_Subprogram_Specification --
+   -----------------------------------
+
+   function Make_Subprogram_Specification
+     (Defining_Identifier : Node_Id;
+      Parameter_Profile   : List_Id;
+      Return_Type         : Node_Id := No_Node)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Subprogram_Specification);
+      Set_Defining_Identifier  (N, Defining_Identifier);
+      Set_Parameter_Profile    (N, Parameter_Profile);
+      Set_Return_Type          (N, Return_Type);
+      return N;
+   end Make_Subprogram_Specification;
+
+   -------------------------
+   -- Make_Withed_Package --
+   -------------------------
+
+   function Make_Withed_Package (N : Node_Id) return Node_Id is
+      W : Node_Id;
+
+   begin
+      W := New_Node (K_Withed_Package);
+      Set_Defining_Identifier (W, Copy_Node (Defining_Identifier (N)));
+      return W;
+   end Make_Withed_Package;
+
+   --------------
+   -- New_List --
+   --------------
+
+   function New_List
+     (Kind : Node_Kind;
+      From : Node_Id := No_Node)
+     return List_Id is
+      N : Node_Id;
+
+   begin
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, Kind);
+      if Present (From) then
+         Set_Loc  (N, Loc (From));
+      else
+         Set_Loc  (N, No_Location);
+      end if;
+
+      return List_Id (N);
+   end New_List;
+
+   --------------
+   -- New_Node --
+   --------------
+
+   function New_Node
+     (Kind : Node_Kind;
+      From : Node_Id := No_Node)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, Kind);
+      if Present (From) then
+         BEN.Set_FE_Node (N, From);
+         FEN.Set_BE_Node (From, N);
+         Set_Loc  (N, FEN.Loc (From));
+      else
+         Set_Loc  (N, No_Location);
+      end if;
+
+      return N;
+   end New_Node;
+
+   ----------------
+   -- Pop_Entity --
+   ----------------
+
+   procedure Pop_Entity is
+   begin
+      if Last > No_Depth then
+         Decrement_Last;
+      end if;
+   end Pop_Entity;
+
+   -----------------
+   -- Push_Entity --
+   -----------------
+
+   procedure Push_Entity (E : Node_Id) is
+   begin
+      Increment_Last;
+      Table (Last).Current_Entity := E;
+   end Push_Entity;
+
    ---------------------------
    -- Remove_Node_From_List --
    ---------------------------
 
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
       C : Node_Id;
+
    begin
       C := First_Node (L);
       if C = E then
@@ -172,13 +595,69 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Remove_Node_From_List;
 
+   -------------------
+   -- Set_Impl_Body --
+   -------------------
+
+   procedure Set_Impl_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Implementation_Package (X));
+   end Set_Impl_Body;
+
+   -------------------
+   -- Set_Impl_Spec --
+   -------------------
+
+   procedure Set_Impl_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Implementation_Package (X));
+   end Set_Impl_Spec;
+
+   -------------------
+   -- Set_Main_Body --
+   -------------------
+
+   procedure Set_Main_Body (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Implementation (Main_Package (X));
+   end Set_Main_Body;
+
+   -------------------
+   -- Set_Main_Spec --
+   -------------------
+
+   procedure Set_Main_Spec (N : Node_Id := No_Node) is
+      X : Node_Id := N;
+   begin
+      if No (X) then
+         X := Table (Last).Current_Entity;
+      end if;
+      Table (Last).Current_Package :=
+        Package_Specification (Main_Package (X));
+   end Set_Main_Spec;
+
    -----------------
    -- To_Ada_Name --
    -----------------
 
-   function To_Ada_Name (N : Name_Id) return Name_Id
-   is
+   function To_Ada_Name (N : Name_Id) return Name_Id is
       First : Natural := 1;
+
    begin
       Get_Name_String (N);
       while First <= Name_Len
@@ -202,138 +681,5 @@ package body Backend.BE_Ada.Nutils is
 
       return Name_Find;
    end To_Ada_Name;
-
-   function To_Ada_Name (N : String) return String is
-   begin
-      Set_Str_To_Name_Buffer (N);
-      return Get_Name_String (To_Ada_Name (Name_Find));
-   end To_Ada_Name;
-
-   ------------------------
-   -- Make_Ada_Parameter --
-   ------------------------
-
-   function Make_Ada_Parameter
-     (N : Node_Id; T : Node_Id; M : Mode_Id := 0) return Node_Id
-   is
-      P : Node_Id;
-   begin
-      P := New_Node (K_Ada_Parameter, No_Location);
-      Set_Identifier (P, N);
-      Set_Type_Spec  (P, T);
-      if M = 0 then
-         Set_Parameter_Mode (P, Token_Type'Pos (T_In));
-      else
-         Set_Parameter_Mode (P, M);
-      end if;
-      return P;
-   end Make_Ada_Parameter;
-
-   -------------------------
-   -- Make_Ada_Identifier --
-   -------------------------
-
-   function Make_Ada_Identifier (N : Name_Id) return Node_Id is
-      I : Node_Id;
-   begin
-      I := New_Node (K_Ada_Identifier, No_Location);
-      Set_Name (I, To_Ada_Name (N));
-      return I;
-   end Make_Ada_Identifier;
-
-   function Make_Ada_Identifier (S : String) return Node_Id is
-   begin
-      Set_Str_To_Name_Buffer (S);
-      return Make_Ada_Identifier (Name_Find);
-   end Make_Ada_Identifier;
-
-   --------------------------
-   -- Make_Subprogram_Spec --
-   --------------------------
-
-   function Make_Subprogram_Spec
-     (S : Node_Id;
-      P : List_Id;
-      T : Node_Id := No_Node)
-     return Node_Id
-   is
-      N : Node_Id;
-   begin
-      N := New_Node (K_Ada_Subprogram_Spec, No_Location);
-      Set_Identifier (N, S);
-      Set_Parameters (N, P);
-      Set_Type_Spec (N, T);
-      return N;
-   end Make_Subprogram_Spec;
-
-   ---------------------------
-   -- Make_Enumeration_Type --
-   ---------------------------
-
-   function Make_Enumeration_Type (L : List_Id) return Node_Id is
-      Enum_Node : Node_Id;
-   begin
-      Enum_Node := New_Node (K_Enumeration_Type, No_Location);
-      Set_Enumerators (Enum_Node, L);
-      return Enum_Node;
-   end Make_Enumeration_Type;
-
-   -----------------------------------
-   -- Make_Derived_Type_Declaration --
-   -----------------------------------
-
-   function Make_Derived_Type_Declaration
-     (Identifier_Node : Node_Id;
-      Type_Spec_Node : Node_Id)
-     return Node_Id
-   is
-      Node : Node_Id;
-      Nested_Node : Node_Id;
-   begin
-      Nested_Node := New_Node (K_Derived_Type_Definition, No_Location);
-      Set_Identifier (Nested_Node, Type_Spec_Node);
-      Set_Is_Abstract (Nested_Node, False);
-      Node := Make_Type_Declaration (Identifier_Node, Nested_Node);
-      return Node;
-   end Make_Derived_Type_Declaration;
-
-   ---------------------------
-   -- Make_Type_Declaration --
-   ---------------------------
-
-   function Make_Type_Declaration
-     (Type_Identifier : Node_Id;
-      Type_Spec : Node_Id)
-     return Node_Id
-   is
-      Node : Node_Id;
-   begin
-      Node := New_Node (K_Type_Declaration, No_Location);
-      Set_Identifier (Node, Type_Identifier);
-      Set_Type_Spec (Node, Type_Spec);
-      return Node;
-   end Make_Type_Declaration;
-
-   --------------------
-   -- Parameter_Mode --
-   --------------------
-
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
-   begin
-      M := Nodes.Parameter_Mode (E);
-      return Mode_Type'Val (M);
-   end Parameter_Mode;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-   begin
-      B := Mode_Type'Pos (M);
-      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Backend.BE_Ada.Nutils;

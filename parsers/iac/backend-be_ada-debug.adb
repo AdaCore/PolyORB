@@ -3,13 +3,17 @@ with Locations;   use Locations;
 with Lexer;       use Lexer;
 with Namet;       use Namet;
 with Output;      use Output;
+with Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
+with Values;      use Values;
 
-with Backend.BE_Ada.Generator; use Backend.BE_Ada.Generator;
 with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
+with Frontend.Nodes;
 
 package body Backend.BE_Ada.Debug is
+
+   package FEN renames Frontend.Nodes;
 
    -----------
    -- Image --
@@ -34,6 +38,11 @@ package body Backend.BE_Ada.Debug is
       else
          return Get_Name_String (N);
       end if;
+   end Image;
+
+   function Image (N : Value_Id) return String is
+   begin
+      return Values.Image (N);
    end Image;
 
    function Image (N : Node_Id) return String is
@@ -90,12 +99,12 @@ package body Backend.BE_Ada.Debug is
    -----------------
 
    procedure W_Full_Tree is
-      D : Node_Id := First_Node (Packages);
+      N : Node_Id := FEN.BE_Node (Scopes.IDL_Spec);
    begin
       N_Indents := 0;
-      while Present (D) loop
-         W_Node_Id (D);
-         D := Next_Node (D);
+      while Present (N) loop
+         W_Node_Id (N);
+         N := Next_Node (N);
       end loop;
    end W_Full_Tree;
 
@@ -115,16 +124,16 @@ package body Backend.BE_Ada.Debug is
    ---------------
 
    procedure W_List_Id (L : List_Id) is
-      E : Node_Id;
+      N : Node_Id;
    begin
       if L = No_List then
          return;
       end if;
 
-      E := First_Node (L);
-      while E /= No_Node loop
-         W_Node_Id (E);
-         E := Next_Node (E);
+      N := First_Node (L);
+      while Present (N) loop
+         W_Node_Id (N);
+         N := Next_Node (N);
       end loop;
    end W_List_Id;
 
@@ -140,7 +149,9 @@ package body Backend.BE_Ada.Debug is
    is
       C : Node_Id;
    begin
-      if A = "Next_Node"
+      if A = "Next_Entity"
+        or else A = "Next_Node"
+        or else A = "Package_Declaration"
         or else A = "FE_Node"
       then
          return;
@@ -159,7 +170,7 @@ package body Backend.BE_Ada.Debug is
         and then Present (C)
       then
          case Kind (C) is
-            when K_Float .. K_Value_Base =>
+            when K_Float .. K_Any =>
                Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
             when others =>
                Write_Line (V);
@@ -168,7 +179,6 @@ package body Backend.BE_Ada.Debug is
       else
          Write_Line (V);
       end if;
-
       if A /= "Node" then
          if K = "Node_Id" then
             W_Node_Id (Node_Id (N));

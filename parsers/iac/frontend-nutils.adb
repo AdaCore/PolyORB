@@ -6,33 +6,28 @@ with Frontend.Nodes; use Frontend.Nodes;
 
 package body Frontend.Nutils is
 
-   -----------------------
-   -- Set_First_Homonym --
-   -----------------------
-
-   procedure Set_First_Homonym (N : Node_Id; V : Node_Id) is
-   begin
-      Set_Name_Table_Info (Name (N), Int (V));
-   end Set_First_Homonym;
-
    -------------------------
    -- Append_Node_To_List --
    -------------------------
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
       Last : Node_Id;
+      Many : Int := Size (L);
+
    begin
-      Last := Last_Node (L);
+      Last := Last_Entity (L);
       if No (Last) then
-         Set_First_Node (L, E);
+         Set_First_Entity (L, E);
       else
-         Set_Next_Node (Last, E);
+         Set_Next_Entity (Last, E);
       end if;
       Last := E;
       while Present (Last) loop
-         Set_Last_Node (L, Last);
-         Last := Next_Node (Last);
+         Set_Last_Entity (L, Last);
+         Many := Many + 1;
+         Last := Next_Entity (Last);
       end loop;
+      Set_Size (L, Many);
    end Append_Node_To_List;
 
    -------------------------------
@@ -50,11 +45,11 @@ package body Frontend.Nutils is
 
    procedure Bind_Declarators_To_Entity (D : List_Id; E : Node_Id)
    is
-      N : Node_Id := First_Node (D);
+      N : Node_Id := First_Entity (D);
    begin
       while Present (N) loop
          Set_Declaration (N, E);
-         N := Next_Node (N);
+         N := Next_Entity (N);
       end loop;
    end Bind_Declarators_To_Entity;
 
@@ -65,7 +60,7 @@ package body Frontend.Nutils is
    procedure Bind_Identifier_To_Entity (N : Node_Id; E : Node_Id) is
    begin
       Set_Identifier (E, N);
-      Set_Node       (N, E);
+      Set_Corresponding_Entity (N, E);
    end Bind_Identifier_To_Entity;
 
    ----------------------
@@ -89,8 +84,7 @@ package body Frontend.Nutils is
    -- First_Homonym --
    -------------------
 
-   function First_Homonym (N : Node_Id) return Node_Id
-   is
+   function First_Homonym (N : Node_Id) return Node_Id is
       HN : constant Name_Id := Name (N);
    begin
       return Node_Id (Get_Name_Table_Info (HN));
@@ -100,12 +94,11 @@ package body Frontend.Nutils is
    -- Insert_After_Node --
    -----------------------
 
-   procedure Insert_After_Node (E : Node_Id; N : Node_Id)
-   is
-      Next : constant Node_Id := Next_Node (N);
+   procedure Insert_After_Node (E : Node_Id; N : Node_Id) is
+      Next : constant Node_Id := Next_Entity (N);
    begin
-      Set_Next_Node (N, E);
-      Set_Next_Node (E, Next);
+      Set_Next_Entity (N, E);
+      Set_Next_Entity (E, Next);
    end Insert_After_Node;
 
    ---------------------
@@ -136,15 +129,15 @@ package body Frontend.Nutils is
             if KX /= K_Value_Forward_Declaration then
                return False;
 
-            elsif Is_Abstract (X) then
+            elsif Is_Abstract_Interface (X) then
                return KY = K_Abstract_Value_Declaration
                  or else (KY = K_Value_Forward_Declaration
-                          and then Is_Abstract (Y));
+                          and then Is_Abstract_Interface (Y));
 
             else
                return KY /= K_Abstract_Value_Declaration
                  and then (KY /= K_Value_Forward_Declaration
-                           or else not Is_Abstract (Y));
+                           or else not Is_Abstract_Interface (Y));
             end if;
 
          when others =>
@@ -156,8 +149,7 @@ package body Frontend.Nutils is
    -- Is_A_Non_Module --
    ---------------------
 
-   function Is_A_Non_Module (E : Node_Id) return Boolean
-   is
+   function Is_A_Non_Module (E : Node_Id) return Boolean is
       K : constant Node_Kind := Kind (E);
    begin
       return K /= K_Module and then K /= K_Specification;
@@ -229,8 +221,7 @@ package body Frontend.Nutils is
    -- Is_Attribute_Or_Operation --
    -------------------------------
 
-   function Is_Attribute_Or_Operation (E : Node_Id) return Boolean
-   is
+   function Is_Attribute_Or_Operation (E : Node_Id) return Boolean is
       K : constant Node_Kind := Kind (E);
    begin
       return K = K_Attribute_Declaration
@@ -243,7 +234,7 @@ package body Frontend.Nutils is
 
    function Is_Empty (L : List_Id) return Boolean is
    begin
-      return L = No_List or else No (First_Node (L));
+      return L = No_List or else No (First_Entity (L));
    end Is_Empty;
 
    -------------------------------------
@@ -271,6 +262,15 @@ package body Frontend.Nutils is
       end case;
    end Is_Interface_Redefinable_Node;
 
+   ------------
+   -- Length --
+   ------------
+
+   function Length (L : List_Id) return Natural is
+   begin
+      return Natural (Size (L));
+   end Length;
+
    ----------------------
    -- Make_Scoped_Name --
    ----------------------
@@ -285,10 +285,10 @@ package body Frontend.Nutils is
       N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
    begin
       pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Identifier (N, Identifier);
+      Set_Identifier    (N, Identifier);
       pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Parent     (N, Parent);
-      Set_Reference (N, Reference);
+      Set_Parent_Entity (N, Parent);
+      Set_Reference     (N, Reference);
 
       return N;
    end Make_Scoped_Name;
@@ -301,16 +301,16 @@ package body Frontend.Nutils is
      (Loc      : Location;
       IDL_Name : Name_Id;
       Node     : Node_Id;
-      Scope    : Node_Id)
+      Scope_Entity    : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);
    begin
-      Set_Name            (N, To_Lower (IDL_Name));
-      Set_IDL_Name        (N, IDL_Name);
-      Set_Node            (N, Node);
-      Set_Scope           (N, Scope);
-      Set_Potential_Scope (N, Scope);
+      Set_Name                 (N, To_Lower (IDL_Name));
+      Set_IDL_Name             (N, IDL_Name);
+      Set_Corresponding_Entity (N, Node);
+      Set_Scope_Entity                (N, Scope_Entity);
+      Set_Potential_Scope      (N, Scope_Entity);
       return N;
    end Make_Identifier;
 
@@ -346,7 +346,7 @@ package body Frontend.Nutils is
       L := Entries.Last;
       Entries.Table (L) := Entries.Table (N);
       Set_Loc       (L, No_Location);
-      Set_Next_Node (L, No_Node);
+      Set_Next_Entity (L, No_Node);
       if Kind (L) = K_Identifier then
          Set_Homonym (L, No_Node);
       end if;
@@ -401,11 +401,18 @@ package body Frontend.Nutils is
    -- Parameter_Mode --
    --------------------
 
-   function Parameter_Mode (E : Node_Id) return Mode_Type is
-      M : Mode_Id;
+   function Parameter_Mode (T : Token_Type) return Mode_Id is
    begin
-      M := Nodes.Parameter_Mode (E);
-      return Mode_Type'Val (M);
+      return Token_Type'Pos (T) - Token_Type'Pos (T_In);
+   end Parameter_Mode;
+
+   --------------------
+   -- Parameter_Mode --
+   --------------------
+
+   function Parameter_Mode (M : Mode_Id) return Token_Type is
+   begin
+      return Token_Type'Val (M + Token_Type'Pos (T_In));
    end Parameter_Mode;
 
    ---------------------------
@@ -415,25 +422,34 @@ package body Frontend.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
       C : Node_Id;
    begin
-      C := First_Node (L);
+      C := First_Entity (L);
       if C = E then
-         Set_First_Node (L, Next_Node (E));
-         if Last_Node (L) = E then
-            Set_Last_Node (L, No_Node);
+         Set_First_Entity (L, Next_Entity (E));
+         if Last_Entity (L) = E then
+            Set_Last_Entity (L, No_Node);
          end if;
       else
          while Present (C) loop
-            if Next_Node (C) = E then
-               Set_Next_Node (C, Next_Node (E));
-               if Last_Node (L) = E then
-                  Set_Last_Node (L, C);
+            if Next_Entity (C) = E then
+               Set_Next_Entity (C, Next_Entity (E));
+               if Last_Entity (L) = E then
+                  Set_Last_Entity (L, C);
                end if;
                exit;
             end if;
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
       end if;
    end Remove_Node_From_List;
+
+   -----------------------
+   -- Set_First_Homonym --
+   -----------------------
+
+   procedure Set_First_Homonym (N : Node_Id; V : Node_Id) is
+   begin
+      Set_Name_Table_Info (Name (N), Int (V));
+   end Set_First_Homonym;
 
    ------------------
    -- Set_Operator --
@@ -445,16 +461,5 @@ package body Frontend.Nutils is
       B := Operator_Type'Pos (O);
       Set_Operator (E, Operator_Id (B));
    end Set_Operator;
-
-   ------------------------
-   -- Set_Parameter_Mode --
-   ------------------------
-
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
-      B : Byte;
-   begin
-      B := Mode_Type'Pos (M);
-      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
-   end Set_Parameter_Mode;
 
 end Frontend.Nutils;

@@ -1,0 +1,23 @@
+Frontend
+
+* Fix empty module
+
+* Implement abstract and local interfaces
+
+
+Backend Ada
+
+* Implement exceptions
+
+* Implement unions
+
+* Implement interfaces (inherited interfaces)
+
+* Implement sequences
+
+* Implement Repository_Id
+
+
+IDL backend
+
+* Output exceptions

@@ -13,8 +13,8 @@ package Backend is
    --  Configure backend with specific flags. To do so scan flags
    --  using Getopt from GNAT.Command_Line.
 
-   type Generate_Procedure is access procedure (Root : Node_Id);
-   procedure Generate (Root : Node_Id);
+   type Generate_Procedure is access procedure (IDL_Spec : Node_Id);
+   procedure Generate (IDL_Spec : Node_Id);
    --  Generate code for the current language.
 
    type Usage_Procedure is access procedure (Indent : Natural);
