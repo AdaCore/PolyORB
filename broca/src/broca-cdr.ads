@@ -328,14 +328,15 @@ package Broca.CDR is
      (Buffer : access Buffer_Type)
       return CORBA.Object.Ref;
 
-   --  marshalling and unmarshalling of system exceptions
+   --  Marshalling and unmarshalling of system exceptions
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Excpt  : in CORBA.Exception_Occurrence);
 
-   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type);
+   procedure Unmarshall_And_Raise
+     (Buffer : access Buffer_Type);
    pragma No_Return (Unmarshall_And_Raise);
-
 
    generic
       type F is delta <> digits <>;
@@ -351,22 +352,5 @@ package Broca.CDR is
       function Unmarshall (Buffer : access Buffer_Type)
                            return F;
    end Fixed_Point;
-
-private
-
-   procedure Align_Marshall_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : in Octet_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy
-   --  of Octets into Buffer, as is.
-
-   function Align_Unmarshall_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
-      Alignment : Alignment_Type := 1)
-     return Octet_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy
-   --  of Size octets from Buffer's data, as is.
 
 end Broca.CDR;

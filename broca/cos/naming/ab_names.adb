@@ -51,7 +51,7 @@ procedure AB_Names is
    Port_Str : constant String := Get_Conf (Naming_Port, Naming_Port_Default);
 
 begin
-   Broca.Inet_Server.Start (Natural'Value (Port_Str));
+   --  Broca.Inet_Server.Start (Natural'Value (Port_Str));
    Broca.Server_Tools.Initiate_Server;
    Broca.Server_Tools.Initiate_Servant
      (PortableServer.Servant (Root_NC), Ref);

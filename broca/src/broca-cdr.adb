@@ -105,6 +105,21 @@ package body Broca.CDR is
    --  Size octets from it.
    --  The data is returned in the host's byte order.
 
+   procedure Align_Marshall_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : in Octet_Array;
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy
+   --  of Octets into Buffer, as is.
+
+   function Align_Unmarshall_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy
+   --  of Size octets from Buffer's data, as is.
+
    ------------------------------------------
    -- Conversions between CORBA signed and --
    -- unsigned integer types.              --
@@ -2319,25 +2334,22 @@ package body Broca.CDR is
       Data : in CORBA.AbstractBase.Ref'Class) is
    begin
       if Data in CORBA.Value.Base'Class then
-         Broca.Value.Stream.Marshall (Buffer,
-                                      CORBA.Value.Base'Class (Data));
-      else
-
-         if CORBA.AbstractBase.Is_Nil (Data) then
+         Broca.Value.Stream.Marshall
+           (Buffer, CORBA.Value.Base'Class (Data));
+      elsif CORBA.AbstractBase.Is_Nil (Data) then
             Broca.Exceptions.Raise_Marshal;
-         end if;
-
-         --  Make a redispatching call on the designated
-         --  object.
-         declare
-            P : constant CORBA.Impl.Object_Ptr
-              := CORBA.AbstractBase.Object_Of (Data);
-         begin
-            CORBA.Impl.Marshall
-              (Buffer,
-               CORBA.Impl.Object'Class (P.all));
-         end;
       end if;
+
+      --  Make a redispatching call on the designated object
+
+      declare
+         P : constant CORBA.Impl.Object_Ptr
+           := CORBA.AbstractBase.Object_Of (Data);
+      begin
+         CORBA.Impl.Marshall
+           (Buffer,
+            CORBA.Impl.Object'Class (P.all));
+      end;
    end Marshall;
 
    ----------------
@@ -2368,10 +2380,9 @@ package body Broca.CDR is
       return New_Ref;
    end Unmarshall;
 
-
-   -------------------------
-   --  System Exceptions  --
-   -------------------------
+   -----------------------
+   -- System exceptions --
+   -----------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -2380,19 +2391,23 @@ package body Broca.CDR is
       Members : CORBA.System_Exception_Members;
    begin
       Broca.Exceptions.Get_Members (Excpt, Members);
-      Marshall (Buffer,
-                CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
+      Marshall
+        (Buffer, CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Members.Minor);
-      Marshall (Buffer,
-                Broca.Exceptions.To_Unsigned_Long (Members.Completed));
+      Marshall
+        (Buffer, Broca.Exceptions.To_Unsigned_Long (Members.Completed));
    end Marshall;
 
-   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
+   procedure Unmarshall_And_Raise
+     (Buffer : access Buffer_Type)
+   is
       use Ada.Exceptions;
+
       Minor      : CORBA.Unsigned_Long;
       Status     : CORBA.Unsigned_Long;
       Identity   : Exception_Id;
       Repository : CORBA.String;
+
    begin
       Repository := Unmarshall (Buffer);
       Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
@@ -2405,10 +2420,11 @@ package body Broca.CDR is
          Status := Completion_Status'Pos (Completed_Maybe);
       end if;
 
-      Minor := Unmarshall (Buffer);
+      Minor  := Unmarshall (Buffer);
       Status := Unmarshall (Buffer);
 
-      --  Raise the exception.
+      --  Raise the exception
+
       Broca.Exceptions.Stack.Raise_Exception
         (Identity,
          CORBA.System_Exception_Members'
