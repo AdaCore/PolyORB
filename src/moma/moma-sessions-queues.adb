@@ -36,6 +36,7 @@ with MOMA.Connections.Queues;
 with MOMA.Destinations;
 with MOMA.Message_Consumers;
 with MOMA.Message_Producers;
+with MOMA.Message_Producers.Queues;
 with MOMA.Provider.Message_Consumer;
 with MOMA.Provider.Message_Producer;
 with MOMA.Types;
@@ -44,28 +45,16 @@ with PolyORB.Call_Back;
 with PolyORB.MOMA_P.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Requests;
 with PolyORB.Types;
-with Ada.Text_IO; use Ada.Text_IO;
-with PolyORB.Any;
+
 package body MOMA.Sessions.Queues is
 
-   use PolyORB.MOMA_P.Tools;
    use MOMA.Message_Producers;
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
    use MOMA.Connections.Queues;
-   use PolyORB.Any;
 
-   procedure Plop (Self : PolyORB.Requests.Request);
-
-   procedure Plop (Self : PolyORB.Requests.Request) is
-   begin
-      Put_Line ("Got : " & PolyORB.Requests.Image (Self));
-      Put_Line ("return value : " & PolyORB.Any.Image (Self.Result.Argument));
-
-   end Plop;
-
+   use PolyORB.MOMA_P.Tools;
 
    ------------------
    -- Create_Queue --
@@ -200,7 +189,10 @@ package body MOMA.Sessions.Queues is
       use PolyORB.Types;
 
       Queue : MOMA.Message_Producers.Queues.Queue;
-      ORB_Object_IOR : constant IOR_Type := String_To_Object (ORB_Object);
+
+      ORB_Object_IOR      : constant IOR_Type := String_To_Object (ORB_Object);
+      Dest_Ref_Object_IOR : constant IOR_Type := String_To_Object (Mesg_Pool);
+
       Type_Id_S : MOMA.Types.String
         := To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
 
@@ -212,13 +204,20 @@ package body MOMA.Sessions.Queues is
       pragma Warnings (Off);
       pragma Unreferenced (Mesg_Pool);
       pragma Warnings (On);
+
       Set_Ref (Message_Producer (Queue), ORB_Object_IOR);
       Set_Type_Id_Of (Message_Producer (Queue), Type_Id_S);
       Queue.CBH := new PolyORB.Call_Back.Call_Back_Handler;
-      --  XXX should free this memory sometime, somwhere ...
+      --  XXX should free this memory sometime, somewhere ...
 
       PolyORB.Call_Back.Attach_Handler_To_CB
-        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all), Plop'Access);
+        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all),
+         MOMA.Message_Producers.Queues.Response_Handler'Access);
+
+      PolyORB.Call_Back.Attach_Dest_Ref_To_CB
+        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all),
+         Dest_Ref_Object_IOR);
+
       return Queue;
    end Create_Sender;
 

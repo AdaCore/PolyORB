@@ -31,39 +31,52 @@
 ------------------------------------------------------------------------------
 
 --  Call back component.
+--
+--  A Call back component act as a request 'bouncer'. It is associated to a
+--  call back function that will receive an Executed_Message message in
+--  place of the emitter, and will bounce this message to another destination
+--  using its handler.
 
 --  $Id$
 
 with PolyORB.Components;
+with PolyORB.References;
 with PolyORB.Requests;
 
 package PolyORB.Call_Back is
 
    use PolyORB.Components;
 
-   type Handler is access procedure (Self : PolyORB.Requests.Request);
+   type Handler is access procedure (Req : PolyORB.Requests.Request;
+                                     Ref : PolyORB.References.Ref);
 
    type Call_Back_Handler is new PolyORB.Components.Component with private;
 
    function Handle_Message
      (CB_Handler : access Call_Back_Handler;
-      S          : PolyORB.Components.Message'Class)
+      S          :        PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
 
    procedure Attach_Request_To_CB
      (Req        : access PolyORB.Requests.Request;
       CB_Handler :        PolyORB.Components.Component_Access);
-   --  Attach a specific request to call back handler.
+   --  Attach a specific request to call back component.
 
    procedure Attach_Handler_To_CB
      (CB_Handler  : in out PolyORB.Call_Back.Call_Back_Handler;
-      CB_Function : Handler);
-   --  Attach a specific request to call back handler.
+      CB_Function :        Handler);
+   --  Attach a handler to call back component.
+
+   procedure Attach_Dest_Ref_To_CB
+     (CB_Handler : in out PolyORB.Call_Back.Call_Back_Handler;
+      Dest_Ref   :        PolyORB.References.Ref);
+   --  Attach a Destination Reference to call back component.
 
 private
 
    type Call_Back_Handler is new PolyORB.Components.Component with record
       CB_Function : Handler;
+      Dest_Ref    : PolyORB.References.Ref;
    end record;
 
 end PolyORB.Call_Back;

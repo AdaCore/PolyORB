@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Testing MOMA client.
+--  Testing MOMA client, interaction with ORB server 'all_types'.
 
 --  $Id$
 
@@ -45,11 +45,7 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...
 
-with MOMA.Connection_Factories.Queues;
-with MOMA.Connections.Queues;
-with MOMA.Connections;
 with MOMA.Sessions.Queues;
-with MOMA.Destinations;
 
 with MOMA.Message_Producers.Queues;
 
@@ -67,20 +63,15 @@ pragma Warnings (Off);
    use Ada.Command_Line;
    use Ada.Text_IO;
 
-   use MOMA.Connection_Factories.Queues;
-   use MOMA.Sessions.Queues;
-   use MOMA.Connections;
    use MOMA.Message_Producers.Queues;
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
+   use MOMA.Sessions.Queues;
    use MOMA.Types;
 
    use Report;
 
-   MOMA_Queue         : MOMA.Connections.Queues.Queue;
-   MOMA_Session       : MOMA.Sessions.Queues.Queue;
-   MOMA_Destination   : MOMA.Destinations.Destination;
-   MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
+   MOMA2ORB_Producer : MOMA.Message_Producers.Queues.Queue;
 
    Ok : Boolean;
 
@@ -120,7 +111,7 @@ pragma Warnings (Off);
 
       Set_Parameter (MExecute_Message_Sent, Parameter_Map);
 
-      Send (MOMA_Producer, MExecute_Message_Sent);
+      Send (MOMA2ORB_Producer, MExecute_Message_Sent);
 
    end Test_MExecute;
 
@@ -130,24 +121,15 @@ pragma Warnings (Off);
 
 begin
    --  Argument check.
-   if Argument_Count < 1 then
-      Put_Line ("usage : client_moma <IOR_string_from_server>");
+   if Argument_Count /= 2 then
+      Put_Line ("usage : client_moma <IOR_string_from_orb_server> \");
+      Put_Line ("             <IOR_string_from_moma_server>");
       return;
    end if;
 
-   --  Create Queue using Queue Connection Factory.
-   MOMA_Queue := Create (To_MOMA_String (Ada.Command_Line.Argument (1)));
-
-   --  Create Destination Queue associated to the connection.
-   MOMA_Destination := Create_Queue (MOMA_Queue,
-                                     To_MOMA_String ("orb_object_1"));
-
-   --  Create Session.
-   MOMA_Session := Create_Session (False, 1);
-
-   --  Create Message Producer associated to the Session.
-   MOMA_Producer := Create_Sender (To_MOMA_String (Argument (1)),
-                                   To_MOMA_String (""));
+   --  Create Message Producer associated to the ORB object.
+   MOMA2ORB_Producer := Create_Sender (To_MOMA_String (Argument (1)),
+                                       To_MOMA_String (Argument (2)));
 
    Output ("Initilisation", True);
 

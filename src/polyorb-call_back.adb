@@ -77,7 +77,7 @@ package body PolyORB.Call_Back is
 
             --  Execute Call Back function
 
-            CB_Handler.CB_Function.all (Req.all);
+            CB_Handler.CB_Function.all (Req.all, CB_Handler.Dest_Ref);
 
             --  Complete Request execution
 
@@ -131,10 +131,24 @@ package body PolyORB.Call_Back is
 
    procedure Attach_Handler_To_CB
      (CB_Handler  : in out PolyORB.Call_Back.Call_Back_Handler;
-      CB_Function : Handler)
+      CB_Function :        Handler)
    is
    begin
       CB_Handler.CB_Function := CB_Function;
    end Attach_Handler_To_CB;
+
+   ---------------------------
+   -- Attach_Dest_Ref_To_CB --
+   ---------------------------
+
+   procedure Attach_Dest_Ref_To_CB
+     (CB_Handler : in out PolyORB.Call_Back.Call_Back_Handler;
+      Dest_Ref   :        PolyORB.References.Ref)
+   is
+   begin
+      CB_Handler.Dest_Ref := Dest_Ref;
+   end Attach_Dest_Ref_To_CB;
+
+
 
 end PolyORB.Call_Back;

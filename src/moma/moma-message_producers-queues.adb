@@ -36,11 +36,13 @@ with MOMA.Messages;
 --  with MOMA.Connections.Queues;
 --  with MOMA.Destinations.Queues;
 with MOMA.Messages.MExecutes;
+with MOMA.Types;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Requests;
+with PolyORB.References;
 with PolyORB.Types;
 
 with PolyORB.Call_Back;
@@ -61,7 +63,7 @@ package body MOMA.Message_Producers.Queues is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Send_To_MOM (Self    : Queue;
+   procedure Send_To_MOM (Self    : PolyORB.References.Ref;
                           Message : MOMA.Messages.Message'Class);
    --  Send Message to a MOM object.
 
@@ -91,7 +93,7 @@ package body MOMA.Message_Producers.Queues is
       Type_Id_S     : constant MOMA.Types.String := Get_Type_Id_Of (Self);
    begin
       if Type_Id_S = MOMA.Types.MOMA_Type_Id then
-         Send_To_MOM (Self, Message);
+         Send_To_MOM (Get_Ref (Self), Message);
       else
          Send_To_ORB (Self, Message);
       end if;
@@ -101,7 +103,7 @@ package body MOMA.Message_Producers.Queues is
    -- Send_To_MOM --
    -----------------
 
-   procedure Send_To_MOM (Self    : Queue;
+   procedure Send_To_MOM (Self    : PolyORB.References.Ref;
                           Message : MOMA.Messages.Message'Class)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
@@ -125,7 +127,7 @@ package body MOMA.Message_Producers.Queues is
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => Get_Ref (Self),
+        (Target    => Self,
          Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,
@@ -172,10 +174,8 @@ package body MOMA.Message_Producers.Queues is
 
          PolyORB.Any.NVList.Create (Arg_List);
 
-         pragma Debug (O (Integer'Image (Length (Parameter_Map))));
-
          for J in 3 .. Length (Parameter_Map)  loop
-            pragma Debug (O ("Arg " & MOMA.Types.To_Standard_String
+            pragma Debug (O ("Argument : " & MOMA.Types.To_Standard_String
                              (From_Any (Element_Of
                                         (Parameter_Map, J).Value))));
 
@@ -197,7 +197,7 @@ package body MOMA.Message_Producers.Queues is
             Req       => Request);
 
          if Result_TypeCode /= TypeCode.TC_Void then
-            pragma Debug (O ("Non void return parameter"));
+            pragma Debug (O ("Non void return parameter."));
             PolyORB.Call_Back.Attach_Request_To_CB (Request, Self.CBH);
          end if;
 
@@ -310,5 +310,37 @@ package body MOMA.Message_Producers.Queues is
       null;
    end Send;
 
-end MOMA.Message_Producers.Queues;
+   ----------------------
+   -- Response_Handler --
+   ----------------------
 
+   procedure Response_Handler (Req : PolyORB.Requests.Request;
+                               Ref : PolyORB.References.Ref)
+   is
+      use PolyORB.Any;
+
+      Message : MExecute := Create_Execute_Message;
+   begin
+      pragma Debug (O ("Got : " & PolyORB.Requests.Image (Req)));
+      pragma Debug (O ("return value : "
+                       & PolyORB.Any.Image (Req.Result.Argument)));
+      declare
+         Method_Name   : Map_Element;
+         Return_1      : Map_Element;
+         Parameter_Map : Map;
+      begin
+         Method_Name := (Name  => To_MOMA_String ("method"),
+                         Value => To_Any
+                         (PolyORB.Types.String (Req.Operation)));
+
+         Return_1 := (Name  => To_MOMA_String ("return_1"),
+                      Value => Req.Result.Argument);
+         Append (Parameter_Map, Method_Name);
+         Append (Parameter_Map, Return_1);
+         Set_Parameter (Message, Parameter_Map);
+
+         Send_To_MOM (Ref, Message);
+      end;
+   end Response_Handler;
+
+end MOMA.Message_Producers.Queues;

@@ -85,6 +85,8 @@ package MOMA.Provider.Warehouse is
    --  Note : this override any flag set for a message if set to a mode
    --  allowing persistence.
 
+   --  XXX Warning : not safe in case of multiple message pools !!!!
+
 private
 
    type Warehouse is record
