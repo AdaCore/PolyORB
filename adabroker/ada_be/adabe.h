@@ -75,14 +75,15 @@ public:
   adabe_predefined_type(AST_PredefinedType::PredefinedType t,
 		       UTL_ScopedName *n,
 		       UTL_StrList *p);
-
+  //constructor
   DEF_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType);
   DEF_NARROW_FROM_DECL(adabe_predefined_type);
 
   void produce_ads (dep_list with,string &String, string &previousdefinition);
-
+  //produce the ada name of the type
 private:
   string get_ada_predefined_type(void);
+  //determine the ada name of the type
 };
 
 
@@ -173,12 +174,12 @@ class adabe_field : public virtual AST_Field,
 public:
 
   adabe_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
+  // constructor
   produce_ads (dep_list with,string &String, string &previousdefinition)
+  //produce a field in the header
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
   DEF_NARROW_FROM_DECL(adabe_field);
 
-private:
-  adabe_field();
 
 };
 
@@ -190,12 +191,15 @@ class adabe_union : public virtual AST_Union,
 public:
 
   adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p);
-
+  //constructor
+  
   DEF_NARROW_METHODS1(adabe_union, AST_Union);
   DEF_NARROW_FROM_DECL(adabe_union);
   DEF_NARROW_FROM_SCOPE(adabe_union);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an union in the header
+  
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s);
@@ -210,10 +214,17 @@ public:
 
   adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_ScopedName *n,
 		  UTL_StrList *p);
+  //constructor
+  
   produce_ads(dep_list, string, string, AST_Concretetype*);
-  string produce_disc_value(AST_ConcreteType, AST_Expression)
+  //produce a branch of the union
+
   DEF_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch);
   DEF_NARROW_FROM_DECL(adabe_union_branch);
+
+private:
+  string produce_disc_value(AST_ConcreteType, AST_Expression)  
+  //produce the value of the branch
 
 };
 
@@ -225,14 +236,15 @@ class adabe_structure : public virtual AST_Structure,
 public:
 
   adabe_structure(UTL_ScopedName *n, UTL_StrList *p);
-
+  //constructor
   DEF_NARROW_METHODS1(adabe_structure, AST_Structure);
   DEF_NARROW_FROM_DECL(adabe_structure);
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the structure in the header
   string dump_name(dep_list with,string &String, string &previousdefinition);
-
+  //produce the name of the structure
 };
 
 
@@ -310,9 +322,9 @@ class adabe_argument : public virtual AST_Argument,
 public:
   adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_ScopedName *n,
 		UTL_StrList *p);
-
-  adabe_argument::produce_ads(dep_list with,string &String, string &previousdefinition);
-
+  //constructor
+  produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an argument of an operation
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
 
@@ -326,12 +338,14 @@ class adabe_attribute : public virtual AST_Attribute,
 public:
 
   adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
-
+  //constructor
   DEF_NARROW_METHODS1(adabe_attribute, AST_Attribute);
   DEF_NARROW_FROM_DECL(adabe_attribute);
   DEF_NARROW_FROM_SCOPE(adabe_attribute);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an attribute in the header
+
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
@@ -347,12 +361,16 @@ public:
   adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 		 UTL_ScopedName *n,UTL_StrList *p);
   ~adabe_operation() {}
+  //constructor and destructor
 
+  
   DEF_NARROW_METHODS1(adabe_operation, AST_Operation);
   DEF_NARROW_FROM_DECL(adabe_operation);
   DEF_NARROW_FROM_SCOPE(adabe_operation);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an operation 
+
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
@@ -360,7 +378,7 @@ public:
 
 private:
   bool is_function();
-
+  //to check if the operation is a function or not
 };
 
 
@@ -371,11 +389,13 @@ class adabe_typedef : public virtual AST_Typedef,
 public:
 
   adabe_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p);
-
+  //constructor
   DEF_NARROW_METHODS1(adabe_typedef, AST_Typedef);
   DEF_NARROW_FROM_DECL(adabe_typedef);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce a typedef in the header
+
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
@@ -391,12 +411,14 @@ public:
 
   adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih,
 	       UTL_StrList *p);
-
+  //constructor
   DEF_NARROW_METHODS1(adabe_interface, AST_Interface);
   DEF_NARROW_FROM_DECL(adabe_interface);
   DEF_NARROW_FROM_SCOPE(adabe_interface);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce an interface in the header
+  
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
@@ -410,12 +432,15 @@ class adabe_interface_fwd : public virtual AST_InterfaceFwd,
 public:
 
   adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p);
-
+  //constructor
+  
   DEF_NARROW_METHODS1(adabe_interface_fwd, AST_InterfaceFwd);
   DEF_NARROW_FROM_DECL(adabe_interface_fwd);
   DEF_NARROW_FROM_SCOPE(adabe_interface_fwd);
 
   void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the interface forward in the header
+
   //  void produce_adb(std::fstream& s);
   //  void produce_impl_ads(std::fstream& s);
   //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
@@ -482,54 +507,54 @@ private:
 class adabe_global {
 private:
   static adabe_root* myself;
-  static char*      pd_hdrsuffix;
-  static char*      pd_skelsuffix;
-  static char*      pd_dynskelsuffix;
-  static size_t     pd_suffixlen;
-  static int        pd_aflag;      // generate stub for 'any' type
-  static int        pd_fflag;      // generate stub for float and double
-  static int        pd_qflag;      // always use fully qualified name
-  static int        pd_mflag;      // generate stub to work around MSVC bugs
+  //  static char*      pd_hdrsuffix;
+  //  static char*      pd_skelsuffix;
+  //  static char*      pd_dynskelsuffix;
+  //  static size_t     pd_suffixlen;
+  //  static int        pd_aflag;      // generate stub for 'any' type
+  //  static int        pd_fflag;      // generate stub for float and double
+  //  static int        pd_qflag;      // always use fully qualified name
+  //  static int        pd_mflag;      // generate stub to work around MSVC bugs
 
 public:
-  static void set_aflag(int f) { pd_aflag = f; }
-  static int aflag() { return pd_aflag; }
+  //  static void set_aflag(int f) { pd_aflag = f; }
+  //  static int aflag() { return pd_aflag; }
 
-  static void set_fflag(int f) { pd_fflag = f; }
-  static int fflag() { return pd_fflag; }
+  //  static void set_fflag(int f) { pd_fflag = f; }
+  //  static int fflag() { return pd_fflag; }
 
-  static void set_qflag(int f) { pd_qflag = f; }
-  static int qflag() { return pd_qflag; }
+  //  static void set_qflag(int f) { pd_qflag = f; }
+  //  static int qflag() { return pd_qflag; }
 
-  static void set_mflag(int f) { pd_mflag = f; }
-  static int mflag() { return pd_mflag; }
+  //  static void set_mflag(int f) { pd_mflag = f; }
+  //  static int mflag() { return pd_mflag; }
 
-  static int suffixlen() { return pd_suffixlen; }
+  //  static int suffixlen() { return pd_suffixlen; }
 
-  static void set_hdrsuffix(char* h) {
-    pd_hdrsuffix = new char[strlen(h)+1];
-    if (strlen(h) > pd_suffixlen)
-      pd_suffixlen = strlen(h);
-    strcpy(pd_hdrsuffix,h);
-    return;
-  }
+  //  static void set_hdrsuffix(char* h) {
+  //    pd_hdrsuffix = new char[strlen(h)+1];
+  //    if (strlen(h) > pd_suffixlen)
+  //      pd_suffixlen = strlen(h);
+  //   strcpy(pd_hdrsuffix,h);
+  //   return;
+  // }
 
-  static void set_skelsuffix(char* c) {
-    pd_skelsuffix = new char[strlen(c) + 1];
-    if (strlen(c) > pd_suffixlen)
-      pd_suffixlen = strlen(c);
-    strcpy(pd_skelsuffix, c);
-  }
-  static void set_dynskelsuffix(char* c) {
-    pd_dynskelsuffix = new char[strlen(c) + 1];
-    if (strlen(c) > pd_suffixlen)
-      pd_suffixlen = strlen(c);
-    strcpy(pd_dynskelsuffix, c);
-  }
+  //  static void set_skelsuffix(char* c) {
+  //  pd_skelsuffix = new char[strlen(c) + 1];
+  //  if (strlen(c) > pd_suffixlen)
+  //    pd_suffixlen = strlen(c);
+  //  strcpy(pd_skelsuffix, c);
+  //  }
+  //  static void set_dynskelsuffix(char* c) {
+  //  pd_dynskelsuffix = new char[strlen(c) + 1];
+  //  if (strlen(c) > pd_suffixlen)
+  //    pd_suffixlen = strlen(c);
+  //  strcpy(pd_dynskelsuffix, c);
+  //  }
 
-  static char* hdrsuffix()     { return pd_hdrsuffix;     }
-  static char* skelsuffix()    { return pd_skelsuffix;    }
-  static char* dynskelsuffix() { return pd_dynskelsuffix; }
+  //  static char* hdrsuffix()     { return pd_hdrsuffix;     }
+  //  static char* skelsuffix()    { return pd_skelsuffix;    }
+  //  static char* dynskelsuffix() { return pd_dynskelsuffix; }
 
   static void set_root(adabe_root *v) { myself = v; }
   static adabe_root *root() { return myself; }
@@ -635,7 +660,7 @@ public:
 			 UTL_StrList *p);
 };
 
-
+////////////////////////////////////////////// classe pas connue /////////////////////
 class adabe_unsupported {
 public:
   adabe_unsupported(const char* idlfile,int line,const char* msg) {
@@ -700,4 +725,12 @@ private:
 };
 
 #endif
+
+
+
+
+
+
+
+
 
