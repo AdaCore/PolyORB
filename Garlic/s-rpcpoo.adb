@@ -44,7 +44,7 @@ package body System.RPC.Pool is
    use System.RPC.Util;
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("POO", "(s-rpcpoo): ");
+     Debug_Initialize ("RPPOO", "(s-rpcpoo): ");
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
@@ -61,7 +61,7 @@ package body System.RPC.Pool is
 
    type Cancel_Array is array (1 .. Max_Tasks) of Cancel_Type;
 
-   protected type Task_Pool_Type is
+   protected type Task_Manager_Type is
       entry Get_One;
       procedure Free_One;
       procedure Abort_One
@@ -78,27 +78,85 @@ package body System.RPC.Pool is
       In_Progress : Boolean := False;
       Count       : Natural := 0;
       Count_Abort : Natural := 0;
-   end Task_Pool_Type;
+   end Task_Manager_Type;
    --  This protected object requeues on Is_Aborted_Waiting; this may look
    --  inefficient, but we hope that remote abortion won't occur too much
    --  (or at least that remote abortion won't occur too often when there is
    --  a lot of other remote calls in progress). Count_Abort contains the
    --  number of abortion in progress.
 
-   type Task_Pool_Access is access Task_Pool_Type;
+   type Task_Manager_Access is access Task_Manager_Type;
    procedure Free is
-      new Ada.Unchecked_Deallocation (Task_Pool_Type, Task_Pool_Access);
+      new Ada.Unchecked_Deallocation (Task_Manager_Type, Task_Manager_Access);
 
-   Task_Pool : Task_Pool_Access := new Task_Pool_Type;
+   Task_Manager : Task_Manager_Access := new Task_Manager_Type;
 
-   task type Anonymous_Task (Partition    : Partition_ID;
-                             Id           : Request_Id;
-                             Params       : Params_Stream_Access;
-                             Asynchronous : Boolean) is
+   type Task_Identifier;
+   type Task_Identifier_Access is access Task_Identifier;
+
+   task type Anonymous_Task is
+      entry Set_Identifier (Identifier : in Task_Identifier_Access);
+      entry Set_Job (The_Partition    : in Partition_ID;
+                     The_Id           : in Request_Id;
+                     The_Params       : in Params_Stream_Access;
+                     The_Asynchronous : in Boolean);
       pragma Storage_Size (300_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
    --  An anonymous task will serve a request.
+
+   type Task_Identifier is record
+      Task_Pointer : Anonymous_Task_Access;
+      Next         : Task_Identifier_Access;
+   end record;
+   --  Since it is impossible for a task to get a pointer on itself, it
+   --  is transmitted through this structure. Moreover, this allows to
+   --  handle a list of free tasks very easily.
+
+   function Create_New_Task return Task_Identifier_Access;
+   --  Create a new task.
+
+   Low_Mark  : constant := 5;
+   High_Mark : constant := 10;
+   Max_Mark  : constant := 20;
+
+   protected Free_Tasks is
+
+      entry Get_Task (Identifier : out Task_Identifier_Access);
+      --  Call this to create a task. If Identifier is Null, then you have
+      --  to create the task yourself before using it (calling the
+      --  Create_New_Task function).
+      --  This entry is potentially blocking because in some cases you
+      --  do not want to have more than a maximum number of running tasks
+      --  in your system.
+
+      procedure Queue (Identifier : in Task_Identifier_Access;
+                       Accepted   : out Boolean);
+      --  A task will call Queue when it has terminated its job. If Accepted
+      --  is false on return, then the task must terminate itself as soon
+      --  as possible in order to limit the number of running tasks in the
+      --  system.
+
+      entry Wait (Shutdown : out Boolean);
+      --  This procedure will be blocked until there is a need for more
+      --  anonymous tasks. It will also be unblocked by the shutdown
+      --  operation and will set Shutdown_In_Progress to True if there
+      --  is a shutdown in progress.
+
+      procedure Shutdown;
+      --  This procedure will be called upon shutdown.
+
+      procedure Status;
+      --  This procedure will print a status when in debug mode.
+      --  Warning: it is *not* legal to do so in normal mode since the
+      --  traces are potentially blocking operations.
+
+   private
+      Shutdown_In_Progress : Boolean := False;
+      Free_Tasks_List      : Task_Identifier_Access;
+      Free_Tasks_Count     : Natural := 0;
+      Total_Tasks_Count    : Natural := 0;
+   end Free_Tasks;
 
    ----------------
    -- Abort_Task --
@@ -108,7 +166,7 @@ package body System.RPC.Pool is
                          Id        : in Request_Id)
    is
    begin
-      Task_Pool.Abort_One (Partition, Id);
+      Task_Manager.Abort_One (Partition, Id);
    end Abort_Task;
 
    -------------------
@@ -120,9 +178,13 @@ package body System.RPC.Pool is
                             Params       : in Params_Stream_Access;
                             Asynchronous : in Boolean)
    is
-      Anonymous : Anonymous_Task_Access;
+      Identifier : Task_Identifier_Access;
    begin
-      Anonymous := new Anonymous_Task (Partition, Id, Params, Asynchronous);
+      Free_Tasks.Get_Task (Identifier);
+      if Identifier = null then
+         Identifier := Create_New_Task;
+      end if;
+      Identifier.Task_Pointer.Set_Job (Partition, Id, Params, Asynchronous);
    end Allocate_Task;
 
    --------------------
@@ -131,75 +193,117 @@ package body System.RPC.Pool is
 
    task body Anonymous_Task
    is
-      Dest      : Partition_ID;
-      Receiver  : RPC_Receiver;
-      Result    : Params_Stream_Access := new Params_Stream_Type (0);
-      Cancelled : Boolean := False;
-      Prio      : Any_Priority;
+      Dest         : Partition_ID;
+      Receiver     : RPC_Receiver;
+      Result       : Params_Stream_Access;
+      Cancelled    : Boolean;
+      Prio         : Any_Priority;
+      Partition    : Partition_ID;
+      Id           : Request_Id;
+      Params       : Params_Stream_Access;
+      Asynchronous : Boolean;
+      Self         : Task_Identifier_Access;
 
       use Ada.Exceptions;
    begin
       pragma Debug (D (D_Debug, "Anonymous task starting"));
-      Task_Pool.Get_One;
-      Task_Pool.Unabort_One (Partition, Id);
-      Partition_ID'Read (Params, Dest);
-      if not Dest'Valid then
-         pragma Debug (D (D_Debug, "Invalid destination received"));
-         raise Constraint_Error;
-      end if;
-      Any_Priority'Read (Params, Prio);
-      if not Prio'Valid then
-         pragma Debug (D (D_Debug, "Invalid priority received"));
-         raise Constraint_Error;
-      end if;
-      Ada.Dynamic_Priorities.Set_Priority (Prio);
-      Receiver := Receiver_Map.Get (Dest);
-      if Receiver = null then
-
-         --  Well, we won't query it, it should be automatically set.
-
-         Receiver := Receiver_Map.Get (Dest);
-      end if;
       select
-         Task_Pool.Is_Aborted (Partition, Id);
-         declare
-            Empty  : aliased Params_Stream_Type (0);
-            Header : constant Request_Header :=
-              (RPC_Cancellation_Accepted, Id);
-         begin
-            pragma Debug (D (D_Debug, "Abortion queried by caller"));
-            Insert_Request (Empty'Access, Header);
-            Send (Partition, Remote_Call, Empty'Access);
-            Cancelled := True;
-         end;
-      then abort
-         Receiver (Params, Result);
-         pragma Debug (D (D_Debug, "Job achieved without abortion"));
+         accept Set_Identifier (Identifier : in Task_Identifier_Access) do
+            Self := Identifier;
+         end Set_Identifier;
+      or
+         terminate;
       end select;
+      loop
+         pragma Debug (D (D_Debug, "Waiting for a job"));
+         select
+            accept Set_Job
+              (The_Partition    : in Partition_ID;
+               The_Id           : in Request_Id;
+               The_Params       : in Params_Stream_Access;
+               The_Asynchronous : in Boolean)
+            do
+               Partition    := The_Partition;
+               Id           := The_Id;
+               Params       := The_Params;
+               Asynchronous := The_Asynchronous;
+            end Set_Job;
+         or
+            terminate;
+         end select;
+         Result    := new Params_Stream_Type (0);
+         Cancelled := False;
+         Task_Manager.Get_One;
+         Task_Manager.Unabort_One (Partition, Id);
+         Partition_ID'Read (Params, Dest);
+         if not Dest'Valid then
+            pragma Debug (D (D_Debug, "Invalid destination received"));
+            raise Constraint_Error;
+         end if;
+         Any_Priority'Read (Params, Prio);
+         if not Prio'Valid then
+            pragma Debug (D (D_Debug, "Invalid priority received"));
+            raise Constraint_Error;
+         end if;
+         Ada.Dynamic_Priorities.Set_Priority (Prio);
+         Receiver := Receiver_Map.Get (Dest);
+         if Receiver = null then
 
-      declare
-         Params_Copy : Params_Stream_Access := Params;
-      begin
+            --  Well, we won't query it, it should be automatically set.
 
-         --  Yes, we deallocate a copy, because Params is readonly (it's
-         --  a discriminant). We must *not* use Params later in this task.
+            Receiver := Receiver_Map.Get (Dest);
+         end if;
+         select
+            Task_Manager.Is_Aborted (Partition, Id);
+            declare
+               Empty  : aliased Params_Stream_Type (0);
+               Header : constant Request_Header :=
+                 (RPC_Cancellation_Accepted, Id);
+            begin
+               pragma Debug (D (D_Debug, "Abortion queried by caller"));
+               Insert_Request (Empty'Access, Header);
+               Send (Partition, Remote_Call, Empty'Access);
+               Cancelled := True;
+            end;
+         then abort
+            Receiver (Params, Result);
+            pragma Debug (D (D_Debug, "Job achieved without abortion"));
+         end select;
 
-         Deep_Free (Params_Copy);
-      end;
-      if Asynchronous or else Cancelled then
-         pragma Debug (D (D_Debug, "Result not sent"));
-         Deep_Free (Result);
-      else
          declare
-            Header : constant Request_Header := (RPC_Answer, Id);
+            Params_Copy : Params_Stream_Access := Params;
          begin
-            pragma Debug (D (D_Debug, "Result will be sent"));
-            Insert_Request (Result, Header);
-            Send (Partition, Remote_Call, Result);
-            Free (Result);
+
+            --  Yes, we deallocate a copy, because Params is readonly (it's
+            --  a discriminant). We must *not* use Params later in this task.
+
+            Deep_Free (Params_Copy);
          end;
-      end if;
-      Task_Pool.Free_One;
+         if Asynchronous or else Cancelled then
+            pragma Debug (D (D_Debug, "Result not sent"));
+            Deep_Free (Result);
+         else
+            declare
+               Header : constant Request_Header := (RPC_Answer, Id);
+            begin
+               pragma Debug (D (D_Debug, "Result will be sent"));
+               Insert_Request (Result, Header);
+               Send (Partition, Remote_Call, Result);
+               Free (Result);
+            end;
+         end if;
+         Task_Manager.Free_One;
+         pragma Debug (D (D_Debug, "Job finished, queuing"));
+         declare
+            Queued : Boolean;
+         begin
+            Free_Tasks.Queue (Self, Queued);
+            if not Queued then
+               pragma Debug (D (D_Debug, "Too many tasks, queuing refused"));
+               exit;
+            end if;
+         end;
+      end loop;
       pragma Debug (D (D_Debug, "Anonymous task finishing"));
 
    exception
@@ -210,20 +314,116 @@ package body System.RPC.Pool is
 
    end Anonymous_Task;
 
+   ---------------------
+   -- Create_New_Task --
+   ---------------------
+
+   function Create_New_Task return Task_Identifier_Access is
+      Identifier : constant Task_Identifier_Access :=
+       new Task_Identifier'(Task_Pointer => new Anonymous_Task,
+                            Next         => null);
+   begin
+      Identifier.Task_Pointer.Set_Identifier (Identifier);
+      return Identifier;
+   end Create_New_Task;
+
+   ----------------
+   -- Free_Tasks --
+   ----------------
+
+   protected body Free_Tasks is
+
+      --------------
+      -- Get_Task --
+      --------------
+
+      entry Get_Task (Identifier : out Task_Identifier_Access)
+      when Free_Tasks_Count > 0 or else Total_Tasks_Count < Max_Mark is
+      begin
+         if Free_Tasks_Count > 0 then
+            Identifier       := Free_Tasks_List;
+            Free_Tasks_List  := Identifier.Next;
+            Free_Tasks_Count := Free_Tasks_Count - 1;
+         else
+            Identifier := null;
+            Total_Tasks_Count := Total_Tasks_Count + 1;
+         end if;
+         Status;
+      end Get_Task;
+
+      -----------
+      -- Queue --
+      -----------
+
+      procedure Queue (Identifier : in Task_Identifier_Access;
+                       Accepted   : out Boolean)
+      is
+      begin
+         if Total_Tasks_Count < Max_Mark then
+            Accepted         := True;
+            Identifier.Next  := Free_Tasks_List;
+            Free_Tasks_List  := Identifier;
+            Free_Tasks_Count := Free_Tasks_Count + 1;
+         else
+            Accepted          := False;
+            Total_Tasks_Count := Total_Tasks_Count - 1;
+         end if;
+         Status;
+      end Queue;
+
+      ------------
+      -- Status --
+      ------------
+
+      procedure Status is
+      begin
+         pragma Debug (D (D_Debug,
+                          "Free tasks:" & Free_Tasks_Count'Img));
+         pragma Debug (D (D_Debug,
+                          "Total tasks:" & Total_Tasks_Count'Img));
+         null;
+      end Status;
+
+      --------------
+      -- Shutdown --
+      --------------
+
+      procedure Shutdown is
+      begin
+         Shutdown_In_Progress := True;
+      end Shutdown;
+
+      ----------
+      -- Wait --
+      ----------
+
+      entry Wait (Shutdown : out Boolean)
+      when Shutdown_In_Progress or else Total_Tasks_Count < Max_Mark is
+      begin
+         Shutdown := Shutdown_In_Progress;
+         if not Shutdown then
+            Total_Tasks_Count := Total_Tasks_Count + 1;
+         end if;
+         Status;
+      end Wait;
+
+   end Free_Tasks;
+
    --------------
    -- Shutdown --
    --------------
 
    procedure Shutdown is
    begin
-      Free (Task_Pool);
+      Free (Task_Manager);
+      Free_Tasks.Shutdown;
    end Shutdown;
 
-   --------------------
-   -- Task_Pool_Type --
-   --------------------
+   -----------------------
+   -- Task_Manager_Type --
+   -----------------------
 
-   protected body Task_Pool_Type is
+   protected body Task_Manager_Type is
 
       ---------------
       -- Abort_One --
@@ -325,6 +525,6 @@ package body System.RPC.Pool is
          end loop;
       end Unabort_One;
 
-   end Task_Pool_Type;
+   end Task_Manager_Type;
 
 end System.RPC.Pool;
