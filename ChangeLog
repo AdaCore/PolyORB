@@ -1,3 +1,7 @@
+2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add 5hlgarcon.ads.
+
 2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* README, INSTALL: Replace @gnat_version@ and @glade_version@ with

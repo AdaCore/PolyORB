@@ -1,3 +1,7 @@
+2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5hgarcon.ads: New file, part of fix for 7524-016.
+	
 2000-03-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gaphlo.adb: Fix bug in Destroy (for Location_Type) found by
