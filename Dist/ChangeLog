@@ -1,3 +1,8 @@
+1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Change Fail_until_Restart into
+ 	Failed_Unitil_Restart.
+
 1999-08-14  Pascal Obry <obry@gnat.com>
 
 	* xe_sysdep.ads, xe_sysdep-std.adb, xe_sysdep-nt.adb: System

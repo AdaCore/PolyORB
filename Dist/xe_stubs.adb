@@ -655,8 +655,9 @@ package body XE_Stubs is
         or else True      --  ??? SHOULD BE SOMETHING LIKE "USE_TASKING(PID)"
       then
          Dwrite_With_Clause (FD, "System.Garlic.Termination");
-         Dwrite_With_Clause (FD, "System.Garlic.Locking");
-         Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Locking);");
+         Dwrite_With_Clause (FD, "System.Garlic.Protected_Objects");
+         Dwrite_Line
+            (FD, 0, "pragma Elaborate_All (System.Garlic.Protected_Objects);");
       else
          Dwrite_With_Clause (FD, "System.Garlic.Light_Termination");
       end if;
