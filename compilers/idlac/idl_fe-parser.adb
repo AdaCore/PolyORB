@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#15 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#16 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -960,6 +960,7 @@ package body Idl_Fe.Parser is
                Fd_Res := Make_Forward_Interface (Get_Location (Res));
                Set_Forward (Fd_Res, No_Node);
                Set_Abst (Fd_Res, Abst (Res));
+               Set_Local (Fd_Res, Local (Res));
                Set_Repository_Id (Fd_Res, Repository_Id (Res));
 
                --  FIXME : we must deallocate this node : Free (Res);
@@ -971,6 +972,7 @@ package body Idl_Fe.Parser is
             Fd_Res := Make_Forward_Interface (Get_Location (Res));
             Set_Forward (Fd_Res, No_Node);
             Set_Abst (Fd_Res, Abst (Res));
+            Set_Local (Fd_Res, Local (Res));
             Redefine_Identifier (Definition, Fd_Res);
             Set_Repository_Id (Fd_Res, Repository_Id (Res));
 
