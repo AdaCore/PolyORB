@@ -39,6 +39,6 @@
 package PolyORB.MOMA_P is
 
    pragma Pure;
-   pragma Linker_Options ("-lpolyorb-moma_p");
+   pragma Linker_Options ("-lpolyorb-moma");
 
 end PolyORB.MOMA_P;

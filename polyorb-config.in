@@ -7,17 +7,12 @@ proto="@PROTO_LIST@"
 services="@SERVICE_LIST@"
 
 polyorb_dir="@XMLADA_INCS@ -I${prefix}/lib/polyorb"
-polyorb_lib="@XMLADA_LIBS@ "
+polyorb_lib="@XMLADA_LIBS@ -L${prefix}/lib"
 
 for P in $appli $proto
 do
  polyorb_dir="$polyorb_dir -I${prefix}/lib/polyorb-${P}"
- polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb-${P}.a"
 done
-
-# Place this line here to have libpolyorb.a at the end of the 
-# linking command (man ld for more details on link order)
-polyorb_lib="$polyorb_lib ${prefix}/lib/libpolyorb.a"
 
 MAJOR=@POLYORB_MAJOR_VERSION@
 MINOR=@POLYORB_MINOR_VERSION@
