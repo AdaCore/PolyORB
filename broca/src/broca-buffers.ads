@@ -2,8 +2,7 @@ with Ada.Unchecked_Deallocation;
 
 package Broca.Buffers is
 
-   -- pragma Elaborate_Body;
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
    --  True if this machine use little endian byte order.
    Is_Little_Endian : Boolean;
