@@ -20,7 +20,7 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
 string
 adabe_structure::dump_name(dep_list with,string &String, string &previousdefinition) {
   /*  if (!is_already_defined())
-        void produce_ads( with, String, previousdefinition);
+         &previousdefinition += produce_ads( with, String, previousdefinition);
       return get_ada_name();
   */
 }
