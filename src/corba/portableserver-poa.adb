@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#42 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#43 $
 
 with Ada.Exceptions;
 
@@ -109,8 +109,8 @@ package body PortableServer.POA is
    is
       use PolyORB.Smart_Pointers;
 
-      Res : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := Entity_Of (Self);
+      Res : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+        Entity_Of (Self);
 
    begin
       if Res = null
@@ -121,8 +121,8 @@ package body PortableServer.POA is
       declare
          use PolyORB.POA_Manager;
 
-         The_POA : constant PolyORB.POA.Obj_Adapter_Access
-           := PolyORB.POA.Obj_Adapter_Access (Res);
+         The_POA : constant PolyORB.POA.Obj_Adapter_Access :=
+           PolyORB.POA.Obj_Adapter_Access (Res);
       begin
          if Is_Nil (The_POA.POA_Manager) then
             CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
@@ -686,8 +686,8 @@ package body PortableServer.POA is
       end if;
 
       declare
-         Oid : constant PolyORB.POA_Types.Object_Id
-           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+         Oid : constant PolyORB.POA_Types.Object_Id :=
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
       begin
          return ObjectId (Oid);
       end;
@@ -708,8 +708,8 @@ package body PortableServer.POA is
 
       U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
 
-      A_Oid : aliased PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+      A_Oid : aliased PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.Object_Id (Oid);
 
    begin
       PolyORB.POA.Activate_Object
@@ -736,8 +736,8 @@ package body PortableServer.POA is
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
-      A_Oid : aliased constant PolyORB.POA_Types.Object_Id
-        := PolyORB.POA_Types.Object_Id (Oid);
+      A_Oid : aliased constant PolyORB.POA_Types.Object_Id :=
+        PolyORB.POA_Types.Object_Id (Oid);
 
    begin
       PolyORB.POA.Deactivate_Object (POA, A_Oid, Error);
@@ -771,8 +771,8 @@ package body PortableServer.POA is
       end if;
 
       declare
-         Oid : aliased PolyORB.POA_Types.Object_Id
-           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+         Oid : aliased PolyORB.POA_Types.Object_Id :=
+           PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
 
          P_Result : PolyORB.References.Ref;
          C_Result : CORBA.Object.Ref;
@@ -877,8 +877,8 @@ package body PortableServer.POA is
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
       Oid : PolyORB.Objects.Object_Id_Access;
 
-      TID : constant Standard.String
-        := CORBA.To_Standard_String (Get_Type_Id (P_Servant));
+      TID : constant Standard.String :=
+        CORBA.To_Standard_String (Get_Type_Id (P_Servant));
 
       P_Result : PolyORB.References.Ref;
       C_Result : CORBA.Object.Ref;
@@ -1016,8 +1016,8 @@ package body PortableServer.POA is
       case Error.Kind is
          when AdapterAlreadyExists_E =>
             declare
-               Member : constant AdapterAlreadyExists_Members
-                 := AdapterAlreadyExists_Members'
+               Member : constant AdapterAlreadyExists_Members :=
+                 AdapterAlreadyExists_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1026,8 +1026,8 @@ package body PortableServer.POA is
 
          when AdapterNonExistent_E =>
             declare
-               Member : constant AdapterNonExistent_Members
-                 := AdapterNonExistent_Members'
+               Member : constant AdapterNonExistent_Members :=
+                 AdapterNonExistent_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1036,8 +1036,8 @@ package body PortableServer.POA is
 
          when InvalidPolicy_E =>
             declare
-               Member : constant InvalidPolicy_Members
-                 := InvalidPolicy_Members'
+               Member : constant InvalidPolicy_Members :=
+                 InvalidPolicy_Members'
                  (CORBA.IDL_Exception_Members with Index => 0);
                --  XXX Should handle this case.
             begin
@@ -1047,8 +1047,8 @@ package body PortableServer.POA is
 
          when NoServant_E =>
             declare
-               Member : constant NoServant_Members
-                 := NoServant_Members'
+               Member : constant NoServant_Members :=
+                 NoServant_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1057,8 +1057,8 @@ package body PortableServer.POA is
 
          when ObjectAlreadyActive_E =>
             declare
-               Member : constant ObjectAlreadyActive_Members
-                 := ObjectAlreadyActive_Members'
+               Member : constant ObjectAlreadyActive_Members :=
+                 ObjectAlreadyActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1067,8 +1067,8 @@ package body PortableServer.POA is
 
          when ObjectNotActive_E =>
             declare
-               Member : constant ObjectNotActive_Members
-                 := ObjectNotActive_Members'
+               Member : constant ObjectNotActive_Members :=
+                 ObjectNotActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1077,8 +1077,8 @@ package body PortableServer.POA is
 
          when ServantAlreadyActive_E =>
             declare
-               Member : constant ServantAlreadyActive_Members
-                 := ServantAlreadyActive_Members'
+               Member : constant ServantAlreadyActive_Members :=
+                 ServantAlreadyActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1087,8 +1087,8 @@ package body PortableServer.POA is
 
          when ServantNotActive_E =>
             declare
-               Member : constant ServantNotActive_Members
-                 := ServantNotActive_Members'
+               Member : constant ServantNotActive_Members :=
+                 ServantNotActive_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1097,8 +1097,8 @@ package body PortableServer.POA is
 
          when WrongAdapter_E =>
             declare
-               Member : constant WrongAdapter_Members
-                 := WrongAdapter_Members'
+               Member : constant WrongAdapter_Members :=
+                 WrongAdapter_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1107,8 +1107,8 @@ package body PortableServer.POA is
 
          when WrongPolicy_E =>
             declare
-               Member : constant WrongPolicy_Members
-                 := WrongPolicy_Members'
+               Member : constant WrongPolicy_Members :=
+                 WrongPolicy_Members'
                  (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
@@ -1422,8 +1422,8 @@ package body PortableServer.POA is
 
    procedure Initialize is
    begin
-      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error
-        := Raise_From_Error'Access;
+      PolyORB.CORBA_P.Exceptions.POA_Raise_From_Error :=
+        Raise_From_Error'Access;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -1433,10 +1433,10 @@ package body PortableServer.POA is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"portableserver.poa",
+      (Name      => +"portableserver.poa",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PortableServer.POA;
