@@ -105,6 +105,17 @@ package body Ada_Be.Source_Streams is
         (LU2'First .. LU2'First + LU1'Length - 1);
    end Is_Ancestor;
 
+   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
+   begin
+      pragma Assert (Unit.Kind = Unit_Spec);
+      Unit.Elaborate_Body := True;
+   end Add_Elaborate_Body;
+
+   procedure Add_No_Warning (Unit : in out Compilation_Unit) is
+   begin
+      Unit.No_Warning := True;
+   end Add_No_Warning;
+
    procedure Add_With
      (Unit   : in out Compilation_Unit;
       Dep    : String;
@@ -271,6 +282,12 @@ package body Ada_Be.Source_Streams is
             Put (File, "body ");
          end if;
          Put_Line (File, Unit.Library_Unit_Name.all & " is");
+
+         if Unit.Elaborate_Body then
+            New_Line (File);
+            Put_Line ("   pragma Elaborate_Body;");
+         end if;
+
          Put (File, To_String (Unit.Library_Item));
 
          if not Is_Generic_Instanciation then
@@ -284,7 +301,7 @@ package body Ada_Be.Source_Streams is
       end if;
 
       if To_Stdout then
-         Emit_Standard_Header (Current_Output);
+         Emit_Standard_Header (Current_Output, Unit.No_Warning);
          Emit_Source_Code (Current_Output);
       else
          declare
@@ -293,7 +310,7 @@ package body Ada_Be.Source_Streams is
             File : File_Type;
          begin
             Create (File, Out_File, File_Name);
-            Emit_Standard_Header (File);
+            Emit_Standard_Header (File, Unit.No_Warning);
             Emit_Source_Code (File);
             Close (File);
          end;

@@ -571,8 +571,7 @@ package body Ada_Be.Idl2Ada is
               (Stubs_Spec, Node);
             --  The object reference type.
 
-            NL (Skel_Spec);
-            PL (Skel_Spec, "pragma Elaborate_Body;");
+            Add_Elaborate_Body (Skel_Spec);
 
             Add_With (Skel_Body, "Broca.Buffers");
             Add_With (Skel_Body, "Broca.Exceptions");
@@ -586,9 +585,12 @@ package body Ada_Be.Idl2Ada is
                  (Impl_Spec, Node);
                --  The object implementation type.
 
+               Add_No_Warning (Impl_Spec);
+               Add_No_Warning (Impl_Body);
+
                Add_With (Impl_Body, Skel_Name,
                          Use_It => False,
-                         Elab_Control => Elaborate);
+                         Elab_Control => None);
             end if;
 
             Gen_Node_Stream_Spec
