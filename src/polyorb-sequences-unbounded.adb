@@ -395,6 +395,10 @@ package body PolyORB.Sequences.Unbounded is
       Reallocated : Boolean;
 
    begin
+      if Source.Content = null then
+         return;
+      end if;
+
       if From > Old_Length + 1
         or else Through > Old_Length
       then
