@@ -179,7 +179,9 @@ package body MOMA.Message_Handlers is
             Result    => Result,
             Req       => Request);
          PolyORB.Requests.Invoke (Request);
+         pragma Debug (O ("Register_Handler request complete"));
          PolyORB.Requests.Destroy_Request (Request);
+         pragma Debug (O ("Register_Handler request destroyed"));
       end if;
    end Register_To_Servant;
 

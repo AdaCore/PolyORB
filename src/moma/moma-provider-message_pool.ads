@@ -39,6 +39,7 @@
 with MOMA.Types;
 with MOMA.Provider.Warehouse;
 
+with PolyORB.Any.NVList;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
@@ -93,5 +94,9 @@ private
          --  of a message, or none.
 
    end record;
+
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref;
 
 end MOMA.Provider.Message_Pool;

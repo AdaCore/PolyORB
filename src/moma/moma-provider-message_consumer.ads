@@ -38,6 +38,9 @@
 
 --  $Id$
 
+with MOMA.Types;
+
+with PolyORB.Any.NVList;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
@@ -73,5 +76,12 @@ private
    type Object is new PolyORB.Minimal_Servant.Servant with record
       Remote_Ref : PolyORB.References.Ref;
    end record;
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref;
+
+   procedure Register_Handler (Self : access Object;
+                               Handler_Ref : PolyORB.References.Ref;
+                               Behavior : MOMA.Types.Call_Back_Behavior);
 
 end MOMA.Provider.Message_Consumer;

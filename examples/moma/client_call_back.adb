@@ -257,7 +257,9 @@ begin
    Set_Handler (MOMA_Handler_Acc, Handler1);
    Set_Notifier (MOMA_Handler_Acc, Notifier1);
    Set_Behavior (MOMA_Handler_Acc, Notify);
+   Output ("Set behavior and procedures", True);
 
+   Put_Line ("Send messages");
    Send_MByte (1);
 
    Set_Behavior (MOMA_Handler_Acc, Handle);
@@ -267,8 +269,6 @@ begin
    Message_Id := Receive_MByte;
    Message_Id := Receive_MByte;
    Ok := True;
-
-   --  Output ("Testing " & Test_Name & " Message ", Ok);
 
    --  XXX should destroy all structures here !
 end Client_Call_Back;
