@@ -34,8 +34,9 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.Garlic.Types;
+with System.Garlic.Exceptions;
 with System.Garlic.Utils;
+with System.Garlic.Types;
 
 package System.Garlic.Protocols is
 
@@ -62,10 +63,10 @@ package System.Garlic.Protocols is
 
    procedure Initialize
      (Protocol  : access Protocol_Type;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Utils.Error_Type)
+      Error     : in out Exceptions.Error_Type)
      is abstract;
    --  Initialize protocol. When Self_Data is non-null, use this
    --  location to receive messages. Required means that this
@@ -76,11 +77,21 @@ package System.Garlic.Protocols is
    --  have to initialize this protocol anyway, because it may be
    --  needed to contact other partitions.
 
+   type Milliseconds is new Natural;
+
+   Forever : constant Milliseconds := 0;
+
+   function Receive
+     (Protocol  : access Protocol_Type;
+      Timeout   : Milliseconds)
+     return Boolean is abstract;
+   --  Try to receive any incoming stream, analyze and process
+   --  it. Return False if Timeout expired.
 
    procedure Set_Boot_Data
      (Protocol  : access Protocol_Type;
-      Boot_Data : in Utils.String_Access;
-      Error     : in out Utils.Error_Type)
+      Boot_Data : in String;
+      Error     : in out Exceptions.Error_Type)
      is abstract;
    --  When Boot_Data is non-null, use this location to contact boot
    --  partition.
@@ -90,6 +101,9 @@ package System.Garlic.Protocols is
      return Utils.String_Array_Access;
    --  Return a string array which holds all the physical locations to
    --  be used by another partition to contact us.
+
+   procedure Receive_From_All_Protocols;
+   --  Receive from all protocols.
 
    procedure Register (Protocol : in Protocol_Access);
    --  Register the protocol as a present protocol
@@ -103,7 +117,7 @@ package System.Garlic.Protocols is
      (Protocol  : access Protocol_Type;
       Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
-      Error     : in out Utils.Error_Type) is abstract;
+      Error     : in out Exceptions.Error_Type) is abstract;
    --  Send data to a remote partition. See comment about Unused_Space
    --  above.
 

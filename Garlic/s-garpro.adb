@@ -46,6 +46,29 @@ package body System.Garlic.Protocols is
       return null;
    end Get_Data;
 
+   --------------------------------
+   -- Receive_From_All_Protocols --
+   --------------------------------
+
+   procedure Receive_From_All_Protocols
+   is
+      Timeout  : Milliseconds := 10000;
+      Protocol : Natural := First_Protocol;
+
+   begin
+      if First_Protocol = Last_Protocol then
+         Timeout := Forever;
+      end if;
+      loop
+         exit when Receive (Protocol_Table (Protocol), Timeout);
+         if Protocol = Last_Protocol then
+            Protocol := First_Protocol;
+         else
+            Protocol := Protocol + 1;
+         end if;
+      end loop;
+   end Receive_From_All_Protocols;
+
    --------------
    -- Register --
    --------------
