@@ -581,8 +581,3 @@ begin
    Put_Line ("") ;
 
 end Client ;
-
-
-
-
-

@@ -16,6 +16,7 @@ with CORBA ; use CORBA ;
 with CORBA.Orb ; use CORBA.Orb ;
 with CORBA.Boa ; use CORBA.Boa ;
 with Text_IO ; use Text_IO ;
+with All_types;
 with All_types.Impl ;
 
 procedure server is
@@ -29,7 +30,7 @@ begin
    Object_Is_Ready(Boa, MyAll_Types) ;
    Put_Line("main: Object is ready !") ;
 
-   Ior := Object_To_String(MyAll_Types) ;
+   Ior := Object_To_String(All_types.To_Ref (MyAll_Types)) ;
    Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
    Implementation_Is_Ready(Boa) ;

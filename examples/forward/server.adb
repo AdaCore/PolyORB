@@ -28,7 +28,7 @@ begin
    Object_Is_Ready(Boa, Myegg) ;
    Object_Is_Ready(Boa, Mychicken) ;
 
-   Ior := Object_To_String(Myegg) ;
+   Ior := Object_To_String (Egg.To_Ref (Myegg)) ;
    Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
    Implementation_Is_Ready(Boa) ;

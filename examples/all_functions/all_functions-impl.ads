@@ -1,7 +1,7 @@
-with AdaBroker.OmniObject ;
+with AdaBroker.OmniORB ;
 package all_functions.Impl is
 
-   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniORB.ImplObject with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -47,7 +47,7 @@ package all_functions.Impl is
 private
 
    -- You may add fields to this record
-   type Object is new AdaBroker.OmniObject.Implemented_Object with record
+   type Object is new AdaBroker.OmniORB.ImplObject with record
       Attrib : Corba.Short ;
    end record ;
 

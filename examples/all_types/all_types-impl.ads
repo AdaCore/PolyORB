@@ -1,15 +1,11 @@
-with AdaBroker.OmniObject ;
+with AdaBroker.OmniORB ;
 with CORBA ;
 with CORBA.Object ;
 package all_types.Impl is
 
-   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
-   type Object_Ptr is access all Object ;
+   type Object is new AdaBroker.OmniORB.ImplObject with private;
+   type Object_Ptr is access all Object;
 
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
 
    function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean ;
 
@@ -62,22 +58,21 @@ package all_types.Impl is
 
    function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref ;
 
-   function Get_Myself(Self : access Object) return Ref ;
+   function get_myself(Self : access Object) return Ref ;
+
+
 
 
 private
 
    -- You may add fields to this record
-   type Object is new AdaBroker.OmniObject.Implemented_Object with record
+   type Object is new AdaBroker.OmniORB.ImplObject with record
       Pd_Col : Color := Blue ;
       Pd_Ex : Example := (Switch => 1, Counter => 23) ;
-   end record ;
+   end record;
 
-   --------------------------------------------------
-   ----          finalization operators          ----
-   --------------------------------------------------
-   procedure Initialize(Self : in out Object) ;
-   procedure Adjust(Self : in out Object) ;
-   procedure Finalize(Self : in out Object) ;
+   procedure Initialize (Self : in out Object);
+   procedure Adjust     (Self : in out Object);
+   procedure Finalize   (Self : in out Object);
 
-end all_types.Impl ;
+end all_types.Impl;

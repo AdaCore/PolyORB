@@ -2,8 +2,8 @@
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) weapon.ads
-	gnatmake -gnatf -gnata -i client.adb $(FLAGS)
-	gnatmake -gnatf -gnata -i server.adb $(FLAGS)
+	gnatmake -gnatf -gnata -i client.adb -g $(FLAGS) 
+	gnatmake -gnatf -gnata -i server.adb -g $(FLAGS)
 
 GENERATED_FILES = *-proxies.ad*
 GENERATED_FILES += *-marshal.ad*

@@ -252,11 +252,10 @@ package body all_functions.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
-      Init_Local_Object(Self,
+      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self)) ;
+      Initialize_Local_Object(Self,
                         Repository_Id,
-                        all_functions.Skeleton.Dispatch'Access,
-                        all_functions.Is_A'Access) ;
+                        all_functions.Skeleton.Dispatch'Access);
       -- You can add things *BELOW* this line
 
    end Initialize ;
@@ -266,7 +265,7 @@ package body all_functions.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -278,7 +277,7 @@ package body all_functions.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self)) ;
    end Finalize ;
 
 

@@ -1,77 +1,100 @@
 with all_types.Skeleton ;
 with CORBA ;
 with CORBA.Object ;
+with CORBA.Object.OmniORB;
 
 
-package body all_types.Impl is
+package body all_types.Impl is 
 
 
    -----------------------
    -- IDL definitions   --
    -----------------------
 
+   --  echoBoolean
+   -------------------------------
    function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoShort
+   -------------------------------
    function echoShort(Self : access Object; arg : in CORBA.Short) return CORBA.Short is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoLong
+   -------------------------------
    function echoLong(Self : access Object; arg : in CORBA.Long) return CORBA.Long is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoUShort
+   -------------------------------
    function echoUShort(Self : access Object; arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoULong
+   -------------------------------
    function echoULong(Self : access Object; arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoFloat
+   -------------------------------
    function echoFloat(Self : access Object; arg : in CORBA.Float) return CORBA.Float is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoDouble
+   -------------------------------
    function echoDouble(Self : access Object; arg : in CORBA.Double) return CORBA.Double is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoChar
+   -------------------------------
    function echoChar(Self : access Object; arg : in CORBA.Char) return CORBA.Char is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoOctet
+   -------------------------------
    function echoOctet(Self : access Object; arg : in CORBA.Octet) return CORBA.Octet is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echoString
+   -------------------------------
    function echoString(Self : access Object; arg : in CORBA.String) return CORBA.String is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
-   procedure simple_exception_test(Self : access Object) is
-   begin
+   --  simple_exception_test
+   -------------------------------
+   procedure simple_exception_test(Self : access Object) is 
+   begin 
       raise Simple_Exception ;
    end;
 
@@ -85,39 +108,51 @@ package body all_types.Impl is
    end;
 
 
+   --  echo1
+   -------------------------------
    function echo1(Self : access Object; arg : in example) return example is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo2
+   -------------------------------
    function echo2(Self : access Object; arg : in simple_struct) return simple_struct is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo3
+   -------------------------------
    function echo3(Self : access Object; arg : in Color) return Color is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo4
+   -------------------------------
    function echo4(Self : access Object; arg : in U_string) return U_string is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo6
+   -------------------------------
    function echo6(Self : access Object; arg : in U_sequence) return U_sequence is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo7
+   -------------------------------
    function echo7(Self : access Object; arg : in B_sequence) return B_sequence is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
@@ -139,39 +174,56 @@ package body all_types.Impl is
    end ;
 
 
+   --  echo8
+   -------------------------------
    function echo8(Self : access Object; arg : in line) return line is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo9
+   -------------------------------
    function echo9(Self : access Object; arg : in square) return square is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo10
+   -------------------------------
    function echo10(Self : access Object; arg : in cube) return cube is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo11
+   -------------------------------
    function echo11(Self : access Object; arg : in Ref) return Ref is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
 
+   --  echo12
+   -------------------------------
    function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref is
-   begin
-      return Arg ;
+   begin 
+      return arg;
    end ;
 
-   function Get_Myself(Self : access Object) return Ref is
-   begin
-      return To_Ref(Self.all) ;
+
+   --  get_myself
+   -------------------------------
+   function get_myself(Self : access Object) return Ref is
+      Result : Ref;
+   begin 
+      CORBA.Object.Ref (Result) :=
+         CORBA.Object.OmniORB.To_Ref (Self.all, Repository_Id);
+      return Result;
    end ;
+
 
 
 
@@ -185,24 +237,23 @@ package body all_types.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
-      Init_Local_Object(Self,
+      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self));
+      Initialize_Local_Object(Self,
                         Repository_Id,
-                        all_types.Skeleton.Dispatch'Access,
-                        all_types.Is_A'Access) ;
+                        all_types.Skeleton.Dispatch'Access);
       -- You can add things *BELOW* this line
 
-   end Initialize ;
+   end Initialize;
 
 
    -- Adjust
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self));
       -- You can add things *BELOW* this line
 
-   end Adjust ;
+   end Adjust;
 
 
    -- Finalize
@@ -211,8 +262,8 @@ package body all_types.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
-   end Finalize ;
+   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self));
+   end Finalize;
 
 
-end all_types.Impl ;
+end all_types.Impl;

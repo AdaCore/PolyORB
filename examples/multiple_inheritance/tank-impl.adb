@@ -45,10 +45,9 @@ package body tank.Impl is
    procedure Initialize(Self : in out Object) is
    begin
       Vehicle.Impl.Initialize(Vehicle.Impl.Object(Self)) ;
-      Init_Local_Object(Self,
+      Initialize_Local_Object(Self,
                         Repository_Id,
-                        tank.Skeleton.Dispatch'Access,
-                        tank.Is_A'Access) ;
+                        tank.Skeleton.Dispatch'Access);
       -- You can add things *BELOW* this line
 
    end Initialize ;

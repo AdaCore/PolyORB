@@ -13,6 +13,7 @@ with Corba ; use Corba ;
 with Corba.Orb ; use Corba.Orb ;
 with Corba.Boa ; use Corba.Boa ;
 with Text_IO ; use Text_Io ;
+with All_Functions;
 with All_Functions.Impl ;
 
 procedure server is
@@ -23,7 +24,7 @@ procedure server is
 begin
    Object_Is_Ready(Boa, Myobj) ;
 
-   Ior := Object_To_String(Myobj) ;
+   Ior := Object_To_String(All_Functions.To_Ref (Myobj)) ;
    Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
    Implementation_Is_Ready(Boa) ;

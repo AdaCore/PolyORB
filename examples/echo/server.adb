@@ -1,37 +1,37 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object (corresponds to eg2_impl.cc in omniORB     ----
-----                                                                    ----
-----                server                                              ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-with Corba ; use Corba ;
-with Corba.Orb ; use Corba.Orb ;
-with Corba.Boa ; use Corba.Boa ;
-with Text_IO ; use Text_Io ;
-with Echo.Impl ;
+with CORBA; use CORBA;
+with CORBA.ORB; use CORBA.ORB;
+with CORBA.BOA; use CORBA.BOA;
+with Text_IO; use Text_IO;
+with Echo;
+with Echo.Impl;
 with AdaBroker.Exceptions;
 
 procedure server is
    -- Initialisation of The ORB
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
+   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init("omniORB2");
 
    -- Initialisation of the BOA
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Myecho : Echo.Impl.Object ;
+   BOA : CORBA.BOA.Object := CORBA.ORB.BOA_Init(ORB, "omniORB2_BOA");
+   Myecho : Echo.Impl.Object;
 
-   Ior : Corba.String ;
+   IOR : CORBA.String;
+
 begin
-   Object_Is_Ready(Boa, Myecho) ;
+   Put_Line ("ORB init");
+   ORB := CORBA.ORB.ORB_Init ("omniORB2");
+
+   Put_Line ("BOA init");
+   BOA := CORBA.ORB.BOA_Init (ORB, "omniORB2_BOA");
+
+   Put_Line ("Object is ready");
+   Object_Is_Ready (BOA, Myecho);
 
    -- displays the IOR
-   Ior := Object_To_String(Myecho) ;
-   Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
-   Implementation_Is_Ready(Boa) ;
+   Put_Line ("Object To String");
+   IOR := Object_To_String (Echo.To_Ref (MyEcho));
 
-end ;
+   Put_Line ("'" & To_Standard_String (IOR) & "'");
+
+   Implementation_Is_Ready (BOA);
+end Server;

@@ -1,5 +1,5 @@
 
-FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
+FLAGS = -g $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) echo.ads
 	gnatmake -gnatf -gnata -m -i client.adb $(FLAGS)

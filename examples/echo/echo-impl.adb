@@ -1,18 +1,23 @@
 with Echo.Skeleton ;
-with Corba ;
+with CORBA ;
 
 
-package body Echo.Impl is
+package body Echo.Impl is 
 
 
    -----------------------
    -- IDL definitions   --
    -----------------------
 
-   function echoString(Self : access Object; mesg : in Corba.String) return Corba.String is
-   begin
-      return mesg ;
+   --  echoString
+   -------------------------------
+   function echoString(Self : access Object; mesg : in CORBA.String) return CORBA.String is
+   begin 
+      return mesg;
    end ;
+
+
+
 
 
    -----------------------------------------------------------
@@ -24,24 +29,23 @@ package body Echo.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
-      Init_Local_Object(Self,
+      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self));
+      Initialize_Local_Object(Self,
                         Repository_Id,
-                        Echo.Skeleton.Dispatch'Access,
-                        Echo.Is_A'Access) ;
+                        Echo.Skeleton.Dispatch'Access);
       -- You can add things *BELOW* this line
 
-   end Initialize ;
+   end Initialize;
 
 
    -- Adjust
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self));
       -- You can add things *BELOW* this line
 
-   end Adjust ;
+   end Adjust;
 
 
    -- Finalize
@@ -50,8 +54,8 @@ package body Echo.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
-   end Finalize ;
+   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self));
+   end Finalize;
 
 
-end Echo.Impl ;
+end Echo.Impl;

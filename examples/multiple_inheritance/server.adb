@@ -25,7 +25,7 @@ procedure server is
 begin
    Object_Is_Ready(Boa, Myecho) ;
 
-   Ior := Object_To_String(Myecho) ;
+   Ior := Object_To_String(Tank.To_Ref (Myecho)) ;
    Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
    Implementation_Is_Ready(Boa) ;

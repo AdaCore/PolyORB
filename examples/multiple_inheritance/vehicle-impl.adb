@@ -46,11 +46,10 @@ package body vehicle.Impl is
    -------------
    procedure Initialize(Self : in out Object) is
    begin
-      AdaBroker.OmniObject.Initialize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
-      Init_Local_Object(Self,
+      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self)) ;
+      Initialize_Local_Object(Self,
                         Repository_Id,
-                        vehicle.Skeleton.Dispatch'Access,
-                        vehicle.Is_A'Access) ;
+                        vehicle.Skeleton.Dispatch'Access);
       -- You can add things *BELOW* this line
 
    end Initialize ;
@@ -60,7 +59,7 @@ package body vehicle.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   AdaBroker.OmniObject.Adjust(AdaBroker.OmniObject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -72,7 +71,7 @@ package body vehicle.Impl is
    begin
 
       -- You can add things *BEFORE* this line
-   AdaBroker.OmniObject.Finalize(AdaBroker.OmniObject.Implemented_Object(Self)) ;
+   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self)) ;
    end Finalize ;
 
 

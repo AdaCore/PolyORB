@@ -1,9 +1,9 @@
-with AdaBroker.OmniObject ;
+with AdaBroker.OmniORB ;
 with Chicken_forward ;
 with CORBA.Boa ;
 package Egg.Impl is
 
-   type Object is new AdaBroker.OmniObject.Implemented_Object with private ;
+   type Object is new AdaBroker.OmniORB.ImplObject with private ;
    type Object_Ptr is access all Object ;
 
 
@@ -23,7 +23,7 @@ package Egg.Impl is
 private
 
    -- You may add fields to this record
-   type Object is new AdaBroker.OmniObject.Implemented_Object with record
+   type Object is new AdaBroker.OmniORB.ImplObject with record
       Already : Boolean := False ;
       Boa : CORBA.Boa.Object ;
    end record ;
