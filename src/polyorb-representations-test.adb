@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
-
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.Test is

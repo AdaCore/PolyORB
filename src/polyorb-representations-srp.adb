@@ -44,6 +44,7 @@ with PolyORB.Opaque; use PolyORB.Opaque;
 with PolyORB.Types;
 with PolyORB.Utils;
 with PolyORB.Utils.SRP; use PolyORB.Utils.SRP;
+with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
 
 with Interfaces;
 
