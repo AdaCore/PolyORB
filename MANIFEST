@@ -459,6 +459,8 @@ ada/stylesw.adb
 ada/stylesw.ads
 ada/switch.adb
 ada/switch.ads
+ada/switch-m.ads
+ada/switch-m.ads
 ada/table.adb
 ada/table.ads
 ada/tree_io.adb
