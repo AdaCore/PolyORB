@@ -529,24 +529,17 @@ package body CORBA.ORB is
       --  then raise InvalidName.
 
       if Id = ""
-        or else not Is_Nil (Resolve_Initial_References (Id)) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+        or else not Is_Nil (Resolve_Initial_References (Id))
+      then
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       --  If Ref is null, then raise Bad_Param with minor code 27
 
       if Is_Nil (Ref) then
-         declare
-            Excp_Memb : System_Exception_Members :=
-              System_Exception_Members'(Minor     => 27,
-                                        Completed => Completed_No);
-         begin
-            Raise_Bad_Param (Excp_Memb);
-         end;
+         Raise_Bad_Param (
+           System_Exception_Members'(Minor     => 27,
+                                     Completed => Completed_No));
       end if;
 
       Register_Initial_Reference (Id, Ref);
@@ -580,11 +573,7 @@ package body CORBA.ORB is
       pragma Debug (O ("Resolve_Initial_References: " & Id));
 
       if Is_Nil (Result) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       return Result;
