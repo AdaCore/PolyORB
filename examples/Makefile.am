@@ -8,13 +8,22 @@ TESTS=  polyorb-test-no_tasking \
 all: $(TESTS)
 
 $(TESTS): force
-	$(GNATMAKE) -I../src -I../src/corba -I../src/soap $(XMLADA_INCLUDE) $@ \
-	-cargs $(GNATFLAGS) \
-	-largs $(LDFLAGS) \
-	-L../src/.libs -lpolyorb \
-	-L../src/corba/.libs -lpolyorb-corba \
-	-L../src/soap/.libs -lpolyorb-soap \
-	-bargs $(BARGS) -largs $(XMLADA_LIBS)
+	$(GNATMAKE) \
+	-I$(srcdir) \
+	-I$(srcdir)/../src \
+	-I$(srcdir)/../src/corba \
+	-I$(srcdir)/../src/soap \
+	-I../src \
+	-I../src/corba \
+	-I../src/soap \
+	$(XMLADA_INCLUDE) \
+	-m $@ \
+	-cargs $(GNATFLAGS) -bargs $(BARGS) \
+	-largs $(LDFLAGS) --LINK=$(LINKER) \
+	../src/libpolyorb.la \
+	../src/corba/libpolyorb-corba.la \
+	../src/soap/libpolyorb-soap.la \
+	$(XMLADA_LIBS)
 
 force:
 	(cd ../src && $(MAKE) all)
