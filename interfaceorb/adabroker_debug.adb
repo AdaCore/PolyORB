@@ -122,23 +122,25 @@ package body Adabroker_Debug is
 begin
 
    begin
-   Open(File, In_File, Debug_Filename) ;
+      Open(File, In_File, Debug_Filename) ;
+
+      while not End_Of_File(File) loop
+         Get_Line(File, S, N) ;
+         if not (N=0) then
+            if not ( S(1) = '#' ) then
+               Add_To_Flag_List(S(1..N)) ;
+            end if ;
+         end if ;
+      end loop ;
+
+      Close(File) ;
+
    exception
       when others =>
-         Put_Line("Could not find file with debug options : " & Debug_Filename) ;
-         raise Program_Error ;
+         Put_Line(" ** Could not find file with debug options : "
+                  & Debug_Filename & " ** ") ;
+         -- raise Program_Error ;
    end ;
-
-   while not End_Of_File(File) loop
-      Get_Line(File, S, N) ;
-      if not (N=0) then
-         if not ( S(1) = '#' ) then
-            Add_To_Flag_List(S(1..N)) ;
-         end if ;
-      end if ;
-   end loop ;
-
-   Close(File) ;
 
 end Adabroker_Debug ;
 

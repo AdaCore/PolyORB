@@ -56,7 +56,9 @@ package body Corba.Forward is
       Dummy_Result : Ref ;
    begin
       Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                     "Corba.Forward.To_Ref is illegal on a forwarded type"
+                                     Corba.CRLF
+                                     & "Corba.Forward.To_Ref is illegal on a forwarded type"
+                                     & Corba.CRLF
                                      & "use From_Forward first to convert it into a non forwarded type") ;
       return Dummy_Result ;
    end ;
@@ -68,11 +70,12 @@ package body Corba.Forward is
       Dummy_Result : Ref ;
    begin
       Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                     "Corba.Forward.Get_Nil_Ref is illegal on a forwarded type"
+                                     Corba.CRLF
+                                     & "Corba.Forward.Get_Nil_Ref is illegal on a forwarded type"
+                                     & Corba.CRLF
                                      & "use From_Forward first to convert it into a non forwarded type") ;
       return Dummy_Result ;
    end ;
-
 
 
    --------------------------------------------------------
@@ -85,6 +88,7 @@ package body Corba.Forward is
       function From_Forward(The_Forward : in Ref)
                             return Ref_Type is
       begin
+         pragma Debug(Output(forward,"Corba.Forward.From_Forward : entering")) ;
          return To_Ref(The_Forward) ;
       end ;
 

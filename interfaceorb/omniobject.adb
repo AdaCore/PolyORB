@@ -381,6 +381,8 @@ package body OmniObject is
       C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
       Result :=  To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
 
+      pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : WARNING : C++ function returned NULL")) ;
+
       if not (Result = null) then
          Result.all.Implobj := null ;
          pragma Debug(Output(Omniobject,"Omniobject.Create_Omniobject : setting result.all.implobj to null")) ;

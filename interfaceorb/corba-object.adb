@@ -334,7 +334,14 @@ package body Corba.Object is
    ----------------------
    function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
    begin
-      return Self.Dynamic_Type.all ;
+      if Is_Nil(Self) then
+         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                        "Get_Dynamic_Type should not be called on a nil reference"
+                                        & Corba.CRLF
+                                        & "Use Is_nil first to check that your object is not a nil reference") ;
+      else
+         return Self.Dynamic_Type.all ;
+      end if ;
    end ;
 
 
@@ -395,10 +402,10 @@ package body Corba.Object is
    begin
       -- check if the omniobject we got can be put into
       -- To (type implied the repoId)
-         Most_Derived_Type :=
-           Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
-         -- most_derived_type is now an object of the most derived type
-         -- of the new created object
+      Most_Derived_Type :=
+        Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
+      -- most_derived_type is now an object of the most derived type
+      -- of the new created object
       if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
 
          -- Get the omniobject
@@ -415,6 +422,10 @@ package body Corba.Object is
 
       -- otherwise, the operation is illegal return Nil_Ref
       -- in the right class
+      pragma Debug(Output(Debug,"Corba.Object.Create_Ref : cannot put a "
+                          & Corba.To_Standard_String(Most_Derived_Repoid)
+                          & "In a "
+                          &  Corba.To_Standard_String(Get_Repository_Id(To)))) ;
       To.Omniobj := null ;
       To.Dynamic_Type := null ;
 
@@ -490,6 +501,10 @@ package body Corba.Object is
          pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Creating Ref")) ;
          Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
          pragma Debug(Output(Debug,"Corba.Object.Unmarshall : Ref created")) ;
+         if Is_Nil(Obj) then
+            pragma Debug(Output(Debug,"Corba.Object.Unmarshall : WARNING : Created Nil Ref")) ;
+            null ;
+         end if ;
       end if ;
    end ;
 
