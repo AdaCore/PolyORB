@@ -76,7 +76,7 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : PolyORB.POA_Policies.PolicyList_Access);
+      Policies : PolyORB.POA_Policies.PolicyList);
 
    procedure Init_With_Default_Policies
      (OA : access Basic_Obj_Adapter);
@@ -175,7 +175,7 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : PolyORB.POA_Policies.PolicyList_Access;
+      Policies : PolyORB.POA_Policies.PolicyList;
       Default  : Boolean);
    --  Set OA policies from the values in Policies.
    --  If Default is True, set only those policies that
@@ -184,13 +184,13 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : PolyORB.POA_Policies.PolicyList_Access;
+      Policies : PolyORB.POA_Policies.PolicyList;
       Default  : Boolean)
    is
       use Policy_Sequences;
 
       Policies_Array : constant Element_Array
-        := To_Element_Array (Policies.all);
+        := To_Element_Array (Policies);
       A_Policy : Policy_Access;
    begin
       pragma Debug (O ("Init Basic_POA with user provided policies"));
@@ -286,7 +286,7 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : PolyORB.POA_Policies.PolicyList_Access) is
+      Policies : PolyORB.POA_Policies.PolicyList) is
    begin
       pragma Debug (O ("Init Basic_POA with user provided policies"));
       Set_Policies (OA, Policies, Default => False);
@@ -418,7 +418,10 @@ package body PolyORB.POA.Basic_POA is
             PolyORB.POA_Types.Obj_Adapter_Access (OA));
          Set (OA.POA_Manager, null);
       end if;
-      Destroy_Policies (OA.all);
+      --  Destroy_Policies (OA.all);
+      --  XXX Cannot destroy_policies here because another
+      --  POA initialised from the default configuration could
+      --  be using the same instances of policy objects!
       Destroy_Locks    (OA.all);
       declare
          OA_Access : Basic_Obj_Adapter_Access
@@ -474,7 +477,7 @@ package body PolyORB.POA.Basic_POA is
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList)
      return Obj_Adapter_Access
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
@@ -524,9 +527,7 @@ package body PolyORB.POA.Basic_POA is
       end if;
 
       --  Init policies with those given by the user
-      if Policies /= null then
-         Init_With_User_Policies (New_Obj_Adapter, Policies);
-      end if;
+      Init_With_User_Policies (New_Obj_Adapter, Policies);
 
       --  Use default policies if not provided by the user
       Init_With_Default_Policies (New_Obj_Adapter);

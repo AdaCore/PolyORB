@@ -113,7 +113,7 @@ package PolyORB.POA is
      (Self         : access Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        PolyORB.POA_Policies.PolicyList_Access)
+      Policies     :        PolyORB.POA_Policies.PolicyList)
      return Obj_Adapter_Access
       is abstract;
    --  Create a POA given its name and a list of policies

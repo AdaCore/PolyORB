@@ -474,6 +474,8 @@ src/polyorb-poa.adb
 src/polyorb-poa.ads
 src/polyorb-poa_config-minimum.adb
 src/polyorb-poa_config-minimum.ads
+src/polyorb-poa_config-proxies.adb
+src/polyorb-poa_config-proxies.ads
 src/polyorb-poa_config.adb
 src/polyorb-poa_config.ads
 src/polyorb-poa_manager-basic_manager.adb

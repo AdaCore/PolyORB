@@ -215,7 +215,7 @@ package body CORBA.Test_POA is
          use PolyORB.POA.Basic_POA;
          use PolyORB.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
-         Policies           : PolicyList_Access
+         Policies           : PolicyList
            := new PolicyList;
          PM1                : POAManager_Access;
       begin
@@ -290,7 +290,7 @@ package body CORBA.Test_POA is
          use PolyORB.POA.Basic_POA;
          use PolyORB.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
-         Policies           : PolicyList_Access
+         Policies           : PolicyList
            := new PolicyList;
          PM1                : POAManager_Access;
       begin

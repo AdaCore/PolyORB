@@ -51,7 +51,7 @@ package PolyORB.POA_Config is
 
    function Default_Policies
      (C : Configuration_Type)
-     return PolyORB.POA_Policies.PolicyList_Access
+     return PolyORB.POA_Policies.PolicyList
       is abstract;
    --  Return the list of default OA policies for this configuration.
 

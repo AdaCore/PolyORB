@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . P O A _ P O L I C I E S                  --
+--           P O L Y O R B . P O A _ C O N F I G . P R O X I E S            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,43 +30,26 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Base types for the various configuration axes (policies)
---  of the PolyORB Portable Object Adapter (libreally inspired from
---  the POA specification in CORBA).
+--  A POA configuration for the Proxy-objects-subPOA.
 
 --  $Id$
 
-with Sequences.Unbounded;
+package PolyORB.POA_Config.Proxies is
 
-with PolyORB.POA_Types;
-with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
+   pragma Elaborate_Body;
 
-package PolyORB.POA_Policies is
+   type Proxies_Configuration is new Configuration_Type with private;
 
-   --  No proper body: no elaboration control.
+   procedure Initialize
+     (C : Proxies_Configuration);
 
-   type Policy is abstract tagged limited private;
-   type Policy_Access is access all Policy'Class;
-
-   package Policy_Sequences is new Sequences.Unbounded (Policy_Access);
-   subtype PolicyList is Policy_Sequences.Sequence;
-   --  type PolicyList_Access is access all PolicyList;
-
-   package Policy_Repository is
-      new PolyORB.Dynamic_Dict (PolyORB.POA_Policies.Policy_Access);
-
-   function Policy_Id (Self : Policy) return String is abstract;
-
-   procedure Check_Compatibility
-     (Self : Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-      is abstract;
-   --  Check the compatibility of the current policy with the
-   --  other policies of the object adapter.
+   function Default_Policies
+     (C : Proxies_Configuration)
+     return PolyORB.POA_Policies.PolicyList;
 
 private
 
-   type Policy is abstract tagged limited null record;
+   type Proxies_Configuration is new Configuration_Type
+     with null record;
 
-end PolyORB.POA_Policies;
+end PolyORB.POA_Config.Proxies;

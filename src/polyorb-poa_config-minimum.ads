@@ -45,7 +45,7 @@ package PolyORB.POA_Config.Minimum is
 
    function Default_Policies
      (C : Minimum_Configuration)
-     return PolyORB.POA_Policies.PolicyList_Access;
+     return PolyORB.POA_Policies.PolicyList;
 
 private
 

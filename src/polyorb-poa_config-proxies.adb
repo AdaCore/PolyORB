@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . P O A _ P O L I C I E S                  --
+--           P O L Y O R B . P O A _ C O N F I G . P R O X I E S            --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,43 +30,61 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Base types for the various configuration axes (policies)
---  of the PolyORB Portable Object Adapter (libreally inspired from
---  the POA specification in CORBA).
+--  A POA configuration for the Proxy-objects-subPOA.
 
 --  $Id$
 
-with Sequences.Unbounded;
+with PolyORB.POA_Policies;
+with PolyORB.POA_Policies.Id_Assignment_Policy.User;
+with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
+with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
+with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
+with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
 
-with PolyORB.POA_Types;
-with PolyORB.Dynamic_Dict;
-pragma Elaborate_All (PolyORB.Dynamic_Dict);
+package body PolyORB.POA_Config.Proxies is
 
-package PolyORB.POA_Policies is
+   use PolyORB.POA_Policies;
 
-   --  No proper body: no elaboration control.
+   ----------------
+   -- Initialize --
+   ----------------
 
-   type Policy is abstract tagged limited private;
-   type Policy_Access is access all Policy'Class;
+   My_Default_Policies : PolicyList;
 
-   package Policy_Sequences is new Sequences.Unbounded (Policy_Access);
-   subtype PolicyList is Policy_Sequences.Sequence;
-   --  type PolicyList_Access is access all PolicyList;
+   procedure Initialize
+     (C : Proxies_Configuration)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
+      use PolyORB.POA_Policies.Policy_Sequences;
+      P : constant Element_Array
+        := (Policy_Access (Id_Assignment_Policy.User.Create),
+            Policy_Access (Id_Uniqueness_Policy.Multiple.Create),
+            Policy_Access (Implicit_Activation_Policy.No_Activation.Create),
+            Policy_Access (Lifespan_Policy.Persistent.Create),
+            Policy_Access
+            (Request_Processing_Policy.Use_Default_Servant.Create),
+            Policy_Access (Servant_Retention_Policy.Non_Retain.Create),
+            Policy_Access (Thread_Policy.ORB_Ctrl.Create));
+   begin
+      for I in P'Range loop
+         PolyORB.POA_Policies.Policy_Repository.Register
+           (Policy_Id (P (I).all), P (I));
+      end loop;
+      My_Default_Policies := To_Sequence (P);
+   end Initialize;
 
-   package Policy_Repository is
-      new PolyORB.Dynamic_Dict (PolyORB.POA_Policies.Policy_Access);
+   function Default_Policies
+     (C : Proxies_Configuration)
+     return PolyORB.POA_Policies.PolicyList is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
+      return My_Default_Policies;
+   end Default_Policies;
 
-   function Policy_Id (Self : Policy) return String is abstract;
-
-   procedure Check_Compatibility
-     (Self : Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-      is abstract;
-   --  Check the compatibility of the current policy with the
-   --  other policies of the object adapter.
-
-private
-
-   type Policy is abstract tagged limited null record;
-
-end PolyORB.POA_Policies;
+end PolyORB.POA_Config.Proxies;

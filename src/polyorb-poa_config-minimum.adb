@@ -51,7 +51,7 @@ package body PolyORB.POA_Config.Minimum is
    -- Initialize --
    ----------------
 
-   My_Default_Policies : aliased PolicyList;
+   My_Default_Policies : PolicyList;
 
    procedure Initialize
      (C : Minimum_Configuration)
@@ -79,12 +79,12 @@ package body PolyORB.POA_Config.Minimum is
 
    function Default_Policies
      (C : Minimum_Configuration)
-     return PolyORB.POA_Policies.PolicyList_Access is
+     return PolyORB.POA_Policies.PolicyList is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
-      return My_Default_Policies'Access;
+      return My_Default_Policies;
    end Default_Policies;
 
 end PolyORB.POA_Config.Minimum;
