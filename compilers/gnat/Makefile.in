@@ -687,7 +687,7 @@ ifeq ($(strip $(filter-out powerpc% wrs vxworks,$(targ))),)
     s-tfsetr.adb<s-tfsetr-vxworks.adb
   endif
 
-  EXTRA_GNATRTL_NONTASKING_OBJS=i-vxwork.o i-vxwoio.o
+  EXTRA_GNATRTL_NONTASKING_OBJS=i-vxwork.o i-vxwoio.o s-vxwexc.o
   EXTRA_GNATRTL_TASKING_OBJS=s-vxwork.o
 endif
 
@@ -726,6 +726,7 @@ ifeq ($(strip $(filter-out %86 wrs vxworks,$(targ))),)
   a-sytaco.ads<a-sytaco-vxworks.ads \
   a-sytaco.adb<a-sytaco-vxworks.adb \
   a-intnam.ads<a-intnam-vxworks.ads \
+  i-vxwork.ads<i-vxwork-x86.ads \
   s-inmaop.adb<s-inmaop-posix.adb \
   s-interr.adb<s-interr-vxworks.adb \
   s-intman.ads<s-intman-vxworks.ads \
@@ -1361,8 +1362,8 @@ endif
   EXTRA_GNATTOOLS = \
     ../../gnatlbr$(exeext) \
     ../../gnatsym$(exeext)
-  # This command transforms (YYYYMMDD) into YY,MMDD
-  GSMATCH_VERSION := $(shell grep "^ *Gnat_Static_Version_String" $(fsrcpfx)gnatvsn.ads | sed -e 's/.*(\(.*\)).*/\1/' -e 's/\(..\)\(..\)\(....\)/\2,\3/')
+  # This command transforms (YYYYMMDD.*) into YY,MMDD
+  GSMATCH_VERSION := $(shell grep "^ *Gnat_Static_Version_String" $(fsrcpfx)gnatvsn.ads | sed -e 's/.*(\(.*\)).*/\1/' -e 's/\(..\)\(..\)\(....\).*/\2,\3/')
   TOOLS_LIBS_LO := --for-linker=sys\\$$\$$library:trace.exe
   GMEM_LIB = gmemlib
   LIBRARY_VERSION := $(subst .,_,$(LIB_VERSION))
@@ -1409,32 +1410,6 @@ ifeq ($(strip $(filter-out cygwin32% mingw32% pe,$(osys))),)
 # support for array/record will be done.
   GNATLIB_SHARED = gnatlib-shared-win32
   LIBRARY_VERSION := $(LIB_VERSION)
-endif
-
-ifeq ($(strip $(filter-out powerpc% linux%,$(arch) $(osys))),)
-  LIBGNAT_TARGET_PAIRS = \
-  a-intnam.ads<a-intnam-linux.ads \
-  s-inmaop.adb<s-inmaop-posix.adb \
-  s-intman.adb<s-intman-posix.adb \
-  s-osinte.adb<s-osinte-posix.adb \
-  s-osinte.ads<s-osinte-linux.ads \
-  s-osprim.adb<s-osprim-posix.adb \
-  s-taprop.adb<s-taprop-linux.adb \
-  s-taspri.ads<s-taspri-linux.ads \
-  s-tpopsp.adb<s-tpopsp-posix-foreign.adb \
-  s-parame.adb<s-parame-linux.adb \
-  system.ads<system-linux-ppc.ads
-
-  TOOLS_TARGET_PAIRS =  \
-    mlib-tgt.adb<mlib-tgt-linux.adb
-
-  SYMLIB = $(ADDR2LINE_SYMLIB)
-  THREADSLIB = -lpthread
-  GNATLIB_SHARED = gnatlib-shared-dual
-  GMEM_LIB =
-  PREFIX_OBJS = $(PREFIX_REAL_OBJS)
-  LIBRARY_VERSION := $(LIB_VERSION)
-
 endif
 
 ifeq ($(strip $(filter-out %ia64 linux%,$(arch) $(osys))),)
@@ -3847,16 +3822,15 @@ sem_disp.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
 sem_dist.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    debug.ads einfo.ads einfo.adb elists.ads err_vars.ads errout.ads \
    erroutc.ads exp_dist.ads exp_tss.ads gnat.ads g-htable.ads g-os_lib.ads \
-   g-string.ads gnatvsn.ads hostparm.ads lib.ads namet.ads nlists.ads \
-   nlists.adb nmake.ads nmake.adb opt.ads output.ads restrict.ads \
-   rident.ads rtsfind.ads sem.ads sem_dist.ads sem_dist.adb sem_res.ads \
-   sem_util.ads sinfo.ads sinfo.adb sinput.ads snames.ads stand.ads \
-   stringt.ads stringt.adb system.ads s-carun8.ads s-exctab.ads \
-   s-htable.ads s-imgenu.ads s-memory.ads s-rident.ads s-secsta.ads \
+   g-string.ads gnatvsn.ads hostparm.ads namet.ads nlists.ads nlists.adb \
+   nmake.ads nmake.adb opt.ads output.ads rtsfind.ads sem.ads sem_dist.ads \
+   sem_dist.adb sem_res.ads sem_util.ads sinfo.ads sinfo.adb sinput.ads \
+   snames.ads stand.ads stringt.ads stringt.adb system.ads s-carun8.ads \
+   s-exctab.ads s-htable.ads s-imgenu.ads s-memory.ads s-secsta.ads \
    s-soflin.ads s-stache.ads s-stalib.ads s-stoele.ads s-stoele.adb \
    s-traent.ads s-unstyp.ads s-wchcon.ads table.ads table.adb tbuild.ads \
-   tbuild.adb tree_io.ads types.ads types.adb uintp.ads uintp.adb \
-   uname.ads unchconv.ads unchdeal.ads urealp.ads 
+   tree_io.ads types.ads types.adb uintp.ads uintp.adb uname.ads \
+   unchconv.ads unchdeal.ads urealp.ads 
 
 sem_elab.o : ada.ads a-except.ads alloc.ads atree.ads atree.adb casing.ads \
    checks.ads csets.ads debug.ads einfo.ads einfo.adb elists.ads \

@@ -529,8 +529,7 @@ package body Exp_Dist is
    function Input_With_Tag_Check
      (Loc      : Source_Ptr;
       Var_Type : Entity_Id;
-      Stream   : Entity_Id)
-      return Node_Id;
+      Stream   : Entity_Id) return Node_Id;
    pragma Warnings (Off);
    pragma Unreferenced (Input_With_Tag_Check);
    pragma Warnings (On);
@@ -598,9 +597,7 @@ package body Exp_Dist is
       Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
-
       while Current_Declaration /= Empty loop
-
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
@@ -688,9 +685,11 @@ package body Exp_Dist is
       RACW_Type    : Entity_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
+
       Asynchronous_Flag : constant Entity_Id :=
-        Make_Defining_Identifier (Loc,
-          New_External_Name (Chars (RACW_Type), 'A'));
+                            Make_Defining_Identifier (Loc,
+                              New_External_Name (Chars (RACW_Type), 'A'));
+
    begin
       --  Declare the asynchronous flag. This flag will be changed to True
       --  whenever it is known that the RACW type is asynchronous.
@@ -798,9 +797,8 @@ package body Exp_Dist is
       if not Same_Scope and then not Existing then
 
          --  The RACW has been declared in another scope than the designated
-         --  type and has not been handled by another RACW in the same
-         --  package as the first one, so add primitive for the stub type
-         --  here.
+         --  type and has not been handled by another RACW in the same package
+         --  as the first one, so add primitive for the stub type here.
 
          Add_RACW_Primitive_Declarations_And_Bodies
            (Designated_Type  => Desig,
@@ -1066,9 +1064,8 @@ package body Exp_Dist is
       Insertion_Node  : Node_Id;
       Decls           : List_Id)
    is
-      --  Set sloc of generated declaration to be that of the
-      --  insertion node, so the declarations are recognized as
-      --  belonging to the current package.
+      --  Set sloc of generated declaration copy of insertion node sloc, so
+      --  the declarations are recognized as belonging to the current package.
 
       Loc : constant Source_Ptr := Sloc (Insertion_Node);
 
@@ -1315,23 +1312,33 @@ package body Exp_Dist is
                             Asynchronous_Flags_Table.Get (RACW_Type);
       pragma Assert (Present (Asynchronous_Flag));
 
-      --  Functions to create occurrences of the formal
-      --  parameter names.
-
       function Stream_Parameter return Node_Id;
       function Result return Node_Id;
+      --  Functions to create occurrences of the formal parameter names
 
-      function Stream_Parameter return Node_Id is
-      begin
-         return Make_Identifier (Loc, Name_S);
-      end Stream_Parameter;
+      ------------
+      -- Result --
+      ------------
 
       function Result return Node_Id is
       begin
          return Make_Identifier (Loc, Name_V);
       end Result;
 
+      ----------------------
+      -- Stream_Parameter --
+      ----------------------
+
+      function Stream_Parameter return Node_Id is
+      begin
+         return Make_Identifier (Loc, Name_S);
+      end Stream_Parameter;
+
+   --  Start of processing for Add_RACW_Read_Attribute
+
    begin
+      --  Generate object declarations
+
       Decls := New_List (
         Make_Object_Declaration (Loc,
           Defining_Identifier => Source_Ref,
@@ -1820,7 +1827,7 @@ package body Exp_Dist is
       Proc_Statements   : List_Id;
 
       Subp_Ref : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, Name_R);
+                   Make_Defining_Identifier (Loc, Name_R);
       --  Reference that designates the target subprogram (returned
       --  by Get_RAS_Info).
 
@@ -1833,9 +1840,12 @@ package body Exp_Dist is
       --  Additional local variables for the remote case
 
       Local_Stub : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('L'));
+                     Make_Defining_Identifier (Loc,
+                       Chars => New_Internal_Name ('L'));
+
       Stub_Ptr : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+                   Make_Defining_Identifier (Loc,
+                     Chars => New_Internal_Name ('S'));
 
       function Set_Field
         (Field_Name : Name_Id;
@@ -1900,7 +1910,7 @@ package body Exp_Dist is
               Attribute_Name => Name_Unchecked_Access)));
 
       Set_Etype (Stub_Ptr, Stub_Elements.Stub_Type_Access);
-      --  Build_Get_Unique_RP_Call needs this information.
+      --  Build_Get_Unique_RP_Call needs this information
 
       --  Get_RAS_Info (Pkg, Subp, R);
       --  Obtain a reference to the target subprogram
@@ -2022,16 +2032,18 @@ package body Exp_Dist is
               Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
               Selector_Name => Make_Identifier (Loc, Name_Target)))),
 
+      --  E.4.1(9) A remote call is asynchronous if it is a call to
+      --  a procedure, or a call through a value of an access-to-procedure
+      --  type, to which a pragma Asynchronous applies.
+
+      --    Parameter Asynch_P is true when the procedure is asynchronous;
+      --    Expression Asynch_T is true when the type is asynchronous.
+
         Set_Field (Name_Asynchronous,
           Make_Or_Else (Loc,
             New_Occurrence_Of (Asynch_P, Loc),
             New_Occurrence_Of (Boolean_Literals (
               Is_Asynchronous (Ras_Type)), Loc)))));
-      --  E.4.1(9) A remote call is asynchronous if it is a call to a
-      --  procedure, or a call through a value of an access-to-procedure
-      --  type, to which a pragma Asynchronous applies.
-      --  Parameter Asynch_P is true when the procedure is asynchronous;
-      --  Expression Asynch_T is true when the type is asynchronous.
 
       Append_List_To (Proc_Statements,
         Build_Get_Unique_RP_Call (Loc,
@@ -2091,6 +2103,8 @@ package body Exp_Dist is
    -- Add_RAS_Dereference_TSS --
    -----------------------------
 
+   --  This subprogram could use more comments ???
+
    procedure Add_RAS_Dereference_TSS (N : Node_Id) is
       Loc : constant Source_Ptr := Sloc (N);
 
@@ -2110,7 +2124,7 @@ package body Exp_Dist is
                Make_Defining_Identifier (Loc,
                  Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
-      Proc_Spec : Node_Id;
+      Proc_Spec   : Node_Id;
       Param_Specs : List_Id;
       Param_Assoc : constant List_Id := New_List;
       Stmts       : constant List_Id := New_List;
@@ -2205,7 +2219,7 @@ package body Exp_Dist is
              Parameter_Associations => Param_Assoc));
       end if;
 
-      --  Build the complete subprogram.
+      --  Build the complete subprogram
 
       if Is_Function then
          Proc_Spec :=
@@ -2697,7 +2711,6 @@ package body Exp_Dist is
                 Make_Handled_Sequence_Of_Statements (Loc,
                   Statements => New_List (Perform_Call))))));
       Analyze (Last (Decls));
-
    end Add_RAS_Proxy_And_Analyze;
 
    -----------------------
@@ -2751,7 +2764,7 @@ package body Exp_Dist is
       Request                     : Node_Id;
       --  Request object received from neutral layer
 
-      Subp_Id                     : Node_Id;
+      Subp_Id : Node_Id;
       --  Subprogram identifier as received from the neutral
       --  distribution core.
 
@@ -2788,6 +2801,8 @@ package body Exp_Dist is
       Dummy_Register_Body : Node_Id;
 
       All_Calls_Remote_E  : Entity_Id;
+
+   --  Start of processing for Add_Receiving_Stubs_To_Declarations
 
    begin
       --  Building receiving stubs consist in several operations:
@@ -2902,9 +2917,7 @@ package body Exp_Dist is
       Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
-
       while Current_Declaration /= Empty loop
-
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
@@ -3428,7 +3441,7 @@ package body Exp_Dist is
 
       Asynchronous_Statements     : List_Id := No_List;
       Non_Asynchronous_Statements : List_Id := No_List;
-      --  Statements specifics to the Asynchronous/Non-Asynchronous cases.
+      --  Statements specifics to the Asynchronous/Non-Asynchronous cases
 
       Extra_Formal_Statements : constant List_Id := New_List;
       --  List of statements for extra formal parameters. It will appear after
@@ -3575,8 +3588,8 @@ package body Exp_Dist is
                                  or else Is_Elementary_Type (Etyp);
 
                Any : constant Entity_Id :=
-                                 Make_Defining_Identifier (Loc,
-                                   New_Internal_Name ('A'));
+                       Make_Defining_Identifier (Loc,
+                         New_Internal_Name ('A'));
 
                Actual_Parameter : Node_Id :=
                                     New_Occurrence_Of (
@@ -3869,6 +3882,7 @@ package body Exp_Dist is
 --               Prefix         => New_Occurrence_Of (Stream_Parameter, Loc),
 --               Attribute_Name => Name_Access),
 --                 New_Occurrence_Of (Standard_False, Loc))));
+
          Append_To (Statements,
            Make_Implicit_If_Statement (Nod,
              Condition       => Asynchronous,
@@ -3884,11 +3898,10 @@ package body Exp_Dist is
    function Build_Get_Unique_RP_Call
      (Loc       : Source_Ptr;
       Pointer   : Entity_Id;
-      Stub_Type : Entity_Id)
-      return List_Id is
+      Stub_Type : Entity_Id) return List_Id
+   is
    begin
       return New_List (
-
         Make_Procedure_Call_Statement (Loc,
           Name                   =>
             New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
@@ -3938,7 +3951,6 @@ package body Exp_Dist is
 
       Current_Parameter := First (Parameter_Specifications (Spec));
       while Current_Parameter /= Empty loop
-
          if Nkind (Parameter_Type (Current_Parameter)) = N_Access_Definition
              or else
            Is_Constrained (Etype (Parameter_Type (Current_Parameter)))
@@ -3958,7 +3970,6 @@ package body Exp_Dist is
       Append_List_To (Unconstrained_List, Constrained_List);
 
       return Unconstrained_List;
-
    end Build_Ordered_Parameters_List;
 
    ----------------------------------
@@ -4108,8 +4119,7 @@ package body Exp_Dist is
 
    function Build_RPC_Receiver_Specification
      (RPC_Receiver      : Entity_Id;
-      Request_Parameter : Entity_Id)
-      return Node_Id
+      Request_Parameter : Entity_Id) return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
 
@@ -4730,7 +4740,6 @@ package body Exp_Dist is
             --  need to dereference it at call time.
 
             if Is_Controlling_Formal then
-
                if Nkind (Parameter_Type (Current_Parameter)) /=
                  N_Access_Definition
                then
@@ -4942,7 +4951,6 @@ package body Exp_Dist is
              Parameter_Associations => Parameter_List));
 
          Append_List_To (Statements, After_Statements);
-
       end if;
 
       Subp_Spec :=
@@ -4996,7 +5004,6 @@ package body Exp_Dist is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements         => Outer_Statements,
               Exception_Handlers => Excep_Handlers));
-
    end Build_Subprogram_Receiving_Stubs;
 
    ------------------------
@@ -5031,12 +5038,9 @@ package body Exp_Dist is
       end if;
 
       if Present (Parameter_Specifications (Spec)) then
-
          Parameters        := New_List;
          Current_Parameter := First (Parameter_Specifications (Spec));
-
          while Current_Parameter /= Empty loop
-
             Current_Type := Parameter_Type (Current_Parameter);
 
             if Nkind (Current_Type) = N_Access_Definition then
@@ -5118,7 +5122,6 @@ package body Exp_Dist is
          when others =>
             raise Program_Error;
       end case;
-
    end Copy_Specification;
 
    ---------------------------
@@ -5173,7 +5176,7 @@ package body Exp_Dist is
    -- Expand_All_Calls_Remote_Subprogram_Call --
    ---------------------------------------------
 
-   procedure Expand_All_Calls_Remote_Subprogram_Call (N : in Node_Id) is
+   procedure Expand_All_Calls_Remote_Subprogram_Call (N : Node_Id) is
       Called_Subprogram : constant Entity_Id  := Entity (Name (N));
       RCI_Package       : constant Entity_Id  := Scope (Called_Subprogram);
       Loc               : constant Source_Ptr := Sloc (N);
