@@ -289,7 +289,7 @@ typedef long type8;
 struct struct1 { long l; };
 union union1 switch (boolean) { default : long l; };
 enum enum1 { blue, red, green };
-//native native1;
+native native1;
 
 // Rule 43
 // Rule 44
