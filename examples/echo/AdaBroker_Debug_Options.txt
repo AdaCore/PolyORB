@@ -1,0 +1,8 @@
+# This file contains debug identifiers
+# if an identifier is present here (and not commented)
+# its corresponding debugging option will be switched on
+# there is no need to recompile the code
+# however, it must have been compiled with -gnata
+
+# for package Corba.Orb
+corba.orb
