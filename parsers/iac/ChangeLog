@@ -2,8 +2,11 @@
 
 	* backend-be_ada-nutils.adb: Add Make_Designator and
 	Qualified_Designator in order to generate a designator for a given ADA
-	entity. 
+	entity. Fix Make_Designator, in order to generate a fully
+	qualified designator (using scope entity of identifiers reference
+	instead of using Parent_Entity of Scoped_Identifier).  
 	
+
 	* backend-be_ada-runtime.adb: Add RU function that returns a
 	designator to an unit entity.
 

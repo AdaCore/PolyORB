@@ -498,7 +498,7 @@ package body Backend.BE_Ada.Nutils is
          end if;
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Make_Defining_Identifier (R));
-         P := Parent_Entity (Entity);
+         P := Scope_Entity (Identifier (R));
          if Present (P) then
             Set_Parent_Unit_Name (N, Make_Designator (P));
          end if;

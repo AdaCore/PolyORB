@@ -25,7 +25,7 @@ Backend.BE_Ada
 
    1-2 Source code Generation: 
    The source code generation is realized by calling the
-   Backend_BE_Ada.Files.Generation.Generate (L); (L : the List of
+   Backend_BE_Ada.Generator.Generate (L); (L : the List of
    Ada packages).
    This Procedure use Generate_XXX (stand for Generate the
    corresponding XXX node source).             

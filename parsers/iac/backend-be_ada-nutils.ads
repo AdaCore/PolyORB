@@ -209,6 +209,7 @@ package Backend.BE_Ada.Nutils is
    pragma Inline (Is_Empty);
    --  Return true when L is empty
 
+
    procedure Set_Impl_Body (N : Node_Id := No_Node);
    procedure Set_Impl_Spec (N : Node_Id := No_Node);
 
