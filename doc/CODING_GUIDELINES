@@ -55,8 +55,13 @@ handling mechanisms provided by PolyORB.Exceptions.
 Header box should be up to date whenever necessary:
 
 - Copyright date information is either 
-  - x where x is year of file's creation
-  - y - z where y is year of file's creation and z is year of last modification
+  - x where x is year of code's creation,
+  - y - z where y is year of code's creation and z is year of last
+    modification, if y /= z.
+
+By code's creation, we mean the date the code was first created and
+checked in in PolyORB repository. If packages are renamed, merged,
+copyright years must remain coherent with package content.
 
 - Some packages require specific adjustements to take into account
   references to specifications (e.g. CORBA related packages) or other
