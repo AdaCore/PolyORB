@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling;
@@ -39,7 +38,6 @@ with Ada.Strings.Fixed;
 with Ada.Strings;
 with Ada.Strings.Maps;
 
-with GNAT.Command_Line;
 with GNAT.Case_Util;
 with GNAT.OS_Lib;
 with GNAT.Directory_Operations;
@@ -47,9 +45,8 @@ with GNAT.Directory_Operations;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
 
+with Idl_Fe.Files;
 with Idl_Fe.Types; use Idl_Fe.Types;
-
-with Platform;
 
 package body Idl_Fe.Lexer is
 
@@ -59,8 +56,6 @@ package body Idl_Fe.Lexer is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
-
-   Idl_File : Ada.Text_IO.File_Type;
 
    subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
 
@@ -162,6 +157,9 @@ package body Idl_Fe.Lexer is
    --  The current position of the marks in the line. The marks
    --  are used to memorize the begining and the end of an
    --  identifier for example.
+
+   Idl_File : Ada.Text_IO.File_Type;
+   --  Currently processed file
 
    ------------------------
    -- Set_Token_Location --
@@ -1164,36 +1162,13 @@ package body Idl_Fe.Lexer is
       return False;
    end Scan_Preprocessor;
 
-   ----------------------------------------------------
-   -- Tools and constants for preprocessor execution --
-   ----------------------------------------------------
-
-   Tmp_File_Name_NUL : GNAT.OS_Lib.Temp_File_Name;
-   --  Name of the temporary file to which preprocessor output
-   --  is sent (NUL-terminated).
-
-   Tmp_File_Name : GNAT.OS_Lib.String_Access;
-
-   Args : GNAT.OS_Lib.Argument_List (1 .. 128);
-   Arg_Count : Natural := Args'First - 1;
-   --  Arguments to be passed to the preprocessor
-
-   ------------------
-   -- Add_Argument --
-   ------------------
-
-   procedure Add_Argument (Str : String) is
-   begin
-      Arg_Count := Arg_Count + 1;
-      Args (Arg_Count) := new String'(Str);
-   end Add_Argument;
-
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize (Filename : String) is
       use GNAT.OS_Lib;
+
    begin
       if Filename'Length = 0 then
          Errors.Error ("Missing IDL file as argument",
@@ -1228,7 +1203,10 @@ package body Idl_Fe.Lexer is
          end if;
       end;
 
-      Preprocess_File (Filename);
+      Ada.Text_IO.Open
+        (Idl_File, Ada.Text_IO.In_File, Files.Preprocess_File (Filename));
+      Ada.Text_IO.Set_Input (Idl_File);
+
       pragma Debug (O ("Initialize: end"));
    end Initialize;
 
@@ -1413,90 +1391,6 @@ package body Idl_Fe.Lexer is
         renames Get_Marked_Text;
 
    end Lexer_State;
-
-   ---------------------
-   -- Preprocess_File --
-   ---------------------
-
-   procedure Preprocess_File (Filename : in String) is
-      use GNAT.Command_Line;
-      use GNAT.OS_Lib;
-
-      Fd           : File_Descriptor;
-      Spawn_Result : Boolean;
-
-      CPP_Arg_List : constant Argument_List_Access
-        := Argument_String_To_List
-          (Platform.CXX_Preprocessor);
-
-   begin
-      for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
-         Add_Argument (CPP_Arg_List (J).all);
-      end loop;
-
-      Goto_Section ("cppargs");
-      while Getopt ("*") /= ASCII.Nul loop
-
-         --  Pass user options to the preprocessor.
-
-         Add_Argument (Full_Switch);
-      end loop;
-
-      --  Always add the current directory at the end of the include list
-      Add_Argument ("-I");
-      Add_Argument (".");
-
-      Create_Temp_File (Fd, Tmp_File_Name_NUL);
-      if Fd = Invalid_FD then
-         Errors.Error
-           (Ada.Command_Line.Command_Name &
-            ": cannot create temporary " &
-            "file name",
-            Errors.Fatal,
-            Get_Real_Location);
-      end if;
-      Tmp_File_Name := new String'(
-        Tmp_File_Name_NUL (Tmp_File_Name_NUL'First
-                        .. Tmp_File_Name_NUL'Last - 1)
-        & Platform.CXX_Preprocessor_Suffix);
-
-      --  We don't need the file descriptor
-
-      Close (Fd);
-
-      Add_Argument ("-o");
-      Add_Argument (Tmp_File_Name.all);
-      Add_Argument (Filename);
-
-      declare
-         Preprocessor_Full_Pathname : constant String_Access
-           := Locate_Exec_On_Path (CPP_Arg_List (CPP_Arg_List'First).all);
-      begin
-         if Preprocessor_Full_Pathname = null then
-            Errors.Error
-              ("Cannot find preprocessor "
-               & "'" & CPP_Arg_List (CPP_Arg_List'First).all & "'",
-               Errors.Fatal,
-               Errors.No_Location);
-         end if;
-
-         Spawn (Preprocessor_Full_Pathname.all,
-                Args (Args'First .. Arg_Count),
-                Spawn_Result);
-      end;
-
-      pragma Debug (O ("Preprocess_File: preprocessing done"));
-      if not Spawn_Result then
-         pragma Debug (O ("Preprocess_File: preprocessing failed"));
-         Errors.Error
-           (Ada.Command_Line.Command_Name &
-            ": preprocessor failed",
-            Errors.Fatal,
-            Errors.No_Location);
-      end if;
-      Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Tmp_File_Name.all);
-      Ada.Text_IO.Set_Input (Idl_File);
-   end Preprocess_File;
 
    ----------------------------
    -- Remove_Temporary_Files --

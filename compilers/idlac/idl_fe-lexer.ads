@@ -172,12 +172,6 @@ package Idl_Fe.Lexer is
    -- Entry points for the idlac driver --
    ---------------------------------------
 
-   procedure Add_Argument (Str : String);
-   --  Append Str to the list of preprocessor arguments
-
-   procedure Preprocess_File (Filename : in String);
-   --  Preprocess a file and output the result to a temporary file
-
    procedure Remove_Temporary_Files;
    --  Remove temporary files created by the preprocessor
 

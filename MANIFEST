@@ -52,6 +52,8 @@ compilers/idlac/idl_fe-debug.adb
 compilers/idlac/idl_fe-debug.ads
 compilers/idlac/idl_fe-display_tree.adb
 compilers/idlac/idl_fe-display_tree.ads
+compilers/idlac/idl_fe-files.adb
+compilers/idlac/idl_fe-files.ads
 compilers/idlac/idl_fe-lexer.adb
 compilers/idlac/idl_fe-lexer.ads
 compilers/idlac/idl_fe-parser.adb
