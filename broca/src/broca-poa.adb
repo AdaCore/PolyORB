@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Task_Attributes;
 with Broca.Sequences;
 with Broca.Exceptions;
 with Broca.Object;
@@ -48,34 +47,6 @@ package body Broca.POA is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
    procedure O is new Broca.Debug.Output (Flag);
-
-   type POA_Task_Attribute is record
-      Current_Object    : PortableServer.ObjectId;
-      Current_POA       : PortableServer.POA_Forward.Ref;
-   end record;
-
-   type POA_Task_Attribute_Handle is
-     access POA_Task_Attribute;
-
-   Nil_Attribute : POA_Task_Attribute_Handle := null;
-
-   package Attributes is new Ada.Task_Attributes
-     (Attribute => POA_Task_Attribute_Handle,
-      Initial_Value => Nil_Attribute);
-
-   --------------------------
-   -- Get_Attributes_Value --
-   --------------------------
-
-   procedure Get_Attributes_Value
-     (Current_Object    : out PortableServer.ObjectId;
-      Current_POA       : out PortableServer.POA_Forward.Ref)
-   is
-   begin
-      pragma Assert (Attributes.Value /= null);
-      Current_Object := Attributes.Value.Current_Object;
-      Current_POA    := Attributes.Value.Current_POA;
-   end Get_Attributes_Value;
 
    ------------------------
    -- Get_The_POAManager --
@@ -175,21 +146,6 @@ package body Broca.POA is
       Broca.Refs.Set
         (Broca.Refs.Ref (The_Ref), Broca.Refs.Ref_Ptr (The_Object));
    end Set;
-
-   --------------------------
-   -- Set_Attributes_Value --
-   --------------------------
-
-   procedure Set_Attributes_Value
-     (Current_Object    : in PortableServer.ObjectId;
-      Current_POA       : in PortableServer.POA_Forward.Ref) is
-   begin
-      if Attributes.Value = Nil_Attribute then
-         Attributes.Set_Value (new POA_Task_Attribute);
-      end if;
-
-      Attributes.Value.all := POA_Task_Attribute'(Current_Object, Current_POA);
-   end Set_Attributes_Value;
 
    ---------------------
    -- Skeleton_To_Ref --

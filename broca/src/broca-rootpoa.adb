@@ -59,6 +59,7 @@ with Broca.CDR;
 with Broca.Server;
 with Broca.Locks;
 with Broca.GIOP;
+with Broca.Task_Attributes;
 
 pragma Elaborate_All (CORBA.Object);
 pragma Elaborate_All (Broca.Vararray);
@@ -939,13 +940,7 @@ package body Broca.RootPOA is
       if Called_From_Servant_To_Reference
         or else Self.Request_Policy = USE_DEFAULT_SERVANT
       then
-         declare
-            Current_Object : PortableServer.ObjectId;
-            Current_POA    : PortableServer.POA_Forward.Ref;
-         begin
-            Get_Attributes_Value (Current_Object, Current_POA);
-            return Id_To_Skeleton (Self, Current_Object);
-         end;
+         return Id_To_Skeleton (Self, Task_Attributes.Current_Object);
       end if;
 
       raise PortableServer.POA.ServantNotActive;
@@ -1326,8 +1321,10 @@ package body Broca.RootPOA is
 --           end;
 --
 
-         Set_Attributes_Value
-           (Oid, PortableServer.POA.Convert.To_Forward (A_POA));
+         Task_Attributes.Set_Current_Object (Oid);
+         Task_Attributes.Set_Current_POA
+           (PortableServer.POA.Convert.To_Forward (A_POA));
+         Task_Attributes.Set_Has_Context;
 
          begin
             pragma Debug
@@ -1353,6 +1350,8 @@ package body Broca.RootPOA is
                   Broca.Exceptions.Marshall (Reply, E);
                end if;
          end;
+
+         Task_Attributes.Set_Has_No_Context;
 
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;

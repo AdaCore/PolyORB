@@ -326,18 +326,9 @@ package Broca.POA is
 
    procedure Cleanup (Self : access POA_Object) is abstract;
 
-   procedure Set_Attributes_Value
-     (Current_Object    : in PortableServer.ObjectId;
-      Current_POA       : in PortableServer.POA_Forward.Ref);
-
-   procedure Get_Attributes_Value
-     (Current_Object    : out PortableServer.ObjectId;
-      Current_POA       : out PortableServer.POA_Forward.Ref);
-
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
-   Nil_Ref : constant Ref
-     := (CORBA.AbstractBase.Nil_Ref with null record);
+   Nil_Ref : constant Ref := (CORBA.AbstractBase.Nil_Ref with null record);
 
 end Broca.POA;

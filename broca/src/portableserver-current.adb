@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Broca.Task_Attributes;
+with Broca.Task_Attributes; use Broca.Task_Attributes;
 
 package body PortableServer.Current is
 
@@ -45,17 +45,22 @@ package body PortableServer.Current is
    function get_POA (Self : Ref)
      return PortableServer.POA_Forward.Ref is
    begin
-      --  FIXME: Should check validity and possibly
-      --    raise NoContext;
-      return Broca.Task_Attributes.Current_POA;
+      if Has_Context then
+         return Current_POA;
+      else
+         raise NoContext;
+      end if;
    end get_POA;
 
    function get_object_id (Self : Ref)
-     return ObjectId is
+     return ObjectId
+   is
    begin
-      --  FIXME: Should check validity and possibly
-      --    raise NoContext;
-      return Broca.Task_Attributes.Current_Object;
+      if Has_Context then
+         return Current_Object;
+      else
+         raise NoContext;
+      end if;
    end get_object_id;
 
 end PortableServer.Current;
