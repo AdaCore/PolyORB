@@ -83,7 +83,7 @@ package body System.Garlic.Termination is
    --  active tasks. Don't bother with other partitions.
 
    procedure Global_Termination;
-   --  Terminate when global termination detected (on main partition).
+   --  Terminate when global termination detected (on main partition)
 
    protected Count is
       procedure Increment;
@@ -408,9 +408,11 @@ package body System.Garlic.Termination is
    begin
 
       --  This partition is involved in the global termination algorithm.
-      --  But only the main partition will have something to do.
+      --  But only the main partition will have something to do. If
+      --  shutdown is already in progress, we do not have anything to
+      --  negotiate.
 
-      if not Options.Boot_Partition then
+      if Is_Shutdown_In_Progress or else not Options.Boot_Partition then
          return;
       end if;
 

@@ -1,3 +1,19 @@
+1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gardeb.adb: Fix bogus assertion that caused programs to raise
+	an assertion error when used in developper mode with no sanity
+	directory.
+
+	* s-garter.adb: Do not try to negotiate a global shutdown if
+	shutdown is already in progress. Fixes a constraint error at
+	shutdown time for the main partition.
+
+	* s-garrem.ads, s-garrem.adb: Remove a lot of unused
+	functions. Write local launcher for NT.
+
+	* s-gaplsp.ads.in: Store platform name to be used by the runtime
+	for background launching, fixes background launching bug on NT.
+
 1998-09-30  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-rpcpoo.adb: Reformatting.

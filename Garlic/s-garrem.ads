@@ -40,43 +40,6 @@ package System.Garlic.Remote is
    --  This package implements calls to the 'rsh' Unix command to
    --  launch other partitions.
 
-   type Launcher_Type is
-      access procedure (Launcher : in String;         -- Launching command
-                        Host     : in String;         -- Host name
-                        Command  : in String);        -- Full command line
-   --  Launcher function. This function must return when the remote
-   --  partition has been launched. It's allowed to raise any exception,
-   --  and this will be considered as a failure to launch the remote
-   --  partition.
-   --  A default launcher using rsh is also provided by the implementation.
-
-   procedure Rsh_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
-   --  RSH launcher. This is used as the default launcher. If the remote
-   --  host is in fact the same host, then no rsh takes place.
-
-   procedure Local_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
-   --  Local launcher. This one can only launch partitions on the same machine
-
-   procedure Install_Launcher (Launcher : in Launcher_Type);
-   --  Install the launcher
-
-   procedure Exchange_Launcher (Launcher     : in Launcher_Type;
-                                Old_Launcher : out Launcher_Type);
-   --  Install a launcher and return the previous one
-
-   procedure Launch
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String);
-   --  Launch the procedure using either the default or the user provided
-   --  launcher.
-
    procedure Full_Launch
      (Launcher        : in String;
       Host            : in String;

@@ -55,15 +55,51 @@ package body System.Garlic.Remote is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
-   --  The current launcher
-
    function Is_Local_Host (Host : String) return Boolean;
    --  Return True if the Host we are trying to contact is the same as the
    --  local host.
 
+   procedure Local_Launcher (Command  : in String);
+   --  Local launcher
+
+   procedure Rsh_Launcher
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String);
+   --  RSH launcher
+
    function System (Command : C.Strings.chars_ptr) return int;
    pragma Import (C, System);
+
+   procedure Launch
+     (Launcher : in String;
+      Host     : in String;
+      Command  : in String);
+   --  Launch Command on Host using Launcher
+
+   function Background
+     (Command  : String;
+      Platform : String := Platform_Name)
+      return String;
+   --  Return the command necessary to launch Command in background on
+   --  Platform.
+
+   ----------------
+   -- Background --
+   ----------------
+
+   function Background
+     (Command  : String;
+      Platform : String := Platform_Name)
+      return String
+   is
+   begin
+      if Platform_Name = "Open NT" or else Platform_Name = "Windows NT" then
+         return "start /B " & Command;
+      else
+         return Command & " &";
+      end if;
+   end Background;
 
    ------------
    -- Detach --
@@ -96,18 +132,6 @@ package body System.Garlic.Remote is
       C.Strings.Free (Dev_Null_Name);
    end Detach;
 
-   -----------------------
-   -- Exchange_Launcher --
-   -----------------------
-
-   procedure Exchange_Launcher (Launcher     : in Launcher_Type;
-                                Old_Launcher : out Launcher_Type)
-   is
-   begin
-      Old_Launcher := Current_Launcher;
-      Current_Launcher := Launcher;
-   end Exchange_Launcher;
-
    -----------------
    -- Full_Launch --
    -----------------
@@ -119,7 +143,7 @@ package body System.Garlic.Remote is
    is
       Full_Command : constant String :=
         Executable_Name & " " & "--detach --slave --boot_server " &
-        Get_Boot_Server & " &";
+        Get_Boot_Server;
    begin
       pragma Debug (D (D_Debug, "Full_Launch: " & Full_Command));
 
@@ -138,15 +162,6 @@ package body System.Garlic.Remote is
       GNAT.IO.Get_Line (Buffer, Last);
       return Buffer (1 .. Last);
    end Get_Host;
-
-   ----------------------
-   -- Install_Launcher --
-   ----------------------
-
-   procedure Install_Launcher (Launcher : in Launcher_Type) is
-   begin
-      Current_Launcher := Launcher;
-   end Install_Launcher;
 
    -------------------
    -- Is_Local_Host --
@@ -170,19 +185,24 @@ package body System.Garlic.Remote is
       Command  : in String)
    is
    begin
-      Current_Launcher (Launcher, Host, Command);
+      if Supports_Local_Launch
+        and then Host (Host'First) /= '`'
+        and then Is_Local_Host (Host)
+      then
+         Local_Launcher (Command);
+      else
+         Rsh_Launcher (Launcher, Host, Command);
+      end if;
    end Launch;
 
    --------------------
    -- Local_Launcher --
    --------------------
 
-   procedure Local_Launcher
-     (Launcher : in String;
-      Host     : in String;
-      Command  : in String)
+   procedure Local_Launcher (Command  : in String)
    is
-      C_Command : C.Strings.chars_ptr := C.Strings.New_String (Command);
+      C_Command   : C.Strings.chars_ptr :=
+        C.Strings.New_String (Background (Command));
       Return_Code : int;
    begin
       pragma Debug (D (D_Debug, "Local Launch: " & Command));
@@ -200,35 +220,25 @@ package body System.Garlic.Remote is
       Host     : in String;
       Command  : in String)
    is
+      --  RSH-like commands target Unix systems, so use the backgrounding
+      --  specific to Unix.
 
+      B_Command        : constant String := Background (Command, "unix");
+      Rsh_Full_Command : constant String :=
+        Launcher & " " & Host & " """ & B_Command & """ >/dev/null";
+      Return_Code      : int;
+      C_Command        : C.Strings.chars_ptr :=
+        C.Strings.New_String (Rsh_Full_Command);
    begin
-      if Supports_Local_Launch
-        and then Host (Host'First) /= '`'
-        and then Is_Local_Host (Host) then
-         Local_Launcher (Launcher, Host, Command);
-      else
-         declare
-            Rsh_Full_Command : constant String :=
-              Launcher & " " & Host & " """ & Command & """ >/dev/null";
-            Return_Code      : int;
-            C_Command        : C.Strings.chars_ptr :=
-              C.Strings.New_String (Rsh_Full_Command);
-         begin
-            pragma Debug (D (D_Debug, "Rsh Launcher: " & Rsh_Full_Command));
+      Return_Code := System (C_Command);
+      C.Strings.Free (C_Command);
+      if Return_Code = -1 then
 
-            Return_Code := System (C_Command);
-            C.Strings.Free (C_Command);
-            if Return_Code = -1 then
-               pragma Debug
-                 (D (D_Debug, "Rsh Launcher: fail to launch partition"));
+         --  Since any exception may be raised here, we choose to
+         --  raise Program_Error since the elaboration won't take
+         --  be able to finish properly.
 
-               --  Since any exception may be raised here, we choose to
-               --  raise Program_Error since the elaboration won't take
-               --  be able to finish properly.
-
-               raise Program_Error;
-            end if;
-         end;
+         raise Program_Error;
       end if;
    end Rsh_Launcher;
 

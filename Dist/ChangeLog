@@ -1,3 +1,8 @@
+1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_lead.adb: Use correct file name for Ada starter. Checked in
+	for Pascal Obry.
+
 1998-09-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Use -s for linking to strip an executable rather

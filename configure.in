@@ -115,13 +115,14 @@ AC_SUBST(PLATFORM_SPECIFIC)
    r) PSNAME="RTEMS";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac]
+AC_SUBST(PSNAME)
 AC_MSG_RESULT($PSNAME)
 AC_MSG_CHECKING(preserve the original file properties with)
-AC_SUBST(CP_PRESERVE)
 [case "${PLATFORM_SPECIFIC}" in
    w) CP_PRESERVE="-lf";;
    *) CP_PRESERVE="-p";;
 esac]
+AC_SUBST(CP_PRESERVE)
 AC_MSG_RESULT($CP_PRESERVE)
 #
 # Local launcher. Linux does not support local launching of programs with

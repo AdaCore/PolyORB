@@ -168,8 +168,11 @@ begin
          for PID in Partitions.First + 1 .. Partitions.Last loop
             if PID = Main_Partition then
                declare
-                  P : Partition_Name_Type := Partitions.Table (PID).Name;
-                  D : Storage_Dir_Name_Type;
+                  P               : Partition_Name_Type :=
+                    Partitions.Table (PID).Name & Exe_Suffix;
+                  Main_Executable : Main_Subprogram_Type :=
+                    Main_Subprogram & Exe_Suffix;
+                  D               : Storage_Dir_Name_Type;
                begin
                   D := Partitions.Table (PID).Storage_Dir;
                   if D = No_Storage_Dir then
@@ -178,12 +181,12 @@ begin
                   if D = No_Storage_Dir then
                      Copy_With_File_Stamp
                        (Source         => P,
-                        Target         => Main_Subprogram,
+                        Target         => Main_Executable,
                         Maybe_Symbolic => True);
                   else
                      Copy_With_File_Stamp
                        (Source         => Dir (D, P),
-                        Target         => Main_Subprogram,
+                        Target         => Main_Executable,
                         Maybe_Symbolic => True);
                   end if;
                   exit;

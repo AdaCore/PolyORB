@@ -1,3 +1,8 @@
+1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Substitute PSNAME so that it can be used by the
+ 	runtime.
+
 1998-09-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* support/ada.m4: Detect gnatgcc as a suitable Ada driver since
