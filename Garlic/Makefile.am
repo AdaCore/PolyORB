@@ -155,7 +155,7 @@ install-extra-libs: ${FILTERINSTALL}
 
 install-data-local: all-local install-dirs-local install-extra-libs
 	${CP} -p ${SOURCES} ${OBJECTS} \
-		`echo ${OBJECTS} | sed -e 's/\.o/.ali/g'` ${GARLIC}
+		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'` ${GARLIC}
 	chmod a-w ${GARLIC}/*
 
 # Cross references
