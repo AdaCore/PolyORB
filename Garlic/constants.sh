@@ -53,7 +53,7 @@ for i in ${constants}; do
       echo "#ifdef $j" >> ${tmph}
       echo "{\"$j\",$j}," >> ${tmph}
       echo "#else" >> ${tmph}
-      echo "#ifdef $j" >> ${tmph}
+      echo "#ifdef $k" >> ${tmph}
       echo "{\"$j\",$k}," >> ${tmph}
       echo "#else" >> ${tmph}
       echo "{\"$j\",-1}," >> ${tmph}
