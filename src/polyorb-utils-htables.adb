@@ -48,7 +48,7 @@ package body PolyORB.Utils.HTables is
      (Key      : String;
       ST_Index : Natural;
       T        : in out Hash_Table);
-   --  Insert the Key on an unused Element in subtable ST_Index
+   --  Insert the Key in an unused Element in subtable ST_Index
 
    procedure Find_K
      (ST_Index : Natural;
@@ -74,22 +74,28 @@ package body PolyORB.Utils.HTables is
 
    procedure Process_Subtable
      (ST_Index : Natural;
-      T : Hash_Table);
+      T        : in out Hash_Table);
    --  Find the K parameter of subtable ST_Index in order to have
    --  an injective hash function and to reorder the subtable.
-   --  XXX duplicate code with Find_K ??
 
-   procedure Process_Subtable_Hashcode
+   procedure Rehash_Subtable
      (ST_Index : Natural;
       T        : Hash_Table);
    --  Apply the Hashcode function to each element of subtable
-   --  ST_Index, and then stores the results in the ST_Offset component
+   --  ST_Index, store the results in the ST_Offset component
    --  of the component.
 
    procedure Rehash_All
      (Key : String;
       T   : in out Hash_Table);
-   --  Reorganize all the table when it is necessary.
+   --  Reorganize all the tables.
+
+   procedure Swap_Elements
+     (T : in out Hash_Table;
+      Index1 : Natural;
+      Index2 : Natural);
+   pragma Inline (Swap_Elements);
+   --  Swap elements at index1 and index2.
 
    ---------------------------
    -- Deallocation Function --
@@ -106,6 +112,9 @@ package body PolyORB.Utils.HTables is
    -- Hashcode --
    --------------
 
+   --  XXX should better use a string access to avoid copy ?? ...
+   --  XXX THIS IS NOT A FULL DETERMINISTIC FUNCTION ...
+
    function Hashcode
      (S     : String;
       K     : Natural;
@@ -121,35 +130,57 @@ package body PolyORB.Utils.HTables is
                     * Long_Long_Integer (K))
            mod Long_Long_Integer (Prime);
       end loop;
+
       return Natural (Result mod Long_Long_Integer (Size));
    end Hashcode;
 
-   -------------------------------
-   -- Process_Subtable_Hashcode --
-   -------------------------------
+   -------------------
+   -- Swap_Elements --
+   -------------------
 
-   procedure Process_Subtable_Hashcode
+   procedure Swap_Elements
+     (T : in out Hash_Table;
+      Index1 : Natural;
+      Index2 : Natural)
+   is
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+
+      Swap : Element;
+
+   begin
+      Swap := Elements (Index1);
+      Elements (Index1) := Elements (Index2);
+      Elements (Index2) := Swap;
+   end Swap_Elements;
+
+   ---------------------
+   -- Rehash_Subtable --
+   ---------------------
+
+   procedure Rehash_Subtable
      (ST_Index : Natural;
       T        : Hash_Table)
    is
-      Temp_Str_Ptr : String_Access := null;
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
    begin
-      for I in T.Subtables.Table.all (ST_Index).First ..
-        T.Subtables.Table.all (ST_Index).Last
+      for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last
       loop
-         Temp_Str_Ptr := T.Elements.Table.all (I).Key;
-         if Temp_Str_Ptr /= null
-           and then T.Elements.Table.all (I).Used
+         if Elements (J).Key /= null
+           and then Elements (J).Used
          then
-            T.Elements.Table.all (I).ST_Offset :=
-              Hashcode (Temp_Str_Ptr.all,
-                        T.Subtables.Table.all (ST_Index).K,
-                        T.Subtables.Table.all (ST_Index).Max,
+            Elements (J).ST_Index := ST_Index;
+
+            Elements (J).ST_Offset :=
+              Hashcode (Elements (J).Key.all,
+                        Subtables (ST_Index).K,
+                        Subtables (ST_Index).Max,
                         T.Info.Prime);
-            T.Elements.Table.all (I).ST_Index  := ST_Index;
+
          end if;
       end loop;
-   end Process_Subtable_Hashcode;
+   end Rehash_Subtable;
 
    ------------------
    -- Is_Injective --
@@ -160,19 +191,23 @@ package body PolyORB.Utils.HTables is
       T        : Hash_Table)
       return Boolean
    is
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
    begin
-      for I in T.Subtables.Table.all (ST_Index).First ..
-        T.Subtables.Table.all (ST_Index).Last - 1 loop
-         for J in I + 1 .. T.Subtables.Table.all (ST_Index).Last loop
-            if T.Elements.Table.all (I).Used then
-               if T.Elements.Table.all (I).ST_Offset =
-                 T.Elements.Table.all (J).ST_Offset
-               then
-                  return False;
-               end if;
+      for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last - 1
+      loop
+         for K in J + 1 .. Subtables (ST_Index).Last loop
+
+            if Elements (J).Used
+              and then Elements (K).Used
+              and then Elements (J).ST_Offset = Elements (K).ST_Offset
+            then
+               return False;
             end if;
          end loop;
       end loop;
+
       return True;
    end Is_Injective;
 
@@ -184,10 +219,12 @@ package body PolyORB.Utils.HTables is
      (ST_Index : Natural;
       T        : Hash_Table)
    is
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
    begin
-      for K in 1 .. T.Info.Prime - 1 loop
-         T.Subtables.Table.all (ST_Index).K := K;
-         Process_Subtable_Hashcode (ST_Index, T);
+      for J in 1 .. T.Info.Prime - 1 loop
+         Subtables (ST_Index).K := J;
+         Rehash_Subtable (ST_Index, T);
          exit when Is_Injective (ST_Index, T);
       end loop;
    end Find_K;
@@ -199,22 +236,35 @@ package body PolyORB.Utils.HTables is
    procedure Add_Key_To_Subtable
      (Key      : String;
       ST_Index : Natural;
-      T        : in out Hash_Table) is
+      T        : in out Hash_Table)
+   is
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
+      Key_Inserted : Boolean := False;
+
    begin
-      for I in T.Subtables.Table.all (ST_Index).First ..
-        T.Subtables.Table.all (ST_Index).Last - 1
+      for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last
       loop
-         if T.Elements.Table.all (I).Key = null then
-            T.Elements.Table.all (I).Key := new String'(Key);
-            T.Elements.Table.all (I).Used := True;
+         if Elements (J).Key = null then
+            Elements (J).Key := new String'(Key);
+            Elements (J).Used := True;
+            Key_Inserted := True;
             exit;
-         elsif not T.Elements.Table.all (I).Used then
-            Free_String (T.Elements.Table.all (I).Key);
-            T.Elements.Table.all (I).Key := new String'(Key);
-            T.Elements.Table.all (I).Used := True;
+
+         elsif not Elements (J).Used then
+            Free_String (Elements (J).Key);
+            Elements (J).Key := new String'(Key);
+            Elements (J).Used := True;
+            Key_Inserted := True;
             exit;
          end if;
       end loop;
+
+      if not Key_Inserted then
+         raise Program_Error;
+         --  XXX should not come to this point.
+      end if;
    end Add_Key_To_Subtable;
 
    ----------------
@@ -226,48 +276,44 @@ package body PolyORB.Utils.HTables is
       T   : in out Hash_Table)
    is
       Max_Sum     : Natural := 0;
-      Step        : Natural := 0;
       ST_Index    : Natural := 0;
       ST_Offset   : Natural := 0;
       E_Index     : Natural := 0;
-      Index       : Natural := 0;
-      Swap        : Element := Empty;
-      J           : Natural := 0;
+      Index       : Natural;
+      Offset      : Natural := 0;
       Swap_Index1 : Natural := 0;
       Swap_Index2 : Natural := Last (T.Elements);
+
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
 
    begin
       --  Add the new element at the end of the table of elements
       --  and deallocate unused element if necessary
 
-      if T.Elements.Table.all (Last (T.Elements)).Key /= null then
+      if Elements (Last (T.Elements)).Key /= null then
          Free_String (T.Elements.Table.all (Last (T.Elements)).Key);
       end if;
 
-      T.Elements.Table.all (Last (T.Elements)).Key := new String'(Key);
-      T.Elements.Table.all (Last (T.Elements)).Used := True;
+      Elements (Last (T.Elements)).Key := new String'(Key);
+      Elements (Last (T.Elements)).Used := True;
 
       --  Put all the elements at the beginning of the table
+      --  XXX why are we doing a swap and not a simple affectation ????
 
       while Swap_Index1 < Swap_Index2 loop
+         if not Elements (Swap_Index1).Used then
+            while not Elements (Swap_Index2).Used
+              and then Swap_Index1 + 1 < Swap_Index2 loop
+               Swap_Index2 := Swap_Index2 - 1;
+            end loop;
 
-         if not T.Elements.Table.all (Swap_Index1).Used then
-            if T.Elements.Table.all (Swap_Index2).Used then
-               Swap := T.Elements.Table.all (Swap_Index1);
-               T.Elements.Table.all (Swap_Index1) :=
-                 T.Elements.Table.all (Swap_Index2);
-               T.Elements.Table.all (Swap_Index2) := Swap;
-            else
-               while not T.Elements.Table.all (Swap_Index2).Used loop
-                  Swap_Index2 := Swap_Index2 - 1;
-               end loop;
-               if Swap_Index1 < Swap_Index2 then
-                  Swap := T.Elements.Table.all (Swap_Index1);
-                  T.Elements.Table.all (Swap_Index1) :=
-                    T.Elements.Table.all (Swap_Index2);
-                  T.Elements.Table.all (Swap_Index2) := Swap;
-               end if;
+            if Elements (Swap_Index2).Used
+              and then Swap_Index1 < Swap_Index2
+            then
+               Swap_Elements (T, Swap_Index1, Swap_Index2);
             end if;
+
          end if;
          Swap_Index1 := Swap_Index1 + 1;
       end loop;
@@ -278,150 +324,126 @@ package body PolyORB.Utils.HTables is
 
          --  Reinitialize the Count param of the subtables
 
-         for I in 0 .. Last (T.Subtables) loop
-            T.Subtables.Table.all (I).Count := 0;
-            T.Subtables.Table.all (I).K := 1;
+         for J in First (T.Subtables) .. Last (T.Subtables) loop
+            Subtables (J).Count := 0;
+            Subtables (J).K := 1;
+         end loop;
+
+         --  Find the repartition of the elements among the subtables
+
+         for J in 0 .. T.Info.Count - 1 loop
+               Elements (J).ST_Index :=
+                 Hashcode (Elements (J).Key.all,
+                           K,
+                           T.Info.N_Subtables,
+                           T.Info.Prime);
+               Subtables (Elements (J).ST_Index).Count
+                 := Subtables (Elements (J).ST_Index).Count + 1;
+
          end loop;
 
          Max_Sum := 0;
 
-         --  Find the repartition of the elements among the subtables
-
-         for I in 0 .. (T.Info.Count - 1) loop
-               T.Elements.Table.all (I).ST_Index :=
-                 Hashcode (T.Elements.Table.all (I).Key.all,
-                           K,
-                           T.Info.N_Subtables,
-                           T.Info.Prime);
-               T.Subtables.Table.all (T.Elements.Table.all (I).ST_Index).Count
-                 := T.Subtables.Table.all (T.Elements.Table.all
-                                           (I).ST_Index).Count + 1;
-         end loop;
-
          --  Calculate param High and Max for each subtables
-         --  Also calculate the sum of the Max param
-         for I in 0 .. Last (T.Subtables) loop
+         --  Also calculate the sum of the Max param.
 
-            T.Subtables.Table.all (I).High :=
-              2 * T.Subtables.Table.all (I).Count;
+         for J in First (T.Subtables) .. Last (T.Subtables) loop
 
-            T.Subtables.Table.all (I).Max  := 2 *
-              T.Subtables.Table.all (I).High *
-              (T.Subtables.Table.all (I).High - 1);
+            if Subtables (J).Count = 0 then
+               Subtables (J).High := 1;
+               Subtables (J).Max  := 2;
+            else
+               Subtables (J).High := 2 * Subtables (J).Count;
 
-            if T.Subtables.Table.all (I).High = 0 then
-               T.Subtables.Table.all (I).High := 1;
-               T.Subtables.Table.all (I).Max  := 1;
+               Subtables (J).Max  := 2 *
+                 Subtables (J).High * (Subtables (J).High - 1);
             end if;
-            Max_Sum := Max_Sum +  T.Subtables.Table.all (I).Max;
+
+            Max_Sum := Max_Sum + Subtables (J).Max;
          end loop;
 
-         --  Test if condition is satisfied
+         --  Test a certain condition is satisfied.
+
+         --  Dietzfelbinger algorithm search a 'K' value so that
+         --  Max_Sum <= 32 * T.Info.High ^2 / s (T.Info.High) + 4 * T.Info.High
+         --  (inequality #7 p. 5), with s (T.Info.High) the number of subsets
+         --  to be created to accomodate for T.Info.High elements.
+
+         --  Choosing s : x -> 3 * x is sufficient to ensure linear
+         --  memory usage, thus the following inequality :
+
          exit when Max_Sum <= 44 * T.Info.High / 3;
 
-      end loop;
 
-      --  Maximisation of each subtables if possible
-      --  XXXXX Can be improved
-
-      for I in 0 .. Last (T.Subtables) loop
-         if T.Subtables.Table.all (I).Max = 1 then
-            if Max_Sum + 3 <= ((44 * T.Info.High) / 3) then
-               T.Subtables.Table.all (I).Max :=
-                 T.Subtables.Table.all (I).Max + 3;
-               T.Subtables.Table.all (I).High := 2;
-               Max_Sum := Max_Sum + 3;
-            else
-               exit;
-            end if;
-         end if;
-      end loop;
-
-      Step := 1;
-
-      for I in 0 .. Last (T.Subtables) loop
-         if Max_Sum + (16 * Step) + 4 <= ((44 * T.Info.High) / 3) then
-            if T.Subtables.Table.all (I).Count = Step then
-               T.Subtables.Table.all (I).Max := T.Subtables.Table.all (I).Max
-                 + 16 * Step + 4;
-               T.Subtables.Table.all (I).High :=
-                 T.Subtables.Table.all (I).High + 2;
-               Max_Sum := Max_Sum + 16 * Step + 4;
-            end if;
-         else
-            exit;
-         end if;
       end loop;
 
       --  Fix the begin and the end of the subtables
 
-      for I in 0 .. T.Info.N_Subtables - 1 loop
-         T.Subtables.Table.all (I).First := Index;
-         Index := Index + T.Subtables.Table.all (I).Max;
-         T.Subtables.Table.all (I).Last  := Index - 1;
+      Index := 0;
+      for J in First (T.Subtables) .. Last (T.Subtables) loop
+         Subtables (J).First := Index;
+         Index := Index + Subtables (J).Max;
+         Subtables (J).Last  := Index - 1;
       end loop;
 
       --  Reorder the elements
 
-      for I in 0 .. T.Info.Count - 1 loop
+      for J in 0 .. T.Info.Count - 1 loop
 
-         ST_Index := T.Elements.Table.all (I).ST_Index;
+         ST_Index := Elements (J).ST_Index;
          ST_Offset := Hashcode
-           (T.Elements.Table.all (I).Key.all,
-            T.Subtables.Table.all (ST_Index).K,
-            T.Subtables.Table.all (ST_Index).Max,
+           (Elements (J).Key.all,
+            Subtables (ST_Index).K,
+            Subtables (ST_Index).Max,
             T.Info.Prime);
-         T.Elements.Table.all (I).ST_Offset := ST_Offset;
-         E_Index := ST_Offset + T.Subtables.Table.all (ST_Index).First;
+         Elements (J).ST_Offset := ST_Offset;
+         E_Index := ST_Offset + Subtables (ST_Index).First;
 
-         if ((I /= E_Index)
-             and then (T.Subtables.Table.all (ST_Index).Count = 1))
-           or else I < T.Subtables.Table.all (ST_Index).First
-           or else I > T.Subtables.Table.all (ST_Index).Last
+         if (J /= E_Index and then Subtables (ST_Index).Count = 1)
+           or else J < Subtables (ST_Index).First
+           or else J > Subtables (ST_Index).Last
          then
-            while (((I /= E_Index)
-                    and then (T.Subtables.Table.all (ST_Index).Count = 1))
-                   or else I < T.Subtables.Table.all (ST_Index).First
-                   or else I > T.Subtables.Table.all (ST_Index).Last)
-              and then T.Elements.Table.all (I).Used
+            while ((J /= E_Index
+                    and then Subtables (ST_Index).Count = 1)
+                   or else J < Subtables (ST_Index).First
+                   or else J > Subtables (ST_Index).Last)
+              and then Elements (J).Used
             loop
-               if T.Subtables.Table.all (ST_Index).Count = 1 then
-                  Swap := T.Elements.Table.all (I);
-                  T.Elements.Table.all (I) := T.Elements.Table.all (E_Index);
-                  T.Elements.Table.all (E_Index) := Swap;
-                  ST_Index := T.Elements.Table.all (I).ST_Index;
-                  if T.Elements.Table.all (I).Used then
+               if Subtables (ST_Index).Count = 1 then
+                  Swap_Elements (T, J, E_Index);
+
+                  ST_Index := Elements (J).ST_Index;
+                  if Elements (J).Used then
                      ST_Offset := Hashcode
-                       (T.Elements.Table.all (I).Key.all,
-                        T.Subtables.Table.all (ST_Index).K,
-                        T.Subtables.Table.all (ST_Index).Max,
+                       (Elements (J).Key.all,
+                        Subtables (ST_Index).K,
+                        Subtables (ST_Index).Max,
                         T.Info.Prime);
                   end if;
-                  T.Elements.Table.all (I).ST_Offset := ST_Offset;
-                  E_Index := ST_Offset +
-                    T.Subtables.Table.all (ST_Index).First;
+
+                  Elements (J).ST_Offset := ST_Offset;
+                  E_Index := ST_Offset + Subtables (ST_Index).First;
+
                else
-                  J := T.Subtables.Table.all (ST_Index).First;
-                  while (T.Elements.Table.all (J).Used)
-                    and then (ST_Index = T.Elements.Table.all (J).ST_Index)
+                  Offset := Subtables (ST_Index).First;
+                  while Elements (Offset).Used
+                    and then ST_Index = Elements (Offset).ST_Index
                   loop
-                     J := J + 1;
+                     Offset := Offset + 1;
                   end loop;
 
-                  Swap := T.Elements.Table.all (I);
-                  T.Elements.Table.all (I) := T.Elements.Table.all (J);
-                  T.Elements.Table.all (J) := Swap;
-                  ST_Index := T.Elements.Table.all (I).ST_Index;
-                  if T.Elements.Table.all (I).Used then
+                  Swap_Elements (T, J, Offset);
+
+                  ST_Index := Elements (J).ST_Index;
+                  if Elements (J).Used then
                      ST_Offset := Hashcode
-                       (T.Elements.Table.all (I).Key.all,
-                        T.Subtables.Table.all (ST_Index).K,
-                        T.Subtables.Table.all (ST_Index).Max,
+                       (Elements (J).Key.all,
+                        Subtables (ST_Index).K,
+                        Subtables (ST_Index).Max,
                         T.Info.Prime);
                   end if;
-                  T.Elements.Table.all (I).ST_Offset := ST_Offset;
-                  E_Index := ST_Offset +
-                    T.Subtables.Table.all (ST_Index).First;
+                  Elements (J).ST_Offset := ST_Offset;
+                  E_Index := ST_Offset + Subtables (ST_Index).First;
                end if;
 
             end loop;
@@ -431,11 +453,11 @@ package body PolyORB.Utils.HTables is
       --  Apply the Process_Subtable procedure to all the subtables
       --  that have more than two elements
 
-      for I in 0 .. Last (T.Subtables) loop
-         if T.Subtables.Table.all (I).Count > 1 then
-            Process_Subtable (I, T);
-         elsif T.Subtables.Table.all (I).Count = 0 then
-            T.Subtables.Table.all (I).K := 1;
+      for J in First (T.Subtables) .. Last (T.Subtables) loop
+         if Subtables (J).Count > 1 then
+            Process_Subtable (J, T);
+         elsif Subtables (J).Count = 0 then
+            Subtables (J).K := 1;
          end if;
       end loop;
 
@@ -445,50 +467,31 @@ package body PolyORB.Utils.HTables is
    -- Process_Subtable --
    ----------------------
 
-   procedure Process_Subtable (ST_Index : Natural; T : Hash_Table)
+   procedure Process_Subtable
+     (ST_Index :        Natural;
+      T        : in out Hash_Table)
    is
-      Swap  : Element := Empty;
-      First : constant Natural := T.Subtables.Table.all (ST_Index).First;
-      J     : Natural := 0;
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
+      Offset : Natural;
+
    begin
-      if T.Subtables.Table.all (ST_Index).Count = 1 then
-         --  If the subtable has only one element.
-         T.Subtables.Table.all (ST_Index).K  := 1;
+      Find_K (ST_Index, T);
 
-         for I in First .. T.Subtables.Table.all (ST_Index).Last
-         loop
-            if T.Elements.Table.all (I).Used then
-               J := Hashcode (T.Elements.Table.all (I).Key.all,
-                              1,
-                              T.Subtables.Table.all (ST_Index).Max,
-                              T.Info.Prime);
-               Swap := T.Elements.Table.all (First + J);
-               T.Elements.Table.all (First + J) := T.Elements.Table.all (I);
-               T.Elements.Table.all (I) := Swap;
+      for J in Subtables (ST_Index).First .. Subtables (ST_Index).Last
+      loop
+         Offset := Subtables (ST_Index).First + Elements (J).ST_Offset;
+         while Elements (J).Used
+           and then J /= Offset loop
+
+            if J /= Offset then
+               Swap_Elements (T, J, Offset);
             end if;
+            Offset := Subtables (ST_Index).First + Elements (J).ST_Offset;
          end loop;
+      end loop;
 
-      else
-         --  in the other cases.
-         Find_K (ST_Index, T);
-
-         for I in  First .. T.Subtables.Table.all (ST_Index).Last
-         loop
-            if T.Elements.Table.all (I).Used then
-               if I /= First + T.Elements.Table.all (I).ST_Offset then
-                  J := First + T.Elements.Table.all (I).ST_Offset;
-                  while T.Elements.Table.all (I).Used
-                    and then J /= I
-                  loop
-                     Swap := T.Elements.Table.all (J);
-                     T.Elements.Table.all (J) := T.Elements.Table.all (I);
-                     T.Elements.Table.all (I) := Swap;
-                     J := Swap.ST_Offset + First;
-                  end loop;
-               end if;
-            end if;
-         end loop;
-      end if;
    end Process_Subtable;
 
    ----------------------------------------
@@ -505,15 +508,18 @@ package body PolyORB.Utils.HTables is
    is
       ST_Index  : Natural := 0;
       ST_Offset : Natural := 0;
-      Found : Boolean;
+      Found     : Boolean;
+
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
    begin
       Lookup (T, Key, ST_Index, ST_Offset, Found);
+
       if Found then
-         T.Subtables.Table.all (ST_Index).Count :=
-           T.Subtables.Table.all (ST_Index).Count - 1;
-         T.Info.Count :=  T.Info.Count - 1;
-         T.Elements.Table.all (T.Subtables.Table.all (ST_Index).First
-                               + ST_Offset).Used := False;
+         Subtables (ST_Index).Count := Subtables (ST_Index).Count - 1;
+         T.Info.Count := T.Info.Count - 1;
+         Elements (Subtables (ST_Index).First + ST_Offset).Used := False;
       end if;
    end Delete;
 
@@ -528,34 +534,42 @@ package body PolyORB.Utils.HTables is
       ST_Offset : out Natural;
       Found     : out Boolean)
    is
-      Index : Natural := 0;
+      Index : Natural;
+
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
 
    begin
-      Found := False;
-      ST_Index  := Hashcode (Key, T.Info.K, T.Info.N_Subtables, T.Info.Prime);
-      ST_Offset := Hashcode (Key,
-                             T.Subtables.Table.all (ST_Index).K,
-                             T.Subtables.Table.all (ST_Index).Max,
+      ST_Index  := Hashcode (Key,
+                             T.Info.K,
+                             T.Info.N_Subtables,
                              T.Info.Prime);
-      Index := T.Subtables.Table.all (ST_Index).First + ST_Offset;
 
-      if T.Elements.Table.all (Index).Key /= null
-        and then T.Elements.Table.all (Index).Key.all = Key
-        and then T.Elements.Table.all (Index).Used
-      then
-         Found := True;
-      end if;
+      ST_Offset := Hashcode (Key,
+                             Subtables (ST_Index).K,
+                             Subtables (ST_Index).Max,
+                             T.Info.Prime);
+
+      Index := Subtables (ST_Index).First + ST_Offset;
+
+      Found := Elements (Index).Key /= null
+        and then Elements (Index).Key.all = Key
+        and then Elements (Index).Used;
+
    end Lookup;
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (T : in out Hash_Table) is
+   procedure Finalize (T : in out Hash_Table)
+   is
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+
    begin
-      for J in 0 .. Last (T.Elements) loop
-         if T.Elements.Table.all (J).Key /= null then
-            Free_String (T.Elements.Table.all (J).Key);
+      for J in First (T.Elements) .. Last (T.Elements) loop
+         if Elements (J).Key /= null then
+            Free_String (Elements (J).Key);
          end if;
       end loop;
 
@@ -572,9 +586,10 @@ package body PolyORB.Utils.HTables is
       Prime  : Natural;
       Max    : Natural)
    is
-      Temp : Natural;
-   begin
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
 
+   begin
       --  Initialization of the Hash_Table.Info
 
       T.Info.Prime        := Prime;
@@ -587,9 +602,9 @@ package body PolyORB.Utils.HTables is
 
       Init (T.Elements);
       Dynamic_Element_Array.Set_Last (T.Elements, 15 * T.Info.High);
-      for J in 0 .. Last (T.Elements) loop
-         T.Elements.Table.all (J) := Empty;
-         T.Elements.Table.all (J).Item_Index := J;
+      for J in First (T.Elements) .. Last (T.Elements) loop
+         Elements (J) := Empty;
+         Elements (J).Item_Index := J;
       end loop;
 
       --  Allocation of the Hash_Table.Subtables
@@ -597,32 +612,15 @@ package body PolyORB.Utils.HTables is
       Init (T.Subtables);
       Set_Last (T.Subtables, T.Info.N_Subtables - 1);
 
-      if  ((T.Info.High * 21) / 8) +1 + ((T.Info.High * 3) / 8) >
-        T.Info.N_Subtables
-      then
-         Temp := (T.Info.High * 21) / 8 - 1;
-      else
-         Temp := (T.Info.High * 21) / 8;
-      end if;
-
-      for J in 0 .. Temp loop
-         T.Subtables.Table.all (J).First := J * 4;
-         T.Subtables.Table.all (J).Last  := J * 4 + 3;
-         T.Subtables.Table.all (J).Count := 0;
-         T.Subtables.Table.all (J).High  := 2;
-         T.Subtables.Table.all (J).Max   := 4;
-         T.Subtables.Table.all (J).K     := 1;
+      for J in First (T.Subtables) .. Last (T.Subtables) loop
+         Subtables (J).First := 2 * J;
+         Subtables (J).Last  := 2 * J + 1;
+         Subtables (J).Count := 0;
+         Subtables (J).High  := 1;
+         Subtables (J).Max   := 2;
+         Subtables (J).K     := 1;
       end loop;
 
-      for J in  0 .. (T.Info.High * 3) / 8 - 1 loop
-         T.Subtables.Table.all (J + Temp + 1).First := J * 12 + 4 * (Temp + 1);
-         T.Subtables.Table.all (J + Temp + 1).Last  := J * 12 + 11
-           + 4 * (Temp + 1);
-         T.Subtables.Table.all (J + Temp + 1).Count := 0;
-         T.Subtables.Table.all (J + Temp + 1).High  := 3;
-         T.Subtables.Table.all (J + Temp + 1).Max   := 12;
-         T.Subtables.Table.all (J + Temp + 1).K     := 1;
-      end loop;
    end Initialize;
 
    ------------
@@ -634,26 +632,29 @@ package body PolyORB.Utils.HTables is
       Key       : String;
       ST_Index  : out Natural;
       ST_Offset : out Natural;
-      To_Do     : out What_To_Do)
+      To_Do     : out Next_Action)
    is
-      Found       : Boolean       := False;
-      Temp_Index  : Natural       := 0;
-      New_Key_Ptr : String_Access := null;
-      Old_Last    : Natural       := 0;
-   begin
+      Found       : Boolean;
+      Temp_Index  : Natural;
+      Old_Last    : Natural;
 
+      Elements : Dynamic_Element_Array.Table_Ptr renames T.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr renames T.Subtables.Table;
+
+   begin
       if T.Info.Count = T.Info.High then
 
-         --  Extend the table and Rehash_All.
+         --  Extend the table and Rehash_All,
 
-         Old_Last := Last (T.Elements);
+         Old_Last           := Last (T.Elements);
          T.Info.Count       := T.Info.Count + 1;
-         T.Info.High        := Integer ((1.0 + 0.5) * Float (T.Info.Count));
+         T.Info.High        := Integer (1.5 * Float (T.Info.Count));
          T.Info.N_Subtables := T.Info.High * 3;
          Set_Last (T.Elements, 15 * T.Info.High);
+
          for J in Old_Last + 1 .. Last (T.Elements) loop
-            T.Elements.Table.all (J) := Empty;
-            T.Elements.Table.all (J).Item_Index := J;
+            Elements (J) := Empty;
+            Elements (J).Item_Index := J;
          end loop;
 
          Set_Last (T.Subtables, T.Info.N_Subtables - 1);
@@ -662,9 +663,11 @@ package body PolyORB.Utils.HTables is
          To_Do := Reorder_Table;
 
       else
-         --  ...else search if the key is already in the table.
+
+         --  .. else search if the key is already in the table.
 
          Lookup (T, Key, ST_Index, ST_Offset, Found);
+
          if Found then
 
             --  If key in table and is used, don't insert
@@ -675,16 +678,12 @@ package body PolyORB.Utils.HTables is
             --  Temp_Index is the a priori position of the new key
             --  XXX What does that mean????
 
-            Temp_Index := T.Subtables.Table.all (ST_Index).First + ST_Offset;
+            Temp_Index := Subtables (ST_Index).First + ST_Offset;
 
-            T.Subtables.Table.all (ST_Index).Count :=
-              T.Subtables.Table.all (ST_Index).Count + 1;
-
+            Subtables (ST_Index).Count := Subtables (ST_Index).Count + 1;
             T.Info.Count := T.Info.Count + 1;
 
-            if T.Subtables.Table.all (ST_Index).Count >
-              T.Subtables.Table.all  (ST_Index).High
-            then
+            if Subtables (ST_Index).Count > Subtables (ST_Index).High then
 
                --  When Count > High, must Rehash_all
 
@@ -692,36 +691,35 @@ package body PolyORB.Utils.HTables is
                Lookup (T, Key, ST_Index, ST_Offset, Found);
                To_Do := Reorder_Table;
 
-            elsif T.Elements.Table.all (Temp_Index).Key = null then
+            elsif Elements (Temp_Index).Key = null then
 
                --  When the positon is empty insert directly
 
-               New_Key_Ptr := new String'(Key);
-               T.Elements.Table.all (Temp_Index).Key := New_Key_Ptr;
-               T.Elements.Table.all (Temp_Index).Used := True;
-               T.Elements.Table.all (Temp_Index).ST_Index := ST_Index;
-               T.Elements.Table.all (Temp_Index).ST_Offset := ST_Offset;
+               Elements (Temp_Index).Key := new String'(Key);
+               Elements (Temp_Index).Used := True;
+               Elements (Temp_Index).ST_Index := ST_Index;
+               Elements (Temp_Index).ST_Offset := ST_Offset;
                To_Do := Insert_Item;
 
-            elsif T.Elements.Table.all (Temp_Index).Key.all = Key then
+            elsif Elements (Temp_Index).Key.all = Key
+              and then not Elements (Temp_Index).Used then
 
                --  When the position contains the same key but unused
                --  just change the flag Used.
 
-               T.Elements.Table.all (Temp_Index).Used := True;
+               Elements (Temp_Index).Used := True;
                To_Do := Insert_Item;
 
-            elsif not T.Elements.Table.all (Temp_Index).Used then
+            elsif not Elements (Temp_Index).Used then
 
                --  If the position contains a key that is unused,
                --  deallocate the string and insert the new key
 
-               Free_String (T.Elements.Table.all (Temp_Index).Key);
-               New_Key_Ptr := new String'(Key);
-               T.Elements.Table.all (Temp_Index).Key := New_Key_Ptr;
-               T.Elements.Table.all (Temp_Index).Used := True;
-               T.Elements.Table.all (Temp_Index).ST_Index := ST_Index;
-               T.Elements.Table.all (Temp_Index).ST_Offset := ST_Offset;
+               Free_String (Elements (Temp_Index).Key);
+               Elements (Temp_Index).Key := new String'(Key);
+               Elements (Temp_Index).Used := True;
+               Elements (Temp_Index).ST_Index := ST_Index;
+               Elements (Temp_Index).ST_Offset := ST_Offset;
                To_Do := Insert_Item;
 
             else

@@ -31,6 +31,11 @@
 ------------------------------------------------------------------------------
 
 --  This package provides dynamic perfect hash tables.
+
+--  It implements the Dietzfelbinger algorithm as described in
+--  "Dynamic Perfect Hashing: Upper and Lower Bounds", Dietzfelbinger et al.
+--  in SIAM Journal on Computing, 1994, pp 738-761.
+
 --  XXX if yes, why is it separate from polyorb-utils-htables-perfect ?
 
 --  $Id$
@@ -48,50 +53,17 @@ private
    function "=" (L, R : String_Access) return Boolean
      renames PolyORB.Utils.Strings."=";
 
+   --  'Element' type.
+
    type Element is record
-      Key        : String_Access;
-      Used       : Boolean;
-      ST_Index   : Natural;
-      ST_Offset  : Natural;
-      Item_Index : Natural;
+      Key        : String_Access;  --  Key of the element to hash.
+      Used       : Boolean;        --  Is the slot really used ?
+      ST_Index   : Natural;        --  Index in the Sub Table.
+      ST_Offset  : Natural;        --  Offset in the Sub Table.
+      Item_Index : Natural;        --  Index of the element.
    end record;
-   --  Key is the element key in the hash algorithm terminology. When
-   --  an element in an array has a Used attribute set to true, this
-   --  denotes a non-empty slot. ST_Index corresponds to the subtable
-   --  index, ST_Offset to the offset in this subtable and Item_Index
-   --  to the position of the value associated with the key (it is
-   --  useful for the children package)
 
    Empty : constant Element := Element'(null, False, 0, 0, 0);
-
-   type Subtable is record
-      First  : Natural;
-      Last   : Natural;
-      Count  : Natural;
-      High   : Natural;
-      Max    : Natural;
-      K      : Natural;
-   end record;
-   --  First (resp. Last) is the first (resp. last) subtable index.
-   --  Some slots between First and Last may be unused. Count
-   --  represents the actual number of used elements in the
-   --  subtable. Max is the maximum size of the subtable. When Count
-   --  is greater than High, the algorithm reorganizes the table
-   --  for algorithm purposes. K is a subtable attribute that ensures
-   --  h (Key) = ((K * Key) mod Prime) mod (Last - First + 1).
-
-   type Table_Info is record
-      Prime        : Natural;
-      Count        : Natural;
-      High         : Natural;
-      N_Subtables  : Natural;
-      K            : Natural;
-   end record;
-   --  Prime is a prime number used by the algorithm. It can be
-   --  specified by the user. Count is the  number of Key stored
-   --  in the table. When Count = High, the algorithm can't add
-   --  more elements. K is a table attribute that
-   --  ensures : h (Key) = ((K * Key) mod Prime) mod N_Subtables.
 
    package Dynamic_Element_Array is new
      PolyORB.Utils.Dynamic_Tables (Element, Natural, 0, 10, 50);
@@ -99,22 +71,40 @@ private
 
    subtype Element_Array is Dynamic_Element_Array.Instance;
 
+   --  'Subtable' type.
+
+   type Subtable is record
+      First  : Natural;  --  'First subtable index.
+      Last   : Natural;  --  'Last subtable index.
+      Count  : Natural;  --  Number of elements used.
+      High   : Natural;  --  Highest count value before reorganization.
+      Max    : Natural;  --  Subtable maximum size.
+      K      : Natural;  --  K-parameter of the subtable.
+   end record;
+
    package Dynamic_Subtable_Array is new
      PolyORB.Utils.Dynamic_Tables (Subtable, Natural, 0, 10, 50);
    use Dynamic_Subtable_Array;
 
    subtype Subtable_Array is Dynamic_Subtable_Array.Instance;
 
-   type Hash_Table is record
-      Info      : Table_Info;
-      Elements  : Element_Array;
-      Subtables : Subtable_Array;
+   --  'Table_Info' type.
+
+   type Table_Info is record
+      Prime        : Natural;  --  Used by the algorithm, user defined.
+      Count        : Natural;  --  Number of Key stored in the table.
+      High         : Natural;  --  When Count = High, the table is resized.
+      N_Subtables  : Natural;  --  Number of subtables.
+      K            : Natural;  --  K-parameter of the subtable.
    end record;
-   --  Info contained the variables of the table (see above for
-   --  details).
-   --  Elements is the array where all the elements are stored.
-   --  Subtables is the array which contains all the informations
-   --  specific to the sub_tables. His size is equal to Info.N_Sub_Tables.
+
+   --  The Hash table.
+
+   type Hash_Table is record
+      Info      : Table_Info;      --  Table information.
+      Elements  : Element_Array;   --  Placeholder for elements.
+      Subtables : Subtable_Array;  --  Sub tables information.
+   end record;
    --  Each structure of the array contains the parameters for the sub-table
    --  hash function except the prime number stored in Info.Prime. In addition
    --  it contains the limit of each sub-table in the table Elements.
@@ -126,13 +116,13 @@ private
      (T      : out Hash_Table;
       Prime  : Natural;
       Max    : Natural);
-   --  Initialize the hash table and allocate some internal structures.
-   --  Prime is a prime number used by hash functions.
-   --  Max is the max number of elements to store.
+   --  Initialize the hash table.
+   --  'Prime' is a prime number used by hash functions.
+   --  'Max' is the max number of elements to store.
 
    procedure Finalize
      (T : in out Hash_Table);
-   --  Deallocate all the internal structures.
+   --  Deallocate the Hast Table.
 
    procedure Lookup
      (T         : Hash_Table;
@@ -140,15 +130,15 @@ private
       ST_Index  : out Natural;
       ST_Offset : out Natural;
       Found     : out Boolean);
-   --  Find key in hash table. Key is the string to hash. ST_Index
-   --  corresponds to the subtable index and ST_Offset to the offset
-   --  in this subtable. When Key does not exist, Found is set to False.
-   --  If Key exists Found is set to True
+   --  Find key in hash table.
+   --  'Key' is the string to hash.
+   --  If the key is 'Found', then
+   --  'ST_Index', 'ST_Offset' return the object position in the subtable.
 
-      type What_To_Do is (Reorder_SubTable,
-                          Reorder_Table,
-                          Do_Nothing,
-                          Insert_Item);
+   type Next_Action is (Reorder_SubTable,
+                        Reorder_Table,
+                        Do_Nothing,
+                        Insert_Item);
    --  Indicate the next action to do after a value has been inserted.
    --  See the specification of the Insert procedure for more details.
 
@@ -157,8 +147,7 @@ private
       Key       : String;
       ST_Index  : out Natural;
       ST_Offset : out Natural;
-      To_Do     : out What_To_Do);
-
+      To_Do     : out Next_Action);
    --  Insert key in hash table. In case of an already existing Key,
    --  Insert ignores insertion. Key is the string to hash.
    --  ST_Index corresponds to the subtable index and ST_Offset to

@@ -1,4 +1,5 @@
 with PolyORB.Dynamic_Dict;
+
 with Report;
 
 procedure Test000 is
@@ -13,84 +14,108 @@ procedure Test000 is
    ---------------------
 
    procedure Test_Regression;
-   --  This particular configuration raises an exception.
+   --  This particular configuration raised an exception.
 
    procedure Test_Regression
    is
-      package My_Dict2 is new PolyORB.Dynamic_Dict
-        (Value => String_Access, No_Value => null);
 
+      Values : constant array (Positive range <>) of String_Access :=
+        (new String'("tasking.profiles.full_tasking.threads"),
+         new String'("tasking.threads"),
+         new String'("tasking.profiles.full_tasking.mutexes"),
+         new String'("tasking.mutexes"),
+         new String'("tasking.profiles.full_tasking.condition_variables"),
+         new String'("tasking.condition_variables"),
+         new String'("exceptions.stack"),
+         new String'("exceptions"),
+         new String'("smart_pointers"),
+         new String'("binding_data.iiop"),
+         new String'("protocols.giop"),
+         new String'("orb.thread_pool"),
+         new String'("orb.tasking_policy"),
+         new String'("orb.threads_init"),
+         new String'("orb.tasking_policy_init"),
+         new String'("orb"),
+         new String'("corba.orb"),
+         new String'("corba.initial_references"),
+         new String'("tcp_access_points.corba"),
+         new String'("tcp_access_points.srp"),
+         new String'("tasking.soft_links"),
+         new String'("soft_links"));
+
+      Result : String_Access;
    begin
-      My_Dict2.Register ("tasking.profiles.full_tasking.threads",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.threads",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.profiles.full_tasking.mutexes",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.mutexes",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.profiles.full_tasking.condition_variables",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.condition_variables",
-                         new String'("foo"));
-      My_Dict2.Register ("exceptions.stack",
-                         new String'("foo"));
-      My_Dict2.Register ("exceptions",
-                         new String'("foo"));
-      My_Dict2.Register ("smart_pointers",
-                         new String'("foo"));
-      My_Dict2.Register ("binding_data.iiop",
-                         new String'("foo"));
-      My_Dict2.Register ("protocols.giop",
-                         new String'("foo"));
-      My_Dict2.Register ("orb.thread_pool",
-                         new String'("foo"));
-      My_Dict2.Register ("orb.tasking_policy",
-                         new String'("foo"));
-      My_Dict2.Register ("orb.threads_init",
-                         new String'("foo"));
-      My_Dict2.Register ("orb.tasking_policy_init",
-                         new String'("foo"));
-      My_Dict2.Register ("orb",
-                         new String'("foo"));
-      My_Dict2.Register ("corba.orb",
-                         new String'("foo"));
-      My_Dict2.Register ("corba.initial_references",
-                         new String'("foo"));
-      My_Dict2.Register ("tcp_access_points.corba",
-                         new String'("foo"));
-      My_Dict2.Register ("tcp_access_points.srp",
-                         new String'("foo"));
-      My_Dict2.Register ("tasking.soft_links",
-                         new String'("foo"));
-      My_Dict2.Register ("soft_links",
-                         new String'("foo"));
-      declare
-         Content : constant String_Access
-           := My_Dict2.Lookup ("protocols.giop");
-      begin
-         null;
-      end;
+      for J in Values'Range loop
+         My_Dict.Register (Values (J).all, new String'("foo"));
 
-      Report.Output ("Regression occured", False);
+         for K in Values'First .. J loop
+            Result := My_Dict.Lookup (Values (K).all, Default => null);
+
+            if Result = null
+              or else Result.all /= "foo" then
+
+               Report.Output ("Regression occured for key "
+                              & Values (K).all
+                              & " at stage #"
+                              & Integer'Image (J),
+                              False);
+               raise Program_Error;
+            end if;
+         end loop;
+      end loop;
+
+      for J in Values'Range loop
+         My_Dict.Unregister (Values (J).all);
+      end loop;
+
+      Report.Output ("Regression did not occured", True);
    exception
-      when Constraint_Error =>
-         Report.Output ("Regression occured", True);
-
       when others =>
-         Report.Output ("Regression occured", False);
+         Report.Output ("Regression test failed", False);
+
    end Test_Regression;
 
    -------------------
    -- Test_Register --
    -------------------
 
-   procedure Test_Register (How_Many : Natural := 10);
+   procedure Test_Register (How_Many : Natural);
 
-   procedure Test_Register (How_Many : Natural := 10)
+   procedure Test_Register (How_Many : Natural)
    is
       Key_Root   : constant String := "Key";
       Value_Root : constant String := "Root";
+
+      procedure Test_Lookup (How_Many : Natural);
+
+      procedure Test_Lookup (How_Many : Natural)
+      is
+         Key_Root   : constant String := "Key";
+         Value_Root : constant String := "Root";
+      begin
+         for J in 1 .. How_Many loop
+            declare
+               Count : constant String := Natural'Image (J);
+               Key   : constant String := Key_Root
+                 & Count (Count'First + 1 .. Count'Last);
+               Content : constant String_Access
+                 := My_Dict.Lookup (Key, Default => null);
+               Value : constant String := Value_Root
+                 & Count (Count'First + 1 .. Count'Last);
+            begin
+               if Content = null
+                 or else Value /= Content.all then
+
+                  Report.Output ("Regression occured for key "
+                                 & Key
+                                 & " at stage #"
+                                 & Integer'Image (How_Many),
+                                 False);
+                  raise Program_Error;
+               end if;
+            end;
+         end loop;
+      end Test_Lookup;
 
    begin
       for J in 1 .. How_Many loop
@@ -103,45 +128,17 @@ procedure Test000 is
 
          begin
             My_Dict.Register (Key, new String'(Value));
+            Test_Lookup (J);
          end;
       end loop;
       Report.Output ("Register", True);
 
    end Test_Register;
 
-   -------------------
-   -- Test_Lookup --
-   -------------------
-
-   procedure Test_Lookup (How_Many : Natural := 10);
-
-   procedure Test_Lookup (How_Many : Natural := 10)
-   is
-      Key_Root   : constant String := "Key";
-      Value_Root : constant String := "Root";
-      Result     : Boolean := True;
-   begin
-      for J in 1 .. How_Many loop
-         declare
-            Count : constant String := Natural'Image (J);
-            Key   : constant String := Key_Root
-              & Count (Count'First + 1 .. Count'Last);
-            Content : constant String_Access
-              := My_Dict.Lookup (Key, Default => null);
-            Value : constant String := Value_Root
-              & Count (Count'First + 1 .. Count'Last);
-         begin
-            Result := Result and Value = Content.all;
-         end;
-      end loop;
-      Report.Output ("Lookup", Result);
-   end Test_Lookup;
-
 begin
-   Test_Register (1000);
-   Test_Lookup   (1000);
+   Report.Output ("Initialization", True);
+   Test_Register (500);
    Test_Regression;
    Report.End_Report;
-
 
 end Test000;

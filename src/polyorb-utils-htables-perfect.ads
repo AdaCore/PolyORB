@@ -64,8 +64,8 @@ package PolyORB.Utils.HTables.Perfect is
       Prime  : Natural := Default_Prime;
       Max    : Natural := Default_Max);
    --  Initialize the hash table.
-   --  Prime is a prime number used by hash functions.
-   --  Max is the max number of elements to store.
+   --  'Prime' is a prime number used by hash functions.
+   --  'Max' is the max number of elements to store.
 
    procedure Finalize
      (T : in out Table_Instance);

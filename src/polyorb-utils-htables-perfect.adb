@@ -37,6 +37,7 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Utils.Dynamic_Tables;
 
 package body PolyORB.Utils.HTables.Perfect is
@@ -67,6 +68,11 @@ package body PolyORB.Utils.HTables.Perfect is
    is
    begin
       Delete (T.T.HTable, Key);
+
+      --  Items are lazy deleted, i.e. the actual item will be freed
+      --  iff we need to reclaim the slot used by this element on the
+      --  next insertion.
+
    end Delete;
 
    ------------
@@ -83,38 +89,49 @@ package body PolyORB.Utils.HTables.Perfect is
 
       ST_Index   : Natural;
       ST_Offset  : Natural;
-      To_Do      : What_To_Do;
+      To_Do      : Next_Action;
       Temp_Index : Natural;
-      Old_Last   : Natural := 0;
+      Old_Last   : Natural;
+
+      Elements : Dynamic_Element_Array.Table_Ptr
+        renames T.T.HTable.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr
+        renames T.T.HTable.Subtables.Table;
+      Items : Dynamic_Item_Array.Table_Ptr
+        renames T.T.Items.Table;
+
    begin
       Insert (T.T.HTable, Key, ST_Index, ST_Offset, To_Do);
 
       if To_Do = Reorder_Table
         and then Last (T.T.HTable.Elements) > Last (T.T.Items)
       then
+         --  The 'Items' table is extended.
+
          Old_Last := Last (T.T.Items);
          Set_Last (T.T.Items, 15 * T.T.HTable.Info.High);
-         for I in Old_Last + 1 .. Last (T.T.Items) loop
-            T.T.Items.Table.all (I) := null;
+
+         for J in Old_Last + 1 .. Last (T.T.Items) loop
+            Items (J) := null;
          end loop;
       end if;
 
       if To_Do /= Do_Nothing then
-         Temp_Index := T.T.HTable.Elements.Table.all
-           (T.T.HTable.Subtables.Table.all (ST_Index).First +
-            ST_Offset).Item_Index;
-         if T.T.Items.Table.all (Temp_Index) = null then
-            T.T.Items.Table.all (Temp_Index) := new Item'(Value);
-         else
-            Free_Item (T.T.Items.Table.all (Temp_Index));
-            T.T.Items.Table.all (Temp_Index) := new Item'(Value);
+
+         Temp_Index :=
+           Elements (Subtables (ST_Index).First + ST_Offset).Item_Index;
+
+         if T.T.Items.Table.all (Temp_Index) /= null then
+            Free_Item (Items (Temp_Index));
          end if;
+         Items (Temp_Index) := new Item'(Value);
+
       end if;
    end Insert;
 
-   --------------
-   --  Lookup  --
-   --------------
+   ------------
+   -- Lookup --
+   ------------
 
    function Lookup
      (T           : Table_Instance;
@@ -126,21 +143,25 @@ package body PolyORB.Utils.HTables.Perfect is
       ST_Offset  : Natural;
       Found      : Boolean;
       Temp_Index : Natural;
+
+      Elements : Dynamic_Element_Array.Table_Ptr
+        renames T.T.HTable.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr
+        renames T.T.HTable.Subtables.Table;
+      Items : Dynamic_Item_Array.Table_Ptr
+        renames T.T.Items.Table;
+
    begin
       Lookup (T.T.HTable, Key, ST_Index, ST_Offset, Found);
+
       if Found then
-         Temp_Index := T.T.HTable.Elements.Table.all
-           (T.T.HTable.Subtables.Table.all (ST_Index).First +
-            ST_Offset).Item_Index;
-         return T.T.Items.Table.all (Temp_Index).all;
+         Temp_Index := Elements
+           (Subtables (ST_Index).First + ST_Offset).Item_Index;
+         return Items (Temp_Index).all;
       else
          return Error_Value;
       end if;
    end Lookup;
-
-   --------------
-   --  Lookup  --
-   --------------
 
    function Lookup
      (T           : Table_Instance;
@@ -149,23 +170,31 @@ package body PolyORB.Utils.HTables.Perfect is
    is
       ST_Index   : Natural;
       ST_Offset  : Natural;
-      Found       : Boolean;
+      Found      : Boolean;
       Temp_Index : Natural;
+
+      Elements : Dynamic_Element_Array.Table_Ptr
+        renames T.T.HTable.Elements.Table;
+      Subtables : Dynamic_Subtable_Array.Table_Ptr
+        renames T.T.HTable.Subtables.Table;
+      Items : Dynamic_Item_Array.Table_Ptr
+        renames T.T.Items.Table;
+
    begin
       Lookup (T.T.HTable, Key, ST_Index, ST_Offset, Found);
       if Found then
-         Temp_Index := T.T.HTable.Elements.Table.all
-           (T.T.HTable.Subtables.Table.all (ST_Index).First +
-            ST_Offset).Item_Index;
-         return T.T.Items.Table.all (Temp_Index).all;
+         Temp_Index := Elements
+           (Subtables (ST_Index).First + ST_Offset).Item_Index;
+
+         return Items (Temp_Index).all;
       else
          raise No_Key;
       end if;
    end Lookup;
 
-   ----------------
-   --  Finalize  --
-   ----------------
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize
      (T : in out Table_Instance)
