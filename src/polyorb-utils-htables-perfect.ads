@@ -34,13 +34,26 @@
 --  PolyORB.Utils.HTables with a generic type. Each Item is associated with
 --  an element. When hashing a key, Lookup returns this Item.
 
+with PolyORB.Utils.Dynamic_Tables;
+
 generic
    type Item is private;
+
 package PolyORB.Utils.HTables.Perfect is
+   pragma Preelaborate;
+
+   No_Key : exception;
 
    type Item_Access is access all Item;
 
    type Table is private;
+
+   type Table_Access is access all Table;
+
+   type Table_Instance is record
+      T : Table_Access;
+   end record;
+
 
    procedure Initialize
      (T      : out Table;
@@ -63,6 +76,15 @@ package PolyORB.Utils.HTables.Perfect is
    --  Key is the string to hash.
    --  When Key does not exist, The function returns Error_Value
 
+
+   function Lookup
+     (T     : Table;
+      Key   : String)
+      return Item;
+   --  Find key in hash table and return the associated Item.
+   --  Key is the string to hash.
+   --  When Key does not exist, the function raise No_Key exception
+
    procedure Insert
      (T     : in out Table;
       Key   : String;
@@ -84,18 +106,21 @@ package PolyORB.Utils.HTables.Perfect is
 
 private
 
+   package Dynamic_Item_Array is new
+     PolyORB.Utils.Dynamic_Tables (Item_Access, Natural, 0, 10, 50);
+   use Dynamic_Item_Array;
 
-   type Item_Array is array (Natural range <>) of Item_Access;
-   type Item_Array_Ptr is access all Item_Array;
+   subtype Item_Array is Dynamic_Item_Array.Instance;
 
    type Table is record
       HTable : Hash_Table;
-      Items  : Item_Array_Ptr;
+      Items  : Item_Array;
    end record;
    --  Table is the agregation of an Hash_Table (non-generic) and
    --  and an array (generic) which contains the Values associated
    --  with the Keys. We can note that HTable.Elements.all and Items.all
    --  have the same size. Indeed if a Key is stored in HTable.Elements(i)
    --  then his value is stored in Items(HTable.Elements(i).Item_Index)
+
 
 end PolyORB.Utils.HTables.Perfect;

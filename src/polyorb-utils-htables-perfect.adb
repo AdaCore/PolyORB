@@ -35,14 +35,16 @@
 --  an element. When hashing a key, Lookup returns this Item.
 
 with Ada.Unchecked_Deallocation;
+with PolyORB.Utils.Dynamic_Tables;
 
 package body PolyORB.Utils.HTables.Perfect is
 
    procedure Free_Item is
      new Ada.Unchecked_Deallocation (Item, Item_Access);
-   procedure Free_Item_Array is
-     new Ada.Unchecked_Deallocation (Item_Array, Item_Array_Ptr);
 
+   ------------------
+   --  Initialize  --
+   ------------------
    procedure Initialize
      (T      : out Table;
       Prime  : Natural;
@@ -50,17 +52,24 @@ package body PolyORB.Utils.HTables.Perfect is
    is
    begin
       Initialize (T.HTable, Prime, Max);
-      T.Items := new Item_Array (0 .. (15 * T.HTable.Info.High));
+      Init (T.Items);
+      Set_Last (T.Items, 15 * T.HTable.Info.High);
    end Initialize;
 
+   --------------
+   --  Delete  --
+   --------------
    procedure Delete
      (T   : in out Table;
       Key : String)
    is
    begin
-      Delete (T.Htable, Key);
+      Delete (T.HTable, Key);
    end Delete;
 
+   --------------
+   --  Insert  --
+   --------------
    procedure Insert
      (T     : in out Table;
       Key   : String;
@@ -70,21 +79,34 @@ package body PolyORB.Utils.HTables.Perfect is
       ST_Offset : Natural;
       To_Do     : What_To_Do;
       Temp_Index : Natural;
+      Old_Last : Natural := 0;
    begin
       Insert (T.HTable, Key, ST_Index, ST_Offset, To_Do);
-      if To_Do = Insert_Item then
-         Temp_Index := T.HTable.Elements.all
-           (T.HTable.Subtables.all (ST_Index).First +
+      if (To_Do = Reorder_Table) and
+        (Last (T.HTable.Elements) > Last (T.Items))
+      then
+         Old_Last := Last (T.Items);
+         Set_Last (T.Items, 15 * T.HTable.Info.High);
+         for I in Old_Last + 1 .. Last (T.Items) loop
+            T.Items.Table.all (I) := null;
+         end loop;
+      end if;
+      if (To_Do /= Do_Nothing) then
+         Temp_Index := T.HTable.Elements.Table.all
+           (T.HTable.Subtables.Table.all (ST_Index).First +
             ST_Offset).Item_Index;
-         if T.Items.all (Temp_Index) = null then
-            T.Items.all (Temp_Index) := new Item'(Value);
+         if T.Items.Table.all (Temp_Index) = null then
+            T.Items.Table.all (Temp_Index) := new Item'(Value);
          else
-            Free_Item (T.Items.all (Temp_Index));
-            T.Items.all (Temp_Index) := new Item'(Value);
+            Free_Item (T.Items.Table.all (Temp_Index));
+            T.Items.Table.all (Temp_Index) := new Item'(Value);
          end if;
       end if;
    end Insert;
 
+   --------------
+   --  Lookup  --
+   --------------
    function Lookup
      (T           : Table;
       Key         : String;
@@ -98,21 +120,48 @@ package body PolyORB.Utils.HTables.Perfect is
    begin
       Lookup (T.HTable, Key, ST_Index, ST_Offset, Found);
       if Found = True then
-         Temp_Index := T.HTable.Elements.all
-           (T.HTable.Subtables.all (ST_Index).First +
+         Temp_Index := T.HTable.Elements.Table.all
+           (T.HTable.Subtables.Table.all (ST_Index).First +
             ST_Offset).Item_Index;
-         return T.Items.all (Temp_Index).all;
+         return T.Items.Table.all (Temp_Index).all;
       else
          return Error_Value;
       end if;
    end Lookup;
 
+   --------------
+   --  Lookup  --
+   --------------
+   function Lookup
+     (T           : Table;
+      Key         : String)
+      return Item
+   is
+      ST_Index   : Natural;
+      ST_Offset  : Natural;
+      Found       : Boolean;
+      Temp_Index : Natural;
+   begin
+      Lookup (T.HTable, Key, ST_Index, ST_Offset, Found);
+      if Found = True then
+         Temp_Index := T.HTable.Elements.Table.all
+           (T.HTable.Subtables.Table.all (ST_Index).First +
+            ST_Offset).Item_Index;
+         return T.Items.Table.all (Temp_Index).all;
+      else
+         raise No_Key;
+      end if;
+   end Lookup;
+
+   ----------------
+   --  Finalize  --
+   ----------------
    procedure Finalize
      (T : in out Table)
    is
    begin
       Finalize (T.HTable);
-      Free_Item_Array (T.Items);
+      Deallocate (T.Items);
    end Finalize;
 
 end PolyORB.Utils.HTables.Perfect;

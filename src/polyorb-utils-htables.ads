@@ -33,10 +33,16 @@
 --  This package provides dynamic perfect hash tables.
 
 --  $Id$
+with PolyORB.Utils.Dynamic_Tables;
+
 
 package PolyORB.Utils.HTables is
 
+   pragma Preelaborate;
+
 private
+
+
 
    type String_Access is access all String;
 
@@ -91,17 +97,22 @@ private
    --  in the table. When Count = High, the algorithm can't add
    --  more elements. K is a table attribute that
    --  ensures : h (Key) = ((K * Key) mod Prime) mod N_Subtables.
+   package Dynamic_Element_Array is new
+     PolyORB.Utils.Dynamic_Tables (Element, Natural, 0, 10, 50);
+   use Dynamic_Element_Array;
 
-   type Element_Array is array (Natural range <>) of Element;
-   type Element_Array_Ptr is access all Element_Array;
+   package Dynamic_Subtable_Array is new
+     PolyORB.Utils.Dynamic_Tables (Subtable, Natural, 0, 10, 50);
+   use Dynamic_Subtable_Array;
 
-   type Subtable_Array is array (Natural range <>) of Subtable;
-   type Subtable_Array_Ptr is access all Subtable_Array;
+   subtype Element_Array is Dynamic_Element_Array.Instance;
+
+   subtype Subtable_Array is Dynamic_Subtable_Array.Instance;
 
    type Hash_Table is record
       Info      : Table_Info;
-      Elements  : Element_Array_Ptr;
-      Subtables : Subtable_Array_Ptr;
+      Elements  : Element_Array;
+      Subtables : Subtable_Array;
    end record;
    --  Info contained the variables of the table (see above for
    --  details).

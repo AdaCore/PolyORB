@@ -34,9 +34,9 @@
 
 --  $Id$
 
-with GNAT.HTable;
-with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
-
+--  with GNAT.HTable;
+--  with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
+with PolyORB.Utils.HTables.Perfect;
 package body PolyORB.Dynamic_Dict is
 
    --------------------------------------------------------
@@ -44,77 +44,34 @@ package body PolyORB.Dynamic_Dict is
    -- a String key.                                      --
    --------------------------------------------------------
 
+   package Perfect_Htable is new PolyORB.Utils.HTables.Perfect (Value);
+   use Perfect_Htable;
+
    type Hash_Val is new Integer range 0 .. 32;
 
-   function Hash (S : String_Ptr) return Hash_Val;
-   function Equal (S1, S2 : String_Ptr) return Boolean;
-   --  Simple {hash,equality} functions operating on a string access.
-   --  Used in instanciation of GNAT.HTable.
+   T : Table_Instance;
 
-   function Hash (S : String_Ptr) return Hash_Val
-   is
-      function Hash_String is new GNAT.HTable.Hash (Hash_Val);
-   begin
-      pragma Assert (S /= null);
-      return Hash_String (S.all);
-   end Hash;
+   T_Initialize : Boolean := False;
 
-   function Equal (S1, S2 : String_Ptr) return Boolean is
-   begin
-      pragma Assert (S1 /= null and then S2 /= null);
-      return S1.all = S2.all;
-   end Equal;
-
-   type Dict_Entry is record
-      Key_Ptr   : String_Ptr;
-      The_Value : Value;
-   end record;
-
-   package HT is new GNAT.HTable.Simple_HTable
-     (Header_Num => Hash_Val,
-      Element    => Dict_Entry,
-      No_Element => (null, No_Value),
-      Key        => String_Ptr,
-      Hash       => Hash,
-      Equal      => Equal);
+   Prime : constant Natural := 1777771;
+   Max   : constant Natural := 10;
 
    ------------
    -- Lookup --
    ------------
 
-   procedure Internal_Lookup
-     (K : String;
-      V : out Value;
-      Success : out Boolean);
-
-   procedure Internal_Lookup
-     (K : String;
-      V : out Value;
-      Success : out Boolean)
-   is
-      KK : aliased String := K;
-      E  : constant Dict_Entry := HT.Get (KK'Unchecked_Access);
-   begin
-      if E.Key_Ptr = null then
-         Success := False;
-      else
-         Success := True;
-         V := E.The_Value;
-      end if;
-   end Internal_Lookup;
-
    function Lookup
-      (K : String)
-     return Value
+     (K : String)
+      return Value
    is
-      V : Value;
-      Success : Boolean;
    begin
-      Internal_Lookup (K, V, Success);
-      if not Success then
-         raise Key_Not_Found;
+      if T_Initialize = False then
+         Initialize (T.T.all, Prime, Max);
+         T_Initialize := True;
       end if;
-      return V;
+      return Lookup (T.T.all, K);
+      exception
+         when No_Key => raise Key_Not_Found;
    end Lookup;
 
    function Lookup
@@ -123,12 +80,12 @@ package body PolyORB.Dynamic_Dict is
      return Value
    is
       V : Value;
-      Success : Boolean;
    begin
-      Internal_Lookup (K, V, Success);
-      if not Success then
-         return Default;
+      if T_Initialize = False then
+         Initialize (T.T.all, Prime, Max);
+         T_Initialize := True;
       end if;
+      V := Lookup (T.T.all, K, Default);
       return V;
    end Lookup;
 
@@ -136,24 +93,27 @@ package body PolyORB.Dynamic_Dict is
      (K : String;
       V : Value)
    is
-      KK : String_Ptr := new String'(K);
-      E  : Dict_Entry := HT.Get (KK);
    begin
-      if E.Key_Ptr = null then
-         E.Key_Ptr := KK;
-      else
-         Free (KK);
+      if T_Initialize = False then
+         Initialize (T.T.all, Prime, Max);
+         T_Initialize := True;
       end if;
-
-      E.The_Value := V;
-      HT.Set (E.Key_Ptr, E);
+      Insert (T.T.all, K, V);
    end Register;
 
    procedure Unregister
      (K : String)
    is
+      V : Value;
    begin
-      raise Not_Implemented;
+      if T_Initialize = False then
+         Initialize (T.T.all, Prime, Max);
+         T_Initialize := True;
+      end if;
+      V := Lookup (T.T.all, K);
+      Delete (T.T.all, K);
+   exception
+      when No_Key => raise Key_Not_Found;
    end Unregister;
 
 end PolyORB.Dynamic_Dict;
