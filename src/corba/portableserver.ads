@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -350,6 +350,19 @@ package PortableServer is
    --  must override the Invoke operation himself, and the
    --  Dispatcher will be ignored and can be null.
    --  NOTE: This procedure is not thread safe.
+
+   package Internals is
+
+      --  Implementation Note: This package defines internal subprograms
+      --  specific to PolyORB. You must not use them.
+
+      function Target_Most_Derived_Interface
+        (For_Servant : in Servant)
+        return CORBA.RepositoryId;
+      --  Return RepositoryId of most derived servant interface.
+      --  Used in PortableInterceptor implementation.
+
+   end Internals;
 
 private
 

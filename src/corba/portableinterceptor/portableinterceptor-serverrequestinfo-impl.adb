@@ -465,7 +465,6 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
      (Self : access Object)
       return CORBA.RepositoryId
    is
-      Result : CORBA.RepositoryId;
    begin
       if Self.Point /= Receive_Request then
          CORBA.Raise_Bad_Inv_Order
@@ -473,8 +472,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise Program_Error;
-      return Result;
+      return
+        PortableServer.Internals.Target_Most_Derived_Interface (Self.Servant);
    end Get_Target_Most_Derived_Interface;
 
    ----------
@@ -484,6 +483,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    procedure Init
      (Self         : access Object;
       Point        : in     Server_Interception_Point;
+      Servant      : in     PortableServer.Servant;
       Request      : in     PolyORB.Requests.Request_Access;
       Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean)
@@ -492,6 +492,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       RequestInfo.Impl.Init
        (RequestInfo.Impl.Object (Self.all)'Access, Request);
       Self.Point        := Point;
+      Self.Servant      := Servant;
       Self.Request      := Request;
       Self.Profile      := Profile;
       Self.Args_Present := Args_Present;
