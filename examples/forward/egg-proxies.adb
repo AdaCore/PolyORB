@@ -2,7 +2,7 @@ with Corba ;
 with Corba.Object ;
 with Omni ;
 with Netbufferedstream ; use Netbufferedstream ;
-
+with Sys_Dep ;
 use type Corba.Unsigned_Long ;
 with Adabroker_Debug ; use Adabroker_Debug ;
 with Chicken ;
@@ -64,6 +64,8 @@ package body Egg.Proxies is
    function Get_Result (Self : in Hatch_Proxy) return Chicken_Forward.Ref is
    begin
       Output(True,"Egg.Proxies.Get_Result") ;
+      Output(True, "***********INITOK get_result : "
+             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
       return Chicken.Convert_Forward.To_Forward(Self.Private_Result.all) ;
    end ;
 
