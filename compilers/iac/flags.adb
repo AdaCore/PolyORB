@@ -24,7 +24,7 @@ package body Flags is
       Initialize_Option_Scan ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: c d i v t nodyn noir") is
+         case Getopt ("E I: c d i v? t nodyn noir") is
             when ASCII.NUL =>
                exit;
 
@@ -55,7 +55,20 @@ package body Flags is
                Print_Full_Tree := True;
 
             when 'v' =>
-               Verbose := True;
+               declare
+                  P : constant String := Parameter;
+               begin
+                  for I in P'Range loop
+                     case P (I) is
+                        when 'a' =>
+                           V_Analyzer := True;
+                        when 's' =>
+                           V_Scopes   := True;
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end loop;
+               end;
 
             when others =>
                --  This never happens.

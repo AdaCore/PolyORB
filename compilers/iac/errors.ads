@@ -13,6 +13,14 @@ package Errors is
 
    procedure Display_Error (S : String; K : Error_Kind := K_Error);
    procedure DE (S : String; K : Error_Kind := K_Error) renames Display_Error;
+   --  Display an error and output error message S. S may include
+   --  meta-characters. '%' designates a string representing
+   --  Error_Name (N) where N is the number of '%' and '#' in the
+   --  substring. '#' designates a quoted string representing
+   --  Error_Name (N). '!' designates a location representing
+   --  Error_Loc (L) where L is the number of '!' in the
+   --  substring. '$' designates an integer representing Error_Int (I)
+   --  where I is the number of '$' in the substring.
 
    procedure Initialize;
 

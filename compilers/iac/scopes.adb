@@ -13,6 +13,8 @@ with Types;     use Types;
 
 package body Scopes is
 
+   Verbose : Boolean renames Flags.V_Scopes;
+
    use Scope_Stack;
 
    procedure Remove_From_Homonyms (N : Node_Id);
@@ -167,7 +169,7 @@ package body Scopes is
          elsif Kind (C) /= K_Scoped_Name
            and then Kind (E) = K_Scoped_Name
          then
-            null;
+            return;
 
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
@@ -190,6 +192,14 @@ package body Scopes is
       Set_First_Homonym  (N, N);
       Set_Scope          (N, S);
       Set_Scope_Depth    (N, D);
+
+      if Verbose then
+         W_Str      ("enter  """);
+         Write_Name (Name (N));
+         W_Str      (""" in scope ");
+         W_Int      (Int (S));
+         W_Eol;
+      end if;
 
       if Kind (E) /= K_Scoped_Name then
          if Present (S)

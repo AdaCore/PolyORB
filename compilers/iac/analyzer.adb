@@ -10,6 +10,8 @@ with Types;     use Types;
 
 package body Analyzer is
 
+   Verbose : Boolean renames Flags.V_Analyzer;
+
    procedure Analyze_Abstract_Value_Declaration (E : Entity_Id);
    procedure Analyze_Attribute_Declaration (E : Entity_Id);
    procedure Analyze_Complex_Declarator (E : Entity_Id);
@@ -696,7 +698,7 @@ package body Analyzer is
 
    procedure Analyze_Union_Type (E : Entity_Id) is
    begin
-      Dummy (E);
+      Enter_Name_In_Scope (Identifier (E));
    end Analyze_Union_Type;
 
    -----------------------------------
