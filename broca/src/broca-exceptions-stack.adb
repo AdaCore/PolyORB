@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+with System.Storage_Elements;
+
 with Broca.Debug;
 with Broca.Soft_Links; use Broca.Soft_Links;
-with Ada.Unchecked_Deallocation;
 
 package body Broca.Exceptions.Stack is
 
@@ -77,6 +79,26 @@ package body Broca.Exceptions.Stack is
    function Image (V : Exc_Occ_Id_Type) return String;
    function Value (M : String) return Exc_Occ_Id_Type;
 
+   procedure Dump_All_Exceptions;
+   procedure Dump_All_Exceptions
+   is
+      Current : Exc_Occ_List := Exc_Occ_Head;
+   begin
+      O ("Dump_All_Exceptions:");
+
+      if Current = null then
+         O ("No stored exceptions.");
+         return;
+      end if;
+
+      while Current /= null loop
+         O ("At " & System.Storage_Elements.To_Integer
+            (Current.all'Address)'Img & ":");
+         O ("  " & Image (Current.Id));
+         Current := Current.Next;
+      end loop;
+   end Dump_All_Exceptions;
+
    -----------------
    -- Get_Members --
    -----------------
@@ -91,6 +113,12 @@ package body Broca.Exceptions.Stack is
 
    begin
       Enter_Critical_Section;
+      pragma Debug (O ("Get_Members: "
+                       & Ada.Exceptions.Exception_Name (Exc_Occ)));
+      pragma Debug (O ("    message: "
+                       & Ada.Exceptions.Exception_Message (Exc_Occ)));
+      pragma Debug (Dump_All_Exceptions);
+
       Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
       if Exc_Occ_Id = Null_Id then
          Leave_Critical_Section;
@@ -112,9 +140,12 @@ package body Broca.Exceptions.Stack is
 
       if Previous /= null then
          Previous.Next := Current.Next;
-
       else
          Exc_Occ_Head := Current.Next;
+      end if;
+
+      if Exc_Occ_Tail = Current then
+         Exc_Occ_Tail := Previous;
       end if;
 
       Exc_Mbr := Current.Mbr.all;
@@ -171,6 +202,9 @@ package body Broca.Exceptions.Stack is
          Current := new Exc_Occ_Node;
       end if;
 
+      pragma Debug (O ("Assigning ID: " & Image (Seed_Id)));
+      pragma Debug (Dump_All_Exceptions);
+
       Exc_Occ_Id   := Seed_Id;
       Current.Id   := Seed_Id;
       Current.Mbr  := new IDL_Exception_Members'Class'(Exc_Mbr);
@@ -184,10 +218,17 @@ package body Broca.Exceptions.Stack is
       if Exc_Occ_Head = null then
          Exc_Occ_Head := Current;
       end if;
-      Current.Next := Exc_Occ_Tail;
+      if Exc_Occ_Tail /= null then
+         Exc_Occ_Tail.Next := Current;
+      end if;
       Exc_Occ_Tail := Current;
+
       Leave_Critical_Section;
 
+      pragma Debug (O ("Raise ("
+                       & Ada.Exceptions.Exception_Name (Exc_Id)
+                       & ", " & Image (Exc_Occ_Id) & ")."));
+      pragma Debug (Dump_All_Exceptions);
       Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
       raise Program_Error;
    end Raise_Exception;
