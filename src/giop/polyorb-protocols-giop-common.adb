@@ -138,7 +138,8 @@ package body PolyORB.Protocols.GIOP.Common is
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
-      Reply_Stat_Ptr : access Reply_Status_Type)
+      Reply_Stat_Ptr : access Reply_Status_Type;
+      Error          : in out Exceptions.Error_Container)
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
@@ -158,7 +159,6 @@ package body PolyORB.Protocols.GIOP.Common is
       CORBA_Occurence : PolyORB.Any.Any;
       Data_Alignment  : Stream_Element_Offset :=
         Sess.Implem.Data_Alignment;
-      Error           : Exceptions.Error_Container;
 
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
@@ -236,10 +236,14 @@ package body PolyORB.Protocols.GIOP.Common is
                Error);
 
             if Found (Error) then
-               Catch (Error);
-               raise Program_Error;
-               --  XXX We cannot silentely ignore any error. For now, we
-               --  raise this exception. To be investigated.
+               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+               --  An error in the marshalling of wchar data implies
+               --  the server did not provide a valid codeset service
+               --  context. We convert this exception to Bad_Param 23.
+
+               Release (Header_Buffer);
+               Release (Buffer_Out);
+               return;
             end if;
 
          when No_Exception =>
@@ -256,10 +260,14 @@ package body PolyORB.Protocols.GIOP.Common is
                Error);
 
             if Found (Error) then
-               Catch (Error);
-               raise Program_Error;
-               --  XXX We cannot silentely ignore any error. For now, we
-               --  raise this exception. To be investigated.
+               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+               --  An error in the marshalling of wchar data implies
+               --  the server did not provide a valid codeset service
+               --  context. We convert this exception to Bad_Param 23.
+
+               Release (Header_Buffer);
+               Release (Buffer_Out);
+               return;
             end if;
 
             Marshall_Argument_List
@@ -268,7 +276,19 @@ package body PolyORB.Protocols.GIOP.Common is
                Sess.Repr.all,
                Request.Args,
                PolyORB.Any.ARG_OUT,
-               Data_Alignment);
+               Data_Alignment,
+               Error);
+
+            if Found (Error) then
+               Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_Yes);
+               --  An error in the marshalling of wchar data implies
+               --  the server did not provide a valid codeset service
+               --  context. We convert this exception to Bad_Param 23.
+
+               Release (Header_Buffer);
+               Release (Buffer_Out);
+               return;
+            end if;
 
          when Location_Forward =>
             declare
@@ -364,6 +384,9 @@ package body PolyORB.Protocols.GIOP.Common is
       Locate_Request_Id :        Types.Unsigned_Long;
       Loc_Type          :        Locate_Reply_Type)
    is
+      ORB : constant PolyORB.ORB.ORB_Access
+        := PolyORB.ORB.ORB_Access (Sess.Server);
+
    begin
       pragma Debug (O ("Locate Reply received, Request Id :"
                        & Locate_Request_Id'Img
@@ -373,23 +396,43 @@ package body PolyORB.Protocols.GIOP.Common is
       case Loc_Type is
          when Object_Here =>
             declare
+               use PolyORB.Exceptions;
+
                Req     : Pending_Request_Access;
                Success : Boolean;
+               Error   : Exceptions.Error_Container;
             begin
                Get_Pending_Request_By_Locate
                  (Sess,
                   Locate_Request_Id,
                   Req,
                   Success);
+
                if Success then
-                  Send_Request (Sess.Implem, Sess, Req);
+                  Send_Request (Sess.Implem, Sess, Req, Error);
+
+                  if Found (Error) then
+                     Req.Req.Exception_Info := Error_To_Any (Error);
+                     Catch (Error);
+
+                     Components.Emit_No_Reply
+                       (Components.Component_Access (ORB),
+                        Servants.Interface.Executed_Request'(Req => Req.Req));
+
+                     Remove_Pending_Request_By_Locate
+                       (Sess,
+                        Locate_Request_Id,
+                        Success);
+
+                     if not Success then
+                        raise GIOP_Error;
+                     end if;
+                  end if;
                end if;
             end;
 
          when Object_Forward =>
             declare
-               ORB     : constant PolyORB.ORB.ORB_Access
-                 := PolyORB.ORB.ORB_Access (Sess.Server);
                Req     : Pending_Request_Access;
                Success : Boolean;
 
@@ -533,15 +576,32 @@ package body PolyORB.Protocols.GIOP.Common is
                Error);
 
             if Found (Error) then
-               Catch (Error);
-               raise Program_Error;
-               --  XXX We cannot silentely ignore any error. For now, we
-               --  raise this exception. To be investigated.
-            end if;
+               Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
+               --  An error in the marshalling of wchar data implies
+               --  the server did not provide a valid codeset
+               --  component. We convert this exception to Inv_ObjRef 2.
 
-            Unmarshall_Argument_List
-              (Sess.Implem, Sess.Buffer_In, Sess.Repr.all,
-               Current_Req.Req.Args, PolyORB.Any.ARG_OUT, Arguments_Alignment);
+               Current_Req.Req.Exception_Info := Error_To_Any (Error);
+
+               Catch (Error);
+
+            else
+               Unmarshall_Argument_List
+                 (Sess.Implem, Sess.Buffer_In, Sess.Repr.all,
+                  Current_Req.Req.Args, PolyORB.Any.ARG_OUT,
+                  Arguments_Alignment, Error);
+
+               if Found (Error) then
+                  Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
+                  --  An error in the marshalling of wchar data implies
+                  --  the server did not provide a valid codeset
+                  --  component. We convert this exception to Inv_ObjRef 2.
+
+                  Current_Req.Req.Exception_Info := Error_To_Any (Error);
+
+                  Catch (Error);
+               end if;
+            end if;
 
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
@@ -553,6 +613,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Unmarshall_System_Exception_To_Any
               (Sess.Buffer_In, Sess.Repr.all, Current_Req.Req.Exception_Info);
+
             Emit_No_Reply
               (Component_Access (ORB),
                Servants.Interface.Executed_Request'
@@ -630,10 +691,14 @@ package body PolyORB.Protocols.GIOP.Common is
                      Error);
 
                   if Found (Error) then
+                     Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_Yes);
+                     --  An error in the marshalling of wchar data implies
+                     --  the server did not provide a valid codeset
+                     --  component. We convert this exception to Inv_ObjRef 2.
+
+                     Current_Req.Req.Exception_Info := Error_To_Any (Error);
+
                      Catch (Error);
-                     raise Program_Error;
-                     --  XXX We cannot silentely ignore any error. For now, we
-                     --  raise this exception. To be investigated.
                   end if;
 
                   pragma Debug
@@ -687,5 +752,45 @@ package body PolyORB.Protocols.GIOP.Common is
          Marshall (Buf_Out, Temp);
       end loop;
    end Copy;
+
+   ---------------------------------------
+   -- Replace_Marshal_5_To_Bad_Param_23 --
+   ---------------------------------------
+
+   procedure Replace_Marshal_5_To_Bad_Param_23
+     (Error  : in out Exceptions.Error_Container;
+      Status : in     Exceptions.Completion_Status)
+   is
+      use PolyORB.Exceptions;
+      use type Types.Unsigned_Long;
+   begin
+      if Error.Kind = Marshal_E
+        and then System_Exception_Members'Class (Error.Member.all).Minor = 5
+      then
+         Error.Kind := Bad_Param_E;
+         System_Exception_Members'Class (Error.Member.all).Minor := 23;
+         System_Exception_Members'Class (Error.Member.all).Completed := Status;
+      end if;
+   end Replace_Marshal_5_To_Bad_Param_23;
+
+   ---------------------------------------
+   -- Replace_Marshal_5_To_Inv_Objref_2 --
+   ---------------------------------------
+
+   procedure Replace_Marshal_5_To_Inv_Objref_2
+     (Error  : in out Exceptions.Error_Container;
+      Status : in     Exceptions.Completion_Status)
+   is
+      use PolyORB.Exceptions;
+      use type Types.Unsigned_Long;
+   begin
+      if Error.Kind = Marshal_E
+        and then System_Exception_Members'Class (Error.Member.all).Minor = 5
+      then
+         Error.Kind := Inv_Objref_E;
+         System_Exception_Members'Class (Error.Member.all).Minor := 2;
+         System_Exception_Members'Class (Error.Member.all).Completed := Status;
+      end if;
+   end Replace_Marshal_5_To_Inv_Objref_2;
 
 end PolyORB.Protocols.GIOP.Common;

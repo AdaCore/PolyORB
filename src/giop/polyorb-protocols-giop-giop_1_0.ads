@@ -110,7 +110,8 @@ private
    procedure Send_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access);
+      R      : in     Pending_Request_Access;
+      Error  : in out Exceptions.Error_Container);
 
    procedure Process_Abort_Request
      (Implem : access GIOP_Implem_1_0;

@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
+with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -55,6 +56,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
    use PolyORB.Buffers;
+   use PolyORB.Exceptions;
    use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
@@ -429,8 +431,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       use PolyORB.ORB;
 
-      Sess : GIOP_Session renames GIOP_Session (S.all);
-      Ctx  : GIOP_Ctx_1_1 renames GIOP_Ctx_1_1 (Sess.Ctx.all);
+      Sess  : GIOP_Session renames GIOP_Session (S.all);
+      Ctx   : GIOP_Ctx_1_1 renames GIOP_Ctx_1_1 (Sess.Ctx.all);
+      Error : Exceptions.Error_Container;
    begin
       if Sess.Role = Client then
          raise GIOP_Error;
@@ -438,7 +441,28 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       Ctx.Message_Type := Reply;
       Common_Process_Reply
-        (Sess'Access, Request, Ctx.Request_Id'Access, Ctx.Reply_Status'Access);
+        (Sess'Access,
+         Request,
+         Ctx.Request_Id'Access,
+         Ctx.Reply_Status'Access,
+         Error);
+
+      if Found (Error) then
+         Request.Exception_Info := Error_To_Any (Error);
+         Catch (Error);
+
+         Common_Process_Reply
+           (Sess'Access,
+            Request,
+            Ctx.Request_Id'Access,
+            Ctx.Reply_Status'Access,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            raise GIOP_Error;
+         end if;
+      end if;
    end Process_Reply;
 
    ----------------------------
@@ -527,7 +551,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure Send_Request
      (Implem : access GIOP_Implem_1_1;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      : in     Pending_Request_Access;
+      Error  : in out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -575,7 +600,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
 
       Marshall_Argument_List
         (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
-         Sess.Implem.Data_Alignment);
+         Sess.Implem.Data_Alignment, Error);
+
+      if Found (Error) then
+         Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_No);
+         --  An error in the marshalling of wchar data implies the
+         --  server did not provide a valid codeset component. We
+         --  convert this exception to Inv_ObjRef 2.
+
+         Release (Header_Buffer);
+         Release (Buffer);
+         return;
+      end if;
 
       Ctx.Fragmented := False;
       Ctx.Message_Type := Request;
@@ -626,7 +662,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Representation      : in     CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Error               : in out Exceptions.Error_Container)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
@@ -653,7 +690,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
                Pad_Align (Buffer, First_Arg_Alignment);
                First := False;
             end if;
-            Marshall (Buffer, Representation, Arg.all);
+
+            Marshall (Buffer, Representation, Arg.all, Error);
+
+            if Found (Error) then
+               return;
+            end if;
          end if;
          Next (It);
       end loop;

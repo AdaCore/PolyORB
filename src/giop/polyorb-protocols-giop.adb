@@ -38,12 +38,14 @@ with PolyORB.Binding_Data;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Exceptions;
+with PolyORB.Protocols.GIOP.Common;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
+with PolyORB.Servants.Interface;
 with PolyORB.Types;
 
 package body PolyORB.Protocols.GIOP is
@@ -51,6 +53,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Annotations;
    use PolyORB.Buffers;
    use PolyORB.Components;
+   use PolyORB.Protocols.GIOP.Common;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.Representations.CDR;
@@ -265,14 +268,34 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Handle_Unmarshall_Arguments
      (Sess : access GIOP_Session;
-      Args : in out Any.NVList.Ref) is
+      Args : in out Any.NVList.Ref)
+   is
+      use PolyORB.Exceptions;
+
+      Error : Exceptions.Error_Container;
    begin
       pragma Debug (O ("Unmarshalling_Request_Arguments"));
       pragma Assert (Sess.State = Waiting_Unmarshalling);
 
       Unmarshall_Argument_List
         (Sess.Implem, Sess.Buffer_In, Sess.Repr.all, Args,
-         PolyORB.Any.ARG_IN, Sess.Implem.Data_Alignment);
+         PolyORB.Any.ARG_IN, Sess.Implem.Data_Alignment, Error);
+
+      if Found (Error) then
+         Replace_Marshal_5_To_Bad_Param_23 (Error, Completed_No);
+         --  An error in the marshalling of wchar data implies the
+         --  server did not provide a valid codeset service
+         --  context. We convert this exception to Bad_Param 23.
+
+         --  XXX doing further processing requires modifying
+         --  Handle_Unmarshall_Arguments signature. To be
+         --  investigated.
+
+         Catch (Error);
+         raise Program_Error;
+         --  XXX We cannot silently ignore any error. For now,
+         --  we raise this exception. To be investigated.
+      end if;
 
       Expect_GIOP_Header (Sess);
    end Handle_Unmarshall_Arguments;
@@ -345,9 +368,12 @@ package body PolyORB.Protocols.GIOP is
       Pro  : access Binding_Data.Profile_Type'Class)
    is
       use PolyORB.Binding_Data;
+      use PolyORB.Exceptions;
       use Unsigned_Long_Flags;
 
       New_Pending_Req : Pending_Request_Access;
+      Error           : Exceptions.Error_Container;
+      Success         : Boolean;
    begin
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
         or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0 then
@@ -366,8 +392,22 @@ package body PolyORB.Protocols.GIOP is
          --  information now.
 
          New_Pending_Req.Request_Id := Get_Request_Id (Sess);
-         Send_Request (Sess.Implem, Sess, New_Pending_Req);
+         Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
          Free (New_Pending_Req);
+
+         if Found (Error) then
+            R.Exception_Info := Error_To_Any (Error);
+            Catch (Error);
+
+            declare
+               ORB : constant ORB_Access := ORB_Access (Sess.Server);
+            begin
+               Emit_No_Reply
+                 (Component_Access (ORB),
+                  Servants.Interface.Executed_Request'(Req => R));
+            end;
+         end if;
+
          return;
       end if;
 
@@ -377,7 +417,27 @@ package body PolyORB.Protocols.GIOP is
          Locate_Object (Sess.Implem, Sess, New_Pending_Req);
       else
          Add_Pending_Request (Sess, New_Pending_Req);
-         Send_Request (Sess.Implem, Sess, New_Pending_Req);
+         Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
+
+         if Found (Error) then
+            Remove_Pending_Request
+              (Sess, New_Pending_Req.Request_Id, Success);
+
+            if not Success then
+               raise GIOP_Error;
+            end if;
+
+            R.Exception_Info := Error_To_Any (Error);
+            Catch (Error);
+
+            declare
+               ORB : constant ORB_Access := ORB_Access (Sess.Server);
+            begin
+               Emit_No_Reply
+                 (Component_Access (ORB),
+                  Servants.Interface.Executed_Request'(Req => R));
+            end;
+         end if;
       end if;
    end Invoke_Request;
 
@@ -561,7 +621,8 @@ package body PolyORB.Protocols.GIOP is
       Representation      : in     CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Error               : in out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -574,7 +635,6 @@ package body PolyORB.Protocols.GIOP is
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
-      Error : PolyORB.Exceptions.Error_Container;
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -591,10 +651,7 @@ package body PolyORB.Protocols.GIOP is
             Unmarshall_To_Any (Representation, Buffer, Arg.Argument, Error);
 
             if Found (Error) then
-               Catch (Error);
-               raise Program_Error;
-               --  XXX We cannot silentely ignore any error. For now, we
-               --  raise this exception. To be investigated.
+               return;
             end if;
 
          end if;
@@ -612,7 +669,8 @@ package body PolyORB.Protocols.GIOP is
       Representation      : in     CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type)
+      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Error               : in out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -621,6 +679,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
       It  : Iterator := First (List_Of (Args).all);
       Arg : Element_Access;
@@ -642,7 +701,11 @@ package body PolyORB.Protocols.GIOP is
                              & Types.To_Standard_String (Arg.Name)
                              & " = " & Image (Arg.Argument)));
 
-            Marshall (Buffer, Representation, Arg.all);
+            Marshall (Buffer, Representation, Arg.all, Error);
+
+            if Found (Error) then
+               return;
+            end if;
          end if;
 
          Next (It);
@@ -672,10 +735,8 @@ package body PolyORB.Protocols.GIOP is
       Unmarshall_To_Any (Repr, Buffer, Info, Error);
 
       if Found (Error) then
+         Info := Error_To_Any (Error);
          Catch (Error);
-         raise Program_Error;
-         --  XXX We cannot silentely ignore any error. For now, we
-         --  raise this exception. To be investigated.
       end if;
 
    end Unmarshall_System_Exception_To_Any;
@@ -787,6 +848,37 @@ package body PolyORB.Protocols.GIOP is
 
       Success := False;
    end Get_Pending_Request_By_Locate;
+
+   ----------------------------
+   -- Remove_Pending_Request --
+   ----------------------------
+
+   procedure Remove_Pending_Request
+     (Sess    : access GIOP_Session;
+      Id      :        Types.Unsigned_Long;
+      Success :    out Boolean)
+   is
+      use Pend_Req_List;
+
+      It : Iterator := First (Sess.Pending_Reqs);
+      PRA : Pending_Request_Access;
+   begin
+      pragma Debug (O ("Retrieving pending request with id"
+                       & Types.Unsigned_Long'Image (Id)));
+
+      while not Last (It) loop
+         if Pending_Request_Access (Value (It).all).Request_Id = Id then
+            PRA := Pending_Request_Access (Value (It).all);
+            Remove (Sess.Pending_Reqs, It);
+            Free (PRA);
+            Success := True;
+            return;
+         end if;
+         Next (It);
+      end loop;
+
+      Success := False;
+   end Remove_Pending_Request;
 
    --------------------------------------
    -- Remove_Pending_Request_By_Locate --

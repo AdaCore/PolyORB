@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
+with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -383,9 +384,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Warnings (On);
 
       use PolyORB.ORB;
+      use PolyORB.Exceptions;
 
-      Sess : GIOP_Session renames GIOP_Session (S.all);
-      Ctx  : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      Sess  : GIOP_Session renames GIOP_Session (S.all);
+      Ctx   : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      Error : Exceptions.Error_Container;
    begin
       if Sess.Role = Client then
          raise GIOP_Error;
@@ -393,7 +396,28 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Ctx.Message_Type := Reply;
       Common_Process_Reply
-        (Sess'Access, Request, Ctx.Request_Id'Access, Ctx.Reply_Status'Access);
+        (Sess'Access,
+         Request,
+         Ctx.Request_Id'Access,
+         Ctx.Reply_Status'Access,
+         Error);
+
+      if Found (Error) then
+         Request.Exception_Info := Error_To_Any (Error);
+         Catch (Error);
+
+         Common_Process_Reply
+           (Sess'Access,
+            Request,
+            Ctx.Request_Id'Access,
+            Ctx.Reply_Status'Access,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            raise GIOP_Error;
+         end if;
+      end if;
    end Process_Reply;
 
    ----------------------------
@@ -480,12 +504,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Send_Request
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      : in     Pending_Request_Access;
+      Error  : in out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
+      use PolyORB.Exceptions;
       use PolyORB.Requests.Unsigned_Long_Flags;
       use PolyORB.Types;
 
@@ -521,7 +547,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Marshall_Argument_List
         (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
-         Sess.Implem.Data_Alignment);
+         Sess.Implem.Data_Alignment, Error);
+
+      if Found (Error) then
+         Release (Header_Buffer);
+         Release (Buffer);
+         return;
+      end if;
 
       Ctx.Message_Type := Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
@@ -552,6 +584,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
       Ctx           : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+
    begin
       if Sess.Role = Server then
          raise GIOP_Error;
@@ -598,11 +631,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
                        & Ctx.Message_Endianness'Img));
 
       --  Extract type
+
       Ctx.Message_Type := Unmarshall (Buffer);
       pragma Debug (O ("Message Type       : "
                        & Ctx.Message_Type'Img));
 
       --  Extract size
+
       Ctx.Message_Size := Unmarshall (Buffer);
       pragma Debug (O ("Message Size       :"
                        & Ctx.Message_Size'Img));

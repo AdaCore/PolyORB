@@ -63,6 +63,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
+   use PolyORB.Exceptions;
    use PolyORB.GIOP_P.Code_Sets;
    use PolyORB.GIOP_P.Code_Sets.Converters;
    use PolyORB.GIOP_P.Service_Contexts;
@@ -583,8 +584,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       use PolyORB.ORB;
 
-      Sess : GIOP_Session renames GIOP_Session (S.all);
-      Ctx  : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
+      Sess  : GIOP_Session renames GIOP_Session (S.all);
+      Ctx   : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
+      Error : Exceptions.Error_Container;
    begin
       if Sess.Role = Client then
          raise Bidirectionnal_GIOP_Not_Implemented;
@@ -596,7 +598,25 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
         (Sess'Access,
          Request,
          Ctx.Request_Id'Access,
-         Ctx.Reply_Status'Access);
+         Ctx.Reply_Status'Access,
+         Error);
+
+      if Found (Error) then
+         Request.Exception_Info := Error_To_Any (Error);
+         Catch (Error);
+
+         Common_Process_Reply
+           (Sess'Access,
+            Request,
+            Ctx.Request_Id'Access,
+            Ctx.Reply_Status'Access,
+            Error);
+
+         if Found (Error) then
+            Catch (Error);
+            raise GIOP_Error;
+         end if;
+      end if;
    end Process_Reply;
 
    ------------------
@@ -848,8 +868,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       --  Check if object is on this node
 
       declare
-         use PolyORB.Exceptions;
-
          ORB  : constant PolyORB.ORB.ORB_Access
            := PolyORB.ORB.ORB_Access (S.Server);
 
@@ -959,7 +977,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Send_Request
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      : in     Pending_Request_Access;
+      Error  : in out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -983,7 +1002,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          pragma Debug (O ("Negotiate code sets"));
          declare
             use PolyORB.Binding_Data.GIOP;
-            use PolyORB.Exceptions;
             use PolyORB.GIOP_P.Code_Sets;
             use PolyORB.GIOP_P.Tagged_Components;
             use PolyORB.GIOP_P.Tagged_Components.Code_Sets;
@@ -992,7 +1010,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
               := Get_Component
                  (GIOP_Profile_Type (R.Target_Profile.all),
                   Tag_Code_Sets);
-            Error : Exceptions.Error_Container;
          begin
             if TC = null then
                pragma Debug (O ("No code sets tagged component in profile"));
@@ -1010,10 +1027,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Error);
 
                if Found (Error) then
-                  Catch (Error);
-                  raise Program_Error;
-                  --  XXX We cannot silently ignore any error. For now,
-                  --  we raise this exception. To be investigated.
+                  Free (Ctx.CS_Context);
+                  return;
                end if;
 
                pragma Debug
@@ -1030,10 +1045,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Error);
 
                if Found (Error) then
-                  Catch (Error);
-                  raise Program_Error;
-                  --  XXX We cannot silently ignore any error. For now,
-                  --  we raise this exception. To be investigated.
+                  Free (Ctx.CS_Context);
+                  return;
                end if;
 
                pragma Debug
@@ -1147,7 +1160,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Marshall_Argument_List
         (Sess.Implem, Buffer, Sess.Repr.all, R.Req.Args, PolyORB.Any.ARG_IN,
-         Sess.Implem.Data_Alignment);
+         Sess.Implem.Data_Alignment, Error);
+
+      if Found (Error) then
+         Replace_Marshal_5_To_Inv_Objref_2 (Error, Completed_No);
+         --  An error in the marshalling of wchar data implies the
+         --  server did not provide a valid codeset component. We
+         --  convert this exception to Inv_ObjRef 2.
+
+         Release (Header_Buffer);
+         Release (Buffer);
+         return;
+      end if;
 
       --  GIOP Header
 

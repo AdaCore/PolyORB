@@ -49,23 +49,12 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.NamedValue)
+      Data           : in     PolyORB.Any.NamedValue;
+      Error          : in out Exceptions.Error_Container)
    is
-      use PolyORB.Exceptions;
-
-      Error : Exceptions.Error_Container;
-
    begin
       pragma Debug (O ("Marshall (NamedValue) : enter"));
       Marshall_From_Any (Representation, Buffer, Data.Argument, Error);
-
-      if Found (Error) then
-         Catch (Error);
-         raise Program_Error;
-         --  XXX We cannot silentely ignore any error. For now, we
-         --  raise this exception. To be investigated.
-      end if;
-
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
 
@@ -73,38 +62,21 @@ package body PolyORB.Representations.CDR.GIOP_Utils is
    -- Unmarshall --
    ----------------
 
-   function Unmarshall
+   procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class)
-      return PolyORB.Any.NamedValue
+      Representation : in     CDR_Representation'Class;
+      Data           :    out PolyORB.Any.NamedValue;
+      Error          : in out Exceptions.Error_Container)
    is
-      use PolyORB.Exceptions;
-
-      NV  :  PolyORB.Any.NamedValue;
-      pragma Warnings (Off, NV);
-      --  Default initialization
-
-      Error : Exceptions.Error_Container;
-
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
-      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
-                       & Boolean'Image (PolyORB.Any.Is_Empty
-                                        (NV.Argument))));
-      Unmarshall_To_Any (Representation, Buffer, NV.Argument, Error);
 
-      if Found (Error) then
-         Catch (Error);
-         raise Program_Error;
-         --  XXX We cannot silentely ignore any error. For now, we
-         --  raise this exception. To be investigated.
-      end if;
+      Unmarshall_To_Any (Representation, Buffer, Data.Argument, Error);
 
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
                        & Boolean'Image (PolyORB.Any.Is_Empty
-                                        (NV.Argument))));
+                                        (Data.Argument))));
       pragma Debug (O ("Unmarshall (NamedValue) : end"));
-      return NV;
    end Unmarshall;
 
 end PolyORB.Representations.CDR.GIOP_Utils;

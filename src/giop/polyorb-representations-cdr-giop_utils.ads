@@ -38,13 +38,15 @@ package PolyORB.Representations.CDR.GIOP_Utils is
    procedure Marshall
      (Buffer         : access Buffers.Buffer_Type;
       Representation : in     CDR_Representation'Class;
-      Data           : in     PolyORB.Any.NamedValue);
+      Data           : in     PolyORB.Any.NamedValue;
+      Error          : in out Exceptions.Error_Container);
    --  Marshall Data according to selected CDR representation Representation
 
-   function  Unmarshall
+   procedure Unmarshall
      (Buffer         : access Buffers.Buffer_Type;
-      Representation : in     CDR_Representation'Class)
-      return PolyORB.Any.NamedValue;
+      Representation : in     CDR_Representation'Class;
+      Data           :    out PolyORB.Any.NamedValue;
+      Error          : in out Exceptions.Error_Container);
    --  Unmarshall data according to selected CDR representation Representation
 
 end PolyORB.Representations.CDR.GIOP_Utils;

@@ -89,7 +89,8 @@ package PolyORB.Protocols.GIOP.Common is
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
-      Reply_Stat_Ptr : access Reply_Status_Type);
+      Reply_Stat_Ptr : access Reply_Status_Type;
+      Error          : in out Exceptions.Error_Container);
 
    ------------------
    -- Locate Reply --
@@ -138,6 +139,22 @@ package PolyORB.Protocols.GIOP.Common is
      (Sess         : access GIOP_Session;
       Request_Id   : in     Types.Unsigned_Long;
       Reply_Status : in     Reply_Status_Type);
+
+   -- Helper routines to replace Error Kind
+
+   procedure Replace_Marshal_5_To_Bad_Param_23
+     (Error  : in out Exceptions.Error_Container;
+      Status : in     Exceptions.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with
+   --  Bad_Param_E, with minor code 23 and set its status to Status,
+   --  else do nothing.
+
+   procedure Replace_Marshal_5_To_Inv_Objref_2
+     (Error  : in out Exceptions.Error_Container;
+      Status : in     Exceptions.Completion_Status);
+   --  If Error is Marshhall_E with minor code 5, replace it with
+   --  Inv_Objref_E, with minor code 2, and set its status to Status,
+   --  else do nothing.
 
    ------------------------
    -- Overkill functions --

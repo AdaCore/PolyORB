@@ -35,6 +35,7 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
+with PolyORB.Exceptions;
 with PolyORB.ORB;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
@@ -246,7 +247,8 @@ private
    procedure Send_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      : in     Pending_Request_Access;
+      Error  : in out Exceptions.Error_Container)
       is abstract;
    --  send a request
 
@@ -264,7 +266,8 @@ private
          Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type);
+      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Error               : in out Exceptions.Error_Container);
    --  Internal subprogram: Marshall arguments from Args
    --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
@@ -279,7 +282,8 @@ private
          Representations.CDR.CDR_Representation'Class;
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
-      First_Arg_Alignment :        Buffers.Alignment_Type);
+      First_Arg_Alignment :        Buffers.Alignment_Type;
+      Error               : in out Exceptions.Error_Container);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
@@ -459,6 +463,13 @@ private
       Success :    out Boolean);
    --  Retrieve a pending request of Ses by its locate request id.
    --  The request is left on Ses' pending requests list.
+
+   procedure Remove_Pending_Request
+     (Sess    : access GIOP_Session;
+      Id      : in     Types.Unsigned_Long;
+      Success :    out Boolean);
+   --  Remove pending request by its request id from the list of
+   --  pending requests on Sess.
 
    procedure Remove_Pending_Request_By_Locate
      (Sess    : access GIOP_Session;
