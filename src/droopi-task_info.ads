@@ -11,8 +11,6 @@ package Droopi.Task_Info is
 
    pragma Elaborate_Body;
 
-   procedure Initialize;
-
    type Task_Kind is (Permanent, Transient);
    --  A Permanent task executes ORB.Run indefinitely.
    --  A Transient task executes ORB.Run until a given condition
@@ -58,21 +56,6 @@ package Droopi.Task_Info is
    function Watcher (TI : Task_Info)
      return Watcher_Access;
    pragma Inline (Watcher);
-
-   --------------------------------------------
-   -- Task_Info global dictionnary accessors --
-   --------------------------------------------
-
-   procedure Set_Task_Info
-     (I : Task_Info_Access;
-      T : Task_Id'Class := Current_Task);
-
-   function Get_Task_Info
-     (T : Task_Id'Class := Current_Task)
-     return Task_Info_Access;
-
-   procedure Reset_Task_Info
-     (T : Task_Id'Class := Current_Task);
 
 private
 

@@ -225,7 +225,7 @@ package body Droopi.ORB is
 
    procedure Run
      (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_Access := null;
+      Exit_Condition : Exit_Condition_T := (null, null);
       May_Poll       : Boolean := False)
    is
       use Task_Info;
@@ -236,25 +236,25 @@ package body Droopi.ORB is
       --  is null (True) or not.
 
       This_Task : aliased Task_Info.Task_Info
-        (Task_Kind_For_Exit_Condition (Exit_Condition = null));
+        (Task_Kind_For_Exit_Condition
+         (Exit_Condition.Condition = null));
 
    begin
-      Set_Task_Info (This_Task'Unchecked_Access);
-      --  Reset_Task_Info must be called at exit from Run
-      --  so as not to leave a dangling pointer in the global
-      --  Task_Info dictionnary.
+      Enter (ORB.ORB_Lock.all);
+      if Exit_Condition.Task_Info /= null then
+         Exit_Condition.Task_Info.all
+           := This_Task'Unchecked_Access;
+      end if;
+      --  This pointer must be reset to null before exiting Run
+      --  so as to not leave a dangling reference.
 
       loop
          pragma Debug (O ("Run: task " & Image (Current_Task)
                           & " entering main loop."));
-         Enter (ORB.ORB_Lock.all);
 
-         if (Exit_Condition /= null and then Exit_Condition.all)
-           or else ORB.Shutdown
-         then
-            Leave (ORB.ORB_Lock.all);
-            exit;
-         end if;
+         exit when (Exit_Condition.Condition /= null
+                    and then Exit_Condition.Condition.all)
+           or else ORB.Shutdown;
 
          if Try_Perform_Work (ORB, ORB.Job_Queue) then
             null;
@@ -311,7 +311,6 @@ package body Droopi.ORB is
                if Event_Happened then
                   Update (ORB.Idle_Tasks);
                end if;
-               Leave (ORB.ORB_Lock);
 
                --  Waiting for an event to happend when in polling
                --  situation: ORB.ORB_Lock is not held.
@@ -323,7 +322,9 @@ package body Droopi.ORB is
                      Poll_Expire : constant Time
                        := Clock + To_Time_Span (Poll_Interval);
                   begin
+                     Leave (ORB.ORB_Lock);
                      delay until Poll_Expire;
+                     Enter (ORB.ORB_Lock);
                   end;
                end if;
             end;
@@ -342,22 +343,30 @@ package body Droopi.ORB is
 
             Enter (ORB.ORB_Lock.all);
             Set_Status_Running (This_Task);
-            Leave (ORB.ORB_Lock.all);
 
             --  XXX memo for selves:
             --  How to idle with style:
             --  Lookup (ORB.Idle_Tasks, V);
             --  Differ (ORB.Idle_Tasks, V);
          end if;
+
+         --  Condition at end of loop: ORB_Lock is held.
+
       end loop;
       pragma Debug (O ("Run: leave."));
 
-      Reset_Task_Info;
+      if Exit_Condition.Task_Info /= null then
+         Exit_Condition.Task_Info.all := null;
+      end if;
+      Leave (ORB.ORB_Lock.all);
 
    exception
       when others =>
-         Reset_Task_Info;
-         --  Do not leak Task_Info past this point.
+         if Exit_Condition.Task_Info /= null then
+            Exit_Condition.Task_Info.all := null;
+         end if;
+         Leave (ORB.ORB_Lock.all);
+
          raise;
    end Run;
 
@@ -663,10 +672,6 @@ package body Droopi.ORB is
       end;
    end Create_Reference;
 
-   type Request_Note is new Annotations.Note with record
-      Requesting_Task : Task_Info.Task_Info_Access;
-   end record;
-
    function Handle_Message
      (ORB : access ORB_Type;
       Msg : Droopi.Components.Message'Class)
@@ -697,10 +702,6 @@ package body Droopi.ORB is
                --  object.
                Request_Job (J.all).Requestor
                  := Component_Access (ORB);
-               Set_Note
-                 (Req.Notepad, Request_Note'
-                  (Note with
-                   Requesting_Task => QR.Requesting_Task));
             else
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
@@ -708,25 +709,31 @@ package body Droopi.ORB is
             Queue_Job (ORB.Job_Queue, J);
          end;
       elsif Msg in Executed_Request then
-         Executed_Request (Msg).Req.Completed := True;
 
-         --  XXX NOTIFY ALL SLEEPING ORB TASKS THAT
-         --  A WAIT CONDITION HAS BEEN UPDATED!
-         --  If Request is annotated with a pointer
-         --  to a task_info, this means that the corresponding
-         --  task is a transient one that must be waked up
-         --  because its exit condition may have changed.
+         declare
+            use Droopi.Task_Info;
 
-         --  Get_Note (req, request_note)
-         --  if Task_Info /= null then
-         --     case Status (Task_Info) is
-         --        when Running => null;
-         --        when Blocked => Abort (Selector (Task_Info));
-         --        when Idle => Update (Watcher (Task_Info));
-         --     end case;
-         --  end if;
+            Req : Requests.Request
+              renames Executed_Request (Msg).Req.all;
+         begin
+            Req.Completed := True;
 
-         --  Must also ensure that proper locking is performed.
+            --  XXX The correctness of the following is not
+            --  completely determined.
+            --  Is this mutitask-safe????
+            if Req.Requesting_Task /= null then
+               case Status (Req.Requesting_Task.all) is
+                  when Running =>
+                     null;
+                  when Blocked =>
+                     Asynch_Ev.Abort_Check_Sources
+                       (Selector (Req.Requesting_Task.all).all);
+                  when Idle =>
+                     Update
+                       (Watcher (Req.Requesting_Task.all));
+               end case;
+            end if;
+         end;
 
       else
          raise Components.Unhandled_Message;

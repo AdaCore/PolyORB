@@ -8,6 +8,7 @@ with CORBA.NVList;
 
 with Droopi.Annotations;
 with Droopi.References;
+with Droopi.Task_Info;
 
 package Droopi.Requests is
 
@@ -36,6 +37,7 @@ package Droopi.Requests is
       --  Req_Flags  : CORBA.Flags;
 
       Completed : aliased Boolean := False;
+      Requesting_Task : aliased Task_Info.Task_Info_Access;
       Notepad : Annotations.Notepad;
    end record;
 

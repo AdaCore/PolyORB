@@ -21,7 +21,6 @@ with Droopi.Protocols.GIOP;
 with Droopi.References;
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
-with Droopi.Task_Info;
 with Droopi.Test_Object;
 with Droopi.Transport.Sockets;
 
@@ -80,10 +79,6 @@ begin
 
    Droopi.Smart_Pointers.Initialize;
    Put (" smart-pointers");
-   --  Depends on Soft_Links.
-
-   Droopi.Task_Info.Initialize;
-   Put (" task-info");
    --  Depends on Soft_Links.
 
    Setup.The_ORB := new ORB.ORB_Type

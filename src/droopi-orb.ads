@@ -17,6 +17,7 @@ with Droopi.Objects;
 with Droopi.References;
 with Droopi.Soft_Links;
 with Droopi.Transport;
+with Droopi.Task_Info;
 
 package Droopi.ORB is
 
@@ -94,24 +95,37 @@ package Droopi.ORB is
    -- Server object operations --
    ------------------------------
 
-   type Exit_Condition_Access is access all Boolean;
+   type Boolean_Access is access all Boolean;
+   type Task_Info_Access_Access is
+     access all Droopi.Task_Info.Task_Info_Access;
+
+   type Exit_Condition_T is record
+      Condition : Boolean_Access;
+      Task_Info : Task_Info_Access_Access;
+   end record;
 
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object.
 
    procedure Run
      (ORB            : access ORB_Type;
-      Exit_Condition : Exit_Condition_Access := null;
+      Exit_Condition : Exit_Condition_T := (null, null);
       May_Poll       : Boolean := False);
    --  Execute the ORB until:
-   --    - Exit_Condition.all becomes true
-   --      (if Exit_Condition /= null), or
+   --    - Exit_Condition.Condition.all becomes true
+   --      (if Exit_Condition.Condition /= null), or
    --    - Shutdown is called on this ORB.
 
-   --  This is executed by ORB tasks (with Exit_Condition = null)
-   --  and is entered by user tasks that need to wait for an event
-   --  to occur in the ORB (such tasks must execute the ORB when
-   --  the threading policy is 'no threads').
+   --  This procedure is executed by ORB tasks (with
+   --  Exit_Condition.Condition = null) and is entered by user
+   --  tasks that need to wait for a certain condition to occur
+   --  (such tasks must execute the ORB when the threading policy
+   --  is 'no threads').
+
+   --  If Exit_Condition.Task_Info is not null, it is set on
+   --  entry into Run to an access value that designates
+   --  this task's Task_Info structure while it is executing
+   --  ORB.Run.
 
    --  If May_Poll, then this task may suspend itself to wait
    --  for external events.
