@@ -49,6 +49,8 @@ package body System.Garlic.Utils is
 
    use Ada.Task_Identification;
 
+   Window : constant Version_Id := Version_Id'Last / 2;
+
    protected type Barrier_PO is
       entry Wait;
       procedure Signal (How_Many : Positive := 1);
@@ -71,7 +73,7 @@ package body System.Garlic.Utils is
    end Mutex_PO;
 
    protected type Watcher_PO is
-      function Commit return Version_Id;
+      function Lookup return Version_Id;
       procedure Update;
       entry Differ (V : in Version_Id);
    private
@@ -102,6 +104,15 @@ package body System.Garlic.Utils is
      new Ada.Unchecked_Deallocation (Barrier_PO, Barrier_Type);
    procedure Free is
      new Ada.Unchecked_Deallocation (String, Error_Type);
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Version_Id) return Boolean is
+   begin
+      return R - L < Window;
+   end "<";
 
    ----------------------
    -- Access_To_String --
@@ -170,15 +181,15 @@ package body System.Garlic.Utils is
       end if;
    end Catch;
 
-   -----------
-   -- Commit --
-   -----------
+   ------------
+   -- Lookup --
+   ------------
 
-   procedure Commit (W : in Watcher_Type; V : out Version_Id) is
+   procedure Lookup (W : in Watcher_Type; V : out Version_Id) is
    begin
       pragma Assert (W /= null);
-      V := W.Commit;
-   end Commit;
+      V := W.Lookup;
+   end Lookup;
 
    -------------
    -- Content --
@@ -484,13 +495,13 @@ package body System.Garlic.Utils is
       end Await;
 
       ------------
-      -- Commit --
+      -- Lookup --
       ------------
 
-      function Commit return Version_Id is
+      function Lookup return Version_Id is
       begin
          return Current;
-      end Commit;
+      end Lookup;
 
       ------------
       -- Differ --
@@ -510,6 +521,9 @@ package body System.Garlic.Utils is
       procedure Update is
       begin
          Current := Current + 1;
+         if Current = No_Version then
+            Current := Current + 1;
+         end if;
          if Await'Count /= 0 then
             Passing := False;
          end if;

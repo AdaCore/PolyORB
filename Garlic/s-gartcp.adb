@@ -499,7 +499,7 @@ package body System.Garlic.TCP is
             exit;
          end if;
          pragma Debug (D ("Postpone lock of partition" & PID'Img));
-         Commit (Socket_Table_Watcher, Version);
+         Lookup (Socket_Table_Watcher, Version);
          Leave  (Socket_Table_Mutex);
          Differ (Socket_Table_Watcher, Version);
       end loop;

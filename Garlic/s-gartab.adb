@@ -237,7 +237,7 @@ package body System.Garlic.Table is
 
       procedure Leave (Version : out Version_Id) is
       begin
-         Commit (Watcher, Version);
+         Lookup (Watcher, Version);
          Leave (Mutex);
       end Leave;
 

@@ -145,7 +145,7 @@ package body System.RPC is
                return;
             end if;
          end loop;
-         Commit (Callers_Watcher, Version);
+         Lookup (Callers_Watcher, Version);
          Leave_Critical_Section;
          Differ (Callers_Watcher, Version);
       end loop;
@@ -477,7 +477,7 @@ package body System.RPC is
                Raise_Exception (Communication_Error'Identity,
                                 "remote procedure call aborted");
             when others =>
-               Commit (Callers_Watcher, Version);
+               Lookup (Callers_Watcher, Version);
                Leave_Critical_Section;
 
          end case;

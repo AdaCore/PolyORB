@@ -1,3 +1,13 @@
+1999-01-31  unknown  <pautet@scapin.enst.fr>
+
+	* s-garuti.adb: Define No_Version which is the initialized value
+ 	of a watcher and which can no longer be reached once this watcher
+ 	is used. Substitute Commit by Lookup. Add a function "<" for
+ 	Version_Id.
+
+	* s-gartab.adb, s-gartcp.adb, s-garuti.ads, s-rpc.adb: Substitute
+	Commit by Lookup.
+
 1999-01-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garnam.adb: Another enhancement for "localhost".

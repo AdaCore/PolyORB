@@ -109,11 +109,14 @@ package System.Garlic.Utils is
    --  Leave one level of critical section
 
    type Version_Id is mod 2 ** 8;
+   No_Version : constant Version_Id := 0;
+
+   function "<" (L, R : Version_Id) return Boolean;
 
    type Watcher_Type is limited private;
 
-   procedure Commit (W : in Watcher_Type; V : out Version_Id);
-   pragma Inline (Commit);
+   procedure Lookup (W : in Watcher_Type; V : out Version_Id);
+   pragma Inline (Lookup);
    --  Fetch W stamp
 
    procedure Create (W : out Watcher_Type);
