@@ -56,14 +56,25 @@ package System.Garlic.Thin is
    Success : constant C.int :=  0;
    Failure : constant C.int := -1;
 
-   type Fd_Set is mod 2 ** 32;
+   type Socket_Fd is new C.unsigned;
+   pragma Convention (C, Socket_Fd);
+
+   type Fd_Set is private;
+
    type Fd_Set_Access is access all Fd_Set;
+   pragma Convention (C, Fd_Set_Access);
+
+   type Timeval_Unit is new C.int;
+   pragma Convention (C, Timeval_Unit);
 
    type Timeval is record
-      Tv_Sec  : C.int;
-      Tv_Usec : C.int;
+      Tv_Sec  : Timeval_Unit;
+      Tv_Usec : Timeval_Unit;
    end record;
+   pragma Convention (C, Timeval);
+
    type Timeval_Access is access all Timeval;
+   pragma Convention (C, Timeval_Access);
 
    Immediat : constant Timeval := (0, 0);
 
@@ -356,6 +367,16 @@ package System.Garlic.Thin is
       Timeout   : Timeval_Access)
      return C.int;
 
+   procedure Clear  (FS : in out Fd_Set);
+   --  make FS empty.
+
+   procedure Set    (FS : in out Fd_Set; Socket : in Socket_Fd);
+   --  add Socket into FS.
+
+   function  Is_Set (FS : in     Fd_Set; Socket : in Socket_Fd)
+     return Boolean;
+   --  returns True if Socket is set into FS.
+
    function C_Send
      (S     : C.int;
       Buf   : System.Address;
@@ -415,6 +436,9 @@ package System.Garlic.Thin is
    procedure Shutdown;
 
 private
+
+   type Fd_Set is mod 2**32;
+   pragma Convention (C, Fd_Set);
 
    pragma Import (C, C_Accept, "accept");
    pragma Import (C, C_Bind, "bind");
