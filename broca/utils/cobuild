@@ -2,7 +2,7 @@
 
 # cobuild: Build AdaBroker from a checked-out wavefront.
 
-# $Id: //depot/adabroker/main/broca/utils/cobuild#3 $
+# $Id: //depot/adabroker/main/broca/utils/cobuild#4 $
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -93,10 +93,12 @@ export CHANGE
   mkdir install > /dev/null 2>&1 || true
   cd build
 
-  $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install &&
-  make && make install
+  $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install \
+  && make && make install
+  RC=$?
 
   echo "---------- Build ended: `date`"
+  exit $RC
 )' &
 
 # The build is now running in background. Save PID and
