@@ -959,8 +959,12 @@ package body PolyORB.Representations.CDR is
             raise PolyORB.Not_Implemented;
 
          when Tk_Local_Interface =>
-            --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            Throw
+              (Error,
+               Marshal_E,
+               System_Exception_Members'
+                 (Minor     => 4,
+                  Completed => Completed_No));
 
          when Tk_Component =>
             --  FIXME : to be done
@@ -2064,7 +2068,12 @@ package body PolyORB.Representations.CDR is
             raise PolyORB.Not_Implemented;
 
          when Tk_Local_Interface =>
-            raise PolyORB.Not_Implemented;
+            Throw
+              (Error,
+               Marshal_E,
+               System_Exception_Members'
+                 (Minor     => 4,
+                  Completed => Completed_No));
 
          when Tk_Component =>
             raise PolyORB.Not_Implemented;
