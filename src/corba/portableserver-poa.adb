@@ -33,8 +33,11 @@
 
 with Ada.Exceptions;
 
+with Droopi.ORB;
 with Droopi.POA;
 with Droopi.POA_Manager;
+with Droopi.References;
+with Droopi.Setup;
 with Droopi.Smart_Pointers;
 
 with Droopi.CORBA_P.Exceptions;
@@ -527,11 +530,20 @@ package body PortableServer.POA is
      (Self : Ref; P_Servant : Servant)
      return CORBA.Object.Ref
    is
-      --  POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
---       Oid : constant Object_Id_Access := new Object_Id'
---         (Servant_To_Id (Self, P_Servant));
-      --  The_Ref : Droopi.References.Ref;
-      --  Result : CORBA.Object.Ref;
+      POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
+      Oid : constant Droopi.Objects.Object_Id_Access
+        := new Droopi.Objects.Object_Id'
+        (Droopi.POA.Export (POA, To_Droopi_Servant (P_Servant)));
+      --  XXX
+      --  1. There is a possible memory leak here. Who free's
+      --     the allocation for Oid?
+      --  2. There is a pending possibility that Export is incorrect.
+      --     See caveats in its body.
+
+      The_Ref : Droopi.References.Ref;
+      The_Ref_Info : constant Droopi.Smart_Pointers.Entity_Ptr
+        := new CORBA.Object.Reference_Info;
+      Result : CORBA.Object.Ref;
 --      Skel : Droopi.POA.Skeleton_Ptr;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
@@ -548,12 +560,20 @@ package body PortableServer.POA is
 --         (POA, P_Servant, Called_From_Servant_To_Reference => True);
 
 --       return Droopi.POA.Skeleton_To_Ref (Skel.all);
-      --  Droopi.ORB.Create_Ref (Droopi.Setup.The_ORB, Oid, The_Ref);
-      --  XXX Create IOR
-      --  XXX Create Reference_Info
-      --  XXX Set (Result, Reference_Info);
-      raise Droopi.Not_Implemented;
-      return Servant_To_Reference (Self, P_Servant);
+
+      Droopi.ORB.Create_Reference (Droopi.Setup.The_ORB, Oid, The_Ref);
+      --  Obtain object reference.
+
+      CORBA.Object.Reference_Info (The_Ref_Info.all).IOR :=
+        (Ref     => The_Ref,
+         Type_Id => CORBA.To_CORBA_String (""));
+      --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
+      --  *if* Servant was a Droopi.POA_Types.Servant. Unfortunately, Servant
+      --  is a PortableServer.Servant_Base'Class, which has nothing in common
+      --  with Droopi.POA_Types.Servant.
+
+      CORBA.Object.Set (Result, The_Ref_Info);
+      return Result;
    end Servant_To_Reference;
 
    ---------------------

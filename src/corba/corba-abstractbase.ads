@@ -11,9 +11,12 @@ package CORBA.AbstractBase is
 
    type Ref is new Droopi.Smart_Pointers.Ref with private;
 
-   procedure Set
-     (The_Ref : in out Ref;
-      The_Object : CORBA.Impl.Object_Ptr);
+--    procedure Set
+--      (The_Ref : in out Ref;
+--       The_Object : CORBA.Impl.Object_Ptr);
+   --  Since CORBA.Impl.Object_Ptr is declared as a subtype
+   --  of Droopi.Smart_Pointers.Entity_Ptr, the Set operation
+   --  is implicitly inherited from Droopi.Smart_Pointers.Ref.
 
    function Object_Of (The_Ref : Ref) return CORBA.Impl.Object_Ptr;
 

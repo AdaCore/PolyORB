@@ -62,15 +62,13 @@ package Droopi.References.IOR is
      (Str : CORBA.String)
      return IOR_Type;
 
-
-   Callbacks : Profile_Record_Seq.Sequence;
-
    procedure Register
      (Profile                 : in Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
-   --   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
-   --   of Profile_Record;
+private
+
+   Callbacks : Profile_Record_Seq.Sequence;
 
 end Droopi.References.IOR;

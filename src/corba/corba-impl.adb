@@ -23,4 +23,17 @@ package body CORBA.Impl is
       return Handle_Message (Self.As_Object, Msg);
    end Handle_Message;
 
+   function To_Droopi_Servant (S : access Object)
+     return Droopi.Objects.Servant_Access is
+   begin
+      return S.As_Component'Access;
+   end To_Droopi_Servant;
+
+   function "=" (X, Y : Implementation) return Boolean
+   is
+   begin
+      raise Program_Error;
+      return False;
+   end "=";
+
 end CORBA.Impl;

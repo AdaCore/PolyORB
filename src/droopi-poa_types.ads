@@ -43,6 +43,9 @@ package Droopi.POA_Types is
                      return Droopi.Any.Any;
 
    type Interface_Description is record
+      External_Name : Identifier;
+      --  External representation of the interface name.
+
       PP_Desc : Parameter_Profile_Description;
       RP_Desc : Result_Profile_Description;
    end record;
@@ -50,6 +53,8 @@ package Droopi.POA_Types is
    type Servant is abstract new Droopi.Objects.Servant with
       record
          If_Desc : Interface_Description;
+         --  Description of the most derived interface supported
+         --  by this servant.
       end record;
    type Servant_Access is access all Servant'Class;
 

@@ -598,6 +598,7 @@ package body Droopi.POA.Basic_POA is
          P_Servant);
    begin
       return Oid.all;
+      --  XXX likely memory leak: Oid is not freed.
    end Activate_Object;
 
    -----------------------------
@@ -806,8 +807,11 @@ package body Droopi.POA.Basic_POA is
    is
       Id : constant Droopi.Objects.Object_Id
         := Droopi.Objects.Object_Id
-          (Activate_Object (OA, Servant_Access (Obj)));
-      --  XXX The name 'Activate_Object' is improper.
+        (Activate_Object (OA, Servant_Access (Obj)));
+
+      --  XXX Is it approriate to call Activate_Object
+      --  (a standard operation of the POA) at this point?
+
       --  Activation will actually be performed only if
       --  Obj has not already been activated *and*
       --  the implicit activation policy allows implicit activation.
@@ -827,10 +831,8 @@ package body Droopi.POA.Basic_POA is
 
       --  To make a long story short: there are a number of conditions
       --  where the correct behaviour here consists in NOT activating
-      --  an object. A corollary of that is:
-      --  either the declaration above is incorrect, or the function
-      --  name should be changed to something else.
-
+      --  an object. So, is the above correct? This is not a
+      --  trivial question.
    begin
       pragma Debug (O ("Exporting Servant, resulting Id is "
                        & Droopi.Objects.To_String (Id)));
@@ -864,7 +866,15 @@ package body Droopi.POA.Basic_POA is
       pragma Debug (O ("Get_Empty_Arg_List for Id "
                        & Droopi.Objects.To_String (Oid)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
-      return S.If_Desc.PP_Desc (Method);
+      if S.If_Desc.PP_Desc /= null then
+         return S.If_Desc.PP_Desc (Method);
+      end if;
+      raise Droopi.Not_Implemented;
+      --  If If_Desc is null (eg in the case of an actual
+      --  use of the DSI, where no generated code is used on
+      --  the server side, another means of determining the
+      --  signature must be used, eg a query to an
+      --  Interface repository.
    end Get_Empty_Arg_List;
 
    ----------------------
@@ -882,7 +892,11 @@ package body Droopi.POA.Basic_POA is
       pragma Debug (O ("Get_Empty_Result for Id "
                        & Droopi.Objects.To_String (Oid)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
-      return S.If_Desc.RP_Desc (Method);
+      if S.If_Desc.RP_Desc /= null then
+         return S.If_Desc.RP_Desc (Method);
+      end if;
+      raise Droopi.Not_Implemented;
+      --  Cf. comment above.
    end Get_Empty_Result;
 
    ------------------
