@@ -62,7 +62,6 @@ package body System.Garlic.Trace is
 
    --  Trace file format:
    --    <PID     (System.RPC.Partition_ID)>   (not for boot partition)
-   --    <Length  (Ada.Streams.Stream_Element_Count)>
    --    <Entry_1 (Trace_Entry_Type)>
    --    ...
    --    <Entry_N (Trace_Entry_Type)>
@@ -83,38 +82,30 @@ package body System.Garlic.Trace is
       Last_Trace_Time := Tmp_Time;
 
       --  Write length.
-      Ada.Streams.Stream_Element_Count'Write
-        (Stream (Trace_File), Data'Length);
-
       Trace_Entry.Data := Data;
       Trace_Entry.Partition := Partition;
 
       --  Write entry.
       pragma Debug (D (D_Debug, "Writing trace of message from partition" &
                        Partition'Img & " of length" & Data'Length'Img));
-      Trace_Entry_Type'Write (Stream (Trace_File), Trace_Entry);
+      Trace_Entry_Type'Output (Stream (Trace_File), Trace_Entry);
    end Record_Trace;
 
    procedure Deliver_Next_Trace (Last : out Boolean) is
-      Length : Ada.Streams.Stream_Element_Count;
    begin
       if End_Of_File (Trace_File) then
          Last := True;
          return;
       end if;
 
-      --  Read length.
-      Ada.Streams.Stream_Element_Count'Read
-        (Stream (Trace_File), Length);
-
       declare
-         Trace_Entry : Trace_Entry_Type (Length);
+         Trace_Entry : constant Trace_Entry_Type :=
+           Trace_Entry_Type'Input (Stream (Trace_File));
       begin
-         --  Read entry.
-         Trace_Entry_Type'Read (Stream (Trace_File), Trace_Entry);
          pragma Debug
            (D (D_Debug, "Read trace of message from partition" &
-               Trace_Entry.Partition'Img & " of length" & Length'Img));
+               Trace_Entry.Partition'Img & " of length" &
+               Trace_Entry.Length'Img));
 
          --  We'd want the message to arrive at about the same time as
          --  during the recorded execution.

@@ -1,3 +1,9 @@
+Wed Aug 13 16:11:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartra.adb: Remove the length of each entry from the trace
+	  file since using 'Output and 'Input instead of 'Write and 'Read
+	  will make this automatically.
+
 Tue Aug 12 13:08:31 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Use libtool to compile files and generate shared
