@@ -33,8 +33,9 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#9 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#10 $
 
+with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -58,20 +59,40 @@ procedure Client is
    Myall_types : all_types.Ref;
    Ok : Boolean;
    Howmany : Integer := 1;
-   Echo_Long_Only : constant Boolean := Ada.Command_Line.Argument_Count = 3
-                      and then Boolean'Value (Ada.Command_Line.Argument (3));
+   Sequence_Length : Integer := 5;
+
+   type Test_Type is (All_Tests, Long_Only, Sequence_Only);
+   What : Test_Type := All_Tests;
 
 begin
    CORBA.ORB.Initialize ("ORB");
-   if Ada.Command_Line.Argument_Count < 1 then
+   if Argument_Count < 1 then
       Ada.Text_IO.Put_Line
         ("usage : client <IOR_string_from_server|name|-i> "
-         & "[howmany [longonly]]");
+         & "[howmany [what]]");
       return;
    end if;
 
-   if Ada.Command_Line.Argument_Count >= 2 then
-      Howmany := Integer'Value (Ada.Command_Line.Argument (2));
+   if Argument_Count >= 2 then
+      Howmany := Integer'Value (Argument (2));
+   end if;
+
+   if Argument_Count >= 3 then
+      declare
+         What_Arg : constant String
+           := Ada.Characters.Handling.To_Lower
+                (Argument (3));
+      begin
+         if What_Arg = "true" or else What_Arg = "long" then
+            What := Long_Only;
+         elsif What_Arg = "sequence" then
+            What := Sequence_Only;
+            if Argument_Count > 3 then
+               Sequence_Length := Integer'Value
+                 (Argument (4));
+            end if;
+         end if;
+      end;
    end if;
 
    if Argument (1) = "-i" then
@@ -88,17 +109,41 @@ begin
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
    while Howmany > 0 loop
-      declare
-         L : constant Unsigned_Long := echoULong (Myall_types, 123);
-      begin
-         if Echo_Long_Only then
-            pragma Assert (L = 123);
-            goto End_Of_Loop;
-            --  We are only doing an echoULong call, and we are
-            --  interested in getting it as fast as possible.
-         end if;
-         Output ("test unsigned_long", L = 123);
-      end;
+
+      if What = All_Tests or else What = Long_Only then
+         declare
+            L : constant Unsigned_Long := echoULong (Myall_types, 123);
+         begin
+            if What = Long_Only then
+               pragma Assert (L = 123);
+               goto End_Of_Loop;
+               --  We are only doing an echoULong call, and we are
+               --  interested in getting it as fast as possible.
+            end if;
+            Output ("test unsigned_long", L = 123);
+         end;
+      end if;
+
+      if What = All_Tests or else What = Sequence_Only then
+         declare
+            X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+         begin
+            for J in 1 .. Sequence_Length loop
+               X := X & CORBA.Short (J);
+            end loop;
+
+            declare
+               Res : constant U_sequence := echoUsequence (Myall_types, X);
+            begin
+               if What = Sequence_Only then
+                  pragma Assert (Res = X);
+                  goto End_Of_Loop;
+               end if;
+
+               Output ("test unbounded sequence", Res = X);
+            end;
+         end;
+      end if;
 
       Output ("test string",
               To_Standard_String
@@ -127,15 +172,6 @@ begin
             Output ("test enum", False);
             Ada.Text_IO.Put_Line ("Got exception:");
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
-      end;
-
-      --  Unbounded sequences
-      declare
-         X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
-      begin
-         X := X & 1 & 2 & 3 & 4 & 5;
-         Output ("test unbounded sequence",
-                 echoUsequence (Myall_types, X) = X);
       end;
 
       --  Bounded sequences
