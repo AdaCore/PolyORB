@@ -6,16 +6,21 @@ package Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
    type ORB_Ctrl_Policy_Access is access all ORB_Ctrl_Policy;
 
    function Create return ORB_Ctrl_Policy_Access;
-   procedure Check_Compatibility (Self : ORB_Ctrl_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
---    procedure Free (P   : ORB_Ctrl_Policy;
---                    Ptr : ORB_Ctrl_Policy_Access);
+   procedure Check_Compatibility
+     (Self : ORB_Ctrl_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
-   procedure Free (P   : in     ORB_Ctrl_Policy;
-                   Ptr : in out Policy_Access);
+   function Policy_Id
+     (Self : ORB_Ctrl_Policy)
+     return String;
 
-   procedure Free is new Ada.Unchecked_Deallocation (ORB_Ctrl_Policy,
-                                                     ORB_Ctrl_Policy_Access);
+   procedure Free
+     (P   : in     ORB_Ctrl_Policy;
+      Ptr : in out Policy_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ORB_Ctrl_Policy,
+      ORB_Ctrl_Policy_Access);
 
 end Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -1,26 +1,19 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with Droopi.POA_Policies.Servant_Retention_Policy;
-with CORBA.Policy_Values;
+with Droopi.POA_Policies.Servant_Retention_Policy.Retain;
 with Droopi.POA;
 
 package body
   Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only
 is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return Active_Map_Only_Policy_Access
-   is
-      Policy : Active_Map_Only_Policy_Access;
+   function Create return Active_Map_Only_Policy_Access is
    begin
-      Policy
-        := new Active_Map_Only_Policy'
-        (Value => CORBA.Policy_Values.USE_ACTIVE_OBJECT_MAP_ONLY);
-      return Policy;
+      return new Active_Map_Only_Policy;
    end Create;
 
    -------------------------
@@ -32,13 +25,26 @@ is
       OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
       use Droopi.CORBA_P.Exceptions;
+
    begin
-      if POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.Value
-        /= RETAIN
+      if not
+        (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
+         POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
       then
          Raise_Invalid_Policy;
       end if;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : Active_Map_Only_Policy)
+     return String is
+   begin
+      return "REQUEST_PROCESSING_POLICY.ACTIVE_MAP_ONLY";
+   end Policy_Id;
 
    ---------------------
    -- Etherealize_All --

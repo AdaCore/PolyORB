@@ -6,19 +6,13 @@ with CORBA.Object_Map;
 
 package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return Unique_Id_Policy_Access
-   is
-      Policy : Unique_Id_Policy_Access;
+   function Create return Unique_Id_Policy_Access is
    begin
-      Policy := new Unique_Id_Policy'
-        (Value => CORBA.Policy_Values.UNIQUE_ID);
-      return Policy;
+      return new Unique_Id_Policy;
    end Create;
 
    -------------------------
@@ -27,11 +21,21 @@ package body Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    procedure Check_Compatibility
      (Self : Unique_Id_Policy;
-      OA   : Droopi.POA_Types.Obj_Adapter_Access)
-   is
+      OA   : Droopi.POA_Types.Obj_Adapter_Access) is
    begin
       null;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : Unique_Id_Policy)
+     return String is
+   begin
+      return "ID_UNIQUENESS_POLICY.UNIQUE_ID";
+   end Policy_Id;
 
    -------------------------------
    -- Ensure_Servant_Uniqueness --

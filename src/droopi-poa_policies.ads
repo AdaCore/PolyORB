@@ -10,18 +10,11 @@ with Droopi.POA_Types;
 with Droopi.Dynamic_Dict;
 pragma Elaborate_All (Droopi.Dynamic_Dict);
 
-with CORBA.Policy_Values; use CORBA.Policy_Values;
---  XXX remove reference to CORBA.
-
 package Droopi.POA_Policies is
 
-   pragma Elaborate_Body;
+   --  No proper body: no elaboration control.
 
-   type Policy is abstract tagged
-      record
-         --  Policy_Type : PolicyType;
-         Value       : Policy_Value;
-      end record;
+   type Policy is abstract tagged null record;
    type Policy_Access is access all Policy'Class;
 
    package Policy_Sequences is new Sequences.Unbounded (Policy_Access);
@@ -31,7 +24,7 @@ package Droopi.POA_Policies is
    package Policy_Repository is
       new Droopi.Dynamic_Dict (Droopi.POA_Policies.Policy_Access);
 
-   function Policy_Id (Self : Policy) return String;
+   function Policy_Id (Self : Policy) return String is abstract;
 
    procedure Check_Compatibility
      (Self : Policy;

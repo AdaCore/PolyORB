@@ -7,8 +7,13 @@ package Droopi.POA_Policies.Id_Assignment_Policy.System is
 
    function Create return System_Id_Policy_Access;
 
-   procedure Check_Compatibility (Self : System_Id_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
+   procedure Check_Compatibility
+     (Self : System_Id_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+
+   function Policy_Id
+     (Self : System_Id_Policy)
+     return String;
 
    function Is_System (P : System_Id_Policy) return Boolean;
 

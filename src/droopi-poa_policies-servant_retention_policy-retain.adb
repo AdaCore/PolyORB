@@ -8,19 +8,13 @@ with Droopi.POA;
 
 package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return Retain_Policy_Access
-   is
-      Policy : Retain_Policy_Access;
+   function Create return Retain_Policy_Access is
    begin
-      Policy := new Retain_Policy'
-        (Value => CORBA.Policy_Values.RETAIN);
-      return Policy;
+      return new Retain_Policy;
    end Create;
 
    -------------------------
@@ -34,6 +28,17 @@ package body Droopi.POA_Policies.Servant_Retention_Policy.Retain is
    begin
       null;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : Retain_Policy)
+     return String is
+   begin
+      return "SERVANT_RETENTION_POLICY.RETAIN";
+   end Policy_Id;
 
    ---------------------
    -- Activate_Object --

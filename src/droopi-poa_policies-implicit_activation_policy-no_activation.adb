@@ -1,19 +1,12 @@
 package body Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return No_Activation_Policy_Access
-   is
-      Policy : No_Activation_Policy_Access;
+   function Create return No_Activation_Policy_Access is
    begin
-      Policy
-        := new No_Activation_Policy'
-        (Value => CORBA.Policy_Values.NO_IMPLICIT_ACTIVATION);
-      return Policy;
+      return new No_Activation_Policy;
    end Create;
 
    -------------------------
@@ -27,6 +20,17 @@ package body Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation is
    begin
       null;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : No_Activation_Policy)
+     return String is
+   begin
+      return "IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION";
+   end Policy_Id;
 
    ----------------------
    -- Activate_Servant --

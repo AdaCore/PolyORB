@@ -1,19 +1,24 @@
 package body Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return ORB_Ctrl_Policy_Access
-   is
-      Policy : ORB_Ctrl_Policy_Access;
+   function Create return ORB_Ctrl_Policy_Access is
    begin
-      Policy := new ORB_Ctrl_Policy'
-        (Value => CORBA.Policy_Values.ORB_CTRL_MODEL);
-      return Policy;
+      return new ORB_Ctrl_Policy;
    end Create;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : ORB_Ctrl_Policy)
+     return String is
+   begin
+      return "THREAD_POLICY.ORB_CTRL";
+   end Policy_Id;
 
    -------------------------
    -- Check_Compatibility --

@@ -16,7 +16,7 @@ with Droopi.Types;
 
 with Droopi.POA_Types;
 with Droopi.POA_Manager.Basic_Manager;
-with POA_Configuration;
+with Droopi.POA_Config;
 
 package body Droopi.POA.Basic_POA is
 
@@ -260,8 +260,8 @@ package body Droopi.POA.Basic_POA is
    begin
       pragma Debug (O ("Init Basic_POA with default policies"));
       Set_Policies
-        (OA, POA_Configuration.Default_Policies
-         (POA_Configuration.Configuration.all),
+        (OA, Droopi.POA_Config.Default_Policies
+         (Droopi.POA_Config.Configuration.all),
          Default => True);
    end Init_With_Default_Policies;
 
@@ -431,8 +431,8 @@ package body Droopi.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
-      POA_Configuration.Initialize
-        (POA_Configuration.Configuration.all);
+      Droopi.POA_Config.Initialize
+        (Droopi.POA_Config.Configuration.all);
 
       --  Use default policies
       Init_With_Default_Policies (New_Obj_Adapter);

@@ -4,9 +4,9 @@
 
 with Droopi.POA_Policies;
 
-package POA_Configuration is
+package Droopi.POA_Config is
 
-   --  pragma Preelaborate;
+   pragma Elaborate_Body;
 
    type Configuration_Type is abstract tagged null record;
    type Configuration_Access is access all Configuration_Type'Class;
@@ -36,4 +36,4 @@ private
    pragma Inline (Set_Configuration);
    pragma Inline (Configuration);
 
-end POA_Configuration;
+end Droopi.POA_Config;

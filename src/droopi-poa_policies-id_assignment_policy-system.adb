@@ -8,31 +8,37 @@ with Droopi.Types; use Droopi.Types;
 
 package body Droopi.POA_Policies.Id_Assignment_Policy.System is
 
-   use CORBA.Policy_Values;
-
    ------------
    -- Create --
    ------------
 
-   function Create return System_Id_Policy_Access
-   is
-      Policy : System_Id_Policy_Access;
+   function Create return System_Id_Policy_Access is
    begin
-      Policy := new System_Id_Policy'
-        (Value => CORBA.Policy_Values.SYSTEM_ID);
-      return Policy;
+      return new System_Id_Policy;
    end Create;
 
    -------------------------
    -- Check_Compatibility --
    -------------------------
 
-   procedure Check_Compatibility (Self : System_Id_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
+   procedure Check_Compatibility
+     (Self : System_Id_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : System_Id_Policy)
+     return String is
+   begin
+      return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
+   end Policy_Id;
 
    ---------------
    -- Is_System --

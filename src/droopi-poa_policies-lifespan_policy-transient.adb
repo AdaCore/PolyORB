@@ -1,23 +1,20 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+--  XXX remove dep on CORBA_P!
+
 with Droopi.POA;
 with Droopi.Types;
 
 package body Droopi.POA_Policies.Lifespan_Policy.Transient is
 
-   use CORBA.Policy_Values;
    use Droopi.Types;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Transient_Policy_Access
-   is
-      Policy : Transient_Policy_Access;
+   function Create return Transient_Policy_Access is
    begin
-      Policy := new Transient_Policy'
-        (Value => CORBA.Policy_Values.TRANSIENT);
-      return Policy;
+      return new Transient_Policy;
    end Create;
 
    -------------------------
@@ -31,6 +28,17 @@ package body Droopi.POA_Policies.Lifespan_Policy.Transient is
    begin
       null;
    end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
+
+   function Policy_Id
+     (Self : Transient_Policy)
+     return String is
+   begin
+      return "LIFESPAN_POLICY.TRANSIENT";
+   end Policy_Id;
 
    --------------------
    -- Get_Time_Stamp --

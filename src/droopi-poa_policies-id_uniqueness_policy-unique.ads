@@ -7,17 +7,24 @@ package Droopi.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    function Create return Unique_Id_Policy_Access;
 
-   procedure Check_Compatibility (Self : Unique_Id_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
+   procedure Check_Compatibility
+     (Self : Unique_Id_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access);
+
+   function Policy_Id
+     (Self : Unique_Id_Policy)
+     return String;
 
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
       OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access);
 
-   function Servant_To_Id (Self      : Unique_Id_Policy;
-                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access;
+   function Servant_To_Id
+     (Self      : Unique_Id_Policy;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     return Object_Id_Access;
 
    procedure Free
      (P   : in     Unique_Id_Policy;

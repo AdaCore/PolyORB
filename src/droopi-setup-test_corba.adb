@@ -18,8 +18,8 @@ with Droopi.References;
 with Droopi.References.IOR;
 with Droopi.Setup.Test; use Droopi.Setup.Test;
 
-with POA_Configuration;
-with POA_Configuration.Minimum;
+with Droopi.POA_Config;
+with Droopi.POA_Config.Minimum;
 
 package body Droopi.Setup.Test_CORBA is
 
@@ -29,8 +29,8 @@ package body Droopi.Setup.Test_CORBA is
    procedure Initialize_CORBA_Test_Object is
    begin
       Put ("Initializing OA confiuration");
-      POA_Configuration.Set_Configuration
-        (new POA_Configuration.Minimum.Minimum_Configuration);
+      Droopi.POA_Config.Set_Configuration
+        (new Droopi.POA_Config.Minimum.Minimum_Configuration);
       Put ("Creating object adapter...");
       Obj_Adapter := new Droopi.POA.Basic_POA.Basic_Obj_Adapter;
       Droopi.POA.Basic_POA.Create (Basic_Obj_Adapter (Obj_Adapter.all)'Access);

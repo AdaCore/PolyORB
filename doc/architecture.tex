@@ -12,12 +12,37 @@
 \usepackage{array}
 \usepackage{amsmath}
 
-\title{Architecture de DROOPI}
+\newcommand{\droopi}{\textsc{Droopi}}
+
+\title{Conception et mise en {\oe}uvre de \droopi{}\\
+Un middleware générique pour systèmes d'objets
+répartis interopérables}
 \author{Thomas Quinot}
 
 \begin{document}
 
 \maketitle
+
+\section{Introduction}
+% les middlewares, les plates-formes à objets répartis
+% Préliminaires sur la question de l'interopérabilité.
+% Deux solutions possibles pour l'interopérabilité :
+%   - les passerelles ;
+%   - l'utilisation d'un middleware générique
+%     -> Pourquoi un middleware générique peut-il répondre
+%        aux problématiques de l'interopérabilité ?
+%
+% état de l'art : les middlewares génériques existants.
+% Quels sont les caractéristiques principales de ces middlewares ?
+% Quels sont nos objectifs propres ? (interopérabilité, flexibilité,
+% configurabilité, temps réel, GL) ? Quelles sont les caractéristiques
+% des middlewares existants qui nous semblent pertinentes par rapport
+% à ces objectifs ?
+%
+% -> proposer notre contribution comme une synthèse d'éléments
+% dont certains existent dans des middlewares existants, et que
+% nous combinons d'une façon originale pour résoudre un problème
+% que nous nous posons : l'interopérabilité.
 
 \section{Position du problème}
 
@@ -38,11 +63,11 @@ Toute entité est rattachée à un ORB qui est chargé d'assurer les fonctions
 liées à la répartition nécessaires aux besoins de l'entité.
 
 Ainsi, une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
-(le code existant), ou bien à un ORB générique DROOPI (possédant une
+(le code existant), ou bien à un ORB générique \droopi{} (possédant une
 personnalité DSA).
 
 De même, une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
-(AdaBroker par exemple), ou bien à un ORB générique DROOPI (possédant
+(AdaBroker par exemple), ou bien à un ORB générique \droopi{} (possédant
 une personnalité CORBA).
 
 Un ORB possède deux façades~:
@@ -56,13 +81,13 @@ Un ORB possède deux façades~:
 Chacune de ces façades possède plusieurs variantes (par exemple DSA, CORBA)~;
 le choix d'une variante pour une façade détermine une personnalité sur cette façade.
 
-L'objectif de DROOPI est de découpler ces deux façades. D'une part, une entité
-peut se rattacher à un ORB DROOPI au moyen d'une des personnalités de cet ORB
+L'objectif de \droopi{} est de découpler ces deux façades. D'une part, une entité
+peut se rattacher à un ORB \droopi{} au moyen d'une des personnalités de cet ORB
 (personnalité «~applicative~» paramétrant la façade présentée aux objets de
 l'application).
 
 D'autre part, un ORB distants peut invoquer une méthode sur cette entité en
-transmettant une demande d'invocation à DROOPI au moyen d'une (autre)
+transmettant une demande d'invocation à \droopi{} au moyen d'une (autre)
 personnalité (personnalité «~protocolaire~» paramétrant la façade présentée
 aux autres ORBs \emph{via} un réseau de communication).
 
@@ -79,25 +104,25 @@ Nous identifions les cas d'interopérations possibles par une matrice~:
 \vspace{2cm}
 \begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
 \backslashbox{Client}{Serveur}
-& \RH{DSA DROOPI}
+& \RH{DSA \droopi{}}
 & \RH{DSA GLADE}
-& \RH{CORBA DROOPI}
+& \RH{CORBA \droopi{}}
 & \RH{CORBA AdaBroker}  \\ \hline\hline
-DSA DROOPI      & 3 & 6 & 5 & 5  \\\hline
+DSA \droopi{}      & 3 & 6 & 5 & 5  \\\hline
 DSA GLADE       & 6 & 1 & 8 & 8  \\\hline
-CORBA DROOPI    & 4 & 7 & 2 & 2  \\\hline
+CORBA \droopi{}    & 4 & 7 & 2 & 2  \\\hline
 CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
 \end{tabular}
 }
 
 \begin{enumerate}
 \item %1
-  Ne fait pas intervenir DROOPI.
+  Ne fait pas intervenir \droopi{}.
 \item %2
-  La personnalité CORBA de DROOPI implémente les specs CORBA de l'OMG.
+  La personnalité CORBA de \droopi{} implémente les specs CORBA de l'OMG.
   Cela suppose un support par un compilateur IDL.
 \item %3
-  La personnalité DSA de DROOPI implémente l'annexe des systèmes
+  La personnalité DSA de \droopi{} implémente l'annexe des systèmes
   répartis d'\ada{}. Cela suppose un support dans le compilateur.
 \item %4
   Découplage des personnalités. Situation fonctionnellement
@@ -106,7 +131,7 @@ CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
 \item %5
   Réciproque du précédent.
 \item %6
-  Suppose le support par DROOPI du protocole actuel de GLADE.
+  Suppose le support par \droopi{} du protocole actuel de GLADE.
 \item %7
   Suppose le support du protocole actuel de GLADE \emph{et} d'un
   mécanisme permettant de retransmettre une requête reçue par un subrogé
@@ -436,12 +461,34 @@ taking a string argument, and sending that string back to the caller.
 Invoking this method involves the following steps:
 \begin{description}
 \item[Addressing] The caller determines a reference to the object.
+
 \item[Transport] The caller-side ORB extracts a network address from
   the reference and creates a connection to the object's ORB.
+
+\item[Binding] The object reference and transport connection
+  are associated within a client-side construct. This construct
+  is the result of \emph{binding} the object reference to the
+  transport connection; it can process method invocations (by
+  forwarding them to the actual object through the connection).
+  It can therefore be construed as representing the called object:
+  it is a \emph{surrogate} of the server object on the client side.
+
+  The binding operation can be implicit or explicit. It is implicit
+  when it is conducted
+  by the middleware as a consequence of the caller performing a
+  method invocation on a yet unbound reference. This is the most
+  common case in distributed object platforms such as CORBA
+  or Java/RMI. It can also be explicit when it is controlled
+  by actions of the user. In the case of an explicit binding of
+  an object reference to a transport object, the user can control
+  parameters of the transport connection, such as the negociation
+  of a level of quality of service.
+
 \item[Marshalling] It converts the string passed
   to the method into a representation suitable for network transport,
   for example a four-byte, little-endian integer containing the length
   of the string, followed by the string itself.
+
 \item[Protocol] It creates a \emph{Request} message containing the name
   of the method, the object reference, and the marshalled argument, along
   with a unique request ID.
@@ -459,6 +506,19 @@ Invoking this method involves the following steps:
   The caller ORB unmasrshalls the result and returns it to the calling
   routine.
 \end{description}
+
+The association of a server object with a transport service access
+point that can receive data from clients is not discussed here.
+Like the binding operation on the client side (described above),
+this binding operation on the server side can be either implicit
+or explicit. In the implicit case, an object is bound by the
+mere fact of its creation and registration with an object adapter
+(this is the case of usual CORBA servers). An explicit binding
+mechanism can be necessary for objects that require specific
+set-up in the transport layer. An example of a situation where
+explicit binding is used can be found in~\cite{dumant98;jonathan},
+where a multimedia stream consumer object is explicitly bound to
+receive method invocation requests from a multicast stream.
 
 \subsection{Services internes}
 
@@ -487,12 +547,12 @@ les contraintes de l'application (e. g. temps réel).
 \begin{center}
 \mbox{\psfig{file=droopi-arch.eps,width=10cm}}
 \end{center}
-\caption{Architecture de DROOPI}
+\caption{Architecture de \droopi{}}
 \label{fig:droopi-arch}
 \end{figure}
 
 La figure~\ref{fig:droopi-arch} donne une vue d'ensemble de
-l'architecture retenue pour DROOPI. Celle-ci comporte trois
+l'architecture retenue pour \droopi{}. Celle-ci comporte trois
 niveaux~:
 
 \begin{description}
@@ -526,7 +586,7 @@ des fonctions internes, utilisés par toutes les couches de l'ORB
 
 \subsection{Organisation d'un client, d'un serveur}
 
-Un client DROOPI dispose d'une description de service dans une
+Un client \droopi{} dispose d'une description de service dans une
 personnalité donnée. Cette description de service va permettre
 de générer~:
 \begin{itemize}
@@ -537,7 +597,7 @@ de générer~:
   manipulées.
 \end{itemize}
 
-Un serveur DROOPI dispose d'une description de service dans une
+Un serveur \droopi{} dispose d'une description de service dans une
 personnalité donnée. Cette description de service va permettre
 de générer un squelette (composé d'une partie générique, indépendante
 de la personnalité, et d'une partie spécifique de la personnalité
@@ -550,7 +610,7 @@ associée.
 
 \subsection{Processus de personnalisation}
 
-DROOPI offre une liaison flexible entre des objets d'applications et
+\droopi{} offre une liaison flexible entre des objets d'applications et
 une architecture de transport de messages. Deux facettes du middleware sont
 donc personnalisables~:
 \begin{itemize}
@@ -630,6 +690,31 @@ Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
 \end{description}
 
 %%  XXX à compléter !
+
+\subsection{Binding}
+%% XXX Traduction?
+
+%% \funcfing{binding}{Fonction \emph{binding}}
+%%  XXX figure à faire
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-binding}.}
+
+Étant donnée une référence désignant un objet distant, le service
+de binding a pour rôle de créer, sur un client, une structure qui
+représente l'objet désigné, et qui est capable de traiter des appels
+de méthode (en les transmettant à l'objet réel). Cette structure,
+appelée \emph{subrogé} de l'objet réel, encapsule l'association de
+la référence avec un point de terminaison du service de transport.
+
+Le mécanisme d'établissement de cette association peut soit être implicite
+(comme c'est le cas notamment dans CORBA), lorsque l'établissement d'une
+connexion de transport et son association avec une référence sont
+effectuées de façon transparente pour l'utilisateur, au cours d'un appel
+de méthode. Il peut aussi être explicite, lorsque l'utilisateur souhaite
+contrôler certains aspects de l'établissement de la connexion, par exemple
+pour choisir des paramètres de qualité de service à négocier avec
+le réseau.
 
 \subsection{Représentation}
 
@@ -741,18 +826,25 @@ du scheduler à des objets de type \emph{Tasking\_Policy}.
 
 \section{Conception d'une solution}
 
+% Ici pour l'instant on présente à la fois la conception, sous forme
+% de schémas UML, et ce qui est implémenté. Éventuellement, il faudrait
+% faire évoluer cela sous forme de deux sections :
+%
+% \section{Conception} -> UML, classes, patterns
+% \section{Mise en {\oe}uvre -> réalisation de cette conception.
+
 \subsection{Vue d'ensemble}
 
 \begin{figure}
 \begin{center}
 \mbox{\psfig{file=droopi-design.eps,width=8.8cm}}
 \end{center}
-\caption{Conception DROOPI}
+\caption{Conception \droopi{}}
 \label{fig:droopi-uml}
 \end{figure}
 
 La figure \ref{fig:droopi-uml} donne une vue d'ensemble de
-l'implémentation de DROOPI. Elle est pilotée par des événements
+l'implémentation de \droopi{}. Elle est pilotée par des événements
 échangés entre modules. En effet, le middleware ne doit pas imposer
 l'ajout de nouvelles tâches dans une application qui n'en comporte pas.
 Les activités de l'ORB ne doivent être déclenchées que lorsqu'elles
@@ -761,7 +853,7 @@ ou lorsqu'un message est reçu sur un canal de communication).
 
 \subsection{Framework}
 
-DROOPI fournit un certain nombre de mécanismes de base pour le découpage
+\droopi{} fournit un certain nombre de mécanismes de base pour le découpage
 de l'ORB en modules indépendants dont les responsabilités et les interfaces
 sont bien délimitées. Cette section présente ces mécanismes de base en
 tentant de les décrire comme des patterns.
@@ -910,7 +1002,7 @@ d'un certain nombre de classes abstraites.
   aux couches supérieures du module de communication, tandis que la vue
   \emph{Asynchronous\_Event\_Source} présentée à l'ordonnanceur.
 \item[Filter] une interface supportant le passage de messages
-  dynamiquement typés à l'intérieur de DROOPI. Toute entité
+  dynamiquement typés à l'intérieur de \droopi{}. Toute entité
   qui a besoin de participer à la gestion des communications
   avec d'autres ORBS implémente cette interface. Ainsi, les
   types concrets de messages échangés entre les entités peuvent
@@ -1033,7 +1125,7 @@ des données vers des types \emph{auto-descriptifs} de manière à ce que chaque en
 Ces types auto-descriptifs seront similaires aux \emph{Any} de CORBA~; cette approche ressemble
 à l'idée qui consiste à construire un ORB CORBA en partant de l'invocation dynamique.
 
-Cela impose peut-être que le modèle de types de DROOPI (ie le modèle de description des types
+Cela impose peut-être que le modèle de types de \droopi{} (ie le modèle de description des types
 auto-descriptifs) soit aussi riche que celui de DSA ($>$ CORBA) (notion par exemple d'argument
 non-contraint pour lesquels une représentation particulière est nécessaire ??)
 
@@ -1075,6 +1167,8 @@ Reposiotry} générique.
 Les sessions sont créées à partir de factories appelées Protocols. Un protocole
 est défini comme un moyen d'associer une session et une représentation à un TE.
 
+\section{Implémentation}
+
 \subsection{Objets communs}
 
 \subsubsection{Synchronisation}
@@ -1093,6 +1187,8 @@ est défini comme un moyen d'associer une session et une représentation à un TE.
   Extension possible~: verrou avec priority ceiling.
 \end{description}
 
+% XXX à compléter !
+
 \section{Perspectives}
 
 Parallèles et relations avec d'autres systèmes de répartition basés
@@ -1104,49 +1200,11 @@ sur d'autres paradigmes que les objets répartis~:
 
 Considérer ces autres systèmes de répartition selon deux angles~:
 \begin{enumerate}
-\item peut-on les utiliser comme des transports pour DROOPI~?
-\item peut-on utiliser DROOPI comme base d'un middleware réalisant
+\item peut-on les utiliser comme des transports pour \droopi{}~?
+\item peut-on utiliser \droopi{} comme base d'un middleware réalisant
   ces systèmes (i. e. compatibilité de ces systèmes avec le méta-modèle
   côté application)~?
 \end{enumerate}
-%%  ./droopi-jobs.ads
-%%  
-%%  A Job is anything that can keep a task busy (like a Runnable
-%%  in Java). This unit declares an abstract Job type, and a means
-%%  to queue jobs for execution.
-%%  
-%%  ./sequences.ads
-%%  ./sequences-bounded.ads
-%%  ./sequences-unbounded.ads
-%%  
-%%  {Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.
-%%  Notionally based on Ada.Strings.Unbounded.)
-%%  
-%%  ----------
-%%  
-%%  Others are undocumented as of yet.
-%%  
-%%  ./droopi-representations-test.ads
-%%  ./droopi-transport\_endpoints.ads
-%%  ./droopi-protocols.ads
-%%  ./droopi-sockets.ads
-%%  ./droopi-setup.ads
-%%  ./droopi-transport.ads
-%%  ./droopi-requests.ads
-%%  ./droopi-buffers.ads
-%%  ./droopi-refs.ads
-%%  ./droopi-opaque-chunk\_pools.ads
-%%  ./droopi-opaque.ads
-%%  ./droopi-no\_tasking.ads
-%%  ./droopi-orb-task\_policies.ads
-%%  ./droopi-obj\_adapters.ads
-%%  ./droopi-surrogates.ads
-%%  ./droopi-binding\_data.ads
-%%  ./droopi-types.ads
-%%  ./droopi-servers.ads
-%%  ./droopi-protocols-echo.ads
-%%  ./droopi-layers.ads
-%%  ./broca-names.ads
 
 \bibliographystyle{plain}
 \bibliography{interop}

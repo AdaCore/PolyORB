@@ -6,16 +6,24 @@ package Droopi.POA_Policies.Lifespan_Policy.Transient is
    type Transient_Policy_Access is access all Transient_Policy;
 
    function Create return Transient_Policy_Access;
-   procedure Check_Compatibility (Self : Transient_Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
-   function Get_Time_Stamp (P  : Transient_Policy;
-                            OA : Droopi.POA_Types.Obj_Adapter_Access)
-                           return Time_Stamp;
+   procedure Check_Compatibility
+     (Self : Transient_Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
-   procedure Ensure_Lifespan (P     : Transient_Policy;
-                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
-                              U_Oid : Unmarshalled_Oid_Access);
+   function Policy_Id
+     (Self : Transient_Policy)
+     return String;
+
+   function Get_Time_Stamp
+     (P  : Transient_Policy;
+      OA : Droopi.POA_Types.Obj_Adapter_Access)
+     return Time_Stamp;
+
+   procedure Ensure_Lifespan
+     (P     : Transient_Policy;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid_Access);
 
    procedure Free
      (P   : in     Transient_Policy;

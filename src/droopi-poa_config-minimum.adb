@@ -11,7 +11,7 @@ with Droopi.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
 with Droopi.POA_Policies.Servant_Retention_Policy.Retain;
 with Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;
 
-package body  POA_Configuration.Minimum is
+package body Droopi.POA_Config.Minimum is
 
    use Droopi.POA_Policies;
 
@@ -49,4 +49,4 @@ package body  POA_Configuration.Minimum is
       return My_Default_Policies'Access;
    end Default_Policies;
 
-end POA_Configuration.Minimum;
+end Droopi.POA_Config.Minimum;

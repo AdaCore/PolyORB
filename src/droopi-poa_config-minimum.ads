@@ -2,7 +2,9 @@
 
 --  $Id$
 
-package POA_Configuration.Minimum is
+package Droopi.POA_Config.Minimum is
+
+   pragma Elaborate_Body;
 
    type Minimum_Configuration is new Configuration_Type with private;
 
@@ -18,4 +20,4 @@ private
    type Minimum_Configuration is new Configuration_Type
      with null record;
 
-end POA_Configuration.Minimum;
+end Droopi.POA_Config.Minimum;
