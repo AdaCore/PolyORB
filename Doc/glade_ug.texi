@@ -1702,8 +1702,8 @@ partition. Several policies can be selected:
 
 @smallexample
 
-RECONNECTION_LITTERAL ::= Rejected_On_Restart  |
-                          Failed_Until_Restart |
+RECONNECTION_LITTERAL ::= Reject_On_Restart  |
+                          Fail_Until_Restart |
                           Wait_Until_Restart
 
 REPRESENTATION_CLAUSE ::=
@@ -1719,7 +1719,7 @@ restart it fails. Any remote call to a subprogram located on this
 partition results in a Communication_Error exception. The
 Reject_On_Restart policy is the default policy.
 
-@item When this partition is configured with the Failed_Until_Restart 
+@item When this partition is configured with the Fail_Until_Restart 
 reconnection policy, the dead partition can be restarted. Any remote
 call to a subprogram located on this partition results in an exception
 Communication_Error as long as this partition has not been restarted. As
@@ -2016,7 +2016,7 @@ Specify the partition main subprogram to use in a given partition.
 Specify a reconnection policy in case of a crash of Partition_3. Any attempt to
 reconnect to Partition_3 when this partition is dead will be 
 blocked until Partition_3 restarts. By default, any restart is
-rejected (Rejected_ON_Restart). Another policy is to raise
+rejected (Reject_On_Restart). Another policy is to raise
 Communication_Error on any reconnection attempt until Partition_3 has
 been restarted.
 
