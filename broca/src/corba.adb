@@ -208,7 +208,31 @@ package body CORBA is
       function Id (Self : in Object)
                    return CORBA.RepositoryId is
       begin
-         return Null_RepositoryId;
+         case Kind (Self) is
+            when Tk_Objref
+              | Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Alias
+              | Tk_Value
+              | Tk_Valuebox
+              | Tk_Native
+              | Tk_Abstract_Interface
+              | Tk_Except =>
+               declare
+                  Res : CORBA.String;
+               begin
+                  Res := From_Any (Get_Parameter (Self, 1));
+                  return RepositoryId (Res);
+               end;
+            when others =>
+               declare
+                  Member : Bounds_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Id;
 
       ------------
@@ -217,7 +241,31 @@ package body CORBA is
       function Name (Self : in Object)
                      return CORBA.Identifier is
       begin
-         return Null_Identifier;
+         case Kind (Self) is
+            when Tk_Objref
+              | Tk_Struct
+              | Tk_Union
+              | Tk_Enum
+              | Tk_Alias
+              | Tk_Value
+              | Tk_Valuebox
+              | Tk_Native
+              | Tk_Abstract_Interface
+              | Tk_Except =>
+               declare
+                  Res : CORBA.String;
+               begin
+                  Res := From_Any (Get_Parameter (Self, 0));
+                  return Identifier (Res);
+               end;
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Name;
 
       --------------------
@@ -225,15 +273,29 @@ package body CORBA is
       --------------------
       function Member_Count (Self : in Object)
                              return Unsigned_Long is
-         N : Unsigned_Long := 0;
-         Ptr : Cell_Ptr := Self.Parameters;
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
       begin
-         while (Ptr /= null)
-         loop
-            N := N + 1;
-            Ptr := Ptr.Next;
-         end loop;
-         return N;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers returned here.
+         case Kind (Self) is
+            when Tk_Struct
+              | Tk_Except =>
+               return (Param_Nb / 2) - 1;
+            when Tk_Union =>
+               return Param_Nb / 3 - 1;
+            when Tk_Enum =>
+               return Param_Nb - 2;
+            when Tk_Value =>
+               return (Param_Nb - 4) / 3;
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Member_Count;
 
       -------------------
@@ -242,8 +304,51 @@ package body CORBA is
       function Member_Name (Self  : in Object;
                             Index : in CORBA.Unsigned_Long)
                             return CORBA.Identifier is
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
+         Res : CORBA.String;
+         Member : Bounds_Members;
       begin
-         return Null_Identifier;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Struct
+              | Tk_Except =>
+               if Param_Nb < 2 * Index + 2 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               Res := From_Any (Get_Parameter (Self, 2 * Index + 1));
+               return Identifier (Res);
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 3 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 2));
+               return Identifier (Res);
+            when Tk_Enum =>
+               if Param_Nb < Index + 2 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               Res := From_Any (Get_Parameter (Self, Index + 1));
+               return Identifier (Res);
+            when Tk_Value =>
+               if Param_Nb < 3 * Index + 4 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 3));
+               return Identifier (Res);
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Member_Name;
 
       -------------------
@@ -252,8 +357,40 @@ package body CORBA is
       function Member_Type
         (Self  : in Object;
          Index : in CORBA.Unsigned_Long) return Object is
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
+         Member : Bounds_Members;
       begin
-         return TC_Null;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Struct
+              | Tk_Except =>
+               if Param_Nb < 2 * Index + 2 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               return From_Any (Get_Parameter (Self, 2 * Index));
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 3 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index + 1));
+            when Tk_Value =>
+               if Param_Nb < 3 * Index + 4 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index + 2));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Member_Type;
 
       --------------------
@@ -262,8 +399,27 @@ package body CORBA is
       function Member_Label
         (Self  : in Object;
          Index : in CORBA.Unsigned_Long) return CORBA.Any is
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
+         Member : Bounds_Members;
       begin
-         return (The_Value => null, The_Type => TC_Null);
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Union =>
+               if Param_Nb < 3 * Index + 3 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               return From_Any (Get_Parameter (Self, 3 * Index));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Member_Label;
 
       --------------------------
@@ -272,7 +428,20 @@ package body CORBA is
       function Discriminator_Type (Self : in Object)
                                    return Object is
       begin
-         return TC_Null;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Union =>
+               return From_Any (Get_Parameter (Self, 2));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Discriminator_Type;
 
       ---------------------
@@ -280,8 +449,29 @@ package body CORBA is
       ---------------------
       function Default_Index (Self : in Object)
                               return CORBA.Long is
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
       begin
-         return 0;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Union =>
+               Param_Nb := Param_Nb / 3 - 1;
+               for I in 1 .. Param_Nb loop
+                  if Kind (Get_Type (Get_Parameter (Self, 3 * I)))
+                    = Tk_Null then
+                     return CORBA.Long (I);
+                  end if;
+               end loop;
+               return 0;
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Default_Index;
 
       --------------
@@ -290,7 +480,20 @@ package body CORBA is
       function Length (Self : in Object)
                        return CORBA.Unsigned_Long is
       begin
-         return 0;
+         case Kind (Self) is
+            when Tk_String
+              | Tk_Wstring
+              | Tk_Sequence
+              | Tk_Array =>
+               return From_Any (Get_Parameter (Self, 0));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Length;
 
       --------------------
@@ -298,7 +501,21 @@ package body CORBA is
       --------------------
       function Content_Type (Self : in Object) return Object is
       begin
-         return TC_Null;
+         case Kind (Self) is
+            when Tk_Sequence
+              | Tk_Array =>
+               return From_Any (Get_Parameter (Self, 1));
+            when Tk_Valuebox
+              | Tk_Alias =>
+               return From_Any (Get_Parameter (Self, 2));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Content_Type;
 
       --------------------
@@ -307,7 +524,17 @@ package body CORBA is
       function Fixed_Digits (Self : in Object)
                              return CORBA.Unsigned_Short is
       begin
-         return 0;
+         case Kind (Self) is
+            when Tk_Fixed =>
+               return From_Any (Get_Parameter (Self, 0));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Fixed_Digits;
 
       -------------------
@@ -316,7 +543,17 @@ package body CORBA is
       function Fixed_Scale (Self : in Object)
                             return CORBA.Short is
       begin
-         return 0;
+         case Kind (Self) is
+            when Tk_Fixed =>
+               return From_Any (Get_Parameter (Self, 1));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Fixed_Scale;
 
       -------------------------
@@ -326,7 +563,31 @@ package body CORBA is
         (Self  : in Object;
          Index : in CORBA.Unsigned_Long) return Visibility is
       begin
-         return PRIVATE_MEMBER;
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         case Kind (Self) is
+            when Tk_Value =>
+               declare
+                  Member : Bounds_Members;
+                  Param_Nb : Unsigned_Long := Parameter_Count (Self);
+                  Res : Short;
+               begin
+                  if Param_Nb < 3 * Index + 4 then
+                     Broca.Exceptions.User_Raise_Exception
+                       (Bounds'Identity, Member);
+                  end if;
+                  Res := From_Any (Get_Parameter (Self, 3 * Index));
+                  return Visibility (Res);
+               end;
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Member_Visibility;
 
       ---------------------
@@ -335,7 +596,22 @@ package body CORBA is
       function Type_Modifier (Self : in Object)
                               return CORBA.ValueModifier is
       begin
-         return VTM_NONE;
+         case Kind (Self) is
+            when Tk_Value =>
+               declare
+                  Res : Short;
+               begin
+                  Res := From_Any (Get_Parameter (Self, 2));
+                  return ValueModifier (Res);
+               end;
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Type_Modifier;
 
       --------------------------
@@ -344,7 +620,17 @@ package body CORBA is
       function Concrete_Base_Type (Self : in Object)
                                    return Object is
       begin
-         return TC_Null;
+         case Kind (Self) is
+            when Tk_Value =>
+               return From_Any (Get_Parameter (Self, 3));
+            when others =>
+               declare
+                  Member : BadKind_Members;
+               begin
+                  Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                         Member);
+               end;
+         end case;
       end Concrete_Base_Type;
 
       ---------------------
@@ -543,48 +829,21 @@ package body CORBA is
          return PTC_Wide_String;
       end TC_Wide_String;
 
---       ----------------------------
---       --  conversion functions  --
---       ----------------------------
-
---       function From_Any (From : in CORBA.Any)
---                          return CORBA.TypeCode.Object
---       is
---          Tmp : Content_TypeCode_Ptr;
---       begin
---          if (TypeCode.Kind (From.The_Type) /= Tk_TypeCode) then
---             raise Bad_TypeCode;
---          end if;
---          Tmp := Content_TypeCode_Ptr (From.The_Value);
---          return Tmp.Value;
---       end From_Any;
-
---       function To_Any (From : in CORBA.TypeCode.Object)
---                        return CORBA.Any is
---          The_Any : CORBA.Any;
---       begin
---          The_Any := (new Content_TypeCode' (Value => From),
---                      TypeCode.TC_TypeCode);
---          return The_Any;
---       end To_Any;
-
---       function  Member_Index
---         (Tck : in TCKind;
---          N   : in CORBA.Long)
---          return CORBA.Long
---       is
---          --  see the spec about the composition of the parameters list
---          --  for typecodes
---       begin
---          case Tck is
---             when Tk_Struct =>
---                return 2 * (N + 1);
---             when Tk_Union =>
---                return 3 * N + 4;
---             when others =>
---                return 0;
---          end case;
---       end Member_Index;
+      -----------------------
+      --  Parameter_Count  --
+      -----------------------
+      function Parameter_Count (Self : in Object)
+                                return Unsigned_Long is
+         N : Unsigned_Long := 0;
+         Ptr : Cell_Ptr := Self.Parameters;
+      begin
+         while (Ptr /= null)
+         loop
+            N := N + 1;
+            Ptr := Ptr.Next;
+         end loop;
+         return N;
+      end Parameter_Count;
 
    end TypeCode;
 
@@ -697,145 +956,111 @@ package body CORBA is
    -----------------------------------
 
    function To_Any (Item : in Short) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Short' (Value => Item),
-                  TypeCode.TC_Short);
-      return The_Any;
+      return (new Content_Short' (Value => Item),
+              TypeCode.TC_Short);
    end To_Any;
 
    function To_Any (Item : in Long) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Long' (Value => Item),
-                  TypeCode.TC_Long);
-      return The_Any;
+      return (new Content_Long' (Value => Item),
+              TypeCode.TC_Long);
    end To_Any;
 
    function To_Any (Item : in Long_Long) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Long_Long' (Value => Item),
-                  TypeCode.TC_Long_Long);
-      return The_Any;
+      return (new Content_Long_Long' (Value => Item),
+              TypeCode.TC_Long_Long);
    end To_Any;
 
    function To_Any (Item : in Unsigned_Short) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_UShort' (Value => Item),
-                  TypeCode.TC_Unsigned_Short);
-      return The_Any;
+      return (new Content_UShort' (Value => Item),
+              TypeCode.TC_Unsigned_Short);
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_ULong' (Value => Item),
-                  TypeCode.TC_Unsigned_Long);
-      return The_Any;
+      return (new Content_ULong' (Value => Item),
+              TypeCode.TC_Unsigned_Long);
    end To_Any;
 
    function To_Any (Item : in Unsigned_Long_Long) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_ULong_Long' (Value => Item),
-                  TypeCode.TC_Unsigned_Long_Long);
-      return The_Any;
+      return (new Content_ULong_Long' (Value => Item),
+              TypeCode.TC_Unsigned_Long_Long);
    end To_Any;
 
    function To_Any (Item : in Float) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Float' (Value => Item),
-                  TypeCode.TC_Float);
-      return The_Any;
+      return (new Content_Float' (Value => Item),
+              TypeCode.TC_Float);
    end To_Any;
 
    function To_Any (Item : in Double) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Double' (Value => Item),
-                  TypeCode.TC_Double);
-      return The_Any;
+      return (new Content_Double' (Value => Item),
+              TypeCode.TC_Double);
    end To_Any;
 
    function To_Any (Item : in Long_Double) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Long_Double' (Value => Item),
-                  TypeCode.TC_Long_Double);
-      return The_Any;
+      return (new Content_Long_Double' (Value => Item),
+              TypeCode.TC_Long_Double);
    end To_Any;
 
    function To_Any (Item : in Boolean) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Boolean' (Value => Item),
-                  TypeCode.TC_Boolean);
-      return The_Any;
+      return (new Content_Boolean' (Value => Item),
+              TypeCode.TC_Boolean);
    end To_Any;
 
    function To_Any (Item : in Char) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Char' (Value => Item),
-                  TypeCode.TC_Char);
-      return The_Any;
+      return (new Content_Char' (Value => Item),
+              TypeCode.TC_Char);
    end To_Any;
 
    function To_Any (Item : in Wchar) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Wchar' (Value => Item),
-                  TypeCode.TC_Wchar);
-      return The_Any;
+      return (new Content_Wchar' (Value => Item),
+              TypeCode.TC_Wchar);
    end To_Any;
 
    function To_Any (Item : in Octet) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Octet' (Value => Item),
-                  TypeCode.TC_Octet);
-      return The_Any;
+      return (new Content_Octet' (Value => Item),
+              TypeCode.TC_Octet);
    end To_Any;
 
    function To_Any (Item : in Any) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_Any' (Value => Item),
-                  TypeCode.TC_Any);
-      return The_Any;
+      return (new Content_Any' (Value => Item),
+              TypeCode.TC_Any);
    end To_Any;
 
    function To_Any (Item : in TypeCode.Object) return Any is
-      The_Any : CORBA.Any;
    begin
-      The_Any := (new Content_TypeCode' (Value => Item),
-                  TypeCode.TC_TypeCode);
-      return The_Any;
+      return (new Content_TypeCode' (Value => Item),
+              TypeCode.TC_TypeCode);
    end To_Any;
 
    function To_Any (Item : in CORBA.String) return Any is
-      The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set_Kind (Tco, Tk_String);
       CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Long (0)));
       --  the string is supposed to be unbounded
-      The_Any := (new Content_String' (Value => Item), Tco);
-      return The_Any;
+      return (new Content_String' (Value => Item), Tco);
    end To_Any;
 
    function To_Any (Item : in CORBA.Wide_String) return Any is
-      The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set_Kind (Tco, Tk_Wstring);
       CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Long (0)));
       --  the string is supposed to be unbounded
-      The_Any := (new Content_Wide_String' (Value => Item), Tco);
-      return The_Any;
+      return (new Content_Wide_String' (Value => Item), Tco);
    end To_Any;
 
    -------------------------------------
@@ -843,173 +1068,139 @@ package body CORBA is
    -------------------------------------
 
    function From_Any (Item : in Any) return Short is
-      Tmp : Content_Short_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Short) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Short_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Short_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
-      Tmp : Content_Long_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Long) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Long_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Long_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
-      Tmp : Content_Long_Long_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Longlong) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Long_Long_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Long_Long_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Short is
-      Tmp : Content_UShort_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Ushort) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_UShort_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_UShort_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long is
-      Tmp : Content_ULong_Ptr;
    begin
       if TypeCode.Kind (Item.The_Type) /= Tk_Ulong then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_ULong_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_ULong_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Unsigned_Long_Long is
-      Tmp : Content_ULong_Long_Ptr;
    begin
       if TypeCode.Kind (Item.The_Type) /= Tk_Ulonglong then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_ULong_Long_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_ULong_Long_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Float is
-      Tmp : Content_Float_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Float) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Float_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Float_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Double is
-      Tmp : Content_Double_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Double) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Double_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Double_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Double is
-      Tmp : Content_Long_Double_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Longdouble) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Long_Double_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Long_Double_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Boolean is
-      Tmp : Content_Boolean_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Boolean) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Boolean_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Boolean_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Char is
-      Tmp : Content_Char_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Char) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Char_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Char_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Wchar is
-      Tmp : Content_Wchar_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Widechar) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Wchar_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Wchar_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Octet is
-      Tmp : Content_Octet_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Octet) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Octet_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Octet_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Any is
-      Tmp : Content_Any_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Any) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Any_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Any_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return TypeCode.Object is
-      Tmp : Content_TypeCode_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_TypeCode) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_TypeCode_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_TypeCode_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.String is
-      Tmp : Content_String_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_String) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_String_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_String_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return CORBA.Wide_String is
-      Tmp : Content_Wide_String_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Wstring) then
          raise Bad_Typecode;
       end if;
-      Tmp := Content_Wide_String_Ptr (Item.The_Value);
-      return Tmp.Value;
+      return Content_Wide_String_Ptr (Item.The_Value).Value;
    end From_Any;
 
    ----------------

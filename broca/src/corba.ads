@@ -356,6 +356,7 @@ package CORBA is
       Bounds : exception;
       type Bounds_Members is new CORBA.IDL_Exception_Members with null record;
 
+      --  gives the member associated with a bounds exception
       procedure Get_Members
         (From : in Ada.Exceptions.Exception_Occurrence;
          To    : out Bounds_Members);
@@ -363,68 +364,124 @@ package CORBA is
       BadKind : exception;
       type BadKind_Members is new CORBA.IDL_Exception_Members with null record;
 
+      --  gives the member associated with a badKind exception
       procedure Get_Members
         (From : in Ada.Exceptions.Exception_Occurrence;
          To    : out BadKind_Members);
 
+      --  equality between two typecodes
       function "=" (Left, Right : in Object) return Boolean;
 
       function Equal (Left, Right : in Object) return Boolean
         renames "=";
 
+      --  equivalence between two typecodes
+      --  FIXME : to be defined
       function Equivalent (Left, Right : in Object)
                            return Boolean;
 
+      --  FIXME : to be defined
       function Get_Compact_TypeCode (Self : in Object)
                                      return Object;
 
+      --  returns the kind of a typecode
       function Kind (Self : in Object) return TCKind;
 
+      --  returns the Id associated with a typecode in case its kind is
+      --  objref, struct, union, enum, alias, value, valueBox, native,
+      --  abstract_interface or except. Raises badKind else.
       function Id (Self : in Object)
                    return CORBA.RepositoryId;
 
+      --  returns the name associated with a typecode in case its kind is
+      --  objref, struct, union, enum, alias, value, valueBox, native,
+      --  abstract_interface or except. Raises badKind else.
       function Name (Self : in Object)
                      return CORBA.Identifier;
 
+      --  returns the number of members associated with a typecode in
+      --  case its kind is struct, union, enum, value or except.
+      --  Raises badKind else.
       function Member_Count (Self : in Object)
                              return Unsigned_Long;
 
+      --  returns the name of a given member associated with a typecode
+      --  in case its kind is struct, union, enum, value or except.
+      --  Raises badKind else.
+      --  If there is not enough members, raises bounds.
       function Member_Name (Self  : in Object;
                             Index : in CORBA.Unsigned_Long)
                             return CORBA.Identifier;
 
+      --  returns the type of a given member associated with a typecode
+      --  in case its kind is struct, union, value or except.
+      --  Raises badKind else.
+      --  If there is not enough members, raises bounds.
       function Member_Type
         (Self  : in Object;
          Index : in CORBA.Unsigned_Long) return Object;
 
+      --  returns the label of a given member associated with a typecode
+      --  in case its kind is union.
+      --  Raises badKind else.
+      --  If there is not enough members, raises bounds.
       function Member_Label
           (Self  : in Object;
            Index : in CORBA.Unsigned_Long) return CORBA.Any;
 
+      --  returns the position of the default index in the parameters
+      --  of a typecode in case its kind is union.
+      --  Raises badKind else.
+      --  If there is no default index, return 0
       function Discriminator_Type (Self : in Object)
                                    return Object;
 
+      --  returns the discriminator type associated with a typecode
+      --  in case its kind is union.
+      --  Raises badKind else.
       function Default_Index (Self : in Object)
                               return CORBA.Long;
 
+      --  returns the length associated with a typecode
+      --  in case its kind is string, sequence or aray.
+      --  Raises badKind else.
       function Length (Self : in Object)
                        return CORBA.Unsigned_Long;
 
+      --  returns the content type associated with a typecode
+      --  in case its kind is sequence, array, valueBox or alias.
+      --  Raises badKind else.
       function Content_Type (Self : in Object) return Object;
 
+      --  returns the number of digits associated with a typecode
+      --  in case its kind is fixed.
+      --  Raises badKind else.
       function Fixed_Digits (Self : in Object)
                              return CORBA.Unsigned_Short;
 
+      --  returns the scale associated with a typecode
+      --  in case its kind is fixed.
+      --  Raises badKind else.
       function Fixed_Scale (Self : in Object)
                             return CORBA.Short;
 
+      --  returns the visibility associated with a member of a typecode
+      --  in case its kind is value.
+      --  Raises badKind else.
+      --  If there is not enough members, raises bounds.
       function Member_Visibility
         (Self  : in Object;
          Index : in CORBA.Unsigned_Long) return Visibility;
 
+      --  returns the type modifier associated with a typecode
+      --  in case its kind is value.
+      --  Raises badKind else.
       function Type_Modifier (Self : in Object)
                               return CORBA.ValueModifier;
 
+      --  returns the concrete base type associated with a typecode
+      --  in case its kind is value.
+      --  Raises badKind else.
       function Concrete_Base_Type (Self : in Object)
                                    return Object;
 
@@ -469,6 +526,11 @@ package CORBA is
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
+      --  not in spec
+      --  returns the number of parameters of Self
+      function Parameter_Count (Self : in Object)
+                                return Unsigned_Long;
+
    private
       --       --  implementation defined
       --       Out_Of_Bounds_Index : exception;
@@ -487,6 +549,42 @@ package CORBA is
             Kind : CORBA.TCKind := Tk_Void;
             Parameters : Cell_Ptr := null;
          end record;
+      --  here is the way the typecodes are coded :
+      --    for null, void, short, long, long_long,
+      --  unsigned_short, unsigned_long, unsigned_long_long, float,
+      --  double, long_double, boolean, char, Wchar, octet, any,
+      --  typeCode, Principal parameters = null
+      --    for Objref, Struct, union, enum, alias, value, valueBox,
+      --  native, abstract_interface and except, the first parameter
+      --  will contain the name and the second the repository Id
+      --    The objref, native and abstract_interface don't have
+      --  any other parameter.
+      --    for the struct and the except, the next parameters will
+      --  be alternatively a type and a name. So the number of
+      --  parameters will be 2 * number_of_members + 2
+      --    for the union, the third parameter will be the
+      --  discriminator type. Then we'll have alternatively a
+      --  member label, a member type and a member name. At least,
+      --  we could have a default label. In this case, the member
+      --  label would be an any containing null. So the number of
+      --  parameters will be 3 * number_of_members + 3
+      --    for the enum, the next parameters will be names of the
+      --  different members. So the number of parameters will be
+      --  number_of_members + 2
+      --    for the alias, the third parameter is its content type
+      --    for the value, the third parameter will be a type
+      --  modifier and the fourth one a concrete base type. The next
+      --  parameters will be alternatively a visibility, a type and
+      --  a name. So the number of parameters will be
+      --  3 * number_of_members + 4.
+      --    for the valueBox, the third parameter is the content type
+      --    for the string and wide_string, the only parameter will
+      --  be the length of the string.
+      --    for the sequence and the array, the first parameter will
+      --  be the length of the sequence or the array and the second
+      --  the content type
+      --    for the fixed, the first parameter will be the digits
+      --  number and the second the scale.
 
       --  The most current typecodes
       PTC_Null               : constant Object := (Tk_Null, null);
@@ -565,8 +663,6 @@ package CORBA is
       with procedure Process (The_Any : in Any;
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
-
-
 
 
 private
