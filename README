@@ -118,8 +118,8 @@ This creates several files :
 - myinterface-skel.ads, myinterface-skel.adb : these files
   contain the server-side skeletons for the interface.
 
-- myinterface-stream.ads, myinterface-stream.adb : these files
-  contain subprograms to marshal data according to the CDR protocol.
+- myinterface-helper.ads, myinterface-helper.adb : these files
+  contain subprograms to marshal data into CORBA Any containers.
 
 Usage of PolyORB
 ----------------
