@@ -238,13 +238,6 @@ package body Make is
    --  Set to true after having seen at least one file name.
    --  Used in Scan_Make_Arg only, but must be a global variable.
 
-   Optimize_Or_Debug_Present : Boolean := False;
-   --  True when -g or -O has been selected
-
-   Default_Optimization_Option : constant String := "-O2";
-   --  Default optimization chosen when none has been specified on
-   --  the command line and debugging is off.
-
    type Make_Program_Type is (None, Compiler, Binder, Linker);
 
    Program_Args : Make_Program_Type := None;
@@ -1471,14 +1464,6 @@ package body Make is
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
 
-      --  If no optimization or debugging option has been given on the
-      --  command line, then use the default option as an additional
-      --  compilation switch.
-
-      if not Optimize_Or_Debug_Present then
-         Add_Switch (Default_Optimization_Option, Compiler);
-      end if;
-
       Osint.Add_Default_Search_Dirs;
 
       --  Mark the GNAT libraries if needed.
@@ -2411,7 +2396,6 @@ package body Make is
          then
             Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Linker);
-            Optimize_Or_Debug_Present := True;
 
          --  -m
 
@@ -2431,11 +2415,6 @@ package body Make is
            and then (Argv'Length > 2 or else Argv (2) not in 'a' .. 'z')
          then
             Add_Switch (Argv, Compiler);
-
-            --  Recognize -O as being an optimization flag
-            if Argv (2) = 'O' then
-               Optimize_Or_Debug_Present := True;
-            end if;
 
          --  All other options are handled by Scan_Switches
 

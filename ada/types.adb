@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,6 +34,60 @@
 ------------------------------------------------------------------------------
 
 package body Types is
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Left, Right : Time_Stamp_Type) return Boolean is
+      Thi : Time_Stamp_Type;
+      Tlo : Time_Stamp_Type;
+
+      Slo : Nat;
+      Shi : Nat;
+
+      function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat;
+      --  Extract two decimal digit value from time stamp
+
+      function V (T : Time_Stamp_Type; X : Time_Stamp_Index) return Nat is
+      begin
+         return 10 * (Character'Pos (T (X))     - Character'Pos ('0')) +
+                      Character'Pos (T (X + 1)) - Character'Pos ('0');
+      end V;
+
+   --  Start of processing for "="
+
+   begin
+      if String (Left) = String (Right) then
+         return True;
+
+      elsif Left (1) = ' ' or else Right (1) = ' ' then
+         return False;
+
+      elsif Left < Right then
+         Tlo := Left;
+         Thi := Right;
+
+      else
+         Tlo := Right;
+         Thi := Left;
+      end if;
+
+      --  Here we check for a difference of 2 seconds or less. The smaller
+      --  of the two time stamps is in Thi, the larger is in Tlo. Recall
+      --  that the time stamp format is:
+
+      --     Y  Y  M  M  D  D  H  H  M  M  S  S
+      --    01 02 03 04 05 06 07 08 09 10 11 12
+
+      --  Note that we do not bother to worry about shifts in the day.
+      --  It seems unlikely that such shifts could ever occur in practice
+
+      Slo := V (Tlo, 11) + 60 * (V (Tlo, 09) + 60 * V (Tlo, 07));
+      Shi := V (Thi, 11) + 60 * (V (Thi, 09) + 60 * V (Thi, 07));
+
+      return Shi <= Slo + 2;
+   end "=";
 
    ---------
    -- "<" --

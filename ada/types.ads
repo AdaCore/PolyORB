@@ -607,11 +607,18 @@ pragma Preelaborate (Types);
    Time_Stamp_Length : constant := 12;
    --  Length of time stamp value
 
-   type Time_Stamp_Type is new String (1 .. Time_Stamp_Length);
+   subtype Time_Stamp_Index is Natural range 1 .. Time_Stamp_Length;
+   type Time_Stamp_Type is new String (Time_Stamp_Index);
    --  Type used to represent time stamp
 
    Empty_Time_Stamp : constant Time_Stamp_Type := (others => ' ');
    --  Type used to represent an empty or missing time stamp.
+
+   function "="  (Left, Right : Time_Stamp_Type) return Boolean;
+   --  The equality test on time stamps allows a 2 second difference in
+   --  time stamps on the same date to be be counted as equal. This deals
+   --  with rounding effects in library file time stamps caused by copying
+   --  operations during installation, particularly on WinNT.
 
    function "<"  (Left, Right : Time_Stamp_Type) return Boolean;
    function "<=" (Left, Right : Time_Stamp_Type) return Boolean;

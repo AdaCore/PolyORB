@@ -1310,9 +1310,11 @@ package body Osint is
       for Additional_Source_Dir in False .. True loop
 
          if Additional_Source_Dir then
-            Search_Path := Getenv ("ADA_INCLUDE_PATH");
+            Search_Path := To_Canonical_Path_Spec
+              (Getenv ("ADA_INCLUDE_PATH").all);
          else
-            Search_Path := Getenv ("ADA_OBJECTS_PATH");
+            Search_Path := To_Canonical_Path_Spec
+              (Getenv ("ADA_OBJECTS_PATH").all);
          end if;
 
          Get_Next_Dir_In_Path_Init (Search_Path);
@@ -2109,6 +2111,100 @@ package body Osint is
       end if;
    end To_Canonical_File_Spec;
 
+   ----------------------------
+   -- To_Canonical_Path_Spec --
+   ----------------------------
+
+   function To_Canonical_Path_Spec
+     (Host_Path : String)
+      return String_Access
+   is
+      function To_Canonical_Path_Spec (Host_Path : Address) return Address;
+      pragma Import (C, To_Canonical_Path_Spec, "to_canonical_path_spec");
+
+      C_Host_Path         : String (1 .. Host_Path'Length + 1);
+      Canonical_Path_Addr : Address;
+      Canonical_Path_Len  : Integer;
+
+   begin
+      C_Host_Path (1 .. Host_Path'Length) := Host_Path;
+      C_Host_Path (C_Host_Path'Last)      := Ascii.NUL;
+
+      Canonical_Path_Addr := To_Canonical_Path_Spec (C_Host_Path'Address);
+      Canonical_Path_Len  := C_String_Length (Canonical_Path_Addr);
+
+      --  Return a null string (vice a null) for zero length paths, for
+      --  compatibility with getenv().
+      return To_Path_String_Access (Canonical_Path_Addr, Canonical_Path_Len);
+   end To_Canonical_Path_Spec;
+
+   ---------------------------
+   -- To_Host_Dir_Spec --
+   ---------------------------
+
+   function To_Host_Dir_Spec
+     (Canonical_Dir : String;
+      Prefix_Style  : Boolean)
+      return String_Access
+   is
+      function To_Host_Dir_Spec
+        (Canonical_Dir : Address;
+         Prefix_Flag   : Integer)
+         return Address;
+      pragma Import (C, To_Host_Dir_Spec, "to_host_dir_spec");
+
+      C_Canonical_Dir : String (1 .. Canonical_Dir'Length + 1);
+      Host_Dir_Addr   : Address;
+      Host_Dir_Len    : Integer;
+
+   begin
+      C_Canonical_Dir (1 .. Canonical_Dir'Length) := Canonical_Dir;
+      C_Canonical_Dir (C_Canonical_Dir'Last)      := Ascii.NUL;
+
+      if Prefix_Style then
+         Host_Dir_Addr := To_Host_Dir_Spec (C_Canonical_Dir'Address, 1);
+      else
+         Host_Dir_Addr := To_Host_Dir_Spec (C_Canonical_Dir'Address, 0);
+      end if;
+      Host_Dir_Len := C_String_Length (Host_Dir_Addr);
+
+      if Host_Dir_Len = 0 then
+         return null;
+      else
+         return To_Path_String_Access (Host_Dir_Addr, Host_Dir_Len);
+      end if;
+   end To_Host_Dir_Spec;
+
+   ----------------------------
+   -- To_Host_File_Spec --
+   ----------------------------
+
+   function To_Host_File_Spec
+     (Canonical_File : String)
+      return String_Access
+   is
+      function To_Host_File_Spec (Canonical_File : Address) return Address;
+      pragma Import (C, To_Host_File_Spec, "to_host_file_spec");
+
+      C_Canonical_File      : String (1 .. Canonical_File'Length + 1);
+      Host_File_Addr : Address;
+      Host_File_Len  : Integer;
+
+   begin
+      C_Canonical_File (1 .. Canonical_File'Length) := Canonical_File;
+      C_Canonical_File (C_Canonical_File'Last)      := Ascii.NUL;
+
+      Host_File_Addr := To_Host_File_Spec (C_Canonical_File'Address);
+      Host_File_Len  := C_String_Length (Host_File_Addr);
+
+      if Host_File_Len = 0 then
+         return null;
+      else
+         return To_Path_String_Access
+                  (Host_File_Addr, Host_File_Len);
+      end if;
+   end To_Host_File_Spec;
+
    ---------------------------
    -- To_Path_String_Access --
    ---------------------------
@@ -2224,13 +2320,17 @@ package body Osint is
       --  we don't want to print that all out in an error message, so the
       --  path might need to be stripped away. In addition to the default
       --  directory_separator allow the '/' to act as separator since this
-      --  is allowed in MS-DOS, Windows 95/NT, and OS2 ports.  In addition,
-      --  convert the name to lower case so error messages are the same on
-      --  all systems.
+      --  is allowed in MS-DOS, Windows 95/NT, and OS2 ports. On VMS, the
+      --  situation is more complicated because there are two characters to
+      --  check for. In addition, convert the name to lower case so error
+      --  messages are the same on all systems.
 
       for I in reverse Cindex1 .. Cindex2 loop
          if Command_Name (I) = Directory_Separator
            or else Command_Name (I) = '/'
+           or else (Hostparm.OpenVMS
+                    and then (Command_Name (I) = ']'
+                              or else Command_Name (I) = ':'))
          then
             Cindex1 := I + 1;
             exit;

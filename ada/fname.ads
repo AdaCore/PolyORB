@@ -158,7 +158,8 @@ package Fname is
       Renamings_Included : Boolean := True)
       return               Boolean;
    --  Similar to Is_Predefined_File_Name. The internal file set is a
-   --  superset of the predefined file set including children of GNAT.
+   --  superset of the predefined file set including children of GNAT,
+   --  and also children of DEC for the VMS case.
 
    function Is_Predefined_File_Name
      (Fname              : File_Name_Type;

@@ -35,6 +35,7 @@
 
 with Alloc;
 with Debug;    use Debug;
+with Hostparm; use Hostparm;
 with Krunch;
 with Namet;    use Namet;
 with Opt;      use Opt;
@@ -249,6 +250,13 @@ package body Fname is
       then
          return True;
 
+      elsif (OpenVMS or Debug_Flag_M)
+        and then
+          (Name_Buffer (1 .. 4) = "dec-"
+             or else Name_Buffer (1 .. 8) = "dec     ")
+      then
+         return True;
+
       else
          return False;
       end if;
@@ -260,6 +268,11 @@ package body Fname is
 
    --  This should really be a test of unit name, given the possibility of
    --  pragma Source_File_Name setting arbitrary file names for any files???
+
+   --  Once Is_Predefined_File_Name has been called and returns False,
+   --  Name_Buffer contains Fname and Name_Len is set to 8. This is used
+   --  only by Is_Internal_File_Name, and is not part of the official
+   --  external interface of this function.
 
    function Is_Predefined_File_Name
      (Fname              : File_Name_Type;

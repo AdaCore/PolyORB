@@ -177,9 +177,27 @@ package Osint is
       return String_Access;
    --  Convert a host syntax file specification (e.g. on a VMS host:
    --  "SYS$DEVICE:[DIR]FILE.EXT;69 to canonical (Unix) syntax (e.g.
-   --  "/sys$device/dir/file.ext.69"). The To_Canonical... routines
-   --  are used in GNATCmd for converting command line input to syntax
-   --  understood by the spawned Gnat tools.
+   --  "/sys$device/dir/file.ext.69").
+
+   function To_Canonical_Path_Spec
+     (Host_Path : String)
+      return String_Access;
+   --  Convert a host syntax Path specification (e.g. on a VMS host:
+   --  "SYS$DEVICE:[BAR],DISK$USER:[FOO] to canonical (Unix) syntax (e.g.
+   --  "/sys$device/foo:disk$user/foo").
+
+   function To_Host_Dir_Spec
+     (Canonical_Dir : String;
+      Prefix_Style  : Boolean)
+      return String_Access;
+   --  Convert a canonical syntax directory specification to host syntax.
+   --  The Prefix_Style flag is currently ignored but should be set to
+   --  False.
+
+   function To_Host_File_Spec
+     (Canonical_File : String)
+      return String_Access;
+   --  Convert a canonical syntax file specification to host syntax.
 
    -------------------------
    -- Search Dir Routines --
