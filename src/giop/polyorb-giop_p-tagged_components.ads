@@ -45,32 +45,31 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    Tagged_Components_Error : exception;
 
+   type Tag_Value is new Types.Unsigned_Long;
+
    ----------------------
    -- Tagged_Component --
    ----------------------
 
-   type Tagged_Component is abstract tagged private;
+   type Tagged_Component (Tag : Tag_Value) is abstract tagged private;
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
    procedure Marshall
      (C      : access Tagged_Component;
       Buffer : access Buffer_Type)
       is abstract;
+   --  Marshall tagged component
 
    procedure Unmarshall
      (C      : access Tagged_Component;
       Buffer : access Buffer_Type)
       is abstract;
-
-   function Get_Tag
-     (C : access Tagged_Component)
-     return Types.Unsigned_Long
-      is abstract;
+   --  Unmarshall tagged component
 
    procedure Release_Contents
      (C : access Tagged_Component)
       is abstract;
-   --  free memory associate with component
+   --  Free memory associate with component
 
    ---------------------------
    -- Tagged_Component_List --
@@ -79,26 +78,32 @@ package PolyORB.GIOP_P.Tagged_Components is
    type Tagged_Component_List is private;
 
    Null_Tagged_Component_List : constant Tagged_Component_List;
+   --  Empty list
 
    procedure Release_Contents
      (List : Tagged_Component_List);
+   --  Free memory for all tags in list
 
    procedure Marshall_Tagged_Component
      (Buffer     : access Buffer_Type;
       Components :        Tagged_Component_List);
+   --  Marshall Tagged Component List
 
    function Unmarshall_Tagged_Component
      (Buffer     : access Buffer_Type)
      return Tagged_Component_List;
+   --  Unarshall Tagged Component List
 
    function Get_Component
      (List : Tagged_Component_List;
-      Tag  : Types.Unsigned_Long)
+      Tag  : Tag_Value)
      return Tagged_Component_Access;
+   --  Search and return a component in a tagged component list
 
    procedure Add
      (List : in out Tagged_Component_List;
       C    :        Tagged_Component_Access);
+   --  Add a component in a tagged component list
 
    -------------------------
    -- Register components --
@@ -108,16 +113,24 @@ package PolyORB.GIOP_P.Tagged_Components is
      function return Tagged_Component_Access;
 
    procedure Register
-     (Tag : Types.Unsigned_Long;
+     (Tag : Tag_Value;
       F   : New_Component_Func_Access);
+   --  Register a new kind of tagged component
+   --  This procedure must be called to activate a new kind of components
 
    -----------------------
    -- Unknown Component --
    -----------------------
 
-   type Octet_Access is access all Ada.Streams.Stream_Element_Array;
+   --  Unknown component is used when tag is unknown at unmarshalling time
+   --  Users cannot access to unknown components data,
+   --  but unknown components can be remarshalled without being modified
 
-   type TC_Unknown_Component is new Tagged_Component with private;
+   type Octet_Access is access all Ada.Streams.Stream_Element_Array;
+   --  Data in an unknow tagged component
+
+   type TC_Unknown_Component is
+     new Tagged_Component (Tag_Value'Last) with private;
    type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
 
    procedure Marshall
@@ -128,33 +141,41 @@ package PolyORB.GIOP_P.Tagged_Components is
      (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
-   function Get_Tag
-     (C : access TC_Unknown_Component)
-     return Types.Unsigned_Long;
-
-   function Get_Data
-     (C : access TC_Unknown_Component)
-     return Octet_Access;
-
    procedure Release_Contents
      (C : access TC_Unknown_Component);
 
+   --------------
+   -- Tag List --
+   --------------
+
+   Tag_Group : constant Tag_Value;
+
 private
 
-   type Tagged_Component is abstract tagged record
-      Tag : Types.Unsigned_Long := Types.Unsigned_Long'Last;
-   end record;
+   type Tagged_Component (Tag : Tag_Value) is abstract tagged null record;
 
-   type TC_Unknown_Component is new Tagged_Component with record
-      Data : Octet_Access;
-   end record;
+   type TC_Unknown_Component is
+     new Tagged_Component (Tag_Value'Last) with record
+        Unknown_Tag : Tag_Value;
+        Data : Octet_Access;
+     end record;
 
    package Component_Seq is new
      PolyORB.Sequences.Unbounded (Tagged_Component_Access);
+
+   --  Tagged component list
 
    type Tagged_Component_List is new Component_Seq.Sequence;
 
    Null_Tagged_Component_List : constant Tagged_Component_List :=
      Tagged_Component_List (Component_Seq.Null_Sequence);
+
+   --------------
+   -- Tag List --
+   --------------
+
+   --  Tag_Group : constant Tag_Value := 39;
+   --  TAO Value
+   Tag_Group : constant Tag_Value := 1413566211;
 
 end PolyORB.GIOP_P.Tagged_Components;
