@@ -36,8 +36,6 @@
 
 --  $Id$
 
-with Ada.Exceptions;
-
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
