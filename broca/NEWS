@@ -1,6 +1,12 @@
 AdaBroker news
 --------------
 
+New features in version 1.0pre3
+===============================
+
+A package Broca.Parameters allows the person installing AdaBroker to
+change the default stack size in server tasks.
+
 New features in version 1.0pre2
 ===============================
 
