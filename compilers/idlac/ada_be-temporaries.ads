@@ -35,52 +35,27 @@
 
 package Ada_Be.Temporaries is
 
-   pragma Pure;
-   pragma Warnings (Off);
+   pragma Preelaborate;
 
-   T_Handler             : constant String;
-   T_Returns             : constant String;
-   T_Send_Request_Result : constant String;
-   T_Self_Ref            : constant String;
-   T_Exception_Repo_Id   : constant String;
-   T_Members             : constant String;
-   T_Impl_Object_Ptr     : constant String;
-   T_Value_Operation     : constant String;
+   function T_Handler return String;
+   function T_Returns return String;
+   function T_Send_Request_Result return String;
+   function T_Self_Ref return String;
+   function T_Exception_Repo_Id return String;
+   function T_Members return String;
+   function T_Impl_Object_Ptr return String;
+   function T_Value_Operation return String;
 
-   T_Request             : constant String;
-   T_Ctx                 : constant String;
-   T_Argument            : constant String;
-   T_Arg_Name            : constant String;
-   T_Arg_List            : constant String;
-   T_Excp_List           : constant String;
-   T_Result              : constant String;
-   T_Result_Name         : constant String;
-   T_Operation_Name      : constant String;
+   function T_Request return String;
+   function T_Ctx return String;
+   function T_Argument return String;
+   function T_Arg_Name return String;
+   function T_Arg_List return String;
+   function T_Excp_List return String;
+   function T_Result return String;
+   function T_Result_Name return String;
+   function T_Operation_Name return String;
 
-   T_J                   : constant String;
-
-private
-
-   T_Handler             : constant String := "Handler_Ü";
-   T_Returns             : constant String := "Return_Ü";
-   T_Self_Ref            : constant String := "Self_Ref_Ü";
-   T_Send_Request_Result : constant String := "Send_Request_Result_Ü";
-   T_Exception_Repo_Id   : constant String := "Exception_Repo_Id_Ü";
-   T_Members             : constant String := "Members_Ü";
-   T_Impl_Object_Ptr     : constant String := "Object_Ü";
-   T_Value_Operation     : constant String := "Op_Ü";
-
-
-   T_Request             : constant String := "Request_Ü";
-   T_Ctx                 : constant String := "Ctx_Ü";
-   T_Argument            : constant String := "Argument_Ü_";
-   T_Arg_Name            : constant String := "Arg_Name_Ü_";
-   T_Arg_List            : constant String := "Arg_List_Ü";
-   T_Excp_List           : constant String := "Excp_List_Ü";
-   T_Result              : constant String := "Result_Ü";
-   T_Result_Name         : constant String := "Result_Name_Ü";
-   T_Operation_Name      : constant String := "Operation_Name_Ü";
-
-   T_J                   : constant String := "J_Ü";
+   function T_J return String;
 
 end Ada_Be.Temporaries;

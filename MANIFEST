@@ -43,6 +43,7 @@ compilers/idlac/ada_be-mappings-corba.ads
 compilers/idlac/ada_be-mappings.ads
 compilers/idlac/ada_be-source_streams.adb
 compilers/idlac/ada_be-source_streams.ads
+compilers/idlac/ada_be-temporaries.adb
 compilers/idlac/ada_be-temporaries.ads
 compilers/idlac/ada_be.ads
 compilers/idlac/ada_be.opt

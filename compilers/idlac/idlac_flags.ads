@@ -37,12 +37,16 @@ package Idlac_Flags is
 
    pragma Preelaborate;
 
-   Generate_Impl_Template : Boolean := False;
-   Keep_Temporary_Files   : Boolean := False;
-   Preprocess_Only        : Boolean := False;
-   To_Stdout              : Boolean := False;
-   Verbose                : Boolean := True;
-   Generate_Delegate      : Boolean := False;
-   Generate_Dyn           : Boolean := True;
-   Generate_IR            : Boolean := True;
+   type Encoding is (ISO_Latin_1, UTF_8);
+
+   Generate_Impl_Template : Boolean  := False;
+   Keep_Temporary_Files   : Boolean  := False;
+   Preprocess_Only        : Boolean  := False;
+   To_Stdout              : Boolean  := False;
+   Verbose                : Boolean  := True;
+   Generate_Delegate      : Boolean  := False;
+   Generate_Dyn           : Boolean  := True;
+   Generate_IR            : Boolean  := True;
+   Character_Encoding     : Encoding := ISO_Latin_1;
+
 end Idlac_Flags;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idlac.adb#7 $
+--  $Id$
 
 with Ada.Text_IO;       use Ada.Text_IO;
 with Ada.Command_Line;  use Ada.Command_Line;
@@ -73,6 +73,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -q     Be quiet.");
       Put_Line (Current_Error, "  -noir  Don't generate code for "
                 & "interface repository.");
+      Put_Line (Current_Error, "  -gnatW8");
+      Put_Line (Current_Error, "         Use UTF8 character encoding");
       Put_Line (Current_Error, "  -cppargs ARGS");
       Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
@@ -89,7 +91,7 @@ begin
 
       loop
 --         case Getopt ("E I: d i k p q nodyn noir") is
-         case Getopt ("E I: d i k p q noir") is
+         case Getopt ("E I: d i k p q noir gnatW8") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -120,6 +122,9 @@ begin
 
             when 'q' =>
                Verbose := False;
+
+            when 'g' =>
+               Character_Encoding := UTF_8;
 
             when others =>
                --  This never happens.
