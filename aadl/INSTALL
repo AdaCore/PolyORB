@@ -1,0 +1,17 @@
+This file details the compilation and installation of AADL Parser.
+
+Supported Platforms
+-------------------
+
+AADL Parser has been compiled and successfully tested on the following platforms:
+
+- FreeBSD
+- Linux
+
+
+Build instructions
+------------------
+
+To compile AADL Parser, execute:
+
+make
