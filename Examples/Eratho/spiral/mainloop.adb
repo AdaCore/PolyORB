@@ -1,9 +1,9 @@
 --  Predefined Libraries
 with Ada.Text_IO; use Ada.Text_IO;
-with System.RPC;  use System.RPC;
 
 --  User Defined Libraries
 with Prime_1;
+with Common; use Common;
 
 procedure Mainloop is
 

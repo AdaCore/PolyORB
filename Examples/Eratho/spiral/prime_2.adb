@@ -1,17 +1,15 @@
---  Predefined Libraries
-with System.RPC; use System.RPC;
-
 --  User Defined Libraries
 with Prime_3;
+with Common; use Common;
 
 package body Prime_2 is
 
    --  Local Prime Table stuff
-   type Index is range 0 .. 10;
-   Local_Prime_Table   : array (Index) of Natural;
+   type Prime_Index is range 0 .. 10;
+   Local_Prime_Table   : array (Prime_Index) of Natural;
 
-   Last_Prime_Index    : Index := 0;
-   Current_Prime_Index : Index := 1;
+   Last_Prime_Index    : Prime_Index := 0;
+   Current_Prime_Index : Prime_Index := 1;
 
    procedure Test_Primarity
      (Number   : in  Natural;

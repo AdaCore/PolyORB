@@ -1,5 +1,5 @@
---  Predefined Libraries
-with System.RPC; use System.RPC;
+--  User Defined Libraries
+with Common; use Common;
 
 package Prime_2 is
    pragma Remote_Call_Interface;
