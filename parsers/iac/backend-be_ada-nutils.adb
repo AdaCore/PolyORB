@@ -265,11 +265,11 @@ package body Backend.BE_Ada.Nutils is
       New_Token (Tok_Vertical_Bar, "|");
       New_Token (Tok_Dot_Dot, "..");
 
-      for P in Parameter_Id loop
-         Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
+      for A in Attribute_Id loop
+         Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
-         PN (P) := Name_Find;
+         AN (A) := Name_Find;
       end loop;
 
       for C in Component_Id loop
@@ -279,11 +279,11 @@ package body Backend.BE_Ada.Nutils is
          CN (C) := Name_Find;
       end loop;
 
-      for A in Attribute_Id loop
-         Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
+      for P in Parameter_Id loop
+         Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
-         AN (A) := Name_Find;
+         PN (P) := Name_Find;
       end loop;
 
       for S in Subprogram_Id loop
@@ -291,6 +291,13 @@ package body Backend.BE_Ada.Nutils is
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          SN (S) := Name_Find;
+      end loop;
+
+      for T in Type_Id loop
+         Set_Str_To_Name_Buffer (Type_Id'Image (T));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Capitalize (Name_Buffer (1 .. Name_Len));
+         TN (T) := Name_Find;
       end loop;
 
       for V in Variable_Id loop

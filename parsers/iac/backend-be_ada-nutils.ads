@@ -165,6 +165,10 @@ package Backend.BE_Ada.Nutils is
 
    AN : array (Attribute_Id) of Name_Id;
 
+   type Type_Id is
+     (T_Ref);
+
+   TN : array (Type_Id) of Name_Id;
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 

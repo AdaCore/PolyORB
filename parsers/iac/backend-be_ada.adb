@@ -161,19 +161,14 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (PN (P_Self)), RE (RE_Ref_0));
       Append_Node_To_List (Parameter, Parameters);
 
-      --  XXX LP I don't get this.
-
-      --  if Is_Base_Type (Type_Spec (Declaration (Attribute))) then
       Param_Type := Make_Designator
         (Type_Spec (Declaration (Attribute)));
-      --  else
-      --    Param_Type := Make_Fully_Qualified_Identifier
-      --      (Type_Spec (Declaration (Attribute)));
-      --  end if;
+
       Bind_FE_To_BE
         (Type_Spec (Declaration (Attribute)),
          Defining_Identifier (Param_Type));
-      --  For the setter subprogram, add the second parameter To. T
+
+      --  For the setter subprogram, add the second parameter To.
 
       if Accessor = Setter then
          Parameter := Make_Parameter_Specification
@@ -465,7 +460,10 @@ package body Backend.BE_Ada is
    ---------------------
 
    function Marshaller_Body
-     (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id is
+     (Subp_Spec       : Node_Id;
+      Local_Variables : List_Id)
+      return            List_Id
+   is
       pragma Unreferenced (Local_Variables);
       L     : List_Id;
       N     : Node_Id;
@@ -473,10 +471,12 @@ package body Backend.BE_Ada is
       P     : List_Id;
       S     : List_Id;
       Count : Natural;
+
    begin
       L := New_List (BEN.K_List_Id);
 
       --  Test if the Self_Ref_U is nil, if it's nil raise exception.
+
       C := New_Node (BEN.K_Subprogram_Call);
       Set_Defining_Identifier
         (C, RE (RE_Raise_Inv_Objref));
@@ -497,6 +497,7 @@ package body Backend.BE_Ada is
       Append_Node_To_List (N, L);
 
       --  Create argument list.
+
       C := New_Node (K_Subprogram_Call);
       Set_Defining_Identifier
         (C, RE (RE_Create));
@@ -545,6 +546,7 @@ package body Backend.BE_Ada is
         (Variable_Identifier => Make_Defining_Identifier (VN (V_Result_Name)),
          Expression => N);
       Append_Node_To_List (N, L);
+
       return L;
    end Marshaller_Body;
 
@@ -552,8 +554,7 @@ package body Backend.BE_Ada is
    -- Marshaller_Declarations --
    -----------------------------
 
-   function Marshaller_Declarations
-     (Subp_Spec : Node_Id) return List_Id is
+   function Marshaller_Declarations (Subp_Spec : Node_Id) return List_Id is
       L : List_Id;
       P : List_Id;
       N : Node_Id;
@@ -921,16 +922,16 @@ package body Backend.BE_Ada is
       else
          N := Make_Designator (First_Entity (L));
       end if;
-      --  N :=
-      --   Make_Full_Type_Declaration
-      --  (RE (RE_Ref_0),
-      --   Make_Derived_Type_Definition
-      --      (Subtype_Indication    => N,
-      --        Record_Extension_Part =>
-      --          Make_Record_Type_Definition
-      --            (Record_Definition => Make_Record_Definition (No_List))));
-      --   Append_Node_To_List
-      --   (N, Visible_Part (Current_Package));
+      N :=
+        Make_Full_Type_Declaration
+          (Make_Defining_Identifier (TN (T_Ref)),
+           Make_Derived_Type_Definition
+             (Subtype_Indication    => N,
+              Record_Extension_Part =>
+                Make_Record_Type_Definition
+                  (Record_Definition => Make_Record_Definition (No_List))));
+      Append_Node_To_List
+        (N, Visible_Part (Current_Package));
       Append_Node_To_List
         (Make_Repository_Declaration (E), Visible_Part (Current_Package));
 
