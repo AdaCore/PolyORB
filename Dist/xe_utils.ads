@@ -198,7 +198,8 @@ package XE_Utils is
    --  displayed.
 
    procedure Remove_GNAT_Flag (Flag : in String);
-   --  Remove Flag from command line flags.
+   --  Remove from command line any gnat flag beginning with string
+   --  Flag.
 
    procedure Source_File_Error (Uname : Types.Unit_Name_Type);
    --  Write standard error message when we cannot find a source file

@@ -1,3 +1,11 @@
+1999-10-09  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Remove occurrences of -gnaty* and -gnatg when
+ 	compiling GLADE generated files. Fix 7001-009.
+	
+	* xe_utils.ads, xe_utils.adb: Enhance Remove_GNAT_Flag in order to 
+	remove any gnat flag beginning with a given string.
+	
 1999-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb: Remove occurences of -gnaty when compiling

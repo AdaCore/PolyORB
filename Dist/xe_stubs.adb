@@ -173,6 +173,7 @@ package body XE_Stubs is
          end if;
       end loop;
 
+      Remove_GNAT_Flag ("g");
       Remove_GNAT_Flag ("y");
 
       --  Create and fill partition directories.
