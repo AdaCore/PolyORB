@@ -10,8 +10,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams; use Ada.Streams;
+
 with CORBA;
 with CORBA.Abstractbase;
+with CORBA.Object;
 
 with Droopi.Buffers; use Droopi.Buffers;
 
@@ -214,9 +217,6 @@ package Droopi.Representations.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.ValueModifier);
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in CORBA.ValueModifier);
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.ValueModifier;
 
@@ -276,15 +276,16 @@ package Droopi.Representations.CDR is
    procedure Unmarshall (Buffer : access Buffer_Type;
                          NV : in out CORBA.NamedValue);
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Encapsulation);
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Encapsulation);
-
-   function Unmarshall (Buffer : access Buffer_Type)
-     return Encapsulation;
+   --  XXX Encapsulation is a subtype of Stream_Element_Array.
+--     procedure Marshall
+--       (Buffer : access Buffer_Type;
+--        Data   : access Encapsulation);
+--     procedure Marshall
+--       (Buffer : access Buffer_Type;
+--        Data   : in Encapsulation);
+--
+--     function Unmarshall (Buffer : access Buffer_Type)
+--       return Encapsulation;
 
    procedure Start_Encapsulation
      (Buffer : access Buffer_Type);
@@ -328,7 +329,6 @@ package Droopi.Representations.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return Stream_Element_Array;
-
 
    generic
       type F is delta <> digits <>;

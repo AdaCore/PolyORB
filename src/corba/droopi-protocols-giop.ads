@@ -192,7 +192,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Locate_Reply_Unmarshall
      (Buffer        : access Buffer_Type;
-      Request_Id    : out Corba.Unsigned_Long;
+      Request_Id    : out CORBA.Unsigned_Long;
       Locate_Status : out Locate_Status_Type);
 
 
@@ -205,13 +205,13 @@ package Droopi.Protocols.GIOP is
      (Ses               : access GIOP_Session;
       Response_Expected : in Boolean;
       Message_Size      : in CORBA.Unsigned_Long;
-      Fragment_Next     : out boolean);
+      Fragment_Next     : out Boolean);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
       Request_Id    : in CORBA.Unsigned_Long;
       Message_Size  : in CORBA.Unsigned_Long;
-      Fragment_Next : out boolean);
+      Fragment_Next : out Boolean);
 
 
    procedure Exception_Reply
@@ -309,7 +309,7 @@ private
 
    type Pending_Request is record
       Req             : Requests.Request_Access;
-      Request_Id      : Corba.Unsigned_Long := 0;
+      Request_Id      : CORBA.Unsigned_Long := 0;
       Target_Profile  : Binding_Data.Profile_Access;
    end record;
 
