@@ -260,6 +260,12 @@ package Broca.Buffers is
    --  On return, Data contains an access to the retrieved
    --  Data, and the CDR current position is advanced by Size.
 
+
+   function CDR_Position (Buffer : access Buffer_Type)
+     return Index_Type;
+   --  return the current CDR position of the buffer
+   --  in the marshalling stream.
+
    -------------------------
    -- Utility subprograms --
    -------------------------

@@ -35,11 +35,17 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 with Interfaces;
 with Broca.Debug;
+
 with Broca.Exceptions;
+with Broca.Exceptions.Stack;
+with Ada.Exceptions;
 with Broca.Object;
 
 with CORBA.Impl;
 with CORBA.Object.Helper;
+
+with CORBA.Value;
+with Broca.Value.Stream;
 
 package body Broca.CDR is
 
@@ -2312,20 +2318,26 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.AbstractBase.Ref'Class) is
    begin
-      if CORBA.AbstractBase.Is_Nil (Data) then
-         Broca.Exceptions.Raise_Marshal;
-      end if;
+      if Data in CORBA.Value.Base'Class then
+         Broca.Value.Stream.Marshall (Buffer,
+                                      CORBA.Value.Base'Class (Data));
+      else
 
-      --  Make a redispatching call on the designated
-      --  object.
-      declare
-         P : constant CORBA.Impl.Object_Ptr
-           := CORBA.AbstractBase.Object_Of (Data);
-      begin
-         CORBA.Impl.Marshall
-           (Buffer,
-            CORBA.Impl.Object'Class (P.all));
-      end;
+         if CORBA.AbstractBase.Is_Nil (Data) then
+            Broca.Exceptions.Raise_Marshal;
+         end if;
+
+         --  Make a redispatching call on the designated
+         --  object.
+         declare
+            P : constant CORBA.Impl.Object_Ptr
+              := CORBA.AbstractBase.Object_Of (Data);
+         begin
+            CORBA.Impl.Marshall
+              (Buffer,
+               CORBA.Impl.Object'Class (P.all));
+         end;
+      end if;
    end Marshall;
 
    ----------------
@@ -2355,6 +2367,54 @@ package body Broca.CDR is
       Unmarshall (Buffer, New_Ref);
       return New_Ref;
    end Unmarshall;
+
+
+   -------------------------
+   --  System Exceptions  --
+   -------------------------
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Excpt  : in CORBA.Exception_Occurrence)
+   is
+      Members : CORBA.System_Exception_Members;
+   begin
+      Broca.Exceptions.Get_Members (Excpt, Members);
+      Marshall (Buffer,
+                CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
+      Marshall (Buffer, Members.Minor);
+      Marshall (Buffer,
+                Broca.Exceptions.To_Unsigned_Long (Members.Completed));
+   end Marshall;
+
+   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
+      use Ada.Exceptions;
+      Minor      : CORBA.Unsigned_Long;
+      Status     : CORBA.Unsigned_Long;
+      Identity   : Exception_Id;
+      Repository : CORBA.String;
+   begin
+      Repository := Unmarshall (Buffer);
+      Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
+        (CORBA.To_Standard_String (Repository));
+
+      if Identity = Null_Id then
+         --  If not found, this is a marshal error.
+         Identity := CORBA.Marshal'Identity;
+         Minor := 0;
+         Status := Completion_Status'Pos (Completed_Maybe);
+      end if;
+
+      Minor := Unmarshall (Buffer);
+      Status := Unmarshall (Buffer);
+
+      --  Raise the exception.
+      Broca.Exceptions.Stack.Raise_Exception
+        (Identity,
+         CORBA.System_Exception_Members'
+         (Minor,
+          Broca.Exceptions.To_Completion_Status (Status)));
+   end Unmarshall_And_Raise;
 
    -----------------
    -- Fixed_Point --

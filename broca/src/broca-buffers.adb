@@ -340,6 +340,13 @@ package body Broca.Buffers is
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
    end Extract_Data;
 
+
+   function CDR_Position (Buffer : access Buffer_Type) return Index_Type is
+   begin
+      return Buffer.CDR_Position;
+   end CDR_Position;
+
+
    -------------------------
    -- Utility subprograms --
    -------------------------

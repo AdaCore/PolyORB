@@ -315,8 +315,6 @@ package Broca.CDR is
 
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)
-   --  The two procedures are used for all object references,
-   --  including Valuetypes.
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -329,6 +327,15 @@ package Broca.CDR is
    function Unmarshall
      (Buffer : access Buffer_Type)
       return CORBA.Object.Ref;
+
+   --  marshalling and unmarshalling of system exceptions
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Excpt  : in CORBA.Exception_Occurrence);
+
+   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type);
+   pragma No_Return (Unmarshall_And_Raise);
+
 
    generic
       type F is delta <> digits <>;

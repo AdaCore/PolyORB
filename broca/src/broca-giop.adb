@@ -242,7 +242,7 @@ package body Broca.GIOP is
       Marshall (Buffer, Broca.GIOP.System_Exception);
 
       --  Exception
-      Broca.Exceptions.Marshall (Buffer, Occurence);
+      Broca.CDR.Marshall (Buffer, Occurence);
    end Marshall;
 
    --------------
@@ -471,7 +471,7 @@ package body Broca.GIOP is
                return;
 
             when Broca.GIOP.System_Exception =>
-               Broca.Exceptions.Unmarshall_And_Raise
+               Broca.CDR.Unmarshall_And_Raise
                  (Message_Body_Buffer'Access);
 
             when Broca.GIOP.Location_Forward =>

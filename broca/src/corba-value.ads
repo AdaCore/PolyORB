@@ -64,5 +64,4 @@ package CORBA.Value is
       Logical_Type_Id : Standard.String)
       return CORBA.Boolean;
 
-
 end CORBA.Value;

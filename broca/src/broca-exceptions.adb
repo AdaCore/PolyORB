@@ -34,7 +34,6 @@
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
-with Broca.CDR;
 with Broca.Exceptions.Stack;
 with Broca.Names; use Broca.Names;
 
@@ -112,18 +111,6 @@ package body Broca.Exceptions is
        Name => new String'("INVALID_TRANSACTION")));
 
 
-   ------------------------------------------------------------
-   -- conversion between Unsigned_Long and Completion_Status --
-   ------------------------------------------------------------
-
-   To_Unsigned_Long :
-     constant array (Completion_Status) of CORBA.Unsigned_Long
-     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
-
-   To_Completion_Status :
-     constant array (CORBA.Unsigned_Long range 0 .. 2) of Completion_Status
-     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
-
 
    -----------------------
    --  User_Get_Members --
@@ -147,6 +134,20 @@ package body Broca.Exceptions is
    --------------------------------
    -- System exception handling  --
    --------------------------------
+
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : in Standard.String)
+     return Ada.Exceptions.Exception_Id is
+      Result : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
+   begin
+      for I in Mapping'Range loop
+         if RepoId = OMG_RepositoryId (Mapping (I) .Name.all) then
+            Result := Mapping (I) .Exc;
+            exit;
+         end if;
+      end loop;
+      return Result;
+   end Get_ExcepId_By_RepositoryId;
 
    ----------------------
    --  Raise_Exception --
@@ -342,9 +343,6 @@ package body Broca.Exceptions is
 
    -----------------------------------------------------------------------
 
-   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
-                                return CORBA.RepositoryId;
-
    --  System exceptions.
    --  Same as CORBA.To_CORBA_String, but redefined to avoid circular
    --  elaboration.
@@ -371,60 +369,6 @@ package body Broca.Exceptions is
       end loop;
       raise Program_Error;
    end Occurrence_To_Name;
-
-   --------------
-   -- Marshall --
-   --------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Excpt  : in CORBA.Exception_Occurrence)
-   is
-      use Broca.CDR;
-      Members : System_Exception_Members;
-   begin
-      Get_Members (Excpt, Members);
-      Marshall (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
-      Marshall (Buffer, Members.Minor);
-      Marshall (Buffer, To_Unsigned_Long (Members.Completed));
-   end Marshall;
-
-   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type) is
-      use Broca.CDR;
-      use Ada.Exceptions;
-      Minor      : CORBA.Unsigned_Long;
-      Status     : CORBA.Unsigned_Long;
-      Identity   : Exception_Id;
-      Repository : CORBA.String;
-   begin
-      Repository := Unmarshall (Buffer);
-      declare
-         R : constant String  := To_Standard_String (Repository);
-      begin
-         Identity := Null_Id;
-         for I in Mapping'Range loop
-            if R = OMG_RepositoryId (Mapping (I) .Name.all) then
-               Identity := Mapping (I) .Exc;
-               exit;
-            end if;
-         end loop;
-      end;
-
-      if Identity = Null_Id then
-         --  If not found, this is a marshal error.
-         Identity := CORBA.Marshal'Identity;
-         Minor := 0;
-         Status := Completion_Status'Pos (Completed_Maybe);
-      end if;
-
-      Minor := Unmarshall (Buffer);
-      Status := Unmarshall (Buffer);
-
-      --  Raise the exception.
-      Raise_Exception
-        (Identity,
-         System_Exception_Members'(Minor, To_Completion_Status (Status)));
-   end Unmarshall_And_Raise;
 
 
 end Broca.Exceptions;

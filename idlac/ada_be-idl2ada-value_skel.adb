@@ -53,7 +53,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             NL (CU);
             PL (CU, "function Is_A");
             Add_With (CU, "CORBA");
-            PL (CU, "  (Type_Id : CORBA.RepositoryId)");
+            PL (CU, "  (Logical_Type_Id : Standard.String)");
             PL (CU, "  return CORBA.Boolean;");
             NL (CU);
 

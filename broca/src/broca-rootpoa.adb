@@ -1330,7 +1330,7 @@ package body Broca.RootPOA is
                   Broca.CDR.Marshall (Reply, Request_Id);
                   Broca.GIOP.Marshall
                     (Reply, Broca.GIOP.System_Exception);
-                  Broca.Exceptions.Marshall (Reply, E);
+                  Broca.CDR.Marshall (Reply, E);
                end if;
          end;
 
