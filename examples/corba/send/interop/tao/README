@@ -1,7 +1,7 @@
 Interoperability with TAO's MIOP stack
 --------------------------------------
 
-$Id$
+$Id: //droopi/main/examples/corba/send/interop/tao/README#3 $
 
 TAO must be installed and configured, environement variables
 $ACE_ROOT et $TAO_ROOT set. Compile with 'make'.
