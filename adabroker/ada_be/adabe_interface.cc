@@ -916,6 +916,7 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   with.add ("AdaBroker.MemBufferedStream");
   with.add ("AdaBroker.OmniRopeAndKey");
   with.add ("AdaBroker.GIOP");
+  with.add ("AdaBroker.Exceptions");
   with.add ("CORBA");
   with.add ("CORBA.Object");
   with.add ("CORBA.Object.OmniORB");

@@ -1,6 +1,6 @@
-with all_types.Skeleton ;
-with CORBA ;
-with CORBA.Object ;
+with all_types.Skeleton;
+with CORBA;
+with CORBA.Object;
 with CORBA.Object.OmniORB;
 
 
@@ -16,7 +16,7 @@ package body all_types.Impl is
    function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoShort
@@ -24,7 +24,7 @@ package body all_types.Impl is
    function echoShort(Self : access Object; arg : in CORBA.Short) return CORBA.Short is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoLong
@@ -32,7 +32,7 @@ package body all_types.Impl is
    function echoLong(Self : access Object; arg : in CORBA.Long) return CORBA.Long is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoUShort
@@ -40,7 +40,7 @@ package body all_types.Impl is
    function echoUShort(Self : access Object; arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoULong
@@ -48,7 +48,7 @@ package body all_types.Impl is
    function echoULong(Self : access Object; arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoFloat
@@ -56,7 +56,7 @@ package body all_types.Impl is
    function echoFloat(Self : access Object; arg : in CORBA.Float) return CORBA.Float is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoDouble
@@ -64,7 +64,7 @@ package body all_types.Impl is
    function echoDouble(Self : access Object; arg : in CORBA.Double) return CORBA.Double is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoChar
@@ -72,7 +72,7 @@ package body all_types.Impl is
    function echoChar(Self : access Object; arg : in CORBA.Char) return CORBA.Char is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoOctet
@@ -80,7 +80,7 @@ package body all_types.Impl is
    function echoOctet(Self : access Object; arg : in CORBA.Octet) return CORBA.Octet is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echoString
@@ -88,23 +88,23 @@ package body all_types.Impl is
    function echoString(Self : access Object; arg : in CORBA.String) return CORBA.String is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  simple_exception_test
    -------------------------------
    procedure simple_exception_test(Self : access Object) is 
    begin 
-      raise Simple_Exception ;
+      raise Simple_Exception;
    end;
 
 
    procedure complexe_exception_test(Self : access Object) is
-      Member : Complexe_Exception_Members ;
+      Member : Complexe_Exception_Members;
    begin
-      Member.Excep := 21 ;
-      CORBA.Raise_Corba_Exception (Complexe_Exception'Identity,
-                                   Member) ;
+      Member.Excep := 21;
+      AdaBroker.Exceptions.Raise_Corba_Exception
+        (Complexe_Exception'Identity, Member);
    end;
 
 
@@ -113,7 +113,7 @@ package body all_types.Impl is
    function echo1(Self : access Object; arg : in example) return example is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo2
@@ -121,7 +121,7 @@ package body all_types.Impl is
    function echo2(Self : access Object; arg : in simple_struct) return simple_struct is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo3
@@ -129,7 +129,7 @@ package body all_types.Impl is
    function echo3(Self : access Object; arg : in Color) return Color is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo4
@@ -137,7 +137,7 @@ package body all_types.Impl is
    function echo4(Self : access Object; arg : in U_string) return U_string is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo6
@@ -145,7 +145,7 @@ package body all_types.Impl is
    function echo6(Self : access Object; arg : in U_sequence) return U_sequence is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo7
@@ -153,25 +153,25 @@ package body all_types.Impl is
    function echo7(Self : access Object; arg : in B_sequence) return B_sequence is
    begin 
       return arg;
-   end ;
+   end;
 
 
    function Get_R_attribute(Self : access Object) return Color is
    begin
-      return Self.all.Pd_Col ;
-   end ;
+      return Self.all.Pd_Col;
+   end;
 
 
    function Get_N_attribute(Self : access Object) return example is
    begin
-      return Self.all.Pd_Ex ;
-   end ;
+      return Self.all.Pd_Ex;
+   end;
 
 
-   procedure Set_N_attribute(Self : access Object ; To : in example) is
+   procedure Set_N_attribute(Self : access Object; To : in example) is
    begin
-      Self.all.Pd_Ex := To ;
-   end ;
+      Self.all.Pd_Ex := To;
+   end;
 
 
    --  echo8
@@ -179,7 +179,7 @@ package body all_types.Impl is
    function echo8(Self : access Object; arg : in line) return line is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo9
@@ -187,7 +187,7 @@ package body all_types.Impl is
    function echo9(Self : access Object; arg : in square) return square is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo10
@@ -195,7 +195,7 @@ package body all_types.Impl is
    function echo10(Self : access Object; arg : in cube) return cube is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo11
@@ -203,7 +203,7 @@ package body all_types.Impl is
    function echo11(Self : access Object; arg : in Ref) return Ref is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  echo12
@@ -211,7 +211,7 @@ package body all_types.Impl is
    function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref is
    begin 
       return arg;
-   end ;
+   end;
 
 
    --  get_myself
@@ -222,11 +222,7 @@ package body all_types.Impl is
       CORBA.Object.Ref (Result) :=
          CORBA.Object.OmniORB.To_Ref (Self.all, Repository_Id);
       return Result;
-   end ;
-
-
-
-
+   end;
 
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
