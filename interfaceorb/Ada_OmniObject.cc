@@ -154,9 +154,6 @@ ADABROKER_TRY
   // Creation of the underlying omniobject_C2Ada object
   try {
      C_Object = new omniObject_C2Ada (this) ;
-     // omni::objectDuplicate(C_Object) ;
-     // when we create the omniObject_C2Ada, its reference count is 0
-     // we have to duplicate it to set it to 1
   } catch (...) {
     cerr << "Ada_OmniObject::initLocalObject : you cannot initialize an object before initializing the ORB and the BOA" << endl
 	 << "     >   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init(\"omniORB2\") ;" << endl

@@ -301,10 +301,6 @@ package OmniObject is
    --      registering into the ORB             --
    -----------------------------------------------
 
-   procedure Omniobject_Is_Ready(Self : in Object_Ptr) ;
-   -- registers a local object into the ORB
-   -- only called by Object_Is_Ready(Implemented_Object)
-
 
    procedure Omniobject_Dispose(Self : in Object_Ptr) ;
    -- tells the BOA this local object does not accept
@@ -410,6 +406,10 @@ private
    -- useful routines to convert to/from C types.
 
 
+
+   procedure Omniobject_Is_Ready(Self : in Object_Ptr) ;
+   -- registers a local object into the ORB
+   -- only called by Object_Is_Ready(Implemented_Object)
 
    procedure Set_Repository_Id(Self : in out Object'class ;
                                Repo_Id : in Corba.String) ;

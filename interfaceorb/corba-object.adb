@@ -325,20 +325,6 @@ package body Corba.Object is
    end ;
 
 
-   -- Object_Is_Ready
-   ------------------
-   procedure Object_Is_Ready(Self : in Ref'Class) is
-   begin
-      if not Is_Nil(Self) then
-         Omniobject.Omniobject_Is_Ready(Self.Omniobj) ;
-      else
-         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                        "Corba.Object.Object_Is_Ready(Corba.Object.Ref)"
-                                        & Corba.CRLF
-                                        & "Cannot be called on nil object") ;
-      end if ;
-   end ;
-
 
    --  Get_Dynamic_Type
    ----------------------
