@@ -751,6 +751,7 @@ package body System.RPC is
    begin
       select
          Shutdown_Keeper.Wait;
+         D (D_Debug, "Shutdown Waiter exiting because of Shutdown_Keeper");
          raise Communication_Error;
       then abort
          Public_Receiver_Installed.Wait;

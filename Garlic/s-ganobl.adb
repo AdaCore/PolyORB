@@ -23,6 +23,10 @@ package body System.Garlic.Non_Blocking is
 
    use C, Strings;
 
+   Safety_Delay : constant Duration := 1.0;
+   --  A SIGIO will be simulated every Safety_Delay seconds, to make
+   --  sure we do not get stuned because we have missed one of them.
+
    subtype Descriptors is int range 0 .. 127;
    --  At most 128 file descriptors are available. This is used to limit
    --  the size of entry families.
@@ -333,6 +337,7 @@ package body System.Garlic.Non_Blocking is
       loop
          select
             Shutdown_Keeper.Wait;
+            D (D_Debug, "Selection exiting because of Shutdown_Keeper");
             exit;
          else
             null;
@@ -381,9 +386,8 @@ package body System.Garlic.Non_Blocking is
       Dummy : int;
    begin
       Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync);
-      --  XXXXX SIGIO will make the program die with the current GNAT version
-      --  Dummy := Thin.C_Fcntl (FD, F_Setown, int (PID));
-      Dummy := Thin.C_Fcntl (FD, F_Setown, 0);
+      Dummy := Thin.C_Fcntl (FD, F_Setown, int (PID));
+      --  Dummy := Thin.C_Fcntl (FD, F_Setown, 0);
    end Set_Asynchronous;
 
    ----------------------
@@ -430,10 +434,11 @@ package body System.Garlic.Non_Blocking is
    begin
       Termination.Add_Non_Terminating_Task;
       loop
-         delay 0.1;
+         delay Safety_Delay;
          Sigio_Keeper.Signal;
          select
             Shutdown_Keeper.Wait;
+            D (D_Debug, "Simulation exiting because of Shutdown_Keeper");
             exit;
          else
             null;

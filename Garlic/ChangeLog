@@ -1,0 +1,14 @@
+Mon Aug 12 16:13:54 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.adb: More debugging information.
+
+	* s-parint.adb: Idem.
+
+	* s-gartcp.adb: Idem.
+
+	* s-ganobl.adb: Idem.
+
+	* .cvsignore: Added s-gtplsp.ads into the ignore list.
+
+	* s-garhea.adb: Added a partition cache to improve response time.
+

@@ -101,6 +101,11 @@ package body System.Garlic.Heart is
    --  the name server has not mapped the name of the wanted package on the
    --  partition number).
 
+   Partition_Map_Cache : Partition_Data_Array;
+   --  This acts as a Cache for Partition_Map, this means that if Known
+   --  is True for a given partition, there is no need to use the overhead
+   --  of the protected type to query a partition location.
+
    type Partition_Map_Access is access Partition_Map_Type;
    procedure Free is
       new Ada.Unchecked_Deallocation (Partition_Map_Type,
@@ -311,6 +316,14 @@ package body System.Garlic.Heart is
       D (D_Table,
          "Looking in my tables for location of partition" &
          Partition_ID'Image (Partition));
+
+      --  If the partition location is in the cache, then get it from
+      --  there instead of using the protected type.
+
+      if Partition_Map_Cache (Partition) .Known then
+         return Partition_Map_Cache (Partition) .Location;
+      end if;
+
       Partition_Map.Wait_For_Data (Partition) (Data);
       if Data.Queried then
 
@@ -581,6 +594,7 @@ package body System.Garlic.Heart is
          Data      : in Partition_Data) is
       begin
          Map (Partition) := Data;
+         Partition_Map_Cache (Partition) := Data;
       end Set_Data;
 
       -------------------

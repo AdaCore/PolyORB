@@ -194,6 +194,8 @@ package body System.Garlic.TCP is
          begin
             select
                Shutdown_Keeper.Wait;
+               D (D_Debug,
+                  "Accept_Handler exiting because of Shutdown_Keeper");
                raise Communication_Error;
             then abort
                Add_Non_Terminating_Task;
@@ -381,6 +383,8 @@ package body System.Garlic.TCP is
             D (D_Communication, "New communication task started");
             select
                Shutdown_Keeper.Wait;
+               D (D_Debug,
+                  "ICH exiting because of Shutdown_Keeper");
                raise Communication_Error;
             then abort
 

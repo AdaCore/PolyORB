@@ -525,6 +525,7 @@ package body System.Partition_Interface is
    begin
       System.Garlic.Termination.Add_Non_Terminating_Task;
       Shutdown_Keeper.Wait;
+      D (D_Debug, "Shutdown_Waiter exiting because of Shutdown_Keeper");
       Shutdown;
       System.Garlic.Termination.Sub_Non_Terminating_Task;
    end Shutdown_Waiter;
