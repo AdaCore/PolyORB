@@ -72,25 +72,6 @@ package Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Check_Readonly_Files  : Boolean  := False;
-      Dont_Execute          : Boolean  := False;
-      Force_Compilations    : Boolean  := False;
-      Keep_Going            : Boolean  := False;
-      In_Place_Mode         : Boolean  := False;
-      Initialize_Ali_Data   : Boolean  := True;
-      Max_Process           : Positive := 1);
-   --  Version of Compile_Sources for gnatdist, without the extra
-   --  Missing_Alis argument.  Fix gnatdist later. ???
-   --  Furthermore, Main_Unit here get's set False if Missing_Alis is
-   --  set. Probably this is all junk ???
-
-   procedure Compile_Sources
-     (Main_Source           : File_Name_Type;
-      Args                  : Argument_List;
-      First_Compiled_File   : out Name_Id;
-      Most_Recent_Obj_File  : out Name_Id;
-      Most_Recent_Obj_Stamp : out Time_Stamp_Type;
-      Main_Unit             : out Boolean;
       Missing_Alis          : out Boolean;
       Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
