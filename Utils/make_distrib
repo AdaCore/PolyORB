@@ -11,6 +11,11 @@
 # which will be sourced in order to perform the real distribution.
 #
 
+if [ $# = 0 ]; then
+   echo "Usage: $0 [-k] tag dir";
+   exit 0;
+fi;
+
 case $1 in
   -k*) kk=$1; shift;;
   *)   kk=;;
