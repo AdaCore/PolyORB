@@ -56,6 +56,8 @@ compilers/idlac/idl_fe-tree.adb
 compilers/idlac/idl_fe-tree.ads
 compilers/idlac/idl_fe-types.adb
 compilers/idlac/idl_fe-types.ads
+compilers/idlac/idl_fe-utils.adb
+compilers/idlac/idl_fe-utils.ads
 compilers/idlac/idl_fe.ads
 compilers/idlac/idl_fe.opt
 compilers/idlac/idlac.adb

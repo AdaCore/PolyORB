@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#8 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#9 $
 
 with System;
 --  For bit-order information.

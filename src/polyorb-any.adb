@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#12 $
+--  $Id: //droopi/main/src/polyorb-any.adb#13 $
 
 with Ada.Tags;
 

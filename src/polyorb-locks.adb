@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.adb#3 $
+--  $Id: //droopi/main/src/polyorb-locks.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 

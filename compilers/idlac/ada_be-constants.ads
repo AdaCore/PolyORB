@@ -26,12 +26,14 @@
 
 package Ada_Be.Constants is
 
-   --  suffixes for sub-package names
-   Marshall_Suffix : constant String := ".marshall";
-   Impl_Suffix : constant String := ".impl";
-   Skel_Suffix : constant String := ".skel";
+   pragma Pure;
 
-   --  prefix for adabroker specific variables
-   Prexix : constant String := "Adabroker_";
+   --  Suffixes for sub-package names
+   Marshall_Suffix : constant String := ".marshall";
+   Impl_Suffix     : constant String := ".impl";
+   Skel_Suffix     : constant String := ".skel";
+
+   --  Prefix for PolyORB-specific variables
+   Prexix : constant String := "PolyORB_";
 
 end Ada_Be.Constants;

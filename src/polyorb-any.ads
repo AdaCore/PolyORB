@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#7 $
+--  $Id: //droopi/main/src/polyorb-any.ads#8 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;

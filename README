@@ -21,6 +21,50 @@
 
 This is the documentation for PolyORB version @polyorb_version@.
 
+The home page of the project is located at http://www.polyorb.eu.org/.
+This is where you can find news about the project, new releases, and
+pointers to several documents and papers related to PolyORB.
+
+What is PolyORB?
+----------------
+
+PolyORB is a polymorphic, reusable infrastructure for building
+object-oriented distributed systems.  Middleware environments are
+software libraries that hide the complex issues of distribution
+and provide the programmer with high-level abstractions that allow
+easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications.  These standards define two things:
+
+    * the interface seen by the developer's applicative objects;
+    * the protocol used by the middleware environment to talk to other
+      nodes in the distributed application.
+
+Usually, middleware for one platform supports only one set of
+such interfaces, and cannot interoperate with other platforms.
+
+A polymorphic middleware allows the existence of several different
+implementations of each of these aspects to be used within the same
+middleware framework.  In addition, PolyORB allows such different
+personalities to coexist in the same instance of the running middleware;
+it decouples the personality presented to applications on one side
+("application personality"), and the personality presented
+to other middlewares on the other side ("protocol personality").
+Multiple implementations of each personalisable aspect can
+coexist within the same instance of the running middleware:
+unlike previous generic middlewares, PolyORB is actually schizophrenic.
+
+The decoupling of application and protocol personalities, and the support
+for multiple simultaneous personalities within the same running middleware
+are key features required for the construction of interoperable
+distributed applications.  This allows PolyORB to communicate
+with middlewares that implement different distribution standards:
+PolyORB provides middleware-to-middleware interoperability.
+
+The PolyORB architecture also permits the automatic,
+just-in-time creation of proxies between incompatible environments
+(although this feature is not implemented yet).
+
 Build requirements
 ------------------
 
@@ -96,14 +140,10 @@ have dependencies and pragmas Elaborate_All on all subsystems you need
 to use, and must contain a call to PolyORB.Configurator.Initialize_World
 in its own elaboration code.
 
-Features
---------
-
 Bug reports
 -----------
 
-Mailing-lists
--------------
+Please send bug reports to the PolyORB team at polyorb-devel@polyorb.eu.org.
 
 Contributors:
 -------------

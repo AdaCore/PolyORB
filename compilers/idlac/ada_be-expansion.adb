@@ -28,6 +28,7 @@ with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
+with Idl_Fe.Utils;          use Idl_Fe.Utils;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
@@ -192,11 +193,6 @@ package body Ada_Be.Expansion is
    --  Expand a whole list of nodes
    --  The global variable Current_Position_In_List is set
    --  before each node is expanded.
-
-   procedure Append_Node_To_Contents
-     (Parent : Node_Id;
-      Child : Node_Id);
-   --  Append a node to the contents node_list of parent
 
    function Sequence_Type_Name
      (Node : Node_Id)
@@ -1559,18 +1555,6 @@ package body Ada_Be.Expansion is
          Current_Position_In_List := No_Node;
       end if;
    end Expand_Node_List;
-
-   ------------------------------
-   --  Append_Node_To_Contents --
-   ------------------------------
-
-   procedure Append_Node_To_Contents
-     (Parent : Node_Id;
-      Child : Node_Id) is
-   begin
-      Set_Contents
-        (Parent, Append_Node (Contents (Parent), Child));
-   end Append_Node_To_Contents;
 
    --------------------------
    --  Sequence_Type_Name  --
