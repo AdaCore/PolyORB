@@ -46,7 +46,6 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Configuration;
 with PolyORB.Utils.Strings;
 with PolyORB.ORB;
-with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
@@ -71,8 +70,8 @@ package body PolyORB.Protocols.GIOP is
       Version : GIOP_Version;
    end record;
 
-   GIOP_Implem_List : array (1 .. Max_GIOP_Implem) of
-     GIOP_Implem_Desc;
+   GIOP_Implem_List : array (1 .. Max_GIOP_Implem) of GIOP_Implem_Desc;
+
    Nb_Implem : Natural range  0 .. Max_GIOP_Implem := 0;
 
    ------------
@@ -89,11 +88,11 @@ package body PolyORB.Protocols.GIOP is
 
    begin
       Session := new GIOP_Session;
-      Init_GIOP_Session (GIOP_Session (Session.all),
-                         GIOP_Default_Version,
-                         Default_Locate_Then_Request,
-                         "giop",
-                         "polyorb.protocols.giop");
+      Initialize (GIOP_Session (Session.all),
+                  GIOP_Default_Version,
+                  Default_Locate_Then_Request,
+                  "giop",
+                  "polyorb.protocols.giop");
       Set_Allocation_Class (Session.all, Dynamic);
    end Create;
 
@@ -115,12 +114,10 @@ package body PolyORB.Protocols.GIOP is
    --------------
 
    procedure Finalize
-     (S : in out GIOP_Session)
-   is
-      use PolyORB.Binding_Data;
-
+     (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Finalizing GIOP session"));
+
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
       end if;
@@ -144,7 +141,6 @@ package body PolyORB.Protocols.GIOP is
       pragma Unreferenced (Data_Amount);
       pragma Warnings (On);
 
-      use ORB;
       use Pend_Req_Seq;
 
       Version : GIOP_Version;
@@ -199,8 +195,8 @@ package body PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session;
       Args : in out Any.NVList.Ref) is
    begin
+      pragma Debug (O ("Unmarshalling_Request_Arguments"));
       pragma Assert (Sess.State = Waiting_Unmarshalling);
-      pragma Debug (O ("Unmarshalling request arguments"));
 
       Unmarshall_Argument_List
         (Sess.Implem, Sess.Buffer_In, Args,
@@ -216,8 +212,8 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session) is
    begin
+      pragma Debug (O ("Handle_Connect_Indication"));
       pragma Assert (Sess.State = Not_Initialized);
-      pragma Debug (O ("Connexion from remote host"));
 
       Sess.Role := Server;
       Expect_GIOP_Header (Sess);
@@ -230,12 +226,13 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Connect_Confirmation
      (Sess : access GIOP_Session) is
    begin
+      pragma Debug (O ("Handle_Connect_Confirmation"));
       pragma Assert (Sess.State = Not_Initialized);
-      pragma Debug (O ("Connexion from neutral layer"));
 
       Sess.Role := Client;
 
       --  Init session with default GIOP version if implem is null
+
       if Sess.Implem = null then
          Get_GIOP_Implem (Sess, Sess.GIOP_Def_Ver);
       end if;
@@ -250,7 +247,8 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Disconnect
      (Sess : access GIOP_Session) is
    begin
-      pragma Debug (O ("Disconnected"));
+      pragma Debug (O ("Handle_Disconnect"));
+
       if Sess.Buffer_In /= null then
          Release (Sess.Buffer_In);
       end if;
@@ -318,7 +316,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Abort_Request
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access) is
+      R    :        Requests.Request_Access) is
    begin
       Process_Abort_Request (Sess.Implem, Sess, R);
    end Abort_Request;
@@ -329,7 +327,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Send_Reply
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access) is
+      R    :        Requests.Request_Access) is
    begin
       Process_Reply (Sess.Implem, Sess, R);
    end Send_Reply;
@@ -367,8 +365,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (On);
 
       use PolyORB.Filters.Interface;
-      --  Default procedure, noimg to do
-      --  This procedure is overriden for fragmenting management
+
    begin
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer));
    end Emit_Message;
@@ -383,10 +380,11 @@ package body PolyORB.Protocols.GIOP is
 
    --  called to wait another GIOP message
    procedure Expect_GIOP_Header
-     (Sess : access GIOP_Session)
-   is
+     (Sess : access GIOP_Session) is
    begin
+
       --  Check if buffer has been totally read
+
       if Remaining (Sess.Buffer_In) /= 0 then
          pragma Debug (O ("Remaining data in buffer :"
                           & Remaining (Sess.Buffer_In)'Img
@@ -463,28 +461,29 @@ package body PolyORB.Protocols.GIOP is
      (Sess   : access GIOP_Session;
       Buffer : access Buffer_Type) is
    begin
-      Marshall_Global_GIOP_Header
-        (Sess.Implem.Version, Buffer);
+      Marshall_Global_GIOP_Header (Sess.Implem.Version, Buffer);
    end Marshall_Global_GIOP_Header;
 
    procedure Marshall_Global_GIOP_Header
      (Version :        GIOP_Version;
-      Buffer  : access Buffer_Type)
-   is
+      Buffer  : access Buffer_Type) is
    begin
+
       --  Magic
+
       for J in Magic'Range loop
          Marshall (Buffer, Types.Octet (Magic (J)));
       end loop;
 
       --  Version
+
       Marshall (Buffer, Version.Major);
       Marshall (Buffer, Version.Minor);
    end Marshall_Global_GIOP_Header;
 
-   ------------------
-   -- Context_List --
-   ------------------
+   -----------------------------------
+   -- Marshall_Service_Context_List --
+   -----------------------------------
 
    procedure Marshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type) is
@@ -492,10 +491,15 @@ package body PolyORB.Protocols.GIOP is
       Marshall (Buffer, Types.Unsigned_Long (0));
    end Marshall_Service_Context_List;
 
+   -------------------------------------
+   -- Unmarshall_Service_Context_List --
+   -------------------------------------
+
    procedure Unmarshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type)
    is
       Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+
    begin
       pragma Debug (O ("Unmarshall_Service_Context_List: enter, nb ="
                        & PolyORB.Types.Unsigned_Long'Image (Nb)));
@@ -515,9 +519,9 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Unmarshall_Service_Context_List: leave"));
    end Unmarshall_Service_Context_List;
 
-   -------------------
-   -- Argument_List --
-   -------------------
+   ------------------------------
+   -- Unmarshall_Argument_List --
+   ------------------------------
 
    procedure Unmarshall_Argument_List
      (Implem              : access GIOP_Implem;
@@ -555,6 +559,10 @@ package body PolyORB.Protocols.GIOP is
       end loop;
    end Unmarshall_Argument_List;
 
+   ----------------------------
+   -- Marshall_Argument_List --
+   ----------------------------
+
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
       Buffer              :        Buffer_Access;
@@ -578,25 +586,29 @@ package body PolyORB.Protocols.GIOP is
 
       while not Last (It) loop
          Arg := Value (It);
+
          if False
            or else Arg.Arg_Modes = Direction
            or else Arg.Arg_Modes = ARG_INOUT
          then
             pragma Debug (O ("Marshalling argument "
                              & Types.To_Standard_String (Arg.Name)
-                               & " = " & Image (Arg.Argument)));
+                             & " = " & Image (Arg.Argument)));
+
             if First (It) then
                Pad_Align (Buffer, First_Arg_Alignment);
             end if;
+
             Marshall (Buffer, Arg.all);
          end if;
+
          Next (It);
       end loop;
    end Marshall_Argument_List;
 
-   ---------------
-   -- Exception --
-   ---------------
+   ----------------------------------------
+   -- Unmarshall_System_Exception_To_Any --
+   ----------------------------------------
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer :     Buffer_Access;
@@ -604,8 +616,8 @@ package body PolyORB.Protocols.GIOP is
    is
       use PolyORB.GIOP_P.Exceptions;
 
-      Exception_Name : constant String
-        := Extract_System_Exception_Name (Unmarshall (Buffer));
+      Exception_Name : constant String :=
+        Extract_System_Exception_Name (Unmarshall (Buffer));
    begin
       Info := Any.Get_Empty_Any (System_Exception_TypeCode (Exception_Name));
       Unmarshall_To_Any (Buffer, Info);
@@ -624,11 +636,9 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.References.IOR;
 
       New_Ref    : IOR.IOR_Type := Representations.CDR.Unmarshall (Buffer);
-      Prof_Array : constant PolyORB.References.Profile_Array
-        := Profiles_Of (New_Ref);
+      Prof_Array : constant PolyORB.References.Profile_Array :=
+        Profiles_Of (New_Ref);
    begin
-      pragma Debug (O ("Reply Message : Received Location_Forward"));
-
       for J in Prof_Array'Range loop
          if Get_Profile_Tag (Prof_Array (J).all) = Tag_Internet_IOP then
             return Prof_Array (J);
@@ -640,33 +650,36 @@ package body PolyORB.Protocols.GIOP is
 
    --  Version managing
 
-   -----------------------
-   -- Init_GIOP_Session --
-   -----------------------
-   procedure Init_GIOP_Session
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
      (Sess                : in out GIOP_Session;
-      Version             : GIOP_Version;
-      Locate_Then_Request : Boolean;
-      Section             : String;
-      Prefix              : String)
+      Version             :        GIOP_Version;
+      Locate_Then_Request :        Boolean;
+      Section             :        String;
+      Prefix              :        String)
    is
       use PolyORB.Configuration;
       use PolyORB.Utils;
+
    begin
       pragma Debug (O ("Initialize parameters for GIOP session"));
       pragma Debug (O ("Conf Section : " & Section));
       pragma Debug (O ("Conf Prefix : " & Prefix));
+
       Protocols.Initialize (Protocols.Session (Sess));
 
-      Sess.GIOP_Def_Ver.Minor
-        := Types.Octet
+      Sess.GIOP_Def_Ver.Minor :=
+        Types.Octet
         (Get_Conf
          (Section,
           Prefix & ".default_version.minor",
           Integer (Version.Minor)));
 
-      Sess.GIOP_Def_Ver.Major
-        := Types.Octet
+      Sess.GIOP_Def_Ver.Major :=
+        Types.Octet
         (Get_Conf
          (Section,
           Prefix & ".default_version.major",
@@ -682,19 +695,22 @@ package body PolyORB.Protocols.GIOP is
                       & Trimmed_Image
                       (Integer (GIOP_Implem_List (J).Version.Minor))
                       & ".enable", True) then
+
             pragma Debug (O ("Enable GIOP Version : "
                              & GIOP_Implem_List (J).Version.Major'Img
                              & "."
                              & GIOP_Implem_List (J).Version.Minor'Img));
+
             Sess.Nb_Implem := Sess.Nb_Implem + 1;
-            Sess.GIOP_Implem_List (Sess.Nb_Implem)
-              := GIOP_Implem_List (J).Func.all;
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Version
-              := GIOP_Implem_List (J).Version;
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Section
-              := To_PolyORB_String (Section);
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Prefix
-              := To_PolyORB_String (Prefix);
+
+            Sess.GIOP_Implem_List (Sess.Nb_Implem) :=
+              GIOP_Implem_List (J).Func.all;
+            Sess.GIOP_Implem_List (Sess.Nb_Implem).Version :=
+              GIOP_Implem_List (J).Version;
+            Sess.GIOP_Implem_List (Sess.Nb_Implem).Section :=
+              To_PolyORB_String (Section);
+            Sess.GIOP_Implem_List (Sess.Nb_Implem).Prefix :=
+              To_PolyORB_String (Prefix);
 
             Initialize_Implem (Sess.GIOP_Implem_List (Sess.Nb_Implem));
 
@@ -705,7 +721,7 @@ package body PolyORB.Protocols.GIOP is
                         Locate_Then_Request);
          end if;
       end loop;
-   end Init_GIOP_Session;
+   end Initialize;
 
    ----------------------------------
    -- Global_Register_GIOP_Version --
@@ -718,8 +734,7 @@ package body PolyORB.Protocols.GIOP is
       if Implem /= null then
          Nb_Implem := Nb_Implem + 1;
          GIOP_Implem_List (Nb_Implem) :=
-           GIOP_Implem_Desc'(Version => Version,
-                             Func => Implem);
+           GIOP_Implem_Desc'(Version => Version, Func => Implem);
       end if;
    end Global_Register_GIOP_Version;
 
@@ -737,6 +752,7 @@ package body PolyORB.Protocols.GIOP is
                              & Version.Major'Img
                              & "."
                              & Version.Minor'Img));
+
             Sess.Implem := Sess.GIOP_Implem_List (J);
             Initialize_Session (Sess.Implem, Sess);
             return;
@@ -756,8 +772,8 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request_Access;
       Success :    out Boolean)
    is
-      Pending_Reqs : constant Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
+      Pending_Reqs : constant Pend_Req_Seq.Element_Array :=
+        Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
    begin
       pragma Debug (O ("Retrieving pending request with id"
                        & Id'Img));
@@ -783,8 +799,8 @@ package body PolyORB.Protocols.GIOP is
       Req     :    out Pending_Request_Access;
       Success :    out Boolean)
    is
-      Pending_Reqs : constant Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
+      Pending_Reqs : constant Pend_Req_Seq.Element_Array :=
+        Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
 
    begin
       pragma Debug
@@ -816,8 +832,8 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Adding pending request with id"
                        & Request_Id'Img));
       Set_Note
-        (Pend_Req.Req.Notepad, Request_Note'
-           (Annotations.Note with Id => Request_Id));
+        (Pend_Req.Req.Notepad,
+         Request_Note'(Annotations.Note with Id => Request_Id));
       Pend_Req.Request_Id := Request_Id;
       Append (Sess.Pending_Reqs, Pend_Req);
    end Add_Pending_Request;
@@ -832,7 +848,9 @@ package body PolyORB.Protocols.GIOP is
    is
       R : Types.Unsigned_Long;
    begin
+
       --  XXX should we protect Sess.Req_Index against concurrent accesses ?
+
       R := Sess.Req_Index;
       Sess.Req_Index := Sess.Req_Index + 1;
       return R;
@@ -846,8 +864,8 @@ package body PolyORB.Protocols.GIOP is
      (Sess    : access GIOP_Session;
       Id      :        Types.Unsigned_Long)
    is
-      Pending_Reqs : Pend_Req_Seq.Element_Array
-        := Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
+      Pending_Reqs : Pend_Req_Seq.Element_Array :=
+        Pend_Req_Seq.To_Element_Array (Sess.Pending_Reqs);
    begin
       for J in Pending_Reqs'Range loop
          if Pending_Reqs (J).Request_Id = Id then
@@ -857,6 +875,9 @@ package body PolyORB.Protocols.GIOP is
             return;
          end if;
       end loop;
+
+      --  Should not come to this point
+
       raise GIOP_Error;
    end Free_Pending_Request;
 
@@ -869,15 +890,13 @@ package body PolyORB.Protocols.GIOP is
      return String
    is
       use PolyORB.Utils;
+
    begin
-      return
-        To_Standard_String (Implem.Prefix)
+      return To_Standard_String (Implem.Prefix)
         & "."
-        & Trimmed_Image
-        (Integer (Implem.Version.Major))
+        & Trimmed_Image (Integer (Implem.Version.Major))
         & "."
-        & Trimmed_Image
-        (Integer (Implem.Version.Minor));
+        & Trimmed_Image (Integer (Implem.Version.Minor));
    end Get_Conf_Chain;
 
    ----------------
@@ -894,12 +913,14 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
+
 begin
    Register_Module
      (Module_Info'
-      (Name => +"protocols.giop",
+      (Name      => +"protocols.giop",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
+
 end PolyORB.Protocols.GIOP;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;   use Ada.Streams;
+with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
@@ -44,11 +44,13 @@ with PolyORB.Filters.Interface;
 
 package PolyORB.Protocols.GIOP is
 
+   use Ada.Streams;
+
    --  GIOP exceptions
+
    GIOP_Error : exception;
    GIOP_Bad_Function_Call : exception;
    GIOP_Unknown_Version : exception;
-
 
    type GIOP_Session is new Session with private;
    type GIOP_Protocol is new Protocol with private;
@@ -59,20 +61,20 @@ package PolyORB.Protocols.GIOP is
 
    procedure Create
      (Proto   : access GIOP_Protocol;
-      Session : out Filter_Access);
+      Session :    out Filter_Access);
 
    procedure Invoke_Request
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access;
+      R    :        Requests.Request_Access;
       Pro  : access Binding_Data.Profile_Type'Class);
 
    procedure Abort_Request
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access);
+      R    :        Requests.Request_Access);
 
    procedure Send_Reply
      (Sess : access GIOP_Session;
-      R    : Requests.Request_Access);
+      R    :        Requests.Request_Access);
 
    procedure Handle_Connect_Indication
      (Sess : access GIOP_Session);
@@ -82,7 +84,7 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Data_Indication
      (Sess        : access GIOP_Session;
-      Data_Amount : Stream_Element_Count);
+      Data_Amount :        Stream_Element_Count);
 
    procedure Handle_Disconnect
      (Sess : access GIOP_Session);
@@ -124,9 +126,12 @@ private
       --  used instead when it is necessary to access the target
       --  profile.
    end record;
+
    type Pending_Request_Access is access Pending_Request;
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Pending_Request, Pending_Request_Access);
+
    package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request_Access);
 
    --------------------
@@ -145,17 +150,18 @@ private
    end record;
 
    --  Default GIOP_Version
-   GIOP_Default_Version : constant GIOP_Version
-     := (Major => 1,
-         Minor => 2);
 
-   --  Get a GIOP_Implem from GIOP Version
+   GIOP_Default_Version : constant GIOP_Version :=
+     (Major => 1,
+      Minor => 2);
+
    procedure Get_GIOP_Implem
      (Sess    : access GIOP_Session;
       Version :        GIOP_Version);
+   --  Get a GIOP_Implem from GIOP Version
 
-   --  number of GIOP Implem that system can handle
    Max_GIOP_Implem : constant Natural := 3;
+   --  number of GIOP Implem that system can handle
 
    -----------------
    -- GIOP_Implem --
@@ -167,18 +173,20 @@ private
       Data_Alignment      : Opaque.Alignment_Type;
       Locate_Then_Request : Boolean;
       --  Configuration values
-      Section          : Types.String;
-      Prefix           : Types.String;
+      Section             : Types.String;
+      Prefix              : Types.String;
    end record;
+
    type GIOP_Implem_Access is access all GIOP_Implem'Class;
 
    --  Function which are version specific
    --  Must be implemented by each implem
+
    procedure Initialize_Implem
      (Implem : access GIOP_Implem)
       is abstract;
    --  Initialize global parameters for implem
-   --  Called at PolyORB intitailization
+   --  Called at PolyORB initialization
 
    procedure Initialize_Session
      (Implem : access GIOP_Implem;
@@ -297,6 +305,7 @@ private
         := PolyORB.Buffers.Host_Order;
       Message_Size       : Types.Unsigned_Long;
    end record;
+
    type GIOP_Ctx_Access is access all GIOP_Ctx'Class;
 
    ---------------------------------------------------
@@ -318,6 +327,7 @@ private
       GIOP_Implem_List : GIOP_Implem_Array := (others => null);
       Nb_Implem        : Natural range  0 .. Max_GIOP_Implem := 0;
    end record;
+
    type GIOP_Session_Access is access all GIOP_Session;
 
    procedure Initialize (S : in out GIOP_Session);
@@ -385,13 +395,13 @@ private
      (Buffer  : access PolyORB.Buffers.Buffer_Type)
      return PolyORB.Binding_Data.Profile_Access;
 
-   --  Init a GIOP Session, read configuration
-   procedure Init_GIOP_Session
+   --  Initialize a GIOP Session, reading PolyORB configuration
+   procedure Initialize
      (Sess                : in out GIOP_Session;
-      Version             : GIOP_Version;
-      Locate_Then_Request : Boolean;
-      Section             : String;
-      Prefix              : String);
+      Version             :        GIOP_Version;
+      Locate_Then_Request :        Boolean;
+      Section             :        String;
+      Prefix              :        String);
 
    --------------------------------
    -- Pending Request management --
@@ -443,7 +453,6 @@ private
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : PolyORB.Buffers.Buffer_Access;
       Info   : out Any.Any);
-   --  umarshall exception info
 
    function Get_Conf_Chain
      (Implem : access GIOP_Implem'Class)
