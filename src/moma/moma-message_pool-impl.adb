@@ -27,8 +27,8 @@ package body MOMA.Message_Pool.Impl is
 
    function Publish (Message : in PolyORB.Types.String)
                      return PolyORB.Types.String is
-      Temp : String := Integer'Image (Message_Id);
-      Key : String := "M" & Temp (2 .. Temp'Last);
+      Temp : constant String := Integer'Image (Message_Id);
+      Key  : constant String := "M" & Temp (2 .. Temp'Last);
       --  Dummy Key construction, should be analyzed from message
    begin
       Ensure_Initialization (W);

@@ -23,6 +23,7 @@ package body MOMA.Messages is
    begin
       pragma Warnings (Off);
       return Get_Property (Name);
+      pragma Unreferenced (Name);
       pragma Warnings (On);
    end Get_Property;
 
@@ -110,6 +111,9 @@ package body MOMA.Messages is
    -------------------------------
    function Property_Exists (Name : String) return Boolean is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Name);
+      pragma Warnings (On);
       return False;
    end Property_Exists;
 
@@ -118,6 +122,10 @@ package body MOMA.Messages is
    -----------------------------
    procedure Set_Property (Name : String; Value : Property_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Name);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Property;
 
@@ -126,6 +134,9 @@ package body MOMA.Messages is
    -----------------------------------
    procedure Set_Correlation_Id (Correlation_Id : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Correlation_Id);
+      pragma Warnings (On);
       null;
    end Set_Correlation_Id;
 
@@ -134,6 +145,9 @@ package body MOMA.Messages is
    -------------------------------
    procedure Set_Persistent (Is_Persistent : Boolean) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Is_Persistent);
+      pragma Warnings (On);
       null;
    end Set_Persistent;
 
@@ -142,6 +156,9 @@ package body MOMA.Messages is
    --------------------------------
    procedure Set_Destination (Destination : MOMA.Destinations.Destination) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Destination);
+      pragma Warnings (On);
       null;
    end Set_Destination;
 
@@ -150,6 +167,9 @@ package body MOMA.Messages is
    -------------------------------
    procedure Set_Expiration (Expiration : Time) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Expiration);
+      pragma Warnings (On);
       null;
    end Set_Expiration;
 
@@ -158,6 +178,9 @@ package body MOMA.Messages is
    -------------------------------
    procedure Set_Message_Id (Id : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Id);
+      pragma Warnings (On);
       null;
    end Set_Message_Id;
 
@@ -166,6 +189,9 @@ package body MOMA.Messages is
    -----------------------------
    procedure Set_Priority (Value : Priority) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Priority;
 
@@ -174,6 +200,9 @@ package body MOMA.Messages is
    --------------------------------
    procedure Set_Redelivered (Redelivered : Boolean) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Redelivered);
+      pragma Warnings (On);
       null;
    end Set_Redelivered;
 
@@ -182,6 +211,9 @@ package body MOMA.Messages is
    -----------------------------
    procedure Set_Reply_To (Reply_To : MOMA.Destinations.Destination) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Reply_To);
+      pragma Warnings (On);
       null;
    end Set_Reply_To;
 
@@ -190,6 +222,9 @@ package body MOMA.Messages is
    ------------------------------
    procedure Set_Timestamp (Timestamp : Time) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Timestamp);
+      pragma Warnings (On);
       null;
    end Set_Timestamp;
 

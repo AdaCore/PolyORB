@@ -8,6 +8,10 @@ package body MOMA.Connections.Queues is
                             return Message_Consumers.Queues.Queue is
       Temp : Message_Consumers.Queues.Queue;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Queue);
+      pragma Unreferenced (Message_Selector);
+      pragma Warnings (On);
       return Temp;
    end Create_Consumer;
 
@@ -19,6 +23,10 @@ package body MOMA.Connections.Queues is
                            return Sessions.Queues.Queue is
       Temp : Sessions.Queues.Queue;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Transacted);
+      pragma Unreferenced (Ackowledge_Mode);
+      pragma Warnings (On);
       return Temp;
    end Create_Session;
 

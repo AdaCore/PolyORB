@@ -14,6 +14,10 @@ package body MOMA.Connection_Factories.Queues is
                    return Connections.Queues.Queue is
       Temp : Connections.Queues.Queue;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Username);
+      pragma Unreferenced (Password);
+      pragma Warnings (On);
       return Temp;
    end Create;
 

@@ -26,6 +26,10 @@ package body MOMA.Message_Pool is
    is
       Args : PolyORB.Any.NVList.Ref;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       Put_Line ("The server is executing the request:"
                 & PolyORB.Requests.Image (Req.all));
 

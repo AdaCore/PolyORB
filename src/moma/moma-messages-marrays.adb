@@ -17,6 +17,9 @@ package body MOMA.Messages.MArrays is
 
    procedure Set_Array (Value : Array_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Array;
 

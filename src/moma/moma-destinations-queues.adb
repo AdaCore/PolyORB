@@ -4,9 +4,8 @@ package body MOMA.Destinations.Queues is
    --  Get_Name Function --
    ------------------------
    function Get_Name return String is
-      Temp : String := "temp";
    begin
-      return Temp;
+      return "null";
    end Get_Name;
 
    -----------------------

@@ -48,6 +48,9 @@ package body MOMA.Message_Producers is
 
    procedure Set_Persistent (Persistent : Boolean) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Persistent);
+      pragma Warnings (On);
       null;
    end Set_Persistent;
 
@@ -57,6 +60,9 @@ package body MOMA.Message_Producers is
 
    procedure Set_Priority (Value : Priority) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Priority;
 
@@ -66,6 +72,9 @@ package body MOMA.Message_Producers is
 
    procedure Set_Time_To_Live (TTL : Time) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (TTL);
+      pragma Warnings (On);
       null;
    end Set_Time_To_Live;
 

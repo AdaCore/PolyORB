@@ -17,6 +17,9 @@ package body MOMA.Messages.MRecords is
 
    procedure Set_Record (Value : Record_Type) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Record;
 

@@ -17,6 +17,9 @@ package body MOMA.Messages.MTexts is
 
    procedure Set_Text (Value : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Text;
 

@@ -12,9 +12,8 @@ package body MOMA.Connections is
    --  Get_Client_Id Function --
    -----------------------------
    function Get_Client_Id return String is
-      Temp : String := "Temp";
    begin
-      return Temp;
+      return "null";
    end Get_Client_Id;
 
    ------------------------------
@@ -22,6 +21,9 @@ package body MOMA.Connections is
    ------------------------------
    procedure Set_Client_Id (Client_Id : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Client_Id);
+      pragma Warnings (On);
       null;
    end Set_Client_Id;
 
@@ -45,9 +47,8 @@ package body MOMA.Connections is
    --  Get_Meta_Data Function --
    -----------------------------
    function Get_Meta_Data return Meta_Data is
-      Temp : Meta_Data := 0;
    begin
-      return Temp;
+      return 0;
    end Get_Meta_Data;
 
 

@@ -13,9 +13,8 @@ package body MOMA.Message_Consumers.Topics is
    --  Get_No_Local Function --
    ----------------------------
    function Get_No_Local return Boolean is
-      Temp : Boolean := True;
    begin
-      return Temp;
+      return False;
    end Get_No_Local;
 
 end MOMA.Message_Consumers.Topics;

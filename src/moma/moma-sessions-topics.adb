@@ -86,6 +86,10 @@ package body MOMA.Sessions.Topics is
 
    procedure Unsubscribe (Name : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Name);
+      pragma Warnings (On);
+
       null;
    end Unsubscribe;
 

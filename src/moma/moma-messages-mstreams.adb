@@ -70,6 +70,9 @@ package body MOMA.Messages.MStreams is
 
    procedure Set_Boolean (Value : Boolean) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Boolean;
 
@@ -79,6 +82,9 @@ package body MOMA.Messages.MStreams is
 
    procedure Set_Char (Value : Character) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Char;
 
@@ -88,6 +94,9 @@ package body MOMA.Messages.MStreams is
 
    procedure Set_Float (Value : Float) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Float;
 
@@ -97,6 +106,9 @@ package body MOMA.Messages.MStreams is
 
    procedure Set_Integer (Value : Integer) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_Integer;
 
@@ -106,6 +118,9 @@ package body MOMA.Messages.MStreams is
 
    procedure Set_String (Value : String) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Value);
+      pragma Warnings (On);
       null;
    end Set_String;
 

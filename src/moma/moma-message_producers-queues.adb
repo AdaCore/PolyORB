@@ -17,6 +17,9 @@ package body MOMA.Message_Producers.Queues is
 
    procedure Send (Message : MOMA.Messages.Message'Class) is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Message);
+      pragma Warnings (On);
       null;
    end Send;
 
@@ -31,6 +34,12 @@ package body MOMA.Message_Producers.Queues is
       TTL : Time)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Message);
+      pragma Unreferenced (Persistent);
+      pragma Unreferenced (Priority_Value);
+      pragma Unreferenced (TTL);
+      pragma Warnings (On);
       null;
    end Send;
 
