@@ -46,7 +46,10 @@ package PolyORB.Utils.Chained_Lists is
    type Element_Access is access all T;
 
    function Length (L : List) return Natural;
+   --  Return the number of elements in L
+
    function Element (L : List; Index : Natural) return Element_Access;
+   --  Return the element at position Index (0-based) in L.
 
    procedure Extract_First
      (L      : in out List;
@@ -55,26 +58,46 @@ package PolyORB.Utils.Chained_Lists is
    --  and remove it from the list.
 
    function First (L : List) return Iterator;
+   --  Return an iterator on L positioned at L's first element.
+
    function First (I : Iterator) return Boolean;
+   --  True when I is positioned at the first element of the
+   --  underlying list.
+
    function Value (I : Iterator) return Element_Access;
+   --  Return an access to the value of the list element currently
+   --  designated by I.
+
    procedure Next (I : in out Iterator);
+   --  Move I to the next element in the list.
+
    function Last (L : List) return Iterator;
+   --  Return an iterator position at the end of L (i.e. immediately
+   --  after the last element in L; this iterator has no associated
+   --  value).
+
    function Last (I : Iterator) return Boolean;
+   --  True when I is positioned at the end of L (i.e. after the
+   --  last element).
 
    procedure Prepend (L : in out List; I : T);
+   --  Prepend value I at the beginning of L.
+
    procedure Append (L : in out List; I : T);
+   --  Append value I at the end of L.
 
    procedure Insert (L : in out List; I : T; Before : in out Iterator);
    --  Insert I into L before the designated position.
 
    procedure Remove (L : in out List; I : in out Iterator);
-   --  Remove the item designated by I, and advance I to the next
+   --  Remove the item designated by I from L, and advance I to the next
    --  item in L.
 
    procedure Remove (L : in out List; I : T);
-   --  Remove all occurences of I from list L.
+   --  Remove all occurences of value I from list L.
 
    Empty : constant List;
+   --  A list that contains no elements.
 
    function "+" (I : T) return List;
    --  Make a list with I as its only element.
@@ -92,6 +115,7 @@ package PolyORB.Utils.Chained_Lists is
    --  Return a copy of list L.
 
    procedure Deallocate (L : in out List);
+   --  Release the storage associated with L.
 
 private
 
