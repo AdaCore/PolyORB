@@ -1,0 +1,66 @@
+
+------------------------------------------------------------------------------
+--                                                                          --
+--                     DROOPI COMPONENTS
+--                       IOR SPEC                                           --
+
+------------------------------------------------------------------------------
+
+
+
+
+
+
+
+with CORBA;
+with CORBA.Impl;
+with Droopi.Buffers;
+with Droopi.Binding_Data;
+
+
+package Droopi.References.IOR is
+
+
+   --  type IOR
+   type Ior_Type is new Droopi.References.Ref with
+      record
+         Type_Id  : CORBA.String;
+      end record;
+
+   type Ior_Ptr is access all Ior_Type'Class;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Value  : in IOR_Type);
+
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Result : out IOR_Type);
+   
+   type Marshall_Profile_Body_Type is
+     access procedure
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : access Profile_Type'Class);
+
+   type Unmarshall_Profile_Body_Type is
+     access procedure
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : out Profile_Ptr);
+
+   type Profile_Record is
+      record
+         Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+         Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
+      end record;
+
+   Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
+     of Profile_Record;
+
+
+
+   --function Find_Profile
+   --  (Object : Object_Ptr)
+   --  return IOP.Profile_Ptr;
+   --  Find a profile for a message
+
+end Droopi.References.IOR;    

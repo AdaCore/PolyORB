@@ -272,24 +272,25 @@ private
       Buffer_Out           : access Buffers.Buffer_Type;
       Buffer_In            : Stream_Element_array;
       Role                 : Endpoint_Role;
-      Target_Profile       : Binding_Data.Iiop.Iiop_Profile_Type;
       Object_Found         : Boolean := False;
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;
+      Mess_Type_Received   : Msg_Type;
    end record;
 
    type GIOP_Protocol is new Protocol with null record;
 
    type Pending_Request is record
-     Req          : Requests.Request_Access;
-     Request_Id   : Corba.Unsigned_Long := 0;
+     Req             : Requests.Request_Access;
+     Request_Id      : Corba.Unsigned_Long := 0;
+     Target_Profile  : Binding_Data.Iiop.Iiop_Profile_Type;
    end record;
 
 
-   type Message_Param is record
-     Mess_Type : Msg_Type;
-     Mess_Size : CORBA.Unsigned_Long;
-   end record;
+   -- type Message_Param is record
+   --  Mess_Type : Msg_Type;
+   --  Mess_Size : CORBA.Unsigned_Long;
+   -- end record;
 
 
    procedure Expect_Data

@@ -14,9 +14,9 @@ with Ada.Streams; Uses Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with CORBA;
+with CORBA.NvList;
+with Droopi.Representations.CDR;
 
-
-with CORBA.CDR;         use CORBA.CDR;
 with Droopi.Exceptions;
 with Sequences.Unbounded;
 with Droopi.Opaque; use Droopi.Opaque;
@@ -350,6 +350,28 @@ package body Droopi.Protocols.GIOP is
 
 
    ----------------------------------------
+   --  Unmarshall Locate Request
+   ----------------------------------
+
+
+   procedure Request_Message_Unmarshall
+     (Buffer        : access Buffer_Type;
+      Request_Id    : out Corba.Unsigned_Long;
+      Object_Key    : out Objects.Object_Id)
+   is
+      use representations.CDR;
+   begin
+      --  Request id
+      Request_Id := Unmarshall(Buffer);
+
+      -- Reply Status
+      Object_Key := Unmarshall(Buffer);
+
+   end Reply_Message_Unmarshall;
+
+
+
+    ----------------------------------------
    --  Unmarshall Locate Reply
    ----------------------------------
 
@@ -365,9 +387,10 @@ package body Droopi.Protocols.GIOP is
       Request_Id := Unmarshall(Buffer);
 
       -- Reply Status
-      Unmarshall(Reply_Status);
+      Reply_Status := Unmarshall(Buffer);
 
    end Reply_Message_Unmarshall;
+
 
 
 
@@ -709,7 +732,7 @@ package body Droopi.Protocols.GIOP is
 
   procedure Locate_Request_Message
     (Ses             : access GIOP_Session;
-     Object_key      : in Objects.Objects;
+     Object_key      : in Objects.Objects_Id;
      Fragment_Next   : out Boolean)
   is
     Header_Buffer : aliased Buffer_Type;
@@ -807,6 +830,49 @@ package body Droopi.Protocols.GIOP is
   end Location_Request_Message;
 
 
+   -----------------------------------------
+   -- Selecting the IIOP profile from an IOR
+   -----------------------------------------
+
+   procedure Select_Profile
+     (Buffer  : access Buffer_Type;
+      Profile : out Binding_Data.Profile_Type)
+   is
+     use Droopi.Representations.CDR;
+     New_Ref    : Droopi.References.Ior.Ior_Type
+     Prof_Array : Droopi.References.Profile_Array;
+     Prof_Temp  : Binding_Data.Profile_Type;
+   begin
+      pragma Debug(O ("Reply Message : Received Location_Forward"));
+      Unmarshall(Buffer, New_Ref);
+      Prof_Array := Profiles_Of(Ref'(New_Ref));
+      for I in Prof_Array'Range loop
+         if Get_Profile_Tag(Prof_Array(I)) = Tag_Internet_IOP then
+               Profile = (Prof_Array(I))'Access;
+              exit;
+         end if;
+      end loop;
+      Profile := Prof_Temp;
+   end Select_Profile;
+
+
+  ------------------------------------
+  --   pending requests
+  ------------------------------------
+
+    procedure Store_Request
+     (Req  : access Request)
+    is
+
+    begin
+
+      Pend_Req.Req := Req;
+      Pend_Req.Request_Id := Current_Request_Id;
+      Current_Request_Id := Current_Request_Id +1;
+    end Store_Request;
+
+
+
   -----------------------------------------
   ---   Receiving a  Request Message
   -----------------------------------------
@@ -814,15 +880,21 @@ package body Droopi.Protocols.GIOP is
   procedure Request_Received
     (Ses               : access GIOP_Session)
 
-  is
+   is
+
+      use Obj_Adapters.Simple;
+
       Request_Id        :  Corba.Unisgned_Long;
       Response_Expected :  Boolean;
-      Object_Key        :  Objects.Object_Id;
-      Operation         :  Corba.String;
+      Object_Key        :  String;
+      Oid               :  Objects.Object_Id;
+      Operation         :  Requests.Operation_Id;
       Principal         :  Stream_Element_Array;
+
 
       Req    : Request_Access := new Request;
       Args   : CORBA.NVList.Ref;
+      Obj    : CORBA.NVList.Object;
       Result : CORBA.NamedValue;
       Target_Profile : Binding_Data.Profile_Access
            := new Iiop_Profile_Type;
@@ -831,12 +903,13 @@ package body Droopi.Protocols.GIOP is
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
       Transp_AP : Transport_Access_Point := new Socket_Access_Point;
 
-  Begin
+
+   Begin
 
     case Ses.Minor_Version is
       when  0=>
 
-          GIOP.GIOP_1_0. Request_Message_Unmarshall(Ses.Buffer_In,
+          GIOP.GIOP_1_0.Request_Message_Unmarshall(Ses.Buffer_In,
                Request_Id, Response_Expected, Object_Key ,Operation,
                Principal);
 
@@ -849,19 +922,27 @@ package body Droopi.Protocols.GIOP is
       when 2=>
 
           GIOP.GIOP_1_2.Request_Message_Unmarshall(Ses.Buffer_In,
-               Request_Id, Response_Expected, Target_Ref);
+               Request_Id, Response_Expected, Target_Ref, Operation);
       when others =>
           raise GIOP_Error;
           -- shoulde never happen
-    end case;
+     end case;
 
-    Args   := Obj_Adapters.Get_Empty_Arg_List
-              (Object_Adapter (ORB).all, Object_Key, Operation);
+     Oid := To_Oid(Object_Key);
 
-         -- unmarshalling of arguments not yet implemented
+     Args   := Obj_Adapters.Get_Empty_Arg_List
+              (Object_Adapter (ORB).all, Oid, Operation);
+
+     Obj :=  Object_Of(Args);
+
+    for I in 1 .. Get_Count(Args) loop
+      Representations.Cdr.Unmarshall(Ses.Buffer_In, Element_Of(Obj.List, I));
+    end loop;
+
+    -- unmarshalling of arguments not yet implemented
     Result := (Name     => To_CORBA_String ("Result"),
                Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB).all, Object_key, Method),
+               (Object_Adapter (ORB).all, Object_key, Operation);
                Arg_Modes => 0);
 
     if Ses.Minor_Version /= 2 then
@@ -873,7 +954,7 @@ package body Droopi.Protocols.GIOP is
 
       Create_Reference ((1 => Target_Profile), Target);
     else
-      if  Target_Ref.Addesse_Type = 1 then
+      if  Target_Ref.Addess_Type = 1 then
           Create_Reference((1 => Target_Ref.Profile), Target);
       else
           Target := Target_Ref.Ref;
@@ -889,11 +970,10 @@ package body Droopi.Protocols.GIOP is
 
     Emit_No_Reply
       (Component_Access (ORB),
-       Queue_Request'(Request   => Req,
-                              Requestor => Component_Access (Ses)));
+       Queue_Request'(Request => Req,
+                     Requestor => Component_Access (Ses)));
 
-    Pending_Req.Req  := Req;
-    Pending_Req.Req  := Request_Id;
+    Store_Req(Req);
 
   end Request_Received;
 
@@ -950,36 +1030,129 @@ package body Droopi.Protocols.GIOP is
     end if;
 
     case Reply_Status is
-      when No_Exception =>
-          Result :=
-           (Name     => To_CORBA_String ("Result"),
-            Argument => Obj_Adapters.Get_Empty_Result
-            (Object_Adapter (ORB).all, Oid, Method),
-            Arg_Modes => ARG_OUT);
 
-      when User_Exception | System_Exception =>
+      when No_Exception =>
+
+          Pend_Req.Req.Result :=
+               (Name     => To_CORBA_String ("Result"),
+                Argument => Obj_Adapters.Get_Empty_Result
+                (Object_Adapter (ORB).all, Get_Object_Id(Pend_Req.Target_Profile),
+                Pend_Req.Req.Operation'Access, Arg_Modes => ARG_OUT);
+
+          Representations.Cdr.Unmarshall(Ses.Buffer_In, Pend_Req.Req.Result);
+          Emit_No_Reply
+              (Component_Access (ORB),
+               Queue_Request'(Request   => Pend_Req.Req,
+                              Requestor => Component_Access (S)));
+
+
+      when User_Exception =>
+
+      when System_Exception =>
+              CORBA.Exceptions.Unmarshall_And_Raise
+                 (Buffer_In'Access);
 
       when Location_Forward | Location_Forward_Perm =>
+           declare
+              Sock : Socket_Type;
+              TE_Socket : Socket_EndPoint := Lower(Lower(Ses));
+           begin
+              Select_Profile(Ses.Buffer_In, Pend_Req.Profile);
+              Create_Socket (Sock);
+              Connect_Socket(Sock, Pend_Req.Profile.Address);
+              Create(Socket_Endpoint (TE_Socket.all), Sock);
+              Invoque_Request(Ses, Pend_Req.Req);
+           end;
 
       when Need_Addressing_Mode =>
+
+
     end case;
 
   end Reply_Received;
+
+
+ ---------------------------------------------
+ ---   receiving a locate request
+ ----------------------------------------------
+
+ procedure Locate_Request_Receive
+    (Ses : access GIOP_Session)
+ is
+
+ begin
+
+   case Ses.Minor_Version is
+      when  0=>
+          GIOP.GIOP_1_0. Locate_Request_Unmarshall(Ses.Buffer_In,
+               Request_Id,Reply_Status);
+          if Reply_Status = Location_Forward_Perm or
+              Reply_Status = Needs_Addressing_Mode then
+              raise GIOP_Error;
+          end if;
+
+
+      when 1=>
+          GIOP.GIOP_1_1. Reply_Message_Unmarshall(Ses.Buffer_In,
+               Request_Id,Reply_Status);
+          if Reply_Status = Location_Forward_Perm or
+              Reply_Status = Needs_Addressing_Mode then
+              raise GIOP_Error;
+          end if;
+
+      when 2=>
+          GIOP.GIOP_1_2.Reply_Message_Unmarshall(Ses.Buffer_In,
+               Request_Id,Reply_Status);
+    end case;
+
+ end Locate_Request_Receive
+
+
+
+
+
+
+ -----------------------------------------
+ -- Selecting the IIOP profile from an IOR
+ -----------------------------------------
+
+ procedure Select_Profile
+  (Buffer  : access Buffer_Type;
+   Profile : out Binding_Data.Profile_Type)
+ is
+     use Droopi.Representations.CDR;
+     New_Ref    : Droopi.References.Ior.Ior_Type
+     Prof_Array : Droopi.References.Profile_Array;
+     Prof_Temp  : Binding_Data.Profile_Type;
+ begin
+     pragma Debug(O ("Reply Message : Received Location_Forward"));
+     Unmarshall(Buffer, New_Ref);
+     Prof_Array := Profiles_Of(Ref'(New_Ref));
+     for I in Prof_Array'Range loop
+        if Get_Profile_Tag(Prof_Array(I)) = Tag_Internet_IOP then
+              Profile = (Prof_Array(I))'Access;
+              exit;
+        end if;
+     end loop;
+     Profile := Prof_Temp;
+ end Select_Profile;
 
 
   ------------------------------------
   --   pending requests
   ------------------------------------
 
-  procedure Initialise_Request
-     (Req            : access Request) is
+  procedure Store_Request
+     (Req  : access Request)
+  is
 
   begin
 
    Pend_Req.Req := Req;
    Pend_Req.Request_Id := Current_Request_Id;
    Current_Request_Id := Current_Request_Id +1;
-  end Initialise_Request;
+
+  end Store_Request;
 
 
    ------------------------------------
@@ -1029,8 +1202,6 @@ package body Droopi.Protocols.GIOP is
      use Buffers;
      use Representations.Cdr;
      Buf1           : aliased Buffer_Type;
-     --IIOP_Profile : IIOP_Profile_Type;
-     --Sli_Fact       : Filters.Slicers.Slicer_Factory;
      Sli            : Filters.Slicers.Slicer_Filter;
      TE_Socket      : Socket_EndPoint;
      Fragment_Next  : Boolean;
@@ -1048,7 +1219,7 @@ package body Droopi.Protocols.GIOP is
     TE_Socket := Lower(Sli);
 
     Buffer.Release_Contents(Buffer_Out);
-    Initialise_Request(R);
+    Store_Request(R);
 
     -- fragmentation not yet implemented
     -- Message_Size:= Length(Buf1);
@@ -1077,17 +1248,18 @@ package body Droopi.Protocols.GIOP is
        Request_Message(Ses, True, Fragment_Next);
        Prepend(Buf2, Ses.Buffer_Out);
        Ses.Object_Found := True;
+       Ses.Nb_Tries := 0;
     end if;
 
 
     -- Sending the message
-
     Sli.In_Buf := Ses.Buffer_Out;
     Data_Send.Out_Buf := Sli.In_Buf;
     Handle_Message(Sli, Data_Send);
 
     -- Expecting data
     Expect_Data(Ses, Ses.Buffer_In, Header_Message_Size);
+
    end Invoque_Request;
 
 
@@ -1167,11 +1339,10 @@ package body Droopi.Protocols.GIOP is
       pragma Debug (Buffers.Show (S.Buffer.all));
 
       declare
-
          Sli       : Filters.Slicers.Slicer_Filter;
-         TE_Socket : Socket_EndPoint;
-
+        -- TE_Socket : Socket_EndPoint;
          Req    : Request_Access := null;
+         Mess_Type : Msg_Type;
 
          --Args   : CORBA.NVList.Ref;
          --Result : CORBA.NamedValue;
@@ -1193,8 +1364,7 @@ package body Droopi.Protocols.GIOP is
             if not Success then
                raise GIOP_Error;
             end if;
-            --Mess_Param.Mess_Type  := Mess_Type;
-            Mess_Param.Mess_Size  := Mess_Size;
+            S.Mess_Type_Received  := Mess_Type;
             S.Expect_Header := False;
             Expect_Data(S, S.Buffer_In, Mess_Size);
             return;
@@ -1205,7 +1375,7 @@ package body Droopi.Protocols.GIOP is
             --   return;
             --  end if
 
-         case Mess_Param.Mess_Type is
+         case S.Mess_Type_Received  is
            when Request =>
               if Ses.Role = Server then
                  Request_Received(S);
@@ -1241,7 +1411,6 @@ package body Droopi.Protocols.GIOP is
                 begin
                     Locate_Reply_Unmarshall(Ses.Buffer_In, Req_Id,
                            Locate_Status);
-
                     case Locate_Status is
                        when Object_Here =>
                           Ses.Object_Found := True;
@@ -1251,8 +1420,17 @@ package body Droopi.Protocols.GIOP is
                          raise GIOP.Error;
 
                        when Object_Forward =>
-                         -- unmarshalling of IOR not yet implemented
-                     end case;
+                          declare
+                             Sock : Socket_Type;
+                             TE_Socket : Socket_EndPoint := Lower(Lower(Ses));
+                          begin
+                             Select_Profile(Ses.Buffer_In, Pend_Req.Profile);
+                             Create_Socket (Sock);
+                             Connect_Socket (Sock, Pend_Req.Profile.Address);
+                             Create (Socket_Endpoint (TE_Socket.all), Sock);
+                             Invoque_Request(Ses, Pend_Req.Req);
+                          end;
+                    end case;
                 end;
               else
                   raise GIOP_Error;
@@ -1272,7 +1450,6 @@ package body Droopi.Protocols.GIOP is
       S.Expect_Header := True;
       Buffers.Release_Contents (S.Buffer_In.all);
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
-      --  XXX Not exact amount.
 
       --  Prepare to receive next message.
 
