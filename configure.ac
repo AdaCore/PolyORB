@@ -614,7 +614,8 @@ for a in linker adacompiler move-if-change
 do
   chmod a+x support/$a
 done
-rm -f support/native-adacompiler
-ln -f support/adacompiler support/native-adacompiler
-rm -f support/native-linker
-ln -f support/linker support/native-linker
+
+${RM} support/native-adacompiler
+${LN_S} adacompiler support/native-adacompiler
+${RM} support/native-linker
+${LN_S} linker support/native-linker
