@@ -1,15 +1,44 @@
 // File: orb.idl
-// From CORBA 2.3
+// From CORBA 3.0
+
+// PolyORB Notes:
+//   NI - Not Implemented
+//   IL - Implementation Limitation
+//   AB - Addon Begin
+//   AE - Addon End
+
 #ifndef _ORB_IDL_
 #define _ORB_IDL_
+
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#else
+//PolyORB:IL:typeprefix CORBA "omg.org"
+#endif
+
+#ifdef _PRE_3_0_COMPILER_ 
+#ifdef _NO_LOCAL_
+#define local
+#endif
+#endif
 
 // This module brings together many files defining the CORBA module
 //   (It really ought to be called CORBA.idl, but that's history.)
 // This file includes only the "real" interfaces that are included
 //   in the "orb.idl" interface supplied by every ORB and that can be
-//   brought into an IDL compilation by "#include <orb.idl>".
+//   brought into an IDL compilation by "import ::CORBA"
+//   or in pre-3.0 IDL compilers by the include directive
+//   "#include <orb.idl>".
 
 module CORBA {
+
+//PolyORB:AB:
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+#else
+typeprefix CORBA "omg.org"
+#endif
+//PolyORB:AE:
 
 // The following forward references list *all* the interfaces and valuetypes
 //   defined in the CORBA module. This serves two purposes: documentation
@@ -28,47 +57,55 @@ module CORBA {
 //   The other reason not to try to rearrange the order is that it's hard.
 
 // Forward references, alphabetically
-	interface ConstructionPolicy;        // Chapter  4, CORBA_DomainManager.idl
-    interface Current;                   // Chapter  4, CORBA_Current.idl
-    interface DomainManager;             // Chapter  4, CORBA_DomainManager.idl
+//PolyORB:NI:    interface ConstructionPolicy;        // Chapter  4, CORBA_DomainManager.idl
+    local interface Current;             // Chapter  4, CORBA_Current.idl
+//PolyORB:NI:    interface DomainManager;             // Chapter  4, CORBA_DomainManager.idl
     interface Policy;                    // Chapter  4, CORBA_Policy.idl
-	
-	abstract valuetype CustomMarshal;    // Chapter  5, CORBA_valuetype.idl
-    abstract valuetype DataInputStream;  // Chapter  5, CORBA_Stream.idl
-    abstract valuetype DataOutputStream; // Chapter  5, CORBA_Stream.idl
+//PolyORB:NI:    local interface PollableSet;         // Chapter  7, CORBA_Pollable.idl
+//PolyORB:NI:    abstract valuetype CustomMarshal;    // Chapter  5, CORBA_valuetype.idl
+//PolyORB:NI:    abstract valuetype DataInputStream;  // Chapter  5, CORBA_Stream.idl
+//PolyORB:NI:    abstract valuetype DataOutputStream; // Chapter  5, CORBA_Stream.idl
 
 // Forward references to Chapter 10, CORBA_InterfaceRepository.idl
-    interface AliasDef;
+//PolyORB:NI:    interface AbstractInterfaceDef;
+//PolyORB:IL:    interface AliasDef;
     interface ArrayDef;
     interface AttributeDef;
-    interface ConstantDef;
+//PolyORB:IL:    interface ConstantDef;
     interface Contained;
     interface Container;
-    interface EnumDef;
-    interface ExceptionDef;
+//PolyORB:IL:    interface EnumDef;
+//PolyORB:IL:    interface ExceptionDef;
+//PolyORB:NI:    interface ExtInterfaceDef;
+//PolyORB:NI:    interface ExtValueDef;
+//PolyORB:NI:    interface ExtAbstractInterfaceDef;
+//PolyORB:NI:    interface ExtLocalInterfaceDef;
     interface FixedDef;
-    interface IDLType;
-    interface InterfaceDef;
+//PolyORB:IL:    interface IDLType;
+//PolyORB:IL:    interface InterfaceDef;
     interface IRObject;
-    interface ModuleDef;
-    interface NativeDef;
+//PolyORB:NI:    interface LocalInterfaceDef;
+//PolyORB:IL:    interface ModuleDef;
+//PolyORB:IL:    interface NativeDef;
     interface OperationDef;
     interface PrimitiveDef; 
     interface Repository;
     interface SequenceDef;
     interface StringDef;
-    interface StructDef;
-    interface TypeCode;
+//PolyORB:IL:    interface StructDef;
+//PolyORB:IL:    interface TypeCode;
     interface TypedefDef;
-    interface UnionDef;
-    interface ValueDef;
-    interface ValueBoxDef;
+//PolyORB:IL:    interface UnionDef;
+//PolyORB:IL:    interface ValueDef;
+//PolyORB:IL:    interface ValueBoxDef;
     interface ValueMemberDef;
     interface WstringDef;
 
-    native AbstractBase;
-
     typedef string Identifier;
+
+//PolyORB:AB:
+    interface TypeCode {};
+//PolyORB:AE:
 
 // Chapter 3: IDL Syntax and Semantics
 #include <CORBA_StandardExceptions.idl>
@@ -76,14 +113,21 @@ module CORBA {
 // Chapter 4: ORB Interface
 #include <CORBA_Current.idl>
 #include <CORBA_Policy.idl>
-#include <CORBA_DomainManager.idl>
+//PolyORB:NI:#include <CORBA_DomainManager.idl>
+
+// Chapter 7: Pollable
+//PolyORB:NI:#include <CORBA_Pollable.idl>
 
 // Chapter 10: The Interface Repository
 #include <CORBA_InterfaceRepository.idl>
 
+// more Chapter 4: ORB Interface
+// CORBA_TypeCode.idl depends on CORBA_InterfaceRepository.idl
+//PolyORB:IL:#include <CORBA_TypeCode.idl>
+
 // Chapter 5: Value Type Semantics
-#include <CORBA_CustomMarshal.idl>
-#include <CORBA_Stream.idl>
+//PolyORB:NI:#include <CORBA_CustomMarshal.idl>
+//PolyORB:NI:#include <CORBA_Stream.idl>
 
 };
 
