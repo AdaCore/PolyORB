@@ -138,9 +138,6 @@ package body XE_Back is
    --  Write in I the text to get the partition hostname. This can be
    --  a shell script.
 
-   function Normalize_CWD (F : File_Name_Type) return File_Name_Type;
-   --  Remove any leading CWD (./)
-
    function Rebuild_Partition (P : Partition_Id) return Boolean;
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated. Load the partition stamp file
@@ -332,6 +329,7 @@ package body XE_Back is
          Current      : Partition_Type renames Partitions.Table (P);
          Use_Rem_Host : Boolean;
          Remote_Host  : Name_Id;
+         Executable   : File_Name_Type := Current.Executable_File;
 
       begin
          Write_Image (Remote_Host, Current.Host, P);
@@ -341,12 +339,12 @@ package body XE_Back is
             Remote_Host := Quote (Current.Name);
          end if;
 
+         Executable := Strip_Exec_Suffix (Executable);
          Write_Call
            ("Register_Partition_To_Launch",
             Capitalize (Id (Boolean'Image (Use_Rem_Host))),
             Get_Name_String (Remote_Host),
-            Quote (To_Absolute_File (Current.Executable_File) &
-                   Current.Command_Line));
+            Quote (To_Absolute_File (Executable) & Current.Command_Line));
       end Register_Launched_Partition;
 
       Filename     : File_Name_Type;
@@ -1560,21 +1558,6 @@ package body XE_Back is
    begin
       return Name (Units.Table (U).Uname);
    end Name;
-
-   -------------------
-   -- Normalize_CWD --
-   -------------------
-
-   function Normalize_CWD (F : File_Name_Type) return File_Name_Type is
-   begin
-      Get_Name_String (F);
-      if Name_Buffer (1) = '.'
-        and then Name_Buffer (2) = Directory_Separator
-      then
-         return Strip_Directory (F);
-      end if;
-      return F;
-   end Normalize_CWD;
 
    ---------
    -- PCS --
