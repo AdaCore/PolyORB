@@ -264,8 +264,8 @@ package body Ada_Be.Source_Streams is
       --  The name of the file that contains Unit.
 
       function Is_Empty return Boolean;
-      --  True if, and only if, any of Unit's diversions
-      --  is not empty.
+      --  True if, and only if, all of Unit's diversions
+      --  are empty.
 
       function Ada_File_Name
         (Full_Name : String;

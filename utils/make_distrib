@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#9 $
+# $Id: //droopi/main/utils/make_distrib#10 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -107,7 +107,7 @@ __EOF__
     exit $rc
   fi
 
-# Use current directort
+# Use current directory
 
 elif $usercurrent; then
   tar cf - . | (cd $tmp/$dir && tar xpBf -)
