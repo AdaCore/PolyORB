@@ -757,8 +757,8 @@ package body System.Garlic.Protocols.Tcp is
   is
       Old_PID    : Partition_ID;
       Length     : Stream_Element_Count;
-      Filtered   : Stream_Element_Access;
-      Unfiltered : Stream_Element_Access;
+      Filtered   : Garlic.Streams.Stream_Element_Access;
+      Unfiltered : Garlic.Streams.Stream_Element_Access;
       Opcode     : Any_Opcode;
       Banner     : Banner_Kind;
 
