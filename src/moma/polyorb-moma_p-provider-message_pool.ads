@@ -35,8 +35,6 @@
 --  from PolyORB's Minimal_Servant. This package contains Message_Pool
 --  skeleton and implementation subroutines.
 
---  $Id$
-
 with MOMA.Types;
 with PolyORB.MOMA_P.Provider.Warehouse;
 

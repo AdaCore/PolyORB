@@ -38,8 +38,6 @@
 --  call to the Message_Consumer's Receive and has to be treated by the Handle
 --  procedure), or Notify (then the message stays in the pool).
 
---  $Id$
-
 with MOMA.Message_Handlers;
 
 with PolyORB.Minimal_Servant;

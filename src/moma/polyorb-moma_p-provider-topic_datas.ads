@@ -34,8 +34,6 @@
 --  A dynamic, protected dictionary of Topics, indexed by Strings.
 --  Such a dictionary is used by a router to retrieve topics informations.
 
---  $Id$
-
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.HFunctions.Hyper;

@@ -33,8 +33,6 @@
 
 --  Message_Handler servant.
 
---  $Id$
-
 with MOMA.Messages;
 
 with PolyORB.Any;

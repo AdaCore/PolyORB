@@ -33,8 +33,6 @@
 
 --  Message_Pool servant.
 
---  $Id$
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Log;
