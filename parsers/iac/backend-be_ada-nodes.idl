@@ -117,18 +117,31 @@ module Backend::BE_Ada::Nodes {
   interface Ada_Argument : Node_Id {
     Node_Id    Identifier;
     Mode_Id    Argument_Mode;
-    Node_Id    Arg_Type ;
+    Node_Id    Type_Spec ;
   };
 
-  interface Ada_Function : Definition {
+
+  /* Function Specification */
+  interface Ada_Function_Spec : Definition {
     List_Id    Argument_List;
-    Node_Id    Return_Type;
+    Node_Id    Type_Spec;
+  };
+
+  /* Function Body */
+  interface Ada_Function : Ada_Function_Spec {
+    Node_Id    Func_Spec; 
     List_Id    Declarations;
     List_Id    Func_Body;
   };
 
-  interface Ada_Procedure : Definition {
+  /* Procedure  Specification */
+  interface Ada_Procedure_Spec : Definition {
     List_Id    Argument_List;
+  };    
+
+  /* Procedure Body */
+  interface Ada_Procedure : Ada_Procedure_Spec {
+    Node_Id    Proc_Spec; 
     List_Id    Declarations;
     List_Id    Proc_Body;
   };
@@ -144,8 +157,8 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Var_Declaration : Definition {
-    Node_Id    Type_Spec;
-    Node_Id    Expression;
+    Node_Id      Type_Spec;
+    Node_Id      Expression;
   };
 
   interface Ada_Comment : Definition {
@@ -156,8 +169,57 @@ module Backend::BE_Ada::Nodes {
   /* Type nodes */
   /**************/
 
+  /*  
+      <Full_Type_Declaration> ::=
+          'type' <Defining_Identifier> [<Known_Discriminant_Part>]
+	  'is' <Type_Definition> ';' 
+  */
+	  
+	  
   interface Type_Declaration : Definition {
-    Node_Id     Type_Spec;
+    List_Id      Known_Discriminant_Part; 
+    Node_Id      Type_Spec;    
+  };
+  
+  /***************************/
+  /* Derived Type Definition */
+  /***************************/
+
+    
+    interface Derived_Type_Definition : Definition {
+    boolean      Is_Abstract;
+    Node_Id      Record_Extention_Part; 
+    };
+   
+
+
+  /****************/
+  /* Record Nodes */
+  /****************/
+  /* 
+     <Record_Type_Definition> ::=
+          [['abstract'] 'tagged'] ['limited'] <Record_Definition>; 
+	
+     <Record_Definition> ::= 
+          'record'
+	      Component_List
+	  'end record'
+       |  'null record'; 	
+          
+     <Component_List>::= 
+          <Component_Item> {<Component_Item>}
+       |  {Component_Item} <Variant_Part>
+       |  null 
+  */
+  /* To be continued */
+
+
+  interface Record_Type_Spec : Node_Id{
+    boolean      Is_Abstract; 
+    boolean      Is_Tagged;
+    boolean      Is_Limited; 
+    Node_Id      Component_List;
+    boolean      Is_Null_Record; 
   };
 
 
@@ -261,7 +323,9 @@ module Backend::BE_Ada::Nodes {
   /* Base type nodes */
   /*******************/
 
-  interface Base_Type {};
+  interface Base_Type {
+    Name_Id   Image; 
+  };
   interface _Float : Base_Type {};
   interface _Double : Base_Type {};
   interface Long_Double : Base_Type {};
