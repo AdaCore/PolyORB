@@ -233,7 +233,6 @@ cos/ir/typecode.sh
 cos/naming/File.idl
 cos/naming/Makefile.am
 cos/naming/Makefile.in
-cos/naming/ab_names.adb
 cos/naming/cosnaming-bindingiterator-impl.adb
 cos/naming/cosnaming-bindingiterator-impl.ads
 cos/naming/cosnaming-namingcontext-impl.adb
@@ -243,7 +242,7 @@ cos/naming/file-impl.ads
 cos/naming/ir_ab_names.adb
 cos/naming/menu.adb
 cos/naming/menu.ads
-cos/naming/po_names.adb
+cos/naming/po_cos_naming.adb
 cos/naming/polyorb-corba_p-naming_tools.adb
 cos/naming/polyorb-corba_p-naming_tools.ads
 cos/naming/test_naming_corba_i.adb

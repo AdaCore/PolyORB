@@ -4,7 +4,7 @@ include $(srcdir)/../Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-corba_exe=ab_names test_naming_corba_i
+corba_exe=po_cos_naming test_naming_corba_i
 ir_exe=ir_ab_names
 
 PROGS= @APPLI_EXES@ @SERVICE_EXES@
@@ -56,7 +56,7 @@ stamp-gen: $(IDL) $(IDLAC)
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL_PROGRAM) ab_names $(DESTDIR)$(bindir)/ab_names
+	$(INSTALL_PROGRAM) po_cos_naming $(DESTDIR)$(bindir)/po_cos_naming
 	for f in $(srcdir)/cos*.ad[bs] cos*.ali polyorb-corba_p-naming_tools.ad[bs] polyorb-corba_p-naming_tools.ali ; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 $(ir_exe): force_ir

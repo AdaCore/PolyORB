@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             A B _ N A M E S                              --
+--                        P O _ C O S _ N A M I N G                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Stand-alone server with a CORBA COS Naming's Root Context
+
 --  $Id$
 
 with Ada.Text_IO;
@@ -47,7 +49,7 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with CosNaming.NamingContext.Impl; use CosNaming.NamingContext.Impl;
 
-procedure AB_Names is
+procedure PO_COS_Naming is
 
    subtype NamingContext_Ptr is CosNaming.NamingContext.Impl.Object_Ptr;
 
@@ -72,4 +74,4 @@ begin
       & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
 
    Initiate_Server;
-end AB_Names;
+end PO_COS_Naming;
