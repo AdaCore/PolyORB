@@ -193,7 +193,7 @@ package Corba is
     -- (see Ada_Giop_c.hh, Ada_Giop_s.hh, Ada_OmniObject.hh,
     --  Ada_OmniRopeAndKey.hh, Ada_netBufferedStream.hh)
 
-    procedure Raise_Ada_Exception (Msg : in String) ;
+    procedure Raise_Ada_Exception (Msg : in Standard.String) ;
     -- Ada equivalent of C function C_Raise_Ada_Exception
 
     function To_Corba_String(S: in Standard.String) return Corba.String ;
