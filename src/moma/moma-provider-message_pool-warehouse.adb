@@ -34,12 +34,26 @@
 
 --  $Id$
 
-with PolyORB.Utils.HTables.Perfect;
+with Ada.Streams;
+with Ada.Streams.Stream_IO;
+
+with PolyORB.Any;
+with PolyORB.Buffers;
 with PolyORB.Locks;
+with PolyORB.Opaque;
+with PolyORB.Representations.CDR;
+with PolyORB.Utils.HTables.Perfect;
 
 package body MOMA.Provider.Message_Pool.Warehouse is
 
+   use Ada.Streams;
+   use Ada.Streams.Stream_IO;
+   use PolyORB.Any;
+   use PolyORB.Buffers;
    use PolyORB.Locks;
+   use PolyORB.Opaque;
+   use PolyORB.Representations.CDR;
+
 
    ---------------------------
    -- Ensure_Initialization --
@@ -64,17 +78,35 @@ package body MOMA.Provider.Message_Pool.Warehouse is
       K : String)
       return PolyORB.Any.Any
    is
-      Result : PolyORB.Any.Any;
-      Temp : Warehouse := W;
+      Result      : PolyORB.Any.Any;
+      --  Temp        : Warehouse := W;
+      Stream_File : Ada.Streams.Stream_IO.File_Type;
+      Buffer      : constant Buffer_Access := new Buffer_Type;
+      Data        : Opaque_Pointer;
+      Last        : Ada.Streams.Stream_Element_Offset;
+      Received    : Ada.Streams.Stream_Element_Count;
    begin
-      Ensure_Initialization (Temp);
+      --  Ensure_Initialization (Temp);
 
-      Lock_R (W.T_Lock);
-      Result := Lookup (W.T, K);
-      Unlock_R (W.T_Lock);
+      --  Lock_R (W.T_Lock);
+      --  Result := Lookup (W.T, K);
+      --  Unlock_R (W.T_Lock);
+
+      Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
+      Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
+      Ada.Streams.Stream_IO.Read (Stream_File, Data.Zone
+                                  (Data.Offset .. Data.Offset + 1024), Last);
+
+      Received := Last - Data.Offset + 1;
+      Unuse_Allocation (Buffer, 1024 - Received);
+      Ada.Streams.Stream_IO.Close (Stream_File);
+
+      Set_Type (Result, TypeCode.TC_Any);
+      Rewind (Buffer);
+      Unmarshall_To_Any (Buffer, Result);
 
       return Result;
-      exception
+   exception
          when No_Key => raise Key_Not_Found;
    end Lookup;
 
@@ -105,13 +137,23 @@ package body MOMA.Provider.Message_Pool.Warehouse is
       K : String;
       V : PolyORB.Any.Any)
    is
-      Temp : Warehouse := W;
+      --  Temp : Warehouse := W;
+      Stream_File   : Ada.Streams.Stream_IO.File_Type;
+      Buffer : constant Buffer_Access := new Buffer_Type;
    begin
-      Ensure_Initialization (Temp);
+      --  Ensure_Initialization (Temp);
 
-      Lock_W (W.T_Lock);
-      Insert (W.T, K, V);
-      Unlock_W (W.T_Lock);
+      --  Lock_W (W.T_Lock);
+      --  Insert (W.T, K, V);
+      --  Unlock_W (W.T_Lock);
+
+      Marshall_From_Any (Buffer, V);
+
+      Ada.Streams.Stream_IO.Create (Stream_File, Out_File, "message_" & K);
+      Ada.Streams.Stream_IO.Write (Stream_File,
+                                   To_Stream_Element_Array (Buffer));
+      Ada.Streams.Stream_IO.Close (Stream_File);
+
    end Register;
 
    ----------------

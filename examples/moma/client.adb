@@ -89,6 +89,10 @@ procedure Client is
 
    Ok : Boolean;
 
+   -----------------------
+   -- Byte Message Test --
+   -----------------------
+
    procedure Send_Receive_MByte (Sent : MOMA.Messages.MBytes.MByte;
                                  Received : in out MOMA.Messages.MBytes.MByte);
 
@@ -96,10 +100,10 @@ procedure Client is
                                  Received : in out MOMA.Messages.MBytes.MByte)
    is
    begin
-      --  Send text message
+      --  Send byte message
       Send (MOMA_Producer, Sent);
 
-      --  Get text Message
+      --  Get byte Message
       declare
          MOMA_Message_Temp : MOMA.Messages.Message'Class
            := Receive (MOMA_Consumer);
@@ -135,6 +139,8 @@ begin
 
    --  Create Message Consumer associated to the Session
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
+
+   Put_Line ("Ready to send messages !");
 
    -----------------------
    -- Text message test --
@@ -232,5 +238,4 @@ begin
    --  delay 10.0;
 
    --  XXX should destroy all structures here !
-
 end Client;
