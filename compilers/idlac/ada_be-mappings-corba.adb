@@ -258,6 +258,8 @@ package body Ada_Be.Mappings.CORBA is
    begin
       if Abst (Node) then
          return "Abstract_Ref";
+      elsif Local (Node) then
+         return "Local_Ref";
       else
          return "Ref";
       end if;
