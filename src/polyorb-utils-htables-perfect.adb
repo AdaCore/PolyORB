@@ -963,6 +963,16 @@ package body PolyORB.Utils.HTables.Perfect is
 
    end Delete;
 
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (T : Table_Instance)
+                     return Boolean is
+   begin
+      return T.T.HTable.Info.Count = 0;
+   end Is_Empty;
+
    -----------
    -- First --
    -----------
@@ -972,17 +982,14 @@ package body PolyORB.Utils.HTables.Perfect is
    is
       Elements : Element_Array renames T.T.HTable.Elements;
 
-      Result : Iterator;
    begin
-      Result.On_Table := T;
-
       for J in First (Elements) .. Last (Elements) loop
          if Elements.Table (J).Used then
-            Result.Position := J;
+            return Iterator'(On_Table => T, Position => J);
          end if;
       end loop;
 
-      return Result;
+      return Iterator'(On_Table => T, Position => Last (Elements) + 1);
    end First;
 
    -----------
@@ -990,7 +997,7 @@ package body PolyORB.Utils.HTables.Perfect is
    -----------
 
    function Value (I : Iterator)
-                  return Item_Access
+                  return Item
    is
       Elements : Dynamic_Element_Array.Table_Ptr
         renames I.On_Table.T.HTable.Elements.Table;
@@ -998,7 +1005,7 @@ package body PolyORB.Utils.HTables.Perfect is
         renames I.On_Table.T.Items.Table;
 
    begin
-      return Items (Elements (I.Position).Item_Index);
+      return Items (Elements (I.Position).Item_Index).all;
    end Value;
 
    ----------
@@ -1019,9 +1026,9 @@ package body PolyORB.Utils.HTables.Perfect is
       return Result;
    end Last;
 
-   ------------
-   -- Insert --
-   ------------
+   ----------
+   -- Next --
+   ----------
 
    procedure Next (I : in out Iterator)
    is

@@ -131,23 +131,43 @@ package PolyORB.Utils.HTables.Perfect is
    --  the flag Used to False. Deallocations appears only after reorganisation
    --  of the table or a sub-table (procedure Insert)
 
+   function Is_Empty (T : Table_Instance) return Boolean;
+   --  True iff T has no element.
+
    -----------------------------------------
    -- Iterator on Table_Instance elements --
    -----------------------------------------
 
    type Iterator is private;
 
+   --  This Iterator type provides a way to traverse the hash tables
+   --  and access the elements stored in the hash table.
+
+   --  Note that, per construction of this hash table, the user cannot
+   --  know the order in which the iterator traverses the elements.
+   --  Hence, the traversal order implied by First, Next and Last
+   --  refers to the order in which the elements are found when
+   --  traversing Table_Instance internals sequentially. Hence it is
+   --  implementation defined.
 
    function First (T : Table_Instance)
                   return Iterator;
+   --  Return an Iterator placed on the first non null element found
+   --  in 'T'.  If there is no such element, the Iterator is placed
+   --  outside T bounds.
 
    function Value (I : Iterator)
-                  return Item_Access;
+                  return Item;
+   --  Return the Item on which I is placed.
 
    function Last (I : Iterator)
                  return Boolean;
+   --  True if I is on the last element of the Table_Instance on which
+   --  it operates.
 
    procedure Next (I : in out Iterator);
+   --  Jump to the next non null element of the Table_Instance on which
+   --  I operates.
 
 private
    --  A Hash table is the agregation of an Hash_Table index table

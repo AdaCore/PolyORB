@@ -590,7 +590,8 @@ package body PolyORB.POA.Basic_POA is
       pragma Debug (O ("Start destroying POA " & Name));
 
       --  Destroy all children
-      if Self.Children /= null then
+      if Self.Children /= null
+        and then not Is_Empty (Self.Children.all) then
          Lock_W (Self.Children_Lock);
 
          declare
@@ -598,7 +599,7 @@ package body PolyORB.POA.Basic_POA is
             A_Child : Basic_Obj_Adapter_Access;
          begin
             while not Last (It) loop
-               A_Child := Basic_Obj_Adapter (Value (It).all.all)'Access;
+               A_Child := Basic_Obj_Adapter (Value (It).all)'Access;
 
                Destroy (A_Child,
                         Etherealize_Objects,
