@@ -1,7 +1,6 @@
+FLAGS = -A$(EXPORT_TREE)/$(LIBDIR) $(IMPORT_LIBRARY_FLAGS)
 
-FLAGS = -A../../InterfaceORB $(IMPORT_LIBRARY_FLAGS)
-
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) weapon.ads
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -I.. -gnatf -gnata -i client.adb -g $(FLAGS) 
 	gnatmake -I.. -gnatf -gnata -i server.adb -g $(FLAGS)
 
@@ -18,11 +17,8 @@ GENERATED_FILES += vehicle.ad*
 clean::
 	-rm -f *.o *.ali *~ client server $(GENERATED_FILES)
 
-ada:
-	omniidl2 -b ada classes.idl
+ada:: weapon.ads tank.ads vehicle.ads
 
-weapon.ads: classes.idl
-	omniidl2 -bada classes.idl
-
-
+weapon.ads tank.ads vehicle.ads: classes.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker classes.idl
 

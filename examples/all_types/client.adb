@@ -153,7 +153,7 @@ begin
       X : CORBA.Object.Ref := CORBA.Object.Ref (To_Ref (Myall_Types));
    begin
       Output ("test CORBA.Object.Ref",
-              Is_Equivalent (Echo12 (MyAll_Types, X), X));
+         Is_Equivalent (Echo12 (MyAll_Types, X), X));
    end;
 
    declare

@@ -1,6 +1,6 @@
-FLAGS = -A../../InterfaceORB $(IMPORT_LIBRARY_FLAGS)
+FLAGS = -A$(EXPORT_TREE)/$(LIBDIR) $(IMPORT_LIBRARY_FLAGS)
 
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) all_functions.ads
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -I.. -gnatf -gnata -m -i client.adb $(FLAGS)
 	gnatmake -I.. -gnatf -gnata -m -i server.adb $(FLAGS)
 
@@ -16,9 +16,8 @@ GENERATED_FILES += $(IDL_INTERFACE)_idl_file-stream.ad*
 clean::
 	-rm -f *.o *.ali *~ server client $(GENERATED_FILES)
 
-ada::
-	omniidl2 -b ada all_functions.idl
+ada:: all_functions.ads
 
 all_functions.ads: all_functions.idl
-	omniidl2 -bada all_functions.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker all_functions.idl
 

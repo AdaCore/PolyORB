@@ -1,4 +1,4 @@
-FLAGS = -A../../InterfaceORB $(IMPORT_LIBRARY_FLAGS)
+FLAGS = -A$(EXPORT_TREE)/$(LIBDIR) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -I.. -gnatf -gnata -m -i client $(FLAGS)
@@ -25,9 +25,13 @@ GENERATED_FILES += echo_idl_file.ads
 GENERATED_FILES += cosnaming.ads
 
 
-ada::
-	omniidl2 -bada echo.idl
-	omniidl2 -bada Naming.idl
+ada:: echo.ads cosnaming.ads
+
+cosnaming.ads::
+	$(EXPORT_TREE)/$(BINDIR)/adabroker Naming.idl
+
+echo.ads::
+	$(EXPORT_TREE)/$(BINDIR)/adabroker echo.idl
 
 clean::
 	-rm -f *.o *.ali *~ server client $(GENERATED_FILES)
