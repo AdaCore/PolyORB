@@ -62,15 +62,10 @@ package Corba.Object is
    --------------------------------------------------
    ---        CORBA 2.2 specifications            ---
    --------------------------------------------------
-type Ref ;
---   type Ref is tagged private ;
+
+   type Ref is tagged private ;
    type Ref_Ptr is access all Ref'Class ;
    type Constant_Ref_Ptr is  access constant Corba.Object.Ref'Class ;
-
-   type Ref is new Ada.Finalization.Controlled with record
-      Omniobj : Omniobject.Object_Ptr := null ;
-      Dynamic_Type : Constant_Ref_Ptr := null ;
-   end record ;
 
    -- constant Nil Ref
    Nil_Ref : aliased constant Ref ;
@@ -281,6 +276,11 @@ private
    --------------------------------------------------
    ---     references to implementations          ---
    --------------------------------------------------
+
+   type Ref is new Ada.Finalization.Controlled with record
+      Omniobj : Omniobject.Object_Ptr := null ;
+      Dynamic_Type : Constant_Ref_Ptr := null ;
+   end record ;
 
 
    --------------------------------------------------

@@ -44,7 +44,6 @@
 
 with Ada.Exceptions ;
 with Corba.Object ;
-with Sys_Dep ;
 
 with Adabroker_Debug ; use Adabroker_Debug ;
 
@@ -96,7 +95,6 @@ package body Corba.Forward is
          Result : Ref ;
       begin
          pragma Debug(Output(Forward,"Corba.Forward.To_Forward : entering...")) ;
-         Output(True, "***********INITOK : " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(The_Ref.Omniobj.all.Init_Ok))) ;
          Corba.Object.Internal_Copy(The_Ref,Result) ;
          pragma Debug(Output(Forward,"Corba.Forward.To_Forward : got the internal copy")) ;
          return Result ;

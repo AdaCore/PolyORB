@@ -55,7 +55,7 @@
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
-#define DEBUG
+//#define DEBUG
 
 
 // Constructor
@@ -196,8 +196,7 @@ ADABROKER_TRY
     result->C_Object = same->C_Object ;
     result->Init_Ok = true ;
 #ifdef DEBUG
-    // DO NOT UNCOMMENT THIS DEBUG INFO
-    // cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
+     cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
 #endif
     return result ;
   } else {
