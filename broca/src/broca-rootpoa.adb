@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2001 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -911,8 +911,6 @@ package body Broca.RootPOA is
      return Broca.POA.Skeleton_Ptr
    is
       Slot : Slot_Index;
-      --  XXX remove
-      --  Obj  : Broca.POA.Skeleton_Ptr;
       Type_Id : constant CORBA.RepositoryId
         := Get_Type_Id (P_Servant);
    begin
@@ -933,10 +931,6 @@ package body Broca.RootPOA is
       then
          Slot := Reserve_A_Slot (Self);
 
-         --  XXX remove
-         --  Obj := Create_Skeleton
-         --    (Self, Slot, P_Servant, Type_Id, Slot_Index_To_ObjectId (Slot));
-         --  return Self.Object_Map (Slot).Skeleton;
          return Create_Skeleton
            (Self, Slot, P_Servant, Type_Id, Slot_Index_To_ObjectId (Slot));
       end if;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---               B R O C A . V A L U E . V A L U E _ S T R E A M            --
+--                   B R O C A . V A L U E . S T R E A M                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2001 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --

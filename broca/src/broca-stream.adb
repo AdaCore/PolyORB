@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2001 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,7 +65,6 @@ package body Broca.Stream is
       Buffer : access Buffer_Type) is
    begin
       Stream.Lock_S.Check_Owner;
-      --  Read (Buffer, Bytes);
       pragma Debug (O ("Dump outgoing buffer"));
       Broca.Buffers.Show (Buffer.all);
       begin
@@ -92,10 +91,6 @@ package body Broca.Stream is
             raise Connection_Closed;
       end if;
 
-      --  Write (Buffer, Bytes);
-
-      --  pragma Debug (O ("Receive: got " & Length'Img & " bytes"));
-      --  Broca.Buffers.Dump (Bytes);
       return Bytes;
    end Receive;
 
