@@ -105,11 +105,11 @@ begin
    Parse_Command_Line;
 
    if Filename = null then
-      Put_Line (Standard_Error, "Usage: grmphf opts name");
+      Put_Line (Standard_Error, "Usage: gnatprfh opts name");
       New_Line (Standard_Error);
       Put_Line (Standard_Error, "   name is a filename of words");
       New_Line (Standard_Error);
-      Put_Line (Standard_Error, "grmphf switches:");
+      Put_Line (Standard_Error, "gnatprfh switches:");
       Put_Line (Standard_Error, "  -        Standard input");
       Put_Line (Standard_Error, "  -v       Verbose mode");
       Put_Line (Standard_Error, "  -sRANGE  Char selection");
