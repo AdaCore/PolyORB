@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -203,7 +203,7 @@ adabe_exception::produce_skel_adb (dep_list & with,
     "                      CORBA.Unsigned_Long (Reply_Size));\n"
     "\n"
     "                  --  service context\n"
-    "                  Marshall (Stream, CORBA.Unsigned_Long (0));\n"
+    "                  Marshall (Stream, CORBA.Unsigned_Long (Broca.Giop.No_Context));\n"
     "                  --  request id\n"
     "                  Marshall (Stream, Request_Id);\n"
     "                  --  reply status\n"
