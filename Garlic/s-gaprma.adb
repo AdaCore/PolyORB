@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -41,6 +41,10 @@ package body System.Garlic.Priorities.Mapping is
    Native_Priority_Range : constant Natural
      := Natural (Priority'Last - Priority'First + 1);
 
+   ------------------------
+   -- To_Global_Priority --
+   ------------------------
+
    function To_Global_Priority
      (A_Priority : in System.Priority)
      return Global_Priority
@@ -53,6 +57,10 @@ package body System.Garlic.Priorities.Mapping is
 
       return Global_Priority'First + Global_Priority (Offset);
    end To_Global_Priority;
+
+   ------------------------
+   -- To_Native_Priority --
+   ------------------------
 
    function To_Native_Priority
      (A_Priority : in Global_Priority)
