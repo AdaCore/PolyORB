@@ -4336,7 +4336,8 @@ package body Exp_Dist is
             Dynamic_Async := Empty;
          end if;
 
-         if not Asynchronous or else Dynamically_Asynchronous then
+         if not Asynchronous or Dynamically_Asynchronous then
+
             --  The first statement after the subprogram call is a statement to
             --  writes a Null_Occurrence into the result stream.
 
@@ -7565,11 +7566,6 @@ package body Exp_Dist is
          Called_Subprogram : Node_Id;
          --  The subprogram to call
 
-         Dynamic_Async : Entity_Id;
-         pragma Warnings (Off);
-         pragma Unreferenced (Dynamic_Async);
-         pragma Warnings (On);
-
       begin
          if Present (RACW_Type) then
             Called_Subprogram :=
@@ -7582,13 +7578,6 @@ package body Exp_Dist is
 
          Request_Parameter :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-
-         if Dynamically_Asynchronous then
-            Dynamic_Async :=
-              Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
-         else
-            Dynamic_Async := Empty;
-         end if;
 
          Arguments :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
