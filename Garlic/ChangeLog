@@ -1,3 +1,11 @@
+1998-04-29  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Define Raise_Program_Error_For_E_4_18 which will
+	be called by GNAT if conditions defined in E.4(18) are not met
+	when using a RACW.
+
+	* s-parint.adb: Likewise.
+
 1998-04-24  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-ganobl.adb: (Asynchronous.Read) When Nbytes = 0, use C_Select

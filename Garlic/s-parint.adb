@@ -33,10 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
-with GNAT.HTable; use GNAT.HTable;
+with GNAT.HTable;           use GNAT.HTable;
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
 
@@ -392,6 +393,16 @@ package body System.Partition_Interface is
 
       Units.Apply (U, R, Process'Access);
    end Public_Message_Receiver;
+
+   ------------------------------------
+   -- Raise_Program_Error_For_E_4_18 --
+   ------------------------------------
+
+   procedure Raise_Program_Error_For_E_4_18 is
+   begin
+      Ada.Exceptions.Raise_Exception (Program_Error'Identity,
+        "Illegal usage of remote access to class-wide type. See RM E.4(18)");
+   end Raise_Program_Error_For_E_4_18;
 
    -----------------------------
    -- Register_Receiving_Stub --

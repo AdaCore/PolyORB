@@ -102,4 +102,9 @@ package System.Partition_Interface is
      (Handler : in out RACW_Stub_Type_Access);
    --  Get a unique pointer on a remote object
 
+   procedure Raise_Program_Error_For_E_4_18;
+   --  Raise Program_Error with an error message explaining why it has been
+   --  raised. The rule in E.4 (18) is tricky and misleading for most users
+   --  of the distributed systems annex.
+
 end System.Partition_Interface;
