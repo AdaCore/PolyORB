@@ -98,8 +98,7 @@ gcc -o ${tmpe} -fwritable-strings ${tmph}
 cat > ${fname} << EOF
 --  This package has been generated automatically on:
 EOF
-uname -a | fmt -70 | \
-  sed -e '1s/^/--  /' -e '2,$s/^/--    /' >> ${fname}
+echo "--  `uname -a`" >> ${fname}
 echo "--  Generation date: `date`" >> ${fname}
 cat >> ${fname} << EOF
 --  Any change you make here is likely to be lost !
