@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#7 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#8 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -1416,19 +1416,13 @@ package body Idl_Fe.Lexer is
       Fd           : File_Descriptor;
       Idl_File     : Ada.Text_IO.File_Type;
 
+      CPP_Arg_List : constant Argument_List_Access
+        := Argument_String_To_List
+          (Platform.CPP_Preprocessor);
    begin
-      --  Use default options:
-      --  -E           only preprocess
-      --  -C           do not discard comments
-      --  -x c++       use c++ preprocessor semantic
-      Add_Argument ("-E");
-      Add_Argument ("-C");
-      Add_Argument ("-x");
-      Add_Argument ("c");
-      --  FIXME: The GCC3 preprocessor won't accept '-x c++'
-      --  unless the C++ *compiler* has been built as well.
-      --  For now, just use '-x c'.
-      Add_Argument ("-ansi");
+      for J in CPP_Arg_List'Range loop
+         Add_Argument (CPP_Arg_List (J).all);
+      end loop;
 
       Goto_Section ("cppargs");
       while Getopt ("*") /= ASCII.Nul loop
@@ -1460,8 +1454,9 @@ package body Idl_Fe.Lexer is
       Add_Argument ("-o");
       Add_Argument (Tmp_File_Name);
       Args (Arg_Count) := new String'(Filename);
-      Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
-             Args (1 .. Arg_Count),
+      Spawn (Locate_Exec_On_Path
+               (Args (Args'First).all).all,
+             Args (Args'First + 1 .. Arg_Count),
              Spawn_Result);
       pragma Debug (O ("Initialize: preprocessing done"));
       if not Spawn_Result then

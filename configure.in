@@ -21,6 +21,7 @@ AC_SUBST(POLYORB_MINOR_VERSION)
 
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_CXXCPP
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_CHECK_PROG(SED, sed, sed)
@@ -103,6 +104,16 @@ AC_ARG_WITH(idl-compiler,
   IDLAC=idlac
 ])
 AC_SUBST(IDLAC)
+if test "$CXXCPPFLAGS" = ""; then
+  CXXCPPFLAGS="-C -x c -ansi"
+  # Use default options for the GNU CPP:
+  # -C           do not discard comments
+  # -x c++       use c++ preprocessor semantic
+  # FIXME: The GCC3 preprocessor won't accept '-x c++'
+  # unless the C++ *compiler* has been built as well.
+  # For now, just use '-x c'.
+fi
+AC_SUBST(CXXCPPFLAGS)
 
 ##########################################
 # Services list.
