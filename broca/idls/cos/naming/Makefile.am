@@ -28,4 +28,4 @@ CosNaming_GEN= \
 DEPS=$(CosNaming_GEN)
 
 $(CosNaming_GEN): $(CosNaming_IDL)
-	$(IDLAC) $< -I$(srcdir)
+	$(IDLAC) $(CosNaming_IDL) -I$(srcdir)

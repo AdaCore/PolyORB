@@ -183,13 +183,13 @@ DEPS=$(CosEventChannelAdmin_GEN) $(CosEventComm_GEN) \
   $(CosTypedEventChannelAdmin_GEN) $(CosTypedEventComm_GEN)
 
 $(CosEventChannelAdmin_GEN): $(CosEventChannelAdmin_IDL)
-	$(IDLAC) $< -I$(srcdir)
+	$(IDLAC) $(CosEventChannelAdmin_IDL) -I$(srcdir)
 
 $(CosEventComm_GEN): $(CosEventComm_IDL)
-	$(IDLAC) $< -I$(srcdir)
+	$(IDLAC) $(CosEventComm_IDL) -I$(srcdir)
 
 $(CosTypedEventChannelAdmin_GEN): $(CosTypedEventChannelAdmin_IDL)
-	$(IDLAC) $< -I$(srcdir)
+	$(IDLAC) $(CosTypedEventChannelAdmin_IDL) -I$(srcdir)
 
 $(CosTypedEventComm_GEN): $(CosTypedEventComm_IDL)
-	$(IDLAC) $< -I$(srcdir)
+	$(IDLAC) $(CosTypedEventComm_IDL) -I$(srcdir)
