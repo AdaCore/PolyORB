@@ -101,6 +101,8 @@ package body PolyORB.Any.NVList is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      pragma Debug (O ("Free"));
       null;
    end Free;
 
@@ -131,6 +133,10 @@ package body PolyORB.Any.NVList is
       Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (NVList : Ref) return Standard.String
    is
       use NV_Sequence;
@@ -155,6 +161,10 @@ package body PolyORB.Any.NVList is
          return ("(null list)");
       end if;
    end Image;
+
+   --------------------------------
+   -- Package body for Internals --
+   --------------------------------
 
    package body Internals is
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B - T A S K I N G - S E M A P H O R E S            --
+--           P O L Y O R B . T A S K I N G . S E M A P H O R E S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -29,6 +29,7 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 --  This package provides an implementation of semaphores
 
 --  $Id$
@@ -59,31 +60,47 @@ package body PolyORB.Tasking.Semaphores is
 
    procedure Create (S : out Semaphore_Access) is
    begin
-      pragma Debug (O ("Create semaphore"));
+      pragma Debug (O ("Create"));
+
       S := new Semaphore;
       S.Value := 0;
       PTM.Create (S.Mutex);
       PTCV.Create (S.Condition);
    end Create;
 
+   -------------
+   -- Destroy --
+   -------------
+
    procedure Destroy (S : in out Semaphore_Access) is
    begin
       pragma Debug (O ("Destroy semaphore, Value was "
                        & Integer'Image (S.Value)));
+
       PTM.Destroy (S.Mutex);
       PTCV.Destroy (S.Condition);
       Free (S);
    end Destroy;
 
+   --------
+   -- Up --
+   --------
+
    procedure Up (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex);
+
       pragma Debug (O ("Up semaphore, value ="
                        & Integer'Image (S.Value)));
+
       S.Value := S.Value + 1;
       PTCV.Signal (S.Condition);
       PTM.Leave (S.Mutex);
    end Up;
+
+   ----------
+   -- Down --
+   ----------
 
    procedure Down (S : Semaphore_Access) is
    begin
@@ -100,13 +117,19 @@ package body PolyORB.Tasking.Semaphores is
       PTM.Leave (S.Mutex);
    end Down;
 
+   -----------
+   -- State --
+   -----------
+
    function State (S : Semaphore_Access) return Natural is
       Result : Integer;
    begin
       PTM.Enter (S.Mutex);
       Result := S.Value;
-      pragma Debug (O (" get Semaphore value, value ="
+
+      pragma Debug (O ("Get Semaphore value, value ="
                        & Integer'Image (S.Value)));
+
       PTM.Leave (S.Mutex);
       return Result;
    end State;

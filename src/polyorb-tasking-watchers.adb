@@ -50,14 +50,13 @@ package body PolyORB.Tasking.Watchers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-
    ------------
    -- Create --
    ------------
 
    procedure Create (W : in out Watcher_Type) is
    begin
-      pragma Debug (O ("Create a watcher"));
+      pragma Debug (O ("Create"));
       W.Version := Version_Id'First;
       PTM.Create (W.WMutex);
       PTCV.Create (W.WCondition);
@@ -71,7 +70,7 @@ package body PolyORB.Tasking.Watchers is
 
    procedure Destroy (W : in out Watcher_Type) is
    begin
-      pragma Debug (O ("Destroy a watcher"));
+      pragma Debug (O ("Destroy"));
       PTM.Destroy (W.WMutex);
       PTCV.Destroy (W.WCondition);
    end Destroy;
@@ -85,7 +84,7 @@ package body PolyORB.Tasking.Watchers is
       V : in Version_Id) is
    begin
       PTM.Enter (W.WMutex);
-      pragma Debug (O ("Call to differ"));
+      pragma Debug (O ("Differ: begin"));
 
       while W.Version = V loop
          while not W.Passing loop
@@ -109,7 +108,7 @@ package body PolyORB.Tasking.Watchers is
          end if;
 
       end loop;
-      pragma Debug (O ("end of Differ"));
+      pragma Debug (O ("Differ: end"));
       PTM.Leave (W.WMutex);
    end Differ;
 
@@ -122,7 +121,7 @@ package body PolyORB.Tasking.Watchers is
       V : out Version_Id) is
    begin
       Enter (W.WMutex);
-      pragma Debug (O ("Call to Lookup"));
+      pragma Debug (O ("Lookup"));
       V := W.Version;
       Leave (W.WMutex);
    end Lookup;
@@ -135,13 +134,16 @@ package body PolyORB.Tasking.Watchers is
      (W : in out Watcher_Type) is
    begin
       Enter (W.WMutex);
+
       pragma Debug (O ("Update"));
       W.Version := W.Version + 1;
+
       if W.Await_Count /= 0 then
          pragma Debug (O ("Update provokes a reevaluation"));
          W.Passing := False;
          Broadcast (W.WCondition);
       end if;
+
       Leave (W.WMutex);
    end Update;
 

@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#2 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#3 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -45,7 +45,7 @@ package body PolyORB.Tasking.Rw_Locks is
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Mutexes;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.locks");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.tasking.rw_locks");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -53,6 +53,10 @@ package body PolyORB.Tasking.Rw_Locks is
    --  For debugging purposes.
 
    All_Rw_Locks : Tasking.Mutexes.Mutex_Access;
+
+   ------------
+   -- Create --
+   ------------
 
    procedure Create (L : out Rw_Lock_Access)
    is
@@ -73,8 +77,16 @@ package body PolyORB.Tasking.Rw_Locks is
       L := Result;
    end Create;
 
+   ----------
+   -- Free --
+   ----------
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Rw_Lock_Type, Rw_Lock_Access);
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (L : in out Rw_Lock_Access) is
    begin
@@ -83,6 +95,10 @@ package body PolyORB.Tasking.Rw_Locks is
       Destroy (L.Guard_Values);
       Free (L);
    end Destroy;
+
+   ------------
+   -- Lock_W --
+   ------------
 
    procedure Lock_W (L : access Rw_Lock_Type) is
    begin
@@ -102,6 +118,10 @@ package body PolyORB.Tasking.Rw_Locks is
       L.Count := -1;
       Leave (All_Rw_Locks);
    end Lock_W;
+
+   ------------
+   -- Lock_R --
+   ------------
 
    procedure Lock_R (L : access Rw_Lock_Type) is
    begin
@@ -124,6 +144,10 @@ package body PolyORB.Tasking.Rw_Locks is
       Leave (All_Rw_Locks);
    end Lock_R;
 
+   --------------
+   -- Unlock_W --
+   --------------
+
    procedure Unlock_W (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_W"));
@@ -138,6 +162,10 @@ package body PolyORB.Tasking.Rw_Locks is
       Leave (All_Rw_Locks);
    end Unlock_W;
 
+   --------------
+   -- Unlock_R --
+   --------------
+
    procedure Unlock_R (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_R"));
@@ -151,6 +179,10 @@ package body PolyORB.Tasking.Rw_Locks is
       Broadcast (L.Guard_Values);
       Leave (All_Rw_Locks);
    end Unlock_R;
+
+   -------------------
+   -- Set_Max_Count --
+   -------------------
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;

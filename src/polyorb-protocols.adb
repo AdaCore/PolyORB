@@ -190,7 +190,9 @@ package body PolyORB.Protocols is
             elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
                Send_Reply (Session_Access (Sess), Req);
 
-               --   XXX The request has been deleted otherwise
+               --  When using the 'Sync_With_Server' policy,
+               --  the request is destroyed when the acknowledgment
+               --  message has been received.
             end if;
          end;
 

@@ -35,7 +35,18 @@
 
 --  $Id$
 
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Condition_Variables is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.condition_variables");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+   procedure Inc renames L.Increment;
+   procedure Dec renames L.Decrement;
 
    My_Factory : Condition_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
@@ -46,6 +57,8 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Create (C : out Condition_Access; Name : String := "") is
    begin
+      pragma Debug (O ("Create"));
+      pragma Debug (Inc);
       pragma Assert (My_Factory /= null);
       C := Create (My_Factory, Name);
    end Create;
@@ -56,6 +69,8 @@ package body PolyORB.Tasking.Condition_Variables is
 
    procedure Destroy (C : in out Condition_Access) is
    begin
+      pragma Debug (O ("Destroy"));
+      pragma Debug (Dec);
       pragma Assert (My_Factory /= null);
       Destroy (My_Factory, C);
    end Destroy;

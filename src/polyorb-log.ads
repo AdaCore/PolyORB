@@ -69,11 +69,19 @@ package PolyORB.Log is
       Facility :  String;
    package Facility_Log is
 
+      --  NOTE: these procedures are not thread safe.
+
       procedure Output
         (Message : in String;
          Level   : Log_Level := Debug);
       --  Log Message when Level is at least equal to the user-requested
       --  level for Facility.
+
+      procedure Increment;
+      --  Increment an internal counter and prints its value;
+
+      procedure Decrement;
+      --  Decrement an internal counter and prints its value;
 
    end Facility_Log;
 

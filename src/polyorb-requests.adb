@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,8 @@
 --  The Request object.
 
 --  $Id$
+
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.ORB;
@@ -70,6 +72,8 @@ package body PolyORB.Requests is
    is
       Res : constant Request_Access := new Request;
    begin
+      pragma Debug (O ("Creating request"));
+
       Res.Target    := Target;
       Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
@@ -86,6 +90,20 @@ package body PolyORB.Requests is
 
       Req := Res;
    end Create_Request;
+
+   ---------------------
+   -- Destroy_Request --
+   ---------------------
+
+   procedure Destroy_Request (R : in out Request_Access) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Request, Request_Access);
+
+   begin
+      pragma Debug (O ("Destroying request"));
+
+      Free (R);
+   end Destroy_Request;
 
    ------------
    -- Invoke --

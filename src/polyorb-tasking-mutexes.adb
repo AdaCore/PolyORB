@@ -35,7 +35,16 @@
 
 --  $Id$
 
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Mutexes is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.mutexes");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    My_Factory : Mutex_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
@@ -48,6 +57,7 @@ package body PolyORB.Tasking.Mutexes is
      (M    : out Mutex_Access;
       Name : String := "") is
    begin
+      pragma Debug (O ("Create"));
       pragma Assert (My_Factory /= null);
       M := Create (My_Factory, Name);
    end Create;
@@ -59,6 +69,7 @@ package body PolyORB.Tasking.Mutexes is
    procedure Destroy
      (M    : in out Mutex_Access) is
    begin
+      pragma Debug (O ("Destroy"));
       pragma Assert (My_Factory /= null);
       Destroy (My_Factory, M);
    end Destroy;

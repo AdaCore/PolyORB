@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
@@ -208,8 +206,7 @@ package PolyORB.Requests is
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
 
-   procedure Destroy_Request is new Ada.Unchecked_Deallocation
-     (Request, Request_Access);
+   procedure Destroy_Request (R : in out Request_Access);
 
    function Image (Req : Request) return String;
    --  For debugging purposes.
