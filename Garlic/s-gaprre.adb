@@ -111,7 +111,7 @@ package body System.Garlic.Protocols.Replay is
    -----------------
 
    task body Engine_Type is
-      PID   : Partition_ID;
+      PID   : Partition_ID := Null_PID;
       Code  : Any_Opcode;
       Data  : Stream_Element_Access;
       Error : Error_Type;
