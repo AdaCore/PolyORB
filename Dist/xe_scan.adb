@@ -95,6 +95,8 @@ package body XE_Scan is
             Write_Str ("""return""");
          when Tok_Unknown =>
             Write_Str ("");
+         when Tok_Reserved =>
+            raise Scanning_Error;
       end case;
    end Write_Token;
 
@@ -150,63 +152,63 @@ package body XE_Scan is
       Set_Token ("begin",         Tok_Begin);
       Set_Token ("null",          Tok_Null);
       Set_Token ("return",        Tok_Return);
-      Set_Token ("mod",           Tok_Unknown);
-      Set_Token ("rem",           Tok_Unknown);
-      Set_Token ("new",           Tok_Unknown);
-      Set_Token ("abs",           Tok_Unknown);
-      Set_Token ("others",        Tok_Unknown);
-      Set_Token ("delta",         Tok_Unknown);
-      Set_Token ("digits",        Tok_Unknown);
-      Set_Token ("range",         Tok_Unknown);
-      Set_Token ("and",           Tok_Unknown);
-      Set_Token ("or",            Tok_Unknown);
-      Set_Token ("not",           Tok_Unknown);
-      Set_Token ("abstract",      Tok_Unknown);
-      Set_Token ("access",        Tok_Unknown);
-      Set_Token ("aliased",       Tok_Unknown);
-      Set_Token ("all",           Tok_Unknown);
-      Set_Token ("array",         Tok_Unknown);
-      Set_Token ("body",          Tok_Unknown);
-      Set_Token ("constant",      Tok_Unknown);
-      Set_Token ("do",            Tok_Unknown);
-      Set_Token ("limited",       Tok_Unknown);
-      Set_Token ("of",            Tok_Unknown);
-      Set_Token ("out",           Tok_Unknown);
-      Set_Token ("record",        Tok_Unknown);
-      Set_Token ("renames",       Tok_Unknown);
-      Set_Token ("reverse",       Tok_Unknown);
-      Set_Token ("tagged",        Tok_Unknown);
-      Set_Token ("then",          Tok_Unknown);
-      Set_Token ("reverse",       Tok_Unknown);
-      Set_Token ("abort",         Tok_Unknown);
-      Set_Token ("accept",        Tok_Unknown);
-      Set_Token ("case",          Tok_Unknown);
-      Set_Token ("delay",         Tok_Unknown);
-      Set_Token ("else",          Tok_Unknown);
-      Set_Token ("elsif",         Tok_Unknown);
-      Set_Token ("exception",     Tok_Unknown);
-      Set_Token ("exit",          Tok_Unknown);
-      Set_Token ("goto",          Tok_Unknown);
-      Set_Token ("if",            Tok_Unknown);
-      Set_Token ("raise",         Tok_Unknown);
-      Set_Token ("requeue",       Tok_Unknown);
-      Set_Token ("select",        Tok_Unknown);
-      Set_Token ("terminate",     Tok_Unknown);
-      Set_Token ("until",         Tok_Unknown);
-      Set_Token ("when",          Tok_Unknown);
-      Set_Token ("declare",       Tok_Unknown);
-      Set_Token ("loop",          Tok_Unknown);
-      Set_Token ("while",         Tok_Unknown);
-      Set_Token ("entry",         Tok_Unknown);
-      Set_Token ("protected",     Tok_Unknown);
-      Set_Token ("task",          Tok_Unknown);
-      Set_Token ("type",          Tok_Unknown);
-      Set_Token ("subtype",       Tok_Unknown);
-      Set_Token ("generic",       Tok_Unknown);
-      Set_Token ("package",       Tok_Unknown);
-      Set_Token ("private",       Tok_Unknown);
-      Set_Token ("with",          Tok_Unknown);
-      Set_Token ("separate",      Tok_Unknown);
+      Set_Token ("mod",           Tok_Reserved);
+      Set_Token ("rem",           Tok_Reserved);
+      Set_Token ("new",           Tok_Reserved);
+      Set_Token ("abs",           Tok_Reserved);
+      Set_Token ("others",        Tok_Reserved);
+      Set_Token ("delta",         Tok_Reserved);
+      Set_Token ("digits",        Tok_Reserved);
+      Set_Token ("range",         Tok_Reserved);
+      Set_Token ("and",           Tok_Reserved);
+      Set_Token ("or",            Tok_Reserved);
+      Set_Token ("not",           Tok_Reserved);
+      Set_Token ("abstract",      Tok_Reserved);
+      Set_Token ("access",        Tok_Reserved);
+      Set_Token ("aliased",       Tok_Reserved);
+      Set_Token ("all",           Tok_Reserved);
+      Set_Token ("array",         Tok_Reserved);
+      Set_Token ("body",          Tok_Reserved);
+      Set_Token ("constant",      Tok_Reserved);
+      Set_Token ("do",            Tok_Reserved);
+      Set_Token ("limited",       Tok_Reserved);
+      Set_Token ("of",            Tok_Reserved);
+      Set_Token ("out",           Tok_Reserved);
+      Set_Token ("record",        Tok_Reserved);
+      Set_Token ("renames",       Tok_Reserved);
+      Set_Token ("reverse",       Tok_Reserved);
+      Set_Token ("tagged",        Tok_Reserved);
+      Set_Token ("then",          Tok_Reserved);
+      Set_Token ("reverse",       Tok_Reserved);
+      Set_Token ("abort",         Tok_Reserved);
+      Set_Token ("accept",        Tok_Reserved);
+      Set_Token ("case",          Tok_Reserved);
+      Set_Token ("delay",         Tok_Reserved);
+      Set_Token ("else",          Tok_Reserved);
+      Set_Token ("elsif",         Tok_Reserved);
+      Set_Token ("exception",     Tok_Reserved);
+      Set_Token ("exit",          Tok_Reserved);
+      Set_Token ("goto",          Tok_Reserved);
+      Set_Token ("if",            Tok_Reserved);
+      Set_Token ("raise",         Tok_Reserved);
+      Set_Token ("requeue",       Tok_Reserved);
+      Set_Token ("select",        Tok_Reserved);
+      Set_Token ("terminate",     Tok_Reserved);
+      Set_Token ("until",         Tok_Reserved);
+      Set_Token ("when",          Tok_Reserved);
+      Set_Token ("declare",       Tok_Reserved);
+      Set_Token ("loop",          Tok_Reserved);
+      Set_Token ("while",         Tok_Reserved);
+      Set_Token ("entry",         Tok_Reserved);
+      Set_Token ("protected",     Tok_Reserved);
+      Set_Token ("task",          Tok_Reserved);
+      Set_Token ("type",          Tok_Reserved);
+      Set_Token ("subtype",       Tok_Reserved);
+      Set_Token ("generic",       Tok_Reserved);
+      Set_Token ("package",       Tok_Reserved);
+      Set_Token ("private",       Tok_Reserved);
+      Set_Token ("with",          Tok_Reserved);
+      Set_Token ("separate",      Tok_Reserved);
 
    end Initialize;
 
@@ -404,7 +406,14 @@ package body XE_Scan is
          begin
 
             T := Get_Token (Token_Name);
-            if T /= Tok_Unknown then
+            if T = Tok_Reserved then
+               Write_Location (Token_Location);
+               Write_Str  ("reserved word """);
+               Write_Name (Token_Name);
+               Write_Str  (""" cannot be used as identifier");
+               Write_Eol;
+               raise Scanning_Error;
+            elsif T /= Tok_Unknown then
                Token := T;
             end if;
 

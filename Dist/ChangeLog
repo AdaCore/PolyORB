@@ -1,3 +1,10 @@
+Wed Sep 11 15:57:44 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_scan.adb, xe.ads : Don't tolerate reserved keywords anymore.
+
+	* xe_back.adb: New error message when no main program has been
+ 	defined in the configuration file.
+
 Wed Sep 11 14:39:58 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* config.sdefault: Replaced which by type.

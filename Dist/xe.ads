@@ -66,12 +66,13 @@ package XE is
        Tok_Semicolon,       -- (21) ;
        Tok_Arrow,           -- (22) =>
        Tok_Return,          -- (23) return
-       Tok_EOF              -- (24) end of file
+       Tok_EOF,             -- (24) end of file
+       Tok_Reserved         -- (25) Ada reserved keyword
        );
 
    Tkn_Wrong : constant Int := 100;
    Tkn_First : constant Int := Tkn_Wrong  + 1;
-   Tkn_Last  : constant Int := Tkn_Wrong  + 24;
+   Tkn_Last  : constant Int := Tkn_Wrong  + 25;
    --  Should match Token_Type length
 
    type Tkn_Type is new Int range Tkn_Wrong .. Tkn_Last;

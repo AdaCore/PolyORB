@@ -539,6 +539,13 @@ package body XE_Back is
          end if;
          Next_Configuration_Declaration (Node);
       end loop;
+
+      if Main_Subprogram = Null_Name then
+         Write_Program_Name;
+         Write_Str (": missing main program declaration");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
    end Back;
 
 end XE_Back;
