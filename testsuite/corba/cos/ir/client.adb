@@ -78,6 +78,7 @@ begin
       Int1 : InterfaceDef_Forward.Ref;
       Op1 : OperationDef.Ref;
       pragma Warnings (Off, Op1);
+      --  Op1 is assigned but never read
 
       Id : RepositoryId;
       Name : Identifier;
