@@ -35,6 +35,13 @@ adabe_structure::produce_adb(dep_list with,string &String, string &previousdefin
  else return get_ada_full_name();
    */
 
+void
+adabe_structure::produce_impl_ads(dep_list with,string &String, string &previousdefinition) {
+  /*
+  produce_ads(with, &String, &previousdefinition);
+  */
+    
+  
 IMPL_NARROW_METHODS1(adabe_structure, AST_Structure);
 IMPL_NARROW_FROM_DECL(adabe_structure);
 IMPL_NARROW_FROM_SCOPE(adabe_structure);

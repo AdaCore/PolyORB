@@ -21,7 +21,11 @@ adabe_predefined_type::produce_adb(dep_list with,string &String, string &previou
   String += get_ada_predefined_type();
 */
 
-
+void 
+adabe_predefined_type::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+/*
+  String += get_ada_predefined_type();
+*/
 
 
 string

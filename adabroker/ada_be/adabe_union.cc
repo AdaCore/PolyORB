@@ -1,4 +1,4 @@
-//file adabe_union
+A//file adabe_union
 
 adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p);
 //constructor
@@ -45,6 +45,13 @@ adabe_union::produce_adb(dep_list with,string &String, string &previousdefinitio
       if (!is_imported(with)) return get_ada_name();}
       return get_ada_full_name();	   
   */
+
+void
+adabe_union::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+/*
+produce_ads(with, &String, &previousdefinition);
+ */
+  
 IMPL_NARROW_METHODS1(adabe_union, AST_Union);
 IMPL_NARROW_FROM_DECL(adabe_union);
 IMPL_NARROW_FROM_SCOPE(adabe_union);

@@ -4,6 +4,7 @@ adabe_union_branch::adabe_union_branch(AST_UnionLabel *lab, AST_Type *ft, UTL_Sc
 		  UTL_StrList *p);
 //constructor
 
+void
 adabe_union_branch::produce_ads(dep_list with,string &String, string &previousdefinition, AST_ConcreteType *concrete);
 /*
       temp += "when "
@@ -18,6 +19,14 @@ adabe_union_branch::produce_ads(dep_list with,string &String, string &previousde
 
  */
 
+void
+adabe_union_branch::produce_impl_ads(dep_list with,string &String, string &previousdefinition, AST_ConcreteType *concrete);
+/*
+  produce_ads(with, &String, &previousdefinition, *concrete);
+
+ */
+
+  
 string
 adabe_union_branch::produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
   /*

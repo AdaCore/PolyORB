@@ -143,6 +143,38 @@ adabe_operation::produce_adb(dep_list with,string &String, string &previousdefin
 
 */
 
+void
+adabe_operation::produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+/*
+  string += (case of the Flags)              //oneway ...
+  cast the return_type() in his NT;
+  if (is_function())
+  {
+    string += " function" + get_ada_name() + "(Self : access Object ";
+    while the UTL_Scope is not empty (make a copy)               //this
+    {
+       string += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(with, &String, &previousdefinition);
+    }
+    string += ") return " + return_type_cast.dump_name( with, &String, &previousdefinition) + ";";
+  }
+  else
+  {
+    string += " procedure" + get_ada_name() + "(Self : access Object ";
+    while the UTL_Scope is not empty               //this
+    {
+       string += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(dep_list with,string &String, string &previousdefinition);
+    }
+    string += ", Result : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
+  }
+*/
+
+
 
 
 
