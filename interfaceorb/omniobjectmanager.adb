@@ -29,6 +29,15 @@ package body OmniObjectManager is
    -- needed to interface System.Address and Object
 
 
+   -- C_Nil_Object_Manager
+   -----------------------
+   function C_Nil_Object_Manager return System.Address ;
+   pragma Import (C,C_Nil_Object_Manager,"nilObjectManager__10omniObject") ;
+   -- wrapper around static omniObjectManager* nilObjectManager();
+   -- (see omniInternal.h L 514)
+   -- called by the Ada equivalent : Nil_Object_Manager
+
+
    -- Nil_Object_Manager
    ---------------------
    function Nil_Object_Manager return Object is

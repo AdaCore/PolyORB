@@ -1,6 +1,36 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                       package Giop_s                          ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is wrapped around the C++ class              ----
 ----   Ada_Giop_s declared in Ada_Giop_s.hh.                       ----
@@ -11,12 +41,11 @@
 ----   useless for AdaBroker. (AdaBroker never creates a Giop_s    ----
 ----   object)                                                     ----
 ----                                                               ----
-----                  package body Giop_S                          ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/28/99                                          ----
 ----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
@@ -24,6 +53,16 @@ with Ada.Unchecked_Conversion ;
 with Ada.Exceptions ;
 
 package body Giop_S is
+
+   -- C_Request_Received
+   ---------------------
+   procedure C_Request_Received (Self : in Object'Class ;
+                                 Skip : in Sys_Dep.C_Boolean) ;
+   pragma Import (C,C_Request_Received,"RequestReceived__10Ada_Giop_sb") ;
+   -- wrapper around  Ada_Giop_s procedure RequestReceived
+   -- (see Ada_Giop_s.hh)
+   -- called by the Ada equivalent : Request_Received
+
 
    -- Request_Received
    -------------------
@@ -45,6 +84,17 @@ package body Giop_S is
                                    Interfaces.C.Unsigned_Long) ;
    -- needed to change ada type Corba.Unsigned_Long
    -- into C type Interfaces.C.Unsigned_Long
+
+
+   -- C_Initialise_Reply
+   ---------------------
+   procedure C_Initialize_Reply (Self : in Object'Class ;
+                                 Status : in Interfaces.C.int ;
+                                 MsgSize : in Interfaces.C.Unsigned_Long);
+   pragma Import (C,C_Initialize_Reply,"InitialiseReply__10Ada_Giop_siUi") ;
+   -- wrapper around  Ada_Giop_s procedure InitialiseReply
+   -- (see Ada_Giop_s.hh)
+   -- called by the Ada equivalent : Initialise_Reply
 
 
    -- Initialize_Reply

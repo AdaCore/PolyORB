@@ -1,19 +1,58 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
 ----                                                               ----
-----                  package body CORBA                           ----
+----                       package Corba                           ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
+----                                                               ----
+----     This package deffines all general types and associated    ----
+----   functions used in AdaBroker.                                ----
+----     The first part is the definition of corba types out of    ----
+----   Ada ones. Pointers on these types are also defined as well  ----
+----   as the associated free functions.                           ----
+----     Then, the corba exception type is defined and all corba   ----
+----   system exceptions.                                          ----
+----     At last, some OmniOrb or AdaBroker specific exceptions    ----
+----   and functions are defined.                                  ----
+----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/10/99                                          ----
-----                                                               ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
 
 with Corba.Exceptions ;
 
 package body Corba is
-
 
    -----------------------------------------------------------
    ----           Exceptions in spec                       ---
@@ -24,16 +63,20 @@ package body Corba is
    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                           To : out Ex_Body) is
    begin
+      -- calls the correponding procedure in Corba.Exception
       Corba.Exceptions.Get_Members (From,To) ;
    end ;
+
 
    -- Raise_Corba_Exception
    ------------------------
    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
                                    Excp_Memb: in Idl_Exception_Members_Ptr) is
    begin
+      -- calls the correponding procedure in Corba.Exception
       Corba.Exceptions.Raise_Corba_Exception(Excp, Excp_Memb) ;
    end ;
+
 
 
    -----------------------------------------------------------
@@ -45,8 +88,7 @@ package body Corba is
    procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) is
       Ada_Msg : Standard.String := Interfaces.C.Strings.Value (Msg) ;
    begin
-      -- argument already tranformed in a Ada type ...
-      -- ... so calls the Ada procedure
+      -- calls the corresponding Ada procedure
       Raise_Ada_Exception (Ada_Msg) ;
    end ;
 
@@ -55,6 +97,8 @@ package body Corba is
    ----------------------
    procedure Raise_Ada_Exception (Msg : in Standard.String) is
    begin
+      -- raises The Ada exception No_Initialisation_Error
+      -- with the message given in parameter
       Ada.Exceptions.Raise_Exception (Corba.No_Initialisation_Error'Identity,Msg) ;
    end ;
 
@@ -62,7 +106,6 @@ package body Corba is
    -- To_Corba_String
    ------------------
     function To_Corba_String(S: in Standard.String) return Corba.String is
-
     begin
        return Corba.String(Ada.Strings.Unbounded.To_Unbounded_String(S)) ;
     end ;
@@ -75,54 +118,13 @@ package body Corba is
        return Ada.Strings.Unbounded.To_String(Ada.Strings.Unbounded.Unbounded_String(S)) ;
     end;
 
+
     -- Length
     ---------
     function Length(Str : in Corba.String) return Corba.Unsigned_Long is
     begin
        return Corba.Unsigned_Long(Ada.Strings.Unbounded.
-                                  Length(Ada.Strings.Unbounded.
-                                         Unbounded_String(Str))) ;
+                                  Length(Ada.Strings.Unbounded.Unbounded_String(Str))) ;
     end ;
-
-
-
-   -----------------------------------------------------------
-   ----           not in spec  omniORB2 specific           ---
-   -----------------------------------------------------------
-
-
-    function Omni_CallTransientExceptionHandler return CORBA.Boolean is
-    begin
-      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                     "Omni_CallTransientExceptionHandler") ;
-      return False ;
-    end ;
-
-
-    function Omni_CallCommFailureExceptionHandler return CORBA.Boolean is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Omni_CallCommFailureExceptionHandler") ;
-       return False ;
-    end ;
-
-
-    function Omni_CallSystemExceptionHandler return CORBA.Boolean is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Omni_CallSystemExceptionHandler") ;
-       return False ;
-    end ;
-
-
-
-
-
 
 end Corba ;
-
-
-
-
-
-

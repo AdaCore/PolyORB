@@ -80,7 +80,7 @@ rope.o : rope.ads
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniRopeAndKey.cc
 
-omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb corba.ali
+omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb corba.ali rope.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniropeandkey.adb
 
 omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb giop_s.ali \
@@ -103,25 +103,25 @@ giop.o : giop.ads giop.adb
 Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Giop_s.cc
 
-giop_s.o : giop_s.ads giop_s.adb netbufferedstream.o
+giop_s.o : giop_s.ads giop_s.adb corba.ali giop.ali sys_dep.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop_s.adb
 
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Giop_c.cc
 
-giop_c.o : giop_c.ads giop_c.adb netbufferedstream.o
+giop_c.o : giop_c.ads giop_c.adb Ada_Giop_c.o corba.ali giop.ali sys_dep.ali rope.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) giop_c.adb
 
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_netBufferedStream.cc
 
-netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
+netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb corba.ali sys_dep.ali rope.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) netbufferedstream.adb
 
 Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_memBufferedStream.cc
 
-membufferedstream.o : membufferedstream.ads membufferedstream.adb
+membufferedstream.o : membufferedstream.ads membufferedstream.adb corba.ali sys_dep.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) membufferedstream.adb
 
 corba-object.o : corba-object.ads corba-object.adb omniobject.o omniropeandkey.o \
@@ -135,7 +135,7 @@ corba-orb.o: corba-orb.ads corba-orb.adb corba-object.ali corba-object.o corba-b
 omniobject.o corba-command_line.ali adabroker_debug.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-orb.adb
 
-iop.o : iop.ads iop.adb
+iop.o : iop.ads iop.adb netbufferedstream.ali membufferedstream.ali corba.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) iop.adb
 
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh proxyObjectFactory_C2Ada.cc
@@ -144,9 +144,6 @@ proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh proxyObjectFactory_C2Ada
 #omni_C2Ada.o: omni_C2Ada.hh omni_C2Ada.cc
 #	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni_C2Ada.cc
 
-
-#omni.o : omni.ads omni.adb
-#	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni.adb
 
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_exceptions.cc
@@ -176,20 +173,19 @@ corba.ali: corba.ads corba.adb
 
 corba-object.ali: corba-object.ads corba-object.adb omniobject.ali corba.ali
 
-giop_s.ali: giop_s.ads giop_s.adb corba.ali
+giop.ali: giop.ads giop.o
 
-giop.ali: giop.ads
-
-omni.ali: omni.ads omni.adb
+omni.ali: omni.ads omni.adb omniobject.ali corba.ali
 
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
 
-omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb 
+omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb corba.ali giop_c.ali
 
 omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
-omniproxycalldesc.ali corba-object.ali
+omniproxycalldesc.ali corba-object.ali corba.ali corba-object.ali \
+omniropeandkey.ali giop_c.ali netbufferedstream.ali 
 
 adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
 

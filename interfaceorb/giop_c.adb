@@ -26,6 +26,17 @@ with Ada.Strings.Unbounded ;
 
 package body Giop_C is
 
+
+   -- C_Init
+   ---------
+   procedure C_Init (Self : in Object'Class ;
+                     R : in System.Address) ;
+   pragma Import (C,C_Init,"Init__10Ada_Giop_cP4Rope") ;
+   -- wrapper around  Ada_Giop_c procedure Init
+   -- (see Ada_Giop_c.hh)
+   -- called by the Ada equivalent : Init
+
+
    -- Init
    -------
    procedure Init (Self : in Object'Class ;
@@ -48,6 +59,20 @@ package body Giop_C is
    -- into C type Interfaces.C.Unsigned_Long
 
 
+   -- C_Initialize_Request
+   -----------------------
+   procedure C_Initialize_Request (Self : in Object'Class ;
+                                   Objkey : in System.Address ;
+                                   Objkeysize : in Interfaces.C.Unsigned_Long ;
+                                   Opname : in Interfaces.C.Strings.Chars_Ptr ;
+                                   MsgSize : in Interfaces.C.Unsigned_Long ;
+                                   Oneway : in Sys_Dep.C_Boolean) ;
+   pragma Import (C,C_Initialize_Request,"InitialiseRequest__10Ada_Giop_cPCvUiPCcUiUib") ;
+   -- wrapper around  Ada_Giop_c procedure Initialize_Request
+   -- (see Ada_Giop_c.hh)
+   -- called by the Ada equivalent : Initialize_Request
+
+
    -- Initialize_Request
    ---------------------
    procedure Initialize_Request (Self : in Object'Class ;
@@ -67,7 +92,7 @@ package body Giop_C is
       C_Objkey := Objkey'Address ;
       C_Objkeysize := Ada_To_C_Unsigned_Long (Objkeysize) ;
       C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
-                 -- desallocation in a few lines
+      -- desallocation in a few lines
       C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
       C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
       -- ... and calls the C procedure
@@ -77,9 +102,19 @@ package body Giop_C is
                             C_Opname,
                             C_MsgSize,
                             C_Oneway) ;
-                 -- desallocation of C_Opname
+      -- desallocation of C_Opname
       Interfaces.C.Strings.Free (C_Opname) ;
    end ;
+
+
+   -- C_Receive_Reply
+   ------------------
+   function C_Receive_Reply (Self : in Object'Class)
+                             return Interfaces.C.Int ;
+   pragma Import (C,C_Receive_Reply,"ReceiveReply__10Ada_Giop_c") ;
+   -- wrapper around  Ada_Giop_c procedure Receive_Reply
+   -- (see Ada_Giop_c.hh)
+   -- called by the Ada equivalent : Receive_Reply
 
 
    -- Receive_Reply
@@ -93,6 +128,16 @@ package body Giop_C is
       -- ... and transforms the result into an Ada type
       return Giop.C_Int_To_Reply_Status_Type (C_Result) ;
    end;
+
+
+   -- C_Request_Completed
+   ----------------------
+   procedure C_Request_Completed (Self : in Object'Class ;
+                                  Skip_Msg : in Sys_Dep.C_Boolean) ;
+   pragma Import (C,C_Request_Completed,"RequestCompleted__10Ada_Giop_cb") ;
+   -- wrapper around  Ada_Giop_c procedure Request_Completed
+   -- (see Ada_Giop_c.hh)
+   -- called by the Ada equivalent : Request_Completed
 
 
    -- Request_Completed
@@ -116,6 +161,18 @@ package body Giop_C is
    -- needed to change C type Interfaces.C.Unsigned_Long
    -- into ada type Corba.Unsigned_Long
 
+
+   -- C_Request_Header_Size
+   ------------------------
+   function C_Request_Header_Size (Objkeysize : in Interfaces.C.Unsigned_long ;
+                                   Opnamesize : in Interfaces.C.Unsigned_long)
+                                   return Interfaces.C.Unsigned_long ;
+   pragma Import (C,C_Request_Header_Size,"RequestHeaderSize__6GIOP_CUiUi") ;
+   -- wrapper around GIOP_C procedure Request_Header_Size
+   -- (see giopDriver.h)
+   -- called by the Ada equivalent : Request_Header_Size
+
+
    -- Request_Header_Size
    ----------------------
    function Request_Header_Size (Objkeysize : in Corba.Unsigned_long ;
@@ -133,7 +190,6 @@ package body Giop_C is
       -- ... and transforms the result into an Ada type
       return  C_To_Ada_Unsigned_Long (C_Result) ;
    end;
-
 
 end Giop_C ;
 

@@ -55,11 +55,13 @@ package Giop is
    --                                      SYSTEM_EXCEPTION, LOCATION_FORWARD }
    -- in GIOP.h L 81
 
+
    function Reply_Status_Type_To_C_Int (Status : in Reply_Status_Type)
                                         return Interfaces.C.Int ;
    -- transforms the Ada type Reply_Status_Type into a C int
    -- in order to make it compatible with the C definition
    -- of ReplyStatusType where each value is actually an int value
+
 
    function C_Int_To_Reply_Status_Type (N : in Interfaces.C.Int)
                                         return Reply_Status_Type ;

@@ -1,6 +1,36 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                 package membufferedstream                     ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is wrapped around a C++ class whose name     ----
 ----   is Ada_memBufferedStream. (see Ada_memBufferedStream.hh)    ----
@@ -15,252 +45,136 @@
 ----   useless for AdaBroker.                                      ----
 ----                                                               ----
 ----                                                               ----
-----                  package MemBufferedStream                    ----
+----   authors : Sebastien Ponce, Fabien Azavant                   ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
-----   authors : Sebastien Ponce                                   ----
-----   date    : 02/26/99                                          ----
-----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
+with Ada.Unchecked_Deallocation ;
 with Interfaces.C ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
 with System ;
+
 with Corba ;
 with Sys_Dep ;
-with Ada.Unchecked_Deallocation ;
 
 package MemBufferedStream is
 
    type Object is tagged record
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record ;
-
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,1);
-   -- This object is wrapped around Ada_MemBufferedStream
+   -- this type is both a C and an Ada class
+   -- it is wrapped around Ada_MemBufferedStream
    -- (see Ada_MemBufferedStream.hh)
+
 
    type Object_Ptr is access all Object ;
-   -- just to give a name to pointers on Object
+   -- type pointer on type Object
+
 
    procedure Free is new Ada.Unchecked_Deallocation(Object, Object_Ptr) ;
-   -- to deallocate pointers
+   -- to deallocate Object_Ptr
 
-   procedure C_Init (Self : in Object'Class ;
-                     Bufsize : in Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_Init,"__17MemBufferedStreamUi") ;
-   -- wrapper around Ada_MemBufferedStream function Init
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Init (Self : in Object'Class ;
                    Bufsize : in Corba.Unsigned_Long) ;
-   -- Ada equivalent of C procedure C_Init
+   -- Ada constructor of the class.
+   -- This function must be called after each declaration of
+   -- an Object object. If it is not, you can not use the object.
 
-
-   procedure C_Marshall_1 (A : in Interfaces.C.Char ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_1,"marshall__21Ada_memBufferedStreamUcR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Char ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_1
+   -- Marshalls a Corba.Char into a membufferedstream object
 
-
-   procedure C_UnMarshall_1 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_1,"unmarshall__21Ada_memBufferedStreamRUcR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Char ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_1
+   -- UnMarshalls a Corba.Char from a membufferedstream object
 
-
-   procedure C_Marshall_2 (A : in Sys_Dep.C_Boolean ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_2,"marshall__21Ada_memBufferedStreambR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Boolean ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_2
+   -- Marshalls a Corba.Boolean into a membufferedstream object
 
-
-   procedure C_UnMarshall_2 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_2,"unmarshall__21Ada_memBufferedStreamRbR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Boolean ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_2
+   -- UnMarshalls a Corba.Boolean from a membufferedstream object
 
-
-   procedure C_Marshall_3 (A : in Interfaces.C.Short ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_3,"marshall__21Ada_memBufferedStreamsR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Short ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_3
+   -- Marshalls a Corba.Short into a membufferedstream object
 
-
-   procedure C_UnMarshall_3 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_3,"unmarshall__21Ada_memBufferedStreamRsR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Short ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_3
+   -- UnMarshalls a Corba.Short from a membufferedstream object
 
-
-   procedure C_Marshall_4 (A : in Interfaces.C.Unsigned_Short ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_4,"marshall__21Ada_memBufferedStreamUsR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Unsigned_Short ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_4
+   -- Marshalls a Corba.Unsigned_Short into a membufferedstream object
 
-
-   procedure C_UnMarshall_4 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_4,"unmarshall__21Ada_memBufferedStreamRUsR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Unsigned_Short ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_4
+   -- UnMarshalls a Corba.Unsigned_Short from a membufferedstream object
 
-
-   procedure C_Marshall_5 (A : in Interfaces.C.Long ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_5,"marshall__21Ada_memBufferedStreamlR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Long ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_5
+   -- Marshalls a Corba.Long into a membufferedstream object
 
-
-   procedure C_UnMarshall_5 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_5,"unmarshall__21Ada_memBufferedStreamRlR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Long ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_5
+   -- UnMarshalls a Corba.Long from a membufferedstream object
 
-
-   procedure C_Marshall_6 (A : in Interfaces.C.Unsigned_Long ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_6,"marshall__21Ada_memBufferedStreamUlR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Unsigned_Long ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_6
+   -- Marshalls a Corba.Unsigned_Long into a membufferedstream object
 
-
-   procedure C_UnMarshall_6 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_6,"unmarshall__21Ada_memBufferedStreamRUlR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Unsigned_Long ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_6
+   -- UnMarshalls a Corba.Unsigned_Long from a membufferedstream object
 
-
-   procedure C_Marshall_7 (A : in Interfaces.C.C_Float ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_7,"marshall__21Ada_memBufferedStreamfR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Float ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_7
+   -- Marshalls a Corba.Float into a membufferedstream object
 
-
-   procedure C_UnMarshall_7 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_7,"unmarshall__21Ada_memBufferedStreamRfR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Float ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_7
+   -- UnMarshalls a Corba.Float from a membufferedstream object
 
-
-   procedure C_Marshall_8 (A : in Interfaces.C.Double ;
-                           S : in out System.Address) ;
-   pragma Import (C,C_Marshall_8,"marshall__21Ada_memBufferedStreamdR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure Marshall (A : in Corba.Double ;
                        S : in out Object'Class);
-   -- Ada equivalent of C procedure C_Marshall_8
+   -- Marshalls a Corba.Double into a membufferedstream object
 
-
-   procedure C_UnMarshall_8 (A : out System.Address ;
-                             S : in out System.Address) ;
-   pragma Import (C,C_UnMarshall_8,"unmarshall__21Ada_memBufferedStreamRdR17MemBufferedStream") ;
-   -- wrapper around Ada_MemBufferedStream function marshall
-   -- (see Ada_MemBufferedStream.hh)
-   -- name was changed to avoid conflict
 
    procedure UnMarshall (A : out Corba.Double ;
                          S : in out Object'Class);
-   -- Ada equivalent of C procedure C_UnMarshall_8
+   -- UnMarshalls a Corba.Double from a membufferedstream object
 
-
-   --------------- For Corba.String ---------------------
 
    procedure Marshall (A : in Corba.String ;
                        S : in out Object'Class);
+   -- Marshalls a Corba.String into a membufferedstream object
 
    procedure UnMarshall (A : out Corba.String ;
                          S : in out Object'Class);
-   ----------------------------------------------------
+   -- UnMarshalls a Corba.String from a membufferedstream object
 
 
 private
@@ -268,7 +182,9 @@ private
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__21Ada_memBufferedStream");
-   -- wrapped around the C constructor of Rope
+   -- default constructor of the C class.
+   -- Actually, this constructor does nothing and you must
+   -- call Init to init properly an object.
 
 end MemBufferedStream ;
 
