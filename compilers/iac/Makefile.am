@@ -21,10 +21,7 @@ $(PROG): force $(PROG_FILES)
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)
-	@-for i in `cat idl/MANIFEST`; do \
-	  echo $$i; \
-	  bin/run-test idl/$$i; \
-	done
+	(cd testsuite; $(MAKE) all)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 
