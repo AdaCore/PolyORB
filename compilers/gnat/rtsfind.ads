@@ -1107,6 +1107,7 @@ package Rtsfind is
      RE_Request_Invoke,                  -- System.PolyORB_Interface
      RE_Request_Arguments,               -- System.PolyORB_Interface
      RE_Request_Set_Out,                 -- System.PolyORB_Interface
+     RE_Request_Raise_Occurrence,        -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
      RE_Servant,                         -- System.PolyORB_Interface
      RE_Copy_Any_Value,                  -- System.PolyORB_Interface
@@ -2158,6 +2159,7 @@ package Rtsfind is
      RE_Request_Invoke                   => System_PolyORB_Interface,
      RE_Request_Arguments                => System_PolyORB_Interface,
      RE_Request_Set_Out                  => System_PolyORB_Interface,
+     RE_Request_Raise_Occurrence         => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
      RE_Servant                          => System_PolyORB_Interface,
      RE_Copy_Any_Value                   => System_PolyORB_Interface,

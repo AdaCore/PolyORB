@@ -91,4 +91,20 @@ package body RCI is
       RCI.Cookie := Cookie;
    end Delayed_Set_Cookie;
 
+   procedure Raise_Program_Error is
+   begin
+      raise Program_Error;
+   end Raise_Program_Error;
+
+   procedure Raise_Visible is
+   begin
+      raise Visible;
+   end Raise_Visible;
+
+   procedure Raise_Invisible is
+      Invisible : exception;
+   begin
+      raise Invisible;
+   end Raise_Invisible;
+
 end RCI;

@@ -7,7 +7,7 @@ corba_exe=
 dsa_exe=client server
 moma_exe=
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC) -gnatD
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC)
 server_FLAGS=	-Aserver.stubs
 client_FLAGS=	-Aclient.stubs
 

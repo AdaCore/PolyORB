@@ -55,6 +55,7 @@ with CosNaming.NamingContext;
 
 with PolyORB.Binding_Data;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -457,7 +458,17 @@ package body System.PolyORB_Interface is
 
             else
                pragma Assert (Self.Handler /= null);
-               Self.Handler.all (EMsg.Req);
+               declare
+                  use PolyORB.Exceptions;
+               begin
+                  Self.Handler.all (EMsg.Req);
+               exception
+                  when E : others =>
+                     EMsg.Req.Exception_Info
+                       := System_Exception_To_Any (E);
+                     --  XXX Should map Ada exceptions to Anies
+                     --  correctly!
+               end;
             end if;
 
             return Executed_Request'(Req => EMsg.Req);
@@ -796,6 +807,17 @@ package body System.PolyORB_Interface is
       end if;
       PolyORB.Tasking.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
+
+   ------------------------------
+   -- Request_Raise_Occurrence --
+   ------------------------------
+
+   procedure Request_Raise_Occurrence (R : Request_Access) is
+   begin
+      if not Is_Empty (R.Exception_Info) then
+         PolyORB.Exceptions.Raise_From_Any (R.Exception_Info);
+      end if;
+   end Request_Raise_Occurrence;
 
    -----------------
    -- RCI_Locator --

@@ -43,4 +43,10 @@ package RCI is
    procedure Delayed_Set_Cookie (Cookie : Integer);
    pragma Asynchronous (Delayed_Set_Cookie);
 
+   Visible : exception;
+
+   procedure Raise_Program_Error;
+   procedure Raise_Visible;
+   procedure Raise_Invisible;
+
 end RCI;

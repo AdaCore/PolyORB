@@ -1,3 +1,4 @@
+with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Real_Time; use Ada.Real_Time;
 with RCI;
@@ -66,5 +67,32 @@ begin
    Put_Line ("Cookie value after 0.5 s:" & Integer'Image (RCI.Get_Cookie));
    delay until Clock + Milliseconds (2_500);
    Put_Line ("Cookie value after 3 s:" & Integer'Image (RCI.Get_Cookie));
+
+   begin
+      Put ("Raise_Program_Error: ");
+      RCI.Raise_Program_Error;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
+
+   begin
+      Put ("Raise_Visible: ");
+      RCI.Raise_Visible;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
+
+   begin
+      Put ("Raise_Invisible: ");
+      RCI.Raise_Invisible;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
 
 end Client;

@@ -460,6 +460,10 @@ package System.PolyORB_Interface is
    --  Request_Flags to use for a request according to whether or not
    --  the call is asynchronous.
 
+   procedure Request_Raise_Occurrence (R : Request_Access);
+   --  If R terminated with an exception, raise that exception,
+   --  otherwise do noting.
+
 private
 
    pragma Inline

@@ -3766,32 +3766,15 @@ package body Exp_Dist is
 
       if not Is_Known_Asynchronous then
 
---          --  Read the exception occurrence from the result stream and
---          --  reraise it. It does no harm if this is a Null_Occurrence since
---          --  this does nothing.
+         --  Reraise an exception occurrence from the completed request.
+         --  If the exception occurrence is empty, this is a no-op.
 
---          Append_To (Non_Asynchronous_Statements,
---            Make_Attribute_Reference (Loc,
---              Prefix         =>
---                New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
-
---              Attribute_Name =>
---                Name_Read,
-
---              Expressions    => New_List (
---                Make_Attribute_Reference (Loc,
---                  Prefix         =>
---                    New_Occurrence_Of (Result_Parameter, Loc),
---                  Attribute_Name =>
---                    Name_Access),
---                New_Occurrence_Of (Exception_Return, Loc))));
-
---          Append_To (Non_Asynchronous_Statements,
---            Make_Procedure_Call_Statement (Loc,
---              Name                   =>
---                New_Occurrence_Of (RTE (RE_Reraise_Occurrence), Loc),
---              Parameter_Associations => New_List (
---                New_Occurrence_Of (Exception_Return, Loc))));
+         Append_To (Non_Asynchronous_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   =>
+               New_Occurrence_Of (RTE (RE_Request_Raise_Occurrence), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Request, Loc))));
 
          if Is_Function then
 
@@ -3801,19 +3784,6 @@ package body Exp_Dist is
             Append_To (Non_Asynchronous_Statements,
               Make_Tag_Check (Loc,
                 Make_Return_Statement (Loc,
-               --  Expression =>
-               --   Make_Attribute_Reference (Loc,
-               --     Prefix         =>
-               --       New_Occurrence_Of (
-               --         Etype (Subtype_Mark (Spec)), Loc),
-
-               --     Attribute_Name => Name_Input,
-
-               --     Expressions    => New_List (
-               --       Make_Attribute_Reference (Loc,
-               --         Prefix         =>
-               --           New_Occurrence_Of (Result_Parameter, Loc),
-               --         Attribute_Name => Name_Access)))
                     Build_From_Any_Call (
                       Etype (Subtype_Mark (Spec)),
                       Make_Selected_Component (Loc,
@@ -4343,9 +4313,7 @@ package body Exp_Dist is
       --  In case of a function, the inner declarations are needed since
       --  the result may be unconstrained.
 
-      Excep_Handler : Node_Id;
-      Excep_Choice  : Entity_Id;
-      Excep_Code    : List_Id;
+      Excep_Handlers : List_Id := No_List;
 
       Parameter_List : constant List_Id := New_List;
       --  List of parameters to be passed to the subprogram.
@@ -4820,7 +4788,13 @@ package body Exp_Dist is
 --                  Expressions    => New_List (
 --                    New_Occurrence_Of (Stream_Parameter, Loc),
 --                    New_Occurrence_Of (Dynamic_Async, Loc))));
---  XXX TBD asynchronous/assign Dynamic_Async flag.
+--  XXX TBD asynchronous: assign Dynamic_Async flag.
+--  20020512 actually nothing tbd here, because when a subprogram
+--  is dynamically asynchronous, the indication of whether a call is
+--  asynchronous or not is managed by the sync_scope attibute of
+--  the request, and is handled entirely in the protocol layer.
+--  ==> the whole Dynamcally_Asynch stuff in build_subprogram_receiving_stubs
+--  should be dropped altogether.
          end if;
 
          Append_To (After_Statements,
@@ -4850,51 +4824,27 @@ package body Exp_Dist is
               Parameter_Type      =>
                 New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
 
+      --  A exception raised during the execution of an incoming
+      --  remote subprogram call and that needs to be sent back
+      --  to the caller is propagated by the receiving stubs, and
+      --  will be handled by the caller (the distribution runtime).
+
       if Asynchronous and then not Dynamically_Asynchronous then
 
          --  An asynchronous procedure wants an exception handler
          --  with an others clause that does nothing.
 
-         Excep_Handler :=
+         Excep_Handlers := New_List (
            Make_Exception_Handler (Loc,
-             Exception_Choices =>
-               New_List (Make_Others_Choice (Loc)),
-             Statements        => New_List (
-               Make_Null_Statement (Loc)));
+             Exception_Choices => New_List (Make_Others_Choice (Loc)),
+             Statements        => New_List (Make_Null_Statement (Loc))));
 
       else
 
          --  In the other cases, if an exception is raised, then the
-         --  exception occurrence is copied into the output stream and
-         --  no other output parameter is written.
+         --  exception occurrence is propagated.
 
-         Excep_Choice :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
-
---           Excep_Code := New_List (
---             Make_Attribute_Reference (Loc,
---               Prefix         =>
---                 New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
---               Attribute_Name => Name_Write,
---               Expressions    => New_List (
---                 New_Occurrence_Of (Result_Parameter, Loc),
---                 New_Occurrence_Of (Excep_Choice, Loc))));
-
-         Excep_Code := New_List (Make_Null_Statement (Loc));
-         --  XXX TBD exceptions!
-
-         if Dynamically_Asynchronous then
-            Excep_Code := New_List (
-              Make_Implicit_If_Statement (Vis_Decl,
-                Condition       => Make_Op_Not (Loc,
-                  New_Occurrence_Of (Dynamic_Async, Loc)),
-                Then_Statements => Excep_Code));
-         end if;
-         Excep_Handler :=
-           Make_Exception_Handler (Loc,
-             Choice_Parameter   => Excep_Choice,
-             Exception_Choices  => New_List (Make_Others_Choice (Loc)),
-             Statements         => Excep_Code);
+         null;
 
       end if;
 
@@ -4913,7 +4863,7 @@ package body Exp_Dist is
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements         => Outer_Statements,
-              Exception_Handlers => New_List (Excep_Handler)));
+              Exception_Handlers => Excep_Handlers));
 
    end Build_Subprogram_Receiving_Stubs;
 
