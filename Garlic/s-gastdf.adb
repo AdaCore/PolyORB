@@ -185,7 +185,7 @@ package body System.Garlic.Storages.Dfs is
       Error    : in out Error_Type)
    is
       pragma Unreferenced (Error);
-      Var : DFS_Data_Access := new DFS_Data_Type;
+      Var : constant DFS_Data_Access := new DFS_Data_Type;
 
    begin
       pragma Debug (D ("create variable file " & Var_Name &
