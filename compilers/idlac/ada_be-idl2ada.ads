@@ -69,13 +69,26 @@ private
    --  The name of the Ada constant that contains
    --  the repository ID of K_Named Node.
 
---    procedure Add_With_Stream
---      (CU : in out Compilation_Unit;
---       Node : Node_Id);
-   --  Add a semantic dependency of CU on the
-   --  package that contains the marshalling and
-   --  unmarshalling subprograms for the type defined
-   --  by Node.
+   function Ada_Ancillary_Name (Node : Node_Id; Prefix : String)
+     return String;
+   --  Return the name of an ancillary descriptive
+   --  object (TypeCode, IRObject) associated with Node.
+
+   function Ada_Ancillary_Package_Name
+     (Node : Node_Id; Suffix : String)
+     return String;
+   --  Return the name of a package containing ancillary descriptive
+   --  objects (TypeCode, IRObject) associated with Node.
+
+   function Ada_TC_Name (Node : Node_Id) return String;
+   --  The name of the typecode corresponding to an Ada type
+
+   function Ada_Full_TC_Name (Node : Node_Id) return String;
+   --  The full name of the typecode corresponding to an Ada type
+
+   function Ada_Helper_Name (Node : in Node_Id) return String;
+   --  The name of the helper package where the TypeCode
+   --  corresponding to Node is defined
 
    --------------------------------------
    -- Top-level generation subprograms --

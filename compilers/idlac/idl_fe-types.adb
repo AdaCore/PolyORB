@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -113,6 +113,21 @@ package body Idl_Fe.Types is
       return Loc (N);
    end Get_Location;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (V : Version_Type) return String is
+      Major_Image : constant String
+        :=  Interfaces.Unsigned_16'Image (V.Major);
+      Minor_Image : constant String
+        :=  Interfaces.Unsigned_16'Image (V.Minor);
+   begin
+      return
+        Major_Image (Major_Image'First + 1 .. Major_Image'Last)
+        & "."
+        & Minor_Image (Major_Image'First + 1 .. Minor_Image'Last);
+   end Image;
 
    ----------------------------------
    --  Management of const values  --

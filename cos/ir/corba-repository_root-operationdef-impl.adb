@@ -54,15 +54,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Obj : PortableServer.Servant;
    begin
-      PolyORB.CORBA_P.Server_Tools.Reference_To_Servant (Self.Result_Def,
-                                               Obj);
-      --  The result should be the type of the result_def
-      return IDLType.Impl.Get_Type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr
-          (Obj)));
+      return IDLType.Get_Type (get_result_def (Self));
    end get_result;
 
 

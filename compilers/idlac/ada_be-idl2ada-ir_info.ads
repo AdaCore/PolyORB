@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                A D A _ B E . I D L 2 A D A . H E L P E R                 --
+--               A D A _ B E . I D L 2 A D A . I R _ I N F O                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2002 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,10 +30,10 @@ with Idl_Fe.Types;          use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 pragma Elaborate_All (Ada_Be.Source_Streams);
 
-private package Ada_Be.Idl2Ada.Helper is
+private package Ada_Be.Idl2Ada.IR_Info is
 
    Suffix : constant String
-     := ".Helper";
+     := ".IR_Info";
 
    procedure Gen_Node_Spec
      (CU   : in out Compilation_Unit;
@@ -41,33 +41,6 @@ private package Ada_Be.Idl2Ada.Helper is
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate an helper package
+   --  Generate an Interface Repository information package
 
-   procedure Gen_Forward_Interface_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the spec of the helper package for a forward interface
-   --  declaration called directly by ada_be.idl2ada.gen_scope
-
-   procedure Gen_Forward_Interface_Body
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the body of the helper package for a forward interface
-   --  declaration called directly by ada_be.idl2ada.gen_scope
-
-   procedure Gen_Spec_Postlude
-     (CU : in out Compilation_Unit);
-   --  Called after the generation of the last node for the
-   --  specification of an helper package.
-
-   procedure Gen_Body_Prelude
-     (CU : in out Compilation_Unit);
-   --  Called before the generation of the first node for the
-   --  body of an helper package.
-
-   procedure Gen_Body_Postlude
-     (CU : in out Compilation_Unit);
-   --  Called after the generation of the last node for the
-   --  body of an helper package.
-
-end Ada_Be.Idl2Ada.Helper;
+end Ada_Be.Idl2Ada.IR_Info;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,7 +92,7 @@ package body Ada_Be.Expansion is
    --  1. splits it if there are several declarators
    --  2. Creates the corresponding _get_ and _set_ operations.
 
-   procedure Expand_Attribute_And_State_Member
+   procedure Expand_Attribute_Or_State_Member
      (Node : in Node_Id;
       The_Type : in Node_Id;
       Declarators : in Node_List;
@@ -262,7 +262,6 @@ package body Ada_Be.Expansion is
       --  Set node expanded early to catch infinite loops as well
 
       Set_Expanded (Node, True);
-
 
       if Is_Named (Node) then
          if Is_Ada_Keyword (Name (Node)) then
@@ -727,14 +726,14 @@ package body Ada_Be.Expansion is
       Pop_Scope;
    end Expand_ValueType;
 
-   -----------------------
-   --  Expand_Attribute --
-   -----------------------
+   ----------------------
+   -- Expand_Attribute --
+   ----------------------
 
    procedure Expand_Attribute (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
-      Expand_Attribute_And_State_Member
+      Expand_Attribute_Or_State_Member
         (Node,
          A_Type (Node),
          Declarators (Node),
@@ -742,9 +741,10 @@ package body Ada_Be.Expansion is
          Is_Writable => not Is_Readonly (Node));
    end Expand_Attribute;
 
-   --------------------------
-   --  Expand_State_Member --
-   --------------------------
+   -------------------------
+   -- Expand_State_Member --
+   -------------------------
+
    procedure Expand_State_Member
      (Node : in Node_Id) is
       Declarators : Node_List;
@@ -783,7 +783,7 @@ package body Ada_Be.Expansion is
                After => Node);
             Remove_Node (Declarators, Current_Decl);
 
-            Expand_Attribute_And_State_Member
+            Expand_Attribute_Or_State_Member
               (Node => New_State_Member,
                The_Type => State_Type (New_State_Member),
                Declarators => State_Declarators (New_State_Member),
@@ -793,7 +793,7 @@ package body Ada_Be.Expansion is
       end loop;
 
       --  and now expand the first declarator
-      Expand_Attribute_And_State_Member
+      Expand_Attribute_Or_State_Member
         (Node => Node,
          The_Type => State_Type (Node),
          Declarators => State_Declarators (Node),
@@ -802,10 +802,10 @@ package body Ada_Be.Expansion is
    end Expand_State_Member;
 
    ----------------------------------------
-   --  Expand_Attribute_And_State_Member --
+   --  Expand_Attribute_Or_State_Member --
    ----------------------------------------
 
-   procedure Expand_Attribute_And_State_Member
+   procedure Expand_Attribute_Or_State_Member
      (Node : in Node_Id;
       The_Type : in Node_Id;
       Declarators : in Node_List;
@@ -829,8 +829,8 @@ package body Ada_Be.Expansion is
       Init (Iterator, Declarators);
 
       while not Is_End (Iterator) loop
-
          Get_Next_Node (Iterator, Current_Declarator);
+         Expand_Node (Current_Declarator);
 
          if Exports_List = Nil_List then
             Exports_List := Contents (Parent_Scope (Current_Declarator));
@@ -931,7 +931,7 @@ package body Ada_Be.Expansion is
             end;
          end if;
       end loop;
-   end Expand_Attribute_And_State_Member;
+   end Expand_Attribute_Or_State_Member;
 
    procedure Expand_Operation
      (Node : in Node_Id)

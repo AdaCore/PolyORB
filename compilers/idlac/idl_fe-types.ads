@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#3 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-types.ads#4 $
 
 --  Base types for the IDL front-end (standard version).
 
@@ -65,6 +65,7 @@ package Idl_Fe.Types is
          Minor : Interfaces.Unsigned_16;
       end record;
 
+   function Image (V : Version_Type) return String;
 
    ----------------------------------
    --  Management of const values  --

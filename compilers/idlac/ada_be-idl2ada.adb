@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#24 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#25 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -53,6 +53,7 @@ with Ada_Be.Idl2Ada.Value_Impl;
 with Ada_Be.Idl2Ada.Helper;
 with Ada_Be.Idl2Ada.Value_Skel;
 with Ada_Be.Idl2Ada.Skel;
+with Ada_Be.Idl2Ada.IR_Info;
 
 with Ada_Be.Mappings; use Ada_Be.Mappings;
 
@@ -210,12 +211,11 @@ package body Ada_Be.Idl2Ada is
       case Kind (Node) is
          when K_ValueType =>
             Gen_Value_Scope (Node, Implement, To_Stdout);
+
          when
            K_Ben_Idl_File |
-           K_Module =>
-            Gen_Interface_Module_Scope (Node, Implement, To_Stdout);
-         when
-           K_Interface =>
+           K_Module       |
+           K_Interface    =>
             Gen_Interface_Module_Scope (Node, Implement, To_Stdout);
 
          when others =>
@@ -242,6 +242,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Value_Impl.Suffix;
       Helper_Name : constant String
         := Stubs_Name & Helper.Suffix;
+      IR_Info_Name : constant String
+        := Stubs_Name & IR_Info.Suffix;
       Value_Skel_Name : constant String
         := Stubs_Name & Value_Skel.Suffix;
 
@@ -259,6 +261,11 @@ package body Ada_Be.Idl2Ada is
         := New_Package (Helper_Name, Unit_Spec);
       Helper_Body : Compilation_Unit
         := New_Package (Helper_Name, Unit_Body);
+
+      IR_Info_Spec : Compilation_Unit
+        := New_Package (IR_Info_Name, Unit_Spec);
+      IR_Info_Body : Compilation_Unit
+        := New_Package (IR_Info_Name, Unit_Body);
 
       Value_Skel_Spec : Compilation_Unit
         := New_Package (Value_Skel_Name, Unit_Spec);
@@ -384,6 +391,8 @@ package body Ada_Be.Idl2Ada is
          Generate (Stubs_Body, False, To_Stdout);
          Generate (Helper_Spec, False, To_Stdout);
          Generate (Helper_Body, False, To_Stdout);
+         Generate (IR_Info_Spec, False, To_Stdout);
+         Generate (IR_Info_Body, False, To_Stdout);
          Generate (Value_Skel_Spec, False, To_Stdout);
          Generate (Value_Skel_Body, False, To_Stdout);
          Generate (Skel_Spec, False, To_Stdout);
@@ -574,6 +583,7 @@ package body Ada_Be.Idl2Ada is
       Impl_Name     : constant String := Stubs_Name & Impl.Suffix;
       Helper_Name   : constant String := Stubs_Name & Helper.Suffix;
       Delegate_Name : constant String := Stubs_Name & Skel.Suffix (Delegate);
+      IR_Info_Name  : constant String := Stubs_Name & IR_Info.Suffix;
 
       Stubs_Spec : Compilation_Unit := New_Package (Stubs_Name, Unit_Spec);
       Stubs_Body : Compilation_Unit := New_Package (Stubs_Name, Unit_Body);
@@ -586,6 +596,9 @@ package body Ada_Be.Idl2Ada is
 
       Helper_Spec : Compilation_Unit := New_Package (Helper_Name, Unit_Spec);
       Helper_Body : Compilation_Unit := New_Package (Helper_Name, Unit_Body);
+
+      IR_Info_Spec : Compilation_Unit := New_Package (IR_Info_Name, Unit_Spec);
+      IR_Info_Body : Compilation_Unit := New_Package (IR_Info_Name, Unit_Body);
 
       Delegate_Spec : Compilation_Unit :=
         New_Package (Delegate_Name, Unit_Spec);
@@ -665,6 +678,9 @@ package body Ada_Be.Idl2Ada is
 
                      Helper.Gen_Node_Spec (Helper_Spec, Decl_Node);
                      Helper.Gen_Node_Body (Helper_Body, Decl_Node);
+
+                     IR_Info.Gen_Node_Spec (IR_Info_Spec, Decl_Node);
+                     IR_Info.Gen_Node_Body (IR_Info_Body, Decl_Node);
                   end if;
 
                end loop;
@@ -796,6 +812,9 @@ package body Ada_Be.Idl2Ada is
 
                      Helper.Gen_Node_Spec (Helper_Spec, Export_Node);
                      Helper.Gen_Node_Body (Helper_Body, Export_Node);
+
+                     IR_Info.Gen_Node_Spec (IR_Info_Spec, Export_Node);
+                     IR_Info.Gen_Node_Body (IR_Info_Body, Export_Node);
                   end if;
 
                   --  Methods inherited from parents other that
@@ -812,6 +831,9 @@ package body Ada_Be.Idl2Ada is
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
             Helper.Gen_Node_Body (Helper_Body, Node);
+
+            IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
+            IR_Info.Gen_Node_Body (IR_Info_Body, Node);
 
             Gen_Convert_Forward_Declaration (Stubs_Spec, Node);
 
@@ -860,6 +882,8 @@ package body Ada_Be.Idl2Ada is
             Generate (Stubs_Body, False, To_Stdout);
             Generate (Helper_Spec, False, To_Stdout);
             Generate (Helper_Body, False, To_Stdout);
+            Generate (IR_Info_Spec, False, To_Stdout);
+            Generate (IR_Info_Body, False, To_Stdout);
             if not Is_Abstract_Node then
                Generate (Skel_Spec, False, To_Stdout);
                Generate (Skel_Body, False, To_Stdout);
@@ -1350,10 +1374,23 @@ package body Ada_Be.Idl2Ada is
                  (CU, "in " & Ada_Type_Defining_Name
                   (Parent_Scope (Node)), Node);
                PL (CU, ";");
+               if Original_Node (Node) = No_Node then
+                  --  A real (not expanded) operation
+                  Gen_Repository_Id (Node, CU);
+               end if;
             end if;
 
-            --        when K_Attribute =>
-            --  null;
+         when K_Attribute =>
+            declare
+               It : Node_Iterator;
+               Attr_Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Attr_Decl_Node);
+                  Gen_Repository_Id (Attr_Decl_Node, CU);
+               end loop;
+            end;
 
          when K_Exception =>
 
@@ -2877,5 +2914,196 @@ package body Ada_Be.Idl2Ada is
       end case;
 
    end Gen_Constant_Value;
+
+   ------------------------
+   -- Ada_Ancillary_Name --
+   ------------------------
+
+   function Ada_Ancillary_Name (Node : Node_Id; Prefix : String)
+     return String
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+      case NK is
+         when
+           K_Module            |
+           K_Interface         |
+           K_Forward_Interface |
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
+           K_Sequence_Instance |
+           K_String_Instance   |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Exception         |
+           K_Operation         |
+           K_Declarator        =>
+            return Prefix & Ada_Name (Node);
+
+         when K_Scoped_Name =>
+            return Ada_TC_Name (Value (Node));
+
+         when K_Short =>
+            return Prefix & "Short";
+
+         when K_Long =>
+            return Prefix & "Long";
+
+         when K_Long_Long =>
+            return Prefix & "Long_Long";
+
+         when K_Unsigned_Short =>
+            return Prefix & "Unsigned_Short";
+
+         when K_Unsigned_Long =>
+            return Prefix & "Unsigned_Long";
+
+         when K_Unsigned_Long_Long =>
+            return Prefix & "Unsigned_Long_Long";
+
+         when K_Char =>
+            return Prefix & "Char";
+
+         when K_Wide_Char =>
+            return Prefix & "Wide_Char";
+
+         when K_Boolean =>
+            return Prefix & "Boolean";
+
+         when K_Float =>
+            return Prefix & "Float";
+
+         when K_Double =>
+            return Prefix & "Double";
+
+         when K_Long_Double =>
+            return Prefix & "Long_Double";
+
+         when K_String =>
+            return Prefix & "String";
+
+         when K_Wide_String =>
+            return Prefix & "Wide_String";
+
+         when K_Octet =>
+            return Prefix & "Octet";
+
+         when K_Object =>
+            return Prefix & "Object";
+
+         when K_Any =>
+            return Prefix & "Any";
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Error
+              ("No ancillary " & Prefix & " object for "
+               & Node_Kind'Image (NK) & " nodes.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+
+      end case;
+   end Ada_Ancillary_Name;
+
+   function Ada_TC_Name (Node : Node_Id) return String is
+   begin
+      return Ada_Ancillary_Name (Node, "TC_");
+   end Ada_TC_Name;
+
+   --------------------------------
+   -- Ada_Ancillary_Package_Name --
+   --------------------------------
+
+   function Ada_Ancillary_Package_Name
+     (Node : in     Node_Id;
+      Suffix : String)
+     return String
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+      case NK is
+         when
+           K_Interface    |
+           K_Module       =>
+            return Ada_Full_Name (Node) & Suffix;
+
+         when
+           K_Forward_Interface =>
+            return Parent_Scope_Name (Node) & Suffix;
+
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
+         when
+           K_Sequence_Instance |
+           K_String_Instance   |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Exception         |
+           K_Declarator        =>
+            return Parent_Scope_Name (Node) & Suffix;
+
+         when K_Scoped_Name =>
+            return Ada_Helper_Name (Value (Node));
+
+         when K_Short           |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_String             |
+           K_Wide_String        |
+           K_Octet              |
+           K_Any                =>
+            return "CORBA";
+
+         when K_Object =>
+            return "CORBA.Object" & Suffix;
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Error
+              ("No " & Suffix & " package for "
+               & Node_Kind'Image (NK) & " nodes.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+      end case;
+   end Ada_Ancillary_Package_Name;
+
+   ---------------------
+   -- Ada_Helper_Name --
+   ---------------------
+
+   function Ada_Helper_Name (Node : in Node_Id) return String is
+   begin
+      return Ada_Ancillary_Package_Name (Node, Helper.Suffix);
+   end Ada_Helper_Name;
+
+   ----------------------
+   -- Ada_Full_TC_Name --
+   ----------------------
+
+   function Ada_Full_TC_Name
+     (Node : Node_Id)
+     return String is
+   begin
+      return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
+   end Ada_Full_TC_Name;
 
 end Ada_Be.Idl2Ada;

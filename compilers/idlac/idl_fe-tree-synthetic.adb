@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -23,6 +23,8 @@
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Interfaces;
 
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
@@ -182,6 +184,31 @@ package body Idl_Fe.Tree.Synthetic is
       return String_Value (Repository_Id_Node);
 
    end Idl_Repository_Id;
+
+   function Version (Node : Node_Id) return Version_Type is
+      Id : constant String := Idl_Repository_Id (Node);
+      Dot : Integer := Id'Last;
+      Colon : Integer;
+   begin
+      while Dot >= Id'First and then Id (Dot) /= '.' loop
+         Dot := Dot - 1;
+      end loop;
+
+      Colon := Dot - 1;
+      while Colon >= Id'First and then Id (Colon) /= ':' loop
+         Colon := Colon - 1;
+      end loop;
+
+      if Colon < Id'First then
+         raise Constraint_Error;
+      end if;
+
+      return
+        (Major => Interfaces.Unsigned_16'Value
+         (Id (Colon + 1 .. Dot - 1)),
+         Minor => Interfaces.Unsigned_16'Value
+         (Id (Dot + 1 .. Id'Last)));
+   end Version;
 
    function All_Ancestors
      (Node : Node_Id;
