@@ -28,7 +28,7 @@
 	incorrect insertion of a unit in this list. Therefore, it was
 	possible to cause a cycle in the list.
 
-	* s-parint.adb, s-parint.adb: Add Elaborate_Passive_Partition to
+	* s-parint.adb, s-parint.ads: Add Elaborate_Passive_Partition to
 	flush shared passive units registration on the boot server.
  
 2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
