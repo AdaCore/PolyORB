@@ -45,6 +45,7 @@ ADASSRCS      = \
 		corba-object.ads \
 		corba-orb-omniorb.ads \
 		corba-orb.ads \
+		corba-principal.ads \
 		corba-request.ads \
 		corba-sequences-bounded.ads \
 		corba-sequences-unbounded.ads \
