@@ -88,29 +88,26 @@ package PolyORB.Task_Info is
    --  The task refereed by TI will go Idle;
    --  signaling condition variable Condition will awake it.
 
-   procedure Set_State_Running
-     (TI : in out Task_Info);
+   procedure Set_State_Running (TI : in out Task_Info);
    pragma Inline (Set_State_Running);
    --  The task refereed by TI is now running;
    --  this procedure resets Selector or Condition it was blocked on.
 
-   procedure Set_State_Unscheduled
-     (TI : in out Task_Info);
+   procedure Set_State_Unscheduled (TI : in out Task_Info);
    pragma Inline (Set_State_Unscheduled);
    --  The task refereed by TI is now unaffected.
 
-   function State (TI : Task_Info)
-     return Task_State;
+   function State (TI : Task_Info) return Task_State;
    pragma Inline (State);
    --  Return the state of the task referred by TI
 
-   function Selector (TI : Task_Info)
+   function Selector
+     (TI : Task_Info)
      return Asynch_Ev.Asynch_Ev_Monitor_Access;
    pragma Inline (Selector);
    --  Return Selector the task referred by TI is blocked on
 
-   function Condition (TI : Task_Info)
-     return PTCV.Condition_Access;
+   function Condition (TI : Task_Info) return PTCV.Condition_Access;
    pragma Inline (Condition);
    --  Return Condition Variable the Task referred by TI is blocked on
 
@@ -123,9 +120,7 @@ package PolyORB.Task_Info is
    --  Task_Info will hold Id of the current task, as provided by
    --  PolyORB tasking runtime.
 
-   procedure Set_Polling
-     (TI       : in out Task_Info;
-      May_Poll :        Boolean);
+   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean);
    pragma Inline (Set_Polling);
    --  Set if TI may poll on event sources, i.e. be in blocked state
 
@@ -139,8 +134,7 @@ package PolyORB.Task_Info is
    pragma Inline (Set_Exit_Condition);
    --  Attach Exit_Condition to TI
 
-   function Exit_Condition (TI : Task_Info)
-     return Boolean;
+   function Exit_Condition (TI : Task_Info) return Boolean;
    pragma Inline (Exit_Condition);
    --  Return the value of TI's exit condition
 

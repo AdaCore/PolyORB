@@ -62,8 +62,10 @@ package body PolyORB.Task_Info is
    -- Selector --
    --------------
 
-   function Selector (TI : Task_Info)
-     return Asynch_Ev.Asynch_Ev_Monitor_Access is
+   function Selector
+     (TI : Task_Info)
+     return Asynch_Ev.Asynch_Ev_Monitor_Access
+   is
    begin
       pragma Assert (TI.State = Blocked);
 
@@ -76,7 +78,8 @@ package body PolyORB.Task_Info is
 
    procedure Set_State_Blocked
      (TI       : in out Task_Info;
-      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access) is
+      Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access)
+   is
    begin
       TI.State    := Blocked;
       TI.Selector := Selector;
@@ -89,7 +92,8 @@ package body PolyORB.Task_Info is
    procedure Set_State_Idle
      (TI        : in out Task_Info;
       Condition :        PTCV.Condition_Access;
-      Mutex     :        PTM.Mutex_Access) is
+      Mutex     :        PTM.Mutex_Access)
+   is
    begin
       TI.State     := Idle;
       TI.Condition := Condition;
@@ -100,8 +104,7 @@ package body PolyORB.Task_Info is
    -- Set_State_Running --
    -----------------------
 
-   procedure Set_State_Running
-     (TI : in out Task_Info) is
+   procedure Set_State_Running (TI : in out Task_Info) is
    begin
       TI.State     := Running;
       TI.Selector  := null;
@@ -113,8 +116,7 @@ package body PolyORB.Task_Info is
    -- State --
    -----------
 
-   function State (TI : Task_Info)
-     return Task_State is
+   function State (TI : Task_Info) return Task_State is
    begin
       return TI.State;
    end State;
@@ -123,8 +125,7 @@ package body PolyORB.Task_Info is
    -- Condition --
    ---------------
 
-   function Condition (TI : Task_Info)
-     return PTCV.Condition_Access is
+   function Condition (TI : Task_Info) return PTCV.Condition_Access is
    begin
       return TI.Condition;
    end Condition;
@@ -133,9 +134,7 @@ package body PolyORB.Task_Info is
    -- Exit_Condition --
    --------------------
 
-   function Exit_Condition (TI : Task_Info)
-     return Boolean
-   is
+   function Exit_Condition (TI : Task_Info) return Boolean is
       use type PolyORB.Types.Boolean_Ptr;
 
    begin
@@ -182,9 +181,7 @@ package body PolyORB.Task_Info is
    -- Set_Polling --
    -----------------
 
-   procedure Set_Polling
-     (TI       : in out Task_Info;
-      May_Poll :        Boolean) is
+   procedure Set_Polling (TI : in out Task_Info; May_Poll : Boolean) is
    begin
       TI.May_Poll := May_Poll;
    end Set_Polling;
@@ -193,8 +190,7 @@ package body PolyORB.Task_Info is
    -- Set_State_Unscheduled --
    ---------------------------
 
-   procedure Set_State_Unscheduled
-     (TI : in out Task_Info) is
+   procedure Set_State_Unscheduled (TI : in out Task_Info) is
    begin
       pragma Assert (TI.State /= Unscheduled);
 
@@ -208,8 +204,7 @@ package body PolyORB.Task_Info is
    -- Request_Abort_Polling --
    ---------------------------
 
-   procedure Request_Abort_Polling
-     (TI            : in out Task_Info) is
+   procedure Request_Abort_Polling (TI : in out Task_Info) is
    begin
       pragma Assert (TI.State = Blocked);
 
@@ -220,8 +215,7 @@ package body PolyORB.Task_Info is
    -- Abort_Polling --
    -------------------
 
-   function Abort_Polling (TI : Task_Info)
-     return Boolean is
+   function Abort_Polling (TI : Task_Info) return Boolean is
    begin
       pragma Assert (TI.State = Blocked);
 
