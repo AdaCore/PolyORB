@@ -146,11 +146,18 @@ package body omniProxyCallWrapper is
            Giop_C.Request_Header_Size
            (Omniropeandkey.Key_Size(Rope_And_Key),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
+
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : Message_Size :=" & Corba.Unsigned_Long'Image (Message_Size)));
+
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
                                                          Message_Size) ;
 
-         -- Initialise the request
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : Message_Size :=" & Corba.Unsigned_Long'Image (Message_Size)));
+
+         -- Initialize the request
          Giop_C.Initialize_Request(Giop_Client,
                                    Omniropeandkey.Get_Key(Rope_And_Key),
                                    Omniropeandkey.Key_Size(Rope_And_Key),
@@ -158,8 +165,14 @@ package body omniProxyCallWrapper is
                                    Message_Size,
                                    False);
 
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : initialise_request completed"));
+
          -- Marshal the arguments to the operation
          Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
+
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : marshal_arguments completed"));
 
          -- wait for the reply
          case Giop_C.Receive_Reply(Giop_Client) is

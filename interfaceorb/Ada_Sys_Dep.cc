@@ -60,6 +60,12 @@ int main ()
       throw new myException ;
     } ;
 
+  if (sizeof(long) != 4)
+    {
+      cerr << "The size of type C++ Long is not standard.\n AdaBroker cannot be compiled.\n";
+      throw new myException ;
+    } ;
+
 # ifdef NO_FLOAT
       cerr << "The C++ compiler does not supports floats.\n AdaBroker cannot be compiled.\n";
       throw new myException ;  

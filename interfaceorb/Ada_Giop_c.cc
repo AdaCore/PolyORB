@@ -48,7 +48,7 @@
 
 
 #include "Ada_Giop_c.hh"
-
+#include <omniORB2/CORBA.h>
 
 // Default Constructor
 //--------------------
@@ -80,12 +80,13 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    ((Ada_Giop_c *) C_Object)->InitialiseRequest(objkey,
-						 objkeysize,
-						 opname,
-						 opnamesize,
-						 msgsize,
-						 oneway);
+    cerr << opname << endl;
+    ((GIOP_C *) C_Object)->InitialiseRequest(objkey,
+					     objkeysize,
+					     opname,
+					     opnamesize,
+					     msgsize,
+					     oneway);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::InitialiseRequest without initialising object.");
@@ -100,7 +101,7 @@ Ada_Giop_c::ReceiveReply()
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    return ((Ada_Giop_c *) C_Object)->ReceiveReply();
+    return ((GIOP_C *) C_Object)->ReceiveReply();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
@@ -116,7 +117,7 @@ Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    ((Ada_Giop_c *) C_Object)->RequestCompleted (skip);
+    ((GIOP_C *) C_Object)->RequestCompleted (skip);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::RequestCompleted without initialising object.");
