@@ -794,6 +794,7 @@ src/soap/aws-response.ads
 src/soap/aws-url.adb
 src/soap/aws-url.ads
 src/soap/aws.ads
+src/soap/gen_http_body
 src/soap/polyorb-binding_data-soap.adb
 src/soap/polyorb-binding_data-soap.ads
 src/soap/polyorb-buffer_sources.adb
