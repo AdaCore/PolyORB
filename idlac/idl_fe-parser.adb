@@ -1272,6 +1272,7 @@ package body Idl_Fe.Parser is
                   --  if not, we just skip because of 3.15.3 (see above)
                   A_Name := Find_Identifier_Node (Get_Token_String);
                   if A_Name /= No_Node and then
+                    Switch_Type (Get_Current_Scope) /= No_Node and then
                     Kind (Switch_Type (Get_Current_Scope)) = K_Enum and then
                     Is_In_List (Enumerators (Switch_Type (Get_Current_Scope)),
                                 A_Name)
