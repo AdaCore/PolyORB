@@ -39,8 +39,9 @@ package System.Garlic.Remote is
    --  launch other partitions.
 
    type Launcher_Type is
-      access procedure (Host    : in String;         -- Host name
-                        Command : in String);        -- Full command line
+      access procedure (Launcher : in String;         -- Launching command
+                        Host     : in String;         -- Host name
+                        Command  : in String);        -- Full command line
    --  Launcher function. This function must return when the remote
    --  partition has been launched. It's allowed to raise any exception,
    --  and this will be considered as a failure to launch the remote
@@ -51,15 +52,17 @@ package System.Garlic.Remote is
    --  Install the launcher
 
    procedure Launch
-     (Host     : in String;
+     (Launcher : in String;
+      Host     : in String;
       Command  : in String);
    --  Launch the procedure using either the default or the user provided
    --  launcher.
 
    procedure Full_Launch
-     (Host            : in String;
+     (Launcher        : in String;
+      Host            : in String;
       Executable_Name : in String;
-      Boot_Server  : in String);
+      Boot_Server     : in String);
    --  Launch the given partition with the correct parameters on the
    --  command line.
 

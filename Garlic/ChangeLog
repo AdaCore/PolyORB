@@ -1,5 +1,9 @@
 Fri Mar  7 14:14:46 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* s-garrem.adb, s-garrem.ads: Add a parameter Launcher to most of
+ 	the launching commands in order to change default "rsh" command
+ 	which was hardcoded.
+
 	* s-garfil.ads: Add pragma Elaborate_Body to please GNAT with its
  	new elaboration checks.
 

@@ -45,9 +45,10 @@ package body System.Garlic.Remote is
    --  Shortcuts
 
    procedure Rsh_Launcher
-     (Host     : in String;
+     (Launcher : in String;
+      Host     : in String;
       Command  : in String);
-   --  The default launcher
+   --  Build full launcher command.
 
    Current_Launcher : Launcher_Type := Rsh_Launcher'Access;
    --  The current launcher
@@ -90,11 +91,12 @@ package body System.Garlic.Remote is
    ------------
 
    procedure Launch
-     (Host     : in String;
+     (Launcher : in String;
+      Host     : in String;
       Command  : in String)
    is
    begin
-      Current_Launcher (Host, Command);
+      Current_Launcher (Launcher, Host, Command);
    end Launch;
 
    ------------------
@@ -102,12 +104,13 @@ package body System.Garlic.Remote is
    ------------------
 
    procedure Rsh_Launcher
-     (Host     : in String;
+     (Launcher : in String;
+      Host     : in String;
       Command  : in String)
    is
 
       Rsh_Full_Command : constant String :=
-        "rsh " & Host & " """ & Command & """ >/dev/null";
+        Launcher & " " & Host & " """ & Command & """ >/dev/null";
 
       C_Command : C.Strings.chars_ptr :=
         C.Strings.New_String (Rsh_Full_Command);
@@ -131,15 +134,16 @@ package body System.Garlic.Remote is
    -----------------
 
    procedure Full_Launch
-     (Host            : in String;
+     (Launcher        : in String;
+      Host            : in String;
       Executable_Name : in String;
-      Boot_Server  : in String)
+      Boot_Server     : in String)
    is
       Full_Command : constant String :=
         Executable_Name & " " & "--detach --slave --boot_server " &
         Boot_Server & " &";
    begin
-      Launch (Host, Full_Command);
+      Launch (Launcher, Host, Full_Command);
    end Full_Launch;
 
    --------------
