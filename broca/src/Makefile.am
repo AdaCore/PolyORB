@@ -86,7 +86,7 @@ ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
-bin_SCRIPTS = adabroker-config
+bin_SCRIPTS = adabroker-config ab_gnome
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES =
 libbroca_la_LIBADD = $(ADA_LIBADD)

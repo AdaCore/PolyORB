@@ -1,0 +1,22 @@
+#! /bin/sh
+#
+
+PATH=/usr/bin:/bin:/usr/X11R6/bin:/usr/bin/X11:/usr/local/bin:/usr/local/X11R6/bin:/usr/local/bin/X11:$PATH
+
+usage () {
+    echo "Usage: `basename $0` command-line" >&2
+    echo "This will launch command-line with a proper environment for use" >&2
+    echo "with AdaBroker under a GNOME environment" >&2
+    exit 1
+}
+
+if [ $# = 0 ]; then
+    usage
+else
+    WINDOW=`xprop -root GNOME_NAME_SERVER | awk '{print $5}'`
+    ADABROKER_NAMING_IOR=`xprop -id $WINDOW GNOME_NAME_SERVER_IOR | awk '{print $3}' | sed -e 's/^.//' -e 's/.$//'`
+    ADABROKER_PRINCIPAL=file:/tmp/orbit-`whoami`/cookie
+    export ADABROKER_NAMING_IOR ADABROKER_PRINCIPAL
+    exec "$@"
+fi
+
