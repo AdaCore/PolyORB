@@ -284,8 +284,8 @@ begin
 
    Write_Switch_Char ("w?");
 
-   Write_Switch_Char ("wxxx");
-   Write_Line ("Enable selected warning modes, xxx = list of parameters:");
+   Write_Switch_Char ("wxx");
+   Write_Line ("Enable selected warning modes, xx = list of parameters:");
    Write_Line ("        a    turn on all optional warnings (except h)");
    Write_Line ("        A    turn off all optional warnings");
    Write_Line ("        c    turn on constant conditional warnings");
@@ -299,6 +299,8 @@ begin
    Write_Line ("        L*   turn off elaboration warnings");
    Write_Line ("        o*   turn on address clause overlay warnings");
    Write_Line ("        O    turn off address clause overlay warnings");
+   Write_Line ("        r    turn on redundant assign/convert warnings");
+   Write_Line ("        R*   turn off redundant assign/convert warnings");
    Write_Line ("        s    suppress all warnings");
    Write_Line ("        u    turn on warnings for unused entities");
    Write_Line ("        U*   turn off warnings for unused entities");
@@ -336,8 +338,8 @@ begin
    Write_Switch_Char ("y");
    Write_Line ("Enable all style checks");
 
-   Write_Switch_Char ("yxxx");
-   Write_Line ("Enable selected style checks xxx = list of parameters:");
+   Write_Switch_Char ("yxx");
+   Write_Line ("Enable selected style checks xx = list of parameters:");
    Write_Line ("        1-9  check indentation");
    Write_Line ("        b    check no blanks at end of lines");
    Write_Line ("        c    check comment format");

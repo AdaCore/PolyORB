@@ -34,6 +34,7 @@ with ALI.Util; use ALI.Util;
 with Csets;
 with Debug;
 with Fname;    use Fname;
+with Fname.SF; use Fname.SF;
 with Fname.UF; use Fname.UF;
 with Gnatvsn;  use Gnatvsn;
 with Hostparm; use Hostparm;
@@ -1842,6 +1843,11 @@ package body Make is
       --  Source files are not supposed to change.
 
       Osint.Source_File_Data (Cache => True);
+
+      --  Read gnat.adc file to initialize Fname.UF
+
+      Fname.UF.Initialize;
+      Fname.SF.Read_Source_File_Name_Pragmas;
 
    end Initialize;
 

@@ -614,7 +614,9 @@ package body Switch is
             if Program = Compiler then
                Back_Annotate_Rep_Info := True;
 
-               if Switch_Chars (Ptr) in '0' .. '9' then
+               if Ptr <= Max
+                 and then Switch_Chars (Ptr) in '0' .. '9'
+               then
                   C := Switch_Chars (Ptr);
 
                   if C in '3' .. '9' then
@@ -776,6 +778,7 @@ package body Switch is
                         Check_Unreferenced           := True;
                         Check_Withs                  := True;
                         Implementation_Unit_Warnings := True;
+                        Warn_On_Redundant_Constructs := True;
 
                      when 'A' =>
                         Constant_Condition_Warnings  := False;
@@ -784,6 +787,7 @@ package body Switch is
                         Check_Withs                  := False;
                         Implementation_Unit_Warnings := False;
                         Warn_On_Hiding               := False;
+                        Warn_On_Redundant_Constructs := False;
 
                      when 'c' =>
                         Constant_Condition_Warnings := True;
@@ -817,6 +821,12 @@ package body Switch is
 
                      when 'O' =>
                         Address_Clause_Overlay_Warnings := False;
+
+                     when 'r' =>
+                        Warn_On_Redundant_Constructs := True;
+
+                     when 'R' =>
+                        Warn_On_Redundant_Constructs := False;
 
                      when 's' =>
                         Warning_Mode  := Suppress;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                             F N A M E . S F                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -26,32 +26,38 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+--  This child package contains a routine to read and process Source_File_Name
+--  pragmas from the gnat.adc file in the current directory. In order to use
+--  the routines in package Fname.UF, it is required that Source_File_Name
+--  pragmas be processed. There are two places where such processing takes
+--  place:
 
-package Gnatvsn is
+--    The compiler front end (par-prag.adb), which is the general circuit
+--    for processing all pragmas, including Source_File_Name.
 
-   Gnat_Version_String : constant String := "3.14w (20000920)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
+--    The stand alone routine in this unit, which is convenient to use
+--    from tools that do not want to include the compiler front end.
+
+--  Note that this unit does depend on several of the compiler front-end
+--  sources, including osint. If it is necesary to scan source file name
+--  pragmas with less dependence on such sources, look at unit SFN_Scan.
+
+package Fname.SF is
+
+   procedure Read_Source_File_Name_Pragmas;
+   --  This procedure is called to read the gnat.adc file and process any
+   --  Source_File_Name pragmas contained in this file. All other pragmas
+   --  are ignored. The result is appropriate calls to routines in the
+   --  package Fname.UF to register the pragmas so that subsequent calls
+   --  to Get_File_Name work correctly.
    --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
+   --  Note: The caller must have made an appropriate call to the
+   --  Osint.Initialize routine to initialize Osint before calling
+   --  this procedure.
+   --
+   --  If a syntax error is detected while scanning the gnat.adc file,
+   --  then the exception SFN_Scan.Syntax_Error_In_GNAT_ADC is raised
+   --  and SFN_Scan.Cursor contains the approximate index relative to
+   --  the start of the gnat.adc file of the error.
 
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
-
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
-
-end Gnatvsn;
+end Fname.SF;

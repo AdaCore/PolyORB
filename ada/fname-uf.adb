@@ -63,10 +63,13 @@ package body Fname.UF is
    function SFN_Hash (F : Unit_Name_Type) return SFN_Header_Num;
    --  Compute hash index for use by Simple_HTable
 
+   No_Entry : constant Int := -1;
+   --  Signals no entry in following table
+
    package SFN_HTable is new GNAT.HTable.Simple_HTable (
      Header_Num => SFN_Header_Num,
      Element    => Int,
-     No_Element => -1,
+     No_Element => No_Entry,
      Key        => Unit_Name_Type,
      Hash       => SFN_Hash,
      Equal      => "=");
@@ -128,12 +131,16 @@ package body Fname.UF is
       Unit_Char : Character;
       --  Set to 's' or 'b' for spec or body or to 'u' for a subunit
 
+      Unit_Char_Search : Character;
+      --  Same as Unit_Char, except that in the case of 'u' for a subunit,
+      --  we set Unit_Char_Search to 'b' if we do not find a subunit match.
+
       N : Int;
 
    begin
       N := SFN_HTable.Get (Uname);
 
-      if N /= -1 then
+      if N /= No_Entry then
          return SFN_Table.Table (N).F;
       end if;
 
@@ -202,154 +209,186 @@ package body Fname.UF is
       --  Start of search through pattern table
 
       begin
-         --  Search pattern table to find a matching entry. We will find
-         --  at least one entry, since we set default entries for all
-         --  unit types to represent the standard default GNAT names. We
-         --  search in reverse order so that these are the last ones to try.
+         --  Search pattern table to find a matching entry. In the general
+         --  case we do two complete searches. The first time through we
+         --  stop only if a matching file is found, the second time through
+         --  we accept the first match regardless. Note that there will
+         --  always be a match the second time around, because of the
+         --  default entries at the end of the table.
+
+         for No_File_Check in False .. True loop
+            Unit_Char_Search := Unit_Char;
 
          <<Repeat_Search>>
-         --  The search is repeated with Unit_Char set to b, if an initial
-         --  search for the subunit case fails to find any match.
+         --  The search is repeated with Unit_Char_Search set to b, if an
+         --  initial search for the subunit case fails to find any match.
 
-         Pent := SFN_Patterns.Last;
-         while Pent >= SFN_Patterns.First loop
-            if SFN_Patterns.Table (Pent).Typ = Unit_Char then
-               Name_Len := 0;
+            Pent := SFN_Patterns.First;
+            while Pent <= SFN_Patterns.Last loop
+               if SFN_Patterns.Table (Pent).Typ = Unit_Char_Search then
+                  Name_Len := 0;
 
-               --  Found a match, execute the pattern
+                  --  Found a match, execute the pattern
 
-               Name_Len := Uname'Length;
-               Name_Buffer (1 .. Name_Len) := Uname;
-               Set_Casing (SFN_Patterns.Table (Pent).Cas);
+                  Name_Len := Uname'Length;
+                  Name_Buffer (1 .. Name_Len) := Uname;
+                  Set_Casing (SFN_Patterns.Table (Pent).Cas);
 
-               --  If dot translation required do it, being careful not to
-               --  mess with dots that are part of a wide character encoding
+                  --  If dot translation required do it
 
-               Dot  := SFN_Patterns.Table (Pent).Dot;
-               Dotl := Dot.all'Length;
+                  Dot  := SFN_Patterns.Table (Pent).Dot;
+                  Dotl := Dot.all'Length;
 
-               if Dot.all /= "." then
-                  J := 1;
+                  if Dot.all /= "." then
+                     J := 1;
 
-                  while J <= Name_Len loop
-                     if Name_Buffer (J) = '.' then
+                     while J <= Name_Len loop
+                        if Name_Buffer (J) = '.' then
 
-                        if Dotl = 1 then
-                           Name_Buffer (J) := Dot (Dot'First);
+                           if Dotl = 1 then
+                              Name_Buffer (J) := Dot (Dot'First);
 
+                           else
+                              Name_Buffer (J + Dotl .. Name_Len + Dotl - 1) :=
+                                Name_Buffer (J + 1 .. Name_Len);
+                              Name_Buffer (J .. J + Dotl - 1) := Dot.all;
+                              Name_Len := Name_Len + Dotl - 1;
+                           end if;
+
+                           J := J + Dotl;
+
+                        --  Skip past wide char sequences to avoid messing
+                        --  with dot characters that are part of a sequence.
+
+                        elsif Name_Buffer (J) = ASCII.ESC
+                          or else (Upper_Half_Encoding
+                                    and then
+                                      Name_Buffer (J) in Upper_Half_Character)
+                        then
+                           Skip_Wide (Name_Buffer, J);
                         else
-                           Name_Buffer (J + Dotl .. Name_Len + Dotl - 1) :=
-                             Name_Buffer (J + 1 .. Name_Len);
-                           Name_Buffer (J .. J + Dotl - 1) := Dot.all;
-                           Name_Len := Name_Len + Dotl - 1;
+                           J := J + 1;
+                        end if;
+                     end loop;
+                  end if;
+
+                  --  Here move result to right if preinsertion before *
+
+                  Plen := SFN_Patterns.Table (Pent).Pat'Length;
+                  for K in 1 .. Plen loop
+                     if C (K) = '*' then
+                        if K /= 1 then
+                           Name_Buffer (1 + K - 1 .. Name_Len + K - 1) :=
+                             Name_Buffer (1 .. Name_Len);
+
+                           for L in 1 .. K - 1 loop
+                              Name_Buffer (L) := C (L);
+                           end loop;
+
+                           Name_Len := Name_Len + K - 1;
                         end if;
 
-                        J := J + Dotl;
-
-                     elsif Name_Buffer (J) = ASCII.ESC
-                       or else (Upper_Half_Encoding
-                                 and then
-                                   Name_Buffer (J) in Upper_Half_Character)
-                     then
-                        Skip_Wide (Name_Buffer, J);
-                     else
-                        J := J + 1;
-                     end if;
-                  end loop;
-               end if;
-
-               --  Here move result to right if preinsertion before *
-
-               Plen := SFN_Patterns.Table (Pent).Pat'Length;
-               for K in 1 .. Plen loop
-                  if C (K) = '*' then
-                     if K /= 1 then
-                        Name_Buffer (1 + K - 1 .. Name_Len + K - 1) :=
-                          Name_Buffer (1 .. Name_Len);
-
-                        for L in 1 .. K - 1 loop
-                           Name_Buffer (L) := C (L);
+                        for L in K + 1 .. Plen loop
+                           Name_Len := Name_Len + 1;
+                           Name_Buffer (Name_Len) := C (L);
                         end loop;
 
-                        Name_Len := Name_Len + K - 1;
+                        exit;
                      end if;
+                  end loop;
 
-                     for L in K + 1 .. Plen loop
-                        Name_Len := Name_Len + 1;
-                        Name_Buffer (Name_Len) := C (L);
-                     end loop;
+                  --  Execute possible crunch on constructed name. The krunch
+                  --  operation excludes any extension that may be present.
 
-                     exit;
-                  end if;
-               end loop;
+                  J := Name_Len;
+                  while J > 1 loop
+                     exit when Name_Buffer (J) = '.';
+                     J := J - 1;
+                  end loop;
 
-               --  Execute possible crunch on constructed name. The krunch
-               --  operation excludes any extension that may be present.
+                  --  Case of extension present
 
-               J := Name_Len;
-               while J > 1 loop
-                  exit when Name_Buffer (J) = '.';
-                  J := J - 1;
-               end loop;
+                  if J > 1 then
+                     declare
+                        Ext : constant String := Name_Buffer (J .. Name_Len);
 
-               --  Case of extension present
+                     begin
+                        --  Remove extension
 
-               if J > 1 then
-                  declare
-                     Ext : constant String := Name_Buffer (J .. Name_Len);
+                        Name_Len := J - 1;
 
-                  begin
-                     --  Remove extension
+                        --  Krunch what's left
 
-                     Name_Len := J - 1;
+                        Krunch
+                          (Name_Buffer,
+                           Name_Len,
+                           Integer (Maximum_File_Name_Length),
+                           Debug_Flag_4);
 
-                     --  Krunch what's left
+                        --  Replace extension
 
+                        Name_Buffer
+                          (Name_Len + 1 .. Name_Len + Ext'Length) := Ext;
+                        Name_Len := Name_Len + Ext'Length;
+                     end;
+
+                  --  Case of no extension present, straight krunch on
+                  --  the entire file name.
+
+                  else
                      Krunch
                        (Name_Buffer,
                         Name_Len,
                         Integer (Maximum_File_Name_Length),
                         Debug_Flag_4);
+                  end if;
 
-                     --  Replace extension
+                  Fnam := File_Name_Type (Name_Find);
 
-                     Name_Buffer
-                       (Name_Len + 1 .. Name_Len + Ext'Length) := Ext;
-                     Name_Len := Name_Len + Ext'Length;
-                  end;
+                  --  If we are in the first search of the table, then
+                  --  we check if the file is present, and only accept
+                  --  the entry if it is indeed present. For the second
+                  --  search, we accept the entry without this check.
 
-               --  Case of no extension present, straight krunch on whole name
+                  --  If we only have two entries in the table, then there
+                  --  is no point in seeing if the file exists, since we
+                  --  will end up accepting it anyway on the second search,
+                  --  so just quit and accept it now to save time.
 
-               else
-                  Krunch
-                    (Name_Buffer,
-                     Name_Len,
-                     Integer (Maximum_File_Name_Length),
-                     Debug_Flag_4);
+                  if No_File_Check or else SFN_Patterns.Last = 2 then
+                     return Fnam;
+
+                  --  Check if file exists and if so, return the entry
+
+                  elsif Find_File (Fnam, Source) /= No_File then
+                     return Fnam;
+
+                  --  This entry does not match after all, because this is
+                  --  the first search loop, and the file does not exist.
+
+                  else
+                     Fnam := No_File;
+                  end if;
                end if;
 
-               Fnam := File_Name_Type (Name_Find);
+               Pent := Pent + 1;
+            end loop;
 
-               --  If this is a non-default entry for which we can locate
-               --  the file, or if it is one of the default entries, we are
-               --  done and can exit from the search.
+            --  If search failed, and was for a subunit, repeat the search
+            --  with Unit_Char_Search reset to 'b', since in the normal case
+            --  we simply treat subunits as bodies.
 
-               if Pent <= 2 or else Find_File (Fnam, Source) /= No_File then
-                  return Fnam;
-               else
-                  Fnam := No_File;
-               end if;
+            if Fnam = No_File and then Unit_Char_Search = 'u' then
+               Unit_Char_Search := 'b';
+               goto Repeat_Search;
             end if;
 
-            Pent := Pent - 1;
+            --  Repeat entire search in No_File_Check mode if necessary
+
          end loop;
 
-         if Fnam = No_Name and then Unit_Char = 'u' then
-            Unit_Char := 'b';
-            goto Repeat_Search;
-         end if;
-
-         --  Something is wrong if search fails for spec or body
+         --  Something is wrong if search fails completely, since the
+         --  default entries should catch all possibilities at this stage.
 
          pragma Assert (False);
          raise Program_Error;
@@ -416,9 +455,17 @@ package body Fname.UF is
       Dot : String_Ptr;
       Cas : Casing_Type)
    is
+      L : constant Nat := SFN_Patterns.Last;
    begin
       SFN_Patterns.Increment_Last;
-      SFN_Patterns.Table (SFN_Patterns.Last) := (Pat, Typ, Dot, Cas);
+
+      --  Move up the last two entries (the default ones) and then
+      --  put the new entry into the table just before them (we
+      --  always have the default entries be the last ones).
+
+      SFN_Patterns.Table (L + 1) := SFN_Patterns.Table (L);
+      SFN_Patterns.Table (L)     := SFN_Patterns.Table (L - 1);
+      SFN_Patterns.Table (L - 1) := (Pat, Typ, Dot, Cas);
    end Set_File_Name_Pattern;
 
    --------------

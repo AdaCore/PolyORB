@@ -629,6 +629,11 @@ package Opt is
    --  Set to True to generate warnings if a declared entity hides another
    --  entity. The default is that this warning is suppressed.
 
+   Warn_On_Redundant_Constructs : Boolean := False;
+   --  GNAT
+   --  Set to True to generate warnings for redundant constructs (e.g. useless
+   --  assignments/conversions). The default is that this warning is disabled.
+
    type Warning_Mode_Type is (Suppress, Normal, Treat_As_Error);
    Warning_Mode : Warning_Mode_Type := Normal;
    --  GNAT, GNATBIND
