@@ -608,7 +608,7 @@ package body PolyORB.Buffers is
            (Natural (Octets (J) mod 16) + 1);
          Index_Hexa := Index_Hexa + 3;
 
-         if Octets (J) < 33 then
+         if (Octets (J) < 32) or (Octets (J) > 127) then
             Ascii (Index_Ascii) := '.';
          else
             Ascii (Index_Ascii) := Character'Val (Natural (Octets (J)));
@@ -646,7 +646,10 @@ package body PolyORB.Buffers is
                        & Stream_Element_Offset'Image
                        (Buffer.CDR_Position) & " (length is" &
                        Buffer.Length'Img & ")"));
-
+      if Buffer.Length = 0 then
+         pragma Debug (O2 ("Buffer Empty !"));
+         return;
+      end if;
       declare
          Dumped : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
       begin
