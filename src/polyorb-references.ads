@@ -36,7 +36,6 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with PolyORB.Sequences.Unbounded;
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -47,9 +46,8 @@ package PolyORB.References is
 
    pragma Elaborate_Body;
 
-   package Profile_Seqs is
-      new PolyORB.Sequences.Unbounded (Binding_Data.Profile_Access);
-   subtype Profile_Array is Profile_Seqs.Element_Array;
+   type Profile_Array is array (Integer range <>) of
+     Binding_Data.Profile_Access;
 
    type Profile_Array_Access is access all Profile_Array;
    procedure Free is new Ada.Unchecked_Deallocation

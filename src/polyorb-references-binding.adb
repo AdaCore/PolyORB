@@ -84,9 +84,8 @@ package body PolyORB.References.Binding is
       use Binding_Data.Local;
       use Obj_Adapters;
       use ORB;
-      use Profile_Seqs;
 
-      Profiles : constant Element_Array := Profiles_Of (R);
+      Profiles : constant Profile_Array := Profiles_Of (R);
 
       Best_Preference : Profile_Preference := Profile_Preference'First;
       Best_Profile_Index : Integer := Profiles'Last + 1;

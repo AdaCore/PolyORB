@@ -307,7 +307,6 @@ package body PolyORB.References.URI is
    function String_To_Object (Str : String) return URI_Type
    is
       use PolyORB.Types;
-      use Profile_Seqs;
 
       Result : URI_Type;
       Pro    : Profile_Access;

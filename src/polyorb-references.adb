@@ -244,7 +244,6 @@ package body PolyORB.References is
      (Left, Right : Ref)
      return Boolean
    is
-      use Profile_Seqs;
       use PolyORB.Binding_Data;
       use PolyORB.Objects;
 

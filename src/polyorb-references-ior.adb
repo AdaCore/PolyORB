@@ -174,7 +174,6 @@ package body PolyORB.References.IOR is
       Value  : in PolyORB.References.Ref)
    is
       use PolyORB.Types;
-      use Profile_Seqs;
 
    begin
       pragma Debug (O ("Marshall IOR: Enter"));
@@ -238,7 +237,6 @@ package body PolyORB.References.IOR is
      return  PolyORB.References.Ref
    is
       use PolyORB.Types;
-      use Profile_Seqs;
 
       Result     : PolyORB.References.Ref;
 

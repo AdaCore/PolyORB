@@ -286,7 +286,6 @@ package body PolyORB.References.Corbaloc is
    function String_To_Object (Str : String) return Corbaloc_Type
    is
       use PolyORB.Types;
-      use Profile_Seqs;
 
       Result : Corbaloc_Type;
       Pro    : Profile_Access;
