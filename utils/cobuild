@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#21 $
+# $Id: //droopi/main/utils/cobuild#22 $
 
 PROJECT=DROOPI
 GNUMAKE=gmake
@@ -123,7 +123,8 @@ p4 sync @$CHANGELIST
     $CLIENT_TOP/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
        --with-services="naming ir event time" --prefix=$OUTDIR/install
-  fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE}
+  fi && ${GNUMAKE} && ${GNUMAKE} install && cd examples && ${GNUMAKE} \
+  && cd ../testsuite && ${GNUMAKE}
   RC=$?
   exit $RC
 )' &

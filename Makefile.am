@@ -10,13 +10,7 @@ giop_dir       =
 soap_dir       =
 srp_dir        =
 
-if DEBUG
-TESTSUITE=testsuite
-else
-TESTSUITE=
-endif
-
-SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src @DOC_DIR@ $(TESTSUITE) 
+SUBDIRS = support compilers @APPLI_DIRS@ @PROTO_DIRS@ @LIBS_DIRS@ src @DOC_DIR@
 
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
