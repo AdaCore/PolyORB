@@ -160,7 +160,10 @@ package body Broca.IOP is
         := Unmarshall_Callback (Tag);
 
    begin
+      pragma Debug (O ("Unmarshall_Tagged_Profile : enter"));
       if Unmarshall_Profile_Body /= null then
+         pragma Debug (O ("Unmarshall_Tagged_Profile : "
+                          & "Unmarshall_Profile_Body /= null"));
          return Unmarshall_Profile_Body (Buffer);
       end if;
 
@@ -173,6 +176,8 @@ package body Broca.IOP is
          Res.Tag  := Tag;
          Res.Data := new Encapsulation'(Unmarshall (Buffer));
 
+         pragma Debug (O ("Unmarshall_Tagged_Profile : "
+                          & "Unmarshall_Profile_Body = null"));
          return Res_Ptr;
       end;
 

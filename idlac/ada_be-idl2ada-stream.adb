@@ -33,6 +33,8 @@ with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 
 with Utils;                 use Utils;
 
+with Ada_Be.Idl2Ada.Value_Impl;
+
 package body Ada_Be.Idl2Ada.Stream is
 
    use Ada_Be.Source_Streams;
@@ -272,11 +274,57 @@ package body Ada_Be.Idl2Ada.Stream is
 
          when K_ValueType =>
             NL (CU);
+            Add_With (CU, "Broca.CDR", Use_It => True);
             Gen_Marshall_Profile (CU, Node);
             PL (CU, " is");
+            II (CU);
+            if not Abst (Node) then
+               Add_With (CU,
+                         Ada_Full_Name (Node)
+                         & Ada_Be.Idl2Ada.Value_Impl.Suffix);
+               PL (CU,
+                   "Obj : "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr");
+               PL (CU,
+                   "   := "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr (Object_Of (Val));");
+            end if;
+            DI (CU);
             PL (CU, "begin");
             II (CU);
-            PL (CU, "null;");
+            PL (CU, "if Is_Nil (Val) then");
+            II (CU);
+            PL (CU, "Marshall (Buffer, CORBA.Long' (0));");
+            DI (CU);
+            PL (CU, "else");
+            II (CU);
+            PL (CU, "Marshall (Buffer, CORBA.Long' (16#7FFFFF00#));");
+
+            --  marshall all the state members
+            declare
+               It : Node_Iterator;
+               Current : Node_Id;
+            begin
+               Init (It, Contents (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Current);
+                  if Kind (Current) = K_State_Member then
+                     Add_With_Stream (CU, State_Type (Current));
+                     PL (CU,
+                         "Marshall (Buffer, Obj."
+                         & Ada_Name (Head (State_Declarators (Current)))
+                         & ");");
+                     --  State Members are expanded so that
+                     --  their State_Declarators list contains a single node
+                  end if;
+               end loop;
+            end;
+               DI (CU);
+            PL (CU, "end if;");
             DI (CU);
             PL (CU, "end Marshall;");
 
@@ -285,9 +333,75 @@ package body Ada_Be.Idl2Ada.Stream is
             PL (CU, " is");
             II (CU);
             PL (CU, "Result : " & Ada_Type_Name (Node) & ";");
+            PL (CU, "Value_Tag : CORBA.Long;");
+            PL (CU, "use CORBA;");
             PL (CU, "begin");
             II (CU);
-            PL (CU, "return Result;");
+            PL (CU, "Value_Tag := Unmarshall (Buffer);");
+            PL (CU, "if Value_Tag = CORBA.Long' (0) then");
+            II (CU);
+            Add_With (CU, "CORBA.AbstractBase");
+            PL (CU, "return (CORBA.AbstractBase.Nil_Ref with null record);");
+            DI (CU);
+            PL (CU, "end if;");
+
+            --  FIXME: what to do with abstract value types ?
+            --  They do not have any value_impl package.
+            if Abst (Node) then
+               Add_With (CU, "CORBA.AbstractBase");
+               PL (CU,
+                   "return (CORBA.AbstractBase.Nil_Ref "
+                   & "with null record);");
+
+            else
+
+               PL (CU, "declare");
+               II (CU);
+               PL (CU,
+                   "Obj : "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object_Ptr");
+               PL (CU,
+                   "   := new "
+                   & Ada_Full_Name (Node)
+                   & Ada_Be.Idl2Ada.Value_Impl.Suffix
+                   & ".Object;");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+
+               --  unmarshall all the state members
+               declare
+                  It : Node_Iterator;
+                  Current : Node_Id;
+               begin
+                  Init (It, Contents (Node));
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, Current);
+                     if Kind (Current) = K_State_Member then
+                        Add_With_Stream (CU, State_Type (Current));
+                        PL (CU,
+                            "Obj."
+                            & Ada_Name (Head (State_Declarators (Current)))
+                            & ":= Unmarshall (Buffer);");
+                        --  State Members are expanded so that
+                        --  their State_Declarators list contains a single node
+                     end if;
+                  end loop;
+               end;
+
+               Add_With (CU, "CORBA.Impl");
+               PL (CU,
+                   Ada_Full_Name (Node)
+                   & ".Set (Result, CORBA.Impl.Object_Ptr (Obj));");
+               PL (CU, "return Result;");
+
+               DI (CU);
+               PL (CU, "end;");
+
+            end if;
+
             DI (CU);
             PL (CU, "end Unmarshall;");
 

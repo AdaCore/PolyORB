@@ -402,6 +402,7 @@ package body Broca.IIOP is
       Result : Profile_IIOP_Access;
 
    begin
+      pragma Debug (O ("Unmarshall_IIOP_Profile_Body : enter"));
       Decapsulate (Profile_Body'Access, Profile_Buffer'Access);
 
       Version.Major := Unmarshall (Profile_Buffer'Access);
@@ -410,7 +411,12 @@ package body Broca.IIOP is
       if Version.Major /= IIOP_Version.Major
         or else Version.Minor > IIOP_Version.Minor
       then
-         Broca.Exceptions.Raise_Bad_Param;
+         pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
+                          & "Invalid IIOP version number"));
+         null;
+         --  Broca.Exceptions.Raise_Bad_Param;
+         --  ORBACUS java uses IIOP 1.2 but adabroker semms to understan it
+         --  and I need to make tests
       end if;
 
       Key.Host   := Unmarshall (Profile_Buffer'Access);

@@ -973,11 +973,20 @@ package body Ada_Be.Idl2Ada is
 
             when K_Interface =>
                if Abst (Node) then
-                  Add_With (CU, "CORBA.AbstractBase");
-                  --  unconsistent spec, we must discuss this
                   Add_With (CU, "CORBA.Object");
                   Put (CU, "CORBA.Object.Ref");
+                  --  FIXME
+                  --  Add_With (CU, "CORBA.AbstractBase");
                   --  Put (CU, "CORBA.AbstractBase.Ref");
+                  --  See CORBA Spec v2.3, chapter 6 on abstract interface
+                  --  semantics, it explains why abstract interfaces
+                  --  should inherit directly from CORBA.AbstractBase.Ref
+                  --  and not from CORBA.Object.Ref
+                  --  However, I leave it like that because
+                  --  it requires a lot of code rewriting,
+                  --  all the current support for abstract interfaces is wrong
+                  --  (mainly because abstract interfaces can refer
+                  --  to valutypes).
                else
                   Add_With (CU, "CORBA.Object");
                   Put (CU, "CORBA.Object.Ref");
@@ -1831,7 +1840,7 @@ package body Ada_Be.Idl2Ada is
       pragma Assert (Kind (Node) = K_Initializer);
       NL (CU);
       Put (CU, "function ");
-      Put (CU, Ada_Name (Node));
+      PL (CU, Ada_Name (Node));
 
       --  Parameters
       declare
@@ -2324,6 +2333,11 @@ package body Ada_Be.Idl2Ada is
       end case;
    end Add_With_Entity;
 
+
+   -----------------------
+   --  Add_With_Stream  --
+   -----------------------
+
    procedure Add_With_Stream
      (CU : in out Compilation_Unit;
       Node : Node_Id)
@@ -2332,12 +2346,15 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when K_Interface
+           | K_ValueType   =>
             Add_With (CU, "Broca.CDR", Use_It => True);
             Add_With (CU, Ada_Full_Name (Node) & Stream.Suffix,
                       Use_It => True);
 
-         when K_Forward_Interface =>
+         when K_Forward_Interface
+           | K_Forward_ValueType
+           | K_Boxed_ValueType   =>
             Add_With (CU, "Broca.CDR", Use_It => True);
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream.Suffix,
@@ -2403,13 +2420,6 @@ package body Ada_Be.Idl2Ada is
 
          when K_Fixed =>
             Add_With (CU, "Broca.CDR");
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
 
          when others =>
             --  Improper use: node N is not
