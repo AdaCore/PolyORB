@@ -62,7 +62,7 @@ package body Scopes is
          elsif Kind (C) = K_Module
            and then Kind (E) = K_Module
          then
-            null;
+            Set_Scoped_Identifiers (E, Scoped_Identifiers (C));
 
          --  This scoped name is already in the scope
 
@@ -182,6 +182,7 @@ package body Scopes is
    is
       C : Node_Id := Scoped_Identifiers (S);
       X : constant Name_Id := Name (N);
+
    begin
       --  Loop through scope S to find N. Entities potentially in the
       --  scope are present in S but they are not candidates here. As
@@ -319,11 +320,13 @@ package body Scopes is
    -- Push_Scope --
    ----------------
 
-   procedure Push_Scope (S : Node_Id)
-   is
+   procedure Push_Scope (S : Node_Id) is
+      I : Node_Id;
+
    begin
       Increment_Last;
       Table (Last).Node := S;
+
       if D_Scopes then
          W_Str      ("push scope """);
          if Kind (S) /= K_Specification then
@@ -337,6 +340,14 @@ package body Scopes is
          end if;
          W_Eol;
       end if;
+
+      I := Scoped_Identifiers (S);
+      while Present (I) loop
+         Insert_Into_Homonyms (I);
+         Set_Explicitely_Visible (I, True);
+         Set_Scope_Entity (I, S);
+         I := Next_Entity (I);
+      end loop;
    end Push_Scope;
 
    --------------------------
