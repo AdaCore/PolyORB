@@ -14,7 +14,7 @@ DISTCLEANFILES =
 SUFFIXES = .idl .ads .adb
 
 .idl.ads .idl.adb:
-	$(IDLAC) $<
+	$(IDLAC) -I$(srcdir) $<
 
 $(IDLAC): force
 	cd ../../idlac && $(MAKE) idlac
