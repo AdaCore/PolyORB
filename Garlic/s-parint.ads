@@ -37,6 +37,8 @@ with System.RPC;
 
 package System.Partition_Interface is
 
+   pragma Elaborate_Body;
+
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs.
 
