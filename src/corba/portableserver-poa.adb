@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#29 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#30 $
 
 with Ada.Exceptions;
 
@@ -409,24 +409,21 @@ package body PortableServer.POA is
    function Get_Servant (Self : Ref)
      return Servant
    is
---       POA : constant PolyORB.POA.Obj_Adapter_Access
---         := To_POA (Self);
+      use type PolyORB.Servants.Servant_Access;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := To_POA (Self);
 
    begin
---       if POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
---          raise WrongPolicy;
---       end if;
+--      if Self.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
+--         raise WrongPolicy;
+--      end if;
 
---       if POA.Default_Servant = null then
---          raise NoServant;
---       end if;
+      if POA.Default_Servant = null then
+         raise NoServant;
+      end if;
 
---       return POA.Default_Servant;
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Get_Servant (Self);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      return Servant (CORBA.Impl.To_CORBA_Servant (POA.Default_Servant));
    end Get_Servant;
 
    -----------------
@@ -437,16 +434,16 @@ package body PortableServer.POA is
      (Self      : in Ref;
       P_Servant : in Servant)
    is
---       POA : constant PolyORB.POA.Obj_Adapter_Access
---         := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := To_POA (Self);
 
    begin
---       if POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
---          raise WrongPolicy;
---       end if;
+--     if POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
+--         raise WrongPolicy;
+--      end if;
 
---       POA.Default_Servant := P_Servant;
-      raise PolyORB.Not_Implemented;
+      POA.Default_Servant := PolyORB.Servants.Servant_Access
+        (To_PolyORB_Servant (P_Servant));
    end Set_Servant;
 
    ---------------------
