@@ -8,7 +8,7 @@ SED = @SED@
 
 GNATDIST = ${exec_prefix}/bin/gnatdist
 
-EXTRA_PROGS = mainloop
+EXTRA_PROGS = 
 CFGFILE = simcity.cfg
 PARTITIONS = bank_server bank_client
 
