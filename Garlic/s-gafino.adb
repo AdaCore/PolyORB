@@ -55,6 +55,8 @@ package body System.Garlic.Filters.None is
    --  Dummy filter parameters, allowing the use of this filter even as
    --  the default filter.
 
+   Dummy_Name : constant String := "none";
+
    ---------------------
    -- Filter_Outgoing --
    ---------------------
@@ -134,7 +136,7 @@ package body System.Garlic.Filters.None is
      (Filter : No_Filter)
       return String is
    begin
-      return "";
+      return Dummy_Name;
    end Get_Name;
 
    ------------------

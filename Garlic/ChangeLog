@@ -1,5 +1,7 @@
 Thu Feb 27 11:13:51 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* s-gafino.adb: Change Dummy_Name from "" to "none".
+
 	* s-garfil.adb, s-garfil.ads, s-gafino.adb: Change
  	Set_Register_Filter into Set_Registration_Filter and add several
  	default behaviour.
