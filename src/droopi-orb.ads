@@ -15,7 +15,6 @@ with Droopi.Jobs;
 with Droopi.Obj_Adapters;
 with Droopi.Objects;
 with Droopi.References;
-with Droopi.Requests;
 with Droopi.Soft_Links;
 with Droopi.Transport;
 
@@ -39,6 +38,13 @@ package Droopi.ORB is
    type Tasking_Policy_Type is abstract tagged limited private;
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
 
+   procedure Run_Job
+     (P : access Tasking_Policy_Type;
+      J : Jobs.Job_Access);
+   --  Execute job J in the context of tasking policy P.
+   --  J is ran in the context of the calling task, except in
+   --  cases where the policy mandates otherwise.
+
    ---------------------
    -- A server object --
    ---------------------
@@ -46,6 +52,10 @@ package Droopi.ORB is
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
       is new Droopi.Components.Component with private;
    type ORB_Access is access all ORB_Type;
+
+   -------------------------------
+   -- Tasking policy operations --
+   -------------------------------
 
    type Active_Connection is record
       AES : Asynch_Ev_Source_Access;
@@ -66,22 +76,25 @@ package Droopi.ORB is
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS on client side.
 
-   procedure Handle_Request
+   procedure Handle_Request_Execution
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
-      R   : Droopi.Requests.Request) is abstract;
+      RJ  : Jobs.Job_Access)
+      is abstract;
    --  Create the necessary processing resources for the execution
-   --  of request R, and start this execution.
+   --  of request execution job RJ, and start this execution.
+
+   procedure Idle
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access) is abstract;
+   --  Called by a task that has nothing to do in order
+   --  to wait until there may be anything to do.
 
    ------------------------------
    -- Server object operations --
    ------------------------------
 
    type Exit_Condition_Access is access all Boolean;
-
-   procedure Run
-     (ORB : access ORB_Type; Exit_When : Exit_Condition_Access);
-   --  Override inherited primitive.
 
    procedure Create (ORB : in out ORB_Type);
    --  Initialize a newly-allocated ORB object.

@@ -2,8 +2,6 @@
 
 --  $Id$
 
-with Droopi.Requests;
-
 package Droopi.ORB.Task_Policies is
 
    pragma Elaborate_Body;
@@ -29,10 +27,12 @@ package Droopi.ORB.Task_Policies is
       ORB : ORB_Access;
       C   : Active_Connection);
 
-   procedure Handle_Request
+   procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      R   : Droopi.Requests.Request);
+      RJ  : Jobs.Job_Access);
+
+   procedure Idle (P : access No_Tasking; ORB : ORB_Access);
 
 private
 

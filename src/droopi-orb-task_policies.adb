@@ -2,17 +2,25 @@
 
 with Droopi.Components;
 with Droopi.Filters.Interface;
+with Droopi.Log;
 
 package body Droopi.ORB.Task_Policies is
 
    use Droopi.Components;
    use Droopi.Filters.Interface;
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log
+     ("droopi.orb.tasking_policies");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
       C   : Active_Connection) is
    begin
+      pragma Debug (O ("No_Tasking: new server connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -27,6 +35,7 @@ package body Droopi.ORB.Task_Policies is
       ORB : ORB_Access;
       C   : Active_Connection) is
    begin
+      pragma Debug (O ("No_Tasking: new client connection"));
       Insert_Source (ORB, C.AES);
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -36,14 +45,24 @@ package body Droopi.ORB.Task_Policies is
       --  by general-purpose ORB tasks.
    end Handle_New_Client_Connection;
 
-   procedure Handle_Request
+   procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      R   : Droopi.Requests.Request) is
+      RJ  : Jobs.Job_Access) is
    begin
-      --  J := Create_Job_For_Request (R);
-      --  Schedule_Job (J);
-      raise Not_Implemented;
-   end Handle_Request;
+      pragma Debug (O ("No_Tasking: request execution"));
+
+      Jobs.Run (RJ);
+      --  No tasking: execute the request in the current task.
+   end Handle_Request_Execution;
+
+   procedure Idle (P : access No_Tasking; ORB : ORB_Access) is
+   begin
+      pragma Debug (O ("No_Tasking: Idle (BAD BAD!)"));
+      raise Program_Error;
+      --  When there is no tasking, the (only) task in the
+      --  application may not go idle, since this would
+      --  block the whole system forever.
+   end Idle;
 
 end Droopi.ORB.Task_Policies;

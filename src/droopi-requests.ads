@@ -33,6 +33,7 @@ package Droopi.Requests is
       --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
       --  Req_Flags  : CORBA.Flags;
+      Completed : aliased Boolean := False;
    end record;
 
    type Request_Access is access all Request;

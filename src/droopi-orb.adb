@@ -14,6 +14,7 @@ pragma Elaborate_All (Droopi.Log);
 with Droopi.Objects.Interface;
 with Droopi.ORB.Interface;
 with Droopi.References.Binding;
+with Droopi.Requests;
 with Droopi.Soft_Links;
 with Droopi.Transport;
 
@@ -33,15 +34,39 @@ package body Droopi.ORB is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ------------------------------
-   -- Server object operations --
-   ------------------------------
+   --------------------------------------------
+   -- Job type for method execution requests --
+   --------------------------------------------
 
-   procedure Run
-     (ORB : access ORB_Type; Exit_When : Exit_Condition_Access) is
+   type Request_Job is new Job with record
+      ORB       : ORB_Access;
+      Request   : Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
+
+   procedure Run (J : access Request_Job);
+
+   ---------------------------------------
+   -- Tasking policy generic operations --
+   ---------------------------------------
+
+   procedure Run_Job
+     (P : access Tasking_Policy_Type;
+      J : Jobs.Job_Access) is
    begin
-      Run (ORB, Exit_When, True);
-   end Run;
+      if J.all in Request_Job then
+         Handle_Request_Execution
+           (P   => Tasking_Policy_Access (P),
+            ORB => Request_Job (J.all).ORB,
+            RJ  => J);
+      else
+         Run (J);
+      end if;
+   end Run_Job;
+
+   ---------------------------
+   -- ORB object operations --
+   ---------------------------
 
    procedure Create (ORB : in out ORB_Type) is
    begin
@@ -91,7 +116,7 @@ package body Droopi.ORB is
             Leave (ORB.ORB_Lock.all);
 
             pragma Assert (Job /= null);
-            Run (Job);
+            Run_Job (ORB.Tasking_Policy, Job);
             Free (Job);
             return True;
          end;
@@ -199,7 +224,8 @@ package body Droopi.ORB is
          Enter (ORB.ORB_Lock.all);
 
          if (Exit_Condition /= null and then Exit_Condition.all)
-           or else ORB.Shutdown then
+           or else ORB.Shutdown
+         then
             Leave (ORB.ORB_Lock.all);
             exit;
          end if;
@@ -521,13 +547,6 @@ package body Droopi.ORB is
    -- Job type for object requests --
    ----------------------------------
 
-   type Request_Job is new Job with record
-      ORB       : ORB_Access;
-      Request   : Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
-
-   procedure Run (J : access Request_Job);
    procedure Run (J : access Request_Job) is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
@@ -554,20 +573,17 @@ package body Droopi.ORB is
             --  XXX Unbind must Release_Servant.
 
             Emit_No_Reply (J.Requestor, Result);
+            --  Send back answer.
+
             --  XXX Should that be Emit? Should there be a reply
             --      from Requestor?
 
-            --  Warning! Destroy_Request will be called soon:
-            --  the requestor must not depend on it persisting
-            --  after processing the result message.
+            --  The client is responsible for destroying
+            --  the request object after use.
 
-            --  Send back answer.
          end;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;
-
-      Destroy_Request (J.Request);
-      --  Destroy request.
 
    exception
       when E : others =>
@@ -607,6 +623,8 @@ package body Droopi.ORB is
       Msg : Droopi.Components.Message'Class)
      return Droopi.Components.Message'Class
    is
+      use Droopi.Objects.Interface;
+
       Result : Components.Null_Message;
    begin
       if Msg in Interface.Queue_Job then
@@ -621,10 +639,31 @@ package body Droopi.ORB is
             pragma Debug (O ("Queue_Request: enter"));
             Request_Job (J.all).ORB       := ORB_Access (ORB);
             Request_Job (J.all).Request   := QR.Request;
-            Request_Job (J.all).Requestor := QR.Requestor;
+
+            if QR.Requestor = null then
+               --  If the request was queued directly by a client,
+               --  then the ORB is responsible for setting its
+               --  state to completed on reply from the
+               --  object.
+               Request_Job (J.all).Requestor
+                 := Component_Access (ORB);
+            else
+               Request_Job (J.all).Requestor := QR.Requestor;
+            end if;
 
             Queue_Job (ORB.Job_Queue, J);
          end;
+      elsif Msg in Executed_Request then
+         Executed_Request (Msg).Req.Completed := True;
+
+         --  XXX NOTIFY ALL SLEEPING ORB TASKS THAT
+         --  A WAIT CONDITION HAS BEEN UPDATED!
+         --  or only notify the correct task.
+         --  The ORB should perhaps maintain a list of all tasks
+         --  that are currently executing ORB code, of their
+         --  origin, of their exit conditions, and of their status
+         --  (blocked/idle/...)
+
       else
          raise Components.Unhandled_Message;
       end if;

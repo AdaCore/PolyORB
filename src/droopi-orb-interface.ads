@@ -19,10 +19,10 @@ package Droopi.ORB.Interface is
       Requestor : Components.Component_Access;
    end record;
    --  Queue method invocation request Req for execution by Server
-   --  on behalf of a remote caller.
-   --  No reply.
-
+   --  on behalf of a remote caller. No reply expected.
    --  When the request is executed, a message will be sent
    --  back to Requestor (asynchronously).
+   --  The client is the responsible of the destruction of
+   --  the Request.
 
 end Droopi.ORB.Interface;
