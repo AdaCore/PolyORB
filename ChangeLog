@@ -1,3 +1,7 @@
+Mon Dec  8 20:29:15 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Remove s-garcac.ad[bs] from distribution.
+
 Fri Oct 31 16:01:02 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Notes about the new filtering interface and the streams
