@@ -3,13 +3,10 @@
 --     Is_A
 --     Non_Existent
 
-with Ada.Tags;
-
 with GNAT.HTable;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Smart_Pointers;
 
 with CORBA.AbstractBase;
@@ -204,30 +201,26 @@ package body CORBA.Object is
       return Internal_Object_Access (Entity_Of (R)).The_Object.all;
    end To_PolyORB_Object;
 
-   function To_PolyORB_Ref
-     (R : in Ref)
+   function To_PolyORB_Ref (R : in Ref)
      return PolyORB.References.Ref
    is
       E : constant PolyORB.Smart_Pointers.Entity_Ptr
         := Entity_Of (R);
+      Result : PolyORB.References.Ref;
    begin
-      if E = null then
-         raise Constraint_Error;
-      end if;
-      pragma Debug
-        (O ("Converting entity of type "
-            & Ada.Tags.External_Tag (E.all'Tag)
-            & " into PolyORB ref"));
-      if E.all in Reference_Info then
-         return Reference_Info (E.all).IOR.Ref;
-      else
-         --  Must "export" (in the Jonathan sense)
-         --  this interface to make it remotely
-         --  callable, i.e. must construct or retrieve
-         --  a PolyORB.References.Reference for this entity.
-         raise PolyORB.Not_Implemented;
-      end if;
+      PolyORB.References.Set (Result, E);
+      return Result;
    end To_PolyORB_Ref;
+
+   procedure Convert_To_CORBA_Ref
+     (Neutral_Ref : in     PolyORB.References.Ref;
+      CORBA_Ref   : in out CORBA.Object.Ref'Class)
+   is
+      E : constant PolyORB.Smart_Pointers.Entity_Ptr
+        := PolyORB.References.Entity_Of (Neutral_Ref);
+   begin
+      Set (CORBA_Ref, E);
+   end Convert_To_CORBA_Ref;
 
    function TC_Object return CORBA.TypeCode.Object
      renames CORBA.TypeCode.TC_Object;

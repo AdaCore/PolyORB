@@ -551,9 +551,6 @@ package body PortableServer.POA is
       --  See caveats in its body.
 
       The_Ref : PolyORB.References.Ref;
-      The_Ref_Info : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := new CORBA.Object.Reference_Info;
-      Result : CORBA.Object.Ref;
 --      Skel : PolyORB.POA.Skeleton_Ptr;
    begin
 --       --  FIXME: If Servant_To_Reference is called in the context
@@ -577,27 +574,21 @@ package body PortableServer.POA is
            (To_PolyORB_Servant (P_Servant).all).If_Desc.External_Name;
          STID : constant Standard.String
            := CORBA.To_Standard_String (TID);
+         Result : CORBA.Object.Ref;
       begin
-         pragma Debug
-           (O ("Creating a Reference_Info with type " & STID));
-
          PolyORB.ORB.Create_Reference
            (PolyORB.Setup.The_ORB, Oid'Access,
             STID, The_Ref);
          --  Obtain object reference.
 
-         CORBA.Object.Reference_Info (The_Ref_Info.all).IOR :=
-           (Ref     => The_Ref,
-            Type_Id => TID);
+         CORBA.Object.Convert_To_CORBA_Ref (The_Ref, Result);
+         return Result;
       end;
       --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
       --  *if* Servant was a PolyORB.POA_Types.Servant. Unfortunately, Servant
       --  is a PortableServer.Servant_Base'Class, which has nothing in common
       --  with PolyORB.POA_Types.Servant.
       --  -> should use Servant.Neutral_View.If_Desc.External_Name.
-
-      CORBA.Object.Set (Result, The_Ref_Info);
-      return Result;
    end Servant_To_Reference;
 
    ---------------------

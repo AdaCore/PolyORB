@@ -252,9 +252,7 @@ package body PolyORB.Setup.Test is
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String
                       (References.IOR.Object_To_String
-                       ((Ref => My_Ref,
-                      Type_Id => CORBA.To_CORBA_String
-                         ("IDL:Echo:1.0")))));
+                       ((Ref => My_Ref))));
          exception
             when E : others =>
                Put_Line ("Warning: Object_To_String raised:");

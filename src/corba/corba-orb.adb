@@ -31,8 +31,6 @@ with PolyORB.ORB.Task_Policies;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Smart_Pointers;
-
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
@@ -291,31 +289,11 @@ package body CORBA.ORB is
    -- Object_To_String --
    ----------------------
 
-   function Object_To_String
-     (Obj : in CORBA.Object.Ref'Class)
-      return CORBA.String
-   is
-      use PolyORB.Smart_Pointers;
-
-      E : constant Entity_Ptr := CORBA.Object.Entity_Of (Obj);
+   function Object_To_String (Obj : in CORBA.Object.Ref'Class)
+      return CORBA.String is
    begin
-      if E /= null and then E.all in Object.Reference_Info'Class then
-         return PolyORB.References.IOR.Object_To_String
-           (Object.Reference_Info (E.all).IOR);
-      else
-         --  XXX
-         --  This ref does not contain a Reference_Info,
-         --  i.e. it is likely to be directly a pointer to
-         --  a CORBA.Impl.Object'Class. Can this happen?
-         --  I.e. do we have provided a means for the
-         --  user to construct such a ref (most likely
-         --  the standard CORBA API does allow it, because
-         --  the user sees the Set primitive of C.O.Ref).
-         --  Is it legitimate to call O_to_S on such a Ref?
-         --  Maybe not, for the Servant would not have been
-         --  activated. Or can it have??? To be determined.
-         raise Program_Error;
-      end if;
+      return PolyORB.References.IOR.Object_To_String
+        ((Ref => CORBA.Object.To_PolyORB_Ref (Obj)));
    end Object_To_String;
 
    ----------------------
@@ -326,12 +304,11 @@ package body CORBA.ORB is
      (From : in     CORBA.String;
       To   : in out CORBA.Object.Ref'Class)
    is
-      Ref_Info : constant PolyORB.Smart_Pointers.Entity_Ptr
-        := new Object.Reference_Info;
-   begin
-      Object.Reference_Info (Ref_Info.all).IOR
+      IOR : constant PolyORB.References.IOR.IOR_Type
         := PolyORB.References.IOR.String_To_Object (From);
-      CORBA.Object.Set (To, Ref_Info);
+   begin
+      CORBA.Object.Set
+        (To, PolyORB.References.Entity_Of (IOR.Ref));
    end String_To_Object;
 
    ------------------

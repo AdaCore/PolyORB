@@ -46,11 +46,13 @@ package body PolyORB.References.IOR is
    is
       use PolyORB.Types;
       use Profile_Seqs;
-      Profs  : Profile_Array := Profiles_Of (Value.Ref);
+      Profs    : constant Profile_Array := Profiles_Of (Value.Ref);
       Counter  : Integer := 0;
 
    begin
-      Marshall (Buffer, Types.String (Value.Type_Id));
+      Marshall
+        (Buffer,
+         CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value.Ref))));
       Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
       pragma Debug (O ("Marshall Profile : Enter"));
@@ -86,46 +88,44 @@ package body PolyORB.References.IOR is
       use CORBA;
       use Profile_Seqs;
 
-      N_Profiles : Types.Unsigned_Long;
       Result     : IOR_Type;
+
+      CORBA_Type_Id : constant CORBA.String
+        := CORBA.String (Types.String'(Unmarshall (Buffer)));
+      Type_Id : constant String
+        := CORBA.To_Standard_String (CORBA_Type_Id);
+
+      N_Profiles : constant Types.Unsigned_Long
+        := Unmarshall (Buffer);
+
+      Profs   : Profile_Array := (1 .. Integer (N_Profiles) => null);
    begin
-      Result.Type_Id := CORBA.String (Types.String'(Unmarshall (Buffer)));
-      N_Profiles     := Unmarshall (Buffer);
 
-      declare
-         Type_Id : constant String
-           := CORBA.To_Standard_String (Result.Type_Id);
-         Profs   : Profile_Array := (1 .. Integer (N_Profiles) => null);
-      begin
+      pragma Debug
+        (O ("Decapsulate_IOR: type " & Type_Id
+            & " (" & N_Profiles'Img & " profiles)."));
 
-            pragma Debug
-                (O ("Decapsulate_IOR: type " &
-                    CORBA.To_Standard_String (Result.Type_Id) &
-                    " (" & N_Profiles'Img & " profiles)."));
+      for N in Profs'Range loop
+         declare
+            Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
+            Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
+         begin
 
-            for N in Profs'Range loop
-               declare
-                  Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
-                  Tag      : constant Profile_Tag :=
-                                 Profile_Tag (Temp_Tag);
-               begin
-
-                  for I in 1 .. Length (Callbacks) loop
-                     if Element_Of (Callbacks, I).Tag = Tag then
-                        Profs (N) := Element_Of (Callbacks, I).
-                          Unmarshall_Profile_Body (Buffer);
-                        --  Profiles dynamically allocated here
-                        --  will be freed when the returned
-                        --  reference is finalised.
-                     end if;
-                  end loop;
-               end;
+            for I in 1 .. Length (Callbacks) loop
+               if Element_Of (Callbacks, I).Tag = Tag then
+                  Profs (N) := Element_Of (Callbacks, I).
+                    Unmarshall_Profile_Body (Buffer);
+                  --  Profiles dynamically allocated here
+                  --  will be freed when the returned
+                  --  reference is finalised.
+               end if;
             end loop;
+         end;
+      end loop;
 
-            Create_Reference (Profs, Type_Id, Result.Ref);
+      Create_Reference (Profs, Type_Id, Result.Ref);
 
-            return Result;
-      end;
+      return Result;
    end Unmarshall;
 
 

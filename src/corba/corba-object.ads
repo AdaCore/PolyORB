@@ -1,6 +1,5 @@
 with PolyORB.Objects;
-with PolyORB.Smart_Pointers;
-with PolyORB.References.IOR;
+with PolyORB.References;
 
 with CORBA.AbstractBase;
 with CORBA.Context;
@@ -77,6 +76,8 @@ package CORBA.Object is
    --       (Self : Ref)
    --       return CORBA.DomainManager.DomainManagerList;
 
+   function TC_Object return CORBA.TypeCode.Object;
+
    function  Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
@@ -89,19 +90,12 @@ package CORBA.Object is
    --   with a CORBA.Object.Ref. This can be done only when R designates
    --   an object located on this middleware instance.
 
-   function To_PolyORB_Ref
-     (R : in Ref)
+   function To_PolyORB_Ref (R : in Ref)
      return PolyORB.References.Ref;
-
-   type Reference_Info is new PolyORB.Smart_Pointers.Entity with record
-      IOR : PolyORB.References.IOR.IOR_Type;
-   end record;
-   --  XXX Actually, type info from IOR_Type should be moved into
-   --  PolyORB.References.Reference_Info, and then IOR_Type can be
-   --  suppressed completely, and PolyORB.References.Ref/Reference_Info
-   --  can be used instead.
-
-   function TC_Object return CORBA.TypeCode.Object;
+   procedure Convert_To_CORBA_Ref
+     (Neutral_Ref : in     PolyORB.References.Ref;
+      CORBA_Ref   : in out CORBA.Object.Ref'Class);
+   --  Conversion functions between CORBA and neutral references.
 
 private
 

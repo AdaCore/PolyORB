@@ -41,7 +41,6 @@ package PolyORB.References.IOR is
 
    type IOR_Type is record
       Ref : PolyORB.References.Ref;
-      Type_Id  : CORBA.String;
    end record;
 
    type IOR_Access is access all IOR_Type;
