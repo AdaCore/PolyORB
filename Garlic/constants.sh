@@ -4,12 +4,25 @@
 #
 # This file generates any necessary constant for a given platform
 #
+# Usage: constants.sh {pkgname srcdir | filename srcdir platform headerfile}
+#
+# Example: constants.sh System.Garlic.Constants /opt/s/glade/Garlic
+#       or constants.sh 5lgarcon.ads /opt/s/glade/Garlic "Linux 2.x" copyright
 
 # Name of package
 
-name=$1
-srcdir=$2
-fname=`gnatkr ${name}`.ads
+if [ $# = 4 ]; then
+  name="System.Garlic.Constants"
+  fname=$1
+  srcdir=$2
+  platform="$3"
+  header=$4
+else
+  name=$1
+  srcdir=$2
+  fname=`gnatkr ${name}`.ads
+  platform=x
+fi
 
 # List of constants we need to know
 
@@ -33,15 +46,23 @@ trap "rm -f ${tmpe}" 0 1 2 3 15
 
 # Header of generated file
 
-cat > ${fname} << EOF
+if [ "$platform" = x ]; then
+   cat > ${fname} << EOF
 --  This package has been generated automatically on:
 EOF
-./split "`uname -a`" >> ${fname}
+   ./split "`uname -a`" >> ${fname}
 echo "--  Generation date: `date`" >> ${fname}
 cat >> ${fname} << EOF
 --  Any change you make here is likely to be lost !
 package ${name} is
 EOF
+else
+   cat ${srcdir}/${header} > ${fname}
+   echo >> ${fname}
+   echo "--  This is the version for $platform" >> ${fname}
+   echo >> ${fname}
+   echo "package ${name} is" >> ${fname}
+fi
 
 # For each constant, try to output its value or -1 if undefined
 

@@ -6,18 +6,18 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
 
-CONSTANTS_SH = ${srcdir}/constants.sh
+CONSTANTS_SH = $(srcdir)/constants.sh
 CP           = cp
-GARLIC       = ${prefix}/lib/garlic
+GARLIC       = $(prefix)/lib/garlic
 GNATFLAGS    = -gnatg @GNATFLAGS@
-INCFLAGS     = -I. -I${srcdir}
+INCFLAGS     = -I. -I$(srcdir)
 
 GNATMAKE     = gnatmake
 GNATBIND     = gnatbind
 
 PLATFORM            = @PLATFORM_SPECIFIC@
 
-CONSTANTS_PLATFORM  = ${srcdir}/5${PLATFORM}garcon.ads
+CONSTANTS_PLATFORM  = $(srcdir)/5$(PLATFORM)garcon.ads
 
 LAUNCHINGOBJECTS = \
 s-gaplsp.o\
@@ -26,22 +26,22 @@ s-garrem.o
 
 LAUNCHINGSOURCES = \
           s-gaplsp.ads                        \
-${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
-${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
+$(srcdir)/s-garnam.ads $(srcdir)/s-garnam.adb \
+$(srcdir)/s-garrem.ads $(srcdir)/s-garrem.adb
 
 TCPOBJECTS = \
 s-gtplsp.o\
 s-gartcp.o
 
 TCPSOURCES = \
-${TCP_PLATFORM_SOURCES}                       \
-${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
+$(TCP_PLATFORM_SOURCES)                       \
+$(srcdir)/s-gartcp.ads $(srcdir)/s-gartcp.adb
 
 NOBLTCPOBJECTS = \
 s-ganobl.o
 
 NOBLTCPSOURCES = \
-${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
+$(srcdir)/s-ganobl.ads $(srcdir)/s-ganobl.adb
 
 Makefile: Makefile.fil
 
@@ -88,44 +88,44 @@ s-stratt.o
 
 COMMONSOURCES = \
           s-galiop.ads                        \
-${srcdir}/s-galite.ads ${srcdir}/s-galite.adb \
-${srcdir}/s-ganeut.ads ${srcdir}/s-ganeut.adb \
-${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
+$(srcdir)/s-galite.ads $(srcdir)/s-galite.adb \
+$(srcdir)/s-ganeut.ads $(srcdir)/s-ganeut.adb \
+$(srcdir)/s-gaphlo.ads $(srcdir)/s-gaphlo.adb \
           s-garcon.ads                        \
-${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
-${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
-${srcdir}/s-gargro.ads ${srcdir}/s-gargro.adb \
-${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
-${srcdir}/s-garlic.ads                        \
-${srcdir}/s-garloc.ads ${srcdir}/s-garloc.adb \
-${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
-${srcdir}/s-garpar.ads ${srcdir}/s-garpar.adb \
-${srcdir}/s-garpro.ads                        \
-${srcdir}/s-garpri.ads                        \
-${srcdir}/s-ganata.ads ${srcdir}/s-ganata.adb \
-${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
-${srcdir}/s-garexc.ads ${srcdir}/s-garexc.adb \
-${srcdir}/s-garrep.ads ${srcdir}/s-garrep.adb \
-${srcdir}/s-garser.ads           s-garser.adb \
-${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
-${srcdir}/s-garstr.ads $(srcdir)/s-garstr.adb \
-${srcdir}/s-garthi.ads                        \
-${srcdir}/s-gartra.ads ${srcdir}/s-gartra.adb \
-${srcdir}/s-gaprco.ads           s-gaprco.adb \
-${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
-${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
-${srcdir}/s-gartab.ads ${srcdir}/s-gartab.adb \
-${srcdir}/s-gartyp.ads ${srcdir}/s-gartyp.adb \
-${srcdir}/s-garuni.ads ${srcdir}/s-garuni.adb \
-${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
-${srcdir}/s-gasoli.ads ${srcdir}/s-gasoli.adb \
+$(srcdir)/s-gardeb.ads $(srcdir)/s-gardeb.adb \
+$(srcdir)/s-garfil.ads $(srcdir)/s-garfil.adb \
+$(srcdir)/s-gargro.ads $(srcdir)/s-gargro.adb \
+$(srcdir)/s-garhea.ads $(srcdir)/s-garhea.adb \
+$(srcdir)/s-garlic.ads                        \
+$(srcdir)/s-garloc.ads $(srcdir)/s-garloc.adb \
+$(srcdir)/s-garopt.ads $(srcdir)/s-garopt.adb \
+$(srcdir)/s-garpar.ads $(srcdir)/s-garpar.adb \
+$(srcdir)/s-garpro.ads                        \
+$(srcdir)/s-garpri.ads                        \
+$(srcdir)/s-ganata.ads $(srcdir)/s-ganata.adb \
+$(srcdir)/s-garpro.ads $(srcdir)/s-garpro.adb \
+$(srcdir)/s-garexc.ads $(srcdir)/s-garexc.adb \
+$(srcdir)/s-garrep.ads $(srcdir)/s-garrep.adb \
+$(srcdir)/s-garser.ads           s-garser.adb \
+$(srcdir)/s-garsta.ads $(srcdir)/s-garsta.adb \
+$(srcdir)/s-garstr.ads $(srcdir)/s-garstr.adb \
+$(srcdir)/s-garthi.ads                        \
+$(srcdir)/s-gartra.ads $(srcdir)/s-gartra.adb \
+$(srcdir)/s-gaprco.ads           s-gaprco.adb \
+$(srcdir)/s-garela.ads $(srcdir)/s-garela.adb \
+$(srcdir)/s-garter.ads $(srcdir)/s-garter.adb \
+$(srcdir)/s-gartab.ads $(srcdir)/s-gartab.adb \
+$(srcdir)/s-gartyp.ads $(srcdir)/s-gartyp.adb \
+$(srcdir)/s-garuni.ads $(srcdir)/s-garuni.adb \
+$(srcdir)/s-garuti.ads $(srcdir)/s-garuti.adb \
+$(srcdir)/s-gasoli.ads $(srcdir)/s-gasoli.adb \
           s-gatcop.ads                        \
-${srcdir}/s-gastha.ads ${srcdir}/s-gastha.adb \
-${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
-${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
-${srcdir}/s-rpcpoo.ads ${srcdir}/s-rpcpoo.adb \
-${srcdir}/s-rpstio.ads ${srcdir}/s-rpstio.adb \
-${srcdir}/s-stratt.adb
+$(srcdir)/s-gastha.ads $(srcdir)/s-gastha.adb \
+$(srcdir)/s-parint.ads $(srcdir)/s-parint.adb \
+$(srcdir)/s-rpc.ads    $(srcdir)/s-rpc.adb    \
+$(srcdir)/s-rpcpoo.ads $(srcdir)/s-rpcpoo.adb \
+$(srcdir)/s-rpstio.ads $(srcdir)/s-rpstio.adb \
+$(srcdir)/s-stratt.adb
 
 OBJECTS = \
 @PROTOCOLSOBJECTS@ \
@@ -142,44 +142,51 @@ $(COMMONSOURCES)
 CLEANFILES = *.ali s-garcon.ads *.o s-gaprco.adb s-galiop.ads\
 	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split\
 	inlining gnatlib/* constants_nodef\
-	b_*.c isthrbio${EXEEXT}
+	b_*.c isthrbio$(EXEEXT)
 
-DISTCLEANFILES = config.h ${TCP_PLATFORM_SOURCES} s-gatcop.ads \
+DISTCLEANFILES = config.h $(TCP_PLATFORM_SOURCES) s-gatcop.ads \
 	Makefile.fil
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
-isthrbio${EXEEXT}: ${srcdir}/isthrbio.adb Makefile ${TCP_PLATFORM_SOURCES}
-	${GNATMAKE} -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} -I${srcdir} -I. \
-		${srcdir}/isthrbio.adb
+isthrbio$(EXEEXT): $(srcdir)/isthrbio.adb Makefile $(TCP_PLATFORM_SOURCES)
+	$(GNATMAKE) -a $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) -I$(srcdir) -I. \
+		$(srcdir)/isthrbio.adb
 
-s-gtplsp.o: ${TCP_PLATFORM_SOURCES}
-	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} \
-		`echo ${TCP_PLATFORM_SOURCES} | ${SED} -e 's/ .*$$//'`
+s-gtplsp.o: $(TCP_PLATFORM_SOURCES)
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) \
+		`echo $(TCP_PLATFORM_SOURCES) | $(SED) -e 's/ .*$$//'`
 
 %.o: %.adb
-	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 %.o: %.ads
-	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 
 %.ali: %.adb
-	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
 
 %.ali: %.ads
-	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	$(ADA_FOR_TARGET) -c $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
 
-constants_nodef: ${srcdir}/constants.c config.h
-	${CC} -o constants_nodef -I. -UCONSTANT_NAME ${srcdir}/constants.c
+constants_nodef: $(srcdir)/constants.c config.h
+	$(CC) -o constants_nodef -I. -UCONSTANT_NAME $(srcdir)/constants.c
 
-s-garcon.ads: ${CONSTANTS_SH} split constants_nodef config.h
-	if test -f ${CONSTANTS_PLATFORM}; then\
-	  cp ${CONSTANTS_PLATFORM} s-garcon.ads;\
+s-garcon.ads: $(CONSTANTS_SH)
+	if test -f $(CONSTANTS_PLATFORM); then\
+	  cp $(CONSTANTS_PLATFORM) s-garcon.ads;\
 	else\
-	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants ${srcdir};\
+	  $(MAKE) split constants_nodef config.h; \
+	  $(SHELL) $(CONSTANTS_SH) System.Garlic.Constants $(srcdir);\
 	fi
+
+platformfile: $(CONSTANTS_SH) split constants_nodef config.h
+	@echo Generating $(srcdir)/5$(PLATFORM_SPECIFIC)garcon.ads
+	$(CONSTANTS_SH) $(srcdir)/5$(PLATFORM_SPECIFIC)garcon.ads \
+		$(srcdir) "$(PSNAME)" garcon.txt
+	@echo $(srcdir)/5$(PLATFORM_SPECIFIC)garcon.ads generated
 
 s-galiop.ads:
 	@echo "private package System.Garlic.Linker_Options is" >s-galiop.ads
@@ -199,15 +206,15 @@ s-galiop.ads:
 # statement, hence the backslashed lines.
 
 s-gatcop.ads: Makefile
-	if test ${ISTHRBIO} = "test"; then \
-	  $(MAKE) isthrbio${EXEEXT}; \
+	if test $(ISTHRBIO) = "test"; then \
+	  $(MAKE) isthrbio$(EXEEXT); \
 	  if ./isthrbio; then \
 	    ISTHRBIO="no"; \
 	  else \
 	    ISTHRBIO="yes"; \
 	  fi; \
         else \
-	  ISTHRBIO=${ISTHRBIO}; \
+	  ISTHRBIO=$(ISTHRBIO); \
 	fi; \
 	if test $$ISTHRBIO = "yes"; then \
 	  S_GATCOP_SUBST="System.Garlic.Thin"; \
@@ -218,31 +225,31 @@ s-gatcop.ads: Makefile
 	echo "package System.Garlic.TCP.Operations" >> s-gatcop.ads; \
 	echo "  renames $$S_GATCOP_SUBST;" >> s-gatcop.ads
 
-s-gatcop.o: ${srcdir}/s-garthi.ads ${srcdir}/s-ganobl.adb
+s-gatcop.o: $(srcdir)/s-garthi.ads $(srcdir)/s-ganobl.adb
 
-${TCP_PLATFORM_SOURCES}: ${S_GTPLSP_ADS} ${S_GTPLSP_ADB}
-	cp ${srcdir}/${S_GTPLSP_ADS} s-gtplsp.ads
-	@if test -n "${S_GTPLSP_ADB}"; then \
-	  cp ${srcdir}/${S_GTPLSP_ADB} s-gtplsp.adb; \
+$(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
+	cp $(srcdir)/$(S_GTPLSP_ADS) s-gtplsp.ads
+	@if test -n "$(S_GTPLSP_ADB)"; then \
+	  cp $(srcdir)/$(S_GTPLSP_ADB) s-gtplsp.adb; \
 	fi
 
-split: ${srcdir}/split.adb
-	$(GNATMAKE) -m -o split ${srcdir}/split.adb
+split: $(srcdir)/split.adb
+	$(GNATMAKE) -m -o split $(srcdir)/split.adb
 
-all-local: ${SOURCES} ${OBJECTS} ${LINKTEST}
+all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSBUILD)
 
 install-dirs-local:
-	-rm -rf ${GARLIC}
-	${mkinstalldirs} ${GARLIC}
+	-rm -rf $(GARLIC)
+	$(mkinstalldirs) $(GARLIC)
 
 inlining: all-local
 	@if test ! -f inlining; then\
 	   mkdir gnatlib >/dev/null 2>&1;\
-	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`;\
+	   gnatlibdir=`$(srcdir)/../Dist/config.sdefault pathtolib`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
 	     grep "D s-stratt.adb" $$gnatlibdir/$$o /dev/null;\
-	   done | ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
-	   for i in ${OBJECTS}; do\
+	   done | $(SED) 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
+	   for i in $(OBJECTS); do\
 	      cat gnatlib/tocheck > gnatlib/tocheck.tmp;\
 	      grep -v $$i gnatlib/tocheck.tmp > gnatlib/tocheck;\
 	   done;\
@@ -257,14 +264,14 @@ inlining: all-local
 	      if [ ! -f gnatlib/$$o ]; then\
 	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
 	          echo\
-                    "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s"\
+                    "$(ADA_FOR_TARGET) -c $(CFLAGS) $(GNATFLAGS) -I. -I- $$s"\
 	            "-o gnatlib/$$o";\
-	          ${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I-\
+	          $(ADA_FOR_TARGET) -c $(CFLAGS) $(GNATFLAGS) -I. -I-\
                     $$s -o gnatlib/$$o;\
 	          if test $$? = 0; then\
 	             echo $$o >>gnatlib/rebuild;\
 	          else\
-	             ${RM} gnatlib/tocheck;\
+	             $(RM) gnatlib/tocheck;\
 	             break;\
 	          fi;\
 	      fi;\
@@ -272,44 +279,44 @@ inlining: all-local
 	   echo yes > inlining;\
 	fi
 
-linktest: ${srcdir}/linktest.adb ${OBJECTS}
-	${GNATMAKE} -c -a -m -I${srcdir} -I. ${srcdir}/linktest.adb
-	${GNATBIND} ${srcdir}/linktest.ali -I. -I${srcdir}
-	@${GNATBIND} -l ${srcdir}/linktest.ali -I. -I${srcdir} \
+linktest: $(srcdir)/linktest.adb $(OBJECTS)
+	$(GNATMAKE) -c -a -m -I$(srcdir) -I. $(srcdir)/linktest.adb
+	$(GNATBIND) $(srcdir)/linktest.ali -I. -I$(srcdir)
+	@$(GNATBIND) -l $(srcdir)/linktest.ali -I. -I$(srcdir) \
 	   | grep 'system.garlic.*body' | sed -n '1,1p' \
-	   | ${SED} 's/^.*garlic.\(.*\) .*$$/\1/g' > first;
+	   | $(SED) 's/^.*garlic.\(.*\) .*$$/\1/g' > first;
 	@if test `cat first` != "debug"; then\
 	   echo "system.garlic.debug should be elaborted first";\
 	   exit 1;\
 	fi
 
-install-extra-libs: ${FILTERINSTALL} inlining
+install-extra-libs: $(FILTERSINSTALL) inlining
 
 install-data-local: all-local install-dirs-local install-extra-libs 
 	@if test ! -f inlining; then\
 	   exit 1;\
 	fi
-	${CP} `${srcdir}/../Dist/config.sdefault pathtolib`libgnat.a \
-	  ${GARLIC}/libgnat.a
-	chmod u+w ${GARLIC}/libgnat.a
-	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
+	$(CP) `$(srcdir)/../Dist/config.sdefault pathtolib`libgnat.a \
+	  $(GARLIC)/libgnat.a
+	chmod u+w $(GARLIC)/libgnat.a
+	$(AR) d $(GARLIC)/libgnat.a s-stratt.o s-rpc.o s-parint.o
 	@if test `cat inlining` = "yes"; then\
 	   (cd gnatlib;\
-	    ${AR} d ${GARLIC}/libgnat.a `cat rebuild`;\
-	    ${AR} cq ${GARLIC}/libgnat.a `cat rebuild`;\
-            ${CP} ${CP_PRESERVE} `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
+	    $(AR) d $(GARLIC)/libgnat.a `cat rebuild`;\
+	    $(AR) cq $(GARLIC)/libgnat.a `cat rebuild`;\
+            $(CP) $(CP_PRESERVE) `$(SED) 's/\.o/.ali/g' rebuild` $(GARLIC));\
 	fi
-	${RANLIB} ${GARLIC}/libgnat.a
-	for i in ${GARLIC} ${SOURCES}\
-		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'`; do\
+	$(RANLIB) $(GARLIC)/libgnat.a
+	for i in $(GARLIC) $(SOURCES)\
+		`echo $(OBJECTS) | $(SED) -e 's/\.o/.ali/g'`; do\
 		if test -f $$i; then\
-			${CP} ${CP_PRESERVE} $$i ${GARLIC}/;\
+			$(CP) $(CP_PRESERVE) $$i $(GARLIC)/;\
 		fi;\
 	done
-	${AR} cq ${GARLIC}/libgarlic.a ${OBJECTS}
-	${RANLIB} ${GARLIC}/libgarlic.a
-	chmod a+r ${GARLIC}/*
-	chmod a-w ${GARLIC}/*
+	$(AR) cq $(GARLIC)/libgarlic.a $(OBJECTS)
+	$(RANLIB) $(GARLIC)/libgarlic.a
+	chmod a+r $(GARLIC)/*
+	chmod a-w $(GARLIC)/*
 
 # Dependencies
 

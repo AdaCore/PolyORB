@@ -1,8 +1,5 @@
 /* Garlic/config.h.in.  Generated automatically from configure.in by autoheader.  */
 
-#define PACKAGE GLADE
-#define VERSION VERSION
-
 /* Define if you have the <errno.h> header file.  */
 #undef HAVE_ERRNO_H
 
@@ -56,3 +53,13 @@
 
 /* Define if you have the <termios.h> header file.  */
 #undef HAVE_TERMIOS_H
+
+/* Define if you have the z library (-lz).  */
+#undef HAVE_LIBZ
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+

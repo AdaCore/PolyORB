@@ -1,3 +1,19 @@
+1999-04-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* garcon.txt: New file containing the header to use for static
+	platform specific files.
+
+	* constants.sh: Add code to generate the platform specific file
+
+	* Makefile.am: Add more flexibility in the build and install
+	process for filters.
+	If a platform specific file could be found, use it instead of
+	building it.
+	Replace ${} by $() so that it doesn't confuse automake any longer.
+
+	* Makefile.zip: Install libz.a only when no zlib has been found on 
+	the system at configure time.
+
 1999-04-10  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.adb: Change Tasking_Soft_Links into Soft_Links. This
