@@ -294,7 +294,6 @@ package body Sem_Dist is
       RAS_Type              : Entity_Id;
       Async_E               : Entity_Id;
       All_Calls_Remote_E    : Entity_Id;
-      Subp_Id               : String_Id;
       Attribute_Subp        : Entity_Id;
 
    begin
@@ -335,8 +334,6 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
-      Subp_Id := Get_Subprogram_Identifier (Remote_Subp);
-
       if Ekind (Remote_Subp) = E_Procedure
         and then Is_Asynchronous (Remote_Subp)
       then
@@ -357,7 +354,7 @@ package body Sem_Dist is
           Parameter_Associations =>
             New_List (
               Make_String_Literal (Loc, Full_Qualified_Name (RS_Pkg_E)),
-              Make_String_Literal (Loc, Subp_Id),
+              Build_Subprogram_Id (Loc, Remote_Subp),
               New_Occurrence_Of (Async_E, Loc),
               New_Occurrence_Of (All_Calls_Remote_E, Loc)));
       Rewrite (N, Tick_Access_Conv_Call);
