@@ -31,16 +31,10 @@ ADA_LIBS_NAME_NO_ADB = rope
 
 
 all : sys_dep.o omniObject_C2Ada.o Ada_OmniObject.o Ada_Rope.o rope.o \
-Ada_OmniRopeAndKey.o omniropeandkey.o
+Ada_OmniRopeAndKey.o omniropeandkey.o omniobjectmanager.o
 
 clean :
 	rm *.ali *.o 
-
-omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(CORBA_FLAGS) omniObject_C2Ada.cc
-
-Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
-	$(GCC) $(DO_NOT_LINK) $(ORB_LIBS) $(CORBA_FLAGS) Ada_OmniObject.cc
 
 sys_dep.o : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
 	$(GNATPREP) sys_dep_before_preprocessor.ads sys_dep.ads def_file -u
@@ -64,3 +58,8 @@ Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 
 omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb
 	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniropeandkey.adb
+
+omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb
+	$(GNATGCC) $(DO_NOT_LINK) $(ORB_LIBS) $(FLAGS) omniobjectmanager.adb
+
+
