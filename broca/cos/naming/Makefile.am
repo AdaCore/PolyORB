@@ -72,3 +72,9 @@ test_naming: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 
 ab_names: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2) ab_names.adb
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+
+naming_tools.o:
+	$(GNATMAKE) -c naming_tools $(GNATMAKE_FLAGS)
+
+naming_tools.o: naming_tools.ads naming_tools.adb cosnaming.ads
+naming_tools.o: cosnaming-namingcontext.ads cosnaming-namingcontext-helper.ads

@@ -51,6 +51,8 @@ with File;                         use File;
 with File.Impl;
 with File.Helper;
 
+with Naming_Tools;                 use Naming_Tools;
+
 with Broca.Server_Tools;
 pragma Elaborate (Broca.Server_Tools);
 
@@ -62,6 +64,8 @@ procedure Test_Naming is
    Null_Istring : constant Istring       := Istring (CORBA.Null_String);
    Null_NC      : constant NameComponent := (Null_Istring, Null_Istring);
 
+   Test_Name    : constant String        := "test_naming";
+
    type Command is
      (Help,
       Quit,
@@ -69,9 +73,13 @@ procedure Test_Naming is
       Read,
       Write,
       List,
+      Ls,
       Lmkdir,
+      Mkdir,
+      Md,
       Rmkdir,
       Chdir,
+      Cd,
       Rmdir,
       Mount,
       Df);
@@ -91,9 +99,13 @@ procedure Test_Naming is
          Read   => M ("read <F>, read string from file F"),
          Write  => M ("write <F> <S>, write string S in file F"),
          List   => M ("list [<D>], list files in dir D [def = <.>]"),
+         Ls     => M ("   (alias for LIST)"),
          Lmkdir => M ("lmdir <D>, make local dir and bind it to <D>"),
+         Mkdir  => M ("   (alias for LMKDIR)"),
+         Md     => M ("   (alias for LMKDIR)"),
          Rmkdir => M ("rmkdir <D>, make dir in parent dir and bind it to <D>"),
          Chdir  => M ("chdir <D>, change current dir to <D>"),
+         Cd     => M ("   (alias for CHDIR)"),
          Rmdir  => M ("rmdir <D>, remove dir <D>"),
          Mount  => M ("mount <D> <IOR>, bind dir <D> to a given dir <IOR>"),
          Df     => M ("df [<D>], print <IOR> of a given dir <D> [def = <.>]"));
@@ -306,20 +318,54 @@ begin
    Broca.Server_Tools.Initiate_Server;
 
    if Argument_Count > 0 and then Argument (1) = "-i" then
-      Ada.Text_IO.Put ("retrieving root directory initial reference...");
-      Ada.Text_IO.Flush;
-      WDR := NamingContext.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("NamingService")));
-      Ada.Text_IO.Put_Line (" done");
+      begin
+         Ada.Text_IO.Put ("retrieving root directory initial reference...");
+         Ada.Text_IO.Flush;
+         WDR := NamingContext.Helper.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_CORBA_String ("NamingService")));
+         Ada.Text_IO.Put_Line (" done");
+      exception
+         when others =>
+            Ada.Text_IO.Put_Line ("error");
+            raise;
+      end;
+   elsif Argument_Count > 0 and then Argument (1) = "-n" then
+      begin
+         Ada.Text_IO.Put ("locating main service by name...");
+         Ada.Text_IO.Flush;
+         WDR := NamingContext.Helper.To_Ref (Locate (Test_Name));
+         Ada.Text_IO.Put_Line (" done");
+      exception
+         when others =>
+            Ada.Text_IO.Put_Line (" error");
+            raise;
+      end;
    else
       Ada.Text_IO.Put_Line ("creating root directory");
       Broca.Server_Tools.Servant_To_Reference
         (PortableServer.Servant (NamingContext.Impl.Create), WDR);
+      if Argument_Count > 0 and then Argument (1) = "-s" then
+         Ada.Text_IO.Put ("registering main service by name...");
+         Ada.Text_IO.Flush;
+         begin
+            Register (Test_Name, CORBA.Object.Ref (WDR));
+         exception
+            when AlreadyBound =>
+               Ada.Text_IO.Put (" rebinding...");
+               Register (Test_Name, CORBA.Object.Ref (WDR), Rebind => True);
+         end;
+         Ada.Text_IO.Put_Line (" done");
+      end if;
    end if;
 
-   Bind_Context (WDR, Here, WDR);
-   Bind_Context (WDR, Back, WDR);
+   begin
+      Bind_Context (WDR, Here, WDR);
+      Bind_Context (WDR, Back, WDR);
+   exception
+      when others =>
+         null;
+   end;
 
    loop
       Argc := Count;
@@ -344,7 +390,7 @@ begin
                   end if;
                   Ada.Text_IO.Put_Line ('/' & To_String (WDN));
 
-               when Chdir =>
+               when Chdir | Cd =>
                   if Argc /= 2 then
                     raise Syntax_Error;
                   end if;
@@ -361,7 +407,7 @@ begin
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));
 
-               when Lmkdir =>
+               when Lmkdir | Mkdir | Md =>
                   if Argc /= 2 then
                      raise Syntax_Error;
                   end if;
@@ -399,7 +445,7 @@ begin
                   Ada.Text_IO.Put_Line
                     (CORBA.To_Standard_String (Get_Image (Fil)));
 
-               when List =>
+               when List | Ls =>
                   if Argc >= 3 then
                      raise Syntax_Error;
                   end if;

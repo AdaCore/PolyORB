@@ -376,7 +376,15 @@ package body Broca.ORB is
       end loop;
       if To_Standard_String (Identifier) = "NamingService" then
          pragma Debug (O ("Returning remote reference of NamingService"));
-         return Build_Remote_Naming_Reference;
+         declare
+            Ref : constant CORBA.Object.Ref'Class :=
+              Build_Remote_Naming_Reference;
+         begin
+            --  Register the computed remote naming service reference
+
+            Register_Initial_Reference (Identifier, Ref);
+            return Ref;
+         end;
       end if;
       pragma Debug (O ("Initial reference of " &
                        To_Standard_String (Identifier) & " is unknown, " &
