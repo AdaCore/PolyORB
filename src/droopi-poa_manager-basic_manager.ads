@@ -4,6 +4,7 @@ with Droopi.POA_Types; use Droopi.POA_Types;
 with Droopi.Locks;
 with Droopi.Components;
 with Locked_Queue;
+pragma Elaborate_All (Locked_Queue);
 
 package Droopi.POA_Manager.Basic_Manager is
 
