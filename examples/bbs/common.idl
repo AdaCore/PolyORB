@@ -2,6 +2,8 @@ module DSA_Common {
    interface Penpal_Type;
 
    interface Penpal_Type {
+#pragma ID DSA_Common::Penpal_Type "DSA:COMMON.PENPAL_TYPE:1.0"
+
       void initialize (in string Name);
       string name_of ();
       void new_message (in string Sender, in string Message);
