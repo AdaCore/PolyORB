@@ -838,7 +838,6 @@ package body XE_Utils is
       --  Package initializations. The order of calls is important here.
 
       Output.Set_Standard_Error;
-      Osint.Initialize (Osint.Make); --  reads gnatmake switches
 
       Gcc_Switches.Init;
       Binder_Switches.Init;
