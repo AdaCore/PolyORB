@@ -37,7 +37,6 @@ with Ada.Streams;
 
 with PolyORB.Configuration;
 with PolyORB.Filters;
-with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -126,14 +125,12 @@ package body PolyORB.Binding_Data.DIOP is
       use PolyORB.Protocols.GIOP.DIOP;
       use PolyORB.Sockets;
       use PolyORB.Filters;
-      use PolyORB.Filters.Slicers;
 
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Out_Endpoint;
       Pro         : aliased DIOP_Protocol;
-      Sli         : aliased Slicer_Factory;
       Prof        : constant Profile_Access := new DIOP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalized.
@@ -152,15 +149,9 @@ package body PolyORB.Binding_Data.DIOP is
 
       Create (Socket_Out_Endpoint (TE.all), Sock, Remote_Addr);
 
-      Chain_Factories ((0 => Sli'Unchecked_Access,
-                        1 => Pro'Unchecked_Access));
+      Chain_Factories ((0 => Pro'Unchecked_Access));
 
-      Filter :=
-        Slicers.Create_Filter_Chain (Sli'Unchecked_Access);
-      --  Filter must be an access to the lowest filter in
-      --  the stack (the slicer in the case of GIOP).
-      --  The call to CFC is qualified to work around a bug in
-      --  the APEX compiler.
+      Filter := GIOP.DIOP.Create_Filter_Chain (Pro'Unchecked_Access);
 
       ORB.Register_Endpoint
         (ORB_Access (The_ORB),
@@ -177,7 +168,7 @@ package body PolyORB.Binding_Data.DIOP is
 
       declare
          S : GIOP_Session
-           renames GIOP_Session (Upper (Filter).all);
+           renames GIOP_Session (Filter.all);
 
       begin
          pragma Debug (O ("Bind DIOP profile: leave"));
