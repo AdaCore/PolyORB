@@ -42,6 +42,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Message_Handler is
 
@@ -101,8 +102,11 @@ package body MOMA.Provider.Message_Handler is
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access)
    is
+      use PolyORB.Exceptions;
+
       Args        : PolyORB.Any.NVList.Ref;
       Operation   : constant String := To_Standard_String (Req.Operation);
+      Error       : Error_Container;
    begin
       pragma Debug (O ("The message handler is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -110,7 +114,12 @@ package body MOMA.Provider.Message_Handler is
       PolyORB.Any.NVList.Create (Args);
 
       Args := Get_Parameter_Profile (Operation);
-      PolyORB.Requests.Arguments (Req, Args);
+      PolyORB.Requests.Arguments (Req, Args, Error);
+
+      if Found (Error) then
+         raise PolyORB.Unknown;
+         --  XXX We should do something more contructive
+      end if;
 
       if Req.Operation = To_PolyORB_String ("Notify") then
          Notify (Self);

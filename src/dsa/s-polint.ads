@@ -51,6 +51,7 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+with PolyORB.Exceptions;
 
 package System.PolyORB_Interface is
 
@@ -506,12 +507,14 @@ package System.PolyORB_Interface is
      renames PolyORB.Requests.Invoke;
 
    procedure Request_Arguments
-     (R    :        PolyORB.Requests.Request_Access;
-      Args : in out PolyORB.Any.NVList.Ref)
+     (R     :        PolyORB.Requests.Request_Access;
+      Args  : in out PolyORB.Any.NVList.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container)
      renames PolyORB.Requests.Arguments;
 
    procedure Request_Set_Out
-     (R : PolyORB.Requests.Request_Access)
+     (R     : PolyORB.Requests.Request_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
      renames PolyORB.Requests.Set_Out_Args;
 
    procedure Set_Result

@@ -557,6 +557,8 @@ package body System.PolyORB_Interface is
                   --  IDL skel.
 
                   declare
+                     use PolyORB.Exceptions;
+
                      n             : PolyORB.Services.Naming.Name;
                      pragma Warnings (Off, n);
                      --  Accessed before it has a value (by To_Any).
@@ -568,6 +570,8 @@ package body System.PolyORB_Interface is
 
                      Result      : Object_Ref;
                      Arg_List    : NVList_Ref;
+
+                     Error       : Error_Container;
                   begin
                      --  Create argument list
 
@@ -578,7 +582,11 @@ package body System.PolyORB_Interface is
                         Argument_n,
                         ARG_IN);
 
-                     Request_Arguments (EMsg.Req, Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List, Error);
+
+                     if Found (Error) then
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+                     end if;
 
                      declare
                         package ISNC renames
@@ -644,7 +652,10 @@ package body System.PolyORB_Interface is
                then
 
                   declare
+                     use PolyORB.Exceptions;
+
                      Arg_List    : NVList_Ref;
+                     Error       : Error_Container;
                   begin
 
                      -----------------------
@@ -655,7 +666,12 @@ package body System.PolyORB_Interface is
                      --  the partition on which this RCI unit resides.
 
                      NVList_Create (Arg_List);
-                     Request_Arguments (EMsg.Req, Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List, Error);
+
+                     if Found (Error) then
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+                     end if;
+
                      --  Must call Arguments (with an empty Arg_List)
                      --  to notify the protocol personality that this
                      --  request has been completely received.

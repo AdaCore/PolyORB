@@ -37,6 +37,7 @@
 
 with PolyORB.Any.NVList;
 with PolyORB.Log;
+with PolyORB.Exceptions;
 
 package body CORBA.ServerRequest is
 
@@ -65,11 +66,21 @@ package body CORBA.ServerRequest is
      (O  : access Object;
       NV : in out NVList.Ref)
    is
+      use PolyORB.Exceptions;
+
       PolyORB_Args : PolyORB.Any.NVList.Ref
         := CORBA.NVList.To_PolyORB_Ref (NV);
+      Error : Error_Container;
    begin
       PolyORB.Requests.Arguments
-        (PolyORB.Requests.Request_Access (O), PolyORB_Args);
+        (PolyORB.Requests.Request_Access (O), PolyORB_Args, Error);
+
+      if Found (Error) then
+         raise PolyORB.Unknown;
+         --  XXX we should do something if we find a PolyORB exception
+
+      end if;
+
       NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
    end Arguments;
 

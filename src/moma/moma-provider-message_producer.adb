@@ -42,6 +42,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Message_Producer is
 
@@ -157,7 +158,10 @@ package body MOMA.Provider.Message_Producer is
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access)
    is
-      Args : PolyORB.Any.NVList.Ref;
+      use PolyORB.Exceptions;
+
+      Args  : PolyORB.Any.NVList.Ref;
+      Error : Error_Container;
    begin
       pragma Debug (O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -172,7 +176,13 @@ package body MOMA.Provider.Message_Producer is
                    (Name => To_PolyORB_String ("Message"),
                     Argument => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
+         Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
 
          declare
             use PolyORB.Any.NVList.Internals;

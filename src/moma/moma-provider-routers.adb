@@ -42,6 +42,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Routers is
 
@@ -317,10 +318,12 @@ package body MOMA.Provider.Routers is
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
       Args      : PolyORB.Any.NVList.Ref;
       It        : Iterator := First (List_Of (Args).all);
       Operation : constant String := To_Standard_String (Req.all.Operation);
+      Error     : Error_Container;
    begin
       pragma Debug (O ("The router is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
@@ -328,7 +331,14 @@ package body MOMA.Provider.Routers is
       PolyORB.Any.NVList.Create (Args);
 
       Args := Get_Parameter_Profile (To_Standard_String (Req.all.Operation));
-      PolyORB.Requests.Arguments (Req, Args);
+      PolyORB.Requests.Arguments (Req, Args, Error);
+
+      if Found (Error) then
+         raise PolyORB.Unknown;
+         --  XXX We should do something more contructive
+
+      end if;
+
 
       if Operation = "Publish" then
 

@@ -105,16 +105,23 @@ package body PortableServer is
          declare
             use PolyORB.Requests;
             use CORBA.ServerRequest;
+            use PolyORB.Exceptions;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
-
+            Error : Error_Container;
          begin
             Invoke (DynamicImplementation'Class (Self.all)'Access,
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
             pragma Debug (O ("Execute_Servant: executed, setting out args"));
-            Set_Out_Args (R);
+            Set_Out_Args (R, Error);
+
+            if Found (Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something if we find a PolyORB exception
+
+            end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);

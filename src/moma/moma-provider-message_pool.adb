@@ -40,6 +40,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 with MOMA.Messages;
 with MOMA.Types;
@@ -99,6 +100,9 @@ package body MOMA.Provider.Message_Pool is
       Args : PolyORB.Any.NVList.Ref;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
+
+      Error : Error_Container;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -113,7 +117,14 @@ package body MOMA.Provider.Message_Pool is
                    (Name      => To_PolyORB_String ("Message"),
                     Argument  => Get_Empty_Any (TC_MOMA_Message),
                     Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
+         Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
+
          Publish (Self, Value (First (List_Of (Args).all)).Argument);
 
       elsif Req.Operation = To_PolyORB_String ("Get") then
@@ -124,7 +135,13 @@ package body MOMA.Provider.Message_Pool is
                    (Name => To_PolyORB_String ("Message_Id"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
+         Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
 
          Req.Result.Argument := Get
            (Self, From_Any (Value (First (List_Of (Args).all)).Argument));
@@ -137,7 +154,14 @@ package body MOMA.Provider.Message_Pool is
          pragma Debug (O ("Register_Handler request"));
          Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
 
-         PolyORB.Requests.Arguments (Req, Args);
+         PolyORB.Requests.Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
+
 
          declare
             It : Iterator := First (List_Of (Args).all);

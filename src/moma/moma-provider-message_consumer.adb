@@ -44,6 +44,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
+with PolyORB.Exceptions;
 
 package body MOMA.Provider.Message_Consumer is
 
@@ -237,9 +238,11 @@ package body MOMA.Provider.Message_Consumer is
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
-      Args : PolyORB.Any.NVList.Ref;
-      It   : Iterator;
+      Args  : PolyORB.Any.NVList.Ref;
+      It    : Iterator;
+      Error : Error_Container;
    begin
       pragma Debug (O ("The server is executing the request:"
                        & PolyORB.Requests.Image (Req.all)));
@@ -253,7 +256,13 @@ package body MOMA.Provider.Message_Consumer is
             (Name => To_PolyORB_String ("Message_Id"),
              Argument => Get_Empty_Any (TypeCode.TC_String),
              Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
+         Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
 
          It := First (List_Of (Args).all);
          Set_Result
@@ -267,7 +276,13 @@ package body MOMA.Provider.Message_Consumer is
          pragma Debug (O ("Register_Handler request"));
          Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
 
-         PolyORB.Requests.Arguments (Req, Args);
+         PolyORB.Requests.Arguments (Req, Args, Error);
+
+         if Found (Error) then
+            raise Program_Error;
+            --  XXX We should do something more contructive
+
+         end if;
 
          declare
             Handler_Dest, Behavior : Element_Access;
