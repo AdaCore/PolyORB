@@ -266,7 +266,7 @@ b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@$(GNAT_FOR_HOST) $(GNATFLAGS) $(srcdir)/b_gaprco -o b_gaprco$(EXEEXT)
 
 s-gaprco.adb: b_gaprco$(EXEEXT)
-	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
+	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME)
 
 s-garrem.adb:
 	@if test -f $(srcdir)/5${PLATFORM_SPECIFIC}garrem.adb; then\
