@@ -87,17 +87,39 @@ package body PolyORB.Dynamic_Dict is
    -- Lookup --
    ------------
 
-   function Lookup
-      (K : String)
-     return Value
+   procedure Internal_Lookup
+     (K : String;
+      V : out Value;
+      Success : out Boolean);
+
+   procedure Internal_Lookup
+     (K : String;
+      V : out Value;
+      Success : out Boolean)
    is
       KK : aliased String := K;
       E  : constant Dict_Entry := HT.Get (KK'Unchecked_Access);
    begin
       if E.Key_Ptr = null then
+         Success := False;
+      else
+         Success := True;
+         V := E.The_Value;
+      end if;
+   end Internal_Lookup;
+
+   function Lookup
+      (K : String)
+     return Value
+   is
+      V : Value;
+      Success : Boolean;
+   begin
+      Internal_Lookup (K, V, Success);
+      if not Success then
          raise Key_Not_Found;
       end if;
-      return E.The_Value;
+      return V;
    end Lookup;
 
    function Lookup
@@ -105,13 +127,14 @@ package body PolyORB.Dynamic_Dict is
       Default : Value)
      return Value
    is
+      V : Value;
+      Success : Boolean;
    begin
-      return Lookup (K);
-   exception
-      when Key_Not_Found =>
+      Internal_Lookup (K, V, Success);
+      if not Success then
          return Default;
-      when others =>
-         raise;
+      end if;
+      return V;
    end Lookup;
 
    procedure Register
