@@ -215,6 +215,22 @@ package body System.Partition_Interface is
         and then V1 /= V2;
    end Different;
 
+   ---------------------------------
+   -- Elaborate_Passive_Partition --
+   ---------------------------------
+
+   procedure Elaborate_Passive_Partition
+     (Partition : in RPC.Partition_ID)
+   is
+      Error : aliased Error_Type;
+
+   begin
+      Register_Units_On_Boot_Server (Partition_ID (Partition), Error);
+      if Found (Error) then
+         Raise_Communication_Error (Error'Access);
+      end if;
+   end Elaborate_Passive_Partition;
+
    -----------------------------
    -- Get_Active_Partition_ID --
    -----------------------------
