@@ -147,6 +147,10 @@ package Backend.BE_Ada.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
+   function Is_Base_Type
+     (N : Node_Id)
+     return Boolean;
+
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
@@ -249,6 +253,10 @@ package Backend.BE_Ada.Nutils is
    function Make_Range_Constraints
      (Array_Sizes : List_Id)
      return List_Id;
+
+   function Make_Record_Aggregate
+     (L : List_Id)
+     return Node_Id;
 
    function Make_Record_Definition
      (Component_List : List_Id)

@@ -22,6 +22,7 @@ package Backend.BE_Ada.Runtime is
 
    type RE_Id is
      (RE_Ref_0,                     --  Ref
+      RE_Get_Empty_Any,             --  Get_Empty_Any
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Any,                       --  CORBA.Any
       RE_Float,                     --  CORBA.Float
@@ -55,7 +56,9 @@ package Backend.BE_Ada.Runtime is
       RE_String_2);              --  Standard.String
 
    RE_Unit_Table : array (RE_Id) of RU_Id
+
      := (RE_Ref_0                 => RU_Null,
+         RE_Get_Empty_Any         => RU_Null,
          RE_Exception_Occurrence  => RU_Ada_Exceptions,
          RE_Any                   => RU_CORBA,
          RE_Float                 => RU_CORBA,

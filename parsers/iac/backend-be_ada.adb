@@ -6,6 +6,7 @@ with Utils;     use Utils;
 with Types;     use Types;
 with Values;    use Values;
 
+with Frontend.Nutils;
 with Frontend.Nodes;           use Frontend.Nodes;
 
 with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
@@ -54,6 +55,7 @@ package body Backend.BE_Ada is
    VN : array (Variable_Id) of Name_Id;
 
    package FEN renames Frontend.Nodes;
+   package FENU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id);
@@ -185,14 +187,19 @@ package body Backend.BE_Ada is
         (Make_Defining_Identifier (PN (P_Self)),
          RE (RE_Ref_0));
       Append_Node_To_List (P, L);
+      if Is_Base_Type (Type_Spec (Declaration (Attribute))) then
+         T := Make_Designator
+           (Type_Spec (Declaration (Attribute)));
+
+      else
+            T := Make_Fully_Qualified_Identifier
+              (Type_Spec (Declaration (Attribute)));
+      end if;
       if Accessor = Setter then
          P := Make_Parameter_Specification
-           (Make_Defining_Identifier (PN (P_To)),
-            Make_Designator (Type_Spec (Declaration (Attribute))));
+           (Make_Defining_Identifier (PN (P_To)), T);
          Append_Node_To_List (P, L);
          T := No_Node;
-      else
-         T := Make_Designator (Type_Spec (Declaration (Attribute)));
       end if;
       N := To_Ada_Name (IDL_Name (FEN.Identifier (Attribute)));
       Set_Str_To_Name_Buffer ("Set_");
@@ -452,32 +459,32 @@ package body Backend.BE_Ada is
 
       --  Set result type (maybe void)
       --  --  PolyORB.Types.Identifier (Result_Name)
-      C := New_Node (K_Subprogram_Call);
-      Set_Defining_Identifier
-        (C, RE (RE_Identifier));
-      P := New_List (BEN.K_List_Id);
-      Append_Node_To_List
-        (Make_Defining_Identifier (VN (V_Result_Name)), P);
-      Set_Actual_Parameter_Part (C, P);
+      C := Make_Subprogram_Call
+        (Defining_Identifier   => RE (RE_Identifier),
+         Actual_Parameter_Part =>
+           Make_List_Id (Make_Defining_Identifier (VN (V_Result_Name))));
+
       --  -- Name => PolyORB.Types.Identifier (Result_Name)
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
          Expression    => C);
-      P := New_List (K_List_Id);
-      Append_Node_To_List (N, P);
+      P := Make_List_Id (N);
 
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Argument)),
          Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
       Append_Node_To_List (N, P);
 
+      C := Make_Subprogram_Call
+        (Defining_Identifier  => RE (RE_Get_Empty_Any),
+         Actual_Parameter_Part =>
+           Make_List_Id (Make_Literal (Int0_Val)));
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Arg_Modes)),
          Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
       Append_Node_To_List (N, P);
 
-      N := New_Node (K_Record_Aggregate);
-      Set_Component_Association_List (N, P);
+      N := Make_Record_Aggregate (P);
 
       N := Make_Assignment_Statement
         (Variable_Identifier => Make_Defining_Identifier (VN (V_Result_Name)),
@@ -542,16 +549,20 @@ package body Backend.BE_Ada is
          --  ** where X is the parameter name.
          --  ** where Y is the fully qualified current package Name.
          D := New_Node (K_Designator);
-         Set_Str_To_Name_Buffer ("To_Any");
-         Set_Defining_Identifier
-           (D, Make_Defining_Identifier (Name_Find));
-         Set_Parent_Unit_Name
-           (D, Defining_Identifier (Helper_Package (Current_Entity)));
 
-         C :=  Make_Subprogram_Call
+         if BEN.Parameter_Mode (I) = Mode_Out then
+            Set_Str_To_Name_Buffer ("To_Any");
+            Set_Defining_Identifier
+              (D, Make_Defining_Identifier (Name_Find));
+            Set_Parent_Unit_Name
+              (D, Defining_Identifier (Helper_Package (Current_Entity)));
+            C :=  Make_Subprogram_Call
            (Defining_Identifier   => D,
             Actual_Parameter_Part =>
               Make_List_Id (Make_Defining_Identifier (X)));
+         else
+            null;
+         end if;
 
          Set_Str_To_Name_Buffer ("Argument_U_");
          Get_Name_String_And_Append (X);
@@ -840,7 +851,7 @@ package body Backend.BE_Ada is
       Push_Entity (P);
       Set_Main_Spec;
       L := Interface_Spec (E);
-      if Is_Empty (L) then
+      if FENU.Is_Empty (L) then
          N := RE (RE_Ref_2);
       else
          N := Make_Designator (First_Entity (L));
@@ -901,6 +912,7 @@ package body Backend.BE_Ada is
       Returns   : Node_Id := No_Node;
       Declarative_Part : List_Id;
       Body_Part  : List_Id;
+      Type_Designator : Node_Id;
 
    begin
       Profile := New_List (K_Parameter_Profile);
@@ -917,9 +929,16 @@ package body Backend.BE_Ada is
 
       IDL_Param := First_Entity (Parameters (E));
       while Present (IDL_Param) loop
+         if Is_Base_Type (Type_Spec (IDL_Param)) then
+            Type_Designator := Make_Designator
+              (Type_Spec (IDL_Param));
+         else
+            Type_Designator := Make_Fully_Qualified_Identifier
+              (Type_Spec (IDL_Param));
+         end if;
          Ada_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (Declarator (IDL_Param)),
-            Make_Designator (Type_Spec (IDL_Param)),
+            Type_Designator,
             FEN.Parameter_Mode (IDL_Param));
          if FEN.Parameter_Mode (IDL_Param) /= Mode_In then
             Mode := Mode_Out;

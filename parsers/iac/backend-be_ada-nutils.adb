@@ -266,6 +266,22 @@ package body Backend.BE_Ada.Nutils is
       New_Token (Tok_Dot_Dot, "..");
    end Initialize;
 
+   ------------------
+   -- Is_Base_Type --
+   ------------------
+
+   function Is_Base_Type
+     (N : Node_Id)
+     return Boolean
+   is
+   begin
+      if FEN.Kind (N) in  FEN.K_Float .. FEN.K_Value_Base then
+         return True;
+      else
+         return False;
+      end if;
+   end Is_Base_Type;
+
    --------------
    -- Is_Empty --
    --------------
@@ -529,6 +545,10 @@ package body Backend.BE_Ada.Nutils is
       if Present (P)
         and then FEN.Kind (P) /= FEN.K_Specification
       then
+         if FEN.Kind (P) = FEN.K_Operation_Declaration then
+            I := FEN.Identifier (P);
+            P := FEN.Scope_Entity (I);
+         end if;
          Set_Parent_Unit_Name (N, Make_Fully_Qualified_Identifier (P));
       end if;
       return N;
@@ -656,6 +676,21 @@ package body Backend.BE_Ada.Nutils is
       end loop;
       return L;
    end Make_Range_Constraints;
+
+   ---------------------------
+   -- Make_Record_Aggregate --
+   ---------------------------
+
+   function Make_Record_Aggregate
+     (L : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Record_Aggregate);
+      Set_Component_Association_List (N, L);
+      return N;
+   end Make_Record_Aggregate;
 
    ----------------------------
    -- Make_Record_Definition --
