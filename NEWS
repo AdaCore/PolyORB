@@ -45,6 +45,9 @@ idlac now supports typeid declarations. (9212)
 Incompatible changes
 --------------------
 
+PolyORB.ORB_Controller.Basic has been renamed and is now
+PolyORB.ORB_Controller.Workers. (9243)
+
 idlac does not generate Interface Repository code by default anymore.
 The '-ir' command line switch can be used to specifically request IR
 code generation. The '-noir' command line switch is now a no-op and
