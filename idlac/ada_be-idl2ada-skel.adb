@@ -377,8 +377,8 @@ package body Ada_Be.Idl2Ada.Skel is
                      PL (CU, "--  Marshall exception");
                      PL (CU, "Marshall");
                      PL (CU, "  (Reply_Buffer, CORBA.String (");
-                     PL (CU, "   " & Ada_Full_Name (E_Node)
-                         & "_" & T_Repository_Id & "));");
+                     PL (CU, "   " & Ada_Full_Name (Parent_Scope (E_Node))
+                         & "." & Repository_Id_Name (E_Node) & "));");
                      Add_With_Stream (CU, Members_Type (E_Node));
                      PL (CU, "Marshall (Reply_Buffer, " & T_Members & ");");
                      PL (CU, "return;");
@@ -646,7 +646,7 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "PortableServer.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
-      PL (CU, "." & T_Repository_Id &"),");
+      PL (CU, "." & Repository_Id_Name (Node) &"),");
       PL (CU, "   Servant_Is_A'Access,");
       PL (CU, "   GIOP_Dispatch'Access);");
    end Gen_Body_Common_End;

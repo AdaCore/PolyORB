@@ -273,10 +273,35 @@ package body Ada_Be.Expansion is
 
       Set_Expanded (Node, True);
 
-      --  Rename nodes with Ada identifiers
 
-      if Is_Named (Node) and then Is_Ada_Keyword (Name (Node)) then
-         Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+      if Is_Named (Node) then
+         if Is_Ada_Keyword (Name (Node)) then
+
+            --  Rename nodes whose name collide with Ada
+            --  reserved words.
+
+            Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+         end if;
+
+         --  Allocate a name for the node's repository ID
+
+
+         if Kind (Node) /= K_Repository
+           and then Kind (Node) /= K_Ben_Idl_File then
+            declare
+               RID_Name_Node : constant Node_Id
+                 := Make_Named (Loc (Node));
+            begin
+               Set_Repository_Id_Identifier (Node, RID_Name_Node);
+               if Is_Gen_Scope (Node) then
+                  Add_Identifier_With_Renaming
+                    (RID_Name_Node, "Repository_Id");
+               else
+                  Add_Identifier_With_Renaming
+                    (RID_Name_Node, Name (Node) & "_Repository_Id");
+               end if;
+            end;
+         end if;
       end if;
 
       case (Kind (Node)) is

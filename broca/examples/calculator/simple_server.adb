@@ -211,7 +211,7 @@ begin
             Name : Identifier;
             Version : VersionSpec;
          begin
-            Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id_Ü);
+            Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id);
             Name := To_CORBA_String ("simple_calculator");
             Version := To_CORBA_String ("1.0");
             Int := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),

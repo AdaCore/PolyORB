@@ -35,6 +35,9 @@ Named
   --  value of Definition.Parent_Scope for this
   --  copy of the node (used for inherited operation
   --  and attribute nodes).
+  Repository_Id_Identifier : Node_Id
+  --  A Named node that holds the name of the Ada constant
+  --  that contains the node's repository ID.
 
 Scope <-- Named
   Identifier_List : Identifier_Definition_List

@@ -285,7 +285,7 @@ package body Ada_Be.Idl2Ada.Stream is
             Add_With (CU, Ada_Full_Name (Forward (Node)));
             PL (CU, "  ("
                 & Ada_Full_Name (Forward (Node))
-                & "." & T_Repository_Id
+                & "." & Repository_Id_Name (Node)
                 & "),");
             PL (CU, "New_Ref);");
             PL (CU, "return New_Ref;");
@@ -370,15 +370,16 @@ package body Ada_Be.Idl2Ada.Stream is
                               Put (CU, Ada_Full_Name
                                    (Value (State_Type (Current))));
                            else
-                              --  forward valuetype
-                              Add_With (CU,
-                                        Ada_Full_Name
+                              --  Forward valuetype
+                              Add_With (CU, Ada_Full_Name
                                         (Forward
-                                         (Value (State_Type (Current)))));
+                                         (Value
+                                          (State_Type
+                                           (Current)))));
                               Put (CU, Ada_Full_Name
                                    (Forward (Value (State_Type (Current)))));
                            end if;
-                           PL (CU, "." & T_Repository_Id & "),");
+                           PL (CU, "." & Repository_Id_Name (Current) & "),");
                            PL (CU, "   Already_Marshalled,");
                            PL (CU, "   Nesting_Depth + 1);");
 
@@ -416,7 +417,7 @@ package body Ada_Be.Idl2Ada.Stream is
             PL (CU, "   CORBA.To_CORBA_String");
             PL (CU, "  ("
                 & Ada_Full_Name (Node)
-                & "." & T_Repository_Id
+                & "." & Repository_Id_Name (Node)
                 & "),");
             PL (CU, "New_Ref);");
             PL (CU, "return New_Ref;");
@@ -511,7 +512,7 @@ package body Ada_Be.Idl2Ada.Stream is
                                    (Forward (Value (State_Type (Current)))));
                            end if;
                            PL (CU,  "."
-                               & T_Repository_Id
+                               & Repository_Id_Name (Current)
                                & "),");
                            PL (CU,
                                "   Obj."
@@ -555,7 +556,7 @@ package body Ada_Be.Idl2Ada.Stream is
                    & ".Register_Operation");
                PL (CU, "  ("
                    & Ada_Full_Name (Node)
-                   & "." & T_Repository_Id
+                   & "." & Repository_Id_Name (Node)
                    & ",");
                PL (CU, "Unmarshall_Fields'Access);");
                Divert (CU, Visible_Declarations);

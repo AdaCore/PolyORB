@@ -61,6 +61,12 @@ private
    --  The name of the Ada subprogram that maps
    --  K_Operation Node.
 
+   function Repository_Id_Name
+     (Node : Node_Id)
+     return String;
+   --  The name of the Ada constant that contains
+   --  the repository ID of K_Named Node.
+
    procedure Add_With_Stream
      (CU : in out Compilation_Unit;
       Node : Node_Id);

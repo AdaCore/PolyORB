@@ -29,7 +29,6 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
-with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
 
 with Utils;                 use Utils;
@@ -489,7 +488,7 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "begin");
       II (CU);
       PL (CU, "if CORBA.Value.Is_A (The_Ref, "
-          & T_Repository_Id & ") then");
+          & Repository_Id_Name (Node) & ") then");
       II (CU);
       PL (CU, "Set (Result, CORBA.Value.Object_Of (The_Ref));");
       PL (CU, "return Result;");
@@ -533,7 +532,7 @@ package body Ada_Be.Idl2Ada.Helper is
       --  Unchecked_To_<reference>
 
       declare
-         Short_Type_Name : constant String
+         Type_Defining_Name : constant String
            := Ada_Type_Defining_Name (Node);
          Type_Name : constant String
            := Ada_Type_Name (Node);
@@ -542,7 +541,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "Broca.Exceptions");
 
          NL (CU);
-         PL (CU, "function Unchecked_To_" & Short_Type_Name);
+         PL (CU, "function Unchecked_To_" & Type_Defining_Name);
          Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
@@ -557,7 +556,7 @@ package body Ada_Be.Idl2Ada.Helper is
              "     CORBA.Object.Object_Of (The_Ref));");
          PL (CU, "return Result;");
          DI (CU);
-         PL (CU, "end Unchecked_To_" & Short_Type_Name & ";");
+         PL (CU, "end Unchecked_To_" & Type_Defining_Name & ";");
 
          --  To_<reference>
 
@@ -566,7 +565,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --    Doing the check properly implies either
          --       1. querying the interface repository
          --          (not implemented yet);
-         --    or 2. calling Is_A (T_Repository_Id) on an
+         --    or 2. calling Is_A (Repository_Id) on an
          --          object reference whose type maps the actual
          --          (i. e. most derived) interface of The_Ref.
          --          (which is impossible if that type is not
@@ -584,7 +583,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --    Is_A operation will be invoked if necessary.
 
          NL (CU);
-         PL (CU, "function To_" & Short_Type_Name);
+         PL (CU, "function To_" & Type_Defining_Name);
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
@@ -594,17 +593,17 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "begin");
          II (CU);
          PL (CU, "if CORBA.Object.Is_A (The_Ref, "
-             & T_Repository_Id & ") then");
+             & Repository_Id_Name (Node) & ") then");
          II (CU);
          PL (CU, "return Unchecked_To_"
-             & Short_Type_Name
+             & Type_Defining_Name
              & " (The_Ref);");
          DI (CU);
          PL (CU, "end if;");
 
          PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
          DI (CU);
-         PL (CU, "end To_" & Short_Type_Name & ";");
+         PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
 
       --  From_Any

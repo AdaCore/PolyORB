@@ -793,7 +793,7 @@ package body Ada_Be.Idl2Ada is
       pragma Assert ((NK = K_Interface)
                      or (NK = K_ValueType));
       NL (Spec);
-      PL (Spec, T_Repository_Id
+      PL (Spec, Repository_Id_Name (Node)
           & " : constant Standard.String");
       PL (Spec, "  := """ & Idl_Repository_Id (Node) & """;");
       NL (Spec);
@@ -909,7 +909,7 @@ package body Ada_Be.Idl2Ada is
           "return Is_Equivalent (Logical_Type_Id, "
           & Ada_Full_Name (Node)
           & "."
-          & T_Repository_Id & ")");
+          & Repository_Id_Name (Node) & ")");
       PL (CU, "  or else Is_Equivalent");
       PL (CU, "    (Logical_Type_Id, ");
 
@@ -939,7 +939,7 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, Ada_Full_Name (P_Node));
             PL (CU, "  or else Is_Equivalent (Logical_Type_Id, "
                 & Ada_Full_Name (P_Node)
-                & "." & T_Repository_Id & ")");
+                & "." & Repository_Id_Name (P_Node) & ")");
          end loop;
          Free (Parents);
       end;
@@ -1273,7 +1273,7 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "CORBA");
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
-            PL (CU, Ada_Name (Node) & "_" & T_Repository_Id
+            PL (CU, Repository_Id_Name (Node)
                 & " : constant CORBA.RepositoryId");
             PL (CU, "  := CORBA.To_CORBA_String ("""
                 & Idl_Repository_Id (Node) & """);");
@@ -1787,8 +1787,9 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "if CORBA.""="" ("
                          & T_Exception_Repo_Id & ",");
-                     PL (CU, "  " & Ada_Full_Name (E_Node)
-                         & "_" & T_Repository_Id & ") then");
+                     PL (CU, "  "
+                         & Ada_Full_Name (Parent_Scope (E_Node))
+                         & "." & Repository_Id_Name (E_Node) & ") then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
@@ -2503,6 +2504,17 @@ package body Ada_Be.Idl2Ada is
       pragma Assert (Kind (Node) = K_Operation);
       return Name (Node);
    end Idl_Operation_Id;
+
+   ------------------------
+   -- Repository_Id_Name --
+   ------------------------
+
+   function Repository_Id_Name
+     (Node : Node_Id)
+     return String is
+   begin
+      return Ada_Name (Repository_Id_Identifier (Node));
+   end Repository_Id_Name;
 
    ------------------
    -- Gen_Delegate --
