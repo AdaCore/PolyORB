@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with Ada.Command_Line;
 with Ada.Text_IO;
 
 with PolyORB.Minimal_Servant.Tools;
@@ -45,14 +46,18 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
+with PolyORB.Services.Naming.Tools;
+
 with MOMA.Configuration.Server;
 with MOMA.Types;
 
 procedure Server is
 
+   use Ada.Command_Line;
    use Ada.Text_IO;
 
    use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Services.Naming.Tools;
 
    use MOMA.Configuration;
    use MOMA.Configuration.Server;
@@ -62,6 +67,13 @@ procedure Server is
    Pool_1   : Message_Pool;
 
 begin
+
+   --  Argument check.
+   if Argument_Count > 1 then
+      Put_Line ("usage : server [Naming_Service_IOR]");
+      return;
+   end if;
+
    --  Load Configuration File.
    Load_Configuration_File ("destinations.conf");
 
@@ -74,6 +86,15 @@ begin
    --  Outputs its reference.
    Put_Line (PolyORB.Types.To_Standard_String
              (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+
+   --  Register reference to naming service.
+   if Argument_Count = 1 then
+      Init (PolyORB.References.IOR.String_To_Object
+            (PolyORB.Types.To_PolyORB_String
+             (Ada.Command_Line.Argument (1))));
+
+      Register ("Pool_1", MOMA_Ref);
+   end if;
 
    --  Run the server.
    Run_Server;

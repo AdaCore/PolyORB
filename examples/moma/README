@@ -14,7 +14,17 @@ MText and MBytes messages are tested.
 
 To test persistence, you must setup a persistent destination, then
 
+To run the test, without using a naming service :
+
 - launch the server : ./server, it will outputs its IOR string.
-- run the client to store messages : ./client <IOR> stor
+- run the client to store messages : ./client stor pool <IOR>
 - kill the server, then re-launch it
-- run the client to retrieve messages : ./client <IOR> retr
+- run the client to retrieve messages : ./client retr pool <IOR>
+
+To run the test, wusing a naming service :
+
+- launch the server with the IOR string of the Naming Service : 
+./server IOR:... , it will outputs its IOR string.
+- run the client to store messages : ./client stor naming <IOR>
+- kill the server, then re-launch it
+- run the client to retrieve messages : ./client retr naming <IOR>

@@ -40,10 +40,10 @@ with Ada.Text_IO;
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
---  XXX this package should be renamed to PolyORB.Setup.No_Tasking_Node ...
-
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...
+
+with PolyORB.Services.Naming.Tools;
 
 with MOMA.Connection_Factories.Queues;
 with MOMA.Connections.Queues;
@@ -63,6 +63,8 @@ with MOMA.Messages.MTexts;
 with MOMA.Types;
 
 with PolyORB.Any;
+with PolyORB.References;
+with PolyORB.References.IOR;
 with PolyORB.Types;
 
 with Report;
@@ -81,10 +83,12 @@ procedure Client is
    use MOMA.Messages;
    use MOMA.Types;
 
+   use PolyORB.Services.Naming.Tools;
    use PolyORB.Types;
 
    use Report;
 
+   Pool_Ref           : PolyORB.References.Ref;
    MOMA_Queue         : MOMA.Connections.Queues.Queue;
    MOMA_Session       : MOMA.Sessions.Queues.Queue;
    MOMA_Destination   : MOMA.Destinations.Destination;
@@ -340,29 +344,47 @@ procedure Client is
    --------------------
 
 begin
+
    --  Argument check
-   if Argument_Count < 2 then
-      Put_Line ("usage : client <IOR_string_from_server> <scenario>");
-      Put_Line (" where scenario is in {full, stor, retr}");
+   if Argument_Count /= 3 then
+      Put_Line ("usage : client <scenario> <kind> <IOR>");
+      Put_Line (" where 'scenario' is in {full, stor, retr}");
       Put_Line ("  - full : full demo, send and receive messages");
       Put_Line ("  - stor : only send messages");
       Put_Line ("  - retr : only retrieve messages");
+      New_Line;
+      Put_Line (" where 'kind' is in {pool, naming}");
+      Put_Line ("  - pool   : <IOR> is the IOR of a message pool");
+      Put_Line ("  - naming : <IOR> is the IOR of a naming service");
       New_Line;
       Put_Line ("{stor, retr} scenarios are to test persistency");
       return;
    end if;
 
    --  Determine scenario to run
-   if Ada.Command_Line.Argument (2) = "full" then
+   if Ada.Command_Line.Argument (1) = "full" then
       Scenario := Full;
-   elsif Ada.Command_Line.Argument (2) = "stor" then
+   elsif Ada.Command_Line.Argument (1) = "stor" then
       Scenario := Stor;
-   elsif Ada.Command_Line.Argument (2) = "retr" then
+   elsif Ada.Command_Line.Argument (1) = "retr" then
       Scenario := Retr;
    end if;
 
+   --  Get a reference on the message pool to use.
+   if Ada.Command_Line.Argument (2) = "pool" then
+      Pool_Ref := PolyORB.References.IOR.String_To_Object
+        (To_PolyORB_String
+         (Ada.Command_Line.Argument (3)));
+   else
+      Init (PolyORB.References.IOR.String_To_Object
+            (To_PolyORB_String
+             (Ada.Command_Line.Argument (3))));
+
+      Pool_Ref := Locate ("Pool_1");
+   end if;
+
    --  Create Queue using Queue Connection Factory
-   MOMA_Queue := Create (To_MOMA_String (Ada.Command_Line.Argument (1)));
+   MOMA_Queue := Create (Pool_Ref);
 
    --  Create Destination Queue associated to the connection
    MOMA_Destination := Create_Queue (MOMA_Queue,
@@ -377,6 +399,7 @@ begin
    --  Create Message Consumer associated to the Session
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
 
+   --  Initialisation is completed.
    Output ("Initilisation", True);
 
    --  Testing MAny messages.
