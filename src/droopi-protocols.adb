@@ -44,7 +44,7 @@ package body Droopi.Protocols is
       elsif S in Executed_Request then
          Send_Reply
            (Session_Access (Sess),
-            Executed_Request (S).Req.all);
+            Executed_Request (S).Req);
       elsif S in Queue_Request then
          Ada.Text_IO.Put_Line ("message is queue request");
          Sess.Pending_Request := Queue_Request (S);
