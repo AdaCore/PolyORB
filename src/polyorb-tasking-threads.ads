@@ -180,11 +180,7 @@ package PolyORB.Tasking.Threads is
      (TF : access Thread_Factory_Type)
      return Thread_Id
       is abstract;
-   --  If we are running in a task created using Create_Task,
-   --  get the Thread object associated with the current task.
-   --  If the current task was not created by this API but
-   --  for example by a direct call to the Ada tasking facilities,
-   --  this call will raise a PolyORB.Tasking.Tasking_Error.
+   --  Get the Thread object associated with the current task
 
    function Thread_Id_Image
      (TF  : access Thread_Factory_Type;
