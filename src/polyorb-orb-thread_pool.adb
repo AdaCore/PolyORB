@@ -59,15 +59,11 @@ package body PolyORB.ORB.Thread_Pool is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Request_Info is record
-      Job : Jobs.Job_Access;
-   end record;
-
    A_ORB : ORB_Access := null;
    --  global variables for thread initialisation
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
-   --  used at the initialisation of a thread
+   --  used at thread initialisation
    Initialized : Boolean := False;
    --  indicates if initialisation has been done yet
    Default_Threads : constant := 4;
@@ -159,7 +155,6 @@ package body PolyORB.ORB.Thread_Pool is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Thread_Pool: thread "
                        & Image (Current_Task)
