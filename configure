@@ -1600,10 +1600,10 @@ fi
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
-  GNATFLAGS="-g -O2 -gnatawe"
+  GNATFLAGS="-g -O2 -gnata -gnatwu -gnatwe"
  LINKTEST="linktest"
 else
-  GNATFLAGS="-O2 -gnatpn"
+  GNATFLAGS="-O2 -gnatpn -gnatwu -gnatwe"
  LINKTEST=""
 fi
 
