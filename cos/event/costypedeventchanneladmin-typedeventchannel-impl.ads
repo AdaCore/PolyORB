@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 COSEVENTCHANNELADMIN.SUPPLIERADMIN.IMPL                  --
+--            COSTYPEDEVENTCHANNELADMIN.TYPEDEVENTCHANNEL.IMPL              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,44 +31,69 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin.ProxyPullConsumer;
-with CosEventChannelAdmin.ProxyPushConsumer;
-with CosEventChannelAdmin.EventChannel.Impl;
+with CORBA;
+with CORBA.Impl;
+with CORBA.Object;
+
+with CosTypedEventChannelAdmin.TypedSupplierAdmin;
+with CosTypedEventChannelAdmin.TypedConsumerAdmin;
+
 with PortableServer;
 
-package CosEventChannelAdmin.SupplierAdmin.Impl is
+package CosTypedEventChannelAdmin.TypedEventChannel.Impl is
 
    type Object is new PortableServer.Servant_Base with private;
-
    type Object_Ptr is access all Object'Class;
 
-   function Obtain_Push_Consumer
+   function For_Consumers
      (Self : access Object)
-     return ProxyPushConsumer.Ref;
+     return CosTypedEventChannelAdmin.TypedConsumerAdmin.Ref;
 
-   function Obtain_Pull_Consumer
+   function For_Suppliers
      (Self : access Object)
-     return ProxyPullConsumer.Ref;
+     return CosTypedEventChannelAdmin.TypedSupplierAdmin.Ref;
+
+   procedure Destroy
+     (Self : access Object);
 
    ----------------------
    -- PolyORB specific --
    ----------------------
 
-   function Create
-     (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
-     return Object_Ptr;
+   function Create return Object_Ptr;
 
-   procedure Post
-     (Self : access Object;
-      Data : in     CORBA.Any);
+   function Post
+       (Self : access Object;
+       uses_interface : CosTypedEventChannelAdmin.Key)
+       return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PushConsumers
+
+   function Pull
+       (Self : access Object;
+       uses_interface : CosTypedEventChannelAdmin.Key)
+       return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PullSuppliers
+
+   type Interface_Ptr is access function return CORBA.Impl.Object_Ptr;
+
+   procedure Register
+     (RepositoryID : in CosTypedEventChannelAdmin.Key;
+     Create_Ptr : in Interface_Ptr);
+   --  Register a couple of Repository ID and
+   --  Pointer_to_Create function in a HashTable
+
+   function Lookup
+     (RepositoryID : in CosTypedEventChannelAdmin.Key)
+     return Interface_Ptr;
+   --  Lookup an entry in the HashTable
 
 private
 
-   type Supplier_Admin_Record;
-   type Supplier_Admin_Access is access all Supplier_Admin_Record;
+   type TypedEvent_Channel_Record;
+   type TypedEvent_Channel_Access is access TypedEvent_Channel_Record;
 
    type Object is new PortableServer.Servant_Base with record
-      X : Supplier_Admin_Access;
+      X : TypedEvent_Channel_Access;
    end record;
 
-end CosEventChannelAdmin.SupplierAdmin.Impl;
+end CosTypedEventChannelAdmin.TypedEventChannel.Impl;

@@ -51,9 +51,9 @@ package CosEventChannelAdmin.ConsumerAdmin.Impl is
      (Self : access Object)
      return ProxyPullSupplier.Ref;
 
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
+   ----------------------
+   -- PolyORB specific --
+   ----------------------
 
    procedure Post
      (Self : access Object;

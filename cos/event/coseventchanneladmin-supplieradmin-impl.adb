@@ -81,6 +81,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
 
    type Supplier_Admin_Record is record
       This    : Object_Ptr;
+      ThisRef : SupplierAdmin.Ref;
       Channel : EventChannel.Impl.Object_Ptr;
       Pushs   : PushConsumers.Sequence;
       Pulls   : PullConsumers.Sequence;
@@ -124,7 +125,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       Supplier.X.Channel := Channel;
 
       Initiate_Servant (Servant (Supplier), My_Ref);
-
+      Supplier.X.ThisRef := My_Ref;
       return Supplier;
    end Create;
 
@@ -145,7 +146,7 @@ package body CosEventChannelAdmin.SupplierAdmin.Impl is
       Ensure_Initialization;
 
       Enter (Self_Mutex);
-      Consumer := ProxyPullConsumer.Impl.Create (Self.X.This);
+      Consumer := ProxyPullConsumer.Impl.Create (Self.X.ThisRef);
       PullConsumers.Append (Self.X.Pulls, Consumer);
       Leave (Self_Mutex);
 

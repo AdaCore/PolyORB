@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 COSEVENTCHANNELADMIN.SUPPLIERADMIN.IMPL                  --
+--               T Y P E D T E S T_I N T E R F A C E. I M P L               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,44 +31,54 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin.ProxyPullConsumer;
-with CosEventChannelAdmin.ProxyPushConsumer;
-with CosEventChannelAdmin.EventChannel.Impl;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with Ada.Text_IO;
+
+with TypedTest_Interface;
+
+with TypedTest_Interface.Skel;
+pragma Elaborate (TypedTest_Interface.Skel);
+pragma Warnings (Off, TypedTest_Interface.Skel);
+
+with TypedTest_Interface.Helper;
+pragma Elaborate (TypedTest_Interface.Helper);
+pragma Warnings (Off, TypedTest_Interface.Helper);
+
 with PortableServer;
 
-package CosEventChannelAdmin.SupplierAdmin.Impl is
+with PolyORB.CORBA_P.Server_Tools;
 
-   type Object is new PortableServer.Servant_Base with private;
+package body TypedTest_Interface.Impl is
 
-   type Object_Ptr is access all Object'Class;
+   use PortableServer;
 
-   function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref;
+   use PolyORB.CORBA_P.Server_Tools;
 
-   function Obtain_Pull_Consumer
-     (Self : access Object)
-     return ProxyPullConsumer.Ref;
-
-   ----------------------
-   -- PolyORB specific --
-   ----------------------
+   function EchoString
+     (Self : access Object; Mesg : in CORBA.String)
+     return CORBA.String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+   begin
+      Ada.Text_IO.Put_Line
+        ("Echoing string: « " & CORBA.To_Standard_String (Mesg)
+         & " »");
+      return Mesg;
+   end EchoString;
 
    function Create
-     (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
-     return Object_Ptr;
+      return CORBA.Impl.Object_Ptr
+   is
+      TypedTest_Int : Object_Ptr;
+      My_Ref        : TypedTest_Interface.Ref;
+   begin
+      TypedTest_Int := new Object;
+      Initiate_Servant (Servant (TypedTest_Int), My_Ref);
+      return CORBA.Impl.Object_Ptr (TypedTest_Int);
+   end Create;
 
-   procedure Post
-     (Self : access Object;
-      Data : in     CORBA.Any);
-
-private
-
-   type Supplier_Admin_Record;
-   type Supplier_Admin_Access is access all Supplier_Admin_Record;
-
-   type Object is new PortableServer.Servant_Base with record
-      X : Supplier_Admin_Access;
-   end record;
-
-end CosEventChannelAdmin.SupplierAdmin.Impl;
+end TypedTest_Interface.Impl;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 COSEVENTCHANNELADMIN.SUPPLIERADMIN.IMPL                  --
+--                COSTYPEDEVENTCOMM.TYPEDPULLSUPPLIER.IMPL                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,44 +31,61 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin.ProxyPullConsumer;
-with CosEventChannelAdmin.ProxyPushConsumer;
-with CosEventChannelAdmin.EventChannel.Impl;
+with CORBA;
+
 with PortableServer;
 
-package CosEventChannelAdmin.SupplierAdmin.Impl is
+with CosTypedEventChannelAdmin;
+with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
+
+package CosTypedEventComm.TypedPullSupplier.Impl is
 
    type Object is new PortableServer.Servant_Base with private;
 
    type Object_Ptr is access all Object'Class;
 
-   function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref;
+   --  IDL operations
 
-   function Obtain_Pull_Consumer
-     (Self : access Object)
-     return ProxyPullConsumer.Ref;
+   function Get_Typed_Supplier (Self : access Object) return CORBA.Object.Ref;
 
-   ----------------------
+   --  Inherited IDL operations from CosEventComm::PullSupplier
+
+   procedure Disconnect_Pull_Supplier
+     (Self : access Object);
+   --  Call by proxy to disconnect
+
+   function Pull
+     (Self : access Object)
+     return CORBA.Any;
+   --  Call by proxy to pull an event
+   --  No need to implement it in this case
+
+   procedure Try_Pull
+     (Self      : access Object;
+      Has_Event : out    CORBA.Boolean;
+      Returns   : out    CORBA.Any);
+   --  Call by proxy to try to pull an event
+   --  No need to implement it in this case
+
+   ------------------------
    -- PolyORB specific --
-   ----------------------
+   ------------------------
 
-   function Create
-     (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
-     return Object_Ptr;
+   function Create return Object_Ptr;
+   --  Call by application to create an object and activate servant
 
-   procedure Post
-     (Self : access Object;
-      Data : in     CORBA.Any);
+   procedure SetInterface_Ptr
+      (Self  : access Object;
+       I_Ptr : CosTypedEventChannelAdmin.TypedEventChannel.Impl.Interface_Ptr);
+   --  Appopriately set the supported interface pointer
 
 private
 
-   type Supplier_Admin_Record;
-   type Supplier_Admin_Access is access all Supplier_Admin_Record;
+   type Typed_Pull_Supplier_Record;
+   type Typed_Pull_Supplier_Access is access Typed_Pull_Supplier_Record;
 
    type Object is new PortableServer.Servant_Base with record
-      X : Supplier_Admin_Access;
+      X : Typed_Pull_Supplier_Access;
    end record;
 
-end CosEventChannelAdmin.SupplierAdmin.Impl;
+end CosTypedEventComm.TypedPullSupplier.Impl;

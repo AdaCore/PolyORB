@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 COSEVENTCHANNELADMIN.SUPPLIERADMIN.IMPL                  --
+--            COSTYPEDEVENTCHANNELADMIN.TYPEDCONSUMERADMIN.IMPL             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,44 +31,76 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin.ProxyPullConsumer;
-with CosEventChannelAdmin.ProxyPushConsumer;
-with CosEventChannelAdmin.EventChannel.Impl;
+with CORBA;
+with CORBA.Object;
+
+with CosEventChannelAdmin.ProxyPullSupplier;
+with CosEventChannelAdmin.ProxyPushSupplier;
+
+with CosTypedEventChannelAdmin;
+with CosTypedEventChannelAdmin.TypedEventChannel.Impl;
+
 with PortableServer;
 
-package CosEventChannelAdmin.SupplierAdmin.Impl is
+package CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl is
 
    type Object is new PortableServer.Servant_Base with private;
-
    type Object_Ptr is access all Object'Class;
 
-   function Obtain_Push_Consumer
-     (Self : access Object)
-     return ProxyPushConsumer.Ref;
+   --  IDL operations
 
-   function Obtain_Pull_Consumer
+   function obtain_typed_pull_supplier
+     (Self : access Object;
+      supported_interface : in CosTypedEventChannelAdmin.Key)
+     return TypedProxyPullSupplier.Ref;
+
+   function obtain_typed_push_supplier
+     (Self : access Object;
+      uses_interface : in CosTypedEventChannelAdmin.Key)
+     return CosEventChannelAdmin.ProxyPushSupplier.Ref;
+
+   --  Inherited IDL Operations from
+   --  CosEventchannelAdmin::ConsumerAdmin
+
+   function Obtain_Push_Supplier
      (Self : access Object)
-     return ProxyPullConsumer.Ref;
+     return CosEventChannelAdmin.ProxyPushSupplier.Ref;
+   --  Return ProxyPushSupplier
+   --  No need to implement it in this case
+
+   function Obtain_Pull_Supplier
+     (Self : access Object)
+     return CosEventChannelAdmin.ProxyPullSupplier.Ref;
+   --  Return ProxyPullSupplier
+   --  No need to implement it in this case
 
    ----------------------
    -- PolyORB specific --
    ----------------------
 
-   function Create
-     (Channel : CosEventChannelAdmin.EventChannel.Impl.Object_Ptr)
-     return Object_Ptr;
-
-   procedure Post
+   function Post
      (Self : access Object;
-      Data : in     CORBA.Any);
+      uses_interface : in CosTypedEventChannelAdmin.Key)
+     return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PushConsumers
+
+   function Pull
+     (Self : access Object;
+      uses_interface : in CosTypedEventChannelAdmin.Key)
+     return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PullSuppliers
+
+   function Create
+     (Channel : CosTypedEventChannelAdmin.TypedEventChannel.Impl.Object_Ptr)
+     return Object_Ptr;
 
 private
 
-   type Supplier_Admin_Record;
-   type Supplier_Admin_Access is access all Supplier_Admin_Record;
+   type TypedConsumer_Admin_Record;
+   type TypedConsumer_Admin_Access is access all TypedConsumer_Admin_Record;
 
    type Object is new PortableServer.Servant_Base with record
-      X : Supplier_Admin_Access;
+      X : TypedConsumer_Admin_Access;
    end record;
 
-end CosEventChannelAdmin.SupplierAdmin.Impl;
+end CosTypedEventChannelAdmin.TypedConsumerAdmin.Impl;

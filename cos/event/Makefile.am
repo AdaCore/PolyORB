@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-corba_exe=test_event
+corba_exe=test_event typedtest_event
 
 COS_GNATMAKE_FLAGS = \
 	-I$(srcdir) \

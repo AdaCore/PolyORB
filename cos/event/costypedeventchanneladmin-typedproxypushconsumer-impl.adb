@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               COSEVENTCHANNELADMIN.PROXYPUSHSUPPLIER.IMPL                --
+--         COSTYPEDEVENTCHANNELADMIN.TYPEDPROXYPUSHCONSUMER.IMPL            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,36 +34,29 @@
 with CORBA.Object;
 pragma Warnings (Off, CORBA.Object);
 
-with CORBA.Impl;
+with CosEventChannelAdmin;
 
-with CosEventChannelAdmin.ConsumerAdmin;
+with CosEventComm;
+with CosEventComm.PushSupplier;
 
-with CosEventComm.PushConsumer;
+with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper;
+pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper);
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPushConsumer.Helper);
 
-with CosTypedEventComm.TypedPushConsumer;
-with CosTypedEventComm.TypedPushConsumer.Impl;
-
-with CosEventChannelAdmin.ProxyPushSupplier.Helper;
-pragma Elaborate (CosEventChannelAdmin.ProxyPushSupplier.Helper);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPushSupplier.Helper);
-
-with CosEventChannelAdmin.ProxyPushSupplier.Skel;
-pragma Elaborate (CosEventChannelAdmin.ProxyPushSupplier.Skel);
-pragma Warnings (Off, CosEventChannelAdmin.ProxyPushSupplier.Skel);
+with CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel;
+pragma Elaborate (CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel);
+pragma Warnings (Off, CosTypedEventChannelAdmin.TypedProxyPushConsumer.Skel);
 
 with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
 
-with PolyORB.Log;
+package body CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl is
 
-package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
-
-   use CosEventComm;
    use CosEventChannelAdmin;
-
-   use CosTypedEventComm;
+   use CosEventComm;
 
    use PortableServer;
 
@@ -71,14 +64,15 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    use PolyORB.Tasking.Mutexes;
 
    use PolyORB.Log;
-   package L is new PolyORB.Log.Facility_Log ("proxypushsupplier");
+   package L is new PolyORB.Log.Facility_Log ("typedproxypushconsumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   type Proxy_Push_Supplier_Record is record
+   type TypedProxy_Push_Consumer_Record is record
       This   : Object_Ptr;
-      Peer   : PushConsumer.Ref;
-      Admin  : ConsumerAdmin.Ref;
+      Peer   : PushSupplier.Ref;
+      Admin  : TypedSupplierAdmin.Impl.Object_Ptr;
+      supported_interface  : CosTypedEventChannelAdmin.Key;
    end record;
 
    ---------------------------
@@ -101,65 +95,66 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    end Ensure_Initialization;
 
    ---------------------------
-   -- Connect_Push_Consumer --
+   -- Connect_Push_Supplier --
    ---------------------------
 
-   procedure Connect_Push_Consumer
+   procedure Connect_Push_Supplier
      (Self          : access Object;
-      Push_Consumer : in     CosEventComm.PushConsumer.Ref) is
+      Push_Supplier : in     CosEventComm.PushSupplier.Ref) is
    begin
-      pragma Debug (O ("connect push consumer to proxy push supplier"));
+      pragma Debug (O ("connect pushsupplier to typedproxy push consumer"));
 
       Ensure_Initialization;
 
       Enter (Self_Mutex);
-
-      if not PushConsumer.Is_Nil (Self.X.Peer) then
+      if not PushSupplier.Is_Nil (Self.X.Peer) then
          Leave (Self_Mutex);
          raise AlreadyConnected;
       end if;
 
-      Self.X.Peer := Push_Consumer;
+      Self.X.Peer := Push_Supplier;
 
       Leave (Self_Mutex);
-   end Connect_Push_Consumer;
+   end Connect_Push_Supplier;
 
    ------------
    -- Create --
    ------------
 
    function Create
-     (Admin : ConsumerAdmin.Ref)
+     (Admin : TypedSupplierAdmin.Impl.Object_Ptr;
+      supported_interface : CosTypedEventChannelAdmin.Key)
      return Object_Ptr
    is
-      Supplier : ProxyPushSupplier.Impl.Object_Ptr;
-      My_Ref   : ProxyPushSupplier.Ref;
+      Consumer : Object_Ptr;
+      My_Ref   : TypedProxyPushConsumer.Ref;
 
    begin
-      pragma Debug (O ("create proxy push supplier"));
+      pragma Debug (O ("create typedproxy push consumer"));
 
-      Supplier         := new Object;
-      Supplier.X       := new Proxy_Push_Supplier_Record;
-      Supplier.X.This  := Supplier;
-      Supplier.X.Admin := Admin;
+      Consumer         := new Object;
+      Consumer.X       := new TypedProxy_Push_Consumer_Record;
+      Consumer.X.This  := Consumer;
+      Consumer.X.Admin := Admin;
+      Consumer.X.supported_interface := supported_interface;
 
-      Initiate_Servant (Servant (Supplier), My_Ref);
+      Initiate_Servant (Servant (Consumer), My_Ref);
 
-      return Supplier;
+      return Consumer;
    end Create;
 
    ------------------------------
-   -- Disconnect_Push_Supplier --
+   -- Disconnect_Push_Consumer --
    ------------------------------
 
-   procedure Disconnect_Push_Supplier
+   procedure Disconnect_Push_Consumer
      (Self : access Object)
    is
-      Peer    : PushConsumer.Ref;
-      Nil_Ref : PushConsumer.Ref;
+      Peer    : PushSupplier.Ref;
+      Nil_Ref : PushSupplier.Ref;
 
    begin
-      pragma Debug (O ("disconnect proxy push supplier"));
+      pragma Debug (O ("disconnect typedproxy push consumer"));
 
       Ensure_Initialization;
 
@@ -168,58 +163,54 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
       Self.X.Peer := Nil_Ref;
       Leave (Self_Mutex);
 
-      if PushConsumer.Is_Nil (Peer) then
-         PushConsumer.disconnect_push_consumer (Peer);
+      if not PushSupplier.Is_Nil (Peer) then
+         PushSupplier.disconnect_push_supplier (Peer);
       end if;
-   end Disconnect_Push_Supplier;
+   end Disconnect_Push_Consumer;
 
    ----------
-   -- Post --
+   -- Push --
    ----------
 
-   procedure Post
+   procedure Push
      (Self : access Object;
-      Data : in     CORBA.Any) is
+      Data : in     CORBA.Any)
+   is
+      pragma Warnings (Off); --  WAG:3.14
+      pragma Unreferenced (Self, Data);
+      pragma Warnings (On);  --  WAG:3.14
    begin
-      pragma Debug
-        (O ("post new data from proxy push supplier to push consumer"));
+      pragma Debug (O ("attempt to push new data to typed pushconsumer"));
+      pragma Debug (O ("no need to use generic push in typed pushconsumer"));
+      Ensure_Initialization;
 
-      begin
-         PushConsumer.push (Self.X.Peer, Data);
-      exception
-         when others =>
-            pragma Debug (O ("Got exception in Post"));
-            raise;
-      end;
-   end Post;
+   --  No need to implement push in Typed PushConsumer
+      raise PolyORB.Not_Implemented;
+   end Push;
 
-   ----------
-   -- Post --
-   ----------
+   ------------------------
+   -- Get_Typed_Consumer --
+   ------------------------
 
-   function Post
+   function Get_Typed_Consumer
    (Self : access Object)
       return CORBA.Object.Ref
    is
       Ref : CORBA.Object.Ref;
-      Obj   : CORBA.Impl.Object_Ptr;
    begin
-      pragma Debug
-        (O ("calling get_typed_consumer from" &
-            " proxy pushsupplier to typed push consumer"));
+      pragma Debug (O ("get the mutually agreed interface from "&
+                       "typed pushconsumer"));
+      pragma Debug (O ("push mutually agreed interface from " &
+                       "typed proxy pushconsumer to typed supplieradmin"));
+      Ensure_Initialization;
 
-      begin
-         Reference_To_Servant (Self.X.Peer, Servant (Obj));
-         Ref := TypedPushConsumer.Impl.Get_Typed_Consumer
-                (TypedPushConsumer.Impl.Object_Ptr (Obj));
-      exception
-         when others =>
-            pragma Debug (O ("Got exception in Post"));
-            raise;
-      end;
+      Enter (Self_Mutex);
+
+      Ref := TypedSupplierAdmin.Impl.Post
+             (Self.X.Admin, Self.X.supported_interface);
+      Leave (Self_Mutex);
 
       return Ref;
+   end Get_Typed_Consumer;
 
-   end Post;
-
-end CosEventChannelAdmin.ProxyPushSupplier.Impl;
+end CosTypedEventChannelAdmin.TypedProxyPushConsumer.Impl;
