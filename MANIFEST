@@ -800,6 +800,10 @@ src/polyorb-setup-thread_per_session_server.adb
 src/polyorb-setup-thread_per_session_server.ads
 src/polyorb-setup-thread_pool_server.adb
 src/polyorb-setup-thread_pool_server.ads
+src/polyorb-setup-udp_access_points-sockets.adb
+src/polyorb-setup-udp_access_points-sockets.ads
+src/polyorb-setup-udp_access_points.adb
+src/polyorb-setup-udp_access_points.ads
 src/polyorb-setup.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
@@ -855,6 +859,10 @@ src/polyorb-transport-connected-sockets.adb
 src/polyorb-transport-connected-sockets.ads
 src/polyorb-transport-connected.adb
 src/polyorb-transport-connected.ads
+src/polyorb-transport-datagram-sockets_in.adb
+src/polyorb-transport-datagram-sockets_in.ads
+src/polyorb-transport-datagram-sockets_out.adb
+src/polyorb-transport-datagram-sockets_out.ads
 src/polyorb-transport.adb
 src/polyorb-transport.ads
 src/polyorb-types.adb

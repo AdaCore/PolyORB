@@ -92,6 +92,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-servants.ads \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tcp_access_points.ads \
+		polyorb-setup-udp_access_points.ads \
+		polyorb-setup-udp_access_points-sockets.ads \
 		polyorb-smart_pointers.ads \
 		polyorb-sockets_copy.ads \
 		polyorb-tasking-advanced_mutexes.ads \
@@ -116,6 +118,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-transport.ads \
 		polyorb-transport-connected.ads \
 		polyorb-transport-connected-sockets.ads \
+		polyorb-transport-datagram-sockets_in.ads \
+		polyorb-transport-datagram-sockets_out.ads \
 		polyorb-types.ads \
 		polyorb-utils.ads \
 		polyorb-utils-buffers.ads \
