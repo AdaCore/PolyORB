@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -41,6 +41,13 @@
 package RTCORBA.PriorityMapping is
 
    type Object is tagged private;
+
+   --  Implementation Note: RT-CORBA specifications (formal/03-11-01)
+   --  is unclear and does not state default behavior for these
+   --  implementations. By default, these functions will always set
+   --  Returns parameter to False.
+   --
+   --  Other implementations will provide a functionnal mapping.
 
    procedure To_Native
      (Self            : in     Object;

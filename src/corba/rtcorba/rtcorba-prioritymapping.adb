@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,11 +33,7 @@
 
 --  $Id$
 
-with PolyORB.Tasking.Priorities;
-
 package body RTCORBA.PriorityMapping is
-
-   use PolyORB.Tasking.Priorities;
 
    --------------
    -- To_CORBA --
@@ -51,16 +47,12 @@ package body RTCORBA.PriorityMapping is
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
+      pragma Unreferenced (Native_Priority);
+      pragma Unreferenced (CORBA_Priority);
       pragma Warnings (On); --  WAG:3.15
 
-      Temp : constant Long_Integer
-        := (Long_Integer (Native_Priority) * Long_Integer (MaxPriority))
-        / Long_Integer (ORB_Component_Priority'Last);
-      --  XXX to be checked ...
-
    begin
-      CORBA_Priority := Priority (Temp);
-      Returns := True;
+      Returns := False;
    end To_CORBA;
 
    ---------------
@@ -75,17 +67,12 @@ package body RTCORBA.PriorityMapping is
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
+      pragma Unreferenced (Native_Priority);
+      pragma Unreferenced (CORBA_Priority);
       pragma Warnings (On); --  WAG:3.15
 
-      Temp : constant Long_Integer
-        := (Long_Integer (CORBA_Priority)
-            * Long_Integer (ORB_Component_Priority'Last))
-        / Long_Integer (MaxPriority);
-      --  XXX to be checked ...
-
    begin
-      Native_Priority := NativePriority (Temp);
-      Returns := True;
+      Returns := False;
    end To_Native;
 
 end RTCORBA.PriorityMapping;
