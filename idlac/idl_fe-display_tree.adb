@@ -1,6 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
+with Utils; use Utils;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 
 package body Idl_Fe.Display_Tree is
@@ -32,13 +33,13 @@ package body Idl_Fe.Display_Tree is
    begin
       Init (It, List);
       while not Is_End (It) loop
-         N := Get_Node (It);
+         Get_Next_Node (It, N);
+
          if N /= No_Node then
             Disp_Tree (N, Indent, Full);
          else
             Disp_Indent (Indent, "*null*");
          end if;
-         Next (It);
       end loop;
    end Disp_List;
 
@@ -75,12 +76,15 @@ package body Idl_Fe.Display_Tree is
          Put_Line ("node not properly defined");
          return;
       end if;
+      Put ("[" & Img (N) & "] ");
       case Kind (N) is
          when K_Scoped_Name =>
-            Put ("scoped name: " & Name (Value (N)));
+            Put ("scoped name: -> " & Img (Value (N))
+                 & " " & Name (Value (N)));
             if S_Type (N) /= No_Node then
-               Put_Line (" (type : " &
-                         Node_Kind'Image (Kind (S_Type (N))) &
+               Put_Line (" (type : "
+                         & Img (S_Type (N)) & " "
+                         & Node_Kind'Image (Kind (S_Type (N))) &
                          ")");
             else
                Put_Line ("");
@@ -203,7 +207,11 @@ package body Idl_Fe.Display_Tree is
                if Is_Oneway (N) then
                   Put ("oneway ");
                end if;
-               Put_Line (Name (N));
+               Put (Name (N));
+               if Is_Implicit_Inherited (N) then
+                  Put (" (implicit inherited)");
+               end if;
+               New_Line;
                Disp_Indent (N_Indent, "type:");
                Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
                if Parameters (N) /= Nil_List then
@@ -519,6 +527,19 @@ package body Idl_Fe.Display_Tree is
          when K_Ben_Idl_File =>
             Put_Line ("ben_idl_file " & Name (N));
             Disp_List (Contents (N), N_Indent, Full);
+
+         when K_Sequence_Instance =>
+            Put_Line ("sequence_instance " & Name (N));
+            Disp_Tree (Sequence (N), N_Indent, Full);
+
+         when K_String_Instance =>
+            Put ("string_instance " & Name (N));
+            if Is_Wide (N) then
+               Put_Line (" (wide)");
+            else
+               New_Line;
+            end if;
+            Disp_Tree (Bound (N), N_Indent, Full);
 
             --  ************************** --
          when others =>

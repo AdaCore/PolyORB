@@ -94,7 +94,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String);
+      Type_Node : in Node_Id);
    --  Generate the profile for the Marshall procedure
    --  of a type.
    --  FIXME: This is marshall-by-value.
@@ -105,7 +105,7 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String);
+      Type_Node : in Node_Id);
    --  Generate the profile for the Unmarshall function
    --  of a type.
    --  FIXME: This is unmarshall-by-value (see above).
@@ -268,10 +268,29 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
-                  Decl_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Decl_Node);
 
                   if Is_Gen_Scope (Decl_Node) then
+                     --  Ensure current unit has a non-empty
+                     --  spec, if it has child packages.
+                     if Kind (Node) /= K_Repository then
+                        NL (Stubs_Spec);
+                        Put (Stubs_Spec, "--  ");
+                        case Kind (Decl_Node) is
+                           when K_Module =>
+                              Put (Stubs_Spec, "Module ");
+                           when K_Interface =>
+                              Put (Stubs_Spec, "Interface ");
+                           when K_ValueType =>
+                              Put (Stubs_Spec, "ValueType ");
+                           when others =>
+                              --  Does not happen.
+                              raise Program_Error;
+                        end case;
+                        PL (Stubs_Spec, Name (Decl_Node)
+                            & " is defined in a child unit.");
+
+                     end if;
                      Gen_Scope (Decl_Node, Implement);
                   else
                      Gen_Node_Stubs_Spec
@@ -374,8 +393,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
-                  Export_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Export_Node);
                   if Is_Gen_Scope (Export_Node) then
                      Gen_Scope (Export_Node, Implement);
                   else
@@ -446,8 +464,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Parents);
                while not Is_End (It) loop
-                  P_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, P_Node);
 
                   Add_With (Stubs_Body, Ada_Full_Name (P_Node));
                   PL (Stubs_Body, "  or else Type_Id = "
@@ -473,8 +490,8 @@ package body Ada_Be.Idl2Ada is
                   NL (Stubs_Spec);
                   PL (Stubs_Spec, "package Convert_Forward is");
                   PL (Stubs_Spec, "  new "
-                      & Ada_Full_Name (Forward (Forward_Node))
-                      & "_Forward.Convert (Ref_Type => Ref);");
+                      & Ada_Full_Name (Forward_Node)
+                      & ".Convert (Ref_Type => Ref);");
                end if;
             end;
 
@@ -564,7 +581,11 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "type Object is");
             if Parents (Node) = Nil_List then
                Add_With (CU, "PortableServer");
-               Put (CU, "  abstract new PortableServer.Servant_Base");
+               Put (CU, "  ");
+               if Abst (Node) then
+                  Put (CU, "abstract ");
+               end if;
+               Put (CU, "new PortableServer.Servant_Base");
             else
                declare
                   It : Node_Iterator;
@@ -574,8 +595,7 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Parents (Node));
 
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      Add_With (CU, Ada_Full_Name (P_Node)
                                & Impl_Suffix,
@@ -586,7 +606,11 @@ package body Ada_Be.Idl2Ada is
                      --  of all its parents.
 
                      if First then
-                        Put (CU, "  abstract new "
+                        Put (CU, "  ");
+                        if Abst (Node) then
+                           Put (CU, "abstract ");
+                        end if;
+                        Put (CU, "new "
                              & Ada_Full_Name (P_Node)
                              & Impl_Suffix & ".Object");
                         First := False;
@@ -620,8 +644,7 @@ package body Ada_Be.Idl2Ada is
 
       Init (It, Labels (Node));
       while not Is_End (It) loop
-         Label_Node := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, Label_Node);
 
          if First_Label then
             Put (CU, "when ");
@@ -680,8 +703,8 @@ package body Ada_Be.Idl2Ada is
          when K_Forward_Interface =>
             Add_With (CU, "CORBA.Forward");
             NL (CU);
-            PL (CU, "package " & Ada_Name (Forward (Node))
-                & "_Forward is new CORBA.Forward;");
+            PL (CU, "package " & Ada_Name (Node)
+                & " is new CORBA.Forward;");
 
          -----------------
          -- Value types --
@@ -732,8 +755,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Decl (Node));
                while not Is_End (It) loop
-                  Decl_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Decl_Node);
 
                   Gen_Node_Stubs_Spec (CU, Decl_Node);
                   Put (CU, " : ");
@@ -762,8 +784,7 @@ package body Ada_Be.Idl2Ada is
                      II (CU);
                   end if;
 
-                  E_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, E_Node);
 
                   Gen_Node_Stubs_Spec (CU, E_Node);
 
@@ -787,8 +808,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
-                     Decl_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Decl_Node);
 
                      declare
                         Bounds_It : Node_Iterator;
@@ -815,8 +835,7 @@ package body Ada_Be.Idl2Ada is
                         if Is_Array then
                            Init (Bounds_It, Array_Bounds (Decl_Node));
                            while not Is_End (Bounds_It) loop
-                              Bound_Node := Get_Node (Bounds_It);
-                              Next (Bounds_It);
+                              Get_Next_Node (Bounds_It, Bound_Node);
 
                               if First_Bound then
                                  Put (CU, "array (");
@@ -862,8 +881,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Init (It, Cases (Node));
                while not Is_End (It) loop
-                  Case_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, Case_Node);
 
                   Gen_When_Clause (CU, Case_Node, Has_Default);
 
@@ -887,8 +905,51 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "end record;");
 
-         when K_Sequence =>
-            null;
+         when K_String_Instance =>
+            NL (CU);
+            PL (CU, "package " & Name (Node) & " is");
+            if Is_Wide (Node) then
+               Add_With (CU, "CORBA.Bounded_Wide_Strings",
+                         Use_It => False,
+                         Elab_Control => Elaborate_All);
+               Put (CU, "  new CORBA.Bounded_Wide_Strings");
+            else
+               Add_With (CU, "CORBA.Bounded_Strings",
+                         Use_It => False,
+                         Elab_Control => Elaborate_All);
+               Put (CU, "  new CORBA.Bounded_Strings");
+            end if;
+            PL (CU, " (" & Img (Integer_Value (Bound (Node)))
+                & ");");
+
+         when K_Sequence_Instance =>
+            NL (CU);
+            PL (CU, "package " & Name (Node) & " is");
+            declare
+               S_Node : constant Node_Id
+                 := Sequence (Node);
+               B_Node : constant Node_Id
+                 := Bound (S_Node);
+            begin
+               if B_Node /= No_Node then
+                  Add_With (CU, "CORBA.Sequences.Bounded",
+                            Use_It => False,
+                            Elab_Control => Elaborate_All);
+                  PL (CU, "  new CORBA.Sequences.Bounded");
+                  PL (CU, "    ("
+                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & ", " & Img (Integer_Value (B_Node))
+                      & ");");
+               else
+                  Add_With (CU, "CORBA.Sequences.Unbounded",
+                            Use_It => False,
+                            Elab_Control => Elaborate_All);
+                  PL (CU, "  new CORBA.Sequences.Unbounded");
+                  PL (CU, "    ("
+                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & ");");
+               end if;
+            end;
 
          when K_Struct =>
             NL (CU);
@@ -912,8 +973,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
                      Gen_Node_Stubs_Spec (CU, Member_Node);
                   end loop;
                end;
@@ -959,32 +1019,6 @@ package body Ada_Be.Idl2Ada is
    begin
       case Kind (Node) is
 
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
-
          ----------------
          -- Operations --
          ----------------
@@ -995,9 +1029,6 @@ package body Ada_Be.Idl2Ada is
                Gen_Operation_Profile (CU, "access Object", Node);
                PL (CU, ";");
             end if;
-
-            --        when K_Attribute =>
-            --  null;
 
          when others =>
             null;
@@ -1011,32 +1042,6 @@ package body Ada_Be.Idl2Ada is
       Node : Node_Id) is
    begin
       case Kind (Node) is
-
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
 
          ----------------
          -- Operations --
@@ -1120,8 +1125,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                PL (CU, "IDL_"
                    & Ada_Name (Declarator (P_Node))
@@ -1147,8 +1151,7 @@ package body Ada_Be.Idl2Ada is
          begin
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                if First then
                   NL (CU);
@@ -1190,8 +1193,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                PL (CU, ",");
                Put (CU, "IDL_"
@@ -1217,8 +1219,7 @@ package body Ada_Be.Idl2Ada is
                   First := False;
                end if;
 
-               R_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, R_Node);
                E_Node := Value (R_Node);
                --  Each R_Node is a scoped_name
                --  that denotes an exception.
@@ -1311,8 +1312,7 @@ package body Ada_Be.Idl2Ada is
 
             Init (It, Parameters (Node));
             while not Is_End (It) loop
-               P_Node := Get_Node (It);
-               Next (It);
+               Get_Next_Node (It, P_Node);
 
                case Mode (P_Node) is
                   when
@@ -1428,8 +1428,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      Add_With_Stream (CU, Param_Type (P_Node));
 
@@ -1486,8 +1485,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
-                     P_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, P_Node);
 
                      case Mode (P_Node) is
                         when Mode_Inout | Mode_Out =>
@@ -1499,7 +1497,7 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL (CU, Ada_Name (Declarator (P_Node))
-                               & ":= Unmarshall (" & T_Handler &
+                               & " := Unmarshall (" & T_Handler &
                                ".Buffer'Access);");
                         when others =>
                            null;
@@ -1531,8 +1529,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Raises (Node));
                   while not Is_End (It) loop
-                     R_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
                      --  Each R_Node is a scoped name
                      --  that denotes an exception.
@@ -1630,20 +1627,18 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when
-           K_Interface |
-           K_Enum      |
-           K_Union     |
-           K_Struct    =>
-            declare
-               Type_Name : constant String
-                 := Ada_Type_Name (Node);
-            begin
-               NL (CU);
-               Gen_Marshall_Profile (CU, Type_Name);
-               PL (CU, ";");
-               Gen_Unmarshall_Profile (CU, Type_Name);
-               PL (CU, ";");
-            end;
+           K_Interface         |
+           K_Forward_Interface |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Sequence_Instance |
+           K_String_Instance   =>
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, ";");
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, ";");
 
          when K_Type_Declarator =>
 
@@ -1659,15 +1654,14 @@ package body Ada_Be.Idl2Ada is
                   begin
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
-                        Decl_Node := Get_Node (It);
-                        Next (It);
+                        Get_Next_Node (It, Decl_Node);
 
                         NL (CU);
                         Gen_Marshall_Profile
-                          (CU, Ada_Name (Decl_Node));
+                          (CU, Decl_Node);
                         PL (CU, ";");
                         Gen_Unmarshall_Profile
-                          (CU, Ada_Name (Decl_Node));
+                          (CU, Decl_Node);
                         PL (CU, ";");
                      end loop;
                   end;
@@ -1712,8 +1706,7 @@ package body Ada_Be.Idl2Ada is
 
                Init (It, Parameters (Node));
                while not Is_End (It) loop
-                  P_Node := Get_Node (It);
-                  Next (It);
+                  Get_Next_Node (It, P_Node);
 
                   PL (CU, ";");
                   Gen_Operation_Profile
@@ -1726,13 +1719,39 @@ package body Ada_Be.Idl2Ada is
 
             --  Return type
 
-            if Kind (Operation_Type (Node)) /= K_Void then
-               NL (CU);
-               Add_With_Entity (CU, Operation_Type (Node));
-               Put (CU, "  return "
-                    & Ada_Type_Name (Operation_Type (Node)));
-            end if;
+            declare
+               O_Type : constant Node_Id
+                 := Operation_Type (Node);
+            begin
+               if Kind (O_Type) /= K_Void then
+                  NL (CU);
+                  Add_With_Entity (CU, O_Type);
+                  Put (CU, "  return "
+                       & Ada_Type_Name (O_Type));
 
+                  --  FIXME:
+                  --  This is disabled for now because
+                  --  it requires fixing the unmarshalling
+                  --  of references (we must really be able to
+                  --  unmarshall any kind of reference and
+                  --  return a CORBA.Object.Ref'Class).
+
+                  if False
+                    and then Kind (O_Type) = K_Scoped_Name
+                    and then S_Type (O_Type)
+                    = Parent_Scope (Node) then
+                     --  An operation of an interface is a
+                     --  primitive operation of the tagged type
+                     --  that maps this interface. If it has
+                     --  other formal parameters that are object
+                     --  references of the same interface type, then
+                     --  these formals must not be controlling.
+                     --  (Ada RTF issue #2459).
+
+                     Put (CU, "'Class");
+                  end if;
+               end if;
+            end;
          when K_Param =>
 
             Gen_Operation_Profile
@@ -1752,15 +1771,23 @@ package body Ada_Be.Idl2Ada is
             begin
                Add_With_Entity (CU, T_Node);
                Put (CU, Ada_Type_Name (T_Node));
-               if Is_Interface_Type (T_Node) then
+
+               --  FIXME:
+               --  Code disabled, see above.
+
+               if False
+                 and then Kind (T_Node) = K_Scoped_Name
+                 and then S_Type (T_Node) = Parent_Scope
+                 (Parent_Scope (Declarator (Node))) then
+
                   --  An operation of an interface is a
                   --  primitive operation of the tagged type
                   --  that maps this interface. If it has
                   --  other formal parameters that are object
-                  --  references as well, the operation cannot
-                  --  be a primitive operation of their tagged
-                  --  types as well.
+                  --  references of the same interface type, then
+                  --  these formals must not be controlling.
                   --  (Ada RTF issue #2459).
+                  --  (see above) -- FIXME: code duplication.
 
                   Put (CU, "'Class");
                end if;
@@ -1852,9 +1879,12 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
-      Node : Node_Id) is
+      Node : Node_Id)
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
    begin
-      case Kind (Node) is
+      case NK is
 
          when K_Exception =>
             --  ???
@@ -1867,7 +1897,7 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Type_Name (Node);
             begin
                NL (CU);
-               Gen_Marshall_Profile (CU, S_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -1878,8 +1908,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
 
                      Add_With_Stream (CU, M_Type (Member_Node));
 
@@ -1889,8 +1918,7 @@ package body Ada_Be.Idl2Ada is
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
-                           Decl_Node := Get_Node (DIt);
-                           Next (DIt);
+                           Get_Next_Node (DIt, Decl_Node);
 
                            PL (CU, "Marshall (Buffer, Val."
                                      & Ada_Name (Decl_Node)
@@ -1904,7 +1932,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, S_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -1919,8 +1947,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
-                     Member_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Member_Node);
 
                      declare
                         DIt   : Node_Iterator;
@@ -1928,8 +1955,7 @@ package body Ada_Be.Idl2Ada is
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
-                           Decl_Node := Get_Node (DIt);
-                           Next (DIt);
+                           Get_Next_Node (DIt, Decl_Node);
 
                            PL (CU, T_Returns & "."
                                      & Ada_Name (Decl_Node)
@@ -1951,7 +1977,7 @@ package body Ada_Be.Idl2Ada is
                  := Ada_Type_Name (Node);
             begin
                NL (CU);
-               Gen_Marshall_Profile (CU, U_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -1968,8 +1994,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Cases (Node));
                   while not Is_End (It) loop
-                     Case_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Case_Node);
 
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
@@ -1993,7 +2018,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, U_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                NL (CU);
                PL (CU, "is");
                II (CU);
@@ -2021,8 +2046,7 @@ package body Ada_Be.Idl2Ada is
                begin
                   Init (It, Cases (Node));
                   while not Is_End (It) loop
-                     Case_Node := Get_Node (It);
-                     Next (It);
+                     Get_Next_Node (It, Case_Node);
 
                      NL (CU);
                      Gen_When_Clause (CU, Case_Node, Has_Default);
@@ -2058,7 +2082,7 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "Broca.CDR", Use_It => True);
 
                NL (CU);
-               Gen_Marshall_Profile (CU, E_Name);
+               Gen_Marshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -2070,7 +2094,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "end Marshall;");
 
                NL (CU);
-               Gen_Unmarshall_Profile (CU, E_Name);
+               Gen_Unmarshall_Profile (CU, Node);
                PL (CU, " is");
                PL (CU, "begin");
                II (CU);
@@ -2101,8 +2125,7 @@ package body Ada_Be.Idl2Ada is
                      Add_With_Stream (CU, T_Type (Node));
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
-                        Decl_Node := Get_Node (It);
-                        Next (It);
+                        Get_Next_Node (It, Decl_Node);
 
                         declare
                            Type_Name : constant String
@@ -2112,7 +2135,7 @@ package body Ada_Be.Idl2Ada is
                         begin
                            NL (CU);
                            Gen_Marshall_Profile
-                             (CU, Type_Name);
+                             (CU, Decl_Node);
                            PL (CU, " is");
                            PL (CU, "begin");
                            II (CU);
@@ -2132,7 +2155,7 @@ package body Ada_Be.Idl2Ada is
 
                            NL (CU);
                            Gen_Unmarshall_Profile
-                             (CU, Type_Name);
+                             (CU, Decl_Node);
                            if Array_Dimensions = 0 then
                               PL (CU, " is");
                               PL (CU, "begin");
@@ -2164,33 +2187,133 @@ package body Ada_Be.Idl2Ada is
                end if;
             end;
 
-         when K_Interface =>
-            declare
-               I_Name : constant String
-                 := Ada_Type_Name (Node);
-            begin
-               NL (CU);
-               Gen_Marshall_Profile (CU, I_Name);
-               PL (CU, " is");
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "Marshall_Reference (Buffer, Val);");
-               DI (CU);
-               PL (CU, "end Marshall;");
+         when
+           K_Interface         |
+           K_Forward_Interface =>
 
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            if NK = K_Forward_Interface then
                NL (CU);
-               Gen_Unmarshall_Profile (CU, I_Name);
+               PL (CU, "is");
+               II (CU);
+               PL (CU, "use " & Ada_Name (Node) & ";");
+               DI (CU);
+            else
                PL (CU, " is");
+            end if;
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Marshall_Reference (Buffer, Val);");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            if NK = K_Forward_Interface then
+               NL (CU);
+               PL (CU, "is");
                II (CU);
-               PL (CU, "New_Ref : Ref;");
+               PL (CU, "use " & Ada_Name (Node));
                DI (CU);
-               PL (CU, "begin");
-               II (CU);
-               PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
-               PL (CU, "return New_Ref;");
-               DI (CU);
-               PL (CU, "end Unmarshall;");
-            end;
+            else
+               PL (CU, " is");
+            end if;
+            II (CU);
+            PL (CU, "New_Ref : " & Ada_Type_Name (Node) & ";");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Unmarshall_Reference (Buffer, New_Ref);");
+            PL (CU, "return New_Ref;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
+         when K_Sequence_Instance =>
+
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Elements : constant Element_Array");
+            PL (CU, "  := To_Element_Array (Val);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Marshall");
+            PL (CU, "  (Buffer, CORBA.Unsigned_Long (Elements'Length));");
+
+            Add_With_Stream (CU, Sequence_Type (Sequence (Node)));
+            PL (CU, "for I in Elements'Range loop");
+            II (CU);
+            PL (CU, "Marshall (Buffer, Elements (I));");
+            DI (CU);
+            PL (CU, "end loop;");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            NL (CU);
+            PL (CU, "is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Length : constant CORBA.Unsigned_Long");
+            PL (CU, "  := Unmarshall (Buffer);");
+            PL (CU, "Elements : Element_Array (1 .. Integer (Length));");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "for I in Elements'Range loop");
+            II (CU);
+            PL (CU, "Elements (I) := Unmarshall (Buffer);");
+            DI (CU);
+            PL (CU, "end loop;");
+            PL (CU, "return To_Sequence (Elements);");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
+         when K_String_Instance =>
+
+            NL (CU);
+            Gen_Marshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            if Is_Wide (Node) then
+               PL (CU, "Data : constant CORBA.Wide_String");
+            else
+               PL (CU, "Data : constant CORBA.String");
+            end if;
+            PL (CU, "  := To_String (Val);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            Add_With (CU, "Broca.CDR");
+            PL (CU, "Marshall");
+            PL (CU, "  (Buffer, Data);");
+            DI (CU);
+            PL (CU, "end Marshall;");
+
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            NL (CU);
+            PL (CU, "is");
+            II (CU);
+            PL (CU, "use " & Ada_Name (Node) & ";");
+            NL (CU);
+            PL (CU, "Data : constant Bounded_String");
+            PL (CU, "  := To_Bounded_String (Unmarshall (Buffer));");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "return Data;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
 
          when others =>
             null;
@@ -2296,22 +2419,24 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Marshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String) is
+      Type_Node : in Node_Id) is
    begin
       Add_With (CU, "Broca.Buffers", Use_It => True);
       PL (CU, "procedure Marshall");
       PL (CU, "  (Buffer : access Buffer_Type;");
-      Put (CU, "   Val    : in " & Type_Name & ")");
+      Put (CU, "   Val    : in "
+           & Ada_Type_Name (Type_Node) & ")");
    end Gen_Marshall_Profile;
 
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
-      Type_Name : in String) is
+      Type_Node : in Node_Id) is
    begin
       Add_With (CU, "Broca.Buffers", Use_It => True);
       PL (CU, "function Unmarshall");
       PL (CU, "  (Buffer : access Buffer_Type)");
-      Put      (CU, "  return " & Type_Name);
+      Put (CU, "  return "
+           & Ada_Type_Name (Type_Node));
    end Gen_Unmarshall_Profile;
 
    function Ada_Type_Name
@@ -2322,21 +2447,26 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when
+           K_Interface         |
+           K_Forward_Interface =>
             return Ada_Full_Name (Node) & ".Ref";
 
+         when K_Sequence_Instance =>
+            return Ada_Full_Name (Node) & ".Sequence";
+
+         when K_String_Instance =>
+            return Ada_Full_Name (Node) & ".Bounded_String";
+
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct =>
-            return Ada_Name (Node);
+           K_Enum       |
+           K_Union      |
+           K_Struct     |
+           K_Declarator =>
+            return Ada_Full_Name (Node);
 
          when K_Scoped_Name =>
             return Ada_Type_Name (Value (Node));
-
-         when K_Declarator =>
-            --  A type created by a typedef.
-            return Ada_Full_Name (Node);
 
          when K_Short =>
             return "CORBA.Short";
@@ -2383,6 +2513,9 @@ package body Ada_Be.Idl2Ada is
          when K_Octet =>
             return "CORBA.Octet";
 
+         when K_Object =>
+            return "CORBA.Object.Ref";
+
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
@@ -2402,15 +2535,21 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when
+           K_Interface    |
+           K_Module       |
+           K_Ben_Idl_File =>
             Add_With (CU, Ada_Full_Name (Node));
 
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct |
-           K_Declarator =>
-            Add_With (CU, Ada_Full_Name (Parent_Scope (Node)));
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Declarator        |
+           K_Forward_Interface |
+           K_Sequence_Instance |
+           K_String_Instance   =>
+            Add_With_Entity (CU, Parent_Scope (Node));
 
          when K_Scoped_Name =>
             Add_With_Entity (CU, Value (Node));
@@ -2430,7 +2569,8 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Object             =>
             Add_With (CU, "CORBA");
 
          when others =>
@@ -2454,13 +2594,36 @@ package body Ada_Be.Idl2Ada is
                       Use_It => True);
 
          when
-           K_Enum   |
-           K_Union  |
-           K_Struct |
-           K_Declarator =>
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Forward_Interface |
+           K_Sequence_Instance |
+           K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream_Suffix,
                       Use_It => True);
+
+         when K_Declarator =>
+            declare
+               P_Node : constant Node_Id
+                 := Parent (Node);
+            begin
+               if True
+                 and then Kind (P_Node) = K_Type_Declarator
+                 and then Is_Empty (Array_Bounds (Node))
+                 and then Is_Interface_Type (T_Type (P_Node)) then
+                  --  For a typedef of an interface type, the
+                  --  dependance must be on the stream unit for
+                  --  the scope that contains the actual definition.
+                  Add_With_Stream (CU, T_Type (P_Node));
+               else
+                  Add_With
+                    (CU, Ada_Full_Name (Parent_Scope (Node))
+                     & Stream_Suffix,
+                     Use_It => True);
+               end if;
+            end;
 
          when K_Scoped_Name =>
             Add_With_Stream (CU, Value (Node));
@@ -2480,7 +2643,9 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Object             =>
+
             Add_With (CU, "Broca.CDR",
                       Use_It => True);
 
@@ -2488,9 +2653,10 @@ package body Ada_Be.Idl2Ada is
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
-            Ada.Text_IO.Put_Line ("Error: A "
-                                  & NK'Img
-                                  & " does not denote a type.");
+            Ada.Text_IO.Put_Line
+              ("Error: A "
+               & NK'Img
+               & " does not denote a streamable type.");
             raise Program_Error;
       end case;
    end Add_With_Stream;

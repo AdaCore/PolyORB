@@ -16,17 +16,16 @@ It is mapped to "type NAME is delta 10 ** -SCALE digits DIGITS;"
 
   typedef sequence<sequence<foo>> SeqSeqFoo;
 ->
-  {instantiate(CORBA.Sequences.Unbounded,Foo,IDL_SEQUENCE_foo}
-  {instantiate(CORBA.Sequences.Unbounded,
-               sequence<foo>{IDL_SEQUENCE_foo},
-               IDL_SEQUENCE_SEQUENCE_foo}
-  typedef sequence<Sequence_Foo> SeqSeqFoo;
+  N1:{seq(Name=IDL_SEQUENCE_foo,Bound=0,Element_Type=foo)}
+  N2:{seq(Name=IDL_SEQUENCE_SEQUENCE_foo,Bound=0,Element_Type=N1)}
+  typedef N2 SeqSeqFoo;
 
-{instantiate} is a new node kind for generic package instanciations.
-Its attributes are: generic package to instanciate, generic formal
-parameters, name of the instance.
-After expansion, N_Sequence nodes have a new attribute which is a pointer
-to the corresponding {instanciate} node.
+{seq} is a new node kind for generic CORBA.Sequences.* instanciations.
+It is a named node, and holds a reference to the original sequence
+node as its Original_Node field.
+The {seq} node replaces the original sequence node wherever
+it is used, *and* is inserted in the scope where it is used,
+before the declaration that uses it.
 
 - For complex_declarators in struct members
 

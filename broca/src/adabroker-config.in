@@ -1,0 +1,12 @@
+#! /bin/sh
+#
+# $Id$
+#
+
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+incdir="$prefix/include"
+libdir="@libdir@"
+alidir="$libdir/adabroker"
+
+echo "-I\"$incdir\" -L\"$libdir\""

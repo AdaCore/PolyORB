@@ -101,25 +101,25 @@ begin
          Output ("test union", Pass);
       end;
 
---        declare
---           X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
---        begin
---           X := X & 16 & 32 & 64 & 128 & 257;
---           Output ("test unbounded sequence",
---                   echoUsequence (Myall_types, X) = X);
---        end;
+      declare
+         X : U_sequence := U_sequence (IDL_SEQUENCE_short.Null_Sequence);
+      begin
+         X := X & 16 & 32 & 64 & 128 & 257;
+         Output ("test unbounded sequence",
+                 echoUsequence (Myall_types, X) = X);
+      end;
 
       Ok := False;
---        declare
---           Member : my_exception_Members;
---        begin
---           testException (Myall_types, 2485);
---        exception
---           when E : my_exception =>
---              Get_Members (E, Member);
---              Ok := (Member.Info = 2485);
---        end;
---        Output ("test exception", Ok);
+      declare
+         Member : my_exception_Members;
+      begin
+         testException (Myall_types, 2485);
+      exception
+         when E : my_exception =>
+            Get_Members (E, Member);
+            Ok := (Member.info = 2485);
+      end;
+      Output ("test exception", Ok);
 
       declare
          X : simple_array := (2, 3, 5, 7, 11);
@@ -214,15 +214,15 @@ begin
       exit when One_Shot;
    end loop;
 
---     declare
---        X : all_types.Ref;
---     begin
---        --  X := all_types.Convert_Forward.From_Forward
---        --   (echoRef (Myall_types, all_types.Convert_Forward.To_Forward
---        --    (Myall_types)));
---        X := echoRef (Myall_types, Myall_types);
---        Output ("test self reference", echoLong (X, 31337) = 31337);
---     end;
+   declare
+      X : all_types.Ref;
+   begin
+      --  X := all_types.Convert_Forward.From_Forward
+      --   (echoRef (Myall_types, all_types.Convert_Forward.To_Forward
+      --    (Myall_types)));
+      X := echoRef (Myall_types, Myall_types);
+      Output ("test self reference", echoLong (X, 31337) = 31337);
+   end;
 
 
 end Client;

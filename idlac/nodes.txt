@@ -22,10 +22,14 @@ Root
 
 Named
   Definition : Identifier_Definition_Acc
+  Repository_Id : Node_Id
+  --  A repository ID explicitly set for this entity
+  --  using #pragma ID.
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
   --  value of Definition.Parent_Scope for this
-  --  copy of the node.
+  --  copy of the node (used for inherited operation
+  --  and attribute nodes).
 
 Scope <-- Named
   Identifier_List : Identifier_Definition_List
@@ -52,6 +56,12 @@ Interface <-- Imports
 
 Forward_Interface <-- Named
   Forward : Node_Id
+  --  After an IDL file is correctly parsed,
+  --  Forward designates the actual interface
+  --  corresponding to this forward declaration.
+  --  The Name and Parent_Scope of the forward
+  --  declaration must then be retrieved from
+  --  the actual declaration's Definition.
   Abst : Boolean
 
 ValueType <-- Imports
@@ -248,8 +258,18 @@ ValueBase
 -- Expansion-specific nodes --
 ------------------------------
 
-Ben_Idl_File <-- Named
+Ben_Idl_File <-- Scope
   Contents : Node_List
 
-END
+Sequence_Instance <-- Named
+  Sequence : Node_Id
+  --  The Sequence node for which this instance was
+  --  created.
 
+String_Instance <-- Named
+  --  An instance of CORBA.Bounded_Strings
+  --  or CORBA.Bounded_Wide_Strings
+  Bound : Node_Id
+  Is_Wide : Boolean
+
+END

@@ -44,6 +44,12 @@ private
    --  the next token from the lexer.
    procedure Next_Token;
 
+   --  Returns the previous token in the token stream.
+   function View_Previous_Token return Idl_Token;
+
+   --  Returns the previous token in the token stream.
+   function View_Previous_Previous_Token return Idl_Token;
+
    --  Returns the next token in the token stream without consuming
    --  it. If necessary get it from the lexer and put it in the buffer
    function View_Next_Token return Idl_Token;
@@ -79,6 +85,10 @@ private
    --  Returns the string of the current_token
    function Get_Next_Token_String return String;
 
+   --  Divides T_Greater_Greater in two T_Greater
+   --  usefull for the parsing of sequences
+
+   procedure Divide_T_Greater_Greater;
 
    ---------------------------------
    --  Management of expressions  --
@@ -119,7 +129,7 @@ private
    --  CORVA V2.3, 3.4
    --
 
-   --  Rule 2:
+   --  Rule 2
    --  <definition> ::= <type_dcl> ";"
    --               |   <const_dcl> ";"
    --               |   <except_dcl> ";"
@@ -129,46 +139,50 @@ private
    procedure Parse_Definition (Result : out Node_Id;
                                Success : out Boolean);
 
-   --  Rule 3:
+   --  Rule 3
    --  <module> ::= "module" <identifier> "{" <definition>+ "}"
    procedure Parse_Module (Result : out Node_Id;
                            Success : out Boolean);
 
-   --  Rule 4:
+   --  Rule 4
    --  <interface> ::= <interface_dcl> | <forward_dcl>
    --
-   --  Rule 5:
+   --  Rule 5
    --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
    --
-   --  Rule 6:
+   --  Rule 6
    --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
    --
-   --  Rule 7:
+   --  Rule 7
    --  <interface_header> ::= ["abstract"] "interface" <identifier>
    --                         [ <interface_inheritance_spec> ]
    --
    --  These rules are equivalent to
    --
+   --  Rule Inter1
    --  <interface> ::= ["abstract"] "interface" <identifier>
    --                  <interface_end>
    --
+   --  Rule Inter2
    --  <interface_end> ::= <forward_dcl_end>
    --                  |   <interface_dcl_end>
    --
+   --  Rule Inter3
    --  <forward_dcl_end> ::=
    --
+   --  Rule Inter4
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
    procedure Parse_Interface (Result : out Node_Id;
                               Success : out Boolean);
 
-   --  Rule 8:
+   --  Rule 8
    --  <interface_body> ::= <export>*
    procedure Parse_Interface_Body (List : in out Node_List;
                                    Success : out Boolean);
 
-   --  Rule 9:
+   --  Rule 9
    --  <export> ::= <type_dcl> ";"
    --           |   <const_dcl> ";"
    --           |   <except_dcl> ";"
@@ -180,19 +194,24 @@ private
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --
-   --  Rule 10:
-   --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
+   --  Rule 10
+   --  <inheritance_spec> ::= ":" <interface_name> { "," <interface_name> }*
    procedure Parse_Interface_Dcl_End (Result : in out Node_Id;
                                       Success : out Boolean);
 
-   --  Rule 12:
+   --  Rule 11
+   --  <interface_name> ::= <scoped_name>
+   procedure Parse_Interface_Name (Result : out Node_Id;
+                                   Success : out Boolean);
+
+   --  Rule 12
    --  <scoped_name> ::= <identifier>
    --                | "::" <identifier>
    --                | <scoped_name> "::" <identifier>
    procedure Parse_Scoped_Name (Result : out Node_Id;
                                 Success : out Boolean);
 
-   --  Rule 13:
+   --  Rule 13
    --  <value> ::= ( <value_dcl>
    --              | <value_abs_dcl>
    --              | <value_box_dcl>
@@ -308,8 +327,7 @@ private
    --  Rule 20
    --  <value_name> ::= <scoped_name>
    procedure Parse_Value_Name (Result : out Node_Id;
-                               Success : out Boolean)
-     renames Parse_Scoped_Name;
+                               Success : out Boolean);
 
    --  Rule 21
    --  <value_element> ::= <export> | < state_member> | <init_dcl>
@@ -823,6 +841,28 @@ private
    procedure Parse_Value_Base_Type (Result : in out Node_Id;
                                     Success : out Boolean);
 
+   ------------------------------
+   --  Inheritance management  --
+   ------------------------------
+
+   --  verifying that an interface can be imported :
+   --     Int in a scoped name denoting the interface to be imported
+   --     Scope is an interface where the other will be imported
+   --  This method verifies that there is no operation or
+   --  attributes in the new imported interface that clashes
+   --  with the already imported ones.
+   function Interface_Is_Importable (Int : in Node_Id;
+                                     Scope : in Node_Id)
+                                     return Boolean;
+
+   --------------------------
+   --  Parsing of pragmas  --
+   --------------------------
+
+   --  parsing pragmas
+   procedure Parse_Pragma (Result : out Node_Id;
+                           Success : out Boolean);
+
    ---------------------------
    --  Parsing of literals  --
    ---------------------------
@@ -1003,5 +1043,8 @@ private
 
    --  Goes to the end of a case label in an union (see rule 75)
    procedure Go_To_End_Of_Case_Label;
+
+   --  Goes to the end of a scoped name (see rule 12)
+   procedure Go_To_End_Of_Scoped_Name;
 
 end Idl_Fe.Parser;

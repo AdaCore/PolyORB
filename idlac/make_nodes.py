@@ -47,7 +47,7 @@ typess = {}
 current = None
 started = 0
 
-input = open ("nodes.txt", "r").readlines()
+input = open (sys.argv [1], "r").readlines()
 for i in input:
     if re.match ("^\s*--", i):
         continue
@@ -176,6 +176,7 @@ print
 print "   type Node_Type is record"
 for i in f:
     if typess [i] == "Node_Id": print "      %-25s : %-25s%s;" % (i, typess [i], ":= No_Node")
+    elif typess [i] == "Node_List": print "      %-25s : %-25s%s;" % (i, typess [i], ":= Nil_List")
     else:  print "      %-25s : %s%s;" % (i, typess [i], "")
 print "   end record;"
 print """

@@ -12,7 +12,7 @@ interface all_types {
   char echoChar(in char arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
-  // all_types echoRef (in all_types arg);
+  all_types echoRef (in all_types arg);
 
   // Enum
   //-----
@@ -52,18 +52,18 @@ interface all_types {
   };
   simple_struct echoStruct (in simple_struct arg);
 
+  // Sequences
+  //----------
+  typedef sequence<short> U_sequence;
+
+  U_sequence echoUsequence (in U_sequence arg);
+
 #if 0
   struct array_struct {
       long a[10];
       string s;
   };
   array_struct echoArrayStruct (in array_struct arg);
-
-  // Sequences
-  //----------
-  typedef sequence<short> U_sequence;
-
-  U_sequence echoUsequence (in U_sequence arg);
 
   // Attributes
   //-----------

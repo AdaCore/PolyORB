@@ -1,64 +1,101 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+ADA = @ADA@
+ADA_FOR_TARGET = @ADA_FOR_TARGET@
+AS = @AS@
+CC = @CC@
+DLLTOOL = @DLLTOOL@
+EXEEXT = @EXEEXT@
+GNATCHOP = @GNATCHOP@
+GNATLS = @GNATLS@
+GNATMAKE = @GNATMAKE@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAKEINFO = @MAKEINFO@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+PYTHON = @PYTHON@
+RANLIB = @RANLIB@
+SED = @SED@
+VERSION = @VERSION@
+
 alidir = $(libdir)/adabroker
 
-ADA_FULL = \
-	   broca-debug.ads \
-	   broca-opaque-chunk_pools.ads \
-	   broca-buffers.ads \
-	   broca-buffers-io_operations.ads \
-           broca-exceptions.ads \
-           broca-exceptions-stack.ads \
-           broca-flags.ads \
-           broca-giop.ads \
-           broca-iiop.ads \
-           broca-inet_server.ads \
-           broca-ior.ads \
-           broca-locks.ads \
-           broca-cdr.ads \
-           broca-object.ads \
-           broca-orb.ads \
-           broca-poa.ads \
-           broca-refs.ads \
-           broca-repository.ads \
-           broca-rootpoa.ads \
-           broca-sequences.ads \
-           broca-server.ads \
-           broca-stream.ads \
-           broca-vararray.ads \
-           corba-forward.ads \
-           corba-object.ads \
-           corba-orb.ads \
-           corba-sequences-unbounded.ads \
-           corba.ads \
-           portableserver-adapteractivator-impl.ads \
-           portableserver-adapteractivator.ads \
-           portableserver-poa.ads \
-           portableserver-poamanager.ads \
-           portableserver-servantactivator.ads \
-           portableserver-servantlocator.ads \
-           portableserver-servantmanager-impl.ads \
-           portableserver.ads
+ADA_FULL =  	   broca-debug.ads 	   broca-opaque-chunk_pools.ads 	   broca-buffers.ads 	   broca-buffers-io_operations.ads            broca-exceptions.ads            broca-exceptions-stack.ads            broca-flags.ads            broca-giop.ads            broca-iiop.ads            broca-inet_server.ads            broca-ior.ads            broca-locks.ads            broca-cdr.ads            broca-object.ads            broca-orb.ads            broca-poa.ads            broca-refs.ads            broca-repository.ads            broca-rootpoa.ads            broca-sequences.ads            broca-server.ads            broca-stream.ads            broca-vararray.ads            corba-forward.ads            corba-object.ads            corba-orb.ads            corba-sequences-unbounded.ads            corba.ads            portableserver-adapteractivator-impl.ads            portableserver-adapteractivator.ads            portableserver-poa.ads            portableserver-poamanager.ads            portableserver-servantactivator.ads            portableserver-servantlocator.ads            portableserver-servantmanager-impl.ads            portableserver.ads
 
-ADA_SPECS = $(ADA_FULL) \
-           broca.ads \
-	   broca-opaque.ads \
-           broca-iop.ads \
-           corba-sequences.ads \
-           portableserver-servantactivator-impl.ads \
-           portableserver-servantlocator-impl.ads \
-           portableserver-servantmanager.ads
+
+ADA_SPECS = $(ADA_FULL)            broca.ads 	   broca-opaque.ads            broca-iop.ads            corba-sequences.ads            portableserver-servantactivator-impl.ads            portableserver-servantlocator-impl.ads            portableserver-servantmanager.ads
+
 
 ADA_BODIES = $(ADA_FULL:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 
-ADASOCKET_OBJECTS = \
-	sockets-constants.o \
-	sockets-link.o \
-	sockets-multicast.o \
-	sockets-naming.o \
-	sockets-thin.o \
-	sockets-utils.o \
-	sockets.o
+ADASOCKET_OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-multicast.o 	sockets-naming.o 	sockets-thin.o 	sockets-utils.o 	sockets.o
+
 
 bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
@@ -70,11 +107,239 @@ CLEANFILES = *.ali
 
 LINK = libtool $(ADA) -o libbroca.la
 
-ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao \
-	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src \
-	-g -O2 $(CFLAGS)
+ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src 	-g -O2 $(CFLAGS)
+
 
 ADACOMPILER = ../support/adacompiler
+mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+CONFIG_CLEAN_FILES =  adabroker-config
+LTLIBRARIES =  $(lib_LTLIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) 
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libbroca_la_DEPENDENCIES =  broca-debug.lo broca-opaque-chunk_pools.lo \
+broca-buffers.lo broca-buffers-io_operations.lo broca-exceptions.lo \
+broca-exceptions-stack.lo broca-flags.lo broca-giop.lo broca-iiop.lo \
+broca-inet_server.lo broca-ior.lo broca-locks.lo broca-cdr.lo \
+broca-object.lo broca-orb.lo broca-poa.lo broca-refs.lo \
+broca-repository.lo broca-rootpoa.lo broca-sequences.lo broca-server.lo \
+broca-stream.lo broca-vararray.lo corba-forward.lo corba-object.lo \
+corba-orb.lo corba-sequences-unbounded.lo corba.lo \
+portableserver-adapteractivator-impl.lo \
+portableserver-adapteractivator.lo portableserver-poa.lo \
+portableserver-poamanager.lo portableserver-servantactivator.lo \
+portableserver-servantlocator.lo portableserver-servantmanager-impl.lo \
+portableserver.lo broca.lo broca-opaque.lo broca-iop.lo \
+corba-sequences.lo portableserver-servantactivator-impl.lo \
+portableserver-servantlocator-impl.lo portableserver-servantmanager.lo \
+sockets-constants.lo sockets-link.lo sockets-multicast.lo \
+sockets-naming.lo sockets-thin.lo sockets-utils.lo sockets.lo
+libbroca_la_OBJECTS = 
+SCRIPTS =  $(bin_SCRIPTS)
+
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = tar
+GZIP_ENV = --best
+SOURCES = $(libbroca_la_SOURCES)
+OBJECTS = $(libbroca_la_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .lo .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+adabroker-config: $(top_builddir)/config.status adabroker-config.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+mostlyclean-libLTLIBRARIES:
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+
+distclean-libLTLIBRARIES:
+
+maintainer-clean-libLTLIBRARIES:
+
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libbroca.la: $(libbroca_la_OBJECTS) $(libbroca_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(libbroca_la_LDFLAGS) $(libbroca_la_OBJECTS) $(libbroca_la_LIBADD) $(LIBS)
+
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
+tags: TAGS
+TAGS:
+
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = src
+
+distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu src/Makefile
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+install-exec-am: install-libLTLIBRARIES install-binSCRIPTS
+install-exec: install-exec-am
+
+install-data-am: install-data-local
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS \
+		uninstall-local
+uninstall: uninstall-am
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-libLTLIBRARIES clean-compile clean-libtool \
+		clean-generic mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-libLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-generic clean-am
+	-rm -f libtool
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-libLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS tags \
+distdir info-am info dvi-am dvi check check-am installcheck-am \
+installcheck install-exec-am install-exec install-data-local \
+install-data-am install-data install-am install uninstall-local \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
 
 %.lo: %.adb
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
@@ -147,3 +412,7 @@ portableserver-servantlocator.lo: broca.ads broca-buffers.ads broca-locks.ads br
 portableserver-servantmanager-impl.lo: broca.ads broca-buffers.ads broca-locks.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-poa.ads broca-refs.ads broca-sequences.ads corba.ads corba-forward.ads corba-object.ads corba-sequences.ads corba-sequences-unbounded.ads portableserver.ads portableserver-adapteractivator.ads portableserver-servantmanager.ads portableserver-servantmanager-impl.ads portableserver-servantmanager-impl.adb
 portableserver-servantmanager.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads broca-sequences.ads corba.ads corba-forward.ads corba-object.ads corba-sequences.ads corba-sequences-unbounded.ads portableserver.ads portableserver-servantmanager.ads
 portableserver.lo: broca.ads broca-buffers.ads broca-exceptions.ads broca-locks.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-orb.ads broca-poa.ads broca-refs.ads broca-sequences.ads corba.ads corba-forward.ads corba-forward.adb corba-object.ads corba-orb.ads corba-sequences.ads corba-sequences-unbounded.ads portableserver.ads portableserver.adb portableserver-adapteractivator.ads portableserver-poa.ads portableserver-poamanager.ads portableserver-servantmanager.ads
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

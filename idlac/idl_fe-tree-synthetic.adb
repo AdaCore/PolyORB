@@ -3,44 +3,6 @@ with Idl_Fe.Tree; use Idl_Fe.Tree;
 
 package body Idl_Fe.Tree.Synthetic is
 
-   function Head
-     (NL : Node_List)
-     return Node_Id
-   is
-      It : Node_Iterator;
-   begin
-      Init (It, NL);
-      return Get_Node (It);
-   end Head;
-
-   function Is_Empty
-     (NL : Node_List)
-     return Boolean
-   is
-      It : Node_Iterator;
-   begin
-      Init (It, NL);
-      return Is_End (It);
-   end Is_Empty;
-
-   function Length
-     (NL : Node_List)
-     return Natural
-   is
-      It : Node_Iterator;
-      Count : Natural
-        := 0;
-   begin
-      Init (It, NL);
-      while not Is_End (It) loop
-         Count := Count + 1;
-         --  Dummy := Get_Node (It);
-         Next (It);
-      end loop;
-
-      return Count;
-   end Length;
-
    function Is_Interface_Type
      (Node : Node_Id)
      return Boolean is
@@ -95,11 +57,16 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Name.all;
+      elsif True
+        and then (Kind (Node) = K_Forward_Interface
+                  or else Kind (Node) = K_Forward_ValueType)
+        and then Forward (Node) /= No_Node
+      then
+         return Name (Forward (Node));
       else
          return "##null##";
       end if;
    end Name;
-
 
    function Parent_Scope
      (Node : in Node_Id)
@@ -121,6 +88,12 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Parent_Scope;
+      elsif True
+        and then (Kind (Node) = K_Forward_Interface
+                  or else Kind (Node) = K_Forward_ValueType)
+        and then Forward (Node) /= No_Node
+      then
+         return Original_Parent_Scope (Forward (Node));
       else
          return No_Node;
       end if;
@@ -219,8 +192,7 @@ package body Idl_Fe.Tree.Synthetic is
       Init (It, Parents (Node));
 
       while not Is_End (It) loop
-         I_Node := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, I_Node);
 
          P_Node := Value (I_Node);
          if not (False
@@ -235,5 +207,15 @@ package body Idl_Fe.Tree.Synthetic is
 
       return Result;
    end All_Ancestors;
+
+   function Integer_Value
+     (Node : Node_Id)
+     return Integer is
+      O_Node : constant Node_Id
+        := Operand (Node);
+   begin
+      return Integer'Value
+        (String_Value (O_Node).all);
+   end Integer_Value;
 
 end Idl_Fe.Tree.Synthetic;

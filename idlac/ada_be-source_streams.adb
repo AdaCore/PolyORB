@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#6 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#7 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -59,6 +59,30 @@ package body Ada_Be.Source_Streams is
       Unit.Indent_Level := Unit.Indent_Level - 1;
    end Dec_Indent;
 
+   function Is_Ancestor
+     (U1 : String;
+      U2 : String)
+     return Boolean;
+   --  True if library unit U1 is an ancestor of U2.
+
+   function Is_Ancestor
+     (U1 : String;
+      U2 : String)
+     return Boolean
+   is
+      use Ada.Characters.Handling;
+
+      LU1 : constant String
+        := To_Lower (U1) & ".";
+      LU2 : constant String
+        := To_Lower (U2);
+   begin
+      return True
+        and then LU1'Length <= LU2'Length
+        and then LU1 = LU2
+        (LU2'First .. LU2'First + LU1'Length - 1);
+   end Is_Ancestor;
+
    procedure Add_With
      (Unit   : in out Compilation_Unit;
       Dep    : String;
@@ -69,7 +93,11 @@ package body Ada_Be.Source_Streams is
       LU_Name : constant String
         := Unit.Library_Unit_Name.all;
    begin
-      if Dep = LU_Name then
+      if False
+        or else Dep = LU_Name
+        or else Is_Ancestor (Dep, LU_Name)
+      then
+         --  No need to with oneself or one's ancestor.
          return;
       end if;
 
@@ -79,11 +107,10 @@ package body Ada_Be.Source_Streams is
 
       if True
         and then Unit.Kind = Unit_Spec
-        and then LU_Name'Length + 1 < Dep'Length
-        and then Dep (Dep'First .. Dep'First + LU_Name'Length)
-          = LU_Name & "." then
+        and then Is_Ancestor (LU_Name, Dep)
+      then
          --  All hope abandon he who trieth to make a unit
-         --  depend upon its child.
+         --  spec depend upon its child.
          pragma Debug (O ("The declaration of " & LU_Name
                           & " cannot depend on " & Dep));
 

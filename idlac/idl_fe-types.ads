@@ -39,7 +39,8 @@ package Idl_Fe.Types is
       C_String,
       C_WString,
       C_Octet,
-      C_Enum);
+      C_Enum,
+      C_No_Kind);
 
    --  type of a constant
    type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
@@ -106,19 +107,29 @@ package Idl_Fe.Types is
    -- A useful list of root nodes --
    ---------------------------------
 
-   --  Definition in a lisp like style of a node list
-   type Node_List_Cell;
-   type Node_List is access Node_List_Cell;
-   type Node_List_Cell is record
-      Car : Node_Id;
-      Cdr : Node_List;
-   end record;
+   type Node_List is private;
+   --  A list of nodes.
 
-   --  Definition of the iterator on a node list
-   type Node_Iterator is new Node_List;
+   type Node_Iterator is private;
+   --  An iterator on a node list.
 
    --  the empty list
-   Nil_List : constant Node_List := null;
+   Nil_List : constant Node_List;
+
+   function Head
+     (NL : Node_List)
+     return Node_Id;
+   --  Return the first node in NL.
+
+   function Is_Empty
+     (NL : Node_List)
+     return Boolean;
+   --  True iff NL is empty.
+
+   function Length
+     (NL : Node_List)
+     return Natural;
+   --  The length of a list.
 
    --  Simple way to iterate over a node_list.
    --  NODE_ITERATOR is a type representing an iterator, which must
@@ -133,14 +144,22 @@ package Idl_Fe.Types is
    --  begin
    --    init (it, rep.contents);
    --    while not is_end (it) loop
-   --      node := get_node (it);
+   --      get_next_node (it, node);
    --      ...
-   --      next (it);
    --    end loop;
-   procedure Init (It : out Node_Iterator; List : Node_List);
-   function Get_Node (It : Node_Iterator) return Node_Id;
-   procedure Next (It : in out Node_Iterator);
-   function Is_End (It : Node_Iterator) return Boolean;
+   --  end;
+
+   procedure Init
+     (It : out Node_Iterator;
+      List : Node_List);
+
+   procedure Get_Next_Node
+     (It : in out Node_Iterator;
+      Node : out Node_Id);
+
+   function Is_End
+     (It : Node_Iterator)
+     return Boolean;
 
    --  Appends a node at the end of a list.
    procedure Append_Node (List : in out Node_List;
@@ -149,6 +168,15 @@ package Idl_Fe.Types is
    --  Appends a node at the end of a list.
    function Append_Node (List : in Node_List;
                          Node : Node_Id) return Node_List;
+
+   procedure Remove_Node
+     (List : in out Node_List;
+      Node : Node_Id);
+   function Remove_Node
+     (List : in Node_List;
+      Node : Node_Id)
+     return Node_List;
+   --  Remove the first occurrence of Node from List
 
    --  Insert Node into List immediately before the first
    --  occurrence of Before.
@@ -167,10 +195,12 @@ package Idl_Fe.Types is
    --  Look whether node is in list or not
    function Is_In_List (List : Node_List; Node : Node_Id) return Boolean;
 
-   --  Removes a node from the list. Actually only removes the first
-   --  occurence of the node or does nothing if the node was not in
-   --  the list.
-   procedure Remove_Node (List : in out Node_List; Node : Node_Id);
+   --  Look whether node is in the list or not
+   --  node is supposed to be a scoped name and the list must be
+   --  a list of scoped names. What is compared here is not the nodes
+   --  themselves but the node they are pointing to
+   function Is_In_Parent_List (List : Node_List; Node : Node_Id)
+                               return Boolean;
 
    --  Frees all the list
    procedure Free (List : in out Node_List);
@@ -226,31 +256,36 @@ package Idl_Fe.Types is
    --  Scopes are stacked and create an identifier space.
    --  In a scope, an identifier has at most one meaning.
 
-   --  Get the root (the oldest) and current (the newest) scope.
    function Get_Root_Scope return Node_Id;
    function Get_Current_Scope return Node_Id;
+   --  Get the root (the oldest) and current (the newest) scope.
 
-   --  Get the scope of the current scope
+   function Get_Current_Gen_Scope
+     return Node_Id;
+   --  Return the current repository, idl file, module,
+   --  interface or valuetype.
+
    function Get_Previous_Scope return Node_Id;
+   --  Get the scope of the current scope
 
+   procedure Push_Scope (Scope : Node_Id);
    --  Create a new scope, defined by a Scope node, add it in
    --  the current scope, and activate it.
-   procedure Push_Scope (Scope : Node_Id);
 
-   --  Unstack the current scope.
    procedure Pop_Scope;
+   --  Unstack the current scope.
 
    --  In order to ensure that each forward definition of a value
    --  or an interface is implemented in the same scope, here are
    --  some methods to take forward declarations and implementations
    --  into account
 
-   --  To add a forward declaration in the list
    procedure Add_Int_Val_Forward (Node : in Node_Id);
+   --  To add a forward declaration in the list
 
+   procedure Add_Int_Val_Definition (Node : in Node_Id);
    --  To take an implementation into account and remove the
    --  corresponding forward declaration from the list.
-   procedure Add_Int_Val_Definition (Node : in Node_Id);
 
    --------------------------
    -- Identifiers handling --
@@ -260,18 +295,6 @@ package Idl_Fe.Types is
    --  Check if the name is redefinable in the current scope.
    --  If result is false, means that Find_Identifier_Definition
    --  has a NOT NULL result!
-
-   function Check_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  return it or Nil_Uniq_Id
-
-   function Create_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier if it doesn't exist
-   --  return it
 
    function Find_Identifier_Definition
      (Name : String)
@@ -284,10 +307,6 @@ package Idl_Fe.Types is
    --  Find the node corresponding to the current identifier.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-
---   function Find_Identifier_Node (Scope : Node_Id; Name : String)
---                                  return Node_Id;
-
 
    procedure Redefine_Identifier
      (A_Definition : Identifier_Definition_Acc;
@@ -305,51 +324,22 @@ package Idl_Fe.Types is
    --  Returns true if successful, False if the identifier was
    --  already in this scope.
 
-   function Check_Identifier_In_Storage
-     (Scope : Node_Id;
-      Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the scope and return it or Nil_Uniq_Id
-
    function Find_Identifier_In_Storage
      (Scope : Node_Id; Name : String)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in Scope.
    --  If this identifier is not defined, returns a null pointer.
 
-   function Create_Identifier_In_Storage
-     (Identifier : String)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the storage table
-   --  at the end of the scope parsing
-   --  return it
-
    procedure Add_Definition_To_Storage
      (Definition : in Identifier_Definition_Acc);
    --  Add the definition to the current scope storage table.
    --  It is done at the end of the scope parsing (called by pop_scope)
-
-   function Check_Imported_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the imported table.
-   --  return it or Nil_Uniq_Id
 
    function Find_Imported_Identifier_Definition
      (Name : String)
      return Identifier_Definition_Acc;
    --  Find the identifier definition in the imported table.
    --  If this identifier is not defined, returns a null pointer.
-
-   function Create_Identifier_In_Imported
-     (Identifier : String;
-      Scope : Node_Id)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the imported table of
-   --  the given scope
-   --  return it
 
    procedure Add_Definition_To_Imported
      (Definition : in Identifier_Definition_Acc;
@@ -374,16 +364,17 @@ package Idl_Fe.Types is
    -- Identifiers table --
    -----------------------
 
-   --  Each identifier is given a unique id number. This number is
-   --  its location in the table of all the identifiers definitions :
-   --  the id_table.
-   --  In order to find easily a given identifier in this id_table,
-   --  an hashtable of the position of the identifiers in the
-   --  id_table is maintained : the Hash_table. This one keeps the
-   --  position in the id_table of the first identifier defined for
-   --  each possible hash value. All the identifiers having the same
-   --  hash_value are then linked : each one has a pointer on the
-   --  next defined.
+   --  Each identifier is assigned a unique id number. This number is
+   --  its location in the table of all the identifiers definitions:
+   --  the Id_Table.
+   --  In order to easily find a given identifier in the Id_Table,
+   --  a hash table is used to store the mapping of identifier names
+   --  to unique identifiers: the Hash_Table.
+
+   --  The Has_Table retains the position in the Id_Table of the first
+   --  identifier defined for each possible hash value. All the
+   --  identifiers having the same hash value are then linked: each one
+   --  has a pointer on the next defined: Next.
 
    --  dimension of the hashtable
    type Hash_Value_Type is mod 2**32;
@@ -396,11 +387,11 @@ package Idl_Fe.Types is
    type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
    Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
 
-   --  Type of an entry in the id_table.
+   --  Type of an entry in the Id_Table.
    --  it contains the following :
-   --    - the identifier_definition,
-   --    - a pointer on the entry correponding to the definition
-   --  of an identifier with the same hash value.
+   --    - the Identifier_Definition,
+   --    - a pointer to the entry correponding to the next definition
+   --      of an identifier with the same hash value.
    type Hash_Entry is record
       Definition : Identifier_Definition_Acc := null;
       Next : Uniq_Id;
@@ -409,6 +400,7 @@ package Idl_Fe.Types is
    ----------------------------------
    --  The Gnat_Table adapted type --
    ----------------------------------
+
    --  This section provides an implementation of dynamically resizable one
    --  dimensional array type.The idea is to mimic the normal Ada semantics for
    --  arrays as closely as possible with the one additional capability of
@@ -488,11 +480,11 @@ package Idl_Fe.Types is
    -------------------------------------------------
    --  the structure used for storing identifiers --
    -------------------------------------------------
+
    type Storage is record
       Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
       Content_Table : Table;
    end record;
-
 
 private
 
@@ -504,7 +496,7 @@ private
    type Identifier_Definition_Cell;
    type Identifier_Definition_List is access Identifier_Definition_Cell;
    type Identifier_Definition_Cell is record
-      Definition : Identifier_Definition;
+      Definition : Identifier_Definition_Acc;
       Next : Identifier_Definition_List;
    end record;
 
@@ -516,5 +508,20 @@ private
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type;
+
+   ---------------
+   -- Node list --
+   ---------------
+
+   type Node_List_Cell;
+   type Node_List is access Node_List_Cell;
+   type Node_List_Cell is record
+      Car : Node_Id;
+      Cdr : Node_List;
+   end record;
+
+   Nil_List : constant Node_List := null;
+
+   type Node_Iterator is new Node_List;
 
 end Idl_Fe.Types;

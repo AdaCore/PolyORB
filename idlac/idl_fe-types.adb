@@ -1,7 +1,6 @@
 with Ada.Unchecked_Deallocation;
 with System;
 with GNAT.Case_Util;
-with GNAT.Table;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
@@ -9,14 +8,21 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Debug;
 pragma Elaborate (Idl_Fe.Debug);
 
+with Utils; use Utils;
+
 package body Idl_Fe.Types is
 
    -----------
    -- Debug --
    -----------
 
-   Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.types");
+   Flag : constant Natural
+     := Idl_Fe.Debug.Is_Active ("idl_fe.types");
    procedure O is new Idl_Fe.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Idl_Fe.Debug.Is_Active ("idl_fe.types_method_trace");
+   procedure O2 is new Idl_Fe.Debug.Output (Flag2);
 
    --------------------------------------
    -- Root of the tree parsed from IDL --
@@ -59,6 +65,38 @@ package body Idl_Fe.Types is
    -- A list of nodes --
    ---------------------
 
+   function Head
+     (NL : Node_List)
+     return Node_Id is
+   begin
+      pragma Assert (NL /= Nil_List);
+      return NL.Car;
+   end Head;
+
+   function Is_Empty
+     (NL : Node_List)
+     return Boolean is
+   begin
+      return NL = Nil_List;
+   end Is_Empty;
+
+   function Length
+     (NL : Node_List)
+     return Natural
+   is
+      Current : Node_List
+        := NL;
+      Count : Natural
+        := 0;
+   begin
+      while not Is_Empty (Current) loop
+         Count := Count + 1;
+         Current := Current.Cdr;
+      end loop;
+
+      return Count;
+   end Length;
+
    ----------
    -- Init --
    ----------
@@ -68,28 +106,26 @@ package body Idl_Fe.Types is
       It := Node_Iterator (List);
    end Init;
 
-   ----------------
-   --  Get_Node  --
-   ----------------
-   function Get_Node (It : Node_Iterator) return Node_Id is
-   begin
-      return It.Car;
-   end Get_Node;
+   -------------------
+   -- Get_Next_Node --
+   -------------------
 
-   ------------
-   --  Next  --
-   ------------
-   procedure Next (It : in out Node_Iterator) is
+   procedure Get_Next_Node
+     (It : in out Node_Iterator;
+      Node : out Node_Id) is
    begin
+      pragma Debug (O ("Getting head of list at "
+                       & Img (It.all'Address)));
+      Node := It.Car;
       It := Node_Iterator (It.Cdr);
-   end Next;
+   end Get_Next_Node;
 
    --------------
    --  Is_End  --
    --------------
    function Is_End (It : Node_Iterator) return Boolean is
    begin
-      return It = null;
+      return Is_Empty (Node_List (It));
    end Is_End;
 
    -------------------
@@ -126,6 +162,10 @@ package body Idl_Fe.Types is
       end if;
    end Append_Node;
 
+   ---------------------
+   --  Insert_Before  --
+   ---------------------
+
    procedure Insert_Before
      (List : in out Node_List;
       Node : Node_Id;
@@ -144,6 +184,10 @@ package body Idl_Fe.Types is
          Insert_Before (List.Cdr, Node, Before);
       end if;
    end Insert_Before;
+
+   --------------------
+   --  Insert_After  --
+   --------------------
 
    procedure Insert_After
      (List : in Node_List;
@@ -173,15 +217,42 @@ package body Idl_Fe.Types is
       Node : Node_Id)
      return Boolean is
    begin
+      pragma Debug (O2 ("Is_In_List : enter"));
       if List = Nil_List then
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : nil_list"));
          return False;
       end if;
       if List.Car = Node then
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : found"));
          return True;
       else
+         pragma Debug (O2 ("Is_In_List : enter"));
+         pragma Debug (O ("Is_In_List : searching further"));
          return Is_In_List (List.Cdr, Node);
       end if;
    end Is_In_List;
+
+   -------------------------
+   --  Is_In_Parent_List  --
+   -------------------------
+
+   function Is_In_Parent_List
+     (List : Node_List;
+      Node : Node_Id)
+      return Boolean is
+   begin
+      if List = Nil_List then
+         return False;
+      end if;
+      pragma Assert (Kind (List.Car) = K_Scoped_Name);
+      if Value (List.Car) = Value (Node) then
+         return True;
+      else
+         return Is_In_Parent_List (List.Cdr, Node);
+      end if;
+   end Is_In_Parent_List;
 
    -------------------
    --  Remove_Node  --
@@ -191,29 +262,39 @@ package body Idl_Fe.Types is
       new Ada.Unchecked_Deallocation
      (Node_List_Cell, Node_List);
 
+   -------------------
+   --  Remove_Node  --
+   -------------------
+
+   function Remove_Node
+     (List : Node_List;
+      Node : Node_Id)
+     return Node_List is
+   begin
+      if List /= Nil_List then
+         if List.Car = Node then
+            declare
+               Old_List : Node_List := List;
+               Old_Cdr : constant Node_List
+                 := List.Cdr;
+            begin
+               pragma Debug (O ("Deallocating list cell at "
+                                & Img (Old_List.all'Address)));
+               Unchecked_Deallocation (Old_List);
+               return Old_Cdr;
+            end;
+         else
+            List.Cdr := Remove_Node (List.Cdr, Node);
+         end if;
+      end if;
+      return List;
+   end Remove_Node;
+
    procedure Remove_Node
      (List : in out Node_List;
       Node : Node_Id) is
-      Old_List : Node_List;
    begin
-      if List = null then
-         return;
-      end if;
-      if List.Car = Node then
-         Old_List := List;
-         List := List.Cdr;
-         Unchecked_Deallocation (Old_List);
-      else
-         while List.Cdr /= null loop
-            if List.Cdr.Car = Node then
-               Old_List := List.Cdr;
-               List.Cdr := List.Cdr.Cdr;
-               Unchecked_Deallocation (Old_List);
-               return;
-            end if;
-            List := List.Cdr;
-         end loop;
-      end if;
+      List := Remove_Node (List, Node);
    end Remove_Node;
 
    ------------
@@ -243,7 +324,7 @@ package body Idl_Fe.Types is
       Temp_List : Node_List := List;
       Result : Integer := 0;
    begin
-      while Temp_List /= null loop
+      while Temp_List /= Nil_List loop
          Result := Result + 1;
          Temp_List := Temp_List.Cdr;
       end loop;
@@ -264,11 +345,11 @@ package body Idl_Fe.Types is
    begin
       Init (It, In_List);
       while not Is_End (It) loop
-         Node := Get_Node (It);
+         Get_Next_Node (It, Node);
+
          if not Is_In_List (Result_List, Node) then
             Append_Node (Result_List, Node);
          end if;
-         Next (It);
       end loop;
       return Result_List;
    end Simplify_Node_List;
@@ -282,8 +363,7 @@ package body Idl_Fe.Types is
    begin
       Init (It, From);
       while not Is_End (It) loop
-         N := Get_Node (It);
-         Next (It);
+         Get_Next_Node (It, N);
 
          if not Is_In_List (Into, N) then
             Append_Node (Into, N);
@@ -325,11 +405,13 @@ package body Idl_Fe.Types is
    is
       List : Identifier_Definition_List;
    begin
+      pragma Debug (O2 ("Add_Identifier_Definition : enter"));
       List := new Identifier_Definition_Cell'
-        (Definition => Identifier.all,
+        (Definition => Identifier,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
       Add_Definition_To_Storage (Identifier);
+      pragma Debug (O2 ("Add_Identifier_Definition : end"));
    end Add_Identifier_Definition;
 
    ----------------------------
@@ -503,19 +585,16 @@ package body Idl_Fe.Types is
       end if;
    end Set_Last;
 
+   --------------------------------
+   -- Identifiers handling types --
+   --------------------------------
 
-   ----------------------------------
-   --  identifiers handling types  --
-   ----------------------------------
-   package Id_Table is new GNAT.Table
-     (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
-      Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
-      Table_Increment => 100);
+   Id_Table : Table;
 
+   -----------
+   -- Hash  --
+   -----------
 
-   ------------
-   --  Hash  --
-   -------------
    function Hash (Str : in String) return Hash_Value_Type is
       Res : Hash_Value_Type := 0;
    begin
@@ -525,8 +604,6 @@ package body Idl_Fe.Types is
       end loop;
       return Res;
    end Hash;
-
-
 
    -------------------------------------
    --  scope handling types  methods  --
@@ -581,8 +658,29 @@ package body Idl_Fe.Types is
       return Current_Scope.Scope;
    end Get_Current_Scope;
 
+   ---------------------------
+   -- Get_Current_Gen_Scope --
+   ---------------------------
+
+   function Get_Current_Gen_Scope
+     return Node_Id
+   is
+      Scope : Scope_Stack_Acc
+        := Current_Scope;
+   begin
+      while Scope /= null
+        and then not Is_Gen_Scope (Scope.Scope) loop
+         Scope := Scope.Parent;
+      end loop;
+      if Scope /= null then
+         return Scope.Scope;
+      else
+         return No_Node;
+      end if;
+   end Get_Current_Gen_Scope;
+
    -------------------------
-   --  Get_Current_Scope  --
+   --  Get_Previous_Scope  --
    -------------------------
 
    function Get_Previous_Scope
@@ -590,6 +688,48 @@ package body Idl_Fe.Types is
    begin
       return Current_Scope.Parent.Scope;
    end Get_Previous_Scope;
+
+   --------------------------
+   -- Identifiers handling --
+   --------------------------
+
+   function Identifier_Index
+     (Identifier : String;
+      Hash_Table : Hash_Table_Type;
+      Table : Idl_Fe.Types.Table)
+     return Uniq_Id;
+   --  Return the Uniq_id of Identifier if it is defined in
+   --  Table, or else return Nil_Uniq_Id.
+
+   function Imported_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id;
+   --  Check if the  uniq_id from an identifier is already defined
+   --  in the imported table.
+   --  return it or Nil_Unqiq_Id
+
+   procedure Create_Identifier_Index
+     (Identifier : String;
+      Hash_Table : in out Hash_Table_Type;
+      Table : in out Idl_Fe.Types.Table;
+      Index : out Uniq_Id);
+   --  Create the uniq_id entry for an identifier if it doesn't exist
+   --  return it
+
+   function Create_Identifier_In_Storage
+     (Identifier : String)
+     return Uniq_Id;
+   --  Create the uniq_id entry for an identifier in the storage table
+   --  at the end of the scope parsing
+   --  return it
+
+   function Create_Identifier_In_Imported
+     (Identifier : String;
+      Scope : Node_Id)
+     return Uniq_Id;
+   --  Create the uniq_id entry for an identifier in the imported table of
+   --  the given scope
+   --  return it
 
    ------------------
    --  Push_Scope  --
@@ -599,18 +739,67 @@ package body Idl_Fe.Types is
      (Scope : Node_Id)
    is
       Stack : Scope_Stack_Acc;
+      Index : Uniq_Id;
+
+      procedure Reenter_Definition_List
+        (Definition_List : Identifier_Definition_List);
+      --  Enter all identifiers in Definition_List into
+      --  the global Id_Table and Hash_Table, in reverse
+      --  order.
+
+      procedure Reenter_Definition_List
+        (Definition_List : Identifier_Definition_List) is
+      begin
+         --  Definitions must be re-added in the order they
+         --  were first created, i. e. stating at the tail
+         --  of Definition_List.
+
+         if Definition_List = null then
+            return;
+         end if;
+
+         pragma Debug (O2 ("Reenter_Definition_List: enter"));
+
+         Reenter_Definition_List (Definition_List.Next);
+
+         --  first find a place for this identifier in the table
+         Create_Identifier_Index
+           (Definition_List.Definition.Name.all,
+            Hash_Table,
+            Id_Table,
+            Index);
+         --  set its fields previous_definition and id that were
+         --  not used in the scope table
+         Definition_List.Definition.Previous_Definition :=
+           Id_Table.Table (Index).Definition;
+         Definition_List.Definition.Id := Index;
+         --  And finally add it to the scope
+         Id_Table.Table (Index).Definition := Definition_List.Definition;
+         pragma Debug (O2 ("Reenter_Definition_List: leave"));
+      end Reenter_Definition_List;
+
    begin
-      pragma Debug (O ("Push_scope : enter"));
+      pragma Debug (O2 ("Push_Scope : enter"));
+      pragma Assert (Is_Scope (Scope));
+
       Stack := new Scope_Stack;
       Stack.Parent := Current_Scope;
       Stack.Scope := Scope;
       if Current_Scope = null then
-         pragma Debug (O ("Push_scope : current_scope is null"));
-         pragma Debug (O ("Push_scope : root scope is"
-                          & Name (Scope)));
+         pragma Debug (O ("Push_Scope : current_scope is null."));
+         pragma Debug (O ("Push_Scope : root scope is defined at " &
+                          Idl_Fe.Errors.Display_Location
+                          (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
       Current_Scope := Stack;
+
+      pragma Debug (O ("Push_Scope : putting the old definition " &
+                       "in the id_table."));
+      --  Add all definition of the new scope into the hash table,
+      --  in case there are some. Useful when a scoped is reopened.
+      Reenter_Definition_List (Identifier_List (Scope));
+      pragma Debug (O2 ("Push_Scope : end"));
    end Push_Scope;
 
    -----------------
@@ -621,22 +810,29 @@ package body Idl_Fe.Types is
       Old_Scope : Scope_Stack_Acc;
       Definition_List : Identifier_Definition_List;
       Old_Definition_List : Identifier_Definition_List;
+      Old_Definition : Identifier_Definition_Acc;
       Forward_Defs : Node_Iterator;
       Forward_Def : Node_Id;
       Hash_Index : Hash_Value_Type;
       Index : Uniq_Id;
    begin
-      pragma Debug (O ("pop_scope : end"));
+      pragma Debug (O2 ("Pop_Scope : enter"));
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
       --  Add these definition to the identifier_table of the current_scope
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
+         Old_Definition := Definition_List.Definition;
+         --  remove the identifier from the id_table
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          if Definition_List.Definition.Previous_Definition = null then
+            pragma Debug (O ("Pop_Scope: removing "
+                             & Definition_List.Definition.Name.all));
+
             Hash_Index := Hash (Definition_List.Definition.Name.all)
               mod Hash_Mod;
+
             if Id_Table.Table (Hash_Table (Hash_Index)).Definition = null then
                Hash_Table (Hash_Index) := Nil_Uniq_Id;
             else
@@ -648,31 +844,38 @@ package body Idl_Fe.Types is
                Id_Table.Table (Index).Next := Nil_Uniq_Id;
             end if;
          end if;
+         --  once the definition is no more in the id table but
+         --  only in the table of the scope, the previous_definition
+         --  field has no more interest, as well as the Id field
+         Old_Definition.Previous_Definition := null;
+         Old_Definition.Id := Nil_Uniq_Id;
 
          Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
-         Unchecked_Deallocation (Old_Definition_List);
       end loop;
 
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
       --  Test if all forward definitions were implemented
-      if Kind (Old_Scope.Scope) = K_Repository or
-        Kind (Old_Scope.Scope) = K_Module then
+      if False
+        or else Kind (Old_Scope.Scope) = K_Repository
+        or else Kind (Old_Scope.Scope) = K_Module
+      then
          Init (Forward_Defs,
                Unimplemented_Forwards (Old_Scope.Scope));
+
+         while not Is_End (Forward_Defs) loop
+            Get_Next_Node (Forward_Defs, Forward_Def);
+
+            Idl_Fe.Errors.Parser_Error
+              ("The forward declaration " &
+               Idl_Fe.Errors.Display_Location
+               (Get_Location (Forward_Def)) &
+               " is not implemented.",
+               Idl_Fe.Errors.Error,
+               Get_Location (Old_Scope.Scope));
+         end loop;
       end if;
-      while not Is_End (Forward_Defs) loop
-         Forward_Def := Get_Node (Forward_Defs);
-         Idl_Fe.Errors.Parser_Error
-           ("The forward declaration " &
-            Idl_Fe.Errors.Display_Location
-            (Get_Location (Forward_Def)) &
-            " is not implemented.",
-            Idl_Fe.Errors.Error,
-            Get_Location (Old_Scope.Scope));
-         Next (Forward_Defs);
-      end loop;
 
       --  Free the forward definition list
 
@@ -688,24 +891,22 @@ package body Idl_Fe.Types is
       end if;
 
       Unchecked_Deallocation (Old_Scope);
-      pragma Debug (O ("pop_scope : end"));
+      pragma Debug (O2 ("Pop_Scope : end"));
    end Pop_Scope;
 
+   --------------------
+   -- Is_Redefinable --
+   --------------------
 
-
-   ------------------------------------
-   --  identifiers handling methods  --
-   ------------------------------------
-
-   ----------------------
-   --  Is_Redefinable  --
-   ----------------------
    function Is_Redefinable (Name : String) return Boolean is
       A_Definition : Identifier_Definition_Acc;
    begin
-      pragma Debug (O ("Is_Redefinable : enter"));
+      pragma Debug (O2 ("Is_Redefinable : enter"));
+      pragma Debug (O ("Is_Redefinable : the identifier is : " & Name));
       --  Checks if the identifier is already imported
-         if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+         if Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+            pragma Debug (O2 ("Is_Redefinable : already imported"));
+            pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
       A_Definition := Find_Identifier_Definition (Name);
@@ -717,105 +918,176 @@ package body Idl_Fe.Types is
          --  Checks if the identifier is not being redefined in the same
          --  scope.
          if A_Definition.Parent_Scope = Current_Scope.Scope then
+            pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
-         --  A attribute or operation may not be redefined
+         --  An attribute or operation may not be redefined
          if Kind (A_Definition.Node) = K_Operation or
            (Kind (A_Definition.Node) = K_Declarator and then
             Kind (Parent (A_Definition.Node)) = K_Attribute) then
             pragma Debug (O ("Is_Redefinable : cannot redefine an op, attr"));
+            pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
          --  Ckecks if identifier found is the current scope name:
          --  it is not allowed except for the operation
          if Kind (Current_Scope.Scope) /= K_Operation
            and then A_Definition = Definition (Current_Scope.Scope) then
+            pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
       end if;
+      pragma Debug (O2 ("Is_Redefinable : end"));
       return True;
    end Is_Redefinable;
 
-   ------------------------------
-   --  Check_Identifier_Index  --
-   ------------------------------
-   function Check_Identifier_Index (Identifier : String) return Uniq_Id is
-      use Idl_Fe.Lexer;
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
-      Index : Uniq_Id := Hash_Table (Hash_Index);
-   begin
-      pragma Debug (O ("Check_Identifier_Index : enter"));
-      if Index /= Nil_Uniq_Id then
-         while Id_Table.Table (Index).Definition.Name /= null loop
-            if Idl_Identifier_Equal
-              (Id_Table.Table (Index).Definition.Name.all,
-               Identifier) /= Differ
-            then
-               return Index;
-            end if;
-            if Id_Table.Table (Index).Next = Nil_Uniq_Id then
-               exit;
-            end if;
-            Index := Id_Table.Table (Index).Next;
-         end loop;
-      end if;
-      pragma Debug (O ("Check_Identifier_Index : end"));
-      return Nil_Uniq_Id;
-   end Check_Identifier_Index;
+   ----------------------
+   -- Identifier_Index --
+   ----------------------
 
-   ----------------------------------
-   --  Create_Indentifier_Index    --
-   ----------------------------------
-   function Create_Identifier_Index (Identifier : String) return Uniq_Id is
+   function Identifier_Index
+     (Identifier : String;
+      Hash_Table : Hash_Table_Type;
+      Table : Idl_Fe.Types.Table)
+     return Uniq_Id is
       use Idl_Fe.Lexer;
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
-      Index : Uniq_Id := Hash_Table (Hash_Index);
+
+      Index : Uniq_Id
+        := Hash_Table (Hash (Identifier) mod Hash_Mod);
+
    begin
-      pragma Debug (O ("Create_Identifier_Index : enter"));
-      if Index = Nil_Uniq_Id then
-         Id_Table.Increment_Last;
-         Index := Id_Table.Last;
-         Hash_Table (Hash_Index) := Index;
-      else
-         while Id_Table.Table (Index).Definition.Name /= null loop
-            if Idl_Identifier_Equal
-              (Id_Table.Table (Index).Definition.Name.all,
-               Identifier) /= Differ
-            then
-               return Index;
-            end if;
-            if Id_Table.Table (Index).Next = Nil_Uniq_Id then
-               Id_Table.Increment_Last;
-               Id_Table.Table (Index).Next := Id_Table.Last;
-               Index := Id_Table.Last;
-               exit;
-            end if;
-            Index := Id_Table.Table (Index).Next;
-         end loop;
-      end if;
-      --  Add an entry in INDEX.
-      Id_Table.Table (Index) := (Definition => null,
-                                 Next => Nil_Uniq_Id);
+      pragma Debug (O2 ("Identifier_Index : enter"));
+      pragma Debug (O ("Identifier_Index : the identifier is " & Identifier));
+      while Index /= Nil_Uniq_Id
+        and then Table.Table (Index).Definition.Name /= null
+        and then Idl_Identifier_Equal
+          (Table.Table (Index).Definition.Name.all,
+           Identifier) = Differ
+      loop
+         pragma Debug (O ("Identifier_Index : identifier is " &
+                          Identifier &
+                          ", in the table, we have " &
+                          Table.Table (Index).Definition.Name.all));
+         Index := Table.Table (Index).Next;
+      end loop;
+      pragma Debug (O2 ("Identifier_Index : end"));
       return Index;
+   end Identifier_Index;
+
+   function Imported_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id
+   is
+      use Idl_Fe.Lexer;
+
+      Scope : Node_Id;
+   begin
+      pragma Debug (O2 ("Imported_Identifier_Index : enter"));
+      if not Is_Imports (Current_Scope.Scope) then
+         pragma Debug (O2 ("Imported_Identifier_Index : end"));
+         return Nil_Uniq_Id;
+      end if;
+      Scope := Current_Scope.Scope;
+      pragma Debug (O ("Imported_Identifier_Index : scope type is " &
+                       Node_Kind'Image (Kind (Scope)) & "."));
+
+      pragma Debug (O2 ("Imported_Identifier_Index : end"));
+      return Identifier_Index
+        (Identifier,
+         Imported_Table (Scope).Hash_Table,
+         Imported_Table (Scope).Content_Table);
+
+   end Imported_Identifier_Index;
+
+   ------------------------------
+   -- Create_Indentifier_Index --
+   ------------------------------
+
+   procedure Create_Identifier_Index
+     (Identifier : String;
+      Hash_Table : in out Hash_Table_Type;
+      Table : in out Idl_Fe.Types.Table;
+      Index : out Uniq_Id)
+   is
+      use Idl_Fe.Lexer;
+
+      Hash_Value : constant Hash_Value_Type
+        := Hash (Identifier) mod Hash_Mod;
+      Result : Uniq_Id
+        := Hash_Table (Hash_Value);
+      Previous : Uniq_Id
+        := Nil_Uniq_Id;
+   begin
+      pragma Debug (O2 ("Create_Identifier_Index : enter, id = "
+                        & Identifier & ", hash = "
+                        & Img (Integer (Hash_Value))));
+      if Result = Nil_Uniq_Id then
+         --  No identifier in this slot yet.
+
+         Increment_Last (Table);
+         Result := Uniq_Id (Table.Last_Val);
+         Hash_Table (Hash_Value) := Result;
+      else
+         --  This slot already has identifiers.
+
+         while True
+           and then Result /= Nil_Uniq_Id
+           and then Table.Table (Result).Definition.Name /= null
+           and then Idl_Identifier_Equal
+             (Table.Table (Result).Definition.Name.all,
+              Identifier) = Differ
+         loop
+            Previous := Result;
+            Result := Table.Table (Result).Next;
+         end loop;
+
+         if Result /= Nil_Uniq_Id then
+            --  This identifier is already in the table.
+
+            Index := Result;
+            pragma Debug
+              (O2 ("Create_Identifier_Index : end (already in table)"));
+            return;
+         end if;
+
+         pragma Assert (Previous /= Nil_Uniq_Id);
+
+         Increment_Last (Table);
+         Result := Uniq_Id (Table.Last_Val);
+         Table.Table (Previous).Next := Uniq_Id (Result);
+      end if;
+
+      --  Add an entry in INDEX.
+      Table.Table (Result) := (Definition => null,
+                              Next => Nil_Uniq_Id);
+      Index := Result;
+      pragma Debug (O2 ("Create_Identifier_Index : end"));
+      return;
    end Create_Identifier_Index;
 
-   ----------------------------------
-   --  Find_Identifier_Definition  --
-   ----------------------------------
+   --------------------------------
+   -- Find_Identifier_Definition --
+   --------------------------------
+
    function Find_Identifier_Definition (Name : String)
                                         return Identifier_Definition_Acc is
       Index : Uniq_Id;
       Imported_Definition, Inherited_Definition : Identifier_Definition_Acc;
       Definition : Identifier_Definition_Acc := null;
    begin
-      pragma Debug (O ("Find_Identifier_Definition : enter"));
-      Index := Check_Identifier_Index (Name);
+      pragma Debug (O2 ("Find_Identifier_Definition : enter"));
+      pragma Debug (O ("Find_Identifier_Definition : " &
+                       "the identifier is " & Name));
+      Index := Identifier_Index (Name, Hash_Table, Id_Table);
       pragma Debug (O ("Find_Identifier_Definition : " &
                        "check_identifier_index done"));
       if Index /= Nil_Uniq_Id then
+         pragma Debug (O ("Find_Identifier_Definition : " &
+                          "there is a definition in the id table"));
          Definition := Id_Table.Table (Index).Definition;
          --  is the definition in the scope
          if Definition.Parent_Scope = Current_Scope.Scope then
+            pragma Debug (O2 ("Find_Identifier_Definition : end"));
             return Definition;
          end if;
       end if;
@@ -823,6 +1095,7 @@ package body Idl_Fe.Types is
       Imported_Definition := Find_Imported_Identifier_Definition (Name);
       --  is the definition imported
       if Imported_Definition /= null then
+         pragma Debug (O2 ("Find_Identifier_Definition : end"));
          return Imported_Definition;
       end if;
       --  is the definition inherited
@@ -833,15 +1106,18 @@ package body Idl_Fe.Types is
                           "Inherited definition is of type " &
                           Node_Kind'Image
                           (Kind (Inherited_Definition.Node))));
+         pragma Debug (O2 ("Find_Identifier_Definition : end"));
          return Inherited_Definition;
       end if;
       --  the definition is in a upper scope
+      pragma Debug (O2 ("Find_Identifier_Definition : end"));
       return Definition;
    end Find_Identifier_Definition;
 
-   ----------------------------
-   --  Find_Identifier_Node  --
-   ----------------------------
+   --------------------------
+   -- Find_Identifier_Node --
+   --------------------------
+
    function Find_Identifier_Node (Name : String) return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
@@ -853,9 +1129,9 @@ package body Idl_Fe.Types is
       end if;
    end Find_Identifier_Node;
 
-   ---------------------------
-   --  Redefine_Identifier  --
-   ---------------------------
+   -------------------------
+   -- Redefine_Identifier --
+   -------------------------
 
    procedure Redefine_Identifier
      (A_Definition : Identifier_Definition_Acc;
@@ -872,9 +1148,9 @@ package body Idl_Fe.Types is
       Set_Definition (Node, A_Definition);
    end Redefine_Identifier;
 
-   ----------------------
-   --  Add_Identifier  --
-   ----------------------
+   --------------------
+   -- Add_Identifier --
+   --------------------
 
    function Add_Identifier
      (Node : Node_Id;
@@ -884,14 +1160,18 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
-      pragma Debug (O ("Add_Identifier : enter"));
-      pragma Debug (O ("Add_Identifier : identifier is " & Name));
+      pragma Debug (O2 ("Add_Identifier : enter"));
+      pragma Debug (O ("Add_Identifier : the identifier is " & Name));
       --  Checks if the identifier is redefinable
       if not Is_Redefinable (Name) then
+         pragma Debug (O ("Add_Identifier : identifier not redefinable"));
+         pragma Debug (O2 ("Add_Identifier : end"));
          return False;
       end if;
+      pragma Debug (O ("Add_Identifier : creating a definition"));
       --  Creates a new definition.
-      Index := Create_Identifier_Index (Name);
+      Create_Identifier_Index
+        (Name, Hash_Table, Id_Table, Index);
       Definition := new Identifier_Definition;
       Definition.Name := new String'(Name);
       Definition.Id := Index;
@@ -899,74 +1179,65 @@ package body Idl_Fe.Types is
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
       Definition.Parent_Scope := Current_Scope.Scope;
       Id_Table.Table (Index).Definition := Definition;
+      pragma Debug (O ("Add_Identifier : adding definition to " &
+                       "the current scope"));
       Add_Identifier_Definition (Current_Scope.Scope, Definition);
+      pragma Debug (O ("Add_Identifier : puting the definition in its node"));
       Set_Definition (Node, Definition);
-      pragma Debug (O ("Add_Identifier : end"));
+      pragma Debug (O2 ("Add_Identifier : end"));
       return True;
    end Add_Identifier;
 
-   -----------------------------------
-   --  Check_Identifier_In_Storage  --
-   -----------------------------------
-
-   function Check_Identifier_In_Storage
-     (Scope : Node_Id;
-      Identifier : String)
-     return Uniq_Id
-   is
-      use Idl_Fe.Lexer;
-
-      Hash_Index : Hash_Value_Type
-        := Hash (Identifier) mod Hash_Mod;
-      Index : Uniq_Id;
-   begin
-      pragma Debug (O ("Check_Identifier_In_Storage : enter"));
-      Index := Identifier_Table (Scope).Hash_Table (Hash_Index);
-      if Index /= Nil_Uniq_Id then
-         while Identifier_Table (Scope).Content_Table.Table (Index).
-           Definition.Name /= null loop
-            if Idl_Identifier_Equal
-              (Identifier_Table (Scope).Content_Table.Table (Index).
-               Definition.Name.all, Identifier) /= Differ
-            then
-               pragma Debug (O ("Check_Identifier_In_Storage : end"));
-               return Index;
-            end if;
-            if Identifier_Table (Scope).Content_Table.Table (Index).Next =
-              Nil_Uniq_Id then
-               exit;
-            end if;
-            Index := Identifier_Table (Scope).Content_Table.Table (Index).Next;
-         end loop;
-      end if;
-      pragma Debug (O ("Check_Identifier_In_Storage : end"));
-      return  Nil_Uniq_Id;
-   end Check_Identifier_In_Storage;
-
-   ----------------------------------
-   --  Find_Identifier_In_Storage  --
-   ----------------------------------
+   --------------------------------
+   -- Find_Identifier_In_Storage --
+   --------------------------------
 
    function Find_Identifier_In_Storage
      (Scope : Node_Id;
       Name : String)
      return Identifier_Definition_Acc
    is
+
+      function Stored_Identifier_Index
+        (Scope : Node_Id;
+         Identifier : String)
+        return Uniq_Id;
+      --  Check if the  uniq_id from an identifier is already defined
+      --  in the scope and return it or Nil_Uniq_Id
+
+      function Stored_Identifier_Index
+        (Scope : Node_Id;
+         Identifier : String)
+        return Uniq_Id
+      is
+         use Idl_Fe.Lexer;
+
+      begin
+         pragma Debug (O2 ("Stored_Identifier_Index : enter & end"));
+
+         return Identifier_Index
+           (Identifier,
+            Identifier_Table (Scope).Hash_Table,
+            Identifier_Table (Scope).Content_Table);
+      end Stored_Identifier_Index;
+
       Index : Uniq_Id;
    begin
-      pragma Debug (O ("Find_Identifier_In_Storage : enter"));
-      Index := Check_Identifier_In_Storage (Scope, Name);
+      pragma Debug (O2 ("Find_Identifier_In_Storage : enter"));
+      Index := Stored_Identifier_Index (Scope, Name);
       if Index /= Nil_Uniq_Id then
+         pragma Debug (O2 ("Find_Identifier_In_Storage : end"));
          return Identifier_Table (Scope).
            Content_Table.Table (Index).Definition;
       else
+         pragma Debug (O2 ("Find_Identifier_In_Storage : end"));
          return null;
       end if;
    end Find_Identifier_In_Storage;
 
-   -------------------------------------
-   --  Create_Indentifier_In_Storage  --
-   -------------------------------------
+   -----------------------------------
+   -- Create_Indentifier_In_Storage --
+   -----------------------------------
 
    function Create_Identifier_In_Storage
      (Identifier : String)
@@ -974,140 +1245,65 @@ package body Idl_Fe.Types is
    is
       use Idl_Fe.Lexer;
 
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
-      IT : Storage := Identifier_Table (Current_Scope.Scope);
-      Index : Uniq_Id :=
-        IT.Hash_Table (Hash_Index);
+      IT : Storage
+        := Identifier_Table (Current_Scope.Scope);
+      Index : Uniq_Id;
    begin
-      if Index = Nil_Uniq_Id then
-         Increment_Last (IT.Content_Table);
-         Index := Last (IT.Content_Table);
-         IT.Hash_Table (Hash_Index) := Index;
-      else
-         while IT.Content_Table.
-           Table (Index).Definition.Name /= null loop
-            if Idl_Identifier_Equal
-              (IT.Content_Table.
-               Table (Index).Definition.Name.all, Identifier) /= Differ
-            then
-               return Index;
-            end if;
-            if  IT.Content_Table.
-              Table (Index).Next = Nil_Uniq_Id then
-               Increment_Last (IT.
-                               Content_Table);
-               IT.Content_Table.
-                 Table (Index).Next :=
-                 Last (IT.Content_Table);
-               Index := Last (IT.
-                              Content_Table);
-               exit;
-            end if;
-            Index :=
-              IT.Content_Table.
-              Table (Index).Next;
-         end loop;
-      end if;
-      --  Add an entry in INDEX.
-      IT.Content_Table.Table (Index) :=
-        (Definition => null, Next => Nil_Uniq_Id);
+      Create_Identifier_Index
+        (Identifier, IT.Hash_Table, IT.Content_Table, Index);
       Set_Identifier_Table (Current_Scope.Scope, IT);
       return Index;
    end Create_Identifier_In_Storage;
 
-   --------------------------------
-   --  Add_Definition_To_Storage --
-   --------------------------------
+   -------------------------------
+   -- Add_Definition_To_Storage --
+   -------------------------------
 
    procedure Add_Definition_To_Storage
      (Definition : in Identifier_Definition_Acc)
    is
       Index : Uniq_Id;
-      Definition_Test : Identifier_Definition_Acc;
    begin
+      pragma Debug (O2 ("Add_Definition_To_Storage : enter"));
       Index := Create_Identifier_In_Storage (Definition.Name.all);
-      Definition_Test :=
-        Identifier_Table (Current_Scope.Scope).Content_Table.
-        Table (Index).Definition;
       --  their shouldn't be any redefinition
-      if Definition_Test /= null then
-         raise Idl_Fe.Errors.Internal_Error;
-         return;
-      end if;
+      pragma Assert (Identifier_Table
+                     (Current_Scope.Scope).Content_Table.
+                     Table (Index).Definition = null);
       Identifier_Table (Current_Scope.Scope).Content_Table.
         Table (Index).Definition := Definition;
+      pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
 
-   ---------------------------------------
-   --  Check_Imported_Identifier_Index  --
-   ---------------------------------------
 
-   function Check_Imported_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id
-   is
-      use Idl_Fe.Lexer;
-
-      Hash_Index : Hash_Value_Type
-        := Hash (Identifier) mod Hash_Mod;
-      Index : Uniq_Id;
-      Scope : Node_Id;
-   begin
-      pragma Debug (O ("Check_Imported_Identifier : enter"));
-      if not Is_Imports (Current_Scope.Scope) then
-         return Nil_Uniq_Id;
-         pragma Debug (O ("Check_Imported_Identifier : is imports "));
-      end if;
-      Scope := Current_Scope.Scope;
-      pragma Debug (O ("Check_Imported_Identifier : scope type is " &
-                       Node_Kind'Image (Kind (Scope)) & "."));
-      Index := Imported_Table (Scope).Hash_Table (Hash_Index);
-      if Index /= Nil_Uniq_Id then
-         while Imported_Table (Scope).
-           Content_Table.Table (Index).Definition.Name
-           /= null loop
-            if Idl_Identifier_Equal
-              (Imported_Table (Scope).Content_Table.Table (Index).
-               Definition.Name.all, Identifier) /= Differ
-            then
-               return Index;
-            end if;
-            if Imported_Table (Scope).Content_Table.Table (Index).Next =
-              Nil_Uniq_Id then
-               exit;
-            end if;
-            Index := Imported_Table (Scope).Content_Table.Table
-              (Index).Next;
-         end loop;
-      end if;
-      return  Nil_Uniq_Id;
-   end Check_Imported_Identifier_Index;
-
-
-   -------------------------------------------
-   --  Find_Imported_Identifier_Definition  --
-   -------------------------------------------
+   -----------------------------------------
+   -- Find_Imported_Identifier_Definition --
+   -----------------------------------------
 
    function Find_Imported_Identifier_Definition
      (Name : String)
      return Identifier_Definition_Acc
    is
+
       Index : Uniq_Id;
       Scope : Node_Id;
+
    begin
-      pragma Debug (O ("Find_Imported_Identifier_Definition : enter"));
+      pragma Debug (O2 ("Find_Imported_Identifier_Definition : enter"));
       Scope := Current_Scope.Scope;
-      Index := Check_Imported_Identifier_Index (Name);
+      Index := Imported_Identifier_Index (Name);
       if Index /= Nil_Uniq_Id then
+         pragma Debug (O2 ("Find_Imported_Identifier_Definition : end"));
          return Imported_Table (Scope).Content_Table.Table (Index).Definition;
       else
+         pragma Debug (O2 ("Find_Imported_Identifier_Definition : end"));
          return null;
       end if;
    end Find_Imported_Identifier_Definition;
 
-   --------------------------------------
-   --  Create_Indentifier_In_Imported  --
-   --------------------------------------
+   ------------------------------------
+   -- Create_Indentifier_In_Imported --
+   ------------------------------------
 
    function Create_Identifier_In_Imported
      (Identifier : String;
@@ -1116,46 +1312,19 @@ package body Idl_Fe.Types is
    is
       use Idl_Fe.Lexer;
 
-      Hash_Index : Hash_Value_Type
-        := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
       IT : Storage := Imported_Table (Scope);
    begin
-      Index := IT.Hash_Table (Hash_Index);
-      if Index = Nil_Uniq_Id then
-         Increment_Last (IT.Content_Table);
-         Index := Last (IT.Content_Table);
-         IT.Hash_Table (Hash_Index) := Index;
-      else
-         while IT.Content_Table.
-           Table (Index).Definition.Name /= null loop
-            if Idl_Identifier_Equal (IT.Content_Table.
-               Table (Index).Definition.Name.all, Identifier) /= Differ
-            then
-               return Index;
-            end if;
-            if  IT.Content_Table.
-              Table (Index).Next = Nil_Uniq_Id then
-               Increment_Last (IT.Content_Table);
-               IT.Content_Table.Table (Index).Next :=
-                 Last (IT.Content_Table);
-               Index := Last (IT.Content_Table);
-               exit;
-            end if;
-            Index :=
-              IT.Content_Table.Table (Index).Next;
-         end loop;
-      end if;
-      --  Add an entry in INDEX.
-      IT.Content_Table.Table (Index) :=
-        (Definition => null, Next => Nil_Uniq_Id);
+      Create_Identifier_Index
+        (Identifier, IT.Hash_Table, IT.Content_Table, Index);
+
       Set_Imported_Table (Scope, IT);
       return Index;
    end Create_Identifier_In_Imported;
 
-   ---------------------------------
-   --  Add_Definition_To_Imported --
-   ---------------------------------
+   --------------------------------
+   -- Add_Definition_To_Imported --
+   --------------------------------
 
    procedure Add_Definition_To_Imported
      (Definition : in Identifier_Definition_Acc;
@@ -1183,9 +1352,9 @@ package body Idl_Fe.Types is
         Table (Index).Definition := Definition;
    end Add_Definition_To_Imported;
 
-   --------------------------------
-   --  Find_Identifier_In_Scope  --
-   --------------------------------
+   ------------------------------------
+   -- Find_Identifier_In_Inheritance --
+   ------------------------------------
 
    procedure Find_Identifier_In_Inheritance
      (Name : in String;
@@ -1197,15 +1366,13 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Parent : Node_List;
    begin
-
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance : enter"));
       Parent :=  Parents (Scope);
       Init (It, Parent);
       --  loop for all the Parent of the scope
       while not Is_End (It) loop
-         Node := Get_Node (It);
-         if Kind (Node) /= K_Scoped_Name then
-            raise Idl_Fe.Errors.Internal_Error;
-         end if;
+         Get_Next_Node (It, Node);
+         pragma Assert (Kind (Node) = K_Scoped_Name);
          pragma Debug (O ("Find_Identifier_In_Inheritance : " &
                           Node_Kind'Image (Kind (Node))));
          Definition := Find_Identifier_In_Storage
@@ -1218,8 +1385,8 @@ package body Idl_Fe.Types is
                Value (Node),
                List);
          end if;
-         Next (It);
       end loop;
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance : end"));
       return;
    end Find_Identifier_In_Inheritance;
 
@@ -1231,14 +1398,19 @@ package body Idl_Fe.Types is
      (Name : String)
      return Identifier_Definition_Acc
    is
-      Result_List : Node_List := null;
-      First_List : Node_List := null;
+      Result_List : Node_List := Nil_List;
+      First_List : Node_List := Nil_List;
    begin
-      --  there is no imports in moduls types
-      if not (Kind (Current_Scope.Scope) = K_Interface
-        or else Kind (Current_Scope.Scope) = K_ValueType) then
+      pragma Debug (O2 ("Find_Inherited_Identifier_Definition : enter"));
+      --  There are no imports in modules.
+      if not (False
+        or else Kind (Current_Scope.Scope) = K_Interface
+        or else Kind (Current_Scope.Scope) = K_ValueType)
+      then
+         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
          return null;
       end if;
+
       Find_Identifier_In_Inheritance
         (Name,
          Current_Scope.Scope,
@@ -1248,22 +1420,20 @@ package body Idl_Fe.Types is
       if Get_Length (Result_List) = 0 then
          pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                           "Nothing found in inheritance"));
+         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
          return null;
       elsif  Get_Length (Result_List) = 1 then
          declare
-            It : Node_Iterator;
             Node : Node_Id;
          begin
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "One definition found in inheritance"));
-            Init (It, Result_List);
-            Node := Get_Node (It);
-            Free (Result_List);
+            Node := Head (Result_List);
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
             return Definition (Node);
          end;
       else
          declare
-            It : Node_Iterator;
             Node : Node_Id;
          begin
             --  there is multiple definition
@@ -1271,13 +1441,14 @@ package body Idl_Fe.Types is
                              "Many definitions found in inheritance"));
 
             Idl_Fe.Errors.Parser_Error ("Multiple definitions found" &
-                                        " in inheritance.",
+                                        " in inheritance : ambiguous " &
+                                        "referance",
                                         Idl_Fe.Errors.Error,
                                         Idl_Fe.Lexer.Get_Lexer_Location);
 
-            Init (It, Result_List);
-            Node := Get_Node (It);
+            Node := Head (Result_List);
             Free (Result_List);
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
             return Definition (Node);
          end;
       end if;

@@ -4,25 +4,6 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Idl_Fe.Tree.Synthetic is
 
-   ------------------------------
-   -- Properties of node lists --
-   ------------------------------
-
-   function Head
-     (NL : Node_List)
-     return Node_Id;
-   --  Return the first node in NL.
-
-   function Is_Empty
-     (NL : Node_List)
-     return Boolean;
-   --  True iff NL is empty.
-
-   function Length
-     (NL : Node_List)
-     return Natural;
-   --  The length of a list.
-
    ---------------------------------------
    -- Synthetic attributes of IDL nodes --
    ---------------------------------------
@@ -37,7 +18,7 @@ package Idl_Fe.Tree.Synthetic is
      (Node : Node_Id)
      return Boolean;
    --  True iff Node is a generable Scope (ie K_Repository,
-   --  K_Module, K_Interface or K_ValueType).
+   --  K_Ben_Idl_File, K_Module, K_Interface or K_ValueType).
 
    function Name
      (Node : in Node_Id)
@@ -51,12 +32,18 @@ package Idl_Fe.Tree.Synthetic is
    --  declared. This property never changes once it
    --  is set by the parser.
 
+   --  If Node is a Forward_Interface or Forward_ValueType
+   --  that has a corresponding actual declaration, then
+   --  the Name and Original_Parent_Scope returned are
+   --  those of the actual declaration.
+
    function Parent_Scope
      (Node : in Node_Id)
      return Node_Id;
    --  The scope wherein a K_Named node was declared. This
    --  property may be set explicitly by the expander
-   --  using Set_Parent_Scope.
+   --  using Set_Parent_Scope. Otherwise, it is equal
+   --  to the Original_Parent_Scope of the node.
 
    procedure Set_Parent_Scope
      (Node : in Node_Id;
@@ -83,5 +70,16 @@ package Idl_Fe.Tree.Synthetic is
    --  are ignored during the exploration.
    --  It is up to the caller to Free the returned Node_List
    --  after use.
+
+   function Integer_Value
+     (Node : Node_Id)
+     return Integer;
+   --  Return the value of a numeric constant expression
+   --  node as an integer.
+   --  FIXME: This should be done in the parser with full
+   --    arithmetic evalutaion. This will work only for
+   --    expressions that are numeric literals.
+   --    This function is here just for lack of a better
+   --    way of handling numeric literals.
 
 end Idl_Fe.Tree.Synthetic;

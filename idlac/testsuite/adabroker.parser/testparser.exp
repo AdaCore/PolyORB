@@ -1,4 +1,4 @@
-catch "exec ../idlac $srcdir/adabroker.parser/testparser.idl" rc
+catch "exec ../idlac $srcdir/adabroker.parser/testparser.idl 2> testparser.log; diff testparser.log testparser.out > /dev/null" rc
 if { $rc == "" } {
 	pass "Parser test";
 } else {
