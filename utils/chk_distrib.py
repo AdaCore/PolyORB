@@ -147,8 +147,7 @@ for d in subdirs:
   compare_lists ("files", "Makefile", 1)
 
 subdirs = get_subdirs ("compilers") \
-  + get_subdirs ("examples") + get_subdirs ("cos") \
-  + get_subdirs ("testsuite")
+  + get_subdirs ("examples") + get_subdirs ("cos")
 
 for d in subdirs:
   print "Checking " + d + "/...\n"
