@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Real_Time;
 with Ada.Streams;
 with System.Garlic.Streams;
 with System.Garlic.Types;
@@ -58,7 +57,7 @@ package System.Garlic.Trace is
    --  Close trace file in trace mode
 
    type Trace_Type is record
-      Time : Ada.Real_Time.Time_Span;
+      Time : Duration;
       Data : Streams.Stream_Element_Access;
       PID  : Types.Partition_ID := Types.Null_PID;
    end record;

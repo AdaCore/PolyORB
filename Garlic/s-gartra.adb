@@ -34,6 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
+
+with Ada.Calendar;          use Ada.Calendar;
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 
@@ -46,7 +48,7 @@ package body System.Garlic.Trace is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ada.Real_Time, Ada.Streams, System.Garlic.Streams, System.Garlic.Types;
+   use Ada.Streams, System.Garlic.Streams, System.Garlic.Types;
 
    Trace_File : File_Type;
    --  File containing the traces
@@ -79,7 +81,7 @@ package body System.Garlic.Trace is
    is
       Count : Stream_Element_Count;
    begin
-      Time_Span'Read (S, T.Time);
+      Duration'Read (S, T.Time);
       Stream_Element_Count'Read (S, Count);
       T.Data := new Stream_Element_Array (1 .. Count);
       for I in T.Data'Range loop
@@ -158,7 +160,7 @@ package body System.Garlic.Trace is
    is
    begin
       pragma Assert (T.Data /= null);
-      Time_Span'Write (S, T.Time);
+      Duration'Write (S, T.Time);
       Stream_Element_Count'Write (S, T.Data'Length);
       for I in T.Data'Range loop
          Stream_Element'Write (S, T.Data (I));
