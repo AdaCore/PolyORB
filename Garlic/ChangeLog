@@ -1,3 +1,8 @@
+2003-09-03  Thomas Quinot  <quinot@gnat.com>
+
+	* s-gaprtc.adb: Reuse the same Selector across successive
+	calls to Receive. Fix for C805-019.
+
 2003-09-02  Samuel Tardieu  <sam@gnat.com>
 
 	* Makefile.am: Fix bug preventing build out of source directory

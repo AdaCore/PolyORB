@@ -112,6 +112,9 @@ package body System.Garlic.Protocols.Tcp is
    Banner_Size : constant := 4;
    --  Size of a header when it is encoded as a stream
 
+   No_Tasking_Receive_Selector : Selector_Type;
+   --  Selector for Receive (no-tasking case).
+
    procedure Read_Stamp
      (Peer   : in Socket_Type;
       Error  : in out Error_Type);
@@ -472,9 +475,10 @@ package body System.Garlic.Protocols.Tcp is
       Performed := False;
 
       if not Initialized then
-         pragma Debug (D ("Initialize GNAT.sockets for protocol tcp"));
+         pragma Debug (D ("Initialize GNAT.Sockets for protocol tcp"));
          Outgoings.Initialize;
          GNAT.Sockets.Initialize (Platform_Specific.Process_Blocking_IO);
+         Create_Selector (No_Tasking_Receive_Selector);
          Initialized := True;
       end if;
 
@@ -686,7 +690,6 @@ package body System.Garlic.Protocols.Tcp is
       Done     : Boolean := False;
       Error    : Error_Type;
       PID      : Partition_ID;
-      Selector : Selector_Type;
       Status   : Selector_Status;
 
    begin
@@ -709,9 +712,8 @@ package body System.Garlic.Protocols.Tcp is
          return True;
       end if;
 
-      Create_Selector (Selector);
-      Check_Selector  (Selector, RSet, WSet, Status, Timeout);
-      Close_Selector  (Selector);
+      Check_Selector
+        (No_Tasking_Receive_Selector, RSet, WSet, Status, Timeout);
       pragma Debug (D ("select returned with status " & Status'Img));
 
       if Status = Expired then
