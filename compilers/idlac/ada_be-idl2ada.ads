@@ -67,9 +67,9 @@ private
    --  The name of the Ada constant that contains
    --  the repository ID of K_Named Node.
 
-   procedure Add_With_Stream
-     (CU : in out Compilation_Unit;
-      Node : Node_Id);
+--    procedure Add_With_Stream
+--      (CU : in out Compilation_Unit;
+--       Node : Node_Id);
    --  Add a semantic dependency of CU on the
    --  package that contains the marshalling and
    --  unmarshalling subprograms for the type defined
@@ -82,9 +82,9 @@ private
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   procedure Gen_Node_Stubs_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
+--    procedure Gen_Node_Stubs_Body
+--      (CU   : in out Compilation_Unit;
+--       Node : Node_Id);
    --  Generate the stubs code for a node.
 
    -------------------------
