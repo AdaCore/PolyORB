@@ -106,7 +106,7 @@ package body XE_Reg is
    is
       use type LONG;
 
-      C_Name  : constant String := Name & ASCII.Nul;
+      C_Name  : constant String := Name & ASCII.NUL;
       New_Key : aliased HKEY;
       Result  : LONG;
    begin
@@ -139,7 +139,7 @@ package body XE_Reg is
       Size_Value   : aliased ULONG;
       Type_Value   : aliased DWORD;
 
-      C_Name       : constant String := Name & ASCII.Nul;
+      C_Name       : constant String := Name & ASCII.NUL;
       Result       : LONG;
 
    begin

@@ -241,7 +241,7 @@ package body XE_Utils is
    begin
       Get_Name_String (Name);
       File_Name (1 .. File_Name_Len) := Name_Buffer (1 .. Name_Len);
-      File_Name (File_Name_Len + 1) := ASCII.Nul;
+      File_Name (File_Name_Len + 1) := ASCII.NUL;
 
       if Verbose_Mode then
          Message ("creating file", Name);
@@ -294,7 +294,7 @@ package body XE_Utils is
       end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := ASCII.Nul;
+      Name_Buffer (Name_Len) := ASCII.NUL;
       Delete_File (Name_Buffer'Address, Error);
    end Delete;
 

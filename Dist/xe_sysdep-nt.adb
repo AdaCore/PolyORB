@@ -43,7 +43,7 @@ package body XE_Sysdep is
       pragma Import (C, System);
 
       Command : constant String :=
-        "copy " & From_File & ' ' & To_File & " > nul" & ASCII.Nul;
+        "copy " & From_File & ' ' & To_File & " > nul" & ASCII.NUL;
 
    begin
       if System (Command) /= 0 then
@@ -62,7 +62,7 @@ package body XE_Sysdep is
 
    procedure Force_Remove (File : String) is
 
-      C_File  : constant String := File & ASCII.Nul;
+      C_File  : constant String := File & ASCII.NUL;
       Success : Boolean;
 
       Std_Read_Write : constant := 16#8180#;

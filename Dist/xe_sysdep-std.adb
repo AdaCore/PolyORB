@@ -75,7 +75,7 @@ package body XE_Sysdep is
    ------------------
 
    procedure Force_Remove (File : String) is
-      C_File  : constant String := File & ASCII.Nul;
+      C_File  : constant String := File & ASCII.NUL;
       Success : Boolean;
    begin
       Delete_File (C_File'Address, Success);
