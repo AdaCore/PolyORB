@@ -10,4 +10,6 @@
 echo
 echo.impl
 omniobject
+echo.skeleton
+
 

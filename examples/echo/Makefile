@@ -33,7 +33,7 @@ client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
 client.ali $(CPP_LINK_FILES) \
 -lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
 
-server: echo.o echo-impl.o echo-proxies.o server.o
+server: echo.o echo-impl.o echo-skeleton.o echo-proxies.o server.o
 	$(BIND) -I$(ADABROKER_PATH) server.ali
 	$(LINK)  \
 -Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
@@ -50,11 +50,11 @@ server.ali $(CPP_LINK_FILES) \
 
 echo.o : echo.ads echo.adb echo-proxies.ads echo-proxies.adb $(ADABROKER_PATH)
 
-echo-impl.o : echo-impl.ads echo-impl.adb echo.o $(ADABROKER_PATH)
+echo-impl.o : echo-impl.ads echo-impl.adb echo.o echo-skeleton.o $(ADABROKER_PATH)
 
 echo-proxies.o: echo-proxies.ads echo-proxies.adb echo.o $(ADABROKER_PATH)
 
-echo-skeleton.o: echo-skeleton.ads echo-skeleton.adb echo.o $(ADABROKER_PATH)
+echo-skeleton.o: echo-skeleton.ads echo-skeleton.adb $(ADABROKER_PATH)
 
 server.o: echo.ads echo-impl.ads $(ADABROKER_PATH)
 
