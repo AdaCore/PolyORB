@@ -1,3 +1,8 @@
+1998-10-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Fix stub generation for SP units. Use the body
+	file when it exits to generate a SP caller stub (cxe2001).
+
 1998-10-14  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Qualify Free procedure so that it doesn't clash

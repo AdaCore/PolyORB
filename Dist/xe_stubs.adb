@@ -759,18 +759,21 @@ package body XE_Stubs is
    -----------------
 
    procedure Create_Stub (A : in ALI_Id; Both : Boolean) is
-      Obsolete        : Boolean;
-      Full_RCI_Spec   : File_Name_Type;
-      Full_RCI_Body   : File_Name_Type;
-      Full_ALI_File   : File_Name_Type;
-      RCI_Spec        : File_Name_Type := No_File;
-      RCI_Body        : File_Name_Type := No_File;
-      ALI_File        : File_Name_Type;
-      Caller_Object   : File_Name_Type;
-      Caller_ALI      : File_Name_Type;
-      Receiver_Object : File_Name_Type;
-      Receiver_ALI    : File_Name_Type;
-      Unit_Name       : Unit_Name_Type;
+      Obsolete         : Boolean;
+      Full_Unit_Spec   : File_Name_Type;
+      Full_Unit_Body   : File_Name_Type;
+      Full_Unit_File   : File_Name_Type;
+      Full_ALI_File    : File_Name_Type;
+      Unit_Spec        : File_Name_Type := No_File;
+      Unit_Body        : File_Name_Type := No_File;
+      Unit_File        : File_Name_Type := No_File;
+      ALI_File         : File_Name_Type;
+      Caller_Object    : File_Name_Type;
+      Caller_ALI       : File_Name_Type;
+      Receiver_Object  : File_Name_Type;
+      Receiver_ALI     : File_Name_Type;
+      Unit_Name        : Unit_Name_Type;
+      Is_RCI_Unit      : Boolean := False;
 
    begin
 
@@ -781,25 +784,28 @@ package body XE_Stubs is
 
       if Debug_Mode then
          if Both then
-            Message ("create caller and recevier stubs for", Unit_Name);
+            Message ("create caller and receiver stubs for", Unit_Name);
          else
             Message ("create caller stubs for", Unit_Name);
          end if;
       end if;
 
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         if Unit.Table (U).RCI then
+            Is_RCI_Unit := True;
+         end if;
          case Unit.Table (U).Utype is
             when Is_Spec =>
-               RCI_Spec      := Unit.Table (U).Sfile;
-               Full_RCI_Spec := Full_Source_Name (RCI_Spec);
+               Unit_Spec      := Unit.Table (U).Sfile;
+               Full_Unit_Spec := Full_Source_Name (Unit_Spec);
             when Is_Spec_Only =>
-               RCI_Spec      := Unit.Table (U).Sfile;
-               Full_RCI_Spec := Full_Source_Name (RCI_Spec);
-               RCI_Body      := RCI_Spec;
-               Full_RCI_Body := Full_RCI_Spec;
+               Unit_Spec      := Unit.Table (U).Sfile;
+               Full_Unit_Spec := Full_Source_Name (Unit_Spec);
+               Unit_Body      := Unit_Spec;
+               Full_Unit_Body := Full_Unit_Spec;
             when Is_Body =>
-               RCI_Body      := Unit.Table (U).Sfile;
-               Full_RCI_Body := Full_Source_Name (RCI_Body);
+               Unit_Body      := Unit.Table (U).Sfile;
+               Full_Unit_Body := Full_Source_Name (Unit_Body);
             when Is_Body_Only =>
                raise Program_Error;
          end case;
@@ -821,25 +827,11 @@ package body XE_Stubs is
             Write_Missing_File (Caller_Object);
          end if;
          Obsolete := True;
-
-      elsif not Obsolete
-        and then Stamp (Full_RCI_Spec) > Stamp (Caller_Object) then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Full_RCI_Spec, Caller_Object);
-         end if;
-         Obsolete := True;
       end if;
 
       if not Obsolete and then not Is_Regular_File (Caller_ALI) then
          if Verbose_Mode then
             Write_Missing_File (Caller_ALI);
-         end if;
-         Obsolete := True;
-
-      elsif not Obsolete
-        and then Stamp (Full_RCI_Spec) > Stamp (Caller_ALI) then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Full_RCI_Spec, Caller_ALI);
          end if;
          Obsolete := True;
       end if;
@@ -853,16 +845,24 @@ package body XE_Stubs is
       end if;
 
       if Obsolete then
+         if Is_RCI_Unit then
+            Full_Unit_File := Full_Unit_Spec;
+            Unit_File      := Unit_Spec;
+         else
+            Full_Unit_File := Full_Unit_Body;
+            Unit_File      := Unit_Body;
+         end if;
+
          if not Quiet_Output then
             Message
-              ("building", Unit_Name, "caller stubs from", Full_RCI_Spec);
+              ("building", Unit_Name, "caller stubs from", Full_Unit_File);
          end if;
 
          declare
-            Spec_Obj, Spec_ALI : File_Name_Type;
+            Unit_Obj, Unit_ALI : File_Name_Type;
          begin
 
-            --  Caller_ALI name may not match RCI_Spec name, because its
+            --  Caller_ALI name may not match Unit_File name, because its
             --  name is based on the body source filename. With gnat.adc,
             --  spec and body may have different base names. The caller
             --  stub generation uses the spec source file and GNAT
@@ -870,14 +870,16 @@ package body XE_Stubs is
             --  file name. In this case, the expected object file and the
             --  generated object file mismatch.
 
-            Spec_ALI := Dir (Caller_Dir, Strip_Suffix (RCI_Spec) & ALI_Suffix);
-            Spec_Obj := Dir (Caller_Dir, Strip_Suffix (RCI_Spec) & Obj_Suffix);
-            Compile_RCI_Caller (Full_RCI_Spec, Spec_Obj);
+            Unit_ALI := Dir (Caller_Dir,
+                             Strip_Suffix (Unit_File) & ALI_Suffix);
+            Unit_Obj := Dir (Caller_Dir,
+                             Strip_Suffix (Unit_File) & Obj_Suffix);
+            Compile_RCI_Caller (Full_Unit_File, Unit_Obj);
 
             --  Rename the files when mismatch (see above).
-            if Spec_ALI /= Caller_ALI then
-               Copy_With_File_Stamp (Spec_ALI, Caller_ALI);
-               Copy_With_File_Stamp (Spec_Obj, Caller_Object);
+            if Unit_ALI /= Caller_ALI then
+               Copy_With_File_Stamp (Unit_ALI, Caller_ALI);
+               Copy_With_File_Stamp (Unit_Obj, Caller_Object);
             end if;
          end;
       elsif not Quiet_Output then
@@ -895,25 +897,11 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_Object);
          end if;
          Obsolete := True;
-
-      elsif not Obsolete
-        and then Stamp (Full_RCI_Body) > Stamp (Receiver_Object) then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Full_RCI_Body, Receiver_Object);
-         end if;
-         Obsolete := True;
       end if;
 
       if not Obsolete and then not Is_Regular_File (Receiver_ALI) then
          if Verbose_Mode then
             Write_Missing_File (Receiver_ALI);
-         end if;
-         Obsolete := True;
-
-      elsif not Obsolete
-        and then Stamp (Full_RCI_Body) > Stamp (Receiver_ALI) then
-         if Verbose_Mode then
-            Write_Stamp_Comparison (Full_RCI_Body, Receiver_ALI);
          end if;
          Obsolete := True;
       end if;
@@ -929,10 +917,10 @@ package body XE_Stubs is
       if Obsolete then
          if not Quiet_Output then
             Message
-              ("building", Unit_Name, "receiver stubs from", Full_RCI_Body);
+              ("building", Unit_Name, "receiver stubs from", Full_Unit_Body);
          end if;
 
-         Compile_RCI_Receiver (Full_RCI_Body, Receiver_Object);
+         Compile_RCI_Receiver (Full_Unit_Body, Receiver_Object);
 
       elsif not Quiet_Output then
          Message ("  ", Unit_Name, "receiver stubs is up to date");
