@@ -203,7 +203,7 @@ s-gtplsp.o: s-garlic.ads s-garpoi.ads s-garpro.ads s-gartcp.ads s-gtplsp.ads s-g
 s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garsta.ads s-garter.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
 s-rpc.o: s-garlic.ads s-garcac.ads s-garcac.adb s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garter.ads s-rpc.ads s-rpc.adb s-rpcpoo.ads s-rpcuti.ads
 s-rpcini.o: s-garlic.ads s-garcac.ads s-rpc.ads s-rpcini.ads s-rpcini.adb s-rpcpoo.ads s-rpstio.ads s-rpcuti.ads
-s-rpcpoo.o: s-garlic.ads s-garcac.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-rpc.ads s-rpcpoo.ads s-rpcpoo.adb s-rpcuti.ads
+s-rpcpoo.o: s-garlic.ads s-garcac.ads s-gardeb.ads s-garhea.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-rpc.ads s-rpcpoo.ads s-rpcpoo.adb s-rpcuti.ads
 s-rpcuti.o: s-garlic.ads s-garcac.ads s-garcac.adb s-rpc.ads s-rpcuti.ads s-rpcuti.adb
 s-rpstio.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garuti.ads s-rpc.ads s-rpstio.ads s-rpstio.adb
 s-stratt.o: s-stratt.adb

@@ -1,3 +1,8 @@
+Tue May 20 17:15:04 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_back.adb: Use first slot of tables to store the default type
+ 	attributes.
+
 Wed May 14 14:33:02 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_stubs.adb: Generate task pool bounds

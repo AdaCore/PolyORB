@@ -218,7 +218,7 @@ package body XE_Back is
 
       if Main_Partition = Null_PID then
          Write_SLOC (Node_Id (Configuration_Node));
-         Write_Str ("non-dist. app. main subprogram has not been declared");
+         Write_Str  ("non-dist. app. main subprogram has not been declared");
          Write_Eol;
          raise Parsing_Error;
       end if;
@@ -803,6 +803,9 @@ package body XE_Back is
    begin
       Partitions.Increment_Last;
       P := Partitions.Last;
+      Partitions.Table (P).Name
+        := Get_Node_Name (Node_Id (Partition_Type_Node));
+
       Partitions.Table (P).Main_Subprogram  := No_Main_Subprogram;
       Partitions.Table (P).Host             := Null_HID;
       Partitions.Table (P).Storage_Dir      := No_Storage_Dir;
@@ -827,6 +830,9 @@ package body XE_Back is
 
       Channels.Increment_Last;
       C := Channels.Last;
+      Channels.Table (C).Name
+        := Get_Node_Name (Node_Id (Channel_Type_Node));
+
       Channels.Table (C).Filter             := No_Filter_Name;
       Default_Channel := C;
 
@@ -1029,9 +1035,29 @@ package body XE_Back is
       Attr_Kind : Attribute_Type;
       Item_Type : Type_Id;
       Comp_Node : Component_Id;
+      PID       : PID_Type;
       Ada_Unit  : Name_Id;
 
       Host      : HID_Type;
+
+      procedure Write_Error_Message
+        (Node : in Node_Id;
+         Part : in PID_Type;
+         Attr : in String);
+
+      procedure Write_Error_Message
+        (Node : in Node_Id;
+         Part : in PID_Type;
+         Attr : in String) is
+      begin
+         Write_SLOC (Node);
+         Write_Name (Partitions.Table (Partition).Name);
+         Write_Str ("'s ");
+         Write_Str (Attr);
+         Write_Str (" attribute has been assigned twice");
+         Write_Eol;
+         raise Parsing_Error;
+      end Write_Error_Message;
 
    begin
 
@@ -1052,6 +1078,12 @@ package body XE_Back is
 
       if Attr_Item = Null_Node then
          return;
+      end if;
+
+      if Partition = Null_PID then
+         PID := Default_Partition;
+      else
+         PID := Partition;
       end if;
 
       case Attr_Kind is
@@ -1094,15 +1126,7 @@ package body XE_Back is
             --  This operation has already been done !
 
             else
-               Write_SLOC (Attr_Item);
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition ");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s filter attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "filter");
             end if;
 
          when Attribute_Storage_Dir =>
@@ -1120,35 +1144,12 @@ package body XE_Back is
                raise Parsing_Error;
             end if;
 
-            --  Does it apply to all partitions ? Therefore, check
-            --  that this has not already been done.
+            --  Check that it has not already been assigned.
 
-            if Partition = Null_PID and then
-              Partitions.Table (Default_Partition).Storage_Dir = No_Storage_Dir
-            then
-               Partitions.Table (Default_Partition).Storage_Dir
-                 := Get_Node_Name (Attr_Item);
-
-            --  Apply to one partition. Check that it has not already
-            --  been done.
-
-            elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Storage_Dir = No_Storage_Dir then
-               Partitions.Table (Partition).Storage_Dir
-                 := Get_Node_Name (Attr_Item);
-
-            --  This operation has already been done !
-
+            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+               Partitions.Table (PID).Storage_Dir := Get_Node_Name (Attr_Item);
             else
-               Write_SLOC (Attr_Item);
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s storage_dir attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "storage_dir");
             end if;
 
          when Attribute_Host =>
@@ -1174,50 +1175,20 @@ package body XE_Back is
                   raise Parsing_Error;
             end case;
 
-            --  Does it apply to all partitions ? Therefore, check
-            --  that this has not already been done.
+            --  Check that it has not already been assigned.
 
-            if Partition = Null_PID and then Default_Host = Null_HID then
-               Default_Host := Host;
-
-               --  Apply to one partition. Check that it has not already
-               --  been done.
-
-            elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Host = Null_HID then
+            if Partitions.Table (Partition).Host = Null_HID then
                Partitions.Table (Partition).Host := Host;
-
             else
-               Write_SLOC (Node_Id (Attribute));
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s host attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "host");
             end if;
 
          when Attribute_Main =>
 
-            --  Does it apply to all partitions ? Therefore, check
-            --  that this has not already been done.
+            --  Check that it has not already been assigned.
 
-            if Partition = Null_PID and then
-              Partitions.Table (Default_Partition).Main_Subprogram =
-              No_Main_Subprogram
-            then
-               Partitions.Table (Default_Partition).Main_Subprogram
-                 := Get_Node_Name (Node_Id (Attr_Item));
-
-            --  Apply to one partition. Check that it has not already
-            --  been done.
-
-            elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Main_Subprogram =
-              No_Main_Subprogram then
-               Partitions.Table (Partition).Main_Subprogram
+            if Partitions.Table (PID).Main_Subprogram = No_Main_Subprogram then
+               Partitions.Table (PID).Main_Subprogram
                  := Get_Node_Name (Node_Id (Attr_Item));
 
                --  We are not sure at this point that this unit
@@ -1227,15 +1198,7 @@ package body XE_Back is
                Add_Conf_Unit (Ada_Unit, Partition);
 
             else
-               Write_SLOC (Node_Id (Attribute));
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s main attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "main");
             end if;
 
          when Attribute_Command_Line =>
@@ -1252,33 +1215,13 @@ package body XE_Back is
                raise Parsing_Error;
             end if;
 
-            --  Does it apply to all partitions ? Therefore, check
-            --  that this has not already been done.
+            --  Check that this has not already been assigned.
 
-            if Partition = Null_PID and then
-              Partitions.Table (Default_Partition).Command_Line =
-              No_Command_Line then
-               Partitions.Table (Default_Partition).Command_Line
+            if Partitions.Table (PID).Command_Line = No_Command_Line then
+               Partitions.Table (PID).Command_Line
                  := Get_Node_Name (Node_Id (Attr_Item));
-
-            --  Apply to one partition. Check that it has not already
-            --  been done.
-
-            elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Command_Line = No_Command_Line then
-               Partitions.Table (Partition).Command_Line
-                 := Get_Node_Name (Node_Id (Attr_Item));
-
             else
-               Write_SLOC (Node_Id (Attribute));
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s command_line attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "command_Line");
             end if;
 
          when Attribute_Termination =>
@@ -1296,35 +1239,13 @@ package body XE_Back is
                raise Parsing_Error;
             end if;
 
-            --  Does it apply to all partitions ? Therefore, check
-            --  that this has not already been done.
+            --  Check that it has not already been assigned.
 
-            if Partition = Null_PID and then
-              Partitions.Table (Default_Partition).Termination =
-              Unknown_Termination then
-               Partitions.Table (Default_Partition).Termination :=
+            if Partitions.Table (PID).Termination = Unknown_Termination then
+               Partitions.Table (PID).Termination :=
                  Termination_Type (Get_Scalar_Value (Variable_Id (Attr_Item)));
-
-            --  Apply to one partition. Check that it has not already
-            --  been done.
-
-            elsif Partition /= Null_PID and then
-              Partitions.Table (Partition).Termination = Unknown_Termination
-            then
-               Partitions.Table (Partition).Termination :=
-                 Termination_Type
-                 (Get_Scalar_Value (Variable_Id (Attr_Item)));
-
             else
-               Write_SLOC (Node_Id (Attribute));
-               if Partition = Null_PID then
-                  Write_Str ("predefined type Partition");
-               else
-                  Write_Name (Partitions.Table (Partition).Name);
-               end if;
-               Write_Str ("'s termination attribute has been assigned twice");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Error_Message (Node_Id (Attribute), PID, "termination");
             end if;
 
          when Attribute_Leader =>

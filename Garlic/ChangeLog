@@ -1,3 +1,9 @@
+Tue May 20 17:09:53 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-rpstio.adb, s-rpstio.adb: Add to system.RPC.stream_io
+ 	 procedures Open and Close in order to have some controls on the
+ 	 stream in a concurrent application.
+
 Sun May 18 18:30:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Puzzling bug signaled by Thomas Hautesserres fixed.
