@@ -294,7 +294,7 @@ gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
-	@if [ "$(PSNAME)" = "Windows NT" ]; then \
+	@if [ "$(PSNAME)" = "Windows/NT" ]; then \
 		cp $(srcdir)/xe_sysdep-nt.adb xe_sysdep.adb; \
 	else \
 		cp $(srcdir)/xe_sysdep-std.adb xe_sysdep.adb; \
@@ -313,7 +313,8 @@ xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
 	   DEFSTORAGEDATA="$(DEFSTORAGEDATA)" \
 	   DEFSTORAGENAME="$(DEFSTORAGENAME)" \
 	   DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
-	   DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" >xe_defs.adb
+	   DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" \
+	   "$(PSNAME)=" >xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
