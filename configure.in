@@ -330,9 +330,12 @@ AC_OUTPUT([
 	support/Makefile
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
-	compilers/${IDLAC}/Makefile
-	compilers/${IDLAC}/testsuite/Makefile
-	compilers/${IDLAC}/platform.ads
+	compilers/iac/Makefile
+	compilers/iac/testsuite/Makefile
+	compilers/iac/platform.ads
+	compilers/idlac/Makefile
+	compilers/idlac/testsuite/Makefile
+	compilers/idlac/platform.ads
 	src/Makefile
 	src/corba/Makefile
 	src/dsa/Makefile
