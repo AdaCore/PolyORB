@@ -40,6 +40,7 @@ with System.Garlic.Priorities;
 with System.Garlic.Utils;
 with System.RPC; use System.RPC;
 with System.Tasking;
+pragma Elaborate_All (System.Tasking);
 
 package body System.Garlic.Termination is
 

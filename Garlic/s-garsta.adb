@@ -69,6 +69,11 @@ with System.RPC;
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
 
+with System.Secondary_Stack;
+pragma Elaborate_All (System.Secondary_Stack);
+--  XXXXX This one is not used in the code directly but shows up during
+--  the expansion.
+
 package body System.Garlic.Startup is
 
    Private_Debug_Key : constant Debug_Key :=

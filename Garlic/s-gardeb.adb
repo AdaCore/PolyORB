@@ -33,9 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
-with System.Garlic.OS_Lib;
 with GNAT.IO;
+with System.Assertions;
+pragma Elaborate_All (System.Assertions);  --  XXXXX Used by expansion
+with System.Garlic.OS_Lib;
 
 package body System.Garlic.Debug is
 

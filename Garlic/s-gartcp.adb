@@ -40,6 +40,7 @@ with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart;  use System.Garlic.Heart;
 with System.Garlic.Naming; use System.Garlic.Naming;
+pragma Elaborate_All (System.Garlic.Naming);
 with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;

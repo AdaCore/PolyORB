@@ -1,3 +1,19 @@
+Wed Mar  5 14:19:51 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Added missing pragma Elaborate_All (new checks in
+	  today's wavefront).
+
+	* s-gardeb.adb: Idem.
+
+	* s-garsta.adb: Idem.
+
+	* s-garter.adb: Idem.
+
+	* s-stratt.adb: Renames Unchecked_Conversion into
+	  Ada.Unchecked_Conversion. Comment out assertions because the
+	  current package may not depend on System.Assertions because of
+	  categorization pragma.
+
 Fri Feb 28 16:45:36 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-garfil.ads, s-garfil.adb, s-gafino.adb: Move decalration of

@@ -34,9 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.IO_Exceptions;
-with Unchecked_Conversion;
-
 with Ada.Streams; use Ada.Streams;
+with Ada.Unchecked_Conversion;
 with Interfaces;  use Interfaces;
 
 package body System.Stream_Attributes is
@@ -50,7 +49,7 @@ package body System.Stream_Attributes is
    --  Exception raised if insufficient data read.
 
    SU : constant := System.Storage_Unit;
-   pragma Assert (SU = 8);
+   --  XXXXX pragma Assert (SU = 8);
 
    BB : constant := 2 ** SU;           --  Byte base
    BL : constant := 2 ** SU - 1;       --  Byte last
@@ -66,7 +65,7 @@ package body System.Stream_Attributes is
    subtype SEA is Ada.Streams.Stream_Element_Array;
    subtype SEO is Ada.Streams.Stream_Element_Offset;
 
-   generic function UC renames Unchecked_Conversion;
+   generic function UC renames Ada.Unchecked_Conversion;
 
    type Field_Type is
       record
@@ -130,8 +129,8 @@ package body System.Stream_Attributes is
    --      +-------+-------+-------+-------+
    --      <------------32 bits------------>
 
-   pragma Assert (Long_Long_Integer'Size <= 64);
-   pragma Assert (16 <= Integer'Size and Integer'Size <= 32);
+   --  XXXXX pragma Assert (Long_Long_Integer'Size <= 64);
+   --  XXXXX pragma Assert (16 <= Integer'Size and Integer'Size <= 32);
 
    SSI_L : constant := 4;
    SI_L  : constant := 4;
@@ -162,8 +161,8 @@ package body System.Stream_Attributes is
    --      +-------+-------+-------+-------+
    --      <------------32 bits------------>
 
-   pragma Assert (Long_Long_Unsigned'Size <= 64);
-   pragma Assert (16 <= Unsigned'Size and Unsigned'Size <= 32);
+   --  XXXXX pragma Assert (Long_Long_Unsigned'Size <= 64);
+   --  XXXXX pragma Assert (16 <= Unsigned'Size and Unsigned'Size <= 32);
 
    SSU_L : constant := 4;
    SU_L  : constant := 4;
