@@ -52,14 +52,16 @@ procedure Idlac is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-i] [-k] idl_file [-cppargs ...]");
-      Put_Line (Current_Error, "  -E    Preprocess only.");
-      Put_Line (Current_Error, "  -d    Generate delegation package.");
-      Put_Line (Current_Error, "  -i    Generate implementation template.");
-      Put_Line (Current_Error, "  -k    Keep temporary files.");
-      Put_Line (Current_Error, "  -p    Produce source on standard output.");
-      Put_Line (Current_Error, "  -q    Be quiet.");
+      Put_Line (Current_Error, "  -E     Preprocess only.");
+      Put_Line (Current_Error, "  -d     Generate delegation package.");
+      Put_Line (Current_Error, "  -i     Generate implementation template.");
+      Put_Line (Current_Error, "  -nodyn Don't generate code for dynamic "
+                & "invocation.");
+      Put_Line (Current_Error, "  -k     Keep temporary files.");
+      Put_Line (Current_Error, "  -p     Produce source on standard output.");
+      Put_Line (Current_Error, "  -q     Be quiet.");
       Put_Line (Current_Error, "  -cppargs ARGS");
-      Put_Line (Current_Error, "        Pass ARGS to the C++ preprocessor.");
+      Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
       OS_Exit (1);
    end Usage;
@@ -73,7 +75,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i k p q") is
+         case Getopt ("E I: d i k p q nodyn") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -88,6 +90,9 @@ begin
 
             when 'i' =>
                Generate_Impl_Template := True;
+
+            when 'n' =>
+               Generate_Dyn := False;
 
             when 'k' =>
                Keep_Temporary_Files := True;

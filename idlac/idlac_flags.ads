@@ -34,5 +34,6 @@ package Idlac_Flags is
    To_Stdout              : Boolean := False;
    Verbose                : Boolean := True;
    Generate_Delegate      : Boolean := False;
+   Generate_Dyn           : Boolean := True;
 
 end Idlac_Flags;
