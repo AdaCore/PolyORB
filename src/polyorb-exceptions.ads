@@ -41,7 +41,7 @@
 --   is stored and the Get_Members function created a new
 --   object from a derivation of Exception_Members
 
---  $Id: //droopi/main/src/polyorb-exceptions.ads#1 $
+--  $Id: //droopi/main/src/polyorb-exceptions.ads#2 $
 
 with Ada.Exceptions;
 
@@ -66,21 +66,6 @@ package PolyORB.Exceptions is
 
    subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
 
-   type System_Exception_Members is new Exception_Members with
-      record
-         Minor     : PolyORB.Types.Unsigned_Long;
-         Completed : Completion_Status;
-      end record;
-   --  Member type for System exceptions.  It is defined by the CORBA
-   --  specification
-
-   procedure Raise_System_Exception
-     (Excp      : in Ada.Exceptions.Exception_Id;
-      Excp_Memb : in System_Exception_Members);
-   pragma No_Return (Raise_System_Exception);
-   --  Raise the corresponding CORBA exception, and store its
-   --  members for later retrieval by Get_Members.
-
    -----------------------------------------
    --  Declarations for user exceptions.  --
    -----------------------------------------
@@ -104,13 +89,27 @@ package PolyORB.Exceptions is
    --  Declarations for system exceptions.  --
    -------------------------------------------
 
+   function Occurrence_To_Name
+     (Occurrence : Ada.Exceptions.Exception_Occurrence)
+      return PolyORB.Types.RepositoryId;
+
+   type System_Exception_Members is new Exception_Members with
+      record
+         Minor     : PolyORB.Types.Unsigned_Long;
+         Completed : Completion_Status;
+      end record;
+   --  Member type for System exceptions.
+
    procedure Get_Members
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
 
-   function Occurrence_To_Name
-     (Occurrence : Ada.Exceptions.Exception_Occurrence)
-      return PolyORB.Types.RepositoryId;
+   procedure Raise_System_Exception
+     (Excp      : in Ada.Exceptions.Exception_Id;
+      Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_System_Exception);
+   --  Raise the corresponding PolyORB system exception, and store its
+   --  members for later retrieval by Get_Members.
 
    ------------------------------------------------------------
    -- Conversion between Unsigned_Long and Completion_Status --
@@ -380,13 +379,16 @@ package PolyORB.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
+   ----------------------------------
+   --  Exception utility functions --
+   ----------------------------------
+
    type Raise_From_Any_Procedure is access procedure
      (Occurrence : PolyORB.Any.Any);
 
    procedure Register_Exception
      (TC     : in PolyORB.Any.TypeCode.Object;
       Raiser : in Raise_From_Any_Procedure);
-   --  XXX Correct this conmment !!!
    --  Associate the TypeCode for a user-defined exception with
    --  a procedure that raises an occurrence of that exception,
    --  given an Any with that TypeCode.
@@ -394,7 +396,7 @@ package PolyORB.Exceptions is
    --  to provide the list of typecodes of potential exceptions,
    --  so the generic middleware can unmarshall occurrences and
    --  store them into an Any. It is then the responsibility of
-   --  the application layer -- here, the CORBA PortableServer --
+   --  the application layer -- eg. the CORBA PortableServer --
    --  to map the Any back to whatever representation is relevant
    --  in the application personality: here, raising a language
    --  exception with proper members.
@@ -417,8 +419,7 @@ package PolyORB.Exceptions is
 
    function TC_Completion_Status
      return PolyORB.Any.TypeCode.Object;
-   --  The typecode for standard enumeration type
-   --  CORBA::completion_status.
+   --  The typecode for standard enumeration type completion_status.
 
    type Exception_Info is record
       TC     : PolyORB.Any.TypeCode.Object;
@@ -428,6 +429,6 @@ package PolyORB.Exceptions is
    function Find_Exception_Info
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info;
-
+   --  Return Exception_Info associated to 'For_Exception'.
 
 end PolyORB.Exceptions;
