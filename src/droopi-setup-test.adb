@@ -5,6 +5,9 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Droopi.Binding_Data.Test;
+with Droopi.Binding_Data.IIOP;
+with Droopi.Filters;
+with Droopi.Filters.Slicers;
 with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
@@ -13,8 +16,8 @@ with Droopi.ORB.Task_Policies;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 
---  with Droopi.Protocols.GIOP;
---  pragma Warnings (Off, Droopi.Protocols.GIOP);
+with Droopi.Protocols.GIOP;
+pragma Warnings (Off, Droopi.Protocols.GIOP);
 --  XXX not referenced.
 
 with Droopi.References;
@@ -27,23 +30,39 @@ with Droopi.Transport.Sockets;
 procedure Droopi.Setup.Test
 is
    use Droopi.Binding_Data;
+   use Droopi.Filters;
    use Droopi.Objects;
    use Droopi.ORB;
    use Droopi.Sockets;
    use Droopi.Transport;
    use Droopi.Transport.Sockets;
 
-   Server : Socket_Type;
-   Addr : Sock_Addr_Type;
-
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
 
    My_Servant : Servant_Access;
+
+   --  The 'test' access point.
+
+   Server : Socket_Type;
+   Addr : Sock_Addr_Type;
 
    SAP : constant Transport_Access_Point_Access
      := new Socket_Access_Point;
    SAP_PF : constant Binding_Data.Profile_Factory_Access
      := new Binding_Data.Test.Test_Profile_Factory;
+
+   --  The 'IIOP' access point.
+
+   GIOP_Server : Socket_Type;
+   GIOP_Addr : Sock_Addr_Type;
+
+   GIOP_Protocol : aliased Protocols.GIOP.GIOP_Protocol;
+   Slicer_Factory : aliased Filters.Slicers.Slicer_Factory;
+
+   GIOP_SAP : constant Transport_Access_Point_Access
+     := new Socket_Access_Point;
+   GIOP_SAP_PF : constant Binding_Data.Profile_Factory_Access
+     := new Binding_Data.IIOP.IIOP_Profile_Factory;
 
 begin
    -------------------------------
@@ -120,6 +139,54 @@ begin
       TAP    => SAP,
       Chain  => new Protocols.Echo.Echo_Protocol,
       PF     => SAP_PF);
+   --  Register socket with ORB object, associating a protocol
+   --  to the transport service access point.
+
+   ------------------------------------------------------
+   -- Create server (listening) socket - GIOP protocol --
+   ------------------------------------------------------
+
+   Put ("Creating GIOP socket...");
+
+   Create_Socket (GIOP_Server);
+
+   GIOP_Addr.Addr := Addresses (Get_Host_By_Name ("localhost"), 1);
+   GIOP_Addr.Port := 10000;
+
+   --  Allow reuse of local addresses.
+
+   Set_Socket_Option
+     (GIOP_Server,
+      Socket_Level,
+      (Reuse_Address, True));
+
+   loop
+      begin
+         Put (" binding to port" & GIOP_Addr.Port'Img & "...");
+         Bind_Socket (GIOP_Server, GIOP_Addr);
+         Put_Line ("done.");
+         exit;
+      exception
+         when Droopi.Sockets.Socket_Error =>
+            --  Address already in use.
+            GIOP_Addr.Port := GIOP_Addr.Port + 1;
+         when others =>
+            raise;
+      end;
+   end loop;
+
+   Listen_Socket (GIOP_Server);
+
+   Create (Socket_Access_Point (GIOP_SAP.all), GIOP_Server);
+   Create_Factory (GIOP_SAP_PF.all, GIOP_SAP);
+
+   Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
+                     1 => GIOP_Protocol'Unchecked_Access));
+   Register_Access_Point
+     (ORB    => The_ORB,
+      TAP    => GIOP_SAP,
+      Chain  => Slicer_Factory'Unchecked_Access,
+      PF     => GIOP_SAP_PF);
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.
 
