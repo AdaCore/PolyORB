@@ -208,7 +208,7 @@ package System.PolyORB_Interface is
 
    type RAS_Proxy_Type is tagged limited record
       All_Calls_Remote : Boolean;
-      Stub             : System.Address;
+      Target           : Entity_Ptr;
    end record;
    type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
    --  This type is used by the expansion to implement distributed objects.
