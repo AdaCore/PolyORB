@@ -126,7 +126,7 @@ package body PolyORB.Setup.Server is
    is
       use PolyORB.Configuration;
    begin
-      if Get_Conf ("access_points", "enable_giop", True) then
+      if Get_Conf ("access_points", "iiop", True) then
          ---------------------------------------------
          -- Create server (listening) socket - GIOP --
          ---------------------------------------------
@@ -141,7 +141,7 @@ package body PolyORB.Setup.Server is
             PF     => GIOP_Access_Point.PF);
       end if;
 
-      if Get_Conf ("access_points", "enable_srp", True) then
+      if Get_Conf ("access_points", "srp", True) then
          --------------------------------------------
          -- Create server (listening) socket - SRP --
          --------------------------------------------
@@ -156,7 +156,7 @@ package body PolyORB.Setup.Server is
          --  to the transport service access point.
       end if;
 
-      if Get_Conf ("access_points", "enable_soap", True) then
+      if Get_Conf ("access_points", "soap", True) then
          ---------------------------------------------
          -- Create server (listening) socket - SOAP --
          ---------------------------------------------

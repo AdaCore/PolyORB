@@ -156,27 +156,41 @@ package body PolyORB.Configuration is
 
    function To_Boolean (V : String) return Boolean is
       VV : constant String := To_Lower (V);
-      Result : Boolean := False;
    begin
       if V'Length > 0 then
          case V (V'First) is
             when '0' | 'n' =>
-               null;
+               return False;
             when '1' | 'y' =>
-               Result := True;
+               return True;
             when 'o' =>
-               if VV = "on" then
-                  Result := True;
-               elsif VV = "off" then
-                  null;
-               else
-                  raise Constraint_Error;
+               if VV = "off" then
+                  return False;
+               elsif VV = "on" then
+                  return True;
+               end if;
+            when 'd' =>
+               if VV = "disable" then
+                  return False;
+               end if;
+            when 'e' =>
+               if VV = "enable" then
+                  return True;
+               end if;
+            when 'f' =>
+               if VV = "false" then
+                  return False;
+               end if;
+            when 't' =>
+               if VV = "true" then
+                  return True;
                end if;
             when others =>
-               raise Constraint_Error;
+               null;
          end case;
       end if;
-      return Result;
+      raise Constraint_Error;
+      --  return False;
    end To_Boolean;
 
    --------------
