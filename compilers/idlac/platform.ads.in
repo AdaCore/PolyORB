@@ -37,7 +37,9 @@ package Platform is
 
    pragma Pure;
 
-   CPP_Preprocessor : constant String
+   CXX_Preprocessor : constant String
      := "@CXXCPP@ @CXXCPPFLAGS@";
+
+   CXX_Preprocessor_Suffix : constant String := "@CXXCPP_OUTPUT_SUFFIX@";
 
 end Platform;

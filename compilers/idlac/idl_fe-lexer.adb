@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#13 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#14 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -1433,7 +1433,7 @@ package body Idl_Fe.Lexer is
 
       CPP_Arg_List : constant Argument_List_Access
         := Argument_String_To_List
-          (Platform.CPP_Preprocessor);
+          (Platform.CXX_Preprocessor);
    begin
       for J in CPP_Arg_List'First + 1 .. CPP_Arg_List'Last loop
          Add_Argument (CPP_Arg_List (J).all);
@@ -1466,7 +1466,7 @@ package body Idl_Fe.Lexer is
       Close (Fd);
 
       Add_Argument ("-o");
-      Add_Argument (Tmp_File_Name);
+      Add_Argument (Tmp_File_Name & Platform.CXX_Preprocessor_Suffix);
       Args (Arg_Count) := new String'(Filename);
 
       declare

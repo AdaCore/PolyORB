@@ -1232,6 +1232,7 @@ support/ada.m4
 support/adacompiler.in
 support/config.guess
 support/config.sub
+support/cxxcpp.m4
 support/gentexifile
 support/gnatsrc.m4
 support/install-sh

@@ -128,6 +128,7 @@ if test "$CXXCPPFLAGS" = ""; then
   # For now, just use '-x c'.
 fi
 AC_SUBST(CXXCPPFLAGS)
+AM_CXXCPP_NEEDS_DOT
 
 ##########################################
 # Services list.
@@ -157,8 +158,8 @@ AC_MSG_RESULT(${SERVICE_LIST})
 AC_SUBST(SERVICE_LIST)
 
 ##########################################
-# If the SOAP or the AWS personnality is 
-# selected, then we have to add the 
+# If the SOAP or the AWS personnality is
+# selected, then we have to add the
 # WEB_COMMON library
 ##########################################
 
@@ -278,7 +279,7 @@ then
 fi
 
 ##########################################
-# Update Xml/Ada configuration flags 
+# Update Xml/Ada configuration flags
 # iff SOAP is built
 ##########################################
 
