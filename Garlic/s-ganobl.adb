@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Interrupts.Names;
 with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Debug; use System.Garlic.Debug;
@@ -420,6 +421,12 @@ package body System.Garlic.Non_Blocking is
          end if;
       end loop;
       Termination.Sub_Non_Terminating_Task;
+
+   exception
+      when E : others =>
+         pragma Debug (D (D_Debug, Exception_Name (E) & " received in " &
+                          "Selection"));
+         Termination.Sub_Non_Terminating_Task;
    end Selection;
 
    ----------------------
@@ -488,6 +495,12 @@ package body System.Garlic.Non_Blocking is
          end select;
       end loop;
       Termination.Sub_Non_Terminating_Task;
+
+   exception
+      when E : others =>
+         pragma Debug (D (D_Debug, Exception_Name (E) & " received in " &
+                          "Sigio_Simulation"));
+         Termination.Sub_Non_Terminating_Task;
    end Sigio_Simulation;
 
 end System.Garlic.Non_Blocking;

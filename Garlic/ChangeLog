@@ -1,3 +1,9 @@
+Wed Oct 29 19:27:31 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Set System.Standard_Library.Local_Partition_ID.
+
+	* s-ganobl.adb: Add warnings.
+
 Fri Oct 17 18:27:45 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* s-garela.ads, s-garela.adb: Add procedure Initialize to remove
@@ -7,6 +13,11 @@ Fri Oct 17 18:27:45 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
  	Options.Initialize.
 
 	* s-garthi.ads: Add some procedures and types for IPC messages.
+
+Thu Oct 16 12:50:35 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Refine termination algorithm by using
+	System.Tasking.Utilities.
 
 Wed Oct 15 13:39:22 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
