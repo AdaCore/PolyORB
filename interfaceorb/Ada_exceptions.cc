@@ -55,7 +55,7 @@
 
 void Raise_Corba_Exception (omniORB::fatalException e)
 {
-  Raise_Ada_FatalException (e.file(),e.line(),e.errmsg());
+  Raise_Ada_Fatal_Exception (e.file(),e.line(),e.errmsg());
 }
 
 
