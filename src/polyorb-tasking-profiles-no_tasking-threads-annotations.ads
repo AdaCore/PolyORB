@@ -49,9 +49,6 @@ package PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
 private
    type No_Tasking_TAF is
      new PolyORB.Tasking.Threads.Annotations.Thread_Annotations_Factory
-     with record
-        TID     : PolyORB.Tasking.Threads.Thread_Id;
-        Notepad : PolyORB.Annotations.Notepad_Access;
-     end record;
+     with null record;
 
 end PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations;

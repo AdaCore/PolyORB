@@ -36,7 +36,7 @@ with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
 
-   Current_TAF : No_Tasking_TAF_Access;
+   Thread_Annotation_Notepad : aliased PolyORB.Annotations.Notepad;
 
    --------------------------------
    -- Get_Current_Thread_Notepad --
@@ -46,21 +46,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
      (TAF : access No_Tasking_TAF)
      return PolyORB.Annotations.Notepad_Access
    is
-      use PolyORB.Annotations;
-      use PolyORB.Tasking.Threads;
-
       pragma Unreferenced (TAF);
-
    begin
-      if Current_TAF.TID = Null_Thread_Id then
-         Current_TAF.TID := Current_Task;
-         Current_TAF.Notepad := new Notepad;
-      end if;
-
-      pragma Assert (Current_TAF.TID = Current_Task);
-      pragma Assert (Current_TAF.Notepad /= null);
-
-      return Current_TAF.Notepad;
+      return Thread_Annotation_Notepad'Access;
    end Get_Current_Thread_Notepad;
 
    ----------------
@@ -71,9 +59,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Threads.Annotations is
 
    procedure Initialize is
    begin
-      Current_TAF := new No_Tasking_TAF;
       PolyORB.Tasking.Threads.Annotations.Register
-        (PolyORB.Tasking.Threads.Annotations.TAF_Access (Current_TAF));
+        (new No_Tasking_TAF);
    end Initialize;
 
    use PolyORB.Initialization;
