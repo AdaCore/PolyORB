@@ -1,11 +1,11 @@
 /*************************************************************************************************
 ***                              ADA BACK-END COMPILER                                         ***
-***                             file:  adabe_interface.h                                       ***
+***                             file:  adabe_interface.cc                                      ***
 ***                                                                                            ***
 ***      This file provides the implementation of class adabe_interface declared in adabe.h    ***
 ***   (L 512). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
 ***   It provides produce functions for each generated file, a constructor and two little      ***
-***   functions : dump_name and marshall_name whose job is to deal with local types.           ***
+***   functions : dump_name and marshall_name whose job is to print the names of the type      ***
 ***                                                                                            ***
 ***                                                                                            ***
 ***   Copyright 1999                                                                           ***
@@ -642,9 +642,7 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   with.add(get_ada_full_name() + ".Impl");
   with.add(get_ada_full_name() + ".Marshal");
   with.add("Netbufferedstream");
-  body += "use Netbufferedstream ;\n";
   with.add("Membufferedstream");
-  body += "use Membufferedstream ;\n";
   with.add("Omniropeandkey") ;
   with.add("Giop") ;
   with.add("Corba") ;

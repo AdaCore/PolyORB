@@ -1,3 +1,27 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_argument.cc                                       ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_argument  declared in adabe.h    ***
+***   (L 420). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
+***   It provides produce functions for each generated file, a constructor and two little      ***
+***   functions : dump_name and marshall_name whose job is to print the name of the types.     ***
+***                                                                                            ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_ScopedName *n,UTL_StrList *p)
@@ -122,6 +146,10 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   string body, previous = "";
   AST_Decl *d = field_type();
   string type_name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
+  dynamic_cast<adabe_name *>(d)->is_marshal_imported(with);
+  // in order to include the marshal files
+
+
   string full_type_name = dynamic_cast<adabe_name *>(d)->get_ada_full_name() ;
   
   if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT)) {
@@ -193,6 +221,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   AST_Decl *d = field_type();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   string type_name = e->dump_name(with, previous);
+  e->is_marshal_imported(with);
 
   in_decls += "            ";
   in_decls += get_ada_local_name ();

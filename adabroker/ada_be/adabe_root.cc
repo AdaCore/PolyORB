@@ -29,13 +29,7 @@ adabe_root::produce() {
     int end_of_name = name.find(".idl");
     if (end_of_name > 0) name = name.substr(0, end_of_name);
     string idl_file_name = "";
-#ifdef DEBUG_ROOT
-    cout << "Here is the produce of the file : "<< name << endl;
-#endif
     idl_file_name =  name + "_IDL_FILE";
-    set_ada_local_name (idl_file_name);
-    set_ada_full_name (idl_file_name);
-    
     // **************************
     // CREATION OF THE MAIN FILES
     // **************************
@@ -533,10 +527,12 @@ adabe_root::produce() {
 		    string skel_body_interface_previous = "";
 		    string skel_body_interface_body = "";
 		    string skel_body_interface_with_string;
+		    string skel_body_interface_use_string;
 		    dep_list skel_body_interface_with;
 		    
 		    interface->produce_skel_adb(skel_body_interface_with,skel_body_interface_body,skel_body_interface_previous);
 		    skel_body_interface_with_string = *skel_body_interface_with.produce("with ");
+		    skel_body_interface_use_string = *skel_body_interface_with.produce("use ");
 		    
 		    string skel_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-skeleton.adb";
@@ -544,6 +540,7 @@ adabe_root::produce() {
 		    ofstream skel_body_interface_file(lower_case_name); 
 		    delete[] lower_case_name;
 		    skel_body_interface_file << skel_body_interface_with_string;
+		    skel_body_interface_file << skel_body_interface_use_string;
 		    skel_body_interface_file << skel_body_interface_previous;    
 		    skel_body_interface_file << skel_body_interface_body;
 		    skel_body_interface_file.close();

@@ -11,13 +11,11 @@
 with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
 with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
-use Corba.Object ;
 with Exceptions ;
 with Chicken ;
-with Chicken_Forward ; use Chicken_Forward ;
+with Chicken_Forward ;
 with Egg ;
 with Egg_Forward ;
-use Corba  ;
 
 procedure Client is
    Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
@@ -44,9 +42,6 @@ begin
    Tmp_Chicken := Egg.Hatch(My_Egg) ;
 
    Put_Line("MAIN : Got the chicken_forward !!!!!!!!!!!") ;
-
-   Put_Line("MAIN : "
-            & To_Standard_String(Get_Repository_Id(Get_Dynamic_Type(Tmp_Chicken)))) ;
 
    My_Chicken := Chicken.Convert_Forward.From_Forward(Tmp_Chicken) ;
 

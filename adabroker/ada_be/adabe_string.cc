@@ -200,7 +200,7 @@ adabe_string::dump_name (dep_list &with, string &previous)
 					 != AST_Decl::NT_typedef))
 	    {
 	      set_already_defined();
-	      with.check("Corba.String");
+	      with.add("Corba");
 	      return "Corba.String";
 	    }
 	}
@@ -219,6 +219,16 @@ string adabe_string::marshal_name (dep_list &with, string &previous)
 {
   if (!is_marshal_imported(with))
     {
+      if (evaluate(max_size()->ev())==0)
+	{
+	  if ((defined_in() == NULL) || (dynamic_cast<AST_Decl *> (defined_in())->node_type() 
+					 != AST_Decl::NT_typedef))
+	    {
+	      set_already_defined();
+	      with.add("Corba");
+	      return "Corba.String";
+	    }
+	}
       if (!is_already_defined())
 	{
 	  string tmp = "";
@@ -229,3 +239,7 @@ string adabe_string::marshal_name (dep_list &with, string &previous)
     }
   return get_ada_full_name();	   
 }
+
+
+
+

@@ -528,10 +528,12 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	    string interface_previous = "";
 	    string interface_body = "";
 	    string interface_with_string;
+	    string interface_use_string;
 	    dep_list interface_with;
 
 	    interface->produce_skel_adb(interface_with,interface_body,interface_previous);
 	    interface_with_string = *interface_with.produce("with ");
+	    interface_use_string = *interface_with.produce("use ");
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-skeleton.adb";
@@ -539,6 +541,7 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	    ofstream interface_file(lower_case_name); 
 	    delete[] lower_case_name;
 	    interface_file << interface_with_string;
+	    interface_file << interface_use_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
 	    interface_file.close();

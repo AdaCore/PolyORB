@@ -1,3 +1,27 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_name.cc                                           ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_name      declared in adabe.h    ***
+***   (L 70 ). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
+***   It provides produce functions for each generated file, a constructor and two little      ***
+***   functions : dump_name and marshall_name whose job is to print the name of the types.     ***
+***                                                                                            ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 #include <stdio.h>
 #include <nr_extern.hh>
@@ -133,6 +157,17 @@ adabe_name::marshal_name(dep_list&, string&)
 void
 adabe_name::compute_ada_name()
 {
+  if (node_type() == AST_Decl::NT_root) 
+    {
+      string name      = idl_global->stripped_filename()->get_string();
+      int end_of_name = name.find(".idl");
+      if (end_of_name > 0) name = name.substr(0, end_of_name);
+      string idl_file_name = "";
+      idl_file_name =  name + "_IDL_FILE";
+      set_ada_local_name (idl_file_name);
+      set_ada_full_name (idl_file_name);
+      return;
+    }
   string loc_value = local_name()->get_string();
   if ((get_ada_local_name() == "") || (loc_value ==  "local type"))
     {
@@ -177,8 +212,8 @@ adabe_name::compute_ada_name()
 	    case AST_Decl::NT_union:
 	    case AST_Decl::NT_interface:
 	    case AST_Decl::NT_module:
-	      pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
 	    case AST_Decl::NT_root:
+	      pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
 	      already_used = is_name_already_used(pd_ada_local_name, parent_scope);
 	      break;
 	    default:
@@ -195,10 +230,19 @@ adabe_name::compute_ada_name()
 	      sprintf (extension, "_%d",loop++);
 	      pd_ada_local_name = temp_name + extension;
 	    }
-	  if (pd_ada_full_name != "")
-	    pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
-	  else  pd_ada_full_name = pd_ada_local_name;
-	  /*  try to go the to the root of teh tree, and, each step, try to find 
+	  if ((node_type() != AST_Decl::NT_module) && (node_type() != AST_Decl::NT_interface)
+	      && (node_type() != AST_Decl::NT_interface_fwd))
+	    if (pd_ada_full_name != "")                          //////////////  perhaps useless
+	      pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
+	    else  
+	      {
+		pd_ada_full_name = pd_ada_local_name;            ////////////////// perhaps useless
+	      }
+	  else  
+	    if (parent_scope->scope_node_type() != AST_Decl::NT_root)
+	      pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
+	    else  pd_ada_full_name = pd_ada_local_name;
+	  /*  try to go to the root of the tree, and, each step, try to find 
 	      a node with the same name. If such a node if found
 	      try with another name */
 	} 
@@ -467,30 +511,29 @@ adabe_name::is_imported (dep_list& with)
     {
       bool temp;
       adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
-      if (inter->is_forwarded())
+      if (inter->get_ada_full_name() == "Corba.Object")
 	{
-	  temp = with.check (get_ada_full_name() + "_forward"); 
-	  if (!temp) with.add (get_ada_full_name() + "_forward");
+	  with.add ("Corba.Object");	  
 	}
       else
-	{
-	  temp = with.check (get_ada_full_name()); 
-	  if (!temp) with.add (get_ada_full_name());
-	}
+	if (inter->is_forwarded())
+	  {
+	    with.add (get_ada_full_name() + "_forward");
+	  }
+	else
+	  {
+	    with.add (get_ada_full_name());
+	  }
       return 1;
     }
   if (NT == AST_Decl::NT_module)
     {
-      bool temp;
-      temp = with.check (get_ada_full_name());
-      if (!temp) with.add (get_ada_full_name());
+      with.add (get_ada_full_name());
       return 1;
     }
   if (NT == AST_Decl::NT_root)
     {
-      bool temp;
-      temp = with.check (get_ada_full_name());
-      if (!temp) with.add (get_ada_full_name());
+      with.add (get_ada_full_name());
       return 1;
     }
   if (defined_in() == NULL) return 0;
@@ -506,32 +549,25 @@ adabe_name::is_marshal_imported (dep_list& with)
   AST_Decl::NodeType NT = node_type();
   if (NT == AST_Decl::NT_interface)
     {
-      bool temp = true;
-      temp = with.check (get_ada_full_name()+".marshal"); 
-      if (!temp) with.add (get_ada_full_name()+".marshal");
-      return temp;
+      if (get_ada_full_name() == "Corba.Object")
+	{
+	  return 1;
+	}
+      with.add (get_ada_full_name()+".marshal");
+      return 1;
     }
   if (NT == AST_Decl::NT_module)
     {
-      bool temp = true;
-      temp = with.check (get_ada_full_name()+".marshal");
-      if (!temp) with.add (get_ada_full_name()+".marshal");
-      return temp;
+      with.add (get_ada_full_name()+".marshal");
+      return 1;
     }
    if (NT == AST_Decl::NT_root)
     {
-      bool temp = true;
-      temp = with.check (get_ada_full_name()+".marshal");
-      if (!temp) with.add (get_ada_full_name()+".marshal");
-      return temp;
+      with.add (get_ada_full_name()+".marshal");
+      return 1;
     }
    if (defined_in() == NULL) return 0;
-  //  if  ((NT == AST_Decl::NT_root)
-  //       || (NT ==  AST_Decl::NT_except)
-  //       || (NT ==  AST_Decl::NT_struct)
-  //       || (NT ==  AST_Decl::NT_union))	
-     return (dynamic_cast<adabe_name *>(defined_in()))->is_marshal_imported (with); 
-      //    }
+   return (dynamic_cast<adabe_name *>(defined_in()))->is_marshal_imported (with); 
 }
 
 ostream& operator<<(ostream &s, AST_Decl::NodeType x)
