@@ -79,6 +79,10 @@ private
    --  Returns the string of the current_token
    function Get_Next_Token_String return String;
 
+   --  Divides T_Greater_Greater in two T_Greater
+   --  usefull for the parsing of sequences
+
+   procedure Divide_T_Greater_Greater;
 
    ---------------------------------
    --  Management of expressions  --

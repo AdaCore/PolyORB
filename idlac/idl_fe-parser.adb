@@ -43,7 +43,7 @@ package body Idl_Fe.Parser is
    --  an identifier ou a literal)
 
    --  buffer length
-   Buffer_Length : constant Natural := 5;
+   Buffer_Length : constant Natural := 6;
 
    --  a type for indexes on the buffer
    type Buffer_Index is mod Buffer_Length;
@@ -120,7 +120,7 @@ package body Idl_Fe.Parser is
             String_Buffer (Newest_Index) :=
              new String'(Idl_Fe.Lexer.Get_Lexer_String);
          when others =>
-            null;
+            String_Buffer (Newest_Index) := null;
       end case;
    end Get_Token_From_Lexer;
 
@@ -134,6 +134,7 @@ package body Idl_Fe.Parser is
       end if;
       Current_Index := Current_Index + 1;
    end Next_Token;
+
 
    -----------------------
    --  View_Next_Token  --
@@ -174,6 +175,9 @@ package body Idl_Fe.Parser is
    -----------------------------------
    function Get_Previous_Token_Location return Idl_Fe.Errors.Location is
    begin
+      pragma Debug (O ("Get_Previous_Token_Location : enter," &
+                       " Current_Index - 1 = " &
+                       Buffer_Index'Image (Current_Index - 1)));
       return Location_Buffer (Current_Index - 1);
    end Get_Previous_Token_Location;
 
@@ -217,6 +221,42 @@ package body Idl_Fe.Parser is
    begin
       return String_Buffer (Current_Index + 1).all;
    end Get_Next_Token_String;
+
+
+   -------------------------------
+   --  Divide_T_Greater_Greater --
+   -------------------------------
+   procedure Divide_T_Greater_Greater is
+      Loc : Idl_Fe.Errors.Location := Get_Token_Location;
+   begin
+      if Get_Token /= T_Greater_Greater then
+         return;
+      end if;
+      Token_Buffer (Current_Index) := T_Greater;
+      if Newest_Index /= Current_Index then
+         declare
+            I : Buffer_Index := Newest_Index;
+         begin
+            if String_Buffer (Newest_Index + 1) /= null then
+               Free_String_Ptr (String_Buffer (Newest_Index + 1));
+            end if;
+            while I /= Current_Index loop
+               Token_Buffer (I + 1) := Token_Buffer (I);
+               Location_Buffer (I + 1) := Location_Buffer (I);
+               String_Buffer (I + 1) := String_Buffer (I);
+               I := I - 1;
+               pragma Debug (O ("Divide T_Greater_Greater : Token I+1 is " &
+                                Idl_Token'Image (Token_Buffer (I + 1))));
+               pragma Debug (O ("I = " & Buffer_Index'Image (I)));
+            end loop;
+         end;
+      end if;
+      Newest_Index := Newest_Index + 1;
+      Loc.Col := Loc.Col + 1;
+      Token_Buffer (Current_Index + 1) := T_Greater;
+      Location_Buffer (Current_Index + 1) := Loc;
+      String_Buffer (Current_Index + 1) := null;
+   end Divide_T_Greater_Greater;
 
 
    ---------------------------------
@@ -2954,11 +2994,19 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
+      --  a T_Greater_Greater can be the end of a sequence
       if Get_Token = T_Greater_Greater then
-         Errors.Parser_Error ("only simple constants are " &
-                              "implemented for the moment",
-                              Errors.Error,
-                              Loc);
+         case View_Next_Token is
+            when T_Lit_Decimal_Integer
+              | T_Lit_Octal_Integer
+              | T_Lit_Hexa_Integer =>
+               Errors.Parser_Error ("only simple constants are " &
+                                    "implemented for the moment",
+                                    Errors.Error,
+                                    Loc);
+            when others =>
+               null;
+         end case;
 --          declare
 --             Res : Node_Id;
 --          begin
@@ -4879,6 +4927,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Sequence_Type (Result : out Node_Id;
                                   Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Sequence_Type : Enter"));
       Next_Token;
       if Get_Token /= T_Less then
          Idl_Fe.Errors.Parser_Error
@@ -4889,6 +4938,9 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Result := Make_Sequence;
+      pragma Debug (O ("Parse_Sequence_Type : previous location :" &
+                       " filename = " &
+                       Get_Previous_Token_Location.Filename.all));
       Set_Location (Result, Get_Previous_Token_Location);
       Next_Token;
       declare
@@ -4900,6 +4952,17 @@ package body Idl_Fe.Parser is
       end;
       if not Success then
          return;
+      end if;
+      pragma Debug (O ("Parse_Sequence_Type : Token is" &
+                       Idl_Token'Image (Get_Token)));
+      --  should divide the greater_greater token!
+      if Get_Token = T_Greater_Greater then
+         Idl_Fe.Errors.Parser_Error
+           ("'>>' could be considered as a constant operation." &
+            "You should better insert a space between the two '>'.",
+            Idl_Fe.Errors.Warning,
+            Get_Token_Location);
+         Divide_T_Greater_Greater;
       end if;
       if Get_Token /= T_Comma and Get_Token /= T_Greater then
          Idl_Fe.Errors.Parser_Error
@@ -4924,25 +4987,20 @@ package body Idl_Fe.Parser is
       else
          Set_Bound (Result, No_Node);
       end if;
+
+      --  should divide the greater_greater token!
+      if Get_Token = T_Greater_Greater then
+         Idl_Fe.Errors.Parser_Error
+           ("'>>' could be considered as a constant operation." &
+            "You should better insert a space between the two '>'.",
+            Idl_Fe.Errors.Warning,
+            Get_Token_Location);
+         Divide_T_Greater_Greater;
+      end if;
+
       case Get_Token is
          when T_Greater =>
             Next_Token;
-         when T_Greater_Greater =>
-            if Kind (Get_Current_Scope) = K_Sequence then
-               Idl_Fe.Errors.Parser_Error
-                 ("'>' expected. You probably forgot " &
-                  "the space between both letters.",
-                  Idl_Fe.Errors.Error,
-                  Get_Token_Location);
-            else
-               Idl_Fe.Errors.Parser_Error
-                 ("'>' expected at the end of "
-                  & "sequence definition.",
-                  Idl_Fe.Errors.Error,
-                  Get_Token_Location);
-               Success := False;
-               return;
-            end if;
          when others =>
             Idl_Fe.Errors.Parser_Error
               ("'>' expected at the end of "
