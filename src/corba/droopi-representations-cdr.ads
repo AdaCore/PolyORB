@@ -10,6 +10,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
@@ -18,6 +20,41 @@ with Droopi.Buffers; use Droopi.Buffers;
 
 
 package Droopi.Representations.CDR is
+
+   ----------------------------------------
+   -- The Encapsulation view of a buffer --
+   ----------------------------------------
+
+   --  A buffer is a sequence of bytes that can be
+   --  turned into an opaque Encapsulation object
+   --  and back.
+
+   subtype Encapsulation is Stream_Element_Array;
+
+   function Encapsulate
+     (Buffer   : access Buffer_Type)
+     return Encapsulation;
+   --  Create an Octet_Array corresponding to Buffer
+   --  as an encapsulation.
+
+   procedure Start_Encapsulation
+     (Buffer : access Buffer_Type);
+   --  Prepare Buffer to receive marshalled data
+   --  that will be turned into an Encapsulation.
+
+   procedure Decapsulate
+     (Octets : access Encapsulation;
+      Buffer : access Buffer_Type);
+   --  Initialize a buffer with an Octet_Array
+   --  corresponding to an Encapsulation.
+   --  Buffer must be a fresh, empty buffer.
+   --  The lifespan of the actual Octets array
+   --  shall be no less than that of Buffer.
+
+
+   ---------------------------------------------
+   -- Marshaling and unmarshaling subprograms --
+   ---------------------------------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -274,31 +311,6 @@ package Droopi.Representations.CDR is
 
    procedure Unmarshall (Buffer : access Buffer_Type;
                          NV : in out CORBA.NamedValue);
-
-   --  XXX Encapsulation is a subtype of Stream_Element_Array.
---     procedure Marshall
---       (Buffer : access Buffer_Type;
---        Data   : access Encapsulation);
---     procedure Marshall
---       (Buffer : access Buffer_Type;
---        Data   : in Encapsulation);
---
---     function Unmarshall (Buffer : access Buffer_Type)
---       return Encapsulation;
-
-   procedure Start_Encapsulation
-     (Buffer : access Buffer_Type);
-   --  Prepare Buffer to receive marshalled data
-   --  that will be turned into an Encapsulation.
-
-   procedure Decapsulate
-     (Octets : access Encapsulation;
-      Buffer : access Buffer_Type);
-   --  Initialize a buffer with an Octet_Array
-   --  corresponding to an Encapsulation.
-   --  Buffer must be a fresh, empty buffer.
-   --  The lifespan of the actual Octets array
-   --  shall be no less than that of Buffer.
 
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)

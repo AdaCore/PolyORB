@@ -22,6 +22,8 @@ with Droopi.CORBA_P.Exceptions.Stack;
 
 package body Droopi.Representations.CDR is
 
+   use CORBA;
+
    use Droopi.Log;
    use Droopi.CORBA_P.Exceptions;
    use Droopi.CORBA_P.Exceptions.Stack;
@@ -30,11 +32,57 @@ package body Droopi.Representations.CDR is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-
    Octet_Order : constant Integer := 256;
 
+   -------------------------
+   -- Start_Encapsulation --
+   -------------------------
 
-   use CORBA;
+   procedure Start_Encapsulation
+     (Buffer : access Buffer_Type) is
+   begin
+      Set_Initial_Position (Buffer, 0);
+      Marshall
+        (Buffer,
+         CORBA.Boolean
+         (Endianness (Buffer.all) = Little_Endian));
+      --  An encapsulation starts with a Boolean value
+      --  which is True if the remainder of the buffer is
+      --  Little_Endian, and False otherwise.
+   end Start_Encapsulation;
+
+   procedure Decapsulate
+     (Octets : access Encapsulation;
+      Buffer : access Buffer_Type)
+   is
+      Endianness : Endianness_Type;
+      Z : constant Zone_Access
+        := Zone_Access'(Octets.all'Unchecked_Access);
+   begin
+      if CORBA.Boolean'Val
+        (CORBA.Octet (Octets (Octets'First))) then
+         Endianness := Little_Endian;
+      else
+         Endianness := Big_Endian;
+      end if;
+
+      Initialize_Buffer
+        (Buffer               => Buffer,
+         Size                 => Octets'Length - 1,
+         Data                 =>
+           (Zone   => Z,
+            Offset => Z'First + 1),
+         --  Bypass runtime accessibility check.
+         Endianness           => Endianness,
+         Initial_CDR_Position => 1);
+   end Decapsulate;
+
+   function Encapsulate
+     (Buffer : access Buffer_Type)
+     return Encapsulation is
+   begin
+      return Encapsulation (To_Stream_Element_Array (Buffer));
+   end Encapsulate;
 
    -------------------------
    -- Utility subprograms --
@@ -2460,45 +2508,6 @@ package body Droopi.Representations.CDR is
       return Data_Address.Zone
             (Data_Address.Offset .. Data_Address.Offset + Size - 1);
    end Align_Unmarshall_Copy;
-
-   -------------------------
-   -- Start_Encapsulation --
-   -------------------------
-
-   procedure Start_Encapsulation
-     (Buffer : access Buffer_Type) is
-   begin
-      Set_Initial_Position (Buffer, 0);
-      Marshall (Buffer,
-                CORBA.Boolean
-                (Endianness (Buffer.all) = Host_Order));
-   end Start_Encapsulation;
-
-   procedure Decapsulate
-     (Octets : access Encapsulation;
-      Buffer : access Buffer_Type)
-   is
-      Endianness : Endianness_Type;
-      Z : constant Zone_Access
-        := Zone_Access'(Octets.all'Unchecked_Access);
-   begin
-      if CORBA.Boolean'Val
-        (CORBA.Octet (Octets (Octets'First))) then
-         Endianness := Little_Endian;
-      else
-         Endianness := Big_Endian;
-      end if;
-
-      Initialize_Buffer
-        (Buffer               => Buffer,
-         Size                 => Octets'Length - 1,
-         Data                 =>
-           (Zone   => Z,
-            Offset => Z'First + 1),
-         --  Bypass runtime accessibility check.
-         Endianness           => Endianness,
-         Initial_CDR_Position => 1);
-   end Decapsulate;
 
    --------------
    -- Marshall --

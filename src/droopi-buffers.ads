@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#9 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#10 $
 
 with System;
 --  For bit-order information.
@@ -93,31 +93,10 @@ package Droopi.Buffers is
    --  structures when they won't be used anymore.
    --  On return, A_Buffer is set to null.
 
-   ----------------------------------
-   -- The Message view of a buffer --
-   ----------------------------------
-
-   --  A buffer is an octet stream that can be
-   --  exchanged on a GIOP stream.
-
-   --  procedure Send
-   --  procedure Receive
-
-   ----------------------------------------
-   -- The Encapsulation view of a buffer --
-   ----------------------------------------
-
-   --  A buffer is a sequence of bytes that can be
-   --  turned into an opaque Encapsulation object
-   --  and back.
-
-   subtype Encapsulation is Stream_Element_Array;
-
-   function Encapsulate
+   function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Encapsulation;
-   --  Create an Octet_Array corresponding to Buffer
-   --  as an encapsulation.
+     return Stream_Element_Array;
+   --  Dump the contents of Buffer into a Stream_Element_Array.
 
    ------------------------------
    -- The CDR view of a buffer --

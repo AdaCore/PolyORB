@@ -37,9 +37,6 @@ with Ada.Unchecked_Deallocation;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
---  with CORBA;
---  --  For CORBA.Octet and CORBA.Bool in Decapsulate.
-
 package body Droopi.Buffers is
 
    use Droopi.Log;
@@ -158,22 +155,18 @@ package body Droopi.Buffers is
       Free (A_Buffer);
    end Release;
 
-   ----------------------------------------
-   -- The Encapsulation view of a buffer --
-   ----------------------------------------
-
-   function Encapsulate
+   function To_Stream_Element_Array
      (Buffer   : access Buffer_Type)
-     return Encapsulation
+     return Stream_Element_Array
    is
       Contents : Zone_Access := Iovec_Pools.Dump (Buffer.Contents);
-      Result   : constant Encapsulation := Contents.all;
+      Result   : constant Stream_Element_Array  := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
 
       Free (Contents);
       return Result;
-   end Encapsulate;
+   end To_Stream_Element_Array;
 
    ------------------------------
    -- The CDR view of a buffer --
