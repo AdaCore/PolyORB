@@ -67,17 +67,19 @@ begin
       T0, T1, T2 : Time;
       Delta1 : Duration;
 
-      How_Many : Integer;
+      How_Many : Integer := 1_000;
 
    begin
       Initiate_Servant (PortableServer.Servant (Obj), Ref);
       Initiate_Server (True);
 
       if Ada.Command_Line.Argument_Count >= 1 then
-         How_Many := Integer'Value (Ada.Command_Line.Argument (1));
-
-      else
-         How_Many := 1_000;
+         begin
+            How_Many := Integer'Value (Ada.Command_Line.Argument (1));
+         exception
+            when others =>
+               null;
+         end;
       end if;
 
       T0 := Clock;
