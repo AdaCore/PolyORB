@@ -11,8 +11,11 @@ with GNAT.HTable;
 
 with CORBA.Object;
 with PolyORB.CORBA_P.Naming_Tools;
---  XXX while RCI initial refs are managed through the CORBA
---  naming service.
+with CosNaming.NamingContext.Helper;
+--  RCI package references are managed through the CORBA
+--  naming service. RCIs also act as naming contexts themselves
+--  for the purpose of providing access to each of their subprograms
+--  as objects.
 
 with PolyORB.Binding_Data;
 with PolyORB.Dynamic_Dict;
@@ -532,11 +535,15 @@ package body System.PolyORB_Interface is
               (Addr, Pkg_Name, Receiver, Subp_Ref);
          end;
       else
-         --  Remote_Get_RAS_Ref (Info.Base_Ref, Subprogram_Name);
-         --  XXX make a RPC to resolve subprogram name to a ref.
-         null;
-         --  Subp_Ref := ...;
-         --  XXX TBD
+         declare
+            Ctx : CosNaming.NamingContext.Ref;
+         begin
+            CORBA.Object.Convert_To_CORBA_Ref (Info.Base_Ref, Ctx);
+
+            Subp_Ref := CORBA.Object.To_PolyORB_Ref
+              (PolyORB.CORBA_P.Naming_Tools.Locate
+                 (Ctx, Subprogram_Name & ".SUBP"));
+         end;
       end if;
    end Get_RAS_Ref;
 
