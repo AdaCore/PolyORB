@@ -54,9 +54,16 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Data (S : access Echo_Session) is
    begin
-      --  Send_String (Received_Line ());
       pragma Debug (O ("Received data on echo service..."));
+      pragma Debug (Buffers.Show (S.Buffer.all));
+
+      Channels.Send_Data (S.Channel, S.Buffer);
+      --  Bounce received data to caller.
+
+      Buffers.Release_Contents (S.Buffer.all);
       Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
+      --  Clear buffer and prepare to receive next message.
+
    end Handle_Data;
 
    procedure Handle_Connection_Closed (S : access Echo_Session) is
@@ -65,10 +72,12 @@ package body Droopi.Protocols.Echo is
 
       --  Cleanup protocol.
 
+      Buffers.Release (S.Buffer);
+
       --  Destroy channel, remove it from the ORB.
 
       --  Destroy session.
-      
+
       null;
    end Handle_Connection_Closed;
 

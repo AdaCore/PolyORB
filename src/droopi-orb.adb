@@ -1,8 +1,6 @@
 --  $Id$
 
 with Droopi.Log;
---  XXX Remove?
---  with Droopi.ORB.Task_Policies;
 with Droopi.Soft_Links;
 with Droopi.Channels;
 
@@ -13,8 +11,6 @@ package body Droopi.ORB is
    use Droopi.Protocols;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
-   --  XXX Remove?
-   --  use Droopi.ORB.Task_Policies;
 
    package L is new Droopi.Log.Facility_Log ("droopi.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -87,12 +83,12 @@ package body Droopi.ORB is
             --  A new connection.
 
             declare
-               New_AS : Active_Socket;
-               Addr : Sock_Addr_Type;
+               New_AS      : Active_Socket;
+               New_Session : Session_Access;
+               Addr        : Sock_Addr_Type;
             begin
                New_AS := (Kind     => Communication_Sk,
                           Socket   => No_Socket,
-                          Session  => null,
                           Channel  => null,
                           Protocol => AS.Protocol);
 
@@ -111,11 +107,11 @@ package body Droopi.ORB is
                   Create_Session
                     (New_AS.Protocol,
                      New_AS.Socket,
-                     New_AS.Session,
+                     New_Session,
                      New_AS.Channel);
                end if;
 
-               Handle_Connect (New_AS.Session);
+               Handle_Connect (New_Session);
                --  Startup protocol.
 
                Handle_New_Connection
@@ -141,6 +137,7 @@ package body Droopi.ORB is
 
             declare
                Closed : Boolean;
+               --  Was the underlying transport connection closed?
             begin
                Channels.Handle_Data (AS.Channel, Closed);
                if Closed then

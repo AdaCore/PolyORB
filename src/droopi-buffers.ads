@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#6 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#7 $
 
 with System;
 --  For bit-order information.
@@ -44,9 +44,9 @@ package Droopi.Buffers is
    function Endianness (Buffer : Buffer_Type) return Endianness_Type;
    --  Return the endianness of Buffer.
 
-   procedure Release (Buffer : in out Buffer_Type);
-   --  Signal that a buffer will not be used anymore.
-   --  The associated storage will be deallocated.
+   procedure Release_Contents (Buffer : in out Buffer_Type);
+   --  Signal that the current contents of a buffer will not be
+   --  used anymore. The associated storage will be deallocated.
 
    procedure Initialize_Buffer
      (Buffer     : access Buffer_Type;
@@ -89,9 +89,8 @@ package Droopi.Buffers is
 
    procedure Release
      (A_Buffer : in out Buffer_Access);
-   --  Release the storage associated with the buffer
-   --  designated by A_Buffer, and the dynamically
-   --  allocated data structure used to manage it.
+   --  Release the contents of A_Buffer and the associated control
+   --  structures when they won't be used anymore.
    --  On return, A_Buffer is set to null.
 
    ----------------------------------

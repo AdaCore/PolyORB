@@ -54,7 +54,8 @@ package Droopi.ORB is
 
       case Kind is
          when Communication_Sk =>
-            Session  : Protocols.Session_Access;
+            --  XXX remove?
+            --  Session  : Protocols.Session_Access;
             Channel  : Channels.Channel_Access;
          when others =>
             null;

@@ -70,7 +70,7 @@ package body Droopi.Buffers is
       return Buffer.Endianness;
    end Endianness;
 
-   procedure Release
+   procedure Release_Contents
      (Buffer : in out Buffer_Type) is
    begin
       Release (Buffer.Contents);
@@ -79,7 +79,7 @@ package body Droopi.Buffers is
       Buffer.Initial_CDR_Position := 0;
       Buffer.Endianness := Host_Order;
       Buffer.Length := 0;
-   end Release;
+   end Release_Contents;
 
    procedure Initialize_Buffer
      (Buffer     : access Buffer_Type;
@@ -153,7 +153,7 @@ package body Droopi.Buffers is
         (Buffer_Type, Buffer_Access);
 
    begin
-      Release (A_Buffer.all);
+      Release_Contents (A_Buffer.all);
       Free (A_Buffer);
    end Release;
 
@@ -325,6 +325,8 @@ package body Droopi.Buffers is
       Data : Opaque_Pointer;
    begin
       Grow_Shrink (Buffer.Contents'Access, -Size, Data);
+      Buffer.CDR_Position := Buffer.CDR_Position - Size;
+      Buffer.Length := Buffer.Length - Size;
    end Unuse_Allocation;
 
    procedure Extract_Data
