@@ -767,12 +767,6 @@ package body PolyORB.POA is
             Free (Self.Children);
 
             Leave (Self.Children_Lock);
-
-         exception
-            when others =>
-               pragma Debug (O ("Got exception when destroying Child POA"));
-               Leave (Self.Children_Lock);
-               raise;
          end;
       end if;
 

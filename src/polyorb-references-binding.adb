@@ -33,7 +33,6 @@
 
 --  Object references (binding operation).
 
-with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
@@ -209,48 +208,39 @@ package body PolyORB.References.Binding is
                return;
             end if;
 
+            declare
+               Continuation : PolyORB.References.Ref;
             begin
-               declare
-                  Continuation : PolyORB.References.Ref;
-               begin
-                  Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+               Proxy_To_Ref (OA, Object_Id, Continuation, Error);
+               if Found (Error) then
+                  return;
+               end if;
+               if not Is_Nil (Continuation) then
+                  Binding_Data.Set_Continuation
+                    (Selected_Profile,
+                     Smart_Pointers.Ref (Continuation));
+                  --  This is necessary in order to prevent the profiles in
+                  --  Continuation (a ref to the actual object) from being
+                  --  finalised before Selected_Profile (a local profile
+                  --  with proxy oid) is finalized itself.
+                  pragma Debug (O ("Bind: recursing on proxy ref"));
+                  Bind (Continuation,
+                        Local_ORB,
+                        Servant,
+                        Pro,
+                        Local_Only,
+                        Error);
                   if Found (Error) then
                      return;
                   end if;
-                  if not Is_Nil (Continuation) then
-                     Binding_Data.Set_Continuation
-                       (Selected_Profile,
-                        Smart_Pointers.Ref (Continuation));
-                     --  This is necessary in order to prevent the profiles in
-                     --  Continuation (a ref to the actual object) from being
-                     --  finalised before Selected_Profile (a local profile
-                     --  with proxy oid) is finalized itself.
-                     pragma Debug (O ("Bind: recursing on proxy ref"));
-                     Bind (Continuation,
-                           Local_ORB,
-                           Servant,
-                           Pro,
-                           Local_Only,
-                           Error);
-                     if Found (Error) then
-                        return;
-                     end if;
 
-                     pragma Debug (O ("Recursed."));
+                  pragma Debug (O ("Recursed."));
 
-                     Share_Binding_Info
-                       (Dest => Ref (R), Source => Continuation);
-                     pragma Debug (O ("Cached binding data."));
-                  end if;
-                  pragma Debug (O ("About to finalize Continuation"));
-               end;
-            exception
-               when E : others =>
-                  pragma Debug (O ("Got exception while recursively "
-                                   & "binding proxy ref:"));
-                  pragma Debug
-                    (O (Ada.Exceptions.Exception_Information (E)));
-                  null;
+                  Share_Binding_Info
+                    (Dest => Ref (R), Source => Continuation);
+                  pragma Debug (O ("Cached binding data."));
+               end if;
+               pragma Debug (O ("About to finalize Continuation"));
             end;
 
             --  End of processing for local profile case.
