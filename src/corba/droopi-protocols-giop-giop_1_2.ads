@@ -28,9 +28,12 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    pragma Elaborate_Body;
 
+   subtype Msg_Type_1_2 is Msg_Type;
+   --  XXX check that!
+
    procedure GIOP_Header_Marshall
      (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in MsgType_1_2;
+      Message_Type : in Msg_Type_1_2;
       Message_Size : in Stream_Element_Offset;
       Fragment_Next : in Boolean);
 
@@ -39,9 +42,9 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
      (Buffer             : access Buffers.Buffer_Type;
       Request_Id         : in CORBA.Unsigned_Long;
       Operation          : in Requests.Operation_Id;
-      Address_Type       : in Addressing_Diposition;
+      Address_Type       : in Addressing_Disposition;
       Target_Ref         : in Target_Address;
-      Sync_Type          : in CORBA.SyncScope);
+      Sync_Type          : in Sync_Scope);
 
 
     procedure No_Exception_Marshall
@@ -60,7 +63,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       (Buffer     :   access Buffers.Buffer_Type;
        Request_Id :   access CORBA.Unsigned_Long;
        Reply_Type : in Reply_Status_Type;
-       Target_Ref : in out Droopi.References);
+       Target_Ref : in out Droopi.References.Ref);
 
     procedure Needs_Addressing_Mode_Marshall
       (Buffer              : access Buffers.Buffer_Type;
@@ -74,8 +77,8 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
     procedure Locate_Request_Marshall
       (Buffer            : access Buffer_Type;
-       Request_Id        : in Corba.Unsigned_Long;
-       Address_Type      : in Addressing_Diposition;
+       Request_Id        : in CORBA.Unsigned_Long;
+       Address_Type      : in Addressing_Disposition;
        Target_Ref        : in Target_Address);
 
     procedure Fragment_Marshall
@@ -88,14 +91,14 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
     procedure Request_Message_Unmarshall
       (Buffer            : access Buffer_Type;
-       Request_Id        : out Corba.Unisgned_Long;
+       Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Target_Ref        : out Target_Address;
        Operation         : out Requests.Operation_Id);
 
     procedure Reply_Message_Unmarshall
       (Buffer       : access Buffer_Type;
-       Request_Id   : out Corba.Unsigned_Long;
+       Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
 
 private
