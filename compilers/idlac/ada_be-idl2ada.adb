@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#20 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#21 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -1935,8 +1935,6 @@ package body Ada_Be.Idl2Ada is
                               PL (CU, "CORBA.ARG_INOUT);");
                            when Mode_Out =>
                               PL (CU, "CORBA.ARG_OUT);");
---                            when others =>
---                               raise Program_Error;
                         end case;
                         DI (CU);
                      end if;
@@ -1964,9 +1962,6 @@ package body Ada_Be.Idl2Ada is
                             & T_Excp_List & ");");
                         First := False;
                      end if;
-
-                     --  Add_With (CU, Helper_Unit (E_Node));
-                     --  Is this necessary?
 
                      PL (CU, "CORBA.ExceptionList.Add");
                      PL (CU, "  (" & T_Excp_List & ",");

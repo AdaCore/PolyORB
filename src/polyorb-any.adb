@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#23 $
+--  $Id: //droopi/main/src/polyorb-any.adb#24 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1157,7 +1157,7 @@ package body PolyORB.Any is
                         I := I + 2;
                      end loop;
                   end;
-                  Result := Result & To_PolyORB_String ("}");
+                  Result := Result & To_PolyORB_String (" }");
                   return To_Standard_String (Result);
                when others =>
                   return "<aggregate:" & TCKind'Image (Kind) & ">";

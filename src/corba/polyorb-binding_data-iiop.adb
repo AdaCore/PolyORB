@@ -134,9 +134,12 @@ package body PolyORB.Binding_Data.IIOP is
       Chain_Factories ((0 => Sli'Unchecked_Access,
                         1 => Pro'Unchecked_Access));
 
-      Filter := Component_Access (Create_Filter_Chain (Sli'Unchecked_Access));
+      Filter := Component_Access
+        (Slicers.Create_Filter_Chain (Sli'Unchecked_Access));
       --  Filter must be an access to the lowest filter in
       --  the stack (the slicer in the case of GIOP).
+      --  The call to CFC is qualified to work around a bug in
+      --  the APEX compiler.
 
       TProf.Address := Profile.Address;
       TProf.Object_Id := Profile.Object_Id;
@@ -312,7 +315,7 @@ package body PolyORB.Binding_Data.IIOP is
    is
       use PolyORB.Sockets;
 
-      Str  : Types.String := To_PolyORB_String (Image (Sock.Addr));
+      Str  : constant Types.String := To_PolyORB_String (Image (Sock.Addr));
    begin
 
       --  Marshalling of the Host as a string
@@ -330,12 +333,14 @@ package body PolyORB.Binding_Data.IIOP is
    is
       use PolyORB.Sockets;
 
-      Str  : Types.String := Unmarshall (Buffer);
+      Addr_Image : constant Standard.String
+        := PolyORB.Types.To_Standard_String
+        (PolyORB.Types.String'(Unmarshall (Buffer)));
       Port : Types.Unsigned_Short;
    begin
 
       --  Unmarshalling of the Host
-      Sock.Addr := Inet_Addr (To_Standard_String (Str));
+      Sock.Addr := Inet_Addr (Addr_Image);
 
       --  Unmarshalling of the port
       Port := Unmarshall (Buffer);

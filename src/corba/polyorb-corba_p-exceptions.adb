@@ -30,20 +30,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#3 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#4 $
 
-with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Strings.Unbounded;
+
 with CORBA; use CORBA;
+
 with PolyORB.CORBA_P.Exceptions.Stack;
 with PolyORB.CORBA_P.Names; use PolyORB.CORBA_P.Names;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Soft_Links;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PolyORB.CORBA_P.Exceptions is
 
-   -----------------------
-   -- Exception mapping --
-   -----------------------
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   -------------------------------
+   -- System exceptions mapping --
+   -------------------------------
 
    type String_Access is access constant String;
 
@@ -182,14 +195,15 @@ package body PolyORB.CORBA_P.Exceptions is
    -- Raise_Exception --
    ---------------------
 
-   procedure Raise_Exception
-     (Excp : in Exception_Id; Excp_Memb : in System_Exception_Members);
-   pragma No_Return (Raise_Exception);
+   procedure Raise_System_Exception
+     (Excp      : in Exception_Id;
+      Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_System_Exception);
    --  Raise the corresponding CORBA exception, and store its
    --  members for later retrieval by Get_Members.
 
-   procedure Raise_Exception
-     (Excp : in Exception_Id;
+   procedure Raise_System_Exception
+     (Excp      : in Exception_Id;
       Excp_Memb : in System_Exception_Members)
    is
       Str : String (1 .. 5);
@@ -213,8 +227,7 @@ package body PolyORB.CORBA_P.Exceptions is
 
       --  Huh, excp can't be null_id
       raise Program_Error;
-   end Raise_Exception;
-
+   end Raise_System_Exception;
 
    -----------------
    -- Get_Members --
@@ -255,7 +268,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Unknown'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Unknown;
@@ -264,7 +277,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Bad_Param'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Param;
@@ -273,7 +286,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Marshal'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Marshal;
@@ -282,7 +295,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Comm_Failure'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Comm_Failure;
@@ -291,7 +304,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Inv_Objref'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Inv_Objref;
@@ -300,7 +313,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Object_Not_Exist'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Object_Not_Exist;
@@ -309,7 +322,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Bad_Operation'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Operation;
@@ -318,7 +331,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Transient'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Transient;
@@ -327,7 +340,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Internal'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Internal;
@@ -336,7 +349,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Obj_Adapter'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Obj_Adapter;
@@ -345,7 +358,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (No_Implement'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_No_Implement;
@@ -354,7 +367,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Imp_Limit'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Imp_Limit;
@@ -363,7 +376,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Bad_Inv_Order'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Inv_Order;
@@ -372,7 +385,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Bad_TypeCode'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_TypeCode;
@@ -381,7 +394,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Adapter_Already_Exists'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Adapter_Already_Exists;
@@ -390,7 +403,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Invalid_Policy'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Invalid_Policy;
@@ -399,7 +412,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Wrong_Policy'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Wrong_Policy;
@@ -408,7 +421,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Servant_Already_Active'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Servant_Already_Active;
@@ -417,7 +430,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Object_Already_Active'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Object_Already_Active;
@@ -426,7 +439,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Servant_Not_Active'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Servant_Not_Active;
@@ -435,7 +448,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Object_Not_Active'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Object_Not_Active;
@@ -444,7 +457,7 @@ package body PolyORB.CORBA_P.Exceptions is
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception
+      Raise_System_Exception
         (Adapter_Inactive'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Adapter_Inactive;
@@ -482,12 +495,144 @@ package body PolyORB.CORBA_P.Exceptions is
    end Occurrence_To_Name;
 
    -----------------------------
-   -- System_Exception_To_Any --
+   -- User exceptions mapping --
    -----------------------------
+
+   type Exception_Info is record
+      TC     : TypeCode.Object;
+      Raiser : Raise_From_Any_Procedure;
+   end record;
+
+   function Find_Exception_Info
+     (For_Exception : CORBA.RepositoryId)
+     return Exception_Info;
+
+   -----------------------------
+   -- A list of Exception_Info --
+   -----------------------------
+
+   package Exception_Lists is new PolyORB.Utils.Chained_Lists
+     (Exception_Info);
+
+   All_Exceptions : Exception_Lists.List;
+
+   ---------------
+   -- Find_Info --
+   ---------------
+
+   function Find_Exception_Info
+     (For_Exception : CORBA.RepositoryId)
+     return Exception_Info
+   is
+      use PolyORB.Soft_Links;
+      use PolyORB.Types;
+      use Exception_Lists;
+
+      Id : constant Types.RepositoryId
+        := Types.RepositoryId (For_Exception);
+      It : Iterator;
+      Info : Exception_Info;
+
+   begin
+      pragma Debug
+        (O ("Looking up einfo for " & To_Standard_String (For_Exception)));
+      Enter_Critical_Section;
+      It := First (All_Exceptions);
+
+      while not Last (It) loop
+         exit when CORBA.TypeCode.Id (Value (It).TC) = Id;
+         Next (It);
+      end loop;
+
+      if Last (It) then
+         Leave_Critical_Section;
+         --  return Unknown_User_Exception_Info;
+         --  XXX actually should raise CORBA::UnknownUserException
+         --  with members containing an Any.
+         pragma Debug (O ("Unknown exception"));
+         Raise_Unknown;
+      end if;
+
+      Info := Value (It).all;
+      Leave_Critical_Section;
+
+      return Info;
+   end Find_Exception_Info;
+
+   --------------------
+   -- Raise_From_Any --
+   --------------------
 
    function TC_Completion_Status return TypeCode.Object;
    --  The typecode for standard enumeration type
    --  CORBA::completion_status.
+
+   function From_Any (Item : Any.Any) return Completion_Status;
+   function To_Any (CS : Completion_Status) return Any.Any;
+
+   procedure Raise_From_Any (Occurrence : Any.Any) is
+      Repository_Id : constant CORBA.RepositoryId
+        := CORBA.RepositoryId
+        (Any.TypeCode.Id (Get_Type (Occurrence)));
+
+      System_Id : constant Ada.Exceptions.Exception_Id
+        := Get_ExcepId_By_RepositoryId
+        (To_Standard_String (Repository_Id));
+
+   begin
+      if System_Id /= Ada.Exceptions.Null_Id then
+         --  This is a system exception.
+
+         declare
+            Minor : constant CORBA.Unsigned_Long
+              := From_Any
+              (Get_Aggregate_Element
+               (Occurrence, TC_Unsigned_Long, 1));
+            Completed : constant CORBA.Completion_Status
+              := From_Any
+              (Get_Aggregate_Element
+               (Occurrence, TC_Completion_Status, 1));
+         begin
+            Raise_System_Exception
+              (System_Id,
+               System_Exception_Members'
+               (Minor => Minor, Completed => Completed));
+         end;
+      end if;
+
+      declare
+         EInfo : constant Exception_Info := Find_Exception_Info
+           (Repository_Id);
+      begin
+         EInfo.Raiser.all (Occurrence);
+      end;
+
+      raise Program_Error;
+      --  Never reached (Raiser raises an exception.)
+   end Raise_From_Any;
+
+   ------------------------
+   -- Register_Exception --
+   ------------------------
+
+   procedure Register_Exception
+     (TC     : in CORBA.TypeCode.Object;
+      Raiser : in Raise_From_Any_Procedure)
+   is
+      use PolyORB.Soft_Links;
+      use Exception_Lists;
+   begin
+      pragma Debug
+        (O ("Registering exception: "
+            & Types.To_Standard_String (TypeCode.Id (TC))));
+      Enter_Critical_Section;
+      Append (All_Exceptions, (TC => TC, Raiser => Raiser));
+      Leave_Critical_Section;
+   end Register_Exception;
+
+   -------------------------------
+   -- System_Exception_TypeCode --
+   -------------------------------
 
    TC_Completion_Status_Cache : TypeCode.Object;
 
@@ -527,24 +672,12 @@ package body PolyORB.CORBA_P.Exceptions is
                     (Item, TC_Unsigned_Long, 0))));
    end From_Any;
 
-   function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-     return Any.Any
+   function System_Exception_TypeCode
+     (Name : PolyORB.Types.RepositoryId)
+     return Any.TypeCode.Object
    is
-      Name : RepositoryId;
-      Members : System_Exception_Members;
       TC : TypeCode.Object := TypeCode.TC_Except;
-      Result : Any.Any;
    begin
-      begin
-         Name := Occurrence_To_Name (E);
-         Get_Members (E, Members);
-      exception
-         when others =>
-            Name := To_CORBA_String ("CORBA/UNKNOWN");
-            Members := (1, Completed_Maybe);
-      end;
-
       --  Construct exception typecode
 
       TypeCode.Add_Parameter (TC, To_Any (CORBA.String (Name)));
@@ -568,10 +701,7 @@ package body PolyORB.CORBA_P.Exceptions is
         (TC, To_Any (To_CORBA_String ("completed")));
       --  Component 'completed'
 
-      Result := Get_Empty_Any_Aggregate (TC);
-      Add_Aggregate_Element (Result, To_Any (Members.Minor));
-      Add_Aggregate_Element (Result, To_Any (Members.Completed));
-      return Result;
-   end System_Exception_To_Any;
+      return TC;
+   end System_Exception_TypeCode;
 
 end PolyORB.CORBA_P.Exceptions;

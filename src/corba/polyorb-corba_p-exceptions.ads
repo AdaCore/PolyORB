@@ -30,6 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Exceptions management for the CORBA Applicative Personality
+--  of PolyORB.
+
 --  Description:
 --  Exceptions_Members are handled differently according to the type
 --  of the exception:
@@ -40,12 +43,14 @@
 --   object from a derivation od IDL_Exception_Members
 
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#3 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#4 $
 
 with Ada.Exceptions;
 
 with CORBA; use CORBA;
+
 with PolyORB.Any;
+with PolyORB.Types;
 
 package PolyORB.CORBA_P.Exceptions is
 
@@ -215,18 +220,31 @@ package PolyORB.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
-   function System_Exception_To_Any
-     (E : Ada.Exceptions.Exception_Occurrence)
-     return Any.Any;
-   --  Convert an exception occurrence to an Any. If the exception
-   --  occurrence is a CORBA system exception, it is converted
-   --  to an Any that represents that system exception, else
-   --  it is converted to an any that represents system exception
-   --  CORBA::Unknown.
+   type Raise_From_Any_Procedure is access procedure
+     (Occurrence : CORBA.Any);
 
-private
+   procedure Register_Exception
+     (TC     : in CORBA.TypeCode.Object;
+      Raiser : in Raise_From_Any_Procedure);
+   --  Associate the TypeCode for a user-defined exception with
+   --  a procedure that raises an occurrence of that exception,
+   --  given an Any with that TypeCode.
+   --  (When a client creates a request, it is his responsability
+   --  to provide the list of typecodes of potential exceptions,
+   --  so the generic middleware can unmarshall occurrences and
+   --  store them into an Any. It is then the responsibility of
+   --  the application layer -- here, the CORBA PortableServer --
+   --  to map the Any back to whatever representation is relevant
+   --  in the application personality: here, raising a language
+   --  exception with proper members.
 
-   function To_Any (CS : Completion_Status) return Any.Any;
-   function From_Any (Item : Any.Any) return Completion_Status;
+   procedure Raise_From_Any (Occurrence : Any.Any);
+   pragma No_Return (Raise_From_Any);
+
+   function System_Exception_TypeCode
+     (Name : PolyORB.Types.RepositoryId)
+     return Any.TypeCode.Object;
+   --  Return the TypeCode corresponding to the indicated
+   --  system exception name.
 
 end PolyORB.CORBA_P.Exceptions;

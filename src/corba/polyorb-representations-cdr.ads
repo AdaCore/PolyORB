@@ -360,18 +360,7 @@ package PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type)
      return CORBA.Object.Ref;
 
-   --  Marshalling and unmarshalling of system exceptions
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Excpt  : in CORBA.Exception_Occurrence);
-
-   procedure Unmarshall_And_Raise
-     (Buffer : access Buffer_Type);
-   pragma No_Return (Unmarshall_And_Raise);
-
-
-   --- Marshalling of Octets sequences
+   -- Marshalling of octets sequences.
 
    procedure Marshall
      (Buffer : access Buffer_Type;

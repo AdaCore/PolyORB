@@ -36,6 +36,7 @@
 
 with System.Address_To_Access_Conversions;
 
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -128,8 +129,13 @@ package body CORBA.Request is
       pragma Unreferenced (Invoke_Flags);
       pragma Warnings (On);
    begin
+      --  XXX for now we do everything synchronously.
       PolyORB.Requests.Invoke (Self.The_Request);
-      --  XXX Some arguments are not taken into account!
+
+      if not Is_Empty (Self.The_Request.Exception_Info) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+           (Self.The_Request.Exception_Info);
+      end if;
    end Invoke;
 
    procedure Delete (Self : in out Object) is

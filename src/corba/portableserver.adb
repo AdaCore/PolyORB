@@ -129,7 +129,6 @@ package body PortableServer is
 
    All_Skeletons : Skeleton_Lists.List;
 
-   Skeleton_Exists  : exception;
    Skeleton_Unknown : exception;
 
    ---------------

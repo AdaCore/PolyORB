@@ -65,6 +65,13 @@ package body Ada_Be.Idl2Ada.Helper is
       Type_Node : in     Node_Id);
    --  Generate the profile for the To_Any operation of a type
 
+   procedure Gen_Raise_From_Any_Profile
+     (CU   : in out Compilation_Unit;
+      Node : in     Node_Id);
+   --  Generate the Raise_<exception>_From_Any procedure for an
+   --  exception. The name of the procedure is
+   --  Raise_From_Any_Name (Node).
+
    procedure Gen_Interface_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
@@ -174,6 +181,10 @@ package body Ada_Be.Idl2Ada.Helper is
    --  returns the name of the helper package where the TypeCode
    --  corresponding to Node is defined
 
+   function Raise_From_Any_Name (Node : in Node_Id) return String;
+   --  Return the name of a procedure that raises that exception
+   --  from an occurrence stored in an Any.
+
    ----------------------------------------------
    -- End of internal subprograms declarations --
    ----------------------------------------------
@@ -220,9 +231,6 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_String_Instance =>
             Gen_String_Instance_Spec (CU, Node);
 
-         when K_Exception =>
-            Gen_Struct_Exception_Spec (CU, Node);
-
          when K_Union =>
             Gen_Union_Spec (CU, Node);
 
@@ -231,6 +239,13 @@ package body Ada_Be.Idl2Ada.Helper is
 
          when K_ValueType =>
             Gen_ValueType_Spec (CU, Node);
+
+         when K_Exception =>
+            Gen_Struct_Exception_Spec (CU, Node);
+            Gen_Raise_From_Any_Profile (CU, Node);
+            PL (CU, ";");
+            PL (CU, "pragma No_Return ("
+                & Raise_From_Any_Name (Node) & ");");
 
          when others =>
             null;
@@ -280,9 +295,6 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_String_Instance =>
             Gen_String_Instance_Body (CU, Node);
 
-         when K_Exception =>
-            Gen_Struct_Exception_Body (CU, Node);
-
          when K_Union =>
             Gen_Union_Body (CU, Node);
 
@@ -292,6 +304,36 @@ package body Ada_Be.Idl2Ada.Helper is
          when K_ValueType =>
             Gen_ValueType_Body (CU, Node);
 
+         when K_Exception =>
+            Gen_Struct_Exception_Body (CU, Node);
+            Gen_Raise_From_Any_Profile (CU, Node);
+            PL (CU, "");
+            PL (CU, "is");
+            II (CU);
+            PL (CU, "Members : constant "
+                & Ada_Name (Members_Type (Node)));
+            PL (CU, "  := From_Any (Item);");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+            PL (CU, "PolyORB.CORBA_P.Exceptions.User_Raise_Exception");
+            PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
+            II (CU);
+            PL (CU, "Members);");
+            DI (CU);
+            DI (CU);
+            PL (CU, "end " & Raise_From_Any_Name (Node) & ";");
+
+            Divert (CU, Deferred_Initialization);
+            --  This has to be done in deferred initialization,
+            --  after the TypeCode has been constructed.
+            PL (CU, "PolyORB.CORBA_P.Exceptions.Register_Exception");
+            PL (CU, "  (" & Ada_TC_Name (Node) & ",");
+            II (CU);
+            PL (CU, Raise_From_Any_Name (Node) & "'Access);");
+            DI (CU);
+            Divert (CU, Visible_Declarations);
          when others =>
             null;
 
@@ -304,7 +346,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_From_Any_Profile
      (CU        : in out Compilation_Unit;
-      Type_Node : in Node_Id)
+      Type_Node : in     Node_Id)
    is
    begin
       Add_With (CU, "CORBA");
@@ -331,6 +373,16 @@ package body Ada_Be.Idl2Ada.Helper is
           & ")");
       Put (CU, "  return CORBA.Any");
    end Gen_To_Any_Profile;
+
+   procedure Gen_Raise_From_Any_Profile
+     (CU : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+   begin
+      Add_With (CU, "CORBA");
+      PL (CU, "procedure " & Raise_From_Any_Name (Node));
+      Put (CU, "  (Item : in CORBA.Any)");
+   end Gen_Raise_From_Any_Profile;
 
    ------------------------
    -- Gen_Interface_Spec --
@@ -2573,6 +2625,12 @@ package body Ada_Be.Idl2Ada.Helper is
             raise Program_Error;
       end case;
    end Ada_Helper_Name;
+
+   function Raise_From_Any_Name (Node : Node_Id) return String is
+   begin
+      pragma Assert (Kind (Node) = K_Exception);
+      return "Raise_" & Ada_Name (Node) & "_From_Any";
+   end Raise_From_Any_Name;
 
    ----------------------
    -- Ada_Full_TC_Name --

@@ -34,12 +34,12 @@
 
 with Ada.Unchecked_Conversion;
 with Ada.Streams;
-with Ada.Exceptions;
 
 with PolyORB.Any; use PolyORB.Any;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.CORBA_P.Exceptions;
-with PolyORB.CORBA_P.Exceptions.Stack;
+--  SOLELY for exception raising procedures Raise_*
+
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;  use PolyORB.Opaque;
@@ -52,8 +52,6 @@ with CORBA.Object.Helper;
 package body PolyORB.Representations.CDR is
 
    use PolyORB.Log;
-   use PolyORB.CORBA_P.Exceptions;
-   use PolyORB.CORBA_P.Exceptions.Stack;
    use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
@@ -2390,66 +2388,9 @@ package body PolyORB.Representations.CDR is
       return New_Ref;
    end Unmarshall;
 
-   -----------------------
-   -- System exceptions --
-   -----------------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Excpt  :        CORBA.Exception_Occurrence)
-   is
-      Members : CORBA.System_Exception_Members;
-   begin
-      PolyORB.CORBA_P.Exceptions.Get_Members (Excpt, Members);
-      Marshall
-        (Buffer, PolyORB.Types.String
-         (PolyORB.CORBA_P.Exceptions.Occurrence_To_Name (Excpt)));
-      Marshall (Buffer, Types.Unsigned_Long (Members.Minor));
-      Marshall
-        (Buffer, Types.Unsigned_Long
-         (PolyORB.CORBA_P.Exceptions.To_Unsigned_Long
-          (Members.Completed)));
-   end Marshall;
-
-   procedure Unmarshall_And_Raise
-     (Buffer : access Buffer_Type)
-   is
-      use Ada.Exceptions;
-
-      Minor      : PolyORB.Types.Unsigned_Long;
-      Status     : PolyORB.Types.Unsigned_Long;
-      Identity   : Exception_Id;
-      Repository : PolyORB.Types.String;
-
-   begin
-      Repository := Unmarshall (Buffer);
-      Identity := PolyORB.CORBA_P.Exceptions.Get_ExcepId_By_RepositoryId
-        (PolyORB.Types.To_Standard_String (Repository));
-
-      if Identity = Null_Id then
-         --  If not found, this is a marshal error.
-         Identity := CORBA.Marshal'Identity;
-         Minor := 0;
-         Status := CORBA.Completion_Status'Pos (CORBA.Completed_Maybe);
-      end if;
-
-      Minor  := Unmarshall (Buffer);
-      Status := Unmarshall (Buffer);
-
-      --  Raise the exception
-
-      PolyORB.CORBA_P.Exceptions.Stack.Raise_Exception
-        (Identity,
-         CORBA.System_Exception_Members'
-         (CORBA.Unsigned_Long (Minor),
-          PolyORB.CORBA_P.Exceptions.To_Completion_Status
-          (CORBA.Unsigned_Long (Status))));
-   end Unmarshall_And_Raise;
-
-
-   -------------------------------
-   --  Marshall a sequence of octets
-   ---------------------------------------
+   -----------------------------------
+   -- Marshall a sequence of octets --
+   -----------------------------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -2493,50 +2434,6 @@ package body PolyORB.Representations.CDR is
          return E;
       end;
    end Unmarshall;
-
-
---   procedure Marshall
---     (Buffer : access Buffer_Type;
---      Data   : in Objects.Object_Id)
---   is
---   begin
---      Marshall (Buffer, Stream_Element_Array(Data));
---   end Marshall;
-
-
-
-   --------------------------------
-   --  Marshalling of Objects Ids
-   ---------------------------------
-
---   procedure Marshall
---     (Buffer : access Buffer_Type;
---      Data   : access Objects.Object_Id)
---   is
---   begin
---      Marshall (Buffer, Data.all);
---   end Marshall;
-
-
---   function Unmarshall
---     (Buffer : access Buffer_Type)
---     return Objects.Object_Id
---   is
---     Octets : Stream_Element_Array;
---   begin
---      return  Objects.Object_Id(Octets);
---   end Unmarshall;
-
---   function Unmarshall
---     (Buffer : access Buffer_Type)
---     return Objects.Object_Id_Access
---   is
---     Obj : aliased Objects.Object_Id;
---   begin
---     Obj := Unmarshall(Buffer);
---     return Obj'Access;
---   end Unmarshall;
-
 
    -----------------
    -- Fixed_Point --

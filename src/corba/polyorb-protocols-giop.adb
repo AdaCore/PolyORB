@@ -72,6 +72,8 @@ with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 with PolyORB.CORBA_P.Exceptions;
+--  SOLELY for System_Exception_TypeCode and Completion_Status
+--  From_Any/To_Any.
 
 package body PolyORB.Protocols.GIOP is
 
@@ -787,9 +789,9 @@ package body PolyORB.Protocols.GIOP is
 
    end Exception_Reply;
 
-   -------------------------------------------------------
-   --  Location Forward
-   --------------------------------------------------------
+   ----------------------
+   -- Location Forward --
+   ----------------------
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
@@ -1428,6 +1430,22 @@ package body PolyORB.Protocols.GIOP is
    -- Receiving a Reply Message --
    -------------------------------
 
+   procedure Unmarshall_System_Exception_To_Any
+     (Buffer : Buffer_Access;
+      Info   : out Any.Any);
+
+   procedure Unmarshall_System_Exception_To_Any
+     (Buffer : Buffer_Access;
+      Info   : out Any.Any)
+   is
+   begin
+      Info := Any.Get_Empty_Any
+        (CORBA_P.Exceptions.System_Exception_TypeCode
+         (Unmarshall (Buffer)));
+      Unmarshall_To_Any
+        (Buffer, Info);
+   end Unmarshall_System_Exception_To_Any;
+
    procedure Reply_Received
      (Ses : access GIOP_Session)
    is
@@ -1557,17 +1575,12 @@ package body PolyORB.Protocols.GIOP is
             raise Not_Implemented;
 
          when System_Exception =>
-            begin
-               Unmarshall_And_Raise (Ses.Buffer_In);
-            exception
-               when E : others =>
-                  Current_Req.Req.Exception_Info
-                    := CORBA_P.Exceptions.System_Exception_To_Any (E);
-                  Emit_No_Reply
-                    (Component_Access (ORB),
-                     Objects.Interface.Executed_Request'
-                     (Req => Current_Req.Req));
-            end;
+            Unmarshall_System_Exception_To_Any
+              (Ses.Buffer_In, Current_Req.Req.Exception_Info);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Objects.Interface.Executed_Request'
+               (Req => Current_Req.Req));
 
          when Location_Forward | Location_Forward_Perm =>
 
@@ -2008,8 +2021,7 @@ package body PolyORB.Protocols.GIOP is
                         raise Not_Implemented;
 
                      when Loc_System_Exception =>
-                        Unmarshall_And_Raise (S.Buffer_In);
-
+                        raise Not_Implemented;
                   end case;
                end;
             else
