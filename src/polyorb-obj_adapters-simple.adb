@@ -310,7 +310,9 @@ package body PolyORB.Obj_Adapters.Simple is
       end if;
 
       if OME.If_Desc.PP_Desc = null then
-         raise Invalid_Method;
+         --  No interface information, return empty list
+
+         return Result;
       end if;
 
       return OME.If_Desc.PP_Desc (Method);
@@ -344,7 +346,9 @@ package body PolyORB.Obj_Adapters.Simple is
       end if;
 
       if OME.If_Desc.PP_Desc = null then
-         raise Invalid_Method;
+         --  No interface information, return empty list
+
+         return Result;
       end if;
 
       return OME.If_Desc.RP_Desc (Method);
