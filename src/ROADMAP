@@ -97,6 +97,16 @@ Utility functions to provide binary flag sets.
 ./polyorb-utils-strings-lists.ads
 ./polyorb-utils-strings.ads
 
+Handling of dynamic string allocation and chained lists of
+strings.
+
+./polyorb-sequences.ads
+./polyorb-sequences-bounded.ads
+./polyorb-sequences-unbounded.ads
+
+{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.)
+Notionally based on Ada.Strings.Unbounded.
+
 2. Neutral core
 ---------------
 
@@ -196,13 +206,6 @@ by concrete personalities. A Protocol is a factory of Session.
 A Session is the actual object that implements one particular
 protocols. Protocols are factories of Sessions, and are used
 as parts of binding object factories.
-
-./polyorb-sequences.ads
-./polyorb-sequences-bounded.ads
-./polyorb-sequences-unbounded.ads
-
-{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.)
-Notionally based on Ada.Strings.Unbounded.
 
 4. Protocol personalities
 -------------------------
