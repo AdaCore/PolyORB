@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -74,13 +74,6 @@ package PolyORB.Representations.SRP is
                           return Ada.Streams.Stream_Element_Array;
    --  Decode B64_Data using the base64 algorithm
 
-   -----------------------------------
-
-   --  Only encodes the parameters' values
-   --  Warning, Str must be a well-formed SRP string, otherwise
-   --  Constraint_Error may be raised
-   function Encode_URL (Str : in String) return String;
-
    function Encode_URL (SRP_Info : Split_SRP) return Types.String;
 
    --  Only encodes the parameters' values
@@ -88,7 +81,8 @@ package PolyORB.Representations.SRP is
    procedure Encode_URL (SRP_Info : in out Split_SRP);
 
    --  Encodes the entire string
-   function Encode_String (Str : in String) return String;
+   function Encode_String
+     (Str : in String; Also_Escape : String := "/") return String;
 
    -------------------
    -- UNMARSHALLING --
@@ -200,7 +194,7 @@ package PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
@@ -210,7 +204,7 @@ package PolyORB.Representations.SRP is
      (R      : in     Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container);
+      Error  : in out Errors.Error_Container);
 
    procedure Unmarshall_To_Any
      (Buffer : access Buffer_Type;

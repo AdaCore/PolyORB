@@ -57,8 +57,8 @@ package PortableInterceptor.ServerRequestInfo is
 
    function Get_Object_Id (Self : in Local_Ref) return ObjectId;
 
---   function Get_Adapter_Id (Self : in Local_Ref) return CORBA.OctetSeq;
---   --  Not implemented.
+   function Get_Adapter_Id (Self : in Local_Ref) return AdapterId;
+   --  Not implemented.
 
    function Get_Target_Most_Derived_Interface
      (Self : in Local_Ref)

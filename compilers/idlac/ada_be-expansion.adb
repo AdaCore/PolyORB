@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -250,10 +250,23 @@ package body Ada_Be.Expansion is
    --  are valuetype attributes. See nodes.txt for their
    --  meaning
 
+   function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean;
+   --  Return True iff Node denotes one entity from CORBA Interface Repository.
 
    --------------------------------------------------
    --  Subprogram bodies from here
    --------------------------------------------------
+
+   -----------------------------------------------------------------
+   --  Predefined CORBA entities, which processed by special way  --
+   -----------------------------------------------------------------
+
+   CORBA_TypeCode_Node : Node_Id := No_Node;
+   --  Declaration of CORBA::TypeCode
+   --  CORBA::TypeCode interface don't have instantiated forward declaration
+   --  package, thus we always must use full declaration node, independed
+   --  of existence of forward declaration in used orb.idl or TypeCode.idl
+   --  file.
 
    -----------------
    -- Expand_Node --
@@ -504,6 +517,16 @@ package body Ada_Be.Expansion is
                   --  Reparent all enumerators of current node.
                end if;
 
+               --  Enable code generation for Idl_File only if its
+               --  content is not imported to another file
+
+               if Kind (Current) /= K_Forward_Interface
+                 and then Kind (Current) /= K_Forward_ValueType
+                 and then Imported (Current)
+               then
+                  Set_Generate_Code (Idl_File_Node, False);
+               end if;
+
             elsif Is_Type_Declarator (Current) then
                Has_Named_Subnodes := True;
                Init (Named_Subnodes, Declarators (Current));
@@ -535,15 +558,110 @@ package body Ada_Be.Expansion is
       Expand_Node_List (Contents (Node), True);
    end Expand_Repository;
 
-
-   --------------------
-   --  Expand_Module --
-   --------------------
+   -------------------
+   -- Expand_Module --
+   -------------------
 
    procedure Expand_Module (Node : in Node_Id) is
+      CORBA_IR_Root_Node : Node_Id;
+      Success            : Boolean;
    begin
       pragma Assert (Kind (Node) = K_Module);
+
       Push_Scope (Node);
+
+      --  Allocate CORBA.Repository_Root node and rattach all entities
+      --  of the Interface Repository to it
+
+      if Name (Node) = "CORBA" then
+         CORBA_IR_Root_Node := Make_Module (No_Location);
+         Set_Default_Repository_Id (CORBA_IR_Root_Node);
+         Set_Initial_Current_Prefix (CORBA_IR_Root_Node);
+
+         Success := Add_Identifier (CORBA_IR_Root_Node, "Repository_Root");
+         pragma Assert (Success);
+
+         Append_Node_To_Contents (Node, CORBA_IR_Root_Node);
+
+         Push_Scope (CORBA_IR_Root_Node);
+
+         declare
+            CORBA_Contents     : constant Node_List := Contents (Node);
+            New_CORBA_Contents : Node_List;
+            Iterator           : Node_Iterator;
+            Current            : Node_Id;
+            Success            : Boolean;
+            Has_Named_Subnodes : Boolean;
+            Named_Subnodes     : Node_Iterator;
+         begin
+            Init (Iterator, CORBA_Contents);
+            while not Is_End (Iterator) loop
+               Get_Next_Node (Iterator, Current);
+
+               --  Detect and store Nodes for the CORBA entities that
+               --  require special processing
+
+               if Kind (Current) = K_Interface
+                 and then Ada_Name (Current) = "TypeCode"
+               then
+                  CORBA_TypeCode_Node := Current;
+               end if;
+
+               --  Relocate CORBA Interface Repository entities
+
+               if Is_CORBA_IR_Entity (Current) then
+                  Append_Node_To_Contents (CORBA_IR_Root_Node, Current);
+
+                  if Is_Named (Current) then
+
+                     --  Rattach current node
+
+                     if Definition (Current) /= null then
+                        Success := Add_Identifier (Current, Name (Current));
+                        pragma Assert (Success);
+                     end if;
+
+                     if Is_Enum (Current) then
+                        Has_Named_Subnodes := True;
+                        Init (Named_Subnodes, Enumerators (Current));
+                        --  Attach all enumerators of the current node
+
+                     end if;
+
+                  elsif Is_Type_Declarator (Current) then
+                     Has_Named_Subnodes := True;
+                     Init (Named_Subnodes, Declarators (Current));
+                     --  Attach all declarators of the current node
+
+                  end if;
+
+                  --  If the current node has named subnodes, rattach
+                  --  them now.
+
+                  if Has_Named_Subnodes then
+                     declare
+                        Dcl_Node : Node_Id;
+                     begin
+                        while not Is_End (Named_Subnodes) loop
+                           Get_Next_Node (Named_Subnodes, Dcl_Node);
+                           Success := Add_Identifier
+                             (Dcl_Node, Name (Dcl_Node));
+                           pragma Assert (Success);
+                        end loop;
+                     end;
+                  end if;
+
+               else
+                  Append_Node (New_CORBA_Contents, Current);
+               end if;
+            end loop;
+
+            Set_Contents (Node, New_CORBA_Contents);
+         end;
+
+         Pop_Scope;
+      end if;
+
       Expand_Node_List (Contents (Node), True);
       Pop_Scope;
    end Expand_Module;
@@ -771,6 +889,8 @@ package body Ada_Be.Expansion is
    procedure Expand_Attribute (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
+
+      Expand_Node (A_Type (Node));
       Expand_Attribute_Or_State_Member
         (Node,
          A_Type (Node),
@@ -1516,39 +1636,113 @@ package body Ada_Be.Expansion is
    -----------------------
 
    procedure Expand_Scoped_Name (Node : Node_Id) is
-      V : constant Node_Id := Value (Node);
-      Forward_Declaration :  Node_Id;
+      V                   : constant Node_Id := Value (Node);
+      Forward_Declaration : Node_Id;
+
+      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id;
+      --  Create forward decalaration node for specified declaration
+
+      --------------------------------
+      -- Create_Forward_Declaration --
+      --------------------------------
+
+      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id is
+         Result : Node_Id;
+      begin
+         pragma Assert (Kind (Node) = K_Interface);
+
+         Result := Make_Forward_Interface (No_Location);
+         Set_Abst (Result, Abst (Node));
+         Set_Local (Result, Local (Node));
+         Set_Forward (Result, Node);
+         Set_Repository_Id (Result, Repository_Id (Node));
+
+         Set_Forward (Node, Result);
+
+         return Result;
+      end Create_Forward_Declaration;
+
    begin
-      if Kind (V) /= K_Interface
-        and then Kind (V) /= K_ValueType
+      --  Special processing of CORBA::TypeCode: we always refer to
+      --  the full interface declaration
+
+      if V = CORBA_TypeCode_Node then
+         return;
+
+      elsif Kind (V) = K_Forward_Interface
+        and then Forward (V) = CORBA_TypeCode_Node
       then
+         Set_Value (Node, Forward (V));
+         return;
+
+      elsif Kind (V) /= K_Interface and then Kind (V) /= K_ValueType then
          return;
       end if;
 
       Forward_Declaration := Forward (V);
       if Forward_Declaration = No_Node then
+
+         --  If there is no explicit forward declaration, check whether an
+         --  implicit one is necessary to avoid a circular dependency between
+         --  Ada units.
+
+         if Kind (Get_Current_Scope) = K_Struct
+           and then Parent_Scope (V) = Parent_Scope (Get_Current_Scope)
+         then
+            declare
+               Enclosing_Scope : constant Node_Id
+                 := Parent_Scope (Get_Current_Scope);
+               Enclosing_List  : Node_List := Contents (Enclosing_Scope);
+            begin
+               Forward_Declaration := Create_Forward_Declaration (V);
+               Insert_Before
+                 (List   => Enclosing_List,
+                  Node   => Forward_Declaration,
+                  Before => Get_Current_Scope);
+               Set_Contents (Enclosing_Scope, Enclosing_List);
+
+               Set_Value (Node, Forward_Declaration);
+            end;
+
+         elsif Kind (Get_Current_Scope) = K_Module
+           and then Parent_Scope (V) = Get_Current_Scope
+         then
+            Forward_Declaration := Create_Forward_Declaration (V);
+            Insert_Before_Current (Forward_Declaration);
+
+            Set_Value (Node, Forward_Declaration);
+         end if;
+
          return;
       end if;
 
-      --  Check whether V is within the current scope.
+      --  Check whether V is within the current scope
 
       declare
-         Current_Scope : constant Node_Id := Get_Current_Scope;
-         P : Node_Id := Parent_Scope (V);
+         Current_Scope : Node_Id := Get_Current_Scope;
+         Par_Scope     : Node_Id := Parent_Scope (V);
       begin
-         while not (P = Current_Scope or else P = No_Node) loop
-            P := Parent_Scope (P);
+         if Kind (Current_Scope) = K_Struct then
+            --  Unwind one scope level because structure by itself is scope
+
+            Current_Scope := Parent_Scope (Current_Scope);
+         end if;
+
+         while not (Par_Scope = Current_Scope
+            or else Par_Scope = No_Node)
+         loop
+            Par_Scope := Parent_Scope (Par_Scope);
          end loop;
 
-         if P = Current_Scope then
+         if Par_Scope = Current_Scope then
             Set_Value (Node, Forward_Declaration);
          end if;
       end;
    end Expand_Scoped_Name;
 
-   -----------------------------------------
-   --          Private utilities          --
-   -----------------------------------------
+   -----------------------
+   -- Private utilities --
+   -----------------------
 
    --------------------
    -- Is_Ada_Keyword --
@@ -1628,9 +1822,9 @@ package body Ada_Be.Expansion is
         or else Lower = "xor";
    end Is_Ada_Keyword;
 
-   -----------------------
-   --  Expand_Node_List --
-   -----------------------
+   ----------------------
+   -- Expand_Node_List --
+   ----------------------
 
    procedure Expand_Node_List
      (List : in Node_List;
@@ -1647,8 +1841,7 @@ package body Ada_Be.Expansion is
          if Set_Current_Position then
             Current_Position_In_List := Node;
             pragma Debug
-              (O ("Current_Position_In_List = "
-                  & Img (Integer (Node))));
+              (O ("Current_Position_In_List = " & Img (Integer (Node))));
          end if;
          Expand_Node (Node);
 
@@ -1659,19 +1852,14 @@ package body Ada_Be.Expansion is
       end if;
    end Expand_Node_List;
 
-   --------------------------
-   --  Sequence_Type_Name  --
-   --------------------------
+   ------------------------
+   -- Sequence_Type_Name --
+   -------------------------
 
-   function Sequence_Type_Name
-     (Node : Node_Id)
-     return String
-   is
-      NK : constant Node_Kind
-        := Kind (Node);
+   function Sequence_Type_Name (Node : Node_Id) return String is
+      NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-
          when K_Sequence =>
             if Bound (Node) = No_Node then
                return "SEQUENCE_"
@@ -1684,15 +1872,23 @@ package body Ada_Be.Expansion is
 
          when K_Scoped_Name =>
             declare
-               Full_Name : String
-                 := Ada_Full_Name (Value (Node));
+               P : constant String := "CORBA_Repository_Root";
+               N : String          := Ada_Full_Name (Value (Node));
             begin
-               for I in Full_Name'Range loop
-                  if Full_Name (I) = '.' then
-                     Full_Name (I) := '_';
+               for I in N'Range loop
+                  if N (I) = '.' then
+                     N (I) := '_';
                   end if;
                end loop;
-               return Full_Name;
+
+               if N'Length > P'Length
+                 and then N (N'First .. N'First + P'Length - 1) = P
+               then
+                  return "CORBA" & N (N'First + P'Length .. N'Last);
+
+               else
+                  return N;
+               end if;
             end;
 
          when K_Short =>
@@ -1744,15 +1940,15 @@ package body Ada_Be.Expansion is
             return "any";
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type.
 
             Error ("A " & Node_Kind'Image (NK)
                    & " cannot be used in a sequence.",
                    Fatal,
                    Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
@@ -1802,5 +1998,140 @@ package body Ada_Be.Expansion is
       end loop;
       return False;
    end Has_Out_Formals;
+
+   ------------------------
+   -- Is_CORBA_IR_Entity --
+   ------------------------
+
+   type String_Access is access all String;
+
+   --  CORBA 3.0 Interface Repository entities
+
+   CORBA_IR_Names : constant array (Positive range <>) of String_Access
+     := (new String'("CORBA.AbstractInterfaceDef"),        --  interface
+         new String'("CORBA.AbstractInterfaceDefSeq"),     --  typedef/sequence
+         new String'("CORBA.AliasDef"),                    --  interface
+         new String'("CORBA.ArrayDef"),                    --  interface
+         new String'("CORBA.AttrDescriptionSeq"),          --  typedef/sequence
+         new String'("CORBA.AttributeDef"),                --  interface
+         new String'("CORBA.AttributeDescription"),        --  struct
+         new String'("CORBA.AttributeMode"),               --  enum
+         new String'("CORBA.ComponentIR"),                 --  module
+         new String'("CORBA.ConstantDef"),                 --  interface
+         new String'("CORBA.ConstantDescription"),         --  struct
+         new String'("CORBA.Contained"),                   --  interface
+         new String'("CORBA.ContainedSeq"),                --  typedef/sequence
+         new String'("CORBA.Container"),                   --  interface
+         new String'("CORBA.ContextIdentifier"),           --  typedef
+         new String'("CORBA.ContextIdSeq"),                --  typedef/sequence
+         new String'("CORBA.DefinitionKind"),              --  enum
+         new String'("CORBA.EnumDef"),                     --  interface
+         new String'("CORBA.EnumMemberSeq"),               --  typedef/sequence
+         new String'("CORBA.ExcDescriptionSeq"),           --  typedef/sequence
+         new String'("CORBA.ExceptionDef"),                --  interface
+         new String'("CORBA.ExceptionDefSeq"),             --  typedef/sequence
+         new String'("CORBA.ExceptionDescription"),        --  struct
+         new String'("CORBA.ExtAttrDescriptionSeq"),       --  typedef/sequence
+         new String'("CORBA.ExtAttributeDef"),             --  interface
+         new String'("CORBA.ExtAttributeDescription"),     --  struct
+         new String'("CORBA.ExtAbstractInterfaceDef"),     --  interface
+         new String'("CORBA.ExtAbstractInterfaceDefSeq"),  --  typedef/sequence
+         new String'("CORBA.ExtInterfaceDef"),             --  interface
+         new String'("CORBA.ExtInterfaceDefSeq"),          --  typedef/sequence
+         new String'("CORBA.ExtInitializer"),              --  struct
+         new String'("CORBA.ExtInitializerSeq"),           --  typedef/sequence
+         new String'("CORBA.ExtLocalInterfaceDef"),        --  interface
+         new String'("CORBA.ExtLocalInterfaceDefSeq"),     --  typedef/sequence
+         new String'("CORBA.ExtValueDef"),                 --  interface
+         new String'("CORBA.ExtValueDefSeq"),              --  typedef/sequence
+         new String'("CORBA.FixedDef"),                    --  interface
+         new String'("CORBA.IDLType"),                     --  interface
+         new String'("CORBA.InterfaceAttrExtension"),      --  interface
+         new String'("CORBA.InterfaceDef"),                --  interface
+         new String'("CORBA.InterfaceDefSeq"),             --  typedef/sequence
+         new String'("CORBA.InterfaceDescription"),        --  struct
+         new String'("CORBA.Initializer"),                 --  struct
+         new String'("CORBA.InitializerSeq"),              --  typedef/sequence
+         new String'("CORBA.IRObject"),                    --  interface
+         new String'("CORBA.LocalInterfaceDef"),           --  interface
+         new String'("CORBA.LocalInterfaceDefSeq"),        --  typedef/sequence
+         new String'("CORBA.ModuleDef"),                   --  interface
+         new String'("CORBA.ModuleDescription"),           --  struct
+         new String'("CORBA.NativeDef"),                   --  interface
+         new String'("CORBA.OpDescriptionSeq"),            --  typedef/sequence
+         new String'("CORBA.OperationDef"),                --  interface
+         new String'("CORBA.OperationDescription"),        --  struct
+         new String'("CORBA.OperationMode"),               --  enum
+         new String'("CORBA.ParameterDescription"),        --  struct
+         new String'("CORBA.ParameterMode"),               --  enum
+         new String'("CORBA.ParDescriptionSeq"),           --  typedef/sequence
+         new String'("CORBA.PrimitiveDef"),                --  interface
+         new String'("CORBA.PrimitiveKind"),               --  enum
+         new String'("CORBA.Repository"),                  --  interface
+         --  new String'("CORBA.RepositoryId");            --  typedef
+         new String'("CORBA.RepositoryIdSeq"),             --  typedef/sequence
+         --  new String'("CORBA.ScopedName");              --  typedef
+         new String'("CORBA.SequenceDef"),                 --  interface
+         new String'("CORBA.StringDef"),                   --  interface
+         new String'("CORBA.StructDef"),                   --  interface
+         new String'("CORBA.StructMember"),                --  struct
+         new String'("CORBA.StructMemberSeq"),             --  typedef/sequence
+         new String'("CORBA.TypedefDef"),                  --  interface
+         new String'("CORBA.TypeDescription"),             --  struct
+         new String'("CORBA.UnionDef"),                    --  interface
+         new String'("CORBA.UnionMember"),                 --  struct
+         new String'("CORBA.UnionMemberSeq"),              --  typedef/sequence
+         new String'("CORBA.ValueBoxDef"),                 --  interface
+         new String'("CORBA.ValueDef"),                    --  interface
+         new String'("CORBA.ValueDefSeq"),                 --  typedef/sequence
+         new String'("CORBA.ValueDescription"),            --  struct
+         new String'("CORBA.ValueMember"),                 --  struct
+         new String'("CORBA.ValueMemberSeq"),              --  typedef/sequence
+         new String'("CORBA.ValueMemberDef"),              --  interface
+         new String'("CORBA.VersionSpec"),                 --  typedef
+         --  new String'("CORBA.Visibility"),              --  typedef
+         new String'("CORBA.WstringDef"));                 --  interface
+
+   function Is_CORBA_IR_Entity (Node : in Node_Id) return Boolean is
+      NK : constant Node_Kind := Kind (Node);
+
+      N  : Node_Id := Node;
+
+   begin
+      if NK /= K_Interface
+        and then NK /= K_Forward_Interface
+        and then NK /= K_Declarator
+        and then NK /= K_Type_Declarator
+        and then NK /= K_Enum
+        and then NK /= K_Struct
+      then
+         return False;
+      end if;
+
+      if NK = K_Type_Declarator then
+         declare
+            List : constant Node_List := Declarators (Node);
+            Iter : Node_Iterator;
+         begin
+            Init (Iter, List);
+            Get_Next_Node (Iter, N);
+         end;
+
+      elsif Kind (Node) = K_Forward_Interface then
+         N := Forward (Node);
+      end if;
+
+      declare
+         Name : constant String := Ada_Full_Name (N);
+      begin
+         for J in CORBA_IR_Names'Range loop
+            if CORBA_IR_Names (J).all = Name then
+               return True;
+            end if;
+         end loop;
+      end;
+
+      return False;
+   end Is_CORBA_IR_Entity;
 
 end Ada_Be.Expansion;

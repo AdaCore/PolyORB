@@ -1,4 +1,4 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,13 +35,13 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.ORB;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Simple_Flags;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 
 package PolyORB.Protocols.GIOP is
 
@@ -93,7 +93,7 @@ package PolyORB.Protocols.GIOP is
    procedure Handle_Unmarshall_Arguments
      (Sess  : access GIOP_Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container);
+      Error : in out Errors.Error_Container);
 
    procedure Handle_Flush (Sess : access GIOP_Session);
 
@@ -109,7 +109,7 @@ package PolyORB.Protocols.GIOP is
       );
 
    type GIOP_Data_Expected is
-     new PolyORB.Filters.Interface.Data_Expected with record
+     new PolyORB.Filters.Iface.Data_Expected with record
         State : GIOP_State;
      end record;
 
@@ -228,7 +228,8 @@ private
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        PolyORB.Buffers.Buffer_Access);
+      Buffer :        PolyORB.Buffers.Buffer_Access;
+      Error  : in out Errors.Error_Container);
    --  function which emit data to lower layer
    --  can be overidden to fragment messages
 
@@ -239,7 +240,7 @@ private
       is abstract;
    --  cancel a request
 
-   procedure Process_Reply
+   procedure Send_Reply
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -248,17 +249,18 @@ private
    procedure Send_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access;
-      Error  : in out Exceptions.Error_Container)
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container)
       is abstract;
-   --  send a request
+   --  Send a request
 
    procedure Locate_Object
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container)
       is abstract;
-   --  send a locate request to loacte an object
+   --  Send a locate request to loacte an object
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;
@@ -268,7 +270,7 @@ private
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container);
+      Error               : in out Errors.Error_Container);
    --  Internal subprogram: Marshall arguments from Args
    --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
@@ -284,7 +286,7 @@ private
       Args                : in out Any.NVList.Ref;
       Direction           :        Any.Flags;
       First_Arg_Alignment :        Buffers.Alignment_Type;
-      Error               : in out Exceptions.Error_Container);
+      Error               : in out Errors.Error_Container);
    --  Internal subprogram: set the values of arguments in
    --  Args by unmarshalling them from Ses.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues

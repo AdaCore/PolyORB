@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,6 +42,12 @@ with GNAT.Source_Info;
 with Test_Suite.Scenarios;
 with Test_Suite.Output.File;
 with Test_Suite.Output.Text;
+
+with PolyORB.Initialization;
+
+with PolyORB.Log.Stderr;
+pragma Warnings (Off, PolyORB.Log.Stderr);
+pragma Elaborate_All (PolyORB.Log.Stderr);
 
 procedure Test_Driver is
 
@@ -195,6 +201,7 @@ procedure Test_Driver is
    --  Main procedure begins here
 
 begin
+   PolyORB.Initialization.Initialize_World;
 
    Scan_Command_Line;
 

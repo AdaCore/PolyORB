@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,11 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Annotations;
-with PolyORB.Any;
-with PolyORB.Binding_Data;
 with PortableInterceptor.ClientRequestInterceptor;
 with PortableInterceptor.IORInterceptor;
 with PortableInterceptor.ORBInitializer;
@@ -100,16 +97,5 @@ package PolyORB.CORBA_P.Interceptors is
 --   procedure Post_Init_Interceptors
 --     (Info : in PortableInterceptor.ORBInitInfo.Local_Ref);
 --   --  Call Post_Init method on all registered initializers.
-
-private
-
-   --  Server interceptors
-
-   type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
-      Profile             : PolyORB.Binding_Data.Profile_Access;
-      Last_Interceptor    : Natural;
-      Exception_Info      : PolyORB.Any.Any;
-      Intermediate_Called : Boolean;
-   end record;
 
 end PolyORB.CORBA_P.Interceptors;

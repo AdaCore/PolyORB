@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ package RTPortableServer.POA is
       Priority  : in RTCORBA.Priority);
 
    Repository_Id : constant Standard.String
-     := "IDL:RTPortableServer/POA:1.0";
+     := "IDL:omg.org/RTPortableServer/POA:1.0";
 
 private
 

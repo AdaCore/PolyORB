@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB;
-
 package body MOMA.Connections is
 
    -----------
@@ -67,7 +65,7 @@ package body MOMA.Connections is
       return Connection
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Connection (Factory, Username, Password);
       pragma Warnings (On);

@@ -4,12 +4,20 @@
 #ifndef _COS_TYPED_EVENT_CHANNEL_ADMIN_IDL_
 #define _COS_TYPED_EVENT_CHANNEL_ADMIN_IDL_
 
+#ifdef _PRE_3_0_COMPILER_
 #include <CosEventChannelAdmin.idl>
 #include <CosTypedEventComm.idl>
-
 #pragma prefix "omg.org"
+#else
+import ::CosEventChannelAdmin;
+import ::CosTypedEventComm;
+#endif // _PRE_3_0_COMPILER_
 
 module CosTypedEventChannelAdmin { 	 
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosTypedEventChannelAdmin "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
 	exception InterfaceNotSupported {}; 
 	exception NoSuchImplementation {}; 

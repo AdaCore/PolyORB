@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.POA_Policies;
 with PolyORB.Servants;
 with PolyORB.Tasking.Priorities;
@@ -61,14 +61,14 @@ package PolyORB.RT_POA_Policies.Priority_Model_Policy is
    procedure Check_Compatibility
      (Self           :        PriorityModelPolicy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container);
+      Error          : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Servant_Priority_Information
      (Servant                  :        Servants.Servant_Access;
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
    --  Retrieve information on ThreadPoolPolicy stored in Servant
 
    procedure Set_Servant_Priority_Information
@@ -81,7 +81,7 @@ package PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Servant                  :        Servants.Servant_Access;
       Server_ORB_Priority      :        ORB_Priority;
       Server_External_Priority :        External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
    --  Cache Self information into Servant. Force values to
    --  Server_ORB_Priority and Server_External_Priority.
 

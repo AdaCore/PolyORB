@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,14 +35,13 @@ with Ada.Tags;
 
 with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Protocols.Iface;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Types;
 
@@ -50,7 +49,7 @@ package body PolyORB.Servants.Group_Servants is
 
    use PolyORB.Any.NVList;
    use PolyORB.Components;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Setup;
    use PolyORB.Tasking.Mutexes;
    use PolyORB.Types;
@@ -78,7 +77,7 @@ package body PolyORB.Servants.Group_Servants is
       Msg  :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.Protocols.Interface;
+      use PolyORB.Protocols.Iface;
 
    begin
       pragma Assert (Msg in Unmarshall_Arguments);
@@ -236,9 +235,9 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.ORB;
       use PolyORB.Any;
       use PolyORB.Setup;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Any.NVList;
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 
       Request : Request_Access;
@@ -301,7 +300,7 @@ package body PolyORB.Servants.Group_Servants is
               (Target                     =>
                  PolyORB.References.Ref'(TPL.Value (It).all),
                Operation                  =>
-                 To_Standard_String (Request.Operation),
+                 Request.Operation.all,
                Arg_List                   => Args,
                Result                     => Request.Result,
                Deferred_Arguments_Session =>
@@ -340,8 +339,8 @@ package body PolyORB.Servants.Group_Servants is
       Msg  :        Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
-      use PolyORB.Protocols.Interface;
+      use PolyORB.Servants.Iface;
+      use PolyORB.Protocols.Iface;
 
       Res : PolyORB.Components.Null_Message;
 
@@ -467,7 +466,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure Get_Group_Object_Id
      (Group :        PolyORB.Servants.Servant_Access;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
    begin
       if not (Group.all in Group_Servant) then
@@ -485,7 +484,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure Get_Group_Length
      (Group :        PolyORB.Servants.Servant_Access;
       L     :    out Natural;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
    begin
       if not (Group.all in Group_Servant) then
@@ -503,7 +502,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure Associate
      (Group :        PolyORB.Servants.Servant_Access;
       Ref   :        PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
    begin
       if not (Group.all in Group_Servant) then
@@ -521,7 +520,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure Disassociate
      (Group :        PolyORB.Servants.Servant_Access;
       Ref   :        PolyORB.References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
    begin
       if not (Group.all in Group_Servant) then
@@ -543,7 +542,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure First
      (Group :        PolyORB.Servants.Servant_Access;
       It    :    out Iterator;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
    begin
       if not (Group.all in Group_Servant) then

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ with PortableServer.RequestProcessingPolicy;
 with PortableServer.ServantRetentionPolicy;
 with PortableServer.ThreadPolicy;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package PortableServer.POA is
 
@@ -239,7 +239,7 @@ package PortableServer.POA is
    ----------------------------------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container);
+     (Error : in out PolyORB.Errors.Error_Container);
 
    --  AdapterAlreadyExists
 
@@ -373,6 +373,6 @@ package PortableServer.POA is
    pragma No_Return (Raise_WrongPolicy);
 
    Repository_Id : constant Standard.String
-     := "IDL:PortableServer/POA:1.0";
+     := "IDL:omg.org/PortableServer/POA:1.0";
 
 end PortableServer.POA;

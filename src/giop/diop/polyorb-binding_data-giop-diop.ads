@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ package PolyORB.Binding_Data.GIOP.DIOP is
      (Profile :     DIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container);
+      Error   : out Errors.Error_Container);
 
    function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
@@ -80,10 +80,6 @@ package PolyORB.Binding_Data.GIOP.DIOP is
    function Unmarshall_DIOP_Profile_Body
      (Buffer : access Buffer_Type)
     return Profile_Access;
-
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String;
-
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access;
 
    function Image (Prof : DIOP_Profile_Type) return String;
 
@@ -109,8 +105,5 @@ private
    type DIOP_Profile_Factory is new GIOP_Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
-
-   DIOP_Corbaloc_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("diop:");
 
 end PolyORB.Binding_Data.GIOP.DIOP;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.RT_POA;
@@ -59,7 +59,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
      (Oid : access PolyORB.Objects.Object_Id)
      return Policy_Value
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.ORB;
       use PolyORB.RT_POA;
       use PolyORB.RT_POA_Policies.Priority_Model_Policy;
@@ -75,7 +75,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Priority_Model_Policy is
       Server_ORB_Priority : ORB_Priority;
       Server_External_Priority : External_Priority;
 
-      Error           : PolyORB.Exceptions.Error_Container;
+      Error           : PolyORB.Errors.Error_Container;
 
    begin
       if Object_Adapter (PolyORB.Setup.The_ORB).all

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ with Ada.Text_IO;
 
 with CORBA.ORB;
 with CORBA.Repository_Root;
+with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.OperationDef;
@@ -77,6 +78,9 @@ begin
       Mod1 : ModuleDef_Forward.Ref;
       Int1 : InterfaceDef_Forward.Ref;
       Op1 : OperationDef.Ref;
+      pragma Warnings (Off, Op1);
+      --  Op1 is assigned but never read
+
       Id : RepositoryId;
       Name : Identifier;
       Version : VersionSpec;
@@ -121,9 +125,10 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.get_primitive
-                     (Myrep,
-                      pk_long))),
+                    (PrimitiveDef.Convert_Forward.To_Ref
+                     (Repository.get_primitive
+                      (Myrep,
+                       pk_long)))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -132,9 +137,10 @@ begin
                    IDL_Type => TC_Long,
                    Type_Def => IDLType.Convert_Forward.To_Forward
                    (IDLType.Ref
-                    (Repository.get_primitive
-                     (Myrep,
-                      pk_long))),
+                    (PrimitiveDef.Convert_Forward.To_Ref
+                     (Repository.get_primitive
+                      (Myrep,
+                       pk_long)))),
                    Mode => PARAM_IN);
          PDS.Append (PDS.Sequence (Mem), Memb);
 
@@ -150,9 +156,10 @@ begin
             Name,
             Version,
             IDLType.Ref
-            (Repository.get_primitive
-             (Myrep,
-              pk_long)),
+            (PrimitiveDef.Convert_Forward.To_Ref
+             (Repository.get_primitive
+              (Myrep,
+               pk_long))),
             OP_NORMAL,
             Mem,
             Exc,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,9 @@ with Ada.Characters.Handling;
 
 with PolyORB.CORBA_P.Exceptions;
 
+with PolyORB.Errors;
 with PolyORB.Exceptions;
+
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -1416,7 +1418,7 @@ package body CORBA is
 
    procedure Iterate_Over_Any_Elements (In_Any : Any) is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Iterate_Over_Any_Elements;
 
    -------------------
@@ -1527,16 +1529,16 @@ package body CORBA is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container)
+     (Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
    begin
       pragma Assert (Error.Kind in ORB_System_Error);
 
       declare
-         Member : constant PolyORB.Exceptions.System_Exception_Members
-           := PolyORB.Exceptions.System_Exception_Members (Error.Member.all);
+         Member : constant PolyORB.Errors.System_Exception_Members
+           := PolyORB.Errors.System_Exception_Members (Error.Member.all);
 
          CORBA_Member : constant CORBA.System_Exception_Members
            := System_Exception_Members'

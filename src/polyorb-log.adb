@@ -31,9 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces.C;
-with System;
-
 package body PolyORB.Log is
 
    procedure Output
@@ -101,19 +98,11 @@ package body PolyORB.Log is
       -- Put_Line --
       --------------
 
-      procedure Put_Line (S : String)
-      is
-         SS : aliased String := S & ASCII.LF;
-
-         procedure C_Write
-           (Fd  : Interfaces.C.int;
-            P   : System.Address;
-            Len : Interfaces.C.int);
-         pragma Import (C, C_Write, "write");
+      procedure Put_Line (S : String) is
       begin
-         C_Write (2, SS (SS'First)'Address, SS'Length);
-         --  2 is standard error.
-
+         if Log_Hook /= null then
+            Log_Hook.all (S);
+         end if;
       end Put_Line;
 
    end Internals;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,10 +37,11 @@ with CORBA.Repository_Root;
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+
 with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Slots;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.References;
 with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
@@ -95,7 +96,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       Result : Dynamic.ContextList;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Contexts;
 
@@ -137,8 +138,8 @@ package body PortableInterceptor.RequestInfo.Impl is
       end if;
 
       declare
-         Members : PolyORB.Exceptions.ForwardRequest_Members
-           := PolyORB.Exceptions.From_Any (Self.Request.Exception_Info);
+         Members : PolyORB.Errors.ForwardRequest_Members
+           := PolyORB.Errors.From_Any (Self.Request.Exception_Info);
          Ref     : PolyORB.References.Ref;
          Result  : CORBA.Object.Ref;
       begin
@@ -158,7 +159,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Operation (Self : access Object) return CORBA.String is
    begin
-      return CORBA.String (Self.Request.Operation);
+      return CORBA.To_CORBA_String (Self.Request.Operation.all);
    end Get_Operation;
 
    ---------------------------
@@ -173,7 +174,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       Result : Dynamic.RequestContext;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Operation_Context;
 
@@ -248,8 +249,7 @@ package body PortableInterceptor.RequestInfo.Impl is
       return CORBA.Unsigned_Long
    is
    begin
-      raise PolyORB.Not_Implemented;
-      return 0;
+      return Self.Request_Id;
    end Get_Request_Id;
 
    ---------------------------------
@@ -306,7 +306,7 @@ package body PortableInterceptor.RequestInfo.Impl is
          return True;
 
       else
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
       end if;
    end Get_Response_Expected;
 
@@ -362,7 +362,7 @@ package body PortableInterceptor.RequestInfo.Impl is
          return Messaging.Sync_With_Target;
 
       else
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
       end if;
    end Get_Sync_Scope;
 
@@ -390,11 +390,13 @@ package body PortableInterceptor.RequestInfo.Impl is
    ----------
 
    procedure Init
-     (Self    : access Object;
-      Request : in     PolyORB.Requests.Request_Access)
+     (Self       : access Object;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long)
    is
    begin
-      Self.Request := Request;
+      Self.Request    := Request;
+      Self.Request_Id := Request_Id;
    end Init;
 
    ----------------------------
@@ -417,7 +419,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
       else
          --  PolyORB.Any.IN_COPY_VALUE and others
-         raise PolyORB.Not_Implemented;
+         raise Program_Error;
 
       end if;
    end To_CORBA_ParameterMode;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . P R O T O C O L S . G I O P . C O M M O N        --
+--        P O L Y O R B . P R O T O C O L S . G I O P . C O M M O N         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -88,12 +88,12 @@ package PolyORB.Protocols.GIOP.Common is
      (Buffer : access PolyORB.Buffers.Buffer_Type)
      return Reply_Status_Type;
 
-   procedure Common_Process_Reply
+   procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
       Reply_Stat_Ptr : access Reply_Status_Type;
-      Error          : in out Exceptions.Error_Container);
+      Error          : in out Errors.Error_Container);
 
    ------------------
    -- Locate Reply --
@@ -119,7 +119,8 @@ package PolyORB.Protocols.GIOP.Common is
      (Sess               : access GIOP_Session;
       Locate_Request_Id  :        Types.Unsigned_Long;
       Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref);
+      Forward_Ref        :        References.Ref;
+      Error              : in out Errors.Error_Container);
 
    procedure Common_Process_Locate_Reply
      (Sess              : access GIOP_Session;
@@ -131,8 +132,9 @@ package PolyORB.Protocols.GIOP.Common is
    ----------------------------------
 
    procedure Common_Process_Abort_Request
-     (Sess : access GIOP_Session;
-      R    : in     Request_Access);
+     (Sess  : access GIOP_Session;
+      R     :        Request_Access;
+      Error : in out Errors.Error_Container);
 
    ---------------------------
    -- Common_Reply_Received --
@@ -148,15 +150,15 @@ package PolyORB.Protocols.GIOP.Common is
    --  Helper routines to replace Error Kind
 
    procedure Replace_Marshal_5_To_Bad_Param_23
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status);
+     (Error  : in out Errors.Error_Container;
+      Status : in     PolyORB.Errors.Completion_Status);
    --  If Error is Marshhall_E with minor code 5, replace it with
    --  Bad_Param_E, with minor code 23 and set its status to Status,
    --  else do nothing.
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status);
+     (Error  : in out Errors.Error_Container;
+      Status : in     PolyORB.Errors.Completion_Status);
    --  If Error is Marshhall_E with minor code 5, replace it with
    --  Inv_Objref_E, with minor code 2, and set its status to Status,
    --  else do nothing.

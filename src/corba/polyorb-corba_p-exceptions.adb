@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,6 +43,7 @@ package body PolyORB.CORBA_P.Exceptions is
    use Ada.Exceptions;
 
    use PolyORB.Any;
+   use PolyORB.Errors;
    use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Types;
@@ -66,9 +67,8 @@ package body PolyORB.CORBA_P.Exceptions is
       Is_Error : out Boolean;
       Id       : out Error_Id)
    is
-      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
-      Version_Length : constant Natural
-        := To_Standard_String (PolyORB_Exc_Version)'Length;
+      Prefix_Length  : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural := PolyORB_Exc_Version'Length;
 
    begin
       if Name'Length > Prefix_Length + Version_Length
@@ -168,7 +168,7 @@ package body PolyORB.CORBA_P.Exceptions is
                   Completed =>
                     From_Any
                   (Get_Aggregate_Element
-                   (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
+                   (Occurrence, PolyORB.Errors.TC_Completion_Status,
                     PolyORB.Types.Unsigned_Long (1))));
 
             when others =>
@@ -252,7 +252,7 @@ package body PolyORB.CORBA_P.Exceptions is
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
+     (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("About to raise exception: "
                        & Error_Id'Image (Error.Kind)));

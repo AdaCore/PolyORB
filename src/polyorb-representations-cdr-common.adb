@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,16 +57,6 @@ package body PolyORB.Representations.CDR.Common is
       new PolyORB.Log.Facility_Log ("polyorb.representations.cdr.common");
    procedure O (Message : in String; Level : Log_Level := Debug)
       renames L.Output;
-
-   --  Standard 'String' type
-
-   procedure Marshall_Latin_1_String
-     (Buffer : access Buffer_Type;
-      Data   : in     Standard.String);
-
-   function Unmarshall_Latin_1_String
-     (Buffer : access Buffer_Type)
-      return Standard.String;
 
    --------------------------------
    -- Types conversion functions --
@@ -397,7 +387,7 @@ package body PolyORB.Representations.CDR.Common is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
    begin
-      raise Not_Implemented;
+      raise Program_Error;
       --      pragma Debug (O ("Marshall (LongDouble) : enter"));
       --      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
       --      pragma Debug (O ("Marshall (LongDouble) : end"));
@@ -446,18 +436,6 @@ package body PolyORB.Representations.CDR.Common is
       pragma Debug (O ("Marshall (Identifier) : enter"));
       Marshall_Latin_1_String (Buffer, PolyORB.Types.String (Data));
       pragma Debug (O ("Marshall (Identifier) : end"));
-   end Marshall;
-
-   --  Marshalling of a Scoped Name
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in     PolyORB.Types.ScopedName)
-   is
-   begin
-      pragma Debug (O ("Marshall (ScopedName) : enter"));
-      Marshall_Latin_1_String (Buffer, PolyORB.Types.String (Data));
-      pragma Debug (O ("Marshall (ScopedName) : end"));
    end Marshall;
 
    --  Marshalling of a Repository Identifier
@@ -663,14 +641,6 @@ package body PolyORB.Representations.CDR.Common is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : access PolyORB.Types.ScopedName)
-   is
-   begin
-      Marshall (Buffer, Data.all);
-   end Marshall;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
       Data   : access PolyORB.Types.RepositoryId)
    is
    begin
@@ -845,7 +815,7 @@ package body PolyORB.Representations.CDR.Common is
    begin
       --  pragma Debug (O ("Unmarshall (LongDouble) : enter & end"));
       --  return To_Long_Double (Long_Double_Buf (Octets));
-      raise Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Unmarshall (Buffer);
       --  "Possible infinite recursion".
@@ -902,16 +872,6 @@ package body PolyORB.Representations.CDR.Common is
    begin
       pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
       return PolyORB.Types.Identifier
-        (PolyORB.Types.String'(Unmarshall_Latin_1_String (Buffer)));
-   end Unmarshall;
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.ScopedName
-   is
-   begin
-      pragma Debug (O ("Unmarshall (ScopedName) : enter & end"));
-      return PolyORB.Types.ScopedName
         (PolyORB.Types.String'(Unmarshall_Latin_1_String (Buffer)));
    end Unmarshall;
 

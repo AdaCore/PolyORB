@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,11 +35,10 @@ with PolyORB.Parameters;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Config.Proxies;
 with PolyORB.POA.Basic_POA;
-with PolyORB.Types;
 
 procedure PolyORB.Setup.Proxies_POA
   (Root_POA_Object :        PolyORB.POA.Obj_Adapter_Access;
-   Error           : in out PolyORB.Exceptions.Error_Container)
+   Error           : in out PolyORB.Errors.Error_Container)
 is
 
    use PolyORB.POA_Manager;
@@ -57,14 +56,14 @@ begin
 
       PolyORB.POA.Basic_POA.Create_POA
         (Basic_Obj_Adapter (Root_POA_Object.all)'Access,
-         Types.To_PolyORB_String ("Proxies"),
+         "Proxies",
          POAManager_Access (Entity_Of (Root_POA_Object.POA_Manager)),
          POA_Config.Default_Policies
          (POA_Config.Configuration_Type'Class (Proxies_POA_Configuration)),
          Proxy_POA,
          Error);
 
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          return;
       end if;
 

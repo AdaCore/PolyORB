@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@
 --  of the PolyORB Portable Object Adapter (libreally inspired from
 --  the POA specification in CORBA).
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Policies is
@@ -59,7 +59,7 @@ package PolyORB.POA_Policies is
    procedure Check_Compatibility
      (Self           :        Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

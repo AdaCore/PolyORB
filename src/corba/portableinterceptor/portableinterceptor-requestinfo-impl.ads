@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -112,15 +112,17 @@ package PortableInterceptor.RequestInfo.Impl is
      return Boolean;
 
    procedure Init
-     (Self    : access Object;
-      Request : in     PolyORB.Requests.Request_Access);
+     (Self       : access Object;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long);
    --  Implementation Note: This procedure initialize a RequestInfo
    --  object. It is specific to PolyORB. You should not use it.
 
 private
 
    type Object is new CORBA.Local.Object with record
-      Request : PolyORB.Requests.Request_Access;
+      Request    : PolyORB.Requests.Request_Access;
+      Request_Id : CORBA.Unsigned_Long;
    end record;
 
 end PortableInterceptor.RequestInfo.Impl;

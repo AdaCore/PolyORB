@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -297,7 +297,7 @@ package body CORBA.ORB is
       scale      : in CORBA.Short)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Fixed_Tc (IDL_Digits, scale);
       --  "Possible infinite recursion".
@@ -353,7 +353,7 @@ package body CORBA.ORB is
       Name : in Identifier)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Native_Tc (Id, Name);
       --  "Possible infinite recursion".
@@ -369,7 +369,7 @@ package body CORBA.ORB is
       Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Recursive_Sequence_Tc (Bound, Offset);
       --  "Possible infinite recursion".
@@ -434,7 +434,7 @@ package body CORBA.ORB is
    function Get_Default_Context
       return CORBA.Context.Ref is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Default_Context;
       --  "Possible infinite recursion".
@@ -529,24 +529,17 @@ package body CORBA.ORB is
       --  then raise InvalidName.
 
       if Id = ""
-        or else not Is_Nil (Resolve_Initial_References (Id)) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+        or else not Is_Nil (Resolve_Initial_References (Id))
+      then
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       --  If Ref is null, then raise Bad_Param with minor code 27
 
       if Is_Nil (Ref) then
-         declare
-            Excp_Memb : System_Exception_Members :=
-              System_Exception_Members'(Minor     => 27,
-                                        Completed => Completed_No);
-         begin
-            Raise_Bad_Param (Excp_Memb);
-         end;
+         Raise_Bad_Param (
+           System_Exception_Members'(Minor     => 27,
+                                     Completed => Completed_No));
       end if;
 
       Register_Initial_Reference (Id, Ref);
@@ -580,11 +573,7 @@ package body CORBA.ORB is
       pragma Debug (O ("Resolve_Initial_References: " & Id));
 
       if Is_Nil (Result) then
-         declare
-            Excp_Memb : InvalidName_Members := (null record);
-         begin
-            Raise_InvalidName (Excp_Memb);
-         end;
+         Raise_InvalidName (InvalidName_Members'(null record));
       end if;
 
       return Result;
@@ -777,6 +766,9 @@ package body CORBA.ORB is
       Naming_IOR : constant Standard.String :=
         PolyORB.Parameters.Get_Conf
         (Section => "corba", Key => "naming_ior", Default => "");
+      InterfaceRepository_IOR : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "ir_ior", Default => "");
 
    begin
       --  Register initial reference for NamingService
@@ -785,6 +777,14 @@ package body CORBA.ORB is
          Register_Initial_Reference
            (To_CORBA_String ("NamingService"),
             To_CORBA_String (Naming_IOR));
+      end if;
+
+      --  Register initial reference for Interface Repository
+
+      if InterfaceRepository_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("InterfaceRepository"),
+            To_CORBA_String (InterfaceRepository_IOR));
       end if;
 
       PolyORB.CORBA_P.ORB_Init.Register

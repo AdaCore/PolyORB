@@ -58,28 +58,28 @@ package body PortableInterceptor.ClientRequestInfo is
         Replace);
    end Add_Request_Service_Context;
 
---   -----------------------------
---   -- Get_Effective_Component --
---   -----------------------------
---
---   function Get_Effective_Component
---     (Self : in Local_Ref;
---      Id   : in IOP.ComponentId)
---      return IOP.TaggedComponent
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return
---        PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Component
---         (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
---           (Entity_Of (Self)),
---          Id);
---   end Get_Effective_Component;
+   -----------------------------
+   -- Get_Effective_Component --
+   -----------------------------
+
+   function Get_Effective_Component
+     (Self : in Local_Ref;
+      Id   : in IOP.ComponentId)
+      return IOP.TaggedComponent
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+
+   begin
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return
+        PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Component
+         (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
+           (Entity_Of (Self)),
+          Id);
+   end Get_Effective_Component;
 
 --   ------------------------------
 --   -- Get_Effective_Components --
@@ -91,8 +91,8 @@ package body PortableInterceptor.ClientRequestInfo is
 --      return IOP.TaggedComponentSeq
 --   is
 --      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
 --
+--   begin
 --      if CORBA.Object.Is_Nil (Self_Ref) then
 --         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
 --      end if;
@@ -104,25 +104,25 @@ package body PortableInterceptor.ClientRequestInfo is
 --          Id);
 --   end Get_Effective_Components;
 
---   ---------------------------
---   -- Get_Effective_Profile --
---   ---------------------------
---
---   function Get_Effective_Profile
---     (Self : in Local_Ref)
---      return IOP.TaggedProfile
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Profile
---        (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
---          (Entity_Of (Self)));
---   end Get_Effective_Profile;
+   ---------------------------
+   -- Get_Effective_Profile --
+   ---------------------------
+
+   function Get_Effective_Profile
+     (Self : in Local_Ref)
+      return IOP.TaggedProfile
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+
+   begin
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.ClientRequestInfo.Impl.Get_Effective_Profile
+        (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
+          (Entity_Of (Self)));
+   end Get_Effective_Profile;
 
    --------------------------
    -- Get_Effective_Target --

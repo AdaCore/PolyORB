@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,10 +35,9 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Protocols.Iface;
 with PolyORB.Request_QoS;
 with PolyORB.Setup;
 
@@ -114,7 +113,7 @@ package body PolyORB.Requests is
 
       Req := new Request;
       Req.Target     := Target;
-      Req.Operation  := To_PolyORB_String (Operation);
+      Req.Operation  := PolyORB.Utils.Strings."+" (Operation);
       Req.Args       := Arg_List;
       Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
       Req.Result     := Result;
@@ -138,10 +137,10 @@ package body PolyORB.Requests is
    procedure Free is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
 
-   procedure Destroy_Request
-     (R : in out Request_Access) is
+   procedure Destroy_Request (R : in out Request_Access) is
    begin
       if R /= null then
+         PolyORB.Utils.Strings.Free (R.Operation);
          Annotations.Destroy (R.Notepad);
          Free (R);
       end if;
@@ -160,7 +159,7 @@ package body PolyORB.Requests is
       pragma Warnings (On);
 
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Setup;
 
    begin
@@ -193,12 +192,11 @@ package body PolyORB.Requests is
       Ignore_Src_Mode :        Boolean        := True;
       Can_Extend      :        Boolean        := False)
    is
-      use PolyORB.Components;
-
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Components;
 
       Src_It : Iterator := First (List_Of (Src_Args).all);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
@@ -319,7 +317,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
 
@@ -438,7 +435,6 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
 
       function Name_Exists
         (Name : Types.Identifier; From : Iterator)
@@ -704,7 +700,6 @@ package body PolyORB.Requests is
    is
       use Any.NVList;
       use Components;
-      use Exceptions;
 
    begin
       if Self.Arguments_Called
@@ -724,7 +719,7 @@ package body PolyORB.Requests is
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
          declare
-            use Protocols.Interface;
+            use Protocols.Iface;
 
             Reply : constant Components.Message'Class
               := Components.Emit
@@ -794,7 +789,7 @@ package body PolyORB.Requests is
    is
       S1 : constant String
         := "Operation: "
-        & To_Standard_String (Req.Operation)
+        & Req.Operation.all
         & " on object "
         & References.Image (Req.Target);
    begin

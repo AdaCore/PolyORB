@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -51,18 +51,18 @@ package PolyORB.Obj_Adapters.Simple is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Unexport
      (OA    : access Simple_Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Object_Key
      (OA      : access Simple_Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    --  In the Simple Object Adapter, the methods of an object
    --  are described using two factory functions (provided by
@@ -103,7 +103,7 @@ package PolyORB.Obj_Adapters.Simple is
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container);
+      Error   : in out PolyORB.Errors.Error_Container);
 
    procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;

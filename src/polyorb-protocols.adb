@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,20 +35,19 @@
 
 with Ada.Tags;
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.If_Descriptors;
 with PolyORB.Log;
-with PolyORB.Protocols.Interface;
-with PolyORB.Servants.Interface;
-with PolyORB.Types;
+with PolyORB.Protocols.Iface;
+with PolyORB.Servants.Iface;
 
 package body PolyORB.Protocols is
 
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
-   use PolyORB.Protocols.Interface;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Protocols.Iface;
+   use PolyORB.Servants.Iface;
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
@@ -62,7 +61,7 @@ package body PolyORB.Protocols is
    procedure Handle_Unmarshall_Arguments
      (S     : access Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container)
+      Error : in out Errors.Error_Container)
    is
    begin
       raise Program_Error;
@@ -80,11 +79,11 @@ package body PolyORB.Protocols is
       S    :        Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Nothing : Components.Null_Message;
       Req     : Request_Access;
-      Error   : Exceptions.Error_Container;
+      Error   : Errors.Error_Container;
 
    begin
       pragma Debug
@@ -151,7 +150,7 @@ package body PolyORB.Protocols is
             --  are abstracted by the If_Descriptor interface.
 
             declare
-               use Protocols.Interface;
+               use Protocols.Iface;
                use PolyORB.If_Descriptors;
 
                Desc : If_Descriptor_Access renames Default_If_Descriptor;
@@ -159,9 +158,7 @@ package body PolyORB.Protocols is
                --  the default interface descriptor objet.
 
                Args : Any.NVList.Ref
-                 := Get_Empty_Arg_List
-                 (Desc, Req.Target,
-                  Types.To_Standard_String (Req.Operation));
+                 := Get_Empty_Arg_List (Desc, Req.Target, Req.Operation.all);
 
                Reply : constant Components.Message'Class
                  := Components.Emit
@@ -175,15 +172,16 @@ package body PolyORB.Protocols is
                   pragma Debug (O ("Unmarshalled deferred arguments"));
                   Req.Args := Unmarshalled_Arguments (Reply).Args;
                   Req.Result.Argument := Get_Empty_Result
-                    (Desc, Req.Target,
-                     Types.To_Standard_String (Req.Operation));
+                    (Desc, Req.Target, Req.Operation.all);
+
                   Req.Deferred_Arguments_Session := null;
                   pragma Debug (O ("Proxying request: " & Image (Req.all)));
 
                else
                   pragma Debug (O ("Unmarshall deferred arguments error"));
                   Req.Exception_Info :=
-                    Error_To_Any (Arguments_Error (Reply).Error);
+                    PolyORB.Errors.Error_To_Any
+                    (Arguments_Error (Reply).Error);
                end if;
             end;
 
@@ -221,7 +219,7 @@ package body PolyORB.Protocols is
 
                Emit_No_Reply
                  (Component_Access (Sess),
-                  Protocols.Interface.Flush'(Message with null record));
+                  Protocols.Iface.Flush'(Message with null record));
             end if;
 
             if Is_Set (Sync_With_Target, Req.Req_Flags)

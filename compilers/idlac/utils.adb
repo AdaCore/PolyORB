@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Utilities for the IDLAC compiler.
 
-with Ada.Unchecked_Conversion;
+with System.Address_Image;
 
 package body Utils is
 
@@ -126,30 +126,8 @@ package body Utils is
    -- Img --
    ---------
 
-   function Img (A : System.Address) return String is
-
-      type U_32 is mod 2 ** 32;
-      for U_32'Size use 32;
-
-      function To_U_32 is
-         new Ada.Unchecked_Conversion (System.Address, U_32);
-
-      Hex_Digits : constant array
-        (U_32 range 0 .. 15) of Character
-        := "0123456789abcdef";
-
-      Integer_Address : U_32
-        := To_U_32 (A);
-
-      Result : String (1 .. 8);
-   begin
-      for I in reverse Result'Range loop
-         Result (I) := Hex_Digits
-           (Integer_Address mod 16);
-         Integer_Address := Integer_Address / 16;
-      end loop;
-      return Result;
-   end Img;
+   function Img (A : System.Address) return String
+     renames System.Address_Image;
 
    ---------
    -- Img --

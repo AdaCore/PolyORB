@@ -34,7 +34,7 @@
 --  Abstract transport service access points and
 --  communication endpoints.
 
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 
 package body PolyORB.Transport is
 
@@ -83,7 +83,7 @@ package body PolyORB.Transport is
          return;
       end if;
       Emit_No_Reply
-        (TE.Server, ORB.Interface.Unregister_Endpoint'
+        (TE.Server, ORB.Iface.Unregister_Endpoint'
          (TE => Transport_Endpoint_Access (TE)));
       TE.Closed := True;
    end Close;

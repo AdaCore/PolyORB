@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -216,7 +216,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Ensure_Initialization;
 
       --  No need to implement generic pull in Typed ProxyPullSupplier
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Event;
    end Pull;
 
@@ -243,7 +243,7 @@ package body CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl is
       Returns := Null_Any; --  WAG:3.15
 
       --  No need to implement generic try_pull in Typed ProxyPullSupplier
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Try_Pull;
 
 end CosTypedEventChannelAdmin.TypedProxyPullSupplier.Impl;

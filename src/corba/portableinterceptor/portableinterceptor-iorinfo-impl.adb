@@ -47,7 +47,7 @@ package body PortableInterceptor.IORInfo.Impl is
       pragma Unreferenced (Self);
       pragma Unreferenced (A_Component);
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Add_IOR_Component;
 
    ----------------------------------
@@ -63,7 +63,7 @@ package body PortableInterceptor.IORInfo.Impl is
       pragma Unreferenced (A_Component);
       pragma Unreferenced (Profile_Id);
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Add_IOR_Component_To_Profile;
 
 --   --------------------------
@@ -76,7 +76,7 @@ package body PortableInterceptor.IORInfo.Impl is
 --   is
 --      Result : ObjectReferenceTemplate.Abstract_Value_Ref;
 --   begin
---      raise PolyORB.Not_Implemented;
+--      raise Program_Error;
 --      return Result;
 --   end Get_Adapter_Template;
 
@@ -90,7 +90,7 @@ package body PortableInterceptor.IORInfo.Impl is
 --   is
 --      Result : ObjectReferenceFactory.Abstract_Value_Ref;
 --   begin
---      raise PolyORB.Not_Implemented;
+--      raise Program_Error;
 --      return Result;
 --   end Get_Current_Factory;
 
@@ -128,7 +128,7 @@ package body PortableInterceptor.IORInfo.Impl is
       pragma Unreferenced (Self);
       Result : AdapterManagerId;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Manager_Id;
 
@@ -140,7 +140,7 @@ package body PortableInterceptor.IORInfo.Impl is
       pragma Unreferenced (Self);
       Result : AdapterState;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_State;
 
@@ -184,7 +184,7 @@ package body PortableInterceptor.IORInfo.Impl is
 --      To   : in     ObjectReferenceFactory.Abstract_Value_Ref)
 --   is
 --   begin
---      raise PolyORB.Not_Implemented;
+--      raise Program_Error;
 --   end Set_Current_Factory;
 
 end PortableInterceptor.IORInfo.Impl;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Miscellaneous utility subprograms.
+--  Miscellaneous utility subprograms
 
 with Ada.Streams;
 
@@ -44,23 +44,27 @@ package PolyORB.Utils is
    --  If C is not a valid hexadecimal digit, Constraint_Error
    --  is raised.
 
-   function To_String
+   function SEA_To_Hex_String
      (A : Ada.Streams.Stream_Element_Array)
      return String;
    --  Return a string of hexadecimal digits representing the
    --  contents of A.
 
-   function To_Stream_Element_Array
+   function Hex_String_To_SEA
      (S : String)
      return Ada.Streams.Stream_Element_Array;
    --  Return the Stream_Element_Array represented by the
    --  string of hexadecimal digits contained in S.
 
-   function URI_Encode (S : String) return String;
-   --  Return S with special characters replaced by
-   --  "%" "hexdigit" "hexdigit" if these characters
-   --  need to be escaped in URIs, except for spaces
-   --  which are replaced by '+'.
+   No_Escape : constant String := "";
+
+   function URI_Encode
+     (S           : String;
+      Also_Escape : String := "/") return String;
+   --  Return S with special characters replaced by "%" "hexdigit" "hexdigit"
+   --  if these characters need to be escaped in URIs, except for spaces
+   --  which are replaced by '+'. Any character in Also_Escape is considered
+   --  as special.
 
    function URI_Decode (S : String) return String;
    --  Return S with any %xy sequence replaced with
@@ -72,16 +76,23 @@ package PolyORB.Utils is
    -----------------------
 
    function Trimmed_Image (I : Integer) return String;
-   --  Return Integer'Image (I) without a leading space.
+   --  Return Integer'Image (I) without a leading space
+
+   type Direction_Type is private;
+
+   Forward  : constant Direction_Type;
+   Backward : constant Direction_Type;
 
    function Find_Skip
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean)
+     (S         : String;
+      Start     : Integer;
+      What      : Character;
+      Skip      : Boolean;
+      Direction : Direction_Type)
      return Integer;
    --  If Skip is False, return the index of the
-   --  first occurrence of What in S.
+   --  first occurrence of What in S starting at Start and going
+   --  in the indicated direction (which can be Forward or Backward).
    --  If Skip is True, return the index of the
    --  first occurrence of any character OTHER THAN What.
    --  If no such character exists, S'Last + 1 is returned.
@@ -89,35 +100,48 @@ package PolyORB.Utils is
    --  Shorthands for commonly-used forms of Find_Skip
 
    function Find
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean := False)
+     (S         : String;
+      Start     : Integer;
+      What      : Character;
+      Skip      : Boolean        := False;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
    function Find_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := False)
+     (S         : String;
+      Start     : Integer;
+      What      : Character      := ' ';
+      Skip      : Boolean        := False;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
    function Skip_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := True)
+     (S         : String;
+      Start     : Integer;
+      What      : Character      := ' ';
+      Skip      : Boolean        := True;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
    function Has_Prefix (S : String; Prefix : String) return Boolean;
-   --  True if, and only if, S starts with Prefix.
+   --  True if, and only if, S starts with Prefix
+
+   function To_Upper (S : String) return String;
+   --  Folds all characters of string S to upper case
+
+   function To_Lower (S : String) return String;
+   --  Folds all characters of string S to lower case
 
 private
+   type Direction_Type is new Integer range -1 .. +1;
+   Forward  : constant Direction_Type := +1;
+   Backward : constant Direction_Type := -1;
+   --  Direction_Type value 0 does not make sense
 
-   pragma Inline (Hex_Value, To_String, To_Stream_Element_Array,
+   pragma Inline (Hex_Value, SEA_To_Hex_String, Hex_String_To_SEA,
                   URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);
 
 end PolyORB.Utils;

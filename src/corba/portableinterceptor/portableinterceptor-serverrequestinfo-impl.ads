@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ with CORBA.Policy;
 with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.Requests;
+with PortableServer;
 
 with Dynamic;
 with PortableInterceptor.RequestInfo.Impl;
@@ -57,7 +58,9 @@ package PortableInterceptor.ServerRequestInfo.Impl is
      (Self         : access Object;
       Point        : in
         PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
+      Servant      : in     PortableServer.Servant;
       Request      : in     PolyORB.Requests.Request_Access;
+      Request_Id   : in     CORBA.Unsigned_Long;
       Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean);
 
@@ -71,7 +74,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Object_Id (Self : access Object) return ObjectId;
 
---   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+   function Get_Adapter_Id (Self : access Object) return AdapterId;
 
    function Get_Target_Most_Derived_Interface
      (Self : access Object)
@@ -108,6 +111,7 @@ private
      new PortableInterceptor.RequestInfo.Impl.Object with
    record
       Point        : PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
+      Servant      : PortableServer.Servant;
       Request      : PolyORB.Requests.Request_Access;
       Profile      : PolyORB.Binding_Data.Profile_Access;
       Args_Present : Boolean;

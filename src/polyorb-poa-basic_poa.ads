@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@
 --  CORBA-like POA API (defined in PolyORB.POA) and PolyORB Obj_Adapter
 --  (defined in PolyORB.Obj_Adapters) upon which the Basic POA depends.
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.References;
 
@@ -52,11 +52,11 @@ package PolyORB.POA.Basic_POA is
 
    procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container);
+      Error        : in out PolyORB.Errors.Error_Container);
 
    --------------------------------
    -- Proxy namespace management --
@@ -75,13 +75,13 @@ package PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Proxy_To_Ref
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
 private
 

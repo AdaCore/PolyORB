@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Datagram Socket Access Point and End Point to recieve data from network
+
+with System.Storage_Elements;
 
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
@@ -145,12 +147,29 @@ package body PolyORB.Transport.Datagram.Sockets_In is
      (TE     : in out Socket_In_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Buffers;
+      use PolyORB.Errors;
 
       Data_Received : Stream_Element_Count;
       Request : Request_Type (N_Bytes_To_Read);
+
+      procedure Receive_Socket (V : access Iovec);
+      --  Lowlevel socket receive
+
+      procedure Receive_Socket (V : access Iovec) is
+         Count : Ada.Streams.Stream_Element_Count;
+         Vecs  : Vector_Type (1 .. 1);
+         pragma Import (Ada, Vecs);
+         for Vecs'Address use V.all'Address;
+      begin
+         PolyORB.Sockets.Receive_Vector (TE.Socket, Vecs, Count);
+         V.Iov_Len := System.Storage_Elements.Storage_Offset (Count);
+      end Receive_Socket;
+
+      procedure Receive_Buffer is new PolyORB.Buffers.Receive_Buffer
+        (Receive_Socket);
 
    begin
       --  Must read all data in one call from datagram socket.
@@ -160,15 +179,16 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       Size := Stream_Element_Offset (Request.Size);
       pragma Debug (O ("To read :" & Size'Img));
       begin
-         PolyORB.Buffers.Receive_Buffer
-           (Buffer, TE.Socket, Size, Data_Received);
+         Receive_Buffer (Buffer, Size, Data_Received);
       exception
          when PolyORB.Sockets.Socket_Error =>
-            Throw (Error, Comm_Failure_E, System_Exception_Members'
+            Throw (Error, Comm_Failure_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
 
          when others =>
-            Throw (Error, Unknown_E, System_Exception_Members'
+            Throw (Error, Unknown_E,
+                   System_Exception_Members'
                    (Minor => 0, Completed => Completed_Maybe));
       end;
 
@@ -186,7 +206,7 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    procedure Write
      (TE     : in out Socket_In_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Error  :    out Exceptions.Error_Container)
+      Error  :    out Errors.Error_Container)
    is
    begin
       raise Program_Error;
@@ -209,9 +229,9 @@ package body PolyORB.Transport.Datagram.Sockets_In is
       TE.Socket := No_Socket;
    end Close;
 
-   ----------------------
-   -- Create_End_Point --
-   ----------------------
+   ---------------------
+   -- Create_Endpoint --
+   ---------------------
 
    function Create_Endpoint
      (TAP : access Socket_In_Access_Point)

@@ -47,8 +47,8 @@ package System.Partition_Interface is
    type DSA_Implementation_Name is (No_DSA, GARLIC_DSA, PolyORB_DSA);
    DSA_Implementation : constant DSA_Implementation_Name := PolyORB_DSA;
 
---    type Subprogram_Id is new Natural;
---    --  This type is used exclusively by stubs
+   subtype Subprogram_Id is System.PolyORB_Interface.Subprogram_Id;
+   --  This type is used exclusively by stubs
 
    subtype Unit_Name is String;
    --  Name of Ada units
@@ -88,6 +88,8 @@ package System.Partition_Interface is
    subtype RCI_Subp_Info is System.PolyORB_Interface.RCI_Subp_Info;
    subtype RCI_Subp_Info_Array is
      System.PolyORB_Interface.RCI_Subp_Info_Array;
+
+   subtype Request_Access is System.PolyORB_Interface.Request_Access;
 
 --    procedure Check
 --      (Name    : in Unit_Name;

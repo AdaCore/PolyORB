@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -152,6 +152,44 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
         RequestInfo.Impl.Get_Contexts
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Contexts;
+
+   -----------------------------
+   -- Get_Effective_Component --
+   -----------------------------
+
+   function Get_Effective_Component
+     (Self : access Object;
+      Id   : in     IOP.ComponentId)
+      return IOP.TaggedComponent
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Id);
+
+      Result : IOP.TaggedComponent;
+      pragma Warnings (Off, Result);
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Effective_Component;
+
+   ---------------------------
+   -- Get_Effective_Profile --
+   ---------------------------
+
+   function Get_Effective_Profile
+     (Self : access Object)
+      return IOP.TaggedProfile
+   is
+      pragma Unreferenced (Self);
+
+      Result : IOP.TaggedProfile;
+      pragma Warnings (Off, Result);
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Effective_Profile;
 
    --------------------------
    -- Get_Effective_Target --
@@ -331,7 +369,7 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Request_Policy;
 
@@ -410,13 +448,15 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
    ----------
 
    procedure Init
-     (Self    : access Object;
-      Point   : in     Client_Interception_Point;
-      Request : in     PolyORB.Requests.Request_Access;
-      Target  : in     CORBA.Object.Ref)
+     (Self       : access Object;
+      Point      : in     Client_Interception_Point;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long;
+      Target     : in     CORBA.Object.Ref)
    is
    begin
-      RequestInfo.Impl.Init (RequestInfo.Impl.Object_Ptr (Self), Request);
+      RequestInfo.Impl.Init
+        (RequestInfo.Impl.Object_Ptr (Self), Request, Request_Id);
       Self.Point   := Point;
       Self.Request := Request;
       Self.Target  := Target;
@@ -445,15 +485,6 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
            PortableInterceptor.RequestInfo.Repository_Id);
    end Is_A;
 
---   function Get_Effective_Profile
---     (Self : access Object)
---      return IOP.TaggedProfile;
---
---   function Get_Effective_Component
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponent;
---
 --   function Get_Effective_Components
 --     (Self : access Object;
 --      Id   : in     IOP.ComponentId)

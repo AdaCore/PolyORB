@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,10 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
-
-with Ada.Strings.Unbounded;
 
 with PolyORB.Log;
 
@@ -138,21 +136,22 @@ package body PolyORB.Any.NVList is
       use NV_Lists;
 
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
-      Result : Ada.Strings.Unbounded.Unbounded_String;
+      Result : PolyORB.Types.String := To_PolyORB_String ("");
+
    begin
       if Obj /= null then
          declare
             It : Iterator := First (Obj.List);
          begin
             while not Last (It) loop
-               Ada.Strings.Unbounded.Append (Result, Image (Value (It).all));
+               Result := Result & Image (Value (It).all);
                Next (It);
                if not Last (It) then
-                  Ada.Strings.Unbounded.Append (Result, ' ');
+                  Result := Result & " ";
                end if;
             end loop;
 
-            return Ada.Strings.Unbounded.To_String (Result);
+            return PolyORB.Types.To_Standard_String (Result);
          end;
       else
          return ("(null list)");

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ with MOMA.Messages;
 with PolyORB.MOMA_P.Provider.Topic_Datas;
 
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -278,11 +278,11 @@ package body PolyORB.MOMA_P.Provider.Routers is
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Args      : PolyORB.Any.NVList.Ref;
       It        : Iterator;
-      Operation : constant String := To_Standard_String (Req.all.Operation);
+      Operation : String renames Req.Operation.all;
       Error     : Error_Container;
    begin
       pragma Debug (O ("The router is executing the request:"
@@ -290,11 +290,11 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Create (Args);
 
-      Args := Get_Parameter_Profile (To_Standard_String (Req.all.Operation));
+      Args := Get_Parameter_Profile (Operation);
       PolyORB.Requests.Arguments (Req, Args, Error);
 
       if Found (Error) then
-         raise PolyORB.Unknown;
+         raise Program_Error;
          --  XXX We should do something more contructive
 
       end if;

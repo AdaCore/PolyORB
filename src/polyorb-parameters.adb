@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . P A R A M T E R S                     --
+--                   P O L Y O R B . P A R A M E T E R S                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,30 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolyORB runtime configuration facility.
-
-with Ada.Characters.Handling;
-with Ada.Text_IO;
-
-with Interfaces.C.Strings;
-with System;
+--  PolyORB runtime configuration facility
 
 with PolyORB.Dynamic_Dict;
 with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Parameters is
-
-   use Ada.Characters.Handling;
-   use Ada.Text_IO;
-
-   use Interfaces.C;
-   use Interfaces.C.Strings;
 
    use PolyORB.Utils.Strings;
 
@@ -87,10 +75,10 @@ package body PolyORB.Parameters is
    --  otherwise.
 
    function Make_Global_Key (Section, Key : String) return String;
-   --  Build Dynamic Dict key from (Section, Key) tuple.
+   --  Build Dynamic Dict key from (Section, Key) tuple
 
    function Make_Env_Name (Section, Key : String) return String;
-   --  Build environment variable from (Section, Key) tuple.
+   --  Build environment variable from (Section, Key) tuple
 
    function To_Boolean (V : String) return Boolean;
    --  Convert a String value to a Boolean value according
@@ -110,12 +98,10 @@ package body PolyORB.Parameters is
    -- Make_Env_Name --
    -------------------
 
-   function Make_Env_Name
-     (Section, Key : String)
-     return String
-   is
+   function Make_Env_Name (Section, Key : String) return String is
       Result : String := "POLYORB_"
-        & To_Upper (Section & "_" & Key);
+        & PolyORB.Utils.To_Upper (Section & "_" & Key);
+
    begin
       for J in Result'Range loop
          case Result (J) is
@@ -139,22 +125,10 @@ package body PolyORB.Parameters is
 
    function Fetch (Key : String) return String is
    begin
-      if PolyORB.Utils.Has_Prefix (Key, "file:") then
-         declare
-            Filename : constant String := Key (Key'First + 5 .. Key'Last);
-            File     : File_Type;
-            Result   : String (1 .. 1024);
-            Last     : Natural;
-         begin
-            Open (File, In_File, Filename);
-            Get_Line (File, Result, Last);
-            Close (File);
-            return Result (1 .. Last);
-
-         exception
-            when Name_Error =>
-               return "";
-         end;
+      if PolyORB.Utils.Has_Prefix (Key, "file:")
+        and then Fetch_From_File_Hook /= null
+      then
+         return Fetch_From_File_Hook.all (Key);
 
       else
          return Key;
@@ -165,11 +139,9 @@ package body PolyORB.Parameters is
    -- To_Boolean --
    ----------------
 
-   function To_Boolean
-     (V : String)
-     return Boolean
-   is
-      VV : constant String := To_Lower (V);
+   function To_Boolean (V : String) return Boolean is
+      VV : constant String := PolyORB.Utils.To_Lower (V);
+
    begin
       if VV'Length > 0 then
          case VV (VV'First) is
@@ -253,7 +225,8 @@ package body PolyORB.Parameters is
    function Get_Conf
      (Section, Key : String;
       Default      : Integer := 0)
-     return Integer is
+     return Integer
+   is
    begin
       return Integer'Value (Get_Conf (Section, Key, Integer'Image (Default)));
    end Get_Conf;
@@ -267,16 +240,11 @@ package body PolyORB.Parameters is
       Default : String := "")
      return String
    is
-      function getenv (Key : System.Address) return chars_ptr;
-      pragma Import (C, getenv, "getenv");
-
-      C_Key   : aliased char_array := To_C (Key);
-      C_Value : constant chars_ptr := getenv (C_Key'Address);
    begin
-      if C_Value = Null_Ptr then
-         return Default;
+      if Fetch_From_Env_Hook /= null then
+         return Fetch_From_Env_Hook.all (Key, Default);
       else
-         return Value (C_Value);
+         return Default;
       end if;
    end Get_Env;
 
@@ -290,6 +258,7 @@ package body PolyORB.Parameters is
    is
       K : constant String := Make_Global_Key (Section, Key);
       P : String_Ptr := Variables.Lookup (K, null);
+
    begin
       pragma Debug (O (K & "=" & Value));
       if P /= null then

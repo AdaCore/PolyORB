@@ -65,19 +65,23 @@ package body PolyORB.GIOP_P.Tagged_Components is
    function Get_New_Empty_Component
      (Tag : Tag_Value)
      return Tagged_Component_Access;
-   --  Return new empty tagged component whith tag Tag
+   --  Return new empty tagged component with tag Tag
 
    ----------------------
    -- Release_Contents --
    ----------------------
 
    procedure Release_Contents (List : in out Tagged_Component_List) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Tagged_Component'Class, Tagged_Component_Access);
+
       Component : Tagged_Component_Access;
 
    begin
-      while List /=  Null_Tagged_Component_List loop
+      while List /= Null_Tagged_Component_List loop
          Extract_First (List, Component);
          Release_Contents (Component);
+         Free (Component);
       end loop;
    end Release_Contents;
 

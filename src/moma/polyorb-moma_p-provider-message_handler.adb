@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body PolyORB.MOMA_P.Provider.Message_Handler is
 
@@ -95,10 +95,10 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Args        : PolyORB.Any.NVList.Ref;
-      Operation   : constant String := To_Standard_String (Req.Operation);
+      Operation   : String renames Req.Operation.all;
       Error       : Error_Container;
    begin
       pragma Debug (O ("The message handler is executing the request:"
@@ -110,11 +110,11 @@ package body PolyORB.MOMA_P.Provider.Message_Handler is
       PolyORB.Requests.Arguments (Req, Args, Error);
 
       if Found (Error) then
-         raise PolyORB.Unknown;
+         raise Program_Error;
          --  XXX We should do something more contructive
       end if;
 
-      if Req.Operation = To_PolyORB_String ("Notify") then
+      if Operation = "Notify" then
          Notify (Self);
 
       elsif Operation = "Handle" then

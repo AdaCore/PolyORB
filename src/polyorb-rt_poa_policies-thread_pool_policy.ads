@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Lanes;
 with PolyORB.POA_Policies;
 with PolyORB.Servants;
@@ -54,7 +54,7 @@ package PolyORB.RT_POA_Policies.Thread_Pool_Policy is
    procedure Check_Compatibility
      (Self           :        ThreadPoolPolicy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container);
+      Error          : in out PolyORB.Errors.Error_Container);
 
    function Get_Servant_Lane
      (Servant : PolyORB.Servants.Servant_Access)

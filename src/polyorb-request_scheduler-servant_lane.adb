@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -69,7 +69,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
       use type Task_Info.Task_Info_Access;
       Surrogate : Components.Component_Access;
       Pro : PolyORB.Binding_Data.Profile_Access;
-      Error : Exceptions.Error_Container;
+      Error : Errors.Error_Container;
 
    begin
       --  First test wether the target is a local servant
@@ -97,13 +97,13 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
                --  Queue request to the lane attached to servant
 
                declare
-                  use PolyORB.Exceptions;
+                  use PolyORB.Errors;
                   use PolyORB.Tasking.Priorities;
 
                   Model : Priority_Model;
                   Server_ORB_Priority : ORB_Priority;
                   Server_External_Priority : External_Priority;
-                  Error : PolyORB.Exceptions.Error_Container;
+                  Error : PolyORB.Errors.Error_Container;
 
                begin
                   Get_Servant_Priority_Information

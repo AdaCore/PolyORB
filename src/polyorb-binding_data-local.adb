@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ package body PolyORB.Binding_Data.Local is
      (Profile :     Local_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
    is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Profile, The_ORB, BO_Ref, Error);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper functions for CORBA servers.
+--  Helper functions for CORBA servers. Note that using this unit implies
+--  using the Portable Object Adapter.
 
 with CORBA.Object;
 with PortableServer.POA;
@@ -72,5 +73,12 @@ package PolyORB.CORBA_P.Server_Tools is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class);
    --  Convert a PortableServer.Servant into CORBA.Object.Ref.
+
+   procedure Initiate_Well_Known_Service
+     (S    : PortableServer.Servant;
+      Name : String;
+      R    : out CORBA.Object.Ref'Class);
+   --  Make S accessible through a reference appropriate for
+   --  generation of a corbaloc URI with a named key of Name.
 
 end PolyORB.CORBA_P.Server_Tools;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -63,9 +63,14 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   IIOP_Corbaloc_Prefix : constant String := "iiop";
+
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for IIOP profiles.
+
+   function Profile_To_Corbaloc (P : Profile_Access) return String;
+   function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
    ------------------
    -- Bind_Profile --
@@ -82,10 +87,10 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
      (Profile :     IIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
       use PolyORB.Protocols;
@@ -117,7 +122,8 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
 
    exception
       when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E, System_Exception_Members'
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
@@ -251,7 +257,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Profile_To_Corbaloc --
    -------------------------
 
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String is
+   function Profile_To_Corbaloc (P : Profile_Access) return String is
    begin
       pragma Debug (O ("IIOP Profile to corbaloc"));
       return Common_IIOP_DIOP_Profile_To_Corbaloc
@@ -262,24 +268,13 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Corbaloc_To_Profile --
    -------------------------
 
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access is
-      Len : constant Integer := Length (IIOP_Corbaloc_Prefix);
-
+   function Corbaloc_To_Profile (Str : String) return Profile_Access is
+      Result : Profile_Access := new IIOP_Profile_Type;
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = IIOP_Corbaloc_Prefix
-      then
-         declare
-            Result : Profile_Access := new IIOP_Profile_Type;
-
-         begin
-            Common_IIOP_DIOP_Corbaloc_To_Profile
-              (Str, Len, Result, IIOP_Profile_Type (Result.all).Address);
-            return Result;
-         end;
-      end if;
-
-      return null;
+      Common_IIOP_DIOP_Corbaloc_To_Profile
+        (Str, IIOP_Version_Major, IIOP_Version_Minor, Result,
+         IIOP_Profile_Type (Result.all).Address);
+      return Result;
    end Corbaloc_To_Profile;
 
    ------------

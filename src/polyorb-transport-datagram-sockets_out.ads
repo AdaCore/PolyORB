@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ package PolyORB.Transport.Datagram.Sockets_Out is
      (TE     : in out Socket_Out_Endpoint;
       Buffer :        Buffers.Buffer_Access;
       Size   : in out Ada.Streams.Stream_Element_Count;
-      Error  :    out Exceptions.Error_Container);
+      Error  :    out Errors.Error_Container);
    pragma No_Return (Read);
    --  Read data from datagram socket. This procedure should not be
    --  used for write-only transport endpoints, Program_Error will be
@@ -72,7 +72,7 @@ package PolyORB.Transport.Datagram.Sockets_Out is
    procedure Write
      (TE     : in out Socket_Out_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Error  :    out Exceptions.Error_Container);
+      Error  :    out Errors.Error_Container);
    --  Write data to datagram socket
 
    procedure Close (TE : access Socket_Out_Endpoint);

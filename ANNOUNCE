@@ -1,3 +1,77 @@
+Announcing the release of PolyORB 1.2r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 1.2r 
+ (http://polyorb.objectweb.org/ and http://libre.adacore.com/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. This release is not supported by AdaCore. Release
+1.2r is a stable snapshot of the PolyORB generic middleware
+implementing the new features described below.
+
+In addition to PolyORB 1.1r (2004-06-07), it includes:
+
+* extended support for CORBA and GIOP specifications,
+
+* support for CORBA PortableInterceptors,
+
+* support for RT-CORBA 1.1,
+
+* fixes for several bugs and memory leaks,
+
+* new personality: MOMA, the Message Oriented Middleware for Ada 
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. Available instantiations include
+DSA (Distributed System Annex) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud,
+Khaled Barbaria and Laurent Pautet (Télécom Paris), and Thomas Quinot
+(AdaCore). Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
+Announcing the release of PolyORB 1.1r
+======================================
+
+The PolyORB team is proud to announce the release of PolyORB 1.1r 
+    (http://libre.act-europe.fr/polyorb/).
+
+This release contains a CORBA-compliant instantiation of the PolyORB
+generic middleware. This release is not supported by ACT. Release 1.1r
+is a stable snapshot of the PolyORB generic middleware implementing
+the new features described below.
+
+In addition to PolyORB 1.0p (2003-06-16), it includes:
+
+* a significant increase in performance: from 30% up to 40% depending
+  on the configuration,
+
+* fixes for several bugs and memory leaks,
+
+* extended support for CORBA and GIOP specifications,
+
+* the PolyORB User's Guide,
+
+* the MIOP/UIPMC protocol stack, Unreliable Multicast Inter-ORB
+  Protocol, following the OMG standard,
+
+* the DIOP protocol stack, Datagram-based Inter-ORB Protocol, a
+  specialization of GIOP for oneway requests,
+
+Other instantiations of PolyORB are available in the public PolyORB
+CVS repository for testing purposes. Available instantiations include
+DSA (Distributed System Annex), MOMA (Message Oriented Middleware for
+Ada) and AWS (Ada Web Server).
+
+PolyORB is primarily developed by Jérôme Hugues, Thomas Vergnaud, and
+Laurent Pautet (Télécom Paris), and Thomas Quinot (ACT Europe).
+Fabrice Kordon (LIP6) also participates in the project.
+Vadim Godunko regularly contributes by submitting patches.
+
+----------------------------------------------------------------------
+
 Announcing the release of PolyORB 1.0p
 ======================================
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,21 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  General purpose functions for using sockets with string and buffers
 
 with PolyORB.Buffers;
-with PolyORB.Types;
 with PolyORB.Sockets;
 
 package PolyORB.Utils.Sockets is
 
    function String_To_Addr
-     (Str : Types.String)
+     (Str : Standard.String)
      return PolyORB.Sockets.Inet_Addr_Type;
    --  Convert a string to an inet address
    --  String can be a numerical IP (eg: 127.0.0.1)

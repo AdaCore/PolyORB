@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -49,18 +49,14 @@ package body Test001_Common is
    end record;
    procedure Run (R : access Generic_Runnable);
 
-   R, R2  : aliased Generic_Runnable;
-
    type Do_Nothing_Controller is new Runnable_Controller with null record;
-   --  Simple controller that does nothing...
-
-   C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
+   --  Simple controller that does nothing
 
    procedure Test_Task;
-   --  Body of the task.
+   --  Body of the task
 
    procedure Test_Task2;
-   --  Body of the task.
+   --  Body of the task
 
    ---------------------
    -- Initialize_Test --
@@ -69,8 +65,6 @@ package body Test001_Common is
    procedure Initialize_Test is
    begin
       My_Thread_Factory := Get_Thread_Factory;
-      R.P := Test_Task'Access;
-      R2.P := Test_Task2'Access;
    end Initialize_Test;
 
    ---------
@@ -104,24 +98,28 @@ package body Test001_Common is
    -- Test_Task_Creation --
    ------------------------
 
-   procedure Test_Task_Creation
-     (Nb_Of_Tasks : Natural := 1000) is
+   procedure Test_Task_Creation (Nb_Of_Tasks : Natural := 1000) is
    begin
-      New_Test ("Create "
-                & Natural'Image (Nb_Of_Tasks)
-                & " tasks");
+      New_Test ("Create " & Natural'Image (Nb_Of_Tasks) & " tasks");
 
       for J in 1 .. Nb_Of_Tasks loop
          declare
-            pragma Warnings (Off);
-            T : constant Thread_Access := Run_In_Task
-              (TF => My_Thread_Factory,
-               R  => R'Access,
-               C  => C);
-            pragma Unreferenced (T);
-            pragma Warnings (On);
+            R : constant Runnable_Access := new Generic_Runnable;
+
          begin
-            null;
+            Generic_Runnable (R.all).P := Test_Task'Access;
+
+            declare
+               pragma Warnings (Off);
+               T : constant Thread_Access := Run_In_Task
+                 (TF => My_Thread_Factory,
+                  R  => R,
+                  C  => new Do_Nothing_Controller);
+               pragma Unreferenced (T);
+               pragma Warnings (On);
+            begin
+               null;
+            end;
          end;
       end loop;
       Output ("Done", True);
@@ -131,28 +129,35 @@ package body Test001_Common is
    -- Test_Task_Priorities --
    --------------------------
 
-   procedure Test_Task_Priorities
-   is
+   procedure Test_Task_Priorities is
       P_In  : constant System.Any_Priority := 3;
       P_Out : System.Any_Priority;
+      R : constant Runnable_Access := new Generic_Runnable;
 
-      T : constant Thread_Access := Run_In_Task
-        (TF => My_Thread_Factory,
-         Name => "",
-         Default_Priority  => 10,
-         R  => R2'Access,
-         C  => C);
    begin
       New_Test ("Task priority manipulation");
+      Generic_Runnable (R.all).P := Test_Task2'Access;
 
-      Output ("Wait a while", True);
-      delay 1.0;
+      declare
+         T : constant Thread_Access := Run_In_Task
+           (TF => My_Thread_Factory,
+            Name => "",
+            Default_Priority  => 10,
+            R  => R,
+            C  => new Do_Nothing_Controller);
 
-      --  It is required to wait some time before modifying the priority.
+      begin
+         Output ("Wait a while", True);
+         delay 1.0;
 
-      Set_Priority (My_Thread_Factory, Get_Thread_Id (T), P_In);
-      P_Out := Get_Priority (My_Thread_Factory, Get_Thread_Id (T));
-      Output ("Test priority" & P_Out'Img, P_In = P_Out);
+         --  It is required to wait some time before modifying the priority
+
+         Set_Priority (My_Thread_Factory, Get_Thread_Id (T), P_In);
+         delay 1.0;
+
+         P_Out := Get_Priority (My_Thread_Factory, Get_Thread_Id (T));
+         Output ("Test priority" & P_Out'Img, P_In = P_Out);
+      end;
    end Test_Task_Priorities;
 
 end Test001_Common;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,13 +39,13 @@ with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 
 package body Test_Servant is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
    use PolyORB.Types;
 
    function echoInteger
@@ -94,11 +94,10 @@ package body Test_Servant is
    begin
       if Msg in Execute_Request then
          declare
-            Req : constant Request_Access
-              := Execute_Request (Msg).Req;
+            Req : Request_Access renames Execute_Request (Msg).Req;
          begin
 
-            if Req.all.Operation = "echoInteger" then
+            if Req.Operation.all = "echoInteger" then
                declare
                   echoInteger_Arg : constant PolyORB.Types.Long
                     := From_Any
@@ -107,9 +106,11 @@ package body Test_Servant is
                   Req.Result.Argument := To_Any
                     (echoInteger (S.all, echoInteger_Arg));
                end;
+
             else
                raise Program_Error;
             end if;
+
             return Executed_Request'(Req => Req);
          end;
       else

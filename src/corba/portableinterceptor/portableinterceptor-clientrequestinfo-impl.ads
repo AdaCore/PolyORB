@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,9 +57,9 @@ package PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return CORBA.Object.Ref;
 
---   function Get_Effective_Profile
---     (Self : access Object)
---      return IOP.TaggedProfile;
+   function Get_Effective_Profile
+     (Self : access Object)
+      return IOP.TaggedProfile;
 
    function Get_Received_Exception
      (Self : access Object)
@@ -69,11 +69,11 @@ package PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return CORBA.RepositoryId;
 
---   function Get_Effective_Component
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponent;
---
+   function Get_Effective_Component
+     (Self : access Object;
+      Id   : in     IOP.ComponentId)
+      return IOP.TaggedComponent;
+
 --   function Get_Effective_Components
 --     (Self : access Object;
 --      Id   : in     IOP.ComponentId)
@@ -95,10 +95,12 @@ package PortableInterceptor.ClientRequestInfo.Impl is
       return Boolean;
 
    procedure Init
-     (Self    : access Object;
-      Point   : in     PolyORB.CORBA_P.Interceptors.Client_Interception_Point;
-      Request : in     PolyORB.Requests.Request_Access;
-      Target  : in     CORBA.Object.Ref);
+     (Self       : access Object;
+      Point      : in
+        PolyORB.CORBA_P.Interceptors.Client_Interception_Point;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long;
+      Target     : in     CORBA.Object.Ref);
    --  Implementation Note: This procedure initialize a ClientRequestInfo
    --  object. It is specific to PolyORB. You should not use it.
 

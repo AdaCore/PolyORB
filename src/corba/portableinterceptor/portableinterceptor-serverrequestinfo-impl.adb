@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -115,11 +115,19 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
           (To_Encapsulation (Service_Context.Context_Data))));
    end Add_Reply_Service_Context;
 
---   --------------------
---   -- Get_Adapter_Id --
---   --------------------
---
---   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+   --------------------
+   -- Get_Adapter_Id --
+   --------------------
+
+   function Get_Adapter_Id (Self : access Object) return AdapterId is
+      pragma Unreferenced (Self);
+
+      Result : AdapterId;
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Adapter_Id;
 
    ----------------------
    -- Get_Adapter_Name --
@@ -145,7 +153,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
          Result : AdapterName;
       begin
          while OA /= null loop
-            Result := CORBA.String (OA.Name) & Result;
+            Result := CORBA.To_CORBA_String (OA.Name.all) & Result;
             OA     := PolyORB.POA.Obj_Adapter_Access (OA.Father);
          end loop;
 
@@ -336,7 +344,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_ORB_Id;
 
@@ -427,7 +435,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Server_Id;
 
@@ -445,7 +453,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 
       Result : CORBA.Policy.Ref;
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       return Result;
    end Get_Server_Policy;
 
@@ -457,7 +465,6 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
      (Self : access Object)
       return CORBA.RepositoryId
    is
-      Result : CORBA.RepositoryId;
    begin
       if Self.Point /= Receive_Request then
          CORBA.Raise_Bad_Inv_Order
@@ -465,8 +472,8 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
-      return Result;
+      return
+        PortableServer.Internals.Target_Most_Derived_Interface (Self.Servant);
    end Get_Target_Most_Derived_Interface;
 
    ----------
@@ -476,14 +483,17 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
    procedure Init
      (Self         : access Object;
       Point        : in     Server_Interception_Point;
+      Servant      : in     PortableServer.Servant;
       Request      : in     PolyORB.Requests.Request_Access;
+      Request_Id   : in     CORBA.Unsigned_Long;
       Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean)
    is
    begin
       RequestInfo.Impl.Init
-       (RequestInfo.Impl.Object (Self.all)'Access, Request);
+       (RequestInfo.Impl.Object (Self.all)'Access, Request, Request_Id);
       Self.Point        := Point;
+      Self.Servant      := Servant;
       Self.Request      := Request;
       Self.Profile      := Profile;
       Self.Args_Present := Args_Present;
@@ -539,9 +549,6 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Id   : in     CORBA.RepositoryId)
       return CORBA.Boolean
    is
-      pragma Unreferenced (Id);
-
-      Result : constant CORBA.Boolean := False;
    begin
       if Self.Point /= Receive_Request then
          CORBA.Raise_Bad_Inv_Order
@@ -549,8 +556,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise PolyORB.Not_Implemented;
-      return Result;
+      return PortableServer.Internals.Target_Is_A (Self.Servant, Id);
    end Target_Is_A;
 
 end PortableInterceptor.ServerRequestInfo.Impl;

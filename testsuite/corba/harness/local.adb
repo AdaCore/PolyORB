@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -54,9 +54,9 @@ procedure Local is
    use PolyORB.CORBA_P.Server_Tools;
 
 begin
-
-   Ada.Text_IO.Put_Line ("Server starting.");
+   New_Test ("Harness");
    CORBA.ORB.Initialize ("ORB");
+   Output ("Initialization", True);
 
    declare
       Obj : constant CORBA.Impl.Object_Ptr := new Harness.Impl.Object;
@@ -67,17 +67,19 @@ begin
       T0, T1, T2 : Time;
       Delta1 : Duration;
 
-      How_Many : Integer;
+      How_Many : Integer := 1_000;
 
    begin
       Initiate_Servant (PortableServer.Servant (Obj), Ref);
       Initiate_Server (True);
 
       if Ada.Command_Line.Argument_Count >= 1 then
-         How_Many := Integer'Value (Ada.Command_Line.Argument (1));
-
-      else
-         How_Many := 1_000;
+         begin
+            How_Many := Integer'Value (Ada.Command_Line.Argument (1));
+         exception
+            when others =>
+               null;
+         end;
       end if;
 
       T0 := Clock;

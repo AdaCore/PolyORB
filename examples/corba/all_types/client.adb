@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -223,16 +223,16 @@ begin
       declare
          X : all_types.Ref;
       begin
-         X := echoRef (Myall_types, Myall_types);
+         X := all_types.Ref (echoRef (Myall_types, Myall_types));
          Output ("test self reference", True);
 
          for I in 1 .. 47 loop
-            X := echoRef (X, X);
+            X := all_types.Ref (echoRef (X, X));
          end loop;
          Output ("test self reference consistency",
                  echoLong (X, 31337) = 31337);
 
-         X := echoOtherAllTypes (X, X);
+         X := all_types.Ref (echoOtherAllTypes (X, X));
 
          Output ("test self reference typedef", echoLong (X, 31337) = 31337);
 

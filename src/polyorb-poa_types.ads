@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Servants;
@@ -128,6 +128,8 @@ package PolyORB.POA_Types is
    -- Object Ids --
    ----------------
 
+   POA_Path_Separator : constant Character := '/';
+
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
 
@@ -135,15 +137,17 @@ package PolyORB.POA_Types is
      renames PolyORB.Objects."=";
 
    type Unmarshalled_Oid is record
-      Id               : Types.String;     --  Id
-      Creator          : Types.String;     --  Creator
-      System_Generated : Boolean;          --  System or User managed ?
-      Persistency_Flag : Lifespan_Cookie;  --  Object's Lifespan
+      Id               : Types.String;
+      --  Object id within POA
 
-      --  NOTE:
-      --   * the Creator is typically the POA to which the object is
-      --     attached,
+      Creator          : Types.String;
+      --  Creator (POA path delimited with POA_Path_Separator)
 
+      System_Generated : Boolean;
+      --  System or User managed ?
+
+      Persistency_Flag : Lifespan_Cookie;
+      --  Object's Lifespan
    end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 
@@ -154,34 +158,29 @@ package PolyORB.POA_Types is
      (Left, Right : in Unmarshalled_Oid)
      return Standard.Boolean;
 
-   function Image
-     (Oid : Object_Id)
-     return Types.String;
-   --  For debugging purposes.
-
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid_Access.
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid.
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Object_Id_Access;
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
@@ -189,7 +188,7 @@ package PolyORB.POA_Types is
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid
@@ -222,7 +221,7 @@ package PolyORB.POA_Types is
       Parent : access Obj_Adapter'Class;
       Name   : in     String;
       Result :    out Boolean;
-      Error  : in out PolyORB.Exceptions.Error_Container)
+      Error  : in out PolyORB.Errors.Error_Container)
      is abstract;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -248,7 +247,7 @@ package PolyORB.POA_Types is
       Oid     : in     Object_Id;
       Adapter : access Obj_Adapter'Class;
       Returns :    out PolyORB.Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  The Error argument used only for processing location forwarding, thus
    --  the only valid Error.Kind is ForwardRequest_E.
@@ -283,7 +282,7 @@ package PolyORB.POA_Types is
       Operation  : in     PolyORB.Types.Identifier;
       The_Cookie :    out Cookie;
       Returns    :    out PolyORB.Servants.Servant_Access;
-      Error      : in out PolyORB.Exceptions.Error_Container)
+      Error      : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  The Error argument used only for processing location forwarding, thus
    --  the only valid Error.Kind is ForwardRequest_E.

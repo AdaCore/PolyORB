@@ -1,15 +1,25 @@
 //File: CosTimerEvent.idl
 //Part of the Time Service
+//OMG File: 98-10-46
 
 #ifndef _COS_TIMER_EVENT_IDL_
 #define _COS_TIMER_EVENT_IDL_
 
+#ifdef _PRE_3_0_COMPILER_
 #include <CosTime.idl>
 #include <CosEventComm.idl>
-
 #pragma prefix "omg.org"
+#else
+import ::CosTime;
+import ::CosEventComm;
+#endif // _PRE_3_0_COMPILER_
 
-module CosTimerEvent{
+module CosTimerEvent {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosTimerEvent "omg.org";
+#endif // _PRE_3_0_COMPILER_
+
 	enum TimeType {
 		TTAbsolute,
 		TTRelative,

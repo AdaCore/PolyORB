@@ -4,11 +4,18 @@
 #ifndef _COS_TYPED_EVENT_COMM_IDL_
 #define _COS_TYPED_EVENT_COMM_IDL_
 
+#ifdef _PRE_3_0_COMPILER_
 #include <CosEventComm.idl>
-
 #pragma prefix "omg.org"
+#else
+import ::CosEventComm;
+#endif // _PRE_3_0_COMPILER_
 
 module CosTypedEventComm {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosTypedEventComm "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
 	interface TypedPushConsumer : CosEventComm::PushConsumer {
 		Object get_typed_consumer(); 

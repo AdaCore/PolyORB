@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,30 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The Request object.
 
 with PolyORB.Annotations;
-with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
 with PolyORB.Smart_Pointers;
 with PolyORB.Task_Info;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+with PolyORB.Utils.Strings;
+
 pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
 
 package PolyORB.Requests is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
 
    type Arguments_Identification is array (1 .. 2) of Boolean;
    pragma Pack (Arguments_Identification);
@@ -108,7 +109,7 @@ package PolyORB.Requests is
       Target    : References.Ref;
       --  A ref designating the target object.
 
-      Operation : Types.Identifier;
+      Operation : PolyORB.Utils.Strings.String_Ptr;
       --  The name of the method to be invoked.
 
       Args_Ident : Arguments_Identification := Ident_By_Position;

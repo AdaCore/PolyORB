@@ -33,7 +33,7 @@
 
 --  A filter that slices a stream into a set of known-length messages.
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 package body PolyORB.Filters.Slicers is
@@ -42,7 +42,7 @@ package body PolyORB.Filters.Slicers is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.filters.slicers");

@@ -36,7 +36,7 @@
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Components;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.ORB;
 
 package body PolyORB.Transport.Handlers is
@@ -54,13 +54,13 @@ package body PolyORB.Transport.Handlers is
       Reply : constant Message'Class
         := Emit
         (Component_Access (H.TE),
-         Filters.Interface.Data_Indication'
+         Filters.Iface.Data_Indication'
          (Data_Amount => 0));
       --  The size of the data received is not known yet.
 
    begin
 
-      if Reply in Filters.Interface.Filter_Error then
+      if Reply in Filters.Iface.Filter_Error then
 
          --  Notify the tasking policy that an endpoint is being destroyed.
 
@@ -71,7 +71,7 @@ package body PolyORB.Transport.Handlers is
 
          Emit_No_Reply
            (Component_Access (H.TE),
-            Filters.Interface.Disconnect_Indication'(null record));
+            Filters.Iface.Disconnect_Indication'(null record));
 
          declare
             Dependent_Binding_Object : constant PolyORB.Smart_Pointers.Ref

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with IOP.Codec;
 with PortableInterceptor;
 with PortableServer;
@@ -66,6 +67,9 @@ package Test001_Globals is
 
    Test_Request_Context : IOP.ServiceContext;
    Test_Reply_Context   : IOP.ServiceContext;
+
+   Test_Client_Request_Id : CORBA.Unsigned_Long;
+   Test_Server_Request_Id : CORBA.Unsigned_Long;
 
    --  Test behavior switches
 

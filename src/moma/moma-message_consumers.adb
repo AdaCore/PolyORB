@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.MOMA_P.Provider.Message_Consumer;
 
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
 with PolyORB.Requests;
@@ -71,7 +71,7 @@ package body MOMA.Message_Consumers is
       pragma Unreferenced (Session);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Consumer.Object_Acc
         := new PolyORB.MOMA_P.Provider.Message_Consumer.Object;
@@ -113,7 +113,7 @@ package body MOMA.Message_Consumers is
       Message_Selector : MOMA.Types.String)
      return Message_Consumer_Acc is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Create_Consumer (Session, Dest, Message_Selector);
       pragma Warnings (On);
@@ -125,7 +125,7 @@ package body MOMA.Message_Consumers is
 
    function Get_Message_Selector return String is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Message_Selector;
       pragma Warnings (On);
@@ -199,7 +199,7 @@ package body MOMA.Message_Consumers is
                     return MOMA.Messages.Message
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive (Timeout);
       pragma Warnings (On);
@@ -211,7 +211,7 @@ package body MOMA.Message_Consumers is
 
    function Receive_No_Wait return MOMA.Messages.Message is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Receive_No_Wait;
       pragma Warnings (On);

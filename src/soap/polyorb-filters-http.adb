@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ with AWS.MIME;
 with PolyORB.SOAP_P.Response;
 
 with PolyORB.Filters.AWS_Interface;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Headers;
 with PolyORB.Log;
 with PolyORB.Opaque;
@@ -55,7 +55,7 @@ package body PolyORB.Filters.HTTP is
    use PolyORB.Buffers;
    use PolyORB.Components;
    use PolyORB.Filters.AWS_Interface;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.Utils;
@@ -74,7 +74,7 @@ package body PolyORB.Filters.HTTP is
 
    procedure Handle_Data_Indication
      (F : access HTTP_Filter;
-      S : Filters.Interface.Data_Indication);
+      S : Filters.Iface.Data_Indication);
    --  Process a Data_Indication message from lower layers.
 
    procedure Process_Line
@@ -308,7 +308,7 @@ package body PolyORB.Filters.HTTP is
 
    procedure Handle_Data_Indication
      (F : access HTTP_Filter;
-      S : Filters.Interface.Data_Indication)
+      S : Filters.Iface.Data_Indication)
    is
       use PolyORB.Buffers;
 
@@ -1123,7 +1123,7 @@ package body PolyORB.Filters.HTTP is
             --  for Types.String!)
 
          when others =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
 
    end Prepare_Request;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,11 +38,12 @@ with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -60,9 +61,10 @@ package body PortableServer is
    ---------------------------------------
 
    type Skeleton_Info is record
-      Type_Id    : CORBA.RepositoryId;
-      Is_A       : Servant_Class_Predicate;
-      Dispatcher : Request_Dispatcher;
+      Type_Id     : CORBA.RepositoryId;
+      Is_A        : Internals.Servant_Class_Predicate;
+      Target_Is_A : Internals.Servant_Class_Is_A_Operation;
+      Dispatcher  : Internals.Request_Dispatcher;
    end record;
 
    function Find_Info
@@ -77,7 +79,7 @@ package body PortableServer is
    Skeleton_Unknown : exception;
 
    type Dispatcher_Note is new PolyORB.Annotations.Note with record
-      Skeleton : Request_Dispatcher;
+      Skeleton : Internals.Request_Dispatcher;
    end record;
 
    Null_Dispatcher_Note : constant Dispatcher_Note
@@ -114,7 +116,7 @@ package body PortableServer is
       Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       pragma Debug (O ("Execute_Servant: enter"));
@@ -124,7 +126,7 @@ package body PortableServer is
             use PolyORB.Binding_Data;
             use PolyORB.Requests;
             use CORBA.ServerRequest;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
             P : constant Profile_Access := Execute_Request (Msg).Pro;
@@ -147,7 +149,7 @@ package body PortableServer is
                Set_Out_Args (R, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something if we find a PolyORB exception
 
                end if;
@@ -172,6 +174,8 @@ package body PortableServer is
      (Self    : access Servant_Base;
       Request : in     CORBA.ServerRequest.Object_Ptr)
    is
+      use type Internals.Request_Dispatcher;
+
       P_Servant : constant PolyORB.Servants.Servant_Access :=
         CORBA.Impl.To_PolyORB_Servant
         (CORBA.Impl.Object (Servant (Self).all)'Access);
@@ -200,6 +204,80 @@ package body PortableServer is
 
       pragma Debug (O ("Invoke on a static skeleton: leave"));
    end Invoke;
+
+   package body Internals is
+
+      -----------------
+      -- Get_Type_Id --
+      -----------------
+
+      function Get_Type_Id
+        (For_Servant : in Servant)
+        return CORBA.RepositoryId
+      is
+      begin
+         return Find_Info (For_Servant).Type_Id;
+
+      exception
+         when Skeleton_Unknown =>
+            return CORBA.To_CORBA_String
+              (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+      end Get_Type_Id;
+
+      -----------------------
+      -- Register_Skeleton --
+      -----------------------
+
+      procedure Register_Skeleton
+        (Type_Id     : in CORBA.RepositoryId;
+         Is_A        : in Servant_Class_Predicate;
+         Target_Is_A : in Servant_Class_Is_A_Operation;
+         Dispatcher  : in Request_Dispatcher := null)
+      is
+         use Skeleton_Lists;
+
+      begin
+         pragma Debug (O ("Register_Skeleton: Enter."));
+
+         Prepend (All_Skeletons,
+                  (Type_Id     => Type_Id,
+                   Is_A        => Is_A,
+                   Target_Is_A => Target_Is_A,
+                   Dispatcher  => Dispatcher));
+
+         pragma Debug (O ("Registered : type_id = " &
+                          CORBA.To_Standard_String (Type_Id)));
+
+      end Register_Skeleton;
+
+      -----------------
+      -- Target_Is_A --
+      -----------------
+
+      function Target_Is_A
+        (For_Servant     : in Servant;
+         Logical_Type_Id : in CORBA.RepositoryId)
+        return CORBA.Boolean
+      is
+      begin
+         return
+           Find_Info (For_Servant).Target_Is_A
+            (CORBA.To_Standard_String (Logical_Type_Id));
+      end Target_Is_A;
+
+      -----------------------------------
+      -- Target_Most_Derived_Interface --
+      -----------------------------------
+
+      function Target_Most_Derived_Interface
+        (For_Servant : in Servant)
+        return CORBA.RepositoryId
+      is
+      begin
+         return Find_Info (For_Servant).Type_Id;
+      end Target_Most_Derived_Interface;
+
+   end Internals;
 
    ---------------
    -- Find_Info --
@@ -232,66 +310,28 @@ package body PortableServer is
       return Value (It).all;
    end Find_Info;
 
-   -----------------------
-   -- Register_Skeleton --
-   -----------------------
-
-   procedure Register_Skeleton
-     (Type_Id    : in CORBA.RepositoryId;
-      Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in Request_Dispatcher := null)
-   is
-      use Skeleton_Lists;
-
-   begin
-      pragma Debug (O ("Register_Skeleton: Enter."));
-
-      Prepend (All_Skeletons,
-               (Type_Id    => Type_Id,
-                Is_A       => Is_A,
-                Dispatcher => Dispatcher));
-
-      pragma Debug (O ("Registered : type_id = " &
-                       CORBA.To_Standard_String (Type_Id)));
-
-   end Register_Skeleton;
-
-   -----------------
-   -- Get_Type_Id --
-   -----------------
-
-   function Get_Type_Id
-     (For_Servant : Servant)
-     return CORBA.RepositoryId is
-   begin
-      return Find_Info (For_Servant).Type_Id;
-
-   exception
-      when Skeleton_Unknown =>
-         return CORBA.To_CORBA_String
-           (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
-   end Get_Type_Id;
-
    ------------------------
    -- String_To_ObjectId --
    ------------------------
 
-   function String_To_ObjectId
-     (Id : String)
-     return ObjectId is
+   function String_To_ObjectId (Id : String) return ObjectId is
+      Oid : ObjectId (1 .. Id'Length);
+      pragma Import (Ada, Oid);
+      for Oid'Address use Id (Id'First)'Address;
    begin
-      return ObjectId (PolyORB.Objects.To_Oid (Id));
+      return Oid;
    end String_To_ObjectId;
 
    ------------------------
-   -- Objectid_To_String --
+   -- ObjectId_To_String --
    ------------------------
 
-   function ObjectId_To_String
-     (Id : ObjectId)
-     return String is
+   function ObjectId_To_String (Id : ObjectId) return String is
+      Str : String (1 .. Id'Length);
+      pragma Import (Ada, Str);
+      for Str'Address use Id (Id'First)'Address;
    begin
-      return PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Id));
+      return Str;
    end ObjectId_To_String;
 
    -----------------
@@ -339,7 +379,7 @@ package body PortableServer is
       pragma Warnings (On); --  WAG:3.15
 
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Raise_ForwardRequest;
 
    ---------------------------

@@ -104,6 +104,10 @@ package PortableInterceptor is
 
    type ObjectId is new IDL_Sequence_Octet.Sequence;
 
+   --  AdapterId type (PolyORB extension)
+
+   type AdapterId is new IDL_Sequence_Octet.Sequence;
+
    --  XXX TODO ObjectReferenceTemplateSeq type
    --  typedef sequence<ObjectReferenceTemplate> ObjectReferenceTemplateSeq;
 

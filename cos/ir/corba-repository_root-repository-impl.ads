@@ -3,13 +3,7 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
-with CORBA.Repository_Root.FixedDef;
-with CORBA.Repository_Root.ArrayDef;
-with CORBA.Repository_Root.SequenceDef;
 with CORBA.Repository_Root.IDLType;
-with CORBA.Repository_Root.WstringDef;
-with CORBA.Repository_Root.StringDef;
-with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Impl;
 
@@ -41,35 +35,35 @@ package CORBA.Repository_Root.Repository.Impl is
    function get_primitive
      (Self : access Object;
       kind : in CORBA.Repository_Root.PrimitiveKind)
-     return CORBA.Repository_Root.PrimitiveDef.Ref;
+     return CORBA.Repository_Root.PrimitiveDef_Forward.Ref;
 
    function create_string
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.StringDef.Ref;
+     return CORBA.Repository_Root.StringDef_Forward.Ref;
 
    function create_wstring
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.WstringDef.Ref;
+     return CORBA.Repository_Root.WstringDef_Forward.Ref;
 
    function create_sequence
      (Self : access Object;
       bound : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.SequenceDef.Ref;
+     return CORBA.Repository_Root.SequenceDef_Forward.Ref;
 
    function create_array
      (Self : access Object;
       length : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.ArrayDef.Ref;
+     return CORBA.Repository_Root.ArrayDef_Forward.Ref;
 
    function create_fixed
      (Self : access Object;
       IDL_digits : in CORBA.Unsigned_Short;
       scale : in CORBA.Short)
-     return CORBA.Repository_Root.FixedDef.Ref;
+     return CORBA.Repository_Root.FixedDef_Forward.Ref;
 
 private
 

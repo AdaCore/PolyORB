@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Base POA Manager concrete implementation.
 
 with PolyORB.Components;
-with PolyORB.Exceptions;
 with PolyORB.POA_Types;
-with PolyORB.Servants.Interface;
+with PolyORB.Requests;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 
@@ -45,7 +44,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    pragma Elaborate_Body;
 
    use PolyORB.POA_Types;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Requests;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
@@ -56,17 +55,17 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Activate
      (Self  : access Basic_POA_Manager;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container);
+      Error               : in out PolyORB.Errors.Error_Container);
 
    procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
       Wait_For_Completion :        Boolean;
-      Error               : in out PolyORB.Exceptions.Error_Container);
+      Error               : in out PolyORB.Errors.Error_Container);
    procedure Deactivate
      (Self                : access Basic_POA_Manager;
       Etherealize_Objects :        Boolean;
@@ -124,9 +123,9 @@ private
       new PolyORB.Utils.Chained_Lists (Obj_Adapter_Access, "=", True);
    subtype POAList is POA_Lists.List;
 
-   package Requests_Queue_P is
-      new PolyORB.Utils.Chained_Lists (Execute_Request);
-   subtype Requests_Queue is Requests_Queue_P.List;
+   package Requests_Queues is
+      new PolyORB.Utils.Chained_Lists (Request_Access);
+   subtype Requests_Queue is Requests_Queues.List;
 
    type Basic_POA_Manager is new POAManager with record
       Current_State : State;
@@ -139,7 +138,7 @@ private
       PM_Hold_Servant : Hold_Servant_Access := null;
       --  Reference to the holding servant
 
-      Held_Requests : Requests_Queue;
+      Held_Requests : Requests_Queue := Requests_Queues.Empty;
       --  List of requests held by the POAManager
    end record;
 

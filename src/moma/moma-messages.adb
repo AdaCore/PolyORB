@@ -225,7 +225,7 @@ package body MOMA.Messages is
      (Name : MOMA.Types.String)
      return MOMA.Types.Property_Type is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Property (Name);
       pragma Warnings (On);

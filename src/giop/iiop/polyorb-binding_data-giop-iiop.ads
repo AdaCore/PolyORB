@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      (Profile :     IIOP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container);
+      Error   : out Errors.Error_Container);
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
@@ -88,10 +88,6 @@ package PolyORB.Binding_Data.GIOP.IIOP is
      return PolyORB.Smart_Pointers.Entity_Ptr;
    pragma Inline (Get_OA);
 
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String;
-
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access;
-
 private
 
    IIOP_Version_Major : constant Types.Octet := 1;
@@ -107,8 +103,5 @@ private
    type IIOP_Profile_Factory is new GIOP_Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
-
-   IIOP_Corbaloc_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("iiop:");
 
 end PolyORB.Binding_Data.GIOP.IIOP;

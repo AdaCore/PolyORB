@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,9 +38,9 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body Ping_Object is
 
@@ -48,7 +48,7 @@ package body Ping_Object is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
 
    Count : Natural := 0;
    --  Count number of invocations
@@ -74,10 +74,9 @@ package body Ping_Object is
          declare
             use PolyORB.Any.NVList.Internals;
             use PolyORB.Any.NVList.Internals.NV_Lists;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
-            Req   : constant Request_Access
-              := Execute_Request (Msg).Req;
+            Req   : Request_Access renames Execute_Request (Msg).Req;
             Args  : PolyORB.Any.NVList.Ref;
             Error : Error_Container;
          begin
@@ -85,7 +84,7 @@ package body Ping_Object is
                       & PolyORB.Requests.Image (Req.all));
 
             Create (Args);
-            if Req.all.Operation = To_PolyORB_String ("ping") then
+            if Req.all.Operation.all = "ping" then
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
@@ -93,7 +92,7 @@ package body Ping_Object is
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;

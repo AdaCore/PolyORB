@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -64,14 +64,15 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Id    : access Objects.Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA, Error);
       pragma Warnings (On);
    begin
       URI := Types.To_PolyORB_String
-        ("/" & Objects.To_String (Id.all));
+        ("/" & Objects.Oid_To_Hex_String (Id.all));
+      --  XXX should URI_Encode the oid, not hexify it!
    end Oid_To_Rel_URI;
 
    --------------------
@@ -80,21 +81,20 @@ package body PolyORB.Obj_Adapters is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
+      URI : String)
      return Objects.Object_Id_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      S : constant String := Types.To_Standard_String (URI);
    begin
-      if S (S'First) /= '/' then
+      if URI (URI'First) /= '/' then
          raise Constraint_Error;
       end if;
 
       return new Objects.Object_Id'
-        (Objects.To_Oid (S (S'First + 1 .. S'Last)));
+        (Objects.Hex_String_To_Oid (URI (URI'First + 1 .. URI'Last)));
    end Rel_URI_To_Oid;
 
    ------------------
@@ -124,12 +124,12 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-      pragma Warnings (Off);
       pragma Unreferenced (OA, R, Oid);
-      pragma Warnings (On);
+
+      use PolyORB.Errors;
+
    begin
       Throw (Error, No_Implement_E,
              System_Exception_Members'
@@ -144,12 +144,12 @@ package body PolyORB.Obj_Adapters is
      (OA    : access Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-      pragma Warnings (Off);
       pragma Unreferenced (OA, Ref, Oid);
-      pragma Warnings (On);
+
+      use PolyORB.Errors;
+
    begin
       Throw (Error, No_Implement_E,
              System_Exception_Members'

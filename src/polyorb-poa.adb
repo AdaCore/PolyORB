@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
@@ -48,7 +47,7 @@ with PolyORB.Utils;
 
 package body PolyORB.POA is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Policies;
@@ -69,7 +68,7 @@ package body PolyORB.POA is
      (OA    : access Obj_Adapter;
       Id    : access Object_Id;
       URI   : out Types.String;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
@@ -119,7 +118,7 @@ package body PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI :        Types.String)
+      URI :        String)
      return Object_Id_Access
    is
       pragma Warnings (Off);
@@ -127,40 +126,40 @@ package body PolyORB.POA is
       pragma Warnings (On);
 
       U_Oid : aliased Unmarshalled_Oid;
-      S : constant String := To_Standard_String (URI);
 
-      Colon : Integer := Find (S, S'First, ';');
+      Colon : Integer := Find (URI, URI'First, ';');
       Last_Slash : Integer := Colon - 1;
    begin
-      pragma Debug (O ("URI: " & To_Standard_String (URI)));
+      pragma Debug (O ("URI: " & URI));
 
-      while S (Last_Slash) /= '/'
-        and then Last_Slash >= S'First loop
+      while URI (Last_Slash) /= '/'
+        and then Last_Slash >= URI'First loop
          Last_Slash := Last_Slash - 1;
       end loop;
 
-      pragma Assert (S (S'First) = '/'
-                     and then Last_Slash >= S'First);
+      pragma Assert (URI (URI'First) = '/'
+                     and then Last_Slash >= URI'First);
 
-      U_Oid.Creator := To_PolyORB_String (S (S'First + 1 .. Last_Slash - 1));
+      U_Oid.Creator := To_PolyORB_String
+        (URI (URI'First + 1 .. Last_Slash - 1));
 
       U_Oid.Id := To_PolyORB_String
-        (URI_Decode (S (Last_Slash + 1 .. Colon - 1)));
+        (URI_Decode (URI (Last_Slash + 1 .. Colon - 1)));
 
-      if Colon + 3 <= S'Last
-        and then S (Colon + 1 .. Colon + 3) = "sys"
+      if Colon + 3 <= URI'Last
+        and then URI (Colon + 1 .. Colon + 3) = "sys"
       then
          U_Oid.System_Generated := True;
-         Colon := Find (S, Colon + 1, ';');
+         Colon := Find (URI, Colon + 1, ';');
       else
          U_Oid.System_Generated := False;
       end if;
 
-      if Colon + 3 <= S'Last
-        and then S (Colon + 1 .. Colon + 3) = "pf="
+      if Colon + 3 <= URI'Last
+        and then URI (Colon + 1 .. Colon + 3) = "pf="
       then
          U_Oid.Persistency_Flag
-           := Lifespan_Cookie'Value (S (Colon + 4 .. S'Last));
+           := Lifespan_Cookie'Value (URI (Colon + 4 .. URI'Last));
       else
          U_Oid.Persistency_Flag := 0;
       end if;
@@ -175,8 +174,6 @@ package body PolyORB.POA is
 
       return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;
-
-   POA_Path_Separator : constant Character := '/';
 
    --------------------------------------------------------
    -- Declaration of additional procedures and functions --
@@ -371,7 +368,7 @@ package body PolyORB.POA is
 
    procedure Check_Policies_Compatibility
      (OA    :        Obj_Adapter_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       OA_Policies : AllPolicies;
 
@@ -518,9 +515,7 @@ package body PolyORB.POA is
    -- Create_Root_POA --
    ---------------------
 
-   procedure Create_Root_POA
-     (New_Obj_Adapter : access Obj_Adapter)
-   is
+   procedure Create_Root_POA (New_Obj_Adapter : access Obj_Adapter) is
       use PolyORB.POA_Types.POA_HTables;
 
    begin
@@ -529,8 +524,8 @@ package body PolyORB.POA is
       --  Create new Obj Adapter
 
       New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
-      New_Obj_Adapter.Name             := To_PolyORB_String ("RootPOA");
-      New_Obj_Adapter.Absolute_Address := To_PolyORB_String ("");
+      New_Obj_Adapter.Name             := +"RootPOA";
+      New_Obj_Adapter.Absolute_Address := +"";
       Create (New_Obj_Adapter.POA_Lock);
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
@@ -567,24 +562,30 @@ package body PolyORB.POA is
 
    procedure Initialize_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Types.POA_HTables;
 
       Ref : PolyORB.POA_Types.Obj_Adapter_Ref;
 
    begin
-      pragma Debug (O ("Creating POA: " & To_String (Adapter_Name)));
+      pragma Debug (O ("Creating POA: " & Adapter_Name));
 
-      --  Validity checks on Adapter_Name
+      --  Validity checks on Adapter_Name:
+      --    name must be non-empty and may not contain POA_Path_Separator
+      --    or ASCII.NUL
 
       if Adapter_Name = ""
-        or else Index (Adapter_Name, (1 => POA_Path_Separator)) /= 0
+        or else PolyORB.Utils.Find (Adapter_Name,
+                  Adapter_Name'First,
+                  POA_Path_Separator) <= Adapter_Name'Last
+        or else PolyORB.Utils.Find (Adapter_Name,
+                  Adapter_Name'First,
+                  ASCII.NUL) <= Adapter_Name'Last
       then
          Throw (Error,
                 WrongAdapter_E,
@@ -601,7 +602,7 @@ package body PolyORB.POA is
          pragma Debug (O ("Check if a POA with the same name exists."));
 
          if not Is_Null (Lookup (Self.Children.all,
-                                 To_Standard_String (Adapter_Name),
+                                 Adapter_Name,
                                  Null_POA_Ref))
          then
             Throw (Error,
@@ -620,7 +621,7 @@ package body PolyORB.POA is
       Create (POA.Map_Lock);
       POA.Boot_Time := Get_Boot_Time;
       POA.Father    := POA_Types.Obj_Adapter_Access (Self);
-      POA.Name      := Adapter_Name;
+      POA.Name      := +Adapter_Name;
 
       if A_POAManager = null then
          Set (POA.POA_Manager,
@@ -646,27 +647,26 @@ package body PolyORB.POA is
       end if;
 
       Set (Ref, Smart_Pointers.Entity_Ptr (POA));
-
-      Insert (Self.Children.all,
-              To_Standard_String (POA.Name),
-              Ref);
+      Insert (Self.Children.all, POA.Name.all, Ref);
 
       Leave (Self.Children_Lock);
 
       --  Construct POA Absolute name
 
-      if Length (Self.Absolute_Address) > 0 then
-         POA.Absolute_Address := Self.Absolute_Address
-           & To_PolyORB_String ((1 => POA_Path_Separator)) & Adapter_Name;
+      if Self.Absolute_Address.all'Length > 0 then
+         POA.Absolute_Address
+           := new Standard.String'
+           (Self.Absolute_Address.all
+            & POA_Path_Separator
+            & Adapter_Name);
       else
-         POA.Absolute_Address :=
-           Self.Absolute_Address & Adapter_Name;
+         POA.Absolute_Address
+           := new Standard.String'(Self.Absolute_Address.all & Adapter_Name);
 
       end if;
 
       pragma Debug
-        (O ("Absolute name of new POA is "
-            & To_Standard_String (POA.Absolute_Address)));
+        (O ("Absolute name of new POA is " & POA.Absolute_Address.all));
 
       --  First initialize POA with default policies
 
@@ -691,17 +691,16 @@ package body PolyORB.POA is
       pragma Debug
         (O ("Insert "
             & POA_Path_Separator
-            & To_Standard_String (POA.Absolute_Address)
+            & POA.Absolute_Address.all
             & " into Global_POATable"));
 
       Insert (Global_POATable,
-              POA_Path_Separator
-              & To_Standard_String (POA.Absolute_Address),
+              POA_Path_Separator & POA.Absolute_Address.all,
               Ref);
 
       --  Return the created POA
 
-      pragma Debug (O ("POA " & To_String (Adapter_Name) & " created."));
+      pragma Debug (O ("POA " & Adapter_Name & " created."));
    end Initialize_POA;
 
    -------------
@@ -716,17 +715,22 @@ package body PolyORB.POA is
       use PolyORB.POA_Types.POA_HTables;
 
    begin
-      pragma Debug (O ("Start destroying POA: "
-                       & To_Standard_String (Self.Name)));
+      --  We might be finalizing a POA (because of reference counting)
+      --  on which Destroy has already been called (with non-default
+      --  parameters), in which case there is nothing to do.
+
+      if Self.Name = null then
+         return;
+      end if;
+
+      pragma Debug (O ("Start destroying POA: " & Self.Name.all));
 
       --  Remove Self from Global POA Table
 
       pragma Debug (O ("Removing POA from Global POA Table"));
 
       PolyORB.POA_Types.POA_HTables.Delete
-        (Global_POATable,
-         POA_Path_Separator
-         & To_Standard_String (Self.Absolute_Address));
+        (Global_POATable, POA_Path_Separator & Self.Absolute_Address.all);
 
       --  Destroy all children
 
@@ -739,18 +743,22 @@ package body PolyORB.POA is
 
          declare
             It : Iterator := First (Self.Children.all);
-            A_Child : Obj_Adapter_Access;
+            Child_Ref : Obj_Adapter_Ref;
+            Child_Ptr : Obj_Adapter_Access;
          begin
             while not Last (It) loop
-               A_Child
-                 := Obj_Adapter (Entity_Of (Value (It)).all)'Access;
+               --  Hold a ref on the child while we destroy it to ensure
+               --  that it does not get finalized early.
 
-               Destroy (A_Child,
+               Child_Ref := Value (It);
+               Child_Ptr := Obj_Adapter (Entity_Of (Child_Ref).all)'Access;
+
+               Destroy (Child_Ptr,
                         Etherealize_Objects,
                         Wait_For_Completion);
 
-               --  NOTE: there is no need to delete A_Child from
-               --  Self.Children, this will be done when finalizing it.
+               --  NOTE: The child is detached automatically from the children
+               --  map upon destruction.
 
                Next (It);
             end loop;
@@ -771,16 +779,20 @@ package body PolyORB.POA is
       --  Tell father to remove current POA from its list of children
 
       if Self.Father /= null then
-         pragma Debug (O ("Notify parent POA of POA destruction"));
+         pragma Debug (O ("Requesting parent to detach POA: "
+                          & Self.Name.all));
 
          POA.Remove_POA_By_Name
            (POA.Obj_Adapter_Access (Self.Father),
-            Self.Name);
+            Self.Name.all);
       end if;
 
       --  Destroy self (also unregister from the POAManager)
 
-      pragma Debug (O ("About to destroy POA"));
+      pragma Debug (O ("About to destroy POA: " & Self.Name.all));
+
+      Free (Self.Absolute_Address);
+      Free (Self.Name);
 
       --  Destroy POA components
 
@@ -790,9 +802,7 @@ package body PolyORB.POA is
          Destroy_OA (OA);
       end;
 
-      pragma Debug (O ("POA '"
-                       & To_Standard_String (Self.Name)
-                       & "' destroyed"));
+      pragma Debug (O ("POA destroyed"));
 
       --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
@@ -806,7 +816,7 @@ package body PolyORB.POA is
      (Self  : access Obj_Adapter;
       Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       Assign_Object_Identifier
         (Self.Id_Assignment_Policy.all,
@@ -825,7 +835,7 @@ package body PolyORB.POA is
       P_Servant : in     Servants.Servant_Access;
       Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container) is
+      Error     : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("Activate_Object: enter"));
 
@@ -863,7 +873,7 @@ package body PolyORB.POA is
    procedure Deactivate_Object
      (Self  : access Obj_Adapter;
       Oid   : in     Object_Id;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       U_Oid : Unmarshalled_Oid;
    begin
@@ -942,7 +952,7 @@ package body PolyORB.POA is
      (Self      : access Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
    is
       Temp_Oid, Temp_Oid2 : Object_Id_Access;
    begin
@@ -989,7 +999,7 @@ package body PolyORB.POA is
      (Self    : access Obj_Adapter;
       Oid     :        Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       U_Oid : Unmarshalled_Oid;
    begin
@@ -1024,9 +1034,8 @@ package body PolyORB.POA is
       Name        :        String;
       Activate_It :        Boolean;
       POA         :    out Obj_Adapter_Access;
-      Error       : in out PolyORB.Exceptions.Error_Container)
+      Error       : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Types.POA_HTables;
 
       --------------------------
@@ -1038,7 +1047,7 @@ package body PolyORB.POA is
          Name        :        String;
          Activate_It :        Boolean;
          POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container);
+         Error       : in out PolyORB.Errors.Error_Container);
       --  Looks for 'name', searching from 'Self', using a recursive search.
       --  If necessary, will invoke AdapterActivator call backs.
 
@@ -1047,7 +1056,7 @@ package body PolyORB.POA is
          Name        :        String;
          Activate_It :        Boolean;
          POA         :    out Obj_Adapter_Access;
-         Error       : in out PolyORB.Exceptions.Error_Container)
+         Error       : in out PolyORB.Errors.Error_Container)
       is
          A_Child     : Obj_Adapter_Access;
          Result      : Boolean;
@@ -1141,7 +1150,7 @@ package body PolyORB.POA is
 
       declare
          Full_POA_Name : constant String :=
-           To_Standard_String (Self.Absolute_Address)
+           Self.Absolute_Address.all
            & POA_Path_Separator
            & Name;
 
@@ -1182,7 +1191,7 @@ package body PolyORB.POA is
    procedure Get_Servant
      (Self    : access Obj_Adapter;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Get_Servant
         (Self.Request_Processing_Policy.all,
@@ -1198,7 +1207,7 @@ package body PolyORB.POA is
    procedure Set_Servant
      (Self    : access Obj_Adapter;
       Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Set_Servant
         (Self.Request_Processing_Policy.all,
@@ -1214,7 +1223,7 @@ package body PolyORB.POA is
    procedure Get_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :    out ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Ensure_Servant_Manager
         (Self.Request_Processing_Policy.all,
@@ -1234,7 +1243,7 @@ package body PolyORB.POA is
    procedure Set_Servant_Manager
      (Self    : access Obj_Adapter;
       Manager :        ServantManager_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Ensure_Servant_Manager
         (Self.Request_Processing_Policy.all,
@@ -1326,16 +1335,14 @@ package body PolyORB.POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Obj_Adapter;
-      Child_Name :        Types.String) is
+      Child_Name :        Standard.String) is
    begin
-      pragma Debug (O (To_Standard_String (Self.Name)
+      pragma Debug (O (Self.Name.all
                        & ": removing POA with name "
-                       & To_Standard_String (Child_Name)
+                       & Child_Name
                        & " from my children."));
 
-      PolyORB.POA_Types.POA_HTables.Delete (Self.Children.all,
-                                            To_Standard_String (Child_Name));
-
+      PolyORB.POA_Types.POA_HTables.Delete (Self.Children.all, Child_Name);
    end Remove_POA_By_Name;
 
    --------------------------------------------------
@@ -1376,7 +1383,7 @@ package body PolyORB.POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       --  NOTE: Per construction, this procedure has the same semantics as
       --  Servant_To_Ref CORBA procedure.
@@ -1416,7 +1423,7 @@ package body PolyORB.POA is
    procedure Unexport
      (OA    : access Obj_Adapter;
       Id    :        Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       Deactivate_Object (OA, Id.all, Error);
    end Unexport;
@@ -1429,7 +1436,7 @@ package body PolyORB.POA is
      (OA      : access Obj_Adapter;
       Id      :        Objects.Object_Id_Access;
       User_Id :    out Objects.Object_Id_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
@@ -1448,7 +1455,7 @@ package body PolyORB.POA is
                 Null_Members'(Null_Member));
       else
          User_Id := new Objects.Object_Id'
-           (Objects.To_Oid (To_Standard_String (U_Oid.Id)));
+           (Objects.Hex_String_To_Oid (To_Standard_String (U_Oid.Id)));
       end if;
    end Object_Key;
 
@@ -1518,7 +1525,7 @@ package body PolyORB.POA is
 --        if S.If_Desc.RP_Desc /= null then
 --           return S.If_Desc.RP_Desc (Method);
 --        end if;
-      raise Not_Implemented;
+      raise Program_Error;
       pragma Warnings (Off);
       return Get_Empty_Result (OA, Oid, Method);
       pragma Warnings (On);
@@ -1533,7 +1540,7 @@ package body PolyORB.POA is
      (OA      : access Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container) is
+      Error   : in out PolyORB.Errors.Error_Container) is
    begin
       Find_Servant (OA, Id, True, Servant, Error);
    end Find_Servant;
@@ -1543,7 +1550,7 @@ package body PolyORB.POA is
       Id       : access Objects.Object_Id;
       Do_Check :        Boolean;
       Servant  :    out Servants.Servant_Access;
-      Error    : in out PolyORB.Exceptions.Error_Container)
+      Error    : in out PolyORB.Errors.Error_Container)
    is
       use type PolyORB.Servants.Servant_Access;
 
@@ -1611,9 +1618,9 @@ package body PolyORB.POA is
       --  Find servant
 
       pragma Debug
-        (O ("OA : " & To_Standard_String (Obj_OA.Name)
+        (O ("OA : " & Obj_OA.Name.all
             & " looks for servant associated with Id "
-            & Objects.To_String (Id.all)));
+            & Objects.Oid_To_Hex_String (Id.all)));
 
       Id_To_Servant (Obj_OA,
                      Id.all,

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.POA_Types;
 with PolyORB.Servants;
 
@@ -49,14 +49,14 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
       OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant :        Servants.Servant_Access;
       U_Oid     :        Unmarshalled_Oid;
-      Error     : in out PolyORB.Exceptions.Error_Container)
+      Error     : in out PolyORB.Errors.Error_Container)
      is abstract;
 
    procedure Forget_Servant_Association
      (Self  :        ServantRetentionPolicy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
       Oid   :        Unmarshalled_Oid;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Remove a previously-retained servant/oid association.
 
@@ -77,7 +77,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
    --  Case RETAIN:
    --    Asks the Id_Assignment_Policy to look for the given Object_Id.
@@ -88,7 +88,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    procedure Ensure_Servant_Manager_Type
      (Self    :        ServantRetentionPolicy;
       Manager :        ServantManager'Class;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
       is abstract;
 
 end PolyORB.POA_Policies.Servant_Retention_Policy;

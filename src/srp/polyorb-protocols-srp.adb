@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,12 +38,12 @@ with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Representations.SRP;
@@ -57,10 +57,10 @@ package body PolyORB.Protocols.SRP is
    use PolyORB.Any;
    use PolyORB.Components;
    use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use PolyORB.ORB.Interface;
+   use PolyORB.ORB.Iface;
    use PolyORB.Representations.SRP;
    use PolyORB.Requests;
    use PolyORB.Types;
@@ -148,7 +148,7 @@ package body PolyORB.Protocols.SRP is
       pragma Unreferenced (S);
 
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Handle_Flush;
 
    ----------------------
@@ -253,7 +253,7 @@ package body PolyORB.Protocols.SRP is
    begin
       Release_Contents (B.all);
       Set_SRP_Method (To_PolyORB_String ("Reply"), SRP_Info);
-      Set_SRP_Oid (To_Oid ("00000000"), SRP_Info);
+      Set_SRP_Oid (Object_Id'(1 .. 4 => 0), SRP_Info);
       Set_SRP_Arg (To_PolyORB_String ("Data"),
                    To_Any (To_PolyORB_String
                            ("200 OK" & Image (R.all)
@@ -361,7 +361,7 @@ package body PolyORB.Protocols.SRP is
    procedure Handle_Unmarshall_Arguments
      (Ses   : access SRP_Session;
       Args  : in out Any.NVList.Ref;
-      Error : in out Exceptions.Error_Container)
+      Error : in out Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 

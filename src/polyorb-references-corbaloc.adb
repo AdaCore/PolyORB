@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,12 +56,12 @@ package body PolyORB.References.Corbaloc is
       Tag                    : PolyORB.Binding_Data.Profile_Tag;
       --  Profile tag
 
-      Proto_Ident            : Types.String;
+      Proto_Ident            : String_Ptr;
       --  Protocol token
 
       Profile_To_String_Body : Profile_To_String_Body_Type;
       String_To_Profile_Body : String_To_Profile_Body_Type;
-      --  String <-> profile conversion functions
+      --  <protocol>_addr <-> profile conversion functions
 
    end record;
 
@@ -139,18 +139,7 @@ package body PolyORB.References.Corbaloc is
             Info : constant Profile_Record := Value (Iter).all;
          begin
             if T = Info.Tag then
-               declare
-                  Str : constant Types.String :=
-                          Info.Profile_To_String_Body (P);
-               begin
-                  if Length (Str) /= 0 then
-                     pragma Debug (O ("Profile ok"));
-                     return Str;
-                  else
-                     pragma Debug (O ("Profile not ok"));
-                     return Null_String;
-                  end if;
-               end;
+               return To_PolyORB_String (Info.Profile_To_String_Body (P));
             end if;
          end;
          Next (Iter);
@@ -165,34 +154,45 @@ package body PolyORB.References.Corbaloc is
    -----------------------
 
    function String_To_Profile
-     (Str : Types.String) return Binding_Data.Profile_Access
+     (Obj_Addr : Types.String) return Binding_Data.Profile_Access
    is
-      use PolyORB.Types;
+      use PolyORB.Utils;
       use Profile_Record_List;
+
+      Str     : constant String := Types.To_Standard_String (Obj_Addr);
+      Prot_Id : String_Ptr;
+      Sep     : Integer := Find (Str, Str'First, ':');
 
       Iter : Iterator := First (Callbacks);
    begin
-      pragma Debug (O ("String_To_Profile: enter with "
-                       & To_Standard_String (Str)));
+      pragma Debug (O ("String_To_Profile: enter, parsing " & Str));
+
+      if Str (Str'First .. Str'First + 1) = "//"
+        or else (Sep = Str'First and then Sep <= Str'Last)
+      then
+         Prot_Id := new String'("iiop");
+         if Str (Str'First) = '/' then
+            Sep := Str'First + 1;
+         end if;
+      elsif Sep in Str'First + 1 .. Str'Last then
+         Prot_Id := new String'((Str (Str'First .. Sep - 1)));
+      else
+         return null;
+      end if;
 
       while Iter /= Last (Callbacks) loop
-         declare
-            Ident : Types.String renames Value (Iter).Proto_Ident;
-         begin
-            if Length (Str) > Length (Ident)
-              and then To_String (Str) (1 .. Length (Ident)) = Ident
-            then
-               pragma Debug
-                 (O ("Try to unmarshall profile with profile factory tag "
-                     & Profile_Tag'Image (Value (Iter).Tag)));
-               return Value (Iter).String_To_Profile_Body (Str);
-            end if;
-         end;
+         if Prot_Id.all = Value (Iter).Proto_Ident.all then
+            pragma Debug
+              (O ("Try to unmarshall profile with profile factory tag "
+                  & Profile_Tag'Image (Value (Iter).Tag)));
+            Free (Prot_Id);
+            return Value (Iter).String_To_Profile_Body
+              (Str (Sep + 1 .. Str'Last));
+         end if;
          Next (Iter);
       end loop;
-
-      pragma Debug (O ("Profile not found for "
-                       & To_Standard_String (Str)));
+      Free (Prot_Id);
+      pragma Debug (O ("Profile not found for " & Str));
       return null;
    end String_To_Profile;
 
@@ -317,13 +317,13 @@ package body PolyORB.References.Corbaloc is
    --------------
 
    procedure Register
-     (Tag                    : in PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : in Types.String;
-      Profile_To_String_Body : in Profile_To_String_Body_Type;
-      String_To_Profile_Body : in String_To_Profile_Body_Type)
+     (Tag                    : PolyORB.Binding_Data.Profile_Tag;
+      Proto_Ident            : String;
+      Profile_To_String_Body : Profile_To_String_Body_Type;
+      String_To_Profile_Body : String_To_Profile_Body_Type)
    is
       Elt : constant Profile_Record := (Tag,
-                                        Proto_Ident,
+                                        new String'(Proto_Ident),
                                         Profile_To_String_Body,
                                         String_To_Profile_Body);
    begin

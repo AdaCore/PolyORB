@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,44 +26,72 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Generic chained list.
+--  Generic chained list
 
 package body PolyORB.Utils.Strings.Lists is
+
+   -----------
+   -- Empty --
+   -----------
 
    function Empty return List is
    begin
       return List (String_Ptr_Lists.Empty);
    end Empty;
 
+   -----------
+   -- First --
+   -----------
+
    function First (L : List) return Iterator is
    begin
       return Iterator (String_Ptr_Lists.Iterator'(First (L)));
    end First;
+
+   -----------
+   -- Value --
+   -----------
 
    function Value (I : Iterator) return String_Ptr is
    begin
       return Value (I).all;
    end Value;
 
+   -------------
+   -- Prepend --
+   -------------
+
    procedure Prepend (L : in out List; I : String) is
    begin
       Prepend (L, new String'(I));
    end Prepend;
+
+   ------------
+   -- Append --
+   ------------
 
    procedure Append (L : in out List; I : String) is
    begin
       Append (L, new String'(I));
    end Append;
 
+   ---------
+   -- "+" --
+   ---------
+
    function "+" (I : String) return List is
    begin
       return +new String'(I);
    end "+";
+
+   ---------
+   -- "&" --
+   ---------
 
    function "&" (I : String; L : List) return List is
    begin
@@ -74,6 +102,10 @@ package body PolyORB.Utils.Strings.Lists is
    begin
       return L & new String'(I);
    end "&";
+
+   ----------------
+   -- Deallocate --
+   ----------------
 
    procedure Deallocate (L : in out List) is
       I : Iterator := First (L);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,12 +40,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
    pragma Preelaborate;
 
    subtype Index_Type is Integer range 0 .. Number_Of_Indices - 1;
-   --  Type of the identifiers that are managed by this package.
-
-   function Modular (I : Integer) return Index_Type;
-   pragma Inline (Modular);
-   --  Convert an Integer to an Index_Type, returning
-   --  I mod Number_Of_Indices
+   --  Type of the identifiers that are managed by this package
 
    procedure Get (Id : out Index_Type);
    --  Get a unique identifier. No other call to Get will return this
@@ -60,14 +55,10 @@ package PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
    --  when its is called on a free identifier, that do not need to be
    --  released.
 
-   No_More_Identifier          : exception;
-
-   Identifier_Already_Released : exception;
-
    procedure Initialize (Error_On_Initialize : Boolean := True);
-   --  initialize this package.
+   --  Initialize this package.
    --  If Error_On_Initialise is set to false, we can call initialize
-   --  several times. In this case, if the package was already initialized
-   --  no initialization is done.
+   --  several times. In this case, if the package was already
+   --  initialized no initialization is done.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;

@@ -103,11 +103,20 @@ gen: $(GEN)
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS) $(IDL); do \
+	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
           if test -f $$f; then \
             $(INSTALL) -m 644 $$f $(DESTDIR)$(alidir); \
           else \
             $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+          fi \
+        done
+
+	$(INSTALL) -d $(DESTDIR)$(IDLdir)
+	for f in $(IDL); do \
+          if test -f $$f; then \
+            $(INSTALL) -m 644 $$f $(DESTDIR)$(IDLdir); \
+          else \
+            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(IDLdir); \
           fi \
         done
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
 
 with PolyORB.Any.ObjRef;
-with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Types;
@@ -46,7 +45,7 @@ package body PolyORB.Representations.CDR is
    use Ada.Streams;
    use PolyORB.Any;
    use PolyORB.Buffers;
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Representations.CDR.Common;
    use PolyORB.Types;
@@ -145,7 +144,7 @@ package body PolyORB.Representations.CDR is
       Representation : in     CDR_Representation'Class;
       Data           : in     PolyORB.Any.Any)
    is
-      E : Exceptions.Error_Container;
+      E : Errors.Error_Container;
    begin
       pragma Debug (O ("Marshall (Any) : enter"));
       Marshall (Buffer, Representation, Get_Type (Data));
@@ -164,7 +163,7 @@ package body PolyORB.Representations.CDR is
       Data           : in     PolyORB.Any.TypeCode.Object)
    is
       Complex_Buffer : Buffer_Access;
-      E              : Exceptions.Error_Container;
+      E              : Errors.Error_Container;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
       pragma Debug (O ("Marshall (Typecode) : kind is " &
@@ -589,7 +588,7 @@ package body PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffer_Type;
       Data   : in     Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Data_Type : constant PolyORB.Any.TypeCode.Object
         := PolyORB.Any.Get_Unwound_Type (Data);
@@ -661,7 +660,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Principal =>
             --  FIXME : to be done
             pragma Debug (O ("Marshall_From_Any : dealing with a principal"));
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
@@ -931,7 +930,7 @@ package body PolyORB.Representations.CDR is
                --        end case;
                --     end;
                --  end loop;
-               raise PolyORB.Not_Implemented;
+               raise Program_Error;
             end;
 
          when Tk_Valuebox =>
@@ -948,13 +947,13 @@ package body PolyORB.Representations.CDR is
          when Tk_Native =>
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Abstract_Interface =>
             pragma Debug (O
                  ("Marshall_From_Any : dealing with an abstract interface"));
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Local_Interface =>
             Throw
@@ -966,15 +965,15 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Component =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Home =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Event =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
@@ -1017,7 +1016,7 @@ package body PolyORB.Representations.CDR is
       Result : PolyORB.Any.Any;
       Tc     : constant PolyORB.Any.TypeCode.Object
         := Unmarshall (Buffer, Representation);
-      E      : Exceptions.Error_Container;
+      E      : Errors.Error_Container;
    begin
       pragma Debug (O ("Unmarshall (Any) : enter"));
       Result := Get_Empty_Any (Tc);
@@ -1038,7 +1037,7 @@ package body PolyORB.Representations.CDR is
       TypeCode_Id : constant PolyORB.Types.Unsigned_Long
         := Unmarshall (Buffer);
       Result      : PolyORB.Any.TypeCode.Object;
-      E           : Exceptions.Error_Container;
+      E           : Errors.Error_Container;
    begin
       pragma Debug (O ("Unmarshall (TypeCode) : enter"));
 
@@ -1619,7 +1618,7 @@ package body PolyORB.Representations.CDR is
      (R      : in     CDR_Representation;
       Buffer : access Buffer_Type;
       Data   : in out Any.Any;
-      Error  : in out Exceptions.Error_Container)
+      Error  : in out Errors.Error_Container)
    is
       Tc : constant PolyORB.Any.TypeCode.Object
         := Get_Unwound_Type (Data);
@@ -1726,7 +1725,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Principal =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Objref =>
             PolyORB.Any.ObjRef.Set_Any_Value
@@ -2034,7 +2033,7 @@ package body PolyORB.Representations.CDR is
             --    end loop;
             --   end if;
             --   end;
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Valuebox =>
             --  declare
@@ -2055,15 +2054,15 @@ package body PolyORB.Representations.CDR is
             --       Add_Aggregate_Element(Result, Arg);
             --     end if;
             --  end;
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Native =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Abstract_Interface =>
             --  FIXME : to be done
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Local_Interface =>
             Throw
@@ -2074,13 +2073,13 @@ package body PolyORB.Representations.CDR is
                   Completed => Completed_No));
 
          when Tk_Component =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Home =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
 
          when Tk_Event =>
-            raise PolyORB.Not_Implemented;
+            raise Program_Error;
       end case;
       pragma Debug (O ("Unmarshall_To_Any: end"));
    end Unmarshall_To_Any;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -85,7 +85,7 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
    procedure Check_Compatibility
      (Self           :        PriorityModelPolicy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
@@ -108,9 +108,9 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Notepad : constant PolyORB.Annotations.Notepad_Access
         := PolyORB.Servants.Notepad_Of (Servant);
@@ -160,9 +160,9 @@ package body PolyORB.RT_POA_Policies.Priority_Model_Policy is
       Servant                  :        Servants.Servant_Access;
       Server_ORB_Priority      :        ORB_Priority;
       Server_External_Priority :        External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Notepad : constant PolyORB.Annotations.Notepad_Access
         := PolyORB.Servants.Notepad_Of (Servant);

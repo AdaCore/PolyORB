@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
@@ -106,10 +106,10 @@ package body PolyORB.Binding_Data.SOAP is
      (Profile :     SOAP_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
       use PolyORB.Protocols;
@@ -220,7 +220,7 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address   := PF.Address;
 
       declare
-         Oid_Translate : constant ORB.Interface.Oid_Translate :=
+         Oid_Translate : constant ORB.Iface.Oid_Translate :=
            (PolyORB.Components.Message with Oid => TResult.Object_Id);
 
          M : constant PolyORB.Components.Message'Class :=
@@ -228,8 +228,7 @@ package body PolyORB.Binding_Data.SOAP is
            (Port => Components.Component_Access (Setup.The_ORB),
             Msg  => Oid_Translate);
 
-         TM : ORB.Interface.URI_Translate renames
-           ORB.Interface.URI_Translate (M);
+         TM : ORB.Iface.URI_Translate renames ORB.Iface.URI_Translate (M);
       begin
          TResult.URI_Path := TM.Path;
       end;
@@ -270,7 +269,7 @@ package body PolyORB.Binding_Data.SOAP is
          --  Fill Oid from URI for a local profile.
 
          declare
-            URI_Translate : constant ORB.Interface.URI_Translate :=
+            URI_Translate : constant ORB.Iface.URI_Translate :=
               (PolyORB.Components.Message with Path => TResult.URI_Path);
 
             M : constant PolyORB.Components.Message'Class :=
@@ -278,8 +277,7 @@ package body PolyORB.Binding_Data.SOAP is
               (Port => Components.Component_Access (Setup.The_ORB),
                Msg  => URI_Translate);
 
-            TM : ORB.Interface.Oid_Translate renames
-              ORB.Interface.Oid_Translate (M);
+            TM : ORB.Iface.Oid_Translate renames ORB.Iface.Oid_Translate (M);
          begin
             TResult.Object_Id := TM.Oid;
          end;
@@ -435,8 +433,7 @@ package body PolyORB.Binding_Data.SOAP is
                return null;
             end if;
             pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-            TResult.Address.Addr := String_To_Addr
-              (To_PolyORB_String (S (Index .. Index2 - 1)));
+            TResult.Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
             Index := Index2 + 1;
 
             Index2 := Find (S, Index, '/');

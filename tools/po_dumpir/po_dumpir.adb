@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1999-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -448,7 +448,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : po_dumpir <IOR_string_from_server>");
       return;
    end if;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -47,24 +47,23 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Data.SOAP;
 with PolyORB.Buffer_Sources;
-with PolyORB.Exceptions;
 with PolyORB.Filters.AWS_Interface;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.HTTP_Methods;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
 --   use Standard.SOAP;
@@ -118,7 +117,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       begin
          P := PolyORB.SOAP_P.Message.Payload.Build
-           (Types.To_Standard_String (R.Operation),
+           (R.Operation.all,
             PolyORB.SOAP_P.Parameters.List'(R.Args with null record));
 
       exception
@@ -139,7 +138,7 @@ package body PolyORB.Protocols.SOAP_Pr is
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
            (PolyORB.SOAP_P.Message.XML.Image (P))),
-          SOAP_Action => Types.String (R.Operation)));
+          SOAP_Action => Types.To_PolyORB_String (R.Operation.all)));
    end Invoke_Request;
 
    procedure Abort_Request
@@ -147,7 +146,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       R : Requests.Request_Access)
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Abort_Request;
 
    procedure Send_Reply
@@ -269,13 +268,13 @@ package body PolyORB.Protocols.SOAP_Pr is
       Buffers.Release_Contents (S.In_Buf.all);
       Components.Emit_No_Reply
         (R.Requesting_Component,
-         Servants.Interface.Executed_Request'(Req => R));
+         Servants.Iface.Executed_Request'(Req => R));
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments
      (S     : access SOAP_Session;
       Args  : in out PolyORB.Any.NVList.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Unreferenced (Error);
 
@@ -319,10 +318,10 @@ package body PolyORB.Protocols.SOAP_Pr is
             is
                M : constant Components.Message'Class
                  := Components.Emit
-                 (S.Server, PolyORB.ORB.Interface.URI_Translate'
+                 (S.Server, PolyORB.ORB.Iface.URI_Translate'
                   (Path => Path));
-               TM : PolyORB.ORB.Interface.Oid_Translate
-                 renames PolyORB.ORB.Interface.Oid_Translate (M);
+               TM : PolyORB.ORB.Iface.Oid_Translate
+                 renames PolyORB.ORB.Iface.Oid_Translate (M);
             begin
                pragma Debug
                  (O ("Path_To_Oid: " & To_Standard_String (Path)));
@@ -340,7 +339,7 @@ package body PolyORB.Protocols.SOAP_Pr is
             Args : Any.NVList.Ref;
             --  Nil (not initialised).
 
-            Error : PolyORB.Exceptions.Error_Container;
+            Error : PolyORB.Errors.Error_Container;
 
          begin
             Create_Local_Profile
@@ -386,7 +385,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
             PolyORB.ORB.Queue_Request_To_Handler
               (ORB.Tasking_Policy, ORB,
-               PolyORB.ORB.Interface.Queue_Request'
+               PolyORB.ORB.Iface.Queue_Request'
                (Request => Req,
                 Requestor => Components.Component_Access (S)));
          end;
@@ -435,7 +434,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    procedure Handle_Flush (S : access SOAP_Session) is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Handle_Flush;
 
    function Handle_Message

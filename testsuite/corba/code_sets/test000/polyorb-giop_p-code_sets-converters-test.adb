@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -71,8 +71,8 @@ package body PolyORB.GIOP_P.Code_Sets.Converters.Test is
          --  KS C5601:1987; Korean Hangul and Hanja Graphic Characters
          Create_UCS2_Native_Converter'Access,
          Create_UCS2_UTF16_Converter'Access);
-      --  Where are no problem with differ converters - this is only
-      --  Codeset_Incompatible exception test.
+      --  We intentionnaly use wrong converters to reduce code
+      --  complexity: we only test Codeset_Incompatible exception
    end Initialize;
 
 begin

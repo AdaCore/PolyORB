@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@
 
 with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.Binding_Objects;
-with PolyORB.Exceptions;
 with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.Initialization;
@@ -74,9 +73,14 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   UIPMC_Corbaloc_Prefix : constant String := "miop";
+
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for UIPMC profiles.
+
+   function Profile_To_Corbaloc (P : Profile_Access) return String;
+   function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
    ------------------
    -- Bind_Profile --
@@ -92,10 +96,10 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
      (Profile :     UIPMC_Profile_Type;
       The_ORB :     Components.Component_Access;
       BO_Ref  : out Smart_Pointers.Ref;
-      Error   : out Exceptions.Error_Container)
+      Error   : out Errors.Error_Container)
    is
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Filters;
       use PolyORB.ORB;
       use PolyORB.Parameters;
@@ -143,7 +147,8 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    exception
       when Sockets.Socket_Error =>
-         Throw (Error, Comm_Failure_E, System_Exception_Members'
+         Throw (Error, Comm_Failure_E,
+                System_Exception_Members'
                 (Minor => 0, Completed => Completed_Maybe));
    end Bind_Profile;
 
@@ -199,7 +204,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Obj_Adapters;
@@ -337,7 +342,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Profile_To_Corbaloc --
    -------------------------
 
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String is
+   function Profile_To_Corbaloc (P : Profile_Access) return String is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Sockets;
@@ -354,7 +359,7 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
       pragma Debug (O ("UIPMC Profile to corbaloc"));
 
       if TC_G_I = null then
-         return To_PolyORB_String ("");
+         return "";
       end if;
 
       declare
@@ -362,15 +367,15 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
       begin
          if S = "" then
-            return To_PolyORB_String ("");
+            return "";
          end if;
 
-         return UIPMC_Corbaloc_Prefix & To_PolyORB_String
-           (Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
-            & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
-            & S & "/"
-            & Image (UIPMC_Profile.Address.Addr) & ":"
-            & Trimmed_Image (Integer (UIPMC_Profile.Address.Port)));
+         return UIPMC_Corbaloc_Prefix &
+           Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
+           & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
+           & S & "/"
+           & Image (UIPMC_Profile.Address.Addr) & ":"
+           & Trimmed_Image (Integer (UIPMC_Profile.Address.Port));
       end;
    end Profile_To_Corbaloc;
 
@@ -378,96 +383,84 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
    -- Corbaloc_To_Profile --
    -------------------------
 
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access is
+   function Corbaloc_To_Profile (Str : String) return Profile_Access is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Types;
       use PolyORB.Utils;
       use PolyORB.Utils.Sockets;
 
-      Len : constant Integer := Length (UIPMC_Corbaloc_Prefix);
-
+      Result  : Profile_Access := new UIPMC_Profile_Type;
+      TResult : UIPMC_Profile_Type
+        renames UIPMC_Profile_Type (Result.all);
+      S       : String renames Str;
+      Index   : Integer := S'First;
+      Index2  : Integer;
+      Temp_Ref : TC_Group_Info_Access;
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = UIPMC_Corbaloc_Prefix then
-         declare
-            Result  : Profile_Access := new UIPMC_Profile_Type;
-            TResult : UIPMC_Profile_Type
-              renames UIPMC_Profile_Type (Result.all);
-            S       : constant String
-              := To_Standard_String (Str) (Len + 1 .. Length (Str));
-            Index   : Integer := S'First;
-            Index2  : Integer;
-            Temp_Ref : TC_Group_Info_Access;
-         begin
-            pragma Debug (O ("UIPMC corbaloc to profile: enter"));
+      pragma Debug (O ("UIPMC corbaloc to profile: enter"));
 
-            Index2 := Find (S, Index, '.');
-            if Index2 = S'Last + 1 then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            TResult.Version_Major :=
-              Types.Octet'Value (S (Index .. Index2 - 1));
-            if TResult.Version_Major /= UIPMC_Version_Major then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            Index := Index2 + 1;
+      Index2 := Find (S, Index, '.');
+      if Index2 = S'Last + 1 then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      TResult.Version_Major :=
+        Types.Octet'Value (S (Index .. Index2 - 1));
+      if TResult.Version_Major /= UIPMC_Version_Major then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      Index := Index2 + 1;
 
-            Index2 := Find (S, Index, '@');
-            if Index2 = S'Last + 1 then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            TResult.Version_Minor :=
-              Types.Octet'Value (S (Index .. Index2 - 1));
-            if TResult.Version_Minor /= UIPMC_Version_Minor then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            Index := Index2 + 1;
+      Index2 := Find (S, Index, '@');
+      if Index2 = S'Last + 1 then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      TResult.Version_Minor :=
+        Types.Octet'Value (S (Index .. Index2 - 1));
+      if TResult.Version_Minor /= UIPMC_Version_Minor then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      Index := Index2 + 1;
 
-            Index2 := Find (S, Index, '/');
-            if Index2 = S'Last + 1 then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-
-            Temp_Ref := From_String (S (Index .. Index2 - 1));
-            if Temp_Ref = null then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            pragma Debug (O ("Group Info : " & Image (Temp_Ref.G_I)));
-
-            TResult.G_I := Temp_Ref.G_I'Access;
-            TResult.Components := Null_Tagged_Component_List;
-            Add (TResult.Components, Tagged_Component_Access (Temp_Ref));
-            Index := Index2 + 1;
-
-            Index2 := Find (S, Index, ':');
-            if Index2 = S'Last + 1 then
-               Destroy_Profile (Result);
-               return null;
-            end if;
-            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-            TResult.Address.Addr := String_To_Addr
-              (To_PolyORB_String (S (Index .. Index2 - 1)));
-            Index := Index2 + 1;
-
-            pragma Debug (O ("Port = " & S (Index .. S'Last)));
-            TResult.Address.Port
-              := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
-
-            TResult.Object_Id := To_Object_Id (TResult.G_I.all);
-
-            pragma Debug (O ("UIPMC corbaloc to profile: leave"));
-            return Result;
-         end;
+      Index2 := Find (S, Index, '/');
+      if Index2 = S'Last + 1 then
+         Destroy_Profile (Result);
+         return null;
       end if;
 
-      return null;
+      Temp_Ref := From_String (S (Index .. Index2 - 1));
+      if Temp_Ref = null then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      pragma Debug (O ("Group Info : " & Image (Temp_Ref.G_I)));
+
+      TResult.G_I := Temp_Ref.G_I'Access;
+      TResult.Components := Null_Tagged_Component_List;
+      Add (TResult.Components, Tagged_Component_Access (Temp_Ref));
+      Index := Index2 + 1;
+
+      Index2 := Find (S, Index, ':');
+      if Index2 = S'Last + 1 then
+         Destroy_Profile (Result);
+         return null;
+      end if;
+      pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
+      TResult.Address.Addr := String_To_Addr (S (Index .. Index2 - 1));
+      Index := Index2 + 1;
+
+      pragma Debug (O ("Port = " & S (Index .. S'Last)));
+      TResult.Address.Port
+        := PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
+
+      TResult.Object_Id := To_Object_Id (TResult.G_I.all);
+
+      pragma Debug (O ("UIPMC corbaloc to profile: leave"));
+      return Result;
    end Corbaloc_To_Profile;
 
    -----------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,14 +35,14 @@ with MOMA;
 
 package body PolyORB.MOMA_P.Exceptions is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
 
    ----------------------
    -- Raise_From_Error --
    ----------------------
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
+     (Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Assert (Is_Error (Error));
 

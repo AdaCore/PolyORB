@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,14 +35,13 @@ with Ada.Text_IO;       use Ada.Text_IO;
 with Ada.Command_Line;  use Ada.Command_Line;
 
 with GNAT.Command_Line; use GNAT.Command_Line;
-with GNAT.IO_Aux;       use GNAT.IO_Aux;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
 with Idlac_Flags;       use Idlac_Flags;
 
+with Idl_Fe.Files;
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
-with Idl_Fe.Lexer;
 with Errors;
 
 with Ada_Be.Expansion;
@@ -96,8 +95,11 @@ begin
                Preprocess_Only := True;
 
             when 'I' =>
-               Idl_Fe.Lexer.Add_Argument ("-I");
-               Idl_Fe.Lexer.Add_Argument (Parameter);
+               declare
+                  Success : Boolean;
+               begin
+                  Idl_Fe.Files.Add_Search_Path (Parameter, Success);
+               end;
 
             when 'd' =>
                Generate_Delegate := True;
@@ -151,17 +153,10 @@ begin
    --  If file does not exist, issue an error message unless it works after
    --  adding an "idl" extension.
 
-   if not File_Exists (File_Name.all)
-     or else not Is_Regular_File (File_Name.all)
-   then
-      if File_Exists (File_Name.all & ".idl")
-        and then Is_Regular_File (File_Name.all & ".idl")
-      then
-         File_Name := new String'(File_Name.all & ".idl");
-      else
-         Put_Line (Current_Error, "No such file: " & File_Name.all);
-         Usage;
-      end if;
+   File_Name := new String'(Idl_Fe.Files.Locate_IDL_File (File_Name.all));
+   if File_Name.all'Length = 0 then
+      Put_Line (Current_Error, "No such file: " & File_Name.all);
+      Usage;
    end if;
 
    if Preprocess_Only then
@@ -169,24 +164,33 @@ begin
       --  If we only want to preprocess, let's preprocess, print the content
       --  of the file and exit.
 
-      Idl_Fe.Lexer.Preprocess_File (File_Name.all);
       declare
          use Ada.Text_IO;
-         Line : String (1 .. 1024);
-         Last : Natural;
+
+         Idl_File : File_Type;
+         Line     : String (1 .. 1024);
+         Last     : Natural;
       begin
+         Open
+           (Idl_File, In_File, Idl_Fe.Files.Preprocess_File (File_Name.all));
+         Set_Input (Idl_File);
+
          while not End_Of_File loop
             Get_Line (Line, Last);
             Put_Line (Line (1 .. Last));
          end loop;
+
+         Delete (Idl_File);
       end;
 
    else
 
       --  Setup parser
+
       Idl_Fe.Parser.Initialize (File_Name.all);
 
       --  Parse input
+
       Rep := Idl_Fe.Parser.Parse_Specification;
 
       if Errors.Is_Error then
@@ -215,21 +219,20 @@ begin
          end if;
 
          --  Expand tree. This should not cause any errors!
+
          Ada_Be.Expansion.Expand_Repository (Rep);
          pragma Assert (not Errors.Is_Error);
 
          --  Generate code
+
          Ada_Be.Idl2Ada.Generate
            (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
             Node        => Rep,
             Implement   => Generate_Impl_Template,
             Intf_Repo   => Generate_IR,
             To_Stdout   => To_Stdout);
+
+         Idl_Fe.Parser.Finalize;
       end if;
    end if;
-
-   if not Keep_Temporary_Files then
-      Idl_Fe.Lexer.Remove_Temporary_Files;
-   end if;
-
 end Idlac;

@@ -40,7 +40,7 @@ part2.stubs/cxe4002_part_a2.ali: $(srcdir)/cxe4002_part_a2.ads
 part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe4002_part_a1.ali part1.stubs/cxe4002_part_a2.ali
 part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe4002_part_a1.ali part2.stubs/cxe4002_part_a2.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr part1.stubs part2.stubs
 

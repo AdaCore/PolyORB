@@ -33,7 +33,6 @@
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
-with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
 
 with Ada_Be.Debug;
@@ -59,29 +58,38 @@ package body Ada_Be.Source_Streams is
       Next : Dependency;
    end record;
 
+   -----------------------
+   -- Local subprograms --
+   -----------------------
+
+   function Is_Empty (Unit : Compilation_Unit) return Boolean;
+   --  True if, and only if, all of Unit's diversions are empty
+
    function Is_Ancestor
      (U1 : String;
       U2 : String)
      return Boolean;
    --  True if library unit U1 is an ancestor of U2.
 
-   function Is_Ancestor
-     (U1 : String;
-      U2 : String)
-     return Boolean
-   is
+   -----------------
+   -- Is_Ancestor --
+   -----------------
+
+   function Is_Ancestor (U1 : String; U2 : String) return Boolean is
       use Ada.Characters.Handling;
 
-      LU1 : constant String
-        := To_Lower (U1) & ".";
-      LU2 : constant String
-        := To_Lower (U2);
+      LU1 : constant String := To_Lower (U1) & ".";
+      LU2 : constant String := To_Lower (U2);
    begin
       return True
         and then LU1'Length <= LU2'Length
         and then LU1 = LU2
         (LU2'First .. LU2'First + LU1'Length - 1);
    end Is_Ancestor;
+
+   --------------
+   -- Add_With --
+   --------------
 
    procedure Add_With
      (Unit         : in out Compilation_Unit;
@@ -98,9 +106,9 @@ package body Ada_Be.Source_Streams is
         or else Dep = "Standard"
         or else Dep = LU_Name
       then
-         --  No need to with oneself. If Dep is an ancestor
-         --  of Unit, register it (even though no 'with' clause
-         --  will be emitted) for the sake of elaboration control.
+         --  No need to with oneself. If Dep is an ancestor of Unit, register
+         --  it (even though no 'with' clause will be emitted) for the sake of
+         --  elaboration control.
          return;
       end if;
 
@@ -112,8 +120,8 @@ package body Ada_Be.Source_Streams is
         and then Unit.Kind = Unit_Spec
         and then Is_Ancestor (LU_Name, Dep)
       then
-         --  All hope abandon he who trieth to make a unit
-         --  spec depend upon its child.
+         --  All hope abandon he who trieth to make a package spec depend upon
+         --  its child.
          pragma Debug (O ("The declaration of " & LU_Name
                           & " cannot depend on " & Dep));
 
@@ -150,24 +158,42 @@ package body Ada_Be.Source_Streams is
 
    end Add_With;
 
-   procedure Add_Elaborate_Body (Unit : in out Compilation_Unit) is
+   ------------------------
+   -- Add_Elaborate_Body --
+   ------------------------
+
+   procedure Add_Elaborate_Body
+     (U_Spec : in out Compilation_Unit;
+      U_Body : Compilation_Unit) is
    begin
-      pragma Assert (Unit.Kind = Unit_Spec);
-      Unit.Diversions (Visible_Declarations).Empty := False;
-      Unit.Elaborate_Body := True;
+      pragma Assert (U_Spec.Kind = Unit_Spec);
+      if not Is_Empty (U_Body) then
+         U_Spec.Diversions (Visible_Declarations).Empty := False;
+         U_Spec.Elaborate_Body := True;
+      end if;
    end Add_Elaborate_Body;
+
+   ------------------------------
+   -- Suppress_Warning_Message --
+   ------------------------------
 
    procedure Suppress_Warning_Message (Unit : in out Compilation_Unit) is
    begin
       Unit.No_Warning := True;
    end Suppress_Warning_Message;
 
-   --  Source streams (global)
+   ----------
+   -- Name --
+   ----------
 
    function Name (CU : Compilation_Unit) return String is
    begin
       return CU.Library_Unit_Name.all;
    end Name;
+
+   -----------------------------
+   -- Allocate_User_Diversion --
+   -----------------------------
 
    function Allocate_User_Diversion
      return Diversion is
@@ -179,14 +205,23 @@ package body Ada_Be.Source_Streams is
          end if;
       end loop;
 
+      --  Too many diversions open
+
       raise Program_Error;
-      --  Too many diversions open.
    end Allocate_User_Diversion;
+
+   -----------------------
+   -- Current_Diversion --
+   -----------------------
 
    function Current_Diversion (CU : Compilation_Unit) return Diversion is
    begin
       return CU.Current_Diversion;
    end Current_Diversion;
+
+   ------------
+   -- Divert --
+   ------------
 
    procedure Divert
      (CU     : in out Compilation_Unit;
@@ -207,6 +242,10 @@ package body Ada_Be.Source_Streams is
       CU.Current_Diversion := Whence;
    end Divert;
 
+   --------------
+   -- Undivert --
+   --------------
+
    procedure Undivert
      (CU : in out Compilation_Unit;
       D  : Diversion)
@@ -214,39 +253,56 @@ package body Ada_Be.Source_Streams is
       Div : Diversion_Data renames CU.Diversions (D);
       Empty_Diversion : Diversion_Data;
       pragma Warnings (Off, Empty_Diversion);
-      --  Use default initialization.
+      --  Use default initialization
    begin
       if not Diversions_Allocation (D) then
          raise Program_Error;
       end if;
 
-      if not (Div.Empty) then
+      if Length (Div.Library_Item) > 0 then
          if not CU.Diversions (CU.Current_Diversion).At_BOL then
             New_Line (CU);
          end if;
-         --  Here we are actually at BOL.
+
+         --  Now we are actually at BOL
 
          Put (CU, To_String (Div.Library_Item));
          CU.Diversions (CU.Current_Diversion).At_BOL := Div.At_BOL;
       end if;
 
+      if not Div.Empty then
+         --  Undivert might be performed in template mode, so we need to
+         --  carry manually the non-Empty status from D to Current_Diversion.
+
+         CU.Diversions (CU.Current_Diversion).Empty := False;
+      end if;
+
+      --  Reset diversion D to empty state
+
       CU.Diversions (D) := Empty_Diversion;
-      --  Reset diversion D to empty state.
    end Undivert;
+
+   -----------------
+   -- New_Package --
+   -----------------
 
    function New_Package
      (Name : String;
       Kind : Unit_Kind)
      return Compilation_Unit
    is
-      The_Package : Compilation_Unit;
+      The_Package : Compilation_Unit (Kind => Kind);
    begin
       The_Package.Library_Unit_Name := new String'(Name);
-      The_Package.Kind := Kind;
-
+      for D in Predefined_Diversions loop
+         The_Package.Diversions (D).Indent_Level := 1;
+      end loop;
       return The_Package;
    end New_Package;
 
+   --------------
+   -- Generate --
+   --------------
 
    procedure Generate
      (Unit : in Compilation_Unit;
@@ -254,17 +310,15 @@ package body Ada_Be.Source_Streams is
       To_Stdout : Boolean := False)
    is
 
-      --  Helper subprograms for Generate
-
       function Ada_File_Name
         (Full_Name : String;
          Part      : Unit_Kind := Unit_Spec)
         return String;
-      --  The name of the file that contains Unit.
+      --  Name of the source file for Unit
 
-      function Is_Empty return Boolean;
-      --  True if, and only if, all of Unit's diversions
-      --  are empty.
+      -------------------
+      -- Ada_File_Name --
+      -------------------
 
       function Ada_File_Name
         (Full_Name : String;
@@ -288,25 +342,21 @@ package body Ada_Be.Source_Streams is
          return Result;
       end Ada_File_Name;
 
-      function Is_Empty return Boolean is
-      begin
-         for I in Unit.Diversions'Range loop
-            if not Unit.Diversions (I).Empty then
-               return False;
-            end if;
-         end loop;
-
-         return True;
-      end Is_Empty;
-
       use Ada.Text_IO;
 
       procedure Emit_Standard_Header
         (File        : in File_Type;
          User_Edited : in Boolean := False);
+      --  Generate boilerplate header. If User_Edited is False, include a
+      --  warning that the file is generated automatically and should not
+      --  be modified by hand.
 
-      procedure Emit_Source_Code
-        (File : in File_Type);
+      procedure Emit_Source_Code (File : in File_Type);
+      --  Generate the source text
+
+      --------------------------
+      -- Emit_Standard_Header --
+      --------------------------
 
       procedure Emit_Standard_Header
         (File        : in File_Type;
@@ -315,7 +365,7 @@ package body Ada_Be.Source_Streams is
       begin
          Put_Line (File, "-------------------------------------------------");
          Put_Line (File, "--  This file has been generated automatically");
-         Put_Line (File, "--  by IDLAC (http://libre.act-europe.fr/polyorb/)");
+         Put_Line (File, "--  by IDLAC (http://libre.adacore.com/polyorb/)");
          if not User_Edited then
             Put_Line (File, "--");
             Put_Line (File, "--  Do NOT hand-modify this file, as your");
@@ -329,13 +379,15 @@ package body Ada_Be.Source_Streams is
          New_Line (File);
       end Emit_Standard_Header;
 
-      procedure Emit_Source_Code
-        (File : in File_Type)
-      is
+      ----------------------
+      -- Emit_Source_Code --
+      ----------------------
+
+      procedure Emit_Source_Code (File : in File_Type) is
          Dep_Node : Dependency := Unit.Context_Clause;
+
       begin
          while Dep_Node /= null loop
-
             if (not Is_Ancestor
                 (Dep_Node.Library_Unit.all,
                  Unit.Library_Unit_Name.all))
@@ -383,7 +435,7 @@ package body Ada_Be.Source_Streams is
          end if;
          Put_Line (File, Unit.Library_Unit_Name.all & " is");
 
-         if Unit.Elaborate_Body then
+         if Unit.Kind = Unit_Spec and then Unit.Elaborate_Body then
             New_Line (File);
             Put_Line (File, "   pragma Elaborate_Body;");
          end if;
@@ -412,8 +464,10 @@ package body Ada_Be.Source_Streams is
          end if;
       end Emit_Source_Code;
 
+      --  Start of processing for Generate
+
    begin
-      if Is_Empty then
+      if Is_Empty (Unit) then
          return;
       end if;
 
@@ -434,7 +488,9 @@ package body Ada_Be.Source_Streams is
       end if;
    end Generate;
 
-   --  Source code streams (diversion specific)
+   ---------
+   -- Put --
+   ---------
 
    procedure Put
      (Unit : in out Compilation_Unit;
@@ -446,7 +502,9 @@ package body Ada_Be.Source_Streams is
         := (others => ' ');
       LF_Pos : Integer;
    begin
-      Unit.Diversions (Unit.Current_Diversion).Empty := False;
+      if not Unit.Template_Mode then
+         Unit.Diversions (Unit.Current_Diversion).Empty := False;
+      end if;
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
          Append
            (Unit.Diversions (Unit.Current_Diversion).Library_Item,
@@ -478,6 +536,10 @@ package body Ada_Be.Source_Streams is
       end if;
    end Put;
 
+   --------------
+   -- Put_Line --
+   --------------
+
    procedure Put_Line
      (Unit : in out Compilation_Unit;
       Line : String) is
@@ -485,11 +547,19 @@ package body Ada_Be.Source_Streams is
       Put (Unit, Line & ASCII.LF);
    end Put_Line;
 
+   --------------
+   -- New_Line --
+   --------------
+
    procedure New_Line (Unit : in out Compilation_Unit) is
    begin
       Append (Unit.Diversions (Unit.Current_Diversion).Library_Item, LF);
       Unit.Diversions (Unit.Current_Diversion).At_BOL := True;
    end New_Line;
+
+   ----------------
+   -- Inc_Indent --
+   ----------------
 
    procedure Inc_Indent (Unit : in out Compilation_Unit) is
    begin
@@ -497,43 +567,49 @@ package body Ada_Be.Source_Streams is
       := Unit.Diversions (Unit.Current_Diversion).Indent_Level + 1;
    end Inc_Indent;
 
+   ----------------
+   -- Dec_Indent --
+   ----------------
+
    procedure Dec_Indent (Unit : in out Compilation_Unit) is
    begin
       Unit.Diversions (Unit.Current_Diversion).Indent_Level
       := Unit.Diversions (Unit.Current_Diversion).Indent_Level - 1;
    end Dec_Indent;
 
-   --  Finalization
+   -----------------------------
+   -- Current_Diversion_Empty --
+   -----------------------------
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation (String, String_Ptr);
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Dependency_Node, Dependency);
-
-   procedure Finalize (Object : in out Dependency_Node);
-
-   procedure Finalize (Object : in out Dependency_Node) is
+   function Current_Diversion_Empty (CU : Compilation_Unit) return Boolean is
    begin
-      if Object.Next /= null then
-         Finalize (Object.Next.all);
-         Free (Object.Next);
-      end if;
-      Free (Object.Library_Unit);
-   end Finalize;
+      return CU.Diversions (CU.Current_Diversion).Empty;
+   end Current_Diversion_Empty;
 
-   procedure Initialize (CU : in out Compilation_Unit) is
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (Unit : Compilation_Unit) return Boolean is
    begin
-      for D in Predefined_Diversions loop
-         CU.Diversions (D).Indent_Level := 1;
+      for I in Unit.Diversions'Range loop
+         if not Unit.Diversions (I).Empty then
+            return False;
+         end if;
       end loop;
-   end Initialize;
+      return True;
+   end Is_Empty;
 
-   procedure Finalize (CU : in out Compilation_Unit) is
+   -----------------------
+   -- Set_Template_Mode --
+   -----------------------
+
+   procedure Set_Template_Mode
+     (Unit : in out Compilation_Unit;
+      Mode : Boolean)
+   is
    begin
-      if CU.Context_Clause /= null then
-         Finalize (CU.Context_Clause.all);
-         Free (CU.Context_Clause);
-      end if;
-   end Finalize;
+      Unit.Template_Mode := Mode;
+   end Set_Template_Mode;
 
 end Ada_Be.Source_Streams;

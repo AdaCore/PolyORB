@@ -206,9 +206,13 @@ package System.PolyORB_Interface is
    --  Do not change its definition or its layout without updating
    --  Exp_Dist.Add_RACW_Stub_Type.
 
+   type Subprogram_Id is new Natural;
    type RAS_Proxy_Type is tagged limited record
       All_Calls_Remote : Boolean;
       Target           : Entity_Ptr;
+      Subp_Id          : Subprogram_Id := 0;
+      --  This component is unused for PolyORB (it is used only for
+      --  the GARLIC implementation of RAS.)
    end record;
    type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
    --  This type is used by the expansion to implement distributed objects.
@@ -225,12 +229,8 @@ package System.PolyORB_Interface is
    --  object). Note that newly-allocated stubs are always of type
    --  RACW_Stub_Type, so a tag fixup is required afterwards.
 
-   function To_PolyORB_String (S : String)
-     return PolyORB.Types.Identifier
+   function To_PolyORB_String (S : String) return PolyORB.Types.Identifier
      renames PolyORB.Types.To_PolyORB_String;
-   function To_Standard_String (S : PolyORB.Types.Identifier)
-     return String
-     renames PolyORB.Types.To_Standard_String;
 
    function Is_Nil (R : PolyORB.References.Ref) return Boolean
      renames PolyORB.References.Is_Nil;

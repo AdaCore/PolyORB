@@ -428,4 +428,40 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                                            Version);
    end create_native;
 
+   -------------------------------
+   -- create_abstract_interface --
+   -------------------------------
+
+   function create_abstract_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     AbstractInterfaceDefSeq)
+     return AbstractInterfaceDef_Forward.Ref
+   is
+   begin
+      return
+        Container.Impl.create_abstract_interface
+        (Self.Container_View, id, name, version, base_interfaces);
+   end create_abstract_interface;
+
+   ----------------------------
+   -- create_local_interface --
+   ----------------------------
+
+   function create_local_interface
+     (Self            : access Object;
+      id              : in     RepositoryId;
+      name            : in     Identifier;
+      version         : in     VersionSpec;
+      base_interfaces : in     InterfaceDefSeq)
+      return LocalInterfaceDef_Forward.Ref
+   is
+   begin
+      return
+        Container.Impl.create_local_interface
+        (Self.Container_View, id, name, version, base_interfaces);
+   end create_local_interface;
+
 end CORBA.Repository_Root.UnionDef.Impl;

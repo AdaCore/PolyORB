@@ -1,6 +1,7 @@
 include $(top_srcdir)/idls/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
+IDLdir = $(includedir)/polyorb/corba/idls/cos/time
 
 IDL=$(srcdir)/CosTime.idl $(srcdir)/TimeBase.idl
 
@@ -30,7 +31,9 @@ GEN= \
         $(GEN_SPECS_WITH_BODY)
 
 $(GEN): $(IDL) $(IDLAC)
-	$(IDLAC) $(IDL) -I$(srcdir)
+	for i in $(IDL); do \
+		$(IDLAC) $$i -I$(srcdir); \
+	done
 	touch $@
 
 $(GEN_BODIES): $(GEN)

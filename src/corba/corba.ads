@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -44,8 +44,8 @@ with Ada.Unchecked_Deallocation;
 with Interfaces;
 
 with PolyORB.Any;
+with PolyORB.Errors;
 with PolyORB.Types;
-with PolyORB.Exceptions;
 
 package CORBA is
 
@@ -169,7 +169,7 @@ package CORBA is
    -- Exceptions --
    ----------------
 
-   subtype IDL_Exception_Members is PolyORB.Exceptions.Exception_Members;
+   subtype IDL_Exception_Members is PolyORB.Errors.Exception_Members;
    --  Base type for all CORBA exception members. A member is a record attached
    --  to an exception that allows the programmer to pass arguments when an
    --  exception is raised. The default Member record is abstract and empty but
@@ -180,7 +180,7 @@ package CORBA is
       To   : out IDL_Exception_Members) is abstract;
    --  Return the member corresponding to an exception occurence
 
-   type Completion_Status is new PolyORB.Exceptions.Completion_Status;
+   type Completion_Status is new PolyORB.Errors.Completion_Status;
    --  Characterization the state of execution when an exception occurs
 
    type Exception_Type is (No_Exception, System_Exception, User_Exception);
@@ -231,7 +231,7 @@ package CORBA is
    --  Implementation Note: this exception is defined in the Ada mapping
    --  specification, not in the CORBA specification itself.
 
-   type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
+   type System_Exception_Members is new PolyORB.Errors.Exception_Members
      with record
         Minor     : CORBA.Unsigned_Long;
         Completed : CORBA.Completion_Status;
@@ -243,7 +243,7 @@ package CORBA is
    --  Return the member corresponding to a system exception occurence.
 
    procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container);
+     (Error : in out PolyORB.Errors.Error_Container);
    --  Raise the exception associated with the current state of Error.
    --  If Error is an empty Error Container, no exception is raised.
 

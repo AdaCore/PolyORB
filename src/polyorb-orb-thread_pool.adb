@@ -32,7 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Components;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -46,7 +46,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.ORB.Thread_Pool is
 
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Parameters;
    use PolyORB.Tasking.Threads;

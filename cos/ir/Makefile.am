@@ -2,42 +2,45 @@ include $(top_srcdir)/cos/Makefile.common
 
 alidir = $(includedir)/polyorb/corba/cos
 
-#
-# Compiling the IR is a bit complex, here is a summary of the different steps
-# 1. Generate code for ir.idl
-# 2. Patch the generated code, see sed command line below
-# 3. Compile the library
-# 4. Compile the different executables
-#
-
 IMPL_SPECS_WITH_BODY= \
-  corba-repository_root-container-impl.ads \
-  corba-repository_root-irobject-impl.ads \
-  corba-repository_root-contained-impl.ads \
-  corba-repository_root-moduledef-impl.ads \
-  corba-repository_root-interfacedef-impl.ads \
-  corba-repository_root-valuedef-impl.ads \
-  corba-repository_root-exceptiondef-impl.ads \
-  corba-repository_root-typedefdef-impl.ads \
-  corba-repository_root-uniondef-impl.ads \
-  corba-repository_root-structdef-impl.ads \
-  corba-repository_root-repository-impl.ads \
-  corba-repository_root-idltype-impl.ads \
-  corba-repository_root-primitivedef-impl.ads \
-  corba-repository_root-stringdef-impl.ads \
-  corba-repository_root-wstringdef-impl.ads \
-  corba-repository_root-sequencedef-impl.ads \
-  corba-repository_root-fixeddef-impl.ads \
-  corba-repository_root-arraydef-impl.ads \
-  corba-repository_root-enumdef-impl.ads \
+  corba-repository_root-abstractinterfacedef-impl.ads \
   corba-repository_root-aliasdef-impl.ads \
-  corba-repository_root-constantdef-impl.ads \
+  corba-repository_root-arraydef-impl.ads \
   corba-repository_root-attributedef-impl.ads \
+  corba-repository_root-constantdef-impl.ads \
+  corba-repository_root-contained-impl.ads \
+  corba-repository_root-container-impl.ads \
+  corba-repository_root-enumdef-impl.ads \
+  corba-repository_root-exceptiondef-impl.ads \
+  corba-repository_root-extabstractinterfacedef-impl.ads \
+  corba-repository_root-extattributedef-impl.ads \
+  corba-repository_root-extinterfacedef-impl.ads \
+  corba-repository_root-extlocalinterfacedef-impl.ads \
+  corba-repository_root-fixeddef-impl.ads \
+  corba-repository_root-idltype-impl.ads \
+  corba-repository_root-interfacedef-impl.ads \
+  corba-repository_root-interfaceattrextension-impl.ads \
+  corba-repository_root-irobject-impl.ads \
+  corba-repository_root-localinterfacedef-impl.ads \
+  corba-repository_root-moduledef-impl.ads \
+  corba-repository_root-nativedef-impl.ads \
   corba-repository_root-operationdef-impl.ads \
+  corba-repository_root-primitivedef-impl.ads \
+  corba-repository_root-repository-impl.ads \
+  corba-repository_root-sequencedef-impl.ads \
+  corba-repository_root-stringdef-impl.ads \
+  corba-repository_root-structdef-impl.ads \
+  corba-repository_root-typedefdef-impl.ads \
+  corba-repository_root-valueboxdef-impl.ads \
+  corba-repository_root-valuedef-impl.ads \
   corba-repository_root-valuememberdef-impl.ads \
-  corba-repository_root-nativedef-impl.ads 
+  corba-repository_root-uniondef-impl.ads \
+  corba-repository_root-wstringdef-impl.ads
 
 GEN_SPECS_WITH_BODY= \
+  corba-repository_root-abstractinterfacedef-helper.ads \
+  corba-repository_root-abstractinterfacedef-skel.ads \
+  corba-repository_root-abstractinterfacedef.ads \
   corba-repository_root-aliasdef-helper.ads \
   corba-repository_root-aliasdef-skel.ads \
   corba-repository_root-aliasdef.ads \
@@ -62,6 +65,18 @@ GEN_SPECS_WITH_BODY= \
   corba-repository_root-exceptiondef-helper.ads \
   corba-repository_root-exceptiondef-skel.ads \
   corba-repository_root-exceptiondef.ads \
+  corba-repository_root-extabstractinterfacedef-helper.ads \
+  corba-repository_root-extabstractinterfacedef-skel.ads \
+  corba-repository_root-extabstractinterfacedef.ads \
+  corba-repository_root-extattributedef-helper.ads \
+  corba-repository_root-extattributedef-skel.ads \
+  corba-repository_root-extattributedef.ads \
+  corba-repository_root-extinterfacedef-helper.ads \
+  corba-repository_root-extinterfacedef-skel.ads \
+  corba-repository_root-extinterfacedef.ads \
+  corba-repository_root-extlocalinterfacedef-helper.ads \
+  corba-repository_root-extlocalinterfacedef-skel.ads \
+  corba-repository_root-extlocalinterfacedef.ads \
   corba-repository_root-fixeddef-helper.ads \
   corba-repository_root-fixeddef-skel.ads \
   corba-repository_root-fixeddef.ads \
@@ -72,9 +87,15 @@ GEN_SPECS_WITH_BODY= \
   corba-repository_root-interfacedef-helper.ads \
   corba-repository_root-interfacedef-skel.ads \
   corba-repository_root-interfacedef.ads \
+  corba-repository_root-interfaceattrextension-helper.ads \
+  corba-repository_root-interfaceattrextension-skel.ads \
+  corba-repository_root-interfaceattrextension.ads \
   corba-repository_root-irobject-helper.ads \
   corba-repository_root-irobject-skel.ads \
   corba-repository_root-irobject.ads \
+  corba-repository_root-localinterfacedef-helper.ads \
+  corba-repository_root-localinterfacedef-skel.ads \
+  corba-repository_root-localinterfacedef.ads \
   corba-repository_root-moduledef-helper.ads \
   corba-repository_root-moduledef-skel.ads \
   corba-repository_root-moduledef.ads \
@@ -123,11 +144,10 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 GEN= \
 	$(GEN_SPECS_WITH_BODY)
 
-$(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
-	$(IDLAC) $(srcdir)/ir.idl
+$(GEN): $(top_srcdir)/idls/CORBA_IDL/orb.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_InterfaceRepository.idl $(top_srcdir)/idls/CORBA_IDL/CORBA_TypeCode.idl $(IDLAC)
+	$(IDLAC) -I$(top_srcdir)/idls/CORBA_IDL \
+		-I$(top_srcdir)/idls/CORBA_PIDL orb.idl
 	$(RM) corba-repository_root.ads
-	@chmod +x $(srcdir)/typecode.sh
-	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
 
 $(GEN_BODIES): $(GEN)
 
@@ -139,7 +159,9 @@ DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 ADA_SPECS_WITH_BODY = \
 	$(IMPL_SPECS_WITH_BODY) \
-	$(GEN_SPECS_WITH_BODY)
+	$(GEN_SPECS_WITH_BODY) \
+	corba-orb-typecode.ads \
+	polyorb-corba_p-ir_tools.ads
 
 ADA_SPECS_NO_BODY = \
 	$(GEN_SPECS_NO_BODY)
@@ -149,3 +171,9 @@ lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
 libpolyorb_corba_cos_ir_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_ir_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
+
+#
+# Executables to be compiled
+#   
+
+ir_exe=po_ir

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,24 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
 with PolyORB.Buffers;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 
 package body PolyORB.Protocols.GIOP.Common is
 
    use PolyORB.Buffers;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
@@ -132,22 +134,22 @@ package body PolyORB.Protocols.GIOP.Common is
       return Unmarshall_Aux (Buffer);
    end Unmarshall;
 
-   --------------------------
-   -- Common_Process_Reply --
-   --------------------------
+   -----------------------
+   -- Common_Send_Reply --
+   -----------------------
 
-   procedure Common_Process_Reply
+   procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
       Reply_Stat_Ptr : access Reply_Status_Type;
-      Error          : in out Exceptions.Error_Container)
+      Error          : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
       use PolyORB.Any;
       use PolyORB.Buffers;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Types;
       use type PolyORB.Any.TypeCode.Object;
 
@@ -306,7 +308,7 @@ package body PolyORB.Protocols.GIOP.Common is
             end;
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
 
       --  Marshall Header
@@ -323,11 +325,11 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Emit reply
 
-      Emit_Message (Sess.Implem, Sess, Buffer_Out);
+      Emit_Message (Sess.Implem, Sess, Buffer_Out, Error);
 
       Release (Buffer_Out);
       pragma Debug (O ("Reply sent"));
-   end Common_Process_Reply;
+   end Common_Send_Reply;
 
    -------------------------
    -- Common_Locate_Reply --
@@ -337,7 +339,8 @@ package body PolyORB.Protocols.GIOP.Common is
      (Sess               : access GIOP_Session;
       Locate_Request_Id  :        Types.Unsigned_Long;
       Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref)
+      Forward_Ref        :        References.Ref;
+      Error              : in out Errors.Error_Container)
    is
       use PolyORB.Components;
       use PolyORB.Types;
@@ -373,7 +376,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
-      Emit_Message (Sess.Implem, Sess, Buffer);
+      Emit_Message (Sess.Implem, Sess, Buffer, Error);
       Release (Buffer);
    end Common_Locate_Reply;
 
@@ -398,11 +401,11 @@ package body PolyORB.Protocols.GIOP.Common is
       case Loc_Type is
          when Object_Here | Unknown_Object =>
             declare
-               use PolyORB.Exceptions;
+               use PolyORB.Errors;
 
                Req     : Pending_Request_Access;
                Success : Boolean;
-               Error   : Exceptions.Error_Container;
+               Error   : Errors.Error_Container;
             begin
                Get_Pending_Request_By_Locate
                  (Sess,
@@ -430,7 +433,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
                   Components.Emit_No_Reply
                     (Components.Component_Access (ORB),
-                     Servants.Interface.Executed_Request'(Req => Req.Req));
+                     Servants.Iface.Executed_Request'(Req => Req.Req));
 
                   Remove_Pending_Request_By_Locate
                     (Sess,
@@ -464,14 +467,14 @@ package body PolyORB.Protocols.GIOP.Common is
 
                begin
                   Req.Req.Exception_Info :=
-                    PolyORB.Exceptions.To_Any
-                    (PolyORB.Exceptions.ForwardRequest_Members'
+                    PolyORB.Errors.To_Any
+                    (PolyORB.Errors.ForwardRequest_Members'
                      (Forward_Reference => Smart_Pointers.Ref (Ref)));
                end;
 
                Components.Emit_No_Reply
                  (Components.Component_Access (ORB),
-                  Servants.Interface.Executed_Request'
+                  Servants.Iface.Executed_Request'
                   (Req => Req.Req));
 
                Remove_Pending_Request_By_Locate
@@ -496,8 +499,9 @@ package body PolyORB.Protocols.GIOP.Common is
    ----------------------------------
 
    procedure Common_Process_Abort_Request
-     (Sess : access GIOP_Session;
-      R    : in     Request_Access)
+     (Sess  : access GIOP_Session;
+      R     :        Request_Access;
+      Error : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
       use PolyORB.Types;
@@ -526,7 +530,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Sending the message
 
-      Emit_Message (Sess.Implem, Sess, Buffer);
+      Emit_Message (Sess.Implem, Sess, Buffer, Error);
 
       Release (Buffer);
    end Common_Process_Abort_Request;
@@ -543,7 +547,7 @@ package body PolyORB.Protocols.GIOP.Common is
    is
       use PolyORB.Any;
       use PolyORB.Components;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.ORB;
 
       Current_Req  : Pending_Request;
@@ -552,7 +556,7 @@ package body PolyORB.Protocols.GIOP.Common is
       ORB          : constant ORB_Access := ORB_Access (Sess.Server);
       Arguments_Alignment : Buffers.Alignment_Type
         := Sess.Implem.Data_Alignment;
-      Error        : Exceptions.Error_Container;
+      Error        : Errors.Error_Container;
    begin
       pragma Assert ((Sess.Implem.Version = GIOP_Version'(1, 0)) or
                      (Sess.Implem.Version = GIOP_Version'(1, 1)) or
@@ -623,7 +627,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when System_Exception =>
@@ -634,7 +638,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Component_Access (ORB),
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when User_Exception =>
@@ -725,7 +729,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Servants.Interface.Executed_Request'
+                  Servants.Iface.Executed_Request'
                   (Req => Current_Req.Req));
             end;
 
@@ -736,18 +740,18 @@ package body PolyORB.Protocols.GIOP.Common is
                Ref : constant References.Ref := Unmarshall (Sess.Buffer_In);
             begin
                Current_Req.Req.Exception_Info :=
-                 PolyORB.Exceptions.To_Any
-                 (PolyORB.Exceptions.ForwardRequest_Members'
+                 PolyORB.Errors.To_Any
+                 (PolyORB.Errors.ForwardRequest_Members'
                   (Forward_Reference => Smart_Pointers.Ref (Ref)));
             end;
 
             Emit_No_Reply
               (Component_Access (ORB),
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when others =>
-            raise Not_Implemented;
+            raise Program_Error;
       end case;
 
       Expect_GIOP_Header (Sess);
@@ -776,10 +780,10 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------------------
 
    procedure Replace_Marshal_5_To_Bad_Param_23
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status)
+     (Error  : in out Errors.Error_Container;
+      Status : in     Errors.Completion_Status)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E
@@ -796,10 +800,10 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------------------
 
    procedure Replace_Marshal_5_To_Inv_Objref_2
-     (Error  : in out Exceptions.Error_Container;
-      Status : in     Exceptions.Completion_Status)
+     (Error  : in out Errors.Error_Container;
+      Status : in     Errors.Completion_Status)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type Types.Unsigned_Long;
    begin
       if Error.Kind = Marshal_E

@@ -33,6 +33,7 @@
 
 with PolyORB.Log;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 with System.Address_Image;
 
@@ -196,7 +197,7 @@ package body PolyORB.Any is
    --  'String' content
 
    type Content_String is new Content with record
-      Value : Types.String_Ptr;
+      Value : PolyORB.Utils.Strings.String_Ptr;
    end record;
 
    type Content_String_Ptr is access all Content_String;
@@ -599,7 +600,7 @@ package body PolyORB.Any is
         (Self : in Object)
         return Object is
       begin
-         raise Not_Implemented;
+         raise Program_Error;
          return Self;
       end Get_Compact_TypeCode;
 
@@ -2386,7 +2387,7 @@ package body PolyORB.Any is
    end To_Any;
 
    function To_Any
-     (Item : in Types.String)
+     (Item : in Standard.String)
      return Any
    is
       Result : Any;
@@ -2394,10 +2395,18 @@ package body PolyORB.Any is
       pragma Debug (O ("To_Any (String) : enter"));
 
       Set_Value (Result, new Content_String'
-                 (Value => new PolyORB.Types.String'(Item)));
+                 (Value => PolyORB.Utils.Strings."+" (Item)));
       Set_Type (Result, TC_String);
       pragma Debug (O ("To_Any (String) : end"));
       return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in Types.String)
+     return Any
+   is
+   begin
+      return To_Any (To_Standard_String (Item));
    end To_Any;
 
    function To_Any
@@ -2568,12 +2577,19 @@ package body PolyORB.Any is
 
    function From_Any
      (Item : in Any)
-     return Types.String is
+     return Standard.String is
    begin
       if TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_String then
          raise TypeCode.Bad_TypeCode;
       end if;
       return Content_String_Ptr (Get_Value (Item)).Value.all;
+   end From_Any;
+
+   function From_Any
+     (Item : in Any)
+     return Types.String is
+   begin
+      return To_PolyORB_String (From_Any (Item));
    end From_Any;
 
    function From_Any
@@ -2653,7 +2669,7 @@ package body PolyORB.Any is
    procedure Iterate_Over_Any_Elements
      (In_Any : in Any) is
    begin
-      raise Not_Implemented;
+      raise Program_Error;
    end Iterate_Over_Any_Elements;
 
    -------------------
@@ -2925,12 +2941,13 @@ package body PolyORB.Any is
       end if;
 
       if Container.The_Value /= null then
-         Content_String_Ptr (Container.The_Value).Value.all := Value;
-      else
-         Container.The_Value :=
-           new Content_String'(Value => new PolyORB.Types.String'(Value));
+         Deallocate (Container.The_Value);
       end if;
 
+      Container.The_Value :=
+        new Content_String'(Value =>
+                              PolyORB.Utils.Strings."+"
+                            (To_Standard_String (Value)));
    end Set_Any_Value;
 
    procedure Set_Any_Value
@@ -3416,7 +3433,7 @@ package body PolyORB.Any is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
       pragma Debug (O2 ("Deallocate (String) : enter"));
-      Deallocate (Object.Value);
+      PolyORB.Utils.Strings.Free (Object.Value);
       Deallocate_Any_Content (Obj);
       pragma Debug (O2 ("Deallocate (String) : end"));
    end Deallocate;
@@ -3615,7 +3632,7 @@ package body PolyORB.Any is
      return Any_Content_Ptr is
    begin
       return new Content_String'
-        (Value => new PolyORB.Types.String'
+        (Value => PolyORB.Utils.Strings."+"
          (Content_String_Ptr (Object).Value.all));
    end Duplicate;
 

@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#15 $
+;;; $Id: //droopi/main/utils/update-headers.el#18 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -96,14 +96,15 @@
 	    (beginning-of-line)
 	    (insert "\n"))))
 
-    ; output revision id.
-    (goto-char (point-min))
-    (if (not (re-search-forward "^--  $Id:" nil t))
-	(progn
-	  (goto-char (point-min))
-	  (re-search-forward "^[a-z]")
-	  (beginning-of-line)
-	  (insert (concat "--  $" "Id:$\n\n"))))))
+;    ; output revision id.
+;    (goto-char (point-min))
+;    (if (not (re-search-forward "^--  $Id:" nil t))
+;	(progn
+;	  (goto-char (point-min))
+;	  (re-search-forward "^[a-z]")
+;	  (beginning-of-line)
+;	  (insert (concat "--  $" "Id:$\n\n"))))))
+))
 
 ;;
 ;; insert-secondary-header: add secondary header if necessary
@@ -116,6 +117,7 @@
 	       (string-match "^portableinterceptor" (buffer-name))
 	       (string-match "^portableserver" (buffer-name))
 	       (string-match "^rtcorba" (buffer-name))	   
+	       (string-match "^rtcosscheduling" (buffer-name))	   
 	       (string-match "^rtportableserver" (buffer-name)))
 	   spec)
       (insert (header-omg))))

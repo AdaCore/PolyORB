@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ with PolyORB.References.IOR;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Exceptions;
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.Types;
 
@@ -55,11 +55,11 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
    begin
       POA := new Basic_Obj_Adapter;
@@ -103,7 +103,7 @@ package body PolyORB.POA.Basic_POA is
          U_Oid : Unmarshalled_Oid;
 
          Obj_OA : Obj_Adapter_Access;
-         Error  : PolyORB.Exceptions.Error_Container;
+         Error  : PolyORB.Errors.Error_Container;
 
       begin
          Oid_To_U_Oid (Oid.all, U_Oid, Error);
@@ -134,7 +134,7 @@ package body PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       R     :        References.Ref;
       Oid   :    out Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container) is
+      Error : in out PolyORB.Errors.Error_Container) is
    begin
       pragma Debug (O ("To_Proxy_Oid: enter"));
 
@@ -179,7 +179,7 @@ package body PolyORB.POA.Basic_POA is
      (OA    : access Basic_Obj_Adapter;
       Oid   : access Objects.Object_Id;
       Ref   : out References.Ref;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
@@ -195,7 +195,8 @@ package body PolyORB.POA.Basic_POA is
 
       declare
          Oid_Data : aliased Object_Id :=
-                      Objects.To_Oid (To_Standard_String (U_Oid.Id));
+                      Objects.Hex_String_To_Oid (
+                        To_Standard_String (U_Oid.Id));
          type SEA_Access is access all Ada.Streams.Stream_Element_Array;
          function As_SEA_Access is new Ada.Unchecked_Conversion
            (Object_Id_Access, SEA_Access);

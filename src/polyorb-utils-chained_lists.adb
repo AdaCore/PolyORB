@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Generic chained list.
+--  Generic chained list
 
 with Ada.Unchecked_Deallocation;
 
@@ -82,8 +82,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Duplicate --
    ---------------
 
-   function Duplicate (L : List) return List
-   is
+   function Duplicate (L : List) return List is
       D : List        := Empty;
       N : Node_Access := L.First;
       P : Node_Access;
@@ -106,8 +105,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Element --
    -------------
 
-   function Element (L : List; Index : Natural) return Element_Access
-   is
+   function Element (L : List; Index : Natural) return Element_Access is
       N : Node_Access := L.First;
       C : Natural := 0;
    begin
@@ -127,9 +125,10 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Extract_First
      (L      : in out List;
-      Result : out T) is
+      Result : out T)
+   is
    begin
-      if L.First = null then
+      if Is_Empty (L) then
          raise Constraint_Error;
       end if;
       Result := L.First.Value;
@@ -149,8 +148,7 @@ package body PolyORB.Utils.Chained_Lists is
    -- Insert --
    ------------
 
-   procedure Insert (L : in out List; I : T; Before : in out Iterator)
-   is
+   procedure Insert (L : in out List; I : T; Before : in out Iterator) is
       N : constant Node_Access
         := new Node'(Value => I, Next => Before.Current, Prev => null);
    begin
@@ -183,6 +181,15 @@ package body PolyORB.Utils.Chained_Lists is
       pragma Assert ((L.First = null) = (L.Last = null));
    end Insert;
 
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (L : List) return Boolean is
+   begin
+      return L.First = null;
+   end Is_Empty;
+
    ----------
    -- Last --
    ----------
@@ -192,10 +199,6 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       return Iterator'(Current => null);
    end Last;
-
-   ----------
-   -- Last --
-   ----------
 
    function Last (I : Iterator) return Boolean is
    begin
@@ -284,10 +287,6 @@ package body PolyORB.Utils.Chained_Lists is
       Remove (L, All_Occurrences);
    end Remove;
 
-   ------------
-   -- Remove --
-   ------------
-
    procedure Remove
      (L        : in out List;
       Item     : Node_Access;
@@ -310,10 +309,6 @@ package body PolyORB.Utils.Chained_Lists is
       end if;
       Free (Current);
    end Remove;
-
-   ------------
-   -- Remove --
-   ------------
 
    procedure Remove (L : in out List; I : in out Iterator) is
       Next : constant Node_Access := I.Current.Next;

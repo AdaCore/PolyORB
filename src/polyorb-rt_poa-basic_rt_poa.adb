@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.RT_POA.Basic_RT_POA is
 
+   use PolyORB.Errors;
    use PolyORB.Log;
    use PolyORB.POA;
 
@@ -119,14 +120,12 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
    procedure Create_POA
      (Self         : access Basic_RT_Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out PolyORB.POA.Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container)
+      Error        : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
    begin
       POA := new Basic_RT_Obj_Adapter;
 
@@ -154,10 +153,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
    begin
       pragma Debug (O ("Export: enter"));
 
@@ -200,10 +197,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
-
       Servant : Servants.Servant_Access;
 
    begin
@@ -213,7 +208,7 @@ package body PolyORB.RT_POA.Basic_RT_POA is
          declare
             U_Oid  : Unmarshalled_Oid;
             It     : Iterator := First (Shadow_Oids);
-            Error2 : PolyORB.Exceptions.Error_Container;
+            Error2 : PolyORB.Errors.Error_Container;
          begin
             Oid_To_U_Oid (Id.all, U_Oid, Error2);
             if Found (Error2) then
@@ -261,9 +256,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    begin
@@ -318,9 +312,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container)
+      Error                    : in out PolyORB.Errors.Error_Container)
    is
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
       It : Iterator := First (Shadow_Oids);

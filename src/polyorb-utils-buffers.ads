@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,25 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Utility subprograms for data representation methods and buffer access.
 
-with Ada.Streams; use Ada.Streams;
+with Ada.Streams;
 
-with PolyORB.Buffers; use PolyORB.Buffers;
+with PolyORB.Buffers;
 
 package PolyORB.Utils.Buffers is
 
    pragma Elaborate_Body;
 
-   function Rev
-     (Octets : Stream_Element_Array)
-     return Stream_Element_Array;
-   --  Reverse the order of an array of octets.
+   use PolyORB.Buffers;
+   use Ada.Streams;
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;

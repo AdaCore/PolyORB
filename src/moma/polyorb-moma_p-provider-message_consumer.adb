@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
@@ -195,7 +195,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Args  : PolyORB.Any.NVList.Ref;
       It    : Iterator;
@@ -206,7 +206,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       PolyORB.Any.NVList.Create (Args);
 
-      if Req.Operation = To_PolyORB_String ("Get") then
+      if Req.Operation.all = "Get" then
 
          PolyORB.Any.NVList.Add_Item
            (Args,
@@ -230,12 +230,12 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
                                         (Value (It).Argument)))));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
-      elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
+      elsif Req.Operation.all = "Register_Handler" then
 
          --  Register Message call_back handler
 
          pragma Debug (O ("Register_Handler request"));
-         Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
+         Args := Get_Parameter_Profile (Req.Operation.all);
 
          PolyORB.Requests.Arguments (Req, Args, Error);
 
@@ -265,7 +265,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       else
          pragma Debug (O ("Unrecognized request "
-                          & To_Standard_String (Req.Operation)));
+                          & Req.Operation.all));
          null;
       end if;
    end Invoke;

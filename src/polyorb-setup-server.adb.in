@@ -36,9 +36,17 @@
 --  The user must take care of also setting up a tasking runtime and a
 --  ORB tasking policy.
 
+with PolyORB.Log.Stderr;
+pragma Warnings (Off, PolyORB.Log.Stderr);
+pragma Elaborate_All (PolyORB.Log.Stderr);
+
 with PolyORB.Parameters.File;
 pragma Warnings (Off, PolyORB.Parameters.File);
 pragma Elaborate_All (PolyORB.Parameters.File);
+
+with PolyORB.Parameters.Environment;
+pragma Warnings (Off, PolyORB.Parameters.Environment);
+pragma Elaborate_All (PolyORB.Parameters.Environment);
 
 with PolyORB.Setup.OA.Basic_POA;
 pragma Warnings (Off, PolyORB.Setup.OA.Basic_POA);

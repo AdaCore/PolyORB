@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -74,8 +74,6 @@ package PolyORB.Parameters is
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
-   type Parameters_Initializer is access procedure;
-
    procedure Reset;
    --  Clear all variables previously positioned using Set_Conf.
 
@@ -87,5 +85,14 @@ private
      return String;
    --  Get the value of variable Key from the system
    --  environment variables, returning Default if not found.
+
+   type Fetch_From_File_T is access function (Key : String) return String;
+
+   Fetch_From_File_Hook : Fetch_From_File_T := null;
+
+   type Fetch_From_Env_T is
+     access function (Key : String; Default : String := "") return String;
+
+   Fetch_From_Env_Hook : Fetch_From_Env_T := null;
 
 end PolyORB.Parameters;

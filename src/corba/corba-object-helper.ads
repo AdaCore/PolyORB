@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,17 +40,9 @@ package CORBA.Object.Helper is
 
    --  See comments of the corresponding methods in package CORBA
 
-   function To_Any
-     (Item : in CORBA.Object.Ref)
-     return Any;
+   function To_Any (Item : in CORBA.Object.Ref) return Any;
 
-   function From_Any
-     (Item : in Any)
-     return CORBA.Object.Ref;
-
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value     : in    CORBA.Object.Ref);
+   function From_Any (Item : in Any) return CORBA.Object.Ref;
 
    function TC_Object
      return CORBA.TypeCode.Object

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,7 +35,6 @@
 
 with PolyORB.Constants;
 with PolyORB.Log;
-with PolyORB.Sockets_Copy;
 
 package body PolyORB.Asynch_Ev.Sockets is
 
@@ -135,7 +134,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    begin
       pragma Debug (O ("Check_Sources: enter"));
 
-      PolyORB.Sockets_Copy (Source => AEM.Monitored_Set, Target => R_Set);
+      PolyORB.Sockets.Copy (Source => AEM.Monitored_Set, Target => R_Set);
       PolyORB.Sockets.Empty (W_Set);
 
       if T = Constants.Forever then

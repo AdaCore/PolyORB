@@ -1,14 +1,22 @@
 //File: CosTime.idl
 //Part of the Time Service
+//OMG File: 02-03-08
 
 #ifndef _COS_TIME_IDL_
 #define _COS_TIME_IDL_
 
+#ifdef _PRE_3_0_COMPILER_
 #include <TimeBase.idl>
-
 #pragma prefix "omg.org"
+#else
+import ::TimeBase;
+#endif // _PRE_3_0_COMPILER_
 
 module CosTime {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosTime "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
 	enum TimeComparison {	
 		TCEqualTo,

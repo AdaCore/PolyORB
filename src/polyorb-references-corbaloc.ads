@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,12 +37,10 @@ with PolyORB.Types;
 package PolyORB.References.Corbaloc is
 
    function Profile_To_String
-     (P : Binding_Data.Profile_Access)
-     return Types.String;
+     (P : Binding_Data.Profile_Access) return Types.String;
 
    function String_To_Profile
-     (Str : Types.String)
-     return Binding_Data.Profile_Access;
+     (Obj_Addr : Types.String) return Binding_Data.Profile_Access;
    --  Return null if failed
 
    subtype Corbaloc_Type is PolyORB.References.Ref;
@@ -78,24 +76,21 @@ package PolyORB.References.Corbaloc is
    ---------------------
 
    type Profile_To_String_Body_Type is access function
-     (Profile : Binding_Data.Profile_Access)
-     return Types.String;
+     (Profile : Binding_Data.Profile_Access) return String;
 
    type String_To_Profile_Body_Type is access function
-     (Str : Types.String)
-     return Binding_Data.Profile_Access;
+     (Str : String) return Binding_Data.Profile_Access;
 
    procedure Register
-     (Tag                    : in PolyORB.Binding_Data.Profile_Tag;
-      Proto_Ident            : in Types.String;
-      Profile_To_String_Body : in Profile_To_String_Body_Type;
-      String_To_Profile_Body : in String_To_Profile_Body_Type);
+     (Tag                    : PolyORB.Binding_Data.Profile_Tag;
+      Proto_Ident            : String;
+      Profile_To_String_Body : Profile_To_String_Body_Type;
+      String_To_Profile_Body : String_To_Profile_Body_Type);
    --  Register a corbaloc <-> profile mapping
 
 private
 
    Corbaloc_Prefix : constant String := "corbaloc:";
-
    function String_To_Object (Str : String) return Corbaloc_Type;
 
 end PolyORB.References.Corbaloc;

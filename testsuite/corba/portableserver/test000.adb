@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  XXX should test find_poa, POA self destruction
+--  XXX should test POA self destruction
 
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -69,6 +69,7 @@ procedure Test000 is
 
    use CORBA;
    use PortableServer;
+   use PortableServer.Internals;
    use PortableServer.POA;
    use PortableServer.POAManager;
 
@@ -1784,12 +1785,38 @@ procedure Test000 is
 
       declare
          Srv : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
+         Srv2 : constant Echo.Impl.Object_Acc := new Echo.Impl.Object;
          Id  : constant PortableServer.ObjectId := (1, 2, 3);
          Ref : CORBA.Object.Ref;
       begin
          PortableServer.POA.Activate_Object_With_Id
            (My_POA, Id, PortableServer.Servant (Srv));
+         Output ("Activate_Object_With_Id", True);
+
+         begin
+            PortableServer.POA.Activate_Object_With_Id
+              (My_POA, Id, PortableServer.Servant (Srv));
+            Output ("Activate_Object_With_Id: same Id, Servant "
+                    & "raised no exception", False);
+         exception
+            when PortableServer.POA.ServantAlreadyActive =>
+            Output ("Activate_Object_With_Id: same Id, Servant "
+                       & "raised ServantAlreadyActive", True);
+         end;
+
+         begin
+            PortableServer.POA.Activate_Object_With_Id
+              (My_POA, Id, PortableServer.Servant (Srv2));
+            Output ("Activated_Object_With_Id with the same Id "
+                    & "raised no exception", False);
+         exception
+            when PortableServer.POA.ObjectAlreadyActive =>
+               Output ("Activated_Object_With_Id with the same Id "
+                       & "raised ObjectAlreadyActive", True);
+         end;
+
          Ref := Servant_To_Reference (My_POA, PortableServer.Servant (Srv));
+         Output ("Servant_To_Reference", True);
 
          begin
             declare
@@ -1822,7 +1849,7 @@ procedure Test000 is
             end;
          exception
             when others =>
-               Output ("Reference_To_Id raised no exception", True);
+               Output ("Reference_To_Id raised no exception", False);
          end;
 
       end;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@ with PolyORB.POA_Policies.Servant_Retention_Policy;
 package body
   PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager
 is
+
+   use PolyORB.Errors;
 
    ------------
    -- Create --
@@ -55,7 +57,7 @@ is
    procedure Check_Compatibility
      (Self           :        Use_Servant_Manager_Policy;
       Other_Policies :        AllPolicies;
-      Error          : in out PolyORB.Exceptions.Error_Container)
+      Error          : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -110,13 +112,12 @@ is
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid   :        Unmarshalled_Oid;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Servant_Retention_Policy;
 
    begin
@@ -148,15 +149,13 @@ is
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :        Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (Servant);
       pragma Warnings (On); --  WAG:3.15
-
-      use PolyORB.Exceptions;
 
    begin
       Throw (Error,
@@ -172,14 +171,12 @@ is
      (Self    :        Use_Servant_Manager_Policy;
       OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
       Servant :    out Servants.Servant_Access;
-      Error   : in out PolyORB.Exceptions.Error_Container)
+      Error   : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Warnings (On); --  WAG:3.15
-
-      use PolyORB.Exceptions;
 
    begin
       Servant := null;
@@ -195,7 +192,7 @@ is
 
    procedure Ensure_Servant_Manager
      (Self  :        Use_Servant_Manager_Policy;
-      Error : in out PolyORB.Exceptions.Error_Container)
+      Error : in out PolyORB.Errors.Error_Container)
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);

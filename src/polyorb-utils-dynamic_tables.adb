@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 2002-2004 Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,9 +57,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Allocate --
    --------------
 
-   procedure Allocate
-     (T   : in out Instance;
-      Num :        Integer := 1) is
+   procedure Allocate (T : in out Instance; Num : Integer := 1) is
    begin
       T.P.Last_Val := T.P.Last_Val + Num;
 
@@ -91,11 +89,8 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- First --
    -----------
 
-   function First (T : in Instance) return Table_Index_Type
-   is
-      pragma Warnings (Off);
+   function First (T : in Instance) return Table_Index_Type is
       pragma Unreferenced (T);
-      pragma Warnings (On);
 
    begin
       return First_Index;
@@ -118,8 +113,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Initialize --
    ----------------
 
-   procedure Initialize (T : in out Instance)
-   is
+   procedure Initialize (T : in out Instance) is
       Old_Length : constant Integer := T.P.Length;
 
    begin
@@ -137,7 +131,6 @@ package body PolyORB.Utils.Dynamic_Tables is
          return;
 
       else
-
          --  Otherwise we can use Reallocate to get a table of the right size.
          --  Note that Reallocate works fine to allocate a table of the right
          --  initial size when it is first allocated.
@@ -159,8 +152,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Reallocate --
    ----------------
 
-   procedure Reallocate (T : in out Instance)
-   is
+   procedure Reallocate (T : in out Instance) is
       Old_Table : Table_Ptr := T.Table;
 
    begin
@@ -214,7 +206,6 @@ package body PolyORB.Utils.Dynamic_Tables is
       if T.P.Last_Val > T.P.Max then
          Reallocate (T);
       end if;
-
    end Set_Last;
 
 end PolyORB.Utils.Dynamic_Tables;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -42,14 +42,13 @@ package body CORBA.Object.Helper is
    -- To_Any --
    ------------
 
-   function To_Any
-     (Item : in CORBA.Object.Ref)
-     return Any
-   is
+   function To_Any (Item : in CORBA.Object.Ref) return Any is
    begin
       --  To_Any operation are not defined on local objects
 
-      if PolyORB.CORBA_P.Local.Is_Local (Item) then
+      if not Is_Nil (Item)
+        and then PolyORB.CORBA_P.Local.Is_Local (Item)
+      then
          Raise_Marshal (Marshal_Members'(Minor     => 4,
                                          Completed => Completed_No));
       end if;
@@ -68,9 +67,7 @@ package body CORBA.Object.Helper is
    -- From_Any --
    --------------
 
-   function From_Any
-     (Item : in Any) return CORBA.Object.Ref
-   is
+   function From_Any (Item : in Any) return CORBA.Object.Ref is
       Result : CORBA.Object.Ref;
    begin
       Convert_To_CORBA_Ref
@@ -79,18 +76,5 @@ package body CORBA.Object.Helper is
 
       return Result;
    end From_Any;
-
-   -------------------
-   -- Set_Any_Value --
-   -------------------
-
-   procedure Set_Any_Value
-     (Any_Value : in out CORBA.Any;
-      Value     : in     CORBA.Object.Ref) is
-   begin
-      PolyORB.Any.ObjRef.Set_Any_Value
-        (Any_Value.The_Any,
-         To_PolyORB_Ref (Value));
-   end Set_Any_Value;
 
 end CORBA.Object.Helper;

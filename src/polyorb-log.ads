@@ -107,6 +107,11 @@ package PolyORB.Log is
 
       --  Note: this function is to be utilised if and only if we cannot
       --  instanciate PolyORB.Log.Facility_Log.
+
+      type Log_Hook_T is access procedure (S : String);
+
+      Log_Hook : Log_Hook_T;
+
    end Internals;
 
 end PolyORB.Log;

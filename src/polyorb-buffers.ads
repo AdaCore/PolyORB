@@ -45,7 +45,6 @@ with Ada.Streams;
 with System.Storage_Elements;
 
 with PolyORB.Opaque.Chunk_Pools;
-with PolyORB.Sockets;
 
 package PolyORB.Buffers is
 
@@ -270,21 +269,35 @@ package PolyORB.Buffers is
    -- The transport view of a buffer --
    ------------------------------------
 
-   procedure Send_Buffer
-     (Buffer : access Buffer_Type;
-      Socket :        Sockets.Socket_Type;
-      To     :        Sockets.Sock_Addr_Type := Sockets.No_Sock_Addr);
-   --  Send the contents of Buffer onto Socket.
+   type Iovec is record
+      Iov_Base : Opaque.Opaque_Pointer;
+      Iov_Len  : System.Storage_Elements.Storage_Offset;
+   end record;
+   --  This is modeled after the POSIX iovec.
 
+   generic
+      with procedure Lowlevel_Send
+        (V     : access Iovec;
+         N     : Integer;
+         Count : out System.Storage_Elements.Storage_Offset);
+      --  Send out data gathered from N contiguous Iovecs, the first of
+      --  which is V. On return, Count contains the amount of data sent.
+
+   procedure Send_Buffer (Buffer : access Buffer_Type);
+   --  Send the contents of Buffer using the specified low-level procedure.
+
+   generic
+      with procedure Lowlevel_Receive (V : access Iovec);
+      --  Receive at most V.Iov_Len elements of data and store it
+      --  at V.Iov_Base. On return, V.Iov_Len is the amount of data
+      --  actually received.
    procedure Receive_Buffer
      (Buffer   : access Buffer_Type;
-      Socket   :        Sockets.Socket_Type;
       Max      :        Ada.Streams.Stream_Element_Count;
       Received :    out Ada.Streams.Stream_Element_Count);
-   --  Received at most Max octets of data into Buffer at
-   --  current position. On return, Received is set to the
-   --  effective amount of data received. The current position
-   --  is unchanged.
+   --  Received at most Max octets of data into Buffer at current position.
+   --  On return, Received is set to the effective amount of data received.
+   --  The current position is unchanged.
 
    -------------------------
    -- Utility subprograms --
@@ -310,12 +323,6 @@ private
    --------------
    -- A Buffer --
    --------------
-
-   type Iovec is record
-      Iov_Base : Opaque.Opaque_Pointer;
-      Iov_Len  : System.Storage_Elements.Storage_Offset;
-   end record;
-   --  This is modeled after the POSIX iovec.
 
    type Buffer_Chunk_Metadata is record
       --  An Iovec pool manipulates chunks of memory allocated
@@ -357,6 +364,7 @@ private
       --  array is used.
 
       type Iovec_Pool_Type is private;
+      type Iovec_Access is access all Iovec;
 
       procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
@@ -401,11 +409,17 @@ private
       --  The associated Iovec array storage is returned to
       --  the system.
 
-      procedure Write_To_Socket
-        (S          :        PolyORB.Sockets.Socket_Type;
-         Iovec_Pool : access Iovec_Pool_Type;
-         Length     :        Ada.Streams.Stream_Element_Count;
-         To         :        PolyORB.Sockets.Sock_Addr_Type);
+      generic
+         with procedure Lowlevel_Send
+           (V     : access Iovec;
+            N     : Integer;
+            Count : out System.Storage_Elements.Storage_Offset);
+         --  Send out data gathered from N contiguous Iovecs, the first of
+         --  which is V. On return, Count contains the amount of data sent.
+
+      procedure Send_Iovec_Pool
+        (Iovec_Pool : access Iovec_Pool_Type;
+         Length     :        Ada.Streams.Stream_Element_Count);
       --  Write Length elements of the contents of Iovec_Pool onto S.
 
       ---------------------------------------
@@ -429,18 +443,17 @@ private
 
    private
 
-      type Iovec_Array is array (Positive range <>) of aliased Iovec;
-      type Iovec_Array_Access is access all Iovec_Array;
-
       Prealloc_Size : constant := 8;
       --  The number of slots in the preallocated iovec array.
+
+      type Iovec_Array is array (Positive range <>) of aliased Iovec;
+      type Iovec_Array_Access is access all Iovec_Array;
 
       type Iovec_Pool_Type is record
 
          Prealloc_Array : aliased Iovec_Array (1 .. Prealloc_Size);
          Dynamic_Array  : Iovec_Array_Access := null;
-         --  The pre-allocated and dynamically allocated
-         --  Iovec_Arrays.
+         --  The pre-allocated and dynamically allocated Iovec_Arrays
 
          Length : Natural := Prealloc_Size;
          --  The length of the arrays currently in use.

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
@@ -141,8 +142,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      (Self    : access Object;
       Request : in     PolyORB.Requests.Request_Access)
    is
-      Operation : constant Standard.String
-         := PolyORB.Types.To_Standard_String (Request.all.Operation);
+      Operation : Standard.String renames Request.all.Operation.all;
 
       Arg_List    : PolyORB.Any.NVList.Ref;
    begin
@@ -153,7 +153,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       if Operation = "_is_a" then
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Type_Id          : PolyORB.Types.String;
             Argument_Type_Id : PolyORB.Any.Any
@@ -172,7 +172,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -190,7 +190,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -214,7 +214,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -232,7 +232,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "rebind" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N          : Name;
             Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -255,7 +255,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -272,7 +272,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind_context" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -297,7 +297,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -314,7 +314,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "rebind_context" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -339,7 +339,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -356,7 +356,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "resolve" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N          : Name;
             Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -376,7 +376,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             --  Convert arguments from their Any
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -396,7 +396,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "unbind" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -411,7 +411,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -428,7 +428,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "new_context" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Result          : NamingContext.Ref;
             Exception_Error : Error_Container;
@@ -437,7 +437,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -454,7 +454,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind_new_context" then
 
          declare
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             N               : Name;
             Argument_N      : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
@@ -471,7 +471,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
             Arguments (Request, Arg_List, Exception_Error);
 
             if Found (Exception_Error) then
-               raise PolyORB.Unknown;
+               raise Program_Error;
                --  XXX We should do something more constructive
 
             end if;
@@ -1297,7 +1297,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Exception_Error : Error_Container;
 

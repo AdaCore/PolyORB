@@ -32,8 +32,8 @@ GNATMAKE_FLAGS = \
 	-m \
 	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
-	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	$(POLYORB_LIBS) $(XMLADA_LIBS) 
+	-largs $(LDFLAGS) --LINK=$(NATIVE_LINKER) \
+	$(POLYORB_LIBS) $(XMLADA_LIBS)
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
@@ -44,7 +44,7 @@ DISTCLEANFILES = @APPLI_EXES@ @SERVICE_EXES@
 all-local: $(GEN_FILES) @APPLI_EXES@ @SERVICE_EXES@
 
 @APPLI_EXES@ @SERVICE_EXES@: src
-	$(GNATMAKE_FOR_TARGET) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
+	$(GNATMAKE) $@ $($@_FLAGS) $(GNATMAKE_FLAGS)
 
 src:
 	cd $(top_builddir)/src && $(MAKE)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,10 +36,11 @@ with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
-with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Idl2Ada.Impl;
 with Ada_Be.Idl2Ada.Helper;
 with Ada_Be.Idl2Ada.Value_Skel;
+with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
+with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
@@ -72,40 +73,6 @@ package body Ada_Be.Idl2Ada.Skel is
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate a static dispatcher fragment for operation Node.
-
-   -------------------
-   -- Gen_Node_Spec --
-   -------------------
-
-   procedure Gen_Node_Spec
-     (CU          : in out Compilation_Unit;
-      Node        : in     Node_Id;
-      Is_Delegate : in     Boolean)
-   is
-      NK : constant Node_Kind := Kind (Node);
-   begin
-      case NK is
-         when K_ValueType =>
-            --  ValueTypes cannot have delegates
-            pragma Assert (not Is_Delegate);
-
-            if Supports (Node) /= Nil_List then
-               Add_Elaborate_Body (CU);
-            end if;
-
-         when K_Interface =>
-            if not Abst (Node) then
-               --  No skel or impl packages are generated for
-               --  abstract interfaces.
-               if not Is_Delegate then
-                  Add_Elaborate_Body (CU);
-               end if;
-            end if;
-
-         when others =>
-            null;
-      end case;
-   end Gen_Node_Spec;
 
    -------------------
    -- Gen_Node_Body --
@@ -383,15 +350,17 @@ package body Ada_Be.Idl2Ada.Skel is
 
       Divert (CU, Deferred_Initialization);
 
-      PL (CU, "PortableServer.Register_Skeleton");
+      PL (CU, "PortableServer.Internals.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");
       Put (CU, Ada_Full_Name (Node));
       PL (CU, "." & Repository_Id_Name (Node) &"),");
       if not Is_Delegate then
          PL (CU, "   Servant_Is_A'Access,");
+         PL (CU, "   Is_A'Access,");
          PL (CU, "   Invoke'Access);");
       else
          PL (CU, "   Servant_Is_A'Unrestricted_Access,");
+         PL (CU, "   Is_A'Access,");
          PL (CU, "   Invoke'Unrestricted_Access);");
       end if;
 
@@ -485,7 +454,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         P_Typ : constant Node_Id := Param_Type (P_Node);
                         Helper_Name : constant String
-                          := Ada_Helper_Name (P_Typ);
+                          := Ada_Helper_Unit_Name (Mapping, P_Typ);
 
                      begin
 
@@ -494,8 +463,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         if not Is_Returns (P_Node) then
                            PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
-                               & " : constant CORBA.Identifier");
-                           PL (CU, "  := CORBA.To_CORBA_String ("""
+                               & " : constant CORBA.Identifier :=");
+                           PL (CU, "  CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
 
                            Add_With (CU, Helper_Name);
@@ -587,11 +556,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            then
                               Add_With (CU, Helper_Name);
                               PL (CU, Arg_Name & " :=");
-                              Put (CU, "  ");
-                              Gen_Forward_Conversion
-                                (CU, PT_Node, "To_Forward",
-                                 Helper_Name & ".From_Any ("
-                                 & T_Argument & Arg_Name & ")");
+                              Put (CU, "  " & Helper_Name & ".From_Any ("
+                                & T_Argument & Arg_Name & ")");
                               PL (CU, ";");
                            end if;
                         end if;
@@ -721,13 +687,7 @@ package body Ada_Be.Idl2Ada.Skel is
                                  PL (CU, "  (" & T_Argument & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");
-                                 Put (CU, "  (");
-                                 II (CU);
-                                 Gen_Forward_Conversion
-                                   (CU, Param_Type (P_Node),
-                                    "From_Forward", Arg_Name);
-                                 DI (CU);
-                                 PL (CU, "));");
+                                 Put (CU, "  (" & Arg_Name & "));");
                                  DI (CU);
                                  NL (CU);
                               end;
@@ -740,7 +700,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                   if Kind (Original_Operation_Type (Node)) /= K_Void then
                      NL (CU);
-                     PL (CU, "-- Set Result");
+                     PL (CU, "-- Set result");
                      NL (CU);
 
                      declare
@@ -755,21 +715,13 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (");
-                           Gen_Forward_Conversion
-                             (CU, OT_Node,
-                              "From_Forward", T_Result);
-                           PL (CU, "));");
+                           PL (CU, Prefix & ".To_Any (" & T_Result & "));");
                            DI (CU);
                         else
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (");
-                           Gen_Forward_Conversion
-                             (CU, OT_Node,
-                              "From_Forward", "Returns");
-                           PL (CU, "));");
+                           PL (CU, Prefix & ".To_Any (Returns));");
                            DI (CU);
                         end if;
                      end;
@@ -788,5 +740,19 @@ package body Ada_Be.Idl2Ada.Skel is
       end case;
 
    end Gen_Invoke;
+
+   -------------------
+   -- Gen_Node_Spec --
+   -------------------
+
+   procedure Gen_Node_Spec
+     (CU          : in out Compilation_Unit;
+      Node        : Node_Id;
+      Is_Delegate : Boolean)
+   is
+      pragma Unreferenced (CU, Node, Is_Delegate);
+   begin
+      null;
+   end Gen_Node_Spec;
 
 end Ada_Be.Idl2Ada.Skel;

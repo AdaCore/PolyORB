@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,9 +38,9 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 
 package body PolyORB.Test_Object_POA is
 
@@ -48,7 +48,7 @@ package body PolyORB.Test_Object_POA is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
 
    --------------------------------------
    -- Application part of the servant. --
@@ -100,7 +100,7 @@ package body PolyORB.Test_Object_POA is
          declare
             use PolyORB.Any.NVList.Internals;
             use PolyORB.Any.NVList.Internals.NV_Lists;
-            use PolyORB.Exceptions;
+            use PolyORB.Errors;
 
             Req   : constant Request_Access
               := Execute_Request (Msg).Req;
@@ -111,7 +111,7 @@ package body PolyORB.Test_Object_POA is
                       & PolyORB.Requests.Image (Req.all));
 
             Create (Args);
-            if Req.all.Operation = To_PolyORB_String ("echoString") then
+            if Req.Operation.all = "echoString" then
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
@@ -119,7 +119,7 @@ package body PolyORB.Test_Object_POA is
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;
@@ -131,14 +131,14 @@ package body PolyORB.Test_Object_POA is
                    (Value (First (List_Of (Args).all)).Argument)));
                Put_Line ("Result: " & Image (Req.Result));
 
-            elsif Req.all.Operation = "echoInteger" then
+            elsif Req.Operation.all = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
                                 Arg_Modes => PolyORB.Any.ARG_IN));
                Arguments (Req, Args, Error);
 
                if Found (Error) then
-                  raise PolyORB.Unknown;
+                  raise Program_Error;
                   --  XXX We should do something more constructive
 
                end if;
@@ -148,9 +148,11 @@ package body PolyORB.Test_Object_POA is
                   (Obj.all,
                    From_Any (Value (First (List_Of (Args).all)).Argument)));
                   Put_Line ("Result: " & Image (Req.Result));
+
             else
                raise Program_Error;
             end if;
+
             return Executed_Request'(Req => Req);
          end;
 

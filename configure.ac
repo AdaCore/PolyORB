@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(polyorb, 1.2w, polyorb-bugs@lists.adacore.com)
+AC_INIT(polyorb, 1.3w, polyorb-bugs@lists.adacore.com)
 AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
@@ -11,7 +11,7 @@ AC_CONFIG_AUX_DIR(support)
 
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE
-LIBVERSIONINFO=1:2:0
+LIBVERSIONINFO=1:3:0
 AC_SUBST(LIBVERSIONINFO)
 
 ##########################################
@@ -34,8 +34,6 @@ AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
 AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
-AM_HAS_GNAT_SOCKETS_COPY
-AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
 AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
@@ -331,6 +329,14 @@ AC_SUBST(BARGS)
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 ##########################################
+# Extra parameters provided by the user, 
+# used by gnatmake
+##########################################
+
+EXTRA_GNATMAKE_FLAGS=$EXTRA_GNATMAKE_FLAGS
+AC_SUBST(EXTRA_GNATMAKE_FLAGS)
+
+##########################################
 # We change $host in order to force the generation of a libtool for the
 # target, and not for the host.
 # XXX if someone knows a clean way to do that, be my guest...
@@ -498,17 +504,23 @@ AC_OUTPUT([
 	src/srp/Makefile
 	src/polyorb-setup-client.adb
 	src/polyorb-setup-server.adb
-	src/polyorb-sockets_copy.adb
-        src/ravenscar.adc
-        src/ravenscar_compatible.adc
+	src/ravenscar.adc
+	src/ravenscar_compatible.adc
 	idls/Makefile
+	idls/CORBA_IDL/Makefile
+	idls/CORBA_PIDL/Makefile
+	idls/Interop/Makefile
+	idls/Misc/Makefile
+	idls/RTCORBA/Makefile
 	idls/cos/Makefile
 	idls/cos/event/Makefile
 	idls/cos/naming/Makefile
+	idls/cos/notification/Makefile
 	idls/cos/time/Makefile
 	cos/Makefile
 	cos/event/Makefile
 	cos/naming/Makefile
+	cos/notification/Makefile
 	cos/time/Makefile
 	cos/ir/Makefile
 	examples/Makefile
@@ -529,12 +541,15 @@ AC_OUTPUT([
 	testsuite/Makefile
 	testsuite/corba/Makefile
 	testsuite/corba/all_exceptions/Makefile
+	testsuite/corba/benchs/Makefile
+	testsuite/corba/benchs/test000/Makefile
 	testsuite/corba/code_sets/Makefile
 	testsuite/corba/code_sets/test000/Makefile
 	testsuite/corba/cos/Makefile
 	testsuite/corba/cos/event/Makefile
 	testsuite/corba/cos/ir/Makefile
 	testsuite/corba/cos/naming/Makefile
+	testsuite/corba/cos/notification/Makefile
 	testsuite/corba/cos/time/Makefile
 	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
@@ -586,9 +601,9 @@ AC_OUTPUT([
 # Clean up
 ##########################################
 
-${RM} ${PROTO_CLIENT_WITHS}
-${RM} ${PROTO_SERVER_WITHS}
-${RM} ${PO_CATREF_WITHS}
+${RM} -f ${PROTO_CLIENT_WITHS}
+${RM} -f ${PROTO_SERVER_WITHS}
+${RM} -f ${PO_CATREF_WITHS}
 
 ##########################################
 # Copy files
@@ -603,5 +618,8 @@ for a in linker adacompiler move-if-change
 do
   chmod a+x support/$a
 done
-rm -f support/native-adacompiler
-ln -f support/adacompiler support/native-adacompiler
+
+${RM} -f support/native-adacompiler
+${LN_S} adacompiler support/native-adacompiler
+${RM} -f support/native-linker
+${LN_S} linker support/native-linker

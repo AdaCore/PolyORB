@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Objects;
 with PolyORB.POA;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.Servants;
-with PolyORB.Types;
 
 package PolyORB.RT_POA.Basic_RT_POA is
 
@@ -52,18 +51,18 @@ package PolyORB.RT_POA.Basic_RT_POA is
 
    procedure Create_POA
      (Self         : access Basic_RT_Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out PolyORB.POA.Obj_Adapter_Access;
-      Error        : in out PolyORB.Exceptions.Error_Container);
+      Error        : in out PolyORB.Errors.Error_Container);
 
    procedure Export
      (OA    : access Basic_RT_Obj_Adapter;
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container);
+      Error : in out PolyORB.Errors.Error_Container);
 
    ------------------------------------------------
    -- CORBA-like RT POA interface implementation --
@@ -75,7 +74,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
    procedure Activate_Object_With_Id_And_Priority
      (Self                     : access Basic_RT_Obj_Adapter;
@@ -84,7 +83,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Server_ORB_Priority      : in     ORB_Priority;
       Server_External_Priority : in     External_Priority;
       U_Oid                    :    out Unmarshalled_Oid;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
    procedure Get_Scheduling_Parameters
      (Self                     : access Basic_RT_Obj_Adapter;
@@ -92,7 +91,7 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Model                    :    out Priority_Model;
       Server_ORB_Priority      :    out ORB_Priority;
       Server_External_Priority :    out External_Priority;
-      Error                    : in out PolyORB.Exceptions.Error_Container);
+      Error                    : in out PolyORB.Errors.Error_Container);
 
 private
 

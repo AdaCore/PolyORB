@@ -65,11 +65,33 @@ package CORBA.Repository_Root is
    --  not declared in CORBA_InterfaceRepository.idl file, but it is
    --  required for child packages.
 
-   package Repository_Forward is new CORBA.Forward;
+   package ArrayDef_Forward is new CORBA.Forward;
+
+   package AttributeDef_Forward is new CORBA.Forward;
+
+   package Contained_Forward is new CORBA.Forward;
 
    package Container_Forward is new CORBA.Forward;
 
-   package Contained_Forward is new CORBA.Forward;
+   package FixedDef_Forward is new CORBA.Forward;
+
+   package IRObject_Forward is new CORBA.Forward;
+
+   package OperationDef_Forward is new CORBA.Forward;
+
+   package PrimitiveDef_Forward is new CORBA.Forward;
+
+   package Repository_Forward is new CORBA.Forward;
+
+   package SequenceDef_Forward is new CORBA.Forward;
+
+   package StringDef_Forward is new CORBA.Forward;
+
+   package TypedefDef_Forward is new CORBA.Forward;
+
+   package ValueMemberDef_Forward is new CORBA.Forward;
+
+   package WstringDef_Forward is new CORBA.Forward;
 
    --  enum DefinitionKind
 

@@ -1,14 +1,22 @@
 //File: CosEventChannelAdmin.idl
 //Part of the Event Service
+//OMG File: 04-10-06
 
 #ifndef _COS_EVENT_CHANNEL_ADMIN_IDL_
 #define _COS_EVENT_CHANNEL_ADMIN_IDL_
 
+#ifdef _PRE_3_0_COMPILER_
 #include <CosEventComm.idl>
-
 #pragma prefix "omg.org"
+#else
+import ::CosEventComm;
+#endif // _PRE_3_0_COMPILER_
 
 module CosEventChannelAdmin {
+
+#ifndef _PRE_3_0_COMPILER_
+	typeprefix CosEventChannelAdmin "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
  	exception AlreadyConnected {};
 	exception TypeError {};

@@ -94,7 +94,7 @@ includedir="@includedir@"
 libdir="@libdir@"
 polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
 polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
-corba_idl_dir=""
+corba_idl_dir=" -I${includedir}/polyorb/corba/idls"
 
 for P in $appli
 do
@@ -109,8 +109,8 @@ do
    for S in $services
    do
       polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+      corba_idl_dir="$corba_idl_dir -I${includedir}/polyorb/corba/idls/cos/${S}"
    done
-   corba_idl_dir="-I${includedir}/polyorb/corba/cos"
  fi 
 
  if [ "x$P" = "xaws" ]

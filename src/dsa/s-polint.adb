@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -45,6 +45,7 @@ with PolyORB.Binding_Data;
 with PolyORB.DSA_P.Exceptions;
 with PolyORB.DSA_P.Partitions;
 with PolyORB.Dynamic_Dict;
+with PolyORB.Errors;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -66,7 +67,7 @@ with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sequences.Unbounded.Helper;
 with PolyORB.Servants;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
@@ -357,10 +358,11 @@ package body System.PolyORB_Interface is
      (E : Ada.Exceptions.Exception_Occurrence)
       return Any
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.Types;
 
-      Name : constant RepositoryId := Occurrence_To_Name (E);
+      Name : constant RepositoryId
+        := PolyORB.Exceptions.Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
       Result : PolyORB.Any.Any;
    begin
@@ -397,7 +399,7 @@ package body System.PolyORB_Interface is
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
       Result : PolyORB.Components.Null_Message;
    begin
@@ -416,9 +418,7 @@ package body System.PolyORB_Interface is
                --  auto-generated ones constructed from a distributed object
                --  type declaration.
 
-               if PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Resolve
-               then
+               if EMsg.Req.Operation.all = Op_Resolve then
 
                   -------------
                   -- resolve --
@@ -515,10 +515,7 @@ package body System.PolyORB_Interface is
                   end;
                   goto Request_Completed;
 
-               elsif PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Get_Partition_Id
-               then
-
+               elsif EMsg.Req.Operation.all = Op_Get_Partition_Id then
                   declare
                      Arg_List    : NVList_Ref;
                   begin
@@ -552,7 +549,7 @@ package body System.PolyORB_Interface is
 
             pragma Assert (Self.Handler /= null);
             declare
-               use PolyORB.Exceptions;
+               use PolyORB.Errors;
             begin
                Self.Handler.all (EMsg.Req);
             exception
@@ -761,7 +758,7 @@ package body System.PolyORB_Interface is
       Is_Local : out Boolean;
       Addr     : out System.Address)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       Profiles : constant Profile_Array
         := PolyORB.References.Profiles_Of (Ref);
@@ -990,7 +987,7 @@ package body System.PolyORB_Interface is
       Receiver : access Servant;
       Ref      :    out PolyORB.References.Ref)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use type PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
       Last : Integer := Typ'Last;
@@ -1099,7 +1096,7 @@ package body System.PolyORB_Interface is
    procedure Initialize
    is
       use PolyORB;
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
 
       use type PolyORB.POA.Obj_Adapter_Access;
 
@@ -1371,10 +1368,10 @@ package body System.PolyORB_Interface is
      (R     :        PolyORB.Requests.Request_Access;
       Args  : in out PolyORB.Any.NVList.Ref)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
    begin
       PolyORB.Requests.Arguments (R, Args, Error);
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Request_Arguments;
@@ -1403,10 +1400,10 @@ package body System.PolyORB_Interface is
    procedure Request_Set_Out
      (R     : PolyORB.Requests.Request_Access)
    is
-      Error : PolyORB.Exceptions.Error_Container;
+      Error : PolyORB.Errors.Error_Container;
    begin
       PolyORB.Requests.Set_Out_Args (R, Error);
-      if PolyORB.Exceptions.Found (Error) then
+      if PolyORB.Errors.Found (Error) then
          PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
       end if;
    end Request_Set_Out;
@@ -1447,7 +1444,7 @@ package body System.PolyORB_Interface is
      (Name            : String;
       Default_Servant : Servant_Access)
    is
-      use PolyORB.Exceptions;
+      use PolyORB.Errors;
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
@@ -1479,7 +1476,7 @@ package body System.PolyORB_Interface is
       Create_POA
         (Self         => PolyORB.POA.Obj_Adapter_Access
          (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB)),
-         Adapter_Name => PName,
+         Adapter_Name => Name,
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all),
          POA          => POA,

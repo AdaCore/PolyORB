@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.Utils.Report;
-
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Condition_Variables;
@@ -49,7 +48,7 @@ package body Test002_Common is
    My_Thread_Factory  : Thread_Factory_Access;
 
    Number_Of_Tasks : constant Integer := 4;
-   --  Number of tasks to be created.
+   --  Number of tasks to be created
 
    subtype Task_Index is Integer range 1 .. Number_Of_Tasks;
 
@@ -60,11 +59,11 @@ package body Test002_Common is
 
    procedure Run (R : access Generic_Runnable);
 
-   type Generic_Runnable_Arr is array (Task_Index) of aliased Generic_Runnable;
+   type Generic_Runnable_Arr is array (Task_Index) of Runnable_Access;
    R  : Generic_Runnable_Arr;
 
    type Do_Nothing_Controller is new Runnable_Controller with null record;
-   --  Simple controller that does nothing...
+   --  Simple controller that does nothing
 
    Global_CV : Condition_Access;
    --  CV shared by different threads.
@@ -126,20 +125,19 @@ package body Test002_Common is
    is
       use PolyORB.Tasking.Threads;
 
-      RA : Runnable_Access;
-      C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
    begin
       New_Test ("Condition Variables");
 
       for J in Task_Index'Range loop
-         R (J).P := Wait_Task'Access;
-         RA := R (J)'Access;
+         R (J) := new Generic_Runnable;
+         Generic_Runnable (R (J).all).P := Wait_Task'Access;
+
          declare
             pragma Warnings (Off);
             T : constant Thread_Access := Run_In_Task
               (TF => My_Thread_Factory,
-               R  => RA,
-               C  => C);
+               R  => R (J),
+               C  => new Do_Nothing_Controller);
             pragma Unreferenced (T);
             pragma Warnings (On);
          begin

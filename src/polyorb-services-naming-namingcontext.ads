@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.References;
 
 package PolyORB.Services.Naming.NamingContext is
@@ -49,7 +49,7 @@ package PolyORB.Services.Naming.NamingContext is
      := "IDL:omg.org/CosNaming/NamingContext/NotFoundReason:1.0";
 
    type NotFound_Members is
-     new PolyORB.Exceptions.Exception_Members with
+     new PolyORB.Errors.Exception_Members with
    record
       why : NotFoundReason;
       rest_of_name : Name;
@@ -65,7 +65,7 @@ package PolyORB.Services.Naming.NamingContext is
       To   : out NotFound_Members);
 
    type CannotProceed_Members is
-     new PolyORB.Exceptions.Exception_Members with
+     new PolyORB.Errors.Exception_Members with
    record
       cxt : Ref;
       rest_of_name : Name;
@@ -81,7 +81,7 @@ package PolyORB.Services.Naming.NamingContext is
       To   : out CannotProceed_Members);
 
    type InvalidName_Members is
-     new PolyORB.Exceptions.Exception_Members with
+     new PolyORB.Errors.Exception_Members with
    null record;
 
    InvalidName : exception;
@@ -94,7 +94,7 @@ package PolyORB.Services.Naming.NamingContext is
       To   : out InvalidName_Members);
 
    type AlreadyBound_Members is
-     new PolyORB.Exceptions.Exception_Members with
+     new PolyORB.Errors.Exception_Members with
    null record;
 
    AlreadyBound : exception;
@@ -107,7 +107,7 @@ package PolyORB.Services.Naming.NamingContext is
       To   : out AlreadyBound_Members);
 
    type NotEmpty_Members is
-     new PolyORB.Exceptions.Exception_Members with
+     new PolyORB.Errors.Exception_Members with
    null record;
 
    NotEmpty : exception;
@@ -118,6 +118,5 @@ package PolyORB.Services.Naming.NamingContext is
    procedure Get_Members
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out NotEmpty_Members);
-
 
 end PolyORB.Services.Naming.NamingContext;

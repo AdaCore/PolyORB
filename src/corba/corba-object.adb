@@ -307,7 +307,7 @@ package body CORBA.Object is
          return False;
       end if;
 
-      raise PolyORB.Not_Implemented;
+      raise Program_Error;
    end Non_Existent;
 
    --------------------

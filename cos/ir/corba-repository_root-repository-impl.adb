@@ -127,7 +127,7 @@ package body CORBA.Repository_Root.Repository.Impl is
    function get_primitive
      (Self : access Object;
       kind : in CORBA.Repository_Root.PrimitiveKind)
-     return CORBA.Repository_Root.PrimitiveDef.Ref
+     return CORBA.Repository_Root.PrimitiveDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -199,14 +199,14 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return PrimitiveDef.Convert_Forward.To_Forward (Result);
    end get_primitive;
 
 
    function create_string
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.StringDef.Ref
+     return CORBA.Repository_Root.StringDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -226,14 +226,14 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return StringDef.Convert_Forward.To_Forward (Result);
    end create_string;
 
 
    function create_wstring
      (Self : access Object;
       bound : in CORBA.Unsigned_Long)
-     return CORBA.Repository_Root.WstringDef.Ref
+     return CORBA.Repository_Root.WstringDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -253,7 +253,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return WstringDef.Convert_Forward.To_Forward (Result);
    end create_wstring;
 
 
@@ -261,7 +261,7 @@ package body CORBA.Repository_Root.Repository.Impl is
      (Self : access Object;
       bound : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.SequenceDef.Ref
+     return CORBA.Repository_Root.SequenceDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -285,7 +285,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return SequenceDef.Convert_Forward.To_Forward (Result);
    end create_sequence;
 
 
@@ -293,7 +293,7 @@ package body CORBA.Repository_Root.Repository.Impl is
      (Self : access Object;
       length : in CORBA.Unsigned_Long;
       element_type : in CORBA.Repository_Root.IDLType.Ref)
-     return CORBA.Repository_Root.ArrayDef.Ref
+     return CORBA.Repository_Root.ArrayDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -316,7 +316,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return ArrayDef.Convert_Forward.To_Forward (Result);
    end create_array;
 
 
@@ -324,7 +324,7 @@ package body CORBA.Repository_Root.Repository.Impl is
      (Self : access Object;
       IDL_digits : in CORBA.Unsigned_Short;
       scale : in CORBA.Short)
-     return CORBA.Repository_Root.FixedDef.Ref
+     return CORBA.Repository_Root.FixedDef_Forward.Ref
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -344,7 +344,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
         (PortableServer.Servant (Obj), Result);
 
-      return Result;
+      return FixedDef.Convert_Forward.To_Forward (Result);
    end create_fixed;
 
 end CORBA.Repository_Root.Repository.Impl;

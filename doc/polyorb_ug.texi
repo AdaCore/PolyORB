@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#42 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#50 $
 
 @include version.texi
 
@@ -77,7 +77,7 @@
 @page
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 2003, 2004, Free Software Foundation
+Copyright @copyright{} 2003, 2004, 2005, Free Software Foundation
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
@@ -98,7 +98,7 @@ PolyORB User's Guide
 
 J@'er@^ome Hugues
 
-Copyright @copyright{} 2003, 2004, Free Software Foundation
+Copyright @copyright{} 2003, 2004, 2005, Free Software Foundation
 
 @noindent
 Permission is granted to copy, distribute and/or modify this document
@@ -197,6 +197,7 @@ RT-CORBA
 * Installing RT-CORBA::
 * Configuring RT-CORBA::
 * RTCORBA.PriorityMapping::
+* RTCosScheduling Service::
 
 MOMA
 
@@ -505,8 +506,7 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a1 (or later), GCC
-3.4.1 (or later).
+Ada 95 compiler: GNAT 5.02a1 (or later), GCC 3.4.1 (or later).
 
 Optional: 
 
@@ -637,11 +637,19 @@ including run-time library. You may override this setting using
 @code{ADA_INCLUDE_PATH} and @code{ADA_OBJECTS_PATH} environment
 variables. See GNAT User's Guide for more details.
 
+You can add specific compilation options to GNAT using the
+@code{EXTRA_GNATMAKE_FLAGS} variable:
+
+@smallexample
+  % EXTRA_GNATMAKE_FLAGS=''-largs -foo'' ./configure [options]
+@end smallexample
+
 NOTE: Developers building PolyORB from the version control repository
 who need to rebuild the configure and Makefile.in files should use the
-script support/reconfig for this purpose.  In addition to the
-requirements above, they will need autoconf 2.57 or newer, and
-automake 1.6.3 or newer.
+script support/reconfig for this purpose. This should be done after
+each update from the repository. In addition to the requirements
+above, they will need autoconf 2.57 or newer, automake 1.6.3 or
+newer, and libtool 1.5.8 or newer.
 
 @c -------------------------------------------------------------------
 @node Platform notes
@@ -893,11 +901,11 @@ how tasks are used by the middleware to process incoming requests.
 @item @code{No_Tasking}: There is only one task in middleware,
 processing all requests.
 
-@item @code{Thread_Per_Sessions}: One task monitors communication
+@item @code{Thread_Per_Session}: One task monitors communication
 entities. One task is spawned for each active connection. This task
 handles all incoming requests on this connection.
 
-@item @code{Thread_Per_Sessions}: One task monitors communication
+@item @code{Thread_Per_Request}: One task monitors communication
 entities. One task is spawned for each incoming requests.
 
 @item @code{Thread_Pool}: A set of tasks cooperate to handle all
@@ -1276,6 +1284,12 @@ profile}.
 In this configuration, a PolyORB application may be compiled and
 linked with a tasking-capable Ada runtime or a Ravenscar Ada runtime.
 
+To configure tasking constructs used by PolyORB, one must instanciate
+the @code{PolyORB.Setup.Tasking.Ravenscar} package to setup tasks and
+protected objects used by PolyORB core.
+
+@include polyorb-setup-tasking-ravenscar.texi
+
 @c -------------------------------------------------------------------
 @subsection Compatibility with Ada runtimes
 @c -------------------------------------------------------------------
@@ -1406,7 +1420,11 @@ parameters.
 #
 
 [tasking]
+
+# Default storage size for all threads spawned by PolyORB
 #polyorb.tasking.threads.storage_size=262144
+
+# Number of threads by Thread Pool tasking policy
 #polyorb.orb.thread_pool.threads=4
 @end smallexample
 
@@ -1421,6 +1439,7 @@ parameters.
 * Installing CORBA application personality::
 * Usage of idlac::
 * Resolving names in a CORBA application::
+* The CORBA Interface Repository::
 * Building a CORBA application with PolyORB::
 * Configuring a CORBA application::
 * Implementation Notes::
@@ -1550,8 +1569,13 @@ PolyORB implements the CORBA COS Naming service.
 
 @noindent
 @command{po_cos_naming} is a stand alone server that supports CORBA
-COS Naming specification. When launched, it returns its @code{IOR}
-that can then be used by other CORBA applications.
+COS Naming specification. When launched, it returns its @code{IOR} and
+@code{corbaloc} that can then be used by other CORBA applications.
+
+If you want @command{po_cos_naming} to return the same @code{IOR} or
+@code{corbaloc} at each startup, you must set a default listen port
+for the protocol personalities you use. See @ref{Configuring protocol
+personality preferences} for more details.
 
 @c -------------------------------------------------------------------
 @node Using the COS Naming
@@ -1561,6 +1585,45 @@ that can then be used by other CORBA applications.
 @noindent
 PolyORB provides a helper package to manipulate the COS Naming in your
 applications. See @ref{PolyORB specific APIs} for more details.
+
+@c -------------------------------------------------------------------
+@node The CORBA Interface Repository 
+@section The CORBA Interface Repository
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB implements the CORBA Interface Repository.
+
+@menu
+* po_ir::
+* Using the Interface Repository::
+@end menu
+
+@c -------------------------------------------------------------------
+@node po_ir
+@subsection @command{po_ir}
+@cindex @command{po_ir}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_ir} is a stand alone server that supports the CORBA
+Interface Repository. When launched, it returns its @code{IOR} and
+@code{corbaloc} that can then be used by other CORBA applications.
+
+If you want @command{po_ir} to return the same @code{IOR} or
+@code{corbaloc} at each startup, you must set a default listen port
+for the protocol personalities you use. See @ref{Configuring protocol
+personality preferences} for more details.
+
+@c -------------------------------------------------------------------
+@node Using the Interface Repository
+@subsection Using the Interface Repository
+@c -------------------------------------------------------------------
+
+@noindent
+@code{idlac} generates a helper package that allows you to register
+all entities defined in your IDL specification in the Interface
+Repository.
 
 @c -------------------------------------------------------------------
 @node Building a CORBA application with PolyORB
@@ -1918,6 +1981,7 @@ Server.
 * Installing RT-CORBA::
 * Configuring RT-CORBA::
 * RTCORBA.PriorityMapping::
+* RTCosScheduling Service::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -1989,6 +2053,143 @@ complete CORBA priority range is used up for the mapping. See
 @file{rtcorba-prioritymapping-linear.adb} for more details.
 
 @end itemize
+
+@c -------------------------------------------------------------------
+@node RTCosScheduling Service
+@section RTCosScheduling Service
+@cindex RTCosScheduling Service
+@c -------------------------------------------------------------------
+
+@menu
+* Overview::
+* ClientScheduler::
+* ServerScheduler::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Overview
+@subsection Overview
+@c -------------------------------------------------------------------
+
+@noindent 
+PolyORB provides an implementation of the RTCosScheduling service
+defined in @cite{[OMG02a]}.
+
+PolyORB uses some permission stated in the specifications to allow for
+an easy configuration of @code{ClientScheduler} and
+@code{ServerScheduler}, defined in the following sections.
+
+Additional information on the use of the API may be found in the
+RTCosScheduling example in
+@file{examples/corba/rtcorba/rtcosscheduling}.
+
+@c -------------------------------------------------------------------
+@node ClientScheduler
+@subsection @code{RTCosScheduling::ClientScheduler}
+@c -------------------------------------------------------------------
+
+@noindent
+Client side @i{activities} are defined in a configuration file, than can
+be loaded using
+@file{RTCosScheduling.ClientScheduler.Impl.Load_Configuration_File}
+
+On the client side, the user can set up
+
+@itemize @bullet
+
+@item current task priority, using registered @code{PriorityMapping} object.
+
+@end itemize
+
+@noindent
+This file has the following syntax, derived from PolyORB configuration
+files syntax:
+
+@smallexample
+# Name of the activity
+[activity activity1]
+
+# Activity priority, in RTCORBA.Priority'Range
+priority=10000
+
+@end smallexample
+
+@noindent
+In this example, activity @code{activity1} is defined with priority
+@code{10'000}.
+
+@c -------------------------------------------------------------------
+@node ServerScheduler
+@subsection @code{RTCosScheduling::ServerScheduler}
+@c -------------------------------------------------------------------
+
+@noindent
+Server side @i{POAs} and @i{objects} are defined in a configuration
+file, than can be loaded using
+@file{RTCosScheduling.ClientScheduler.Impl.Load_Configuration_File}
+
+On the server side, the user can set up
+
+@itemize @bullet
+
+@item object priority, using registered @code{PriorityMapping} object.
+
+@item all RT-CORBA-specific POA configuration parameters:
+
+@end itemize
+
+@noindent
+This file has the following syntax, derived from PolyORB configuration
+files syntax:
+
+@smallexample
+# Name of the object
+[object object1]
+
+# Object priority, in RTCORBA.Priority'Range
+priority=10000
+
+@end smallexample
+
+@noindent
+In this example, object @code{object1} is defined with priority
+@code{10'000}.
+
+@smallexample
+# Name of the POA
+[poa poa1]
+
+# PriorityModelPolicy for POA
+priority_model=CLIENT_PROPAGATED 
+default_priority=0 # not meaningful for CLIENT_PROPAGATED
+
+# Threadpools attached to POA
+threadpool_id=1
+
+# Name of the POA
+[poa poa2]
+
+# PriorityModelPolicy for POA
+priority_model=SERVER_DECLARED
+default_priority=40 
+
+# Threadpools attached to POA
+threadpool_id=2
+
+# Name of the POA
+[poa poa3]
+
+# POA with no defined policies
+
+@end smallexample
+
+@noindent
+In this example, Two POAs are defined: POA @code{poa1} will use the
+@code{CLIENT_PROPAGATED} PriorityModel Policy, default value is not
+meaningful for this configuration, @code{poa1} will use the Threadpool
+#1; POA @code{poa2} will use the @code{SERVER_DECLARED} PriorityModel
+Policy, default server priority is 40, @code{poa2} will use the
+Threadpool #2. Note that both policies are optional and can be omitted.
 
 @c -------------------------------------------------------------------
 @node DSA
@@ -2523,9 +2724,8 @@ PolyORB does not support this chapter.
 @item Chapter 10 describes The Interface Repository
 
 @noindent 
-PolyORB supports this chapter. 
-
-@b{XXX Should discuss with T. Quinot conformance issue with this spec.}
+PolyORB supports this chapter, except for the @code{ExtValueDef}
+interface, and all CORBA CCM related interfaces.
 
 @item Chapter 11 describes The Portable Object Adapter
 
@@ -2573,7 +2773,7 @@ This set encompasses chapters 17-21.
 COM/DCOM.
 
 @noindent
-PolyORB provides no support for this chapter.
+PolyORB provides no support for these chapters.
 
 
 @item Chapter 21 describes @code{PortableInterceptor}.
@@ -2671,7 +2871,7 @@ more details.
 
 @item RT-CORBA static scheduling (Chapter 3)
 
-PolyORB does not support this chapter.
+PolyORB supports this chapter.
 
 @item RT-CORBA dynamic scheduling (Chapter 3)
 

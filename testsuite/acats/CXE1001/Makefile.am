@@ -20,7 +20,7 @@ part2.stubs/polyorb-dsa_p-partitions.ali: $(DSA_SRC)/polyorb-dsa_p-partitions.ad
 part1: part1.stubs/polyorb-dsa_p-partitions.ali
 part2: part2.stubs/polyorb-dsa_p-partitions.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr part1.stubs part2.stubs
 

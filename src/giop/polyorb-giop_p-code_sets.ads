@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Exceptions;
+with PolyORB.Errors;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Types;
 
@@ -86,7 +86,7 @@ package PolyORB.GIOP_P.Code_Sets is
      SCCS     : in     Code_Set_Id_List;
      Fallback : in     Code_Set_Id;
      TCS      :    out Code_Set_Id;
-     Error    : in out PolyORB.Exceptions.Error_Container);
+     Error    : in out PolyORB.Errors.Error_Container);
    --  Proceed code set negotiation based on:
    --   - CNCS - Client Native Code Set
    --   - CCCS - Client Conversion Code Sets

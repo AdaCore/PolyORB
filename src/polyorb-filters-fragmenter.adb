@@ -35,7 +35,7 @@
 --  Fragment data which comes from endpoint whithout read length control
 --  For example UDP sockets
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Representations.CDR.Common;
@@ -46,7 +46,7 @@ package body PolyORB.Filters.Fragmenter is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log

@@ -107,8 +107,7 @@ $(PROGS): $(FORCE) $(GEN)
 	-bargs $(BARGS) \
 	-largs $(LDFLAGS) \
 	--LINK=$(LINKER) \
-        $(POLYORB_LIBS) $(XMLADA_LIBS) 
-
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
 force::
 	for dir in $(top_builddir)/src $(COS_DIRS);\
@@ -132,9 +131,9 @@ install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
 	for f in $(ADA_SPECS) $(ADA_BODIES) $(ADA_ALIS); do \
           if test -f $$f; then \
-            $(INSTALL) -m 644 $$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); \
           else \
-            $(INSTALL) -m 644  $(srcdir)/$$f $(DESTDIR)$(alidir); \
+            $(INSTALL) -m 444  $(srcdir)/$$f $(DESTDIR)$(alidir); \
           fi \
         done
 
