@@ -84,6 +84,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-references-binding.ads \
 		polyorb-references-ior.ads \
 		polyorb-references-corbaloc.ads \
+		polyorb-references-uri.ads \
 		polyorb-representations-cdr.ads \
 		polyorb-representations-test.ads \
 		polyorb-requests.ads \
