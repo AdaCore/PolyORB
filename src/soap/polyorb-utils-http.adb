@@ -124,7 +124,7 @@ package body PolyORB.Utils.HTTP is
       end case;
 
       pragma Assert ((Result'Last - Last) < 3);
-      Result (Last + 1.. Result'Last) := (others => '=');
+      Result (Last + 1 .. Result'Last) := (others => '=');
       return Result;
    end Base64_Encode;
 

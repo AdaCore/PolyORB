@@ -75,7 +75,7 @@ package PolyORB.Protocols.HTTP is
 
    No_Data  : constant String := " ";
 
-   Null_Str : constant Types.String := To_PolyORB_String (" ");
+   Null_Str : constant Types.String := To_PolyORB_String ("");
 
    HTTP_Version   : constant String := "HTTP/1.1";
 

@@ -658,82 +658,82 @@ package body PolyORB.Protocols.SOAP  is
       use PolyORB.Buffers;
    begin
       if S.Expect_Header = True then
+         pragma Debug (O ("SOAP DI header"));
          declare
-               Octets_List  :
-                 Stream_Element_Array := To_Stream_Element_Array
-                 (S.Buffer);
-               Header : Types.String := To_PolyORB_String (" ");
-               Resp : HTTP_Response_Access renames S.HTTP_Session.Response;
-               Req  : HTTP_Request_Access renames S.HTTP_Session.Request;
-               Succ : Boolean;
+            Octets_List : constant Stream_Element_Array
+              := To_Stream_Element_Array (S.Buffer);
+            Header : Types.String := To_PolyORB_String ("");
+            Resp : HTTP_Response_Access renames S.HTTP_Session.Response;
+            Req  : HTTP_Request_Access renames S.HTTP_Session.Request;
+            Succ : Boolean;
          begin
-               for I in  Octets_List'Range loop
-                  Append (Header, Character'Val (Natural (Octets_List (I))));
-               end loop;
-               if S.Role = Client then
-                  S.HTTP_Session.Response := new HTTP_Response;
-                  Response_Parse_Header (Header, Resp);
-                  if Response_Status (Resp.all) = S200 or
-                     Response_Status (Resp.all) = S500 then
-                     if Response_CT (Resp.all) = Text_XML and then
-                        Response_TE (Resp.all) /= "chuncked" then
-                        Expect_Data (S, S.Buffer, Stream_Element_Offset (Cl));
-                        S.Expect_Header := False;
-                     else
-                        pragma Debug (O
-                        ("Invalid HTTP Responsein SOAP Context"));
-                        Expect_Data (S, S.Buffer, 0);
-                     end if;
-                  else
-                     pragma Debug (O
-                     ("Invalid HTTP Response in SOAP Context"));
-                     Expect_Data (S, S.Buffer, 0);
-                  end if;
-
-               else
-                  S.HTTP_Session.Request := new HTTP_Request;
-                  Request_Parse_Header (Header, S.HTTP_Session.Request, Succ);
-                  if Succ and then
-                     Request_Mtd (Req.all) = POST and then
-                     Request_Version (Req.all) = HTTP_Version and then
-                     Request_CT (Req.all) = Text_XML then
-
+            for I in  Octets_List'Range loop
+               Append (Header, Character'Val (Natural (Octets_List (I))));
+            end loop;
+            if S.Role = Client then
+               S.HTTP_Session.Response := new HTTP_Response;
+               Response_Parse_Header (Header, Resp);
+               if Response_Status (Resp.all) = S200 or
+                 Response_Status (Resp.all) = S500 then
+                  if Response_CT (Resp.all) = Text_XML and then
+                    Response_TE (Resp.all) /= "chuncked" then
                      Expect_Data (S, S.Buffer, Stream_Element_Offset (Cl));
                      S.Expect_Header := False;
                   else
-                     pragma Debug (O ("Invalid HTTP Request in SOAP Context"));
-                     null;
+                     pragma Debug (O
+                                   ("Invalid HTTP Responsein SOAP Context"));
+                     Expect_Data (S, S.Buffer, 0);
                   end if;
+               else
+                  pragma Debug
+                    (O ("Invalid HTTP Response in SOAP Context"));
+                  Expect_Data (S, S.Buffer, 0);
                end if;
+
+            else
+               S.HTTP_Session.Request := new HTTP_Request;
+               Request_Parse_Header (Header, S.HTTP_Session.Request, Succ);
+               if Succ and then
+                 Request_Mtd (Req.all) = POST and then
+                 Request_Version (Req.all) = HTTP_Version and then
+                 Request_CT (Req.all) = Text_XML then
+
+                  Expect_Data (S, S.Buffer, Stream_Element_Offset (Cl));
+                  S.Expect_Header := False;
+               else
+                  pragma Debug (O ("Invalid HTTP Request in SOAP Context"));
+                  null;
+               end if;
+            end if;
 
          end;
       else
+         pragma Debug (O ("SOAP DI body"));
          declare
-            Octets_List  : Stream_Element_Array :=
-              To_Stream_Element_Array (S.Buffer);
+            Octets_List : constant Stream_Element_Array
+              := To_Stream_Element_Array (S.Buffer);
             Message : Types.String := To_PolyORB_String ("");
             XML_Comp : XML_Component_Access := new XML_Component;
          begin
-               for I in  Octets_List'Range loop
-                     Append (Message, Character'Val
-                      (Natural (Octets_List (I))));
-               end loop;
-               S.HTTP_Session.Message_Body := Message;
-               XML_Parse (XML_Comp, new Stream_Char'
-                 (Current_Pos => 0,
-                Chars => XML_String (Message)));
-               if S.Role = Client then
-                  Build_SOAP_Message (XML_Comp, S.Response);
-                  --  handling the reponse
-               else
-                  Build_SOAP_Message (XML_Comp, S.Request);
-                  Perform_Request (S);
-               end if;
-               Expect_Data (S, S.Buffer, 0);
+            for I in  Octets_List'Range loop
+               Append (Message, Character'Val
+                       (Natural (Octets_List (I))));
+            end loop;
+            S.HTTP_Session.Message_Body := Message;
+            XML_Parse (XML_Comp, new Stream_Char'
+                       (Current_Pos => 0,
+                        Chars => XML_String (Message)));
+            if S.Role = Client then
+               Build_SOAP_Message (XML_Comp, S.Response);
+               --  handling the reponse
+            else
+               Build_SOAP_Message (XML_Comp, S.Request);
+               Perform_Request (S);
+            end if;
+            Expect_Data (S, S.Buffer, 0);
          end;
       end if;
    end Handle_Data_Indication;
-
 
    procedure Handle_Connect_Indication
      (S : access SOAP_Session)
