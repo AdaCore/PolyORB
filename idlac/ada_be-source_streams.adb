@@ -111,10 +111,10 @@ package body Ada_Be.Source_Streams is
       Unit.Elaborate_Body := True;
    end Add_Elaborate_Body;
 
-   procedure Add_No_Warning (Unit : in out Compilation_Unit) is
+   procedure Suppress_Warning_Message (Unit : in out Compilation_Unit) is
    begin
       Unit.No_Warning := True;
-   end Add_No_Warning;
+   end Suppress_Warning_Message;
 
    procedure Add_With
      (Unit   : in out Compilation_Unit;

@@ -585,8 +585,8 @@ package body Ada_Be.Idl2Ada is
                  (Impl_Spec, Node);
                --  The object implementation type.
 
-               Add_No_Warning (Impl_Spec);
-               Add_No_Warning (Impl_Body);
+               Suppress_Warning_Message (Impl_Spec);
+               Suppress_Warning_Message (Impl_Body);
 
                Add_With (Impl_Body, Skel_Name,
                          Use_It => False,
