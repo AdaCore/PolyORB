@@ -1,4 +1,5 @@
 with All_Types.Skel;
+with All_Types_IDL_FILE;
 with CORBA;
 --with CORBA.Object;
 
@@ -69,8 +70,9 @@ private
 
    function echoRef
      (Self : access Object;
-      arg : in Ref)
-      return Ref;
+      arg : in all_types_IDL_file.all_types_Forward.Ref)
+      return all_types_IDL_file.all_types_Forward.Ref;
+
 
    function echoColor
      (Self : access Object;

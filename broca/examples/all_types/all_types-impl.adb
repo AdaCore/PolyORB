@@ -94,8 +94,8 @@ package body all_types.Impl is
 
    function echoRef
      (Self : access Object;
-      arg : in Ref)
-      return Ref
+      arg : in all_types_IDL_file.all_types_Forward.Ref)
+      return all_types_IDL_file.all_types_Forward.Ref
    is
    begin
       return arg;

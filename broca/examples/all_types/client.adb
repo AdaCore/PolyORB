@@ -176,13 +176,14 @@ begin
          Output ("test read-only attribute",
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
-
+ 
    end loop;
 
       declare
          X : All_Types.Ref;
       begin
-         X := EchoRef (MyAll_Types, MyAll_Types);
+         X := All_Types.Convert_Forward.From_Forward (EchoRef (MyAll_Types, All_Types.Convert_Forward.To_Forward (MyAll_Types)));
+         --  X := EchoRef (MyAll_Types, MyAll_Types);
          Output ("test self reference", EchoLong (X, 31337) = 31337);
       end;
 
