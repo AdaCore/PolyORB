@@ -124,7 +124,6 @@ package body Backend.BE_Ada.Nutils is
       end loop;
    end Append_Node_To_List;
 
-
    ---------------------
    -- Copy_Designator --
    ---------------------
@@ -138,6 +137,7 @@ package body Backend.BE_Ada.Nutils is
       P : Node_Id := Parent_Unit_Name (Designator);
 
    begin
+      pragma Assert (Witheded);
       D := Copy_Node (Designator);
       if Present (P) then
          P := Copy_Designator (P, False);

@@ -254,6 +254,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       R : Node_Id;
 
    begin
+      pragma Assert (Witheded);
       K := FEN.Kind (Entity);
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);

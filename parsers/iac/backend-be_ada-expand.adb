@@ -18,8 +18,9 @@ package body Backend.BE_Ada.Expand is
       D  : Node_Id := No_Node;
       X  : Node_Id := N;
       FE : Node_Id;
-   begin
 
+   begin
+      pragma Assert (Witheded);
       case Kind (N) is
          when K_Full_Type_Declaration |
            K_Subprogram_Specification =>
