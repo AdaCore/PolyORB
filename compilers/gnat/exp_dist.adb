@@ -4138,10 +4138,10 @@ package body Exp_Dist is
       ----------------------------
 
       procedure Insert_Partition_Check (Parameter : Node_Id) is
-         Parameter_Entity  : constant Entity_Id :=
-                               Defining_Identifier (Parameter);
-         Condition         : Node_Id;
+         Parameter_Entity : constant Entity_Id :=
+                              Defining_Identifier (Parameter);
 
+         Condition         : Node_Id;
          Designated_Object : Node_Id;
          pragma Warnings (Off, Designated_Object);
          --  Is it really right that this is unreferenced ???
@@ -4421,9 +4421,7 @@ package body Exp_Dist is
       --  'Input at the point of declaration.
 
       Current_Parameter := First (Ordered_Parameters_List);
-
       while Current_Parameter /= Empty loop
-
          declare
             Etyp        : Entity_Id;
             Constrained : Boolean;
@@ -4875,6 +4873,8 @@ package body Exp_Dist is
 
       New_Identifier : Entity_Id;
 
+   --  Comments needed in body below ???
+
    begin
       if New_Name = No_Name then
          pragma Assert (Nkind (Spec) = N_Function_Specification
@@ -5105,8 +5105,8 @@ package body Exp_Dist is
 
    begin
       New_Scope (Scope_Of_Spec (Spec));
-      Add_Calling_Stubs_To_Declarations (Specification (Unit_Node),
-                                         Decls);
+      Add_Calling_Stubs_To_Declarations
+        (Specification (Unit_Node), Decls);
       Pop_Scope;
    end Expand_Calling_Stubs_Bodies;
 
@@ -5302,7 +5302,6 @@ package body Exp_Dist is
 
    function Need_Extra_Constrained (Parameter : Node_Id) return Boolean is
       Etyp : constant Entity_Id := Etype (Parameter_Type (Parameter));
-
    begin
       return Out_Present (Parameter)
         and then Has_Discriminants (Etyp)
@@ -5426,7 +5425,7 @@ package body Exp_Dist is
 
    procedure RACW_Type_Is_Asynchronous (RACW_Type : Entity_Id) is
       Asynchronous_Flag : constant Entity_Id :=
-                           Asynchronous_Flags_Table.Get (RACW_Type);
+                            Asynchronous_Flags_Table.Get (RACW_Type);
    begin
       Replace (Expression (Parent (Asynchronous_Flag)),
         New_Occurrence_Of (Standard_True, Sloc (Asynchronous_Flag)));
@@ -5440,7 +5439,7 @@ package body Exp_Dist is
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id) return Node_Id
    is
-      Inst : Node_Id;
+      Inst     : Node_Id;
       Pkg_Name : String_Id;
 
    begin
@@ -5474,7 +5473,6 @@ package body Exp_Dist is
    is
       Stub_Elements : constant Stub_Structure :=
                         Stubs_Table.Get (Full_View);
-
    begin
       if Stub_Elements /= Empty_Stub_Structure then
          Add_RACW_Primitive_Declarations_And_Bodies
@@ -5520,18 +5518,20 @@ package body Exp_Dist is
       Nam     : Entity_Id;
       TSS_Nam : Name_Id)
    is
-      Loc : constant Source_Ptr := Sloc (Nam);
+      Loc  : constant Source_Ptr := Sloc (Nam);
       Spec : constant Node_Id := Parent (Nam);
 
-      TSS_Node : constant Node_Id
-        := Make_Subprogram_Renaming_Declaration (Loc,
-          Specification =>
-            Copy_Specification (Loc,
-               Spec     => Spec,
-               New_Name => TSS_Nam),
-          Name => New_Occurrence_Of (Nam, Loc));
-      Snam : constant Entity_Id
-        := Defining_Unit_Name (Specification (TSS_Node));
+      TSS_Node : constant Node_Id :=
+                   Make_Subprogram_Renaming_Declaration (Loc,
+                     Specification =>
+                       Copy_Specification (Loc,
+                         Spec     => Spec,
+                         New_Name => TSS_Nam),
+                       Name => New_Occurrence_Of (Nam, Loc));
+
+      Snam : constant Entity_Id :=
+               Defining_Unit_Name (Specification (TSS_Node));
+
    begin
       if Nkind (Spec) = N_Function_Specification then
          Set_Ekind (Snam, E_Function);
