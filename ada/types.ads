@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -590,9 +590,9 @@ pragma Preelaborate (Types);
    --  constitutes a library. Time stamps are 12 character strings with
    --  with the following format:
 
-   --     YYMMDDHHMMSS
+   --     YYYYMMDDHHMMSS
 
-   --       YY     year (2 low order digits)
+   --       YYYY   year
    --       MM     month (2 digits 01-12)
    --       DD     day (2 digits 01-31)
    --       HH     hour (2 digits 00-23)
@@ -604,7 +604,7 @@ pragma Preelaborate (Types);
    --  This solves problems in using libraries across networks with clients
    --  spread across multiple time-zones.
 
-   Time_Stamp_Length : constant := 12;
+   Time_Stamp_Length : constant := 14;
    --  Length of time stamp value
 
    subtype Time_Stamp_Index is Natural range 1 .. Time_Stamp_Length;
@@ -612,22 +612,14 @@ pragma Preelaborate (Types);
    --  Type used to represent time stamp
 
    Empty_Time_Stamp : constant Time_Stamp_Type := (others => ' ');
-   --  Type used to represent an empty or missing time stamp.
+   --  Type used to represent an empty or missing time stamp. Looks less
+   --  than any real time stamp if two time stamps are compared.
 
    function "="  (Left, Right : Time_Stamp_Type) return Boolean;
    --  The equality test on time stamps allows a 2 second difference in
    --  time stamps on the same date to be be counted as equal. This deals
    --  with rounding effects in library file time stamps caused by copying
    --  operations during installation, particularly on WinNT.
-
-   function "<"  (Left, Right : Time_Stamp_Type) return Boolean;
-   function "<=" (Left, Right : Time_Stamp_Type) return Boolean;
-   function ">"  (Left, Right : Time_Stamp_Type) return Boolean;
-   function ">=" (Left, Right : Time_Stamp_Type) return Boolean;
-   --  These comparison functions compare dates where less than means earlier
-   --  than. We can't quite use straight string comparisons because of year
-   --  2000 problems with the two digit date. The Empty_Time_Stamp value
-   --  looks less than any non-empty time stamp to these comparison routines.
 
    -----------------------------------------------
    -- Types used for Pragma Suppress Management --

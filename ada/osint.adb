@@ -1632,18 +1632,24 @@ package body Osint is
 
    begin
       GM_Split (T, Y, Mo, D, H, Mn, S);
-      GNAT_Time (1)  := Character'Val (Z + (Y / 10) mod 10);
-      GNAT_Time (2)  := Character'Val (Z + Y mod 10);
-      GNAT_Time (3)  := Character'Val (Z + Mo / 10);
-      GNAT_Time (4)  := Character'Val (Z + Mo mod 10);
-      GNAT_Time (5)  := Character'Val (Z + D / 10);
-      GNAT_Time (6)  := Character'Val (Z + D mod 10);
-      GNAT_Time (7)  := Character'Val (Z + H / 10);
-      GNAT_Time (8)  := Character'Val (Z + H mod 10);
-      GNAT_Time (9)  := Character'Val (Z + Mn / 10);
-      GNAT_Time (10) := Character'Val (Z + Mn mod 10);
-      GNAT_Time (11) := Character'Val (Z + S / 10);
-      GNAT_Time (12) := Character'Val (Z + S mod 10);
+
+      --     Y  Y  Y  Y  M  M  D  D  H  H  M  M  S  S
+      --    01 02 03 04 05 06 07 08 09 10 11 12 13 14
+
+      GNAT_Time (01) := Character'Val (Z + Y / 1000);
+      GNAT_Time (02) := Character'Val (Z + (Y / 100) mod 10);
+      GNAT_Time (03) := Character'Val (Z + (Y / 10) mod 10);
+      GNAT_Time (04) := Character'Val (Z + Y mod 10);
+      GNAT_Time (05) := Character'Val (Z + Mo / 10);
+      GNAT_Time (06) := Character'Val (Z + Mo mod 10);
+      GNAT_Time (07) := Character'Val (Z + D / 10);
+      GNAT_Time (08) := Character'Val (Z + D mod 10);
+      GNAT_Time (09) := Character'Val (Z + H / 10);
+      GNAT_Time (10) := Character'Val (Z + H mod 10);
+      GNAT_Time (11) := Character'Val (Z + Mn / 10);
+      GNAT_Time (12) := Character'Val (Z + Mn mod 10);
+      GNAT_Time (13) := Character'Val (Z + S / 10);
+      GNAT_Time (14) := Character'Val (Z + S mod 10);
 
       return GNAT_Time;
 

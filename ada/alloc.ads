@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -130,5 +130,8 @@ package Alloc is
 
    With_List_Initial                : constant := 10;      -- Features
    With_List_Increment              : constant := 300;
+
+   Xrefs_Initial                    : constant := 5_000;   -- Cross-refs
+   Xrefs_Increment                  : constant := 300;
 
 end Alloc;

@@ -96,9 +96,6 @@ package ALI is
       Ver : String (1 .. 16);
       --  Value of library version (V line in ALI file)
 
-      Std : String (1 .. 16);
-      --  Value of standard version (S line in ALI file)
-
       First_Unit : Unit_Id;
       --  Id of first Unit table entry for this file
 

@@ -1020,28 +1020,28 @@ package body Make is
       -- Compile_Sources Data --
       --------------------------
 
-      Source_File      : File_Name_Type;
+      Source_File : File_Name_Type;
       --  Current source file
 
       Full_Source_File : File_Name_Type;
       --  Full name of the current source file
 
-      Lib_File         : File_Name_Type;
+      Lib_File : File_Name_Type;
       --  Current library file
 
-      Full_Lib_File    : File_Name_Type;
+      Full_Lib_File : File_Name_Type;
       --  Full name of the current library file
 
-      Obj_File         : File_Name_Type;
+      Obj_File : File_Name_Type;
       --  Full name of the object file corresponding to Lib_File.
 
-      Obj_Stamp        : Time_Stamp_Type;
+      Obj_Stamp : Time_Stamp_Type;
       --  Time stamp of the current object file.
 
-      Sfile            : File_Name_Type;
-      --  Contains, in turn, the source file of the units withed by Source_File
+      Sfile : File_Name_Type;
+      --  Contains the source file of the units withed by Source_File
 
-      ALI              : ALI_Id;
+      ALI : ALI_Id;
       --  ALI Id of the current ALI file
 
       Compilation_OK  : Boolean;
@@ -1528,176 +1528,197 @@ package body Make is
       begin
          --  Usage line
 
-         Write_Str ("Usage: ");
-         Osint.Write_Program_Name;
-         Write_Str ("  opts  name  ");
-         Write_Str ("{[-cargs opts] [-bargs opts] [-largs opts]}");
-         Write_Eol;
-         Write_Eol;
-         Write_Str ("  name  is a file name from which you can omit the");
-         Write_Str (" .adb or .ads suffix");
-         Write_Eol;
-         Write_Eol;
+         if Hostparm.OpenVMS then
+            Write_Str ("Usage: GNAT MAKE name /qualifiers ");
+            Write_Str ("(includes COMPILE /qualifiers)");
+            Write_Eol;
+            Write_Eol;
+            Write_Str ("  name  is a file name from which you can omit the");
+            Write_Str (" .ADB or .ADS suffix");
+            Write_Eol;
+            Write_Eol;
+         else
+            Write_Str ("Usage: ");
+            Osint.Write_Program_Name;
+            Write_Str ("  opts  name  ");
+            Write_Str ("{[-cargs opts] [-bargs opts] [-largs opts]}");
+            Write_Eol;
+            Write_Eol;
+            Write_Str ("  name  is a file name from which you can omit the");
+            Write_Str (" .adb or .ads suffix");
+            Write_Eol;
+            Write_Eol;
 
-         --  GNATMAKE switches
+            --  GNATMAKE switches
 
-         Write_Str ("gnatmake switches:");
-         Write_Eol;
+            Write_Str ("gnatmake switches:");
+            Write_Eol;
 
-         --  Line for -a
+            --  Line for -a
 
-         Write_Switch_Char;
-         Write_Str ("a       Consider all files, even readonly ali files");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("a       Consider all files, even readonly ali files");
+            Write_Eol;
 
-         --  Line for -c
+            --  Line for -c
 
-         Write_Switch_Char;
-         Write_Str ("c       Compile only, do not bind and link");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("c       Compile only, do not bind and link");
+            Write_Eol;
 
-         --  Line for -f
+            --  Line for -f
 
-         Write_Switch_Char;
-         Write_Str ("f       Force recompilations of non predefined units");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("f       Force recompilations of non predefined units");
+            Write_Eol;
 
-         --  Line for -i
+            --  Line for -i
 
-         Write_Switch_Char;
-         Write_Str ("i       In place. Replace existing ali file, ");
-         Write_Str ("or put it with source");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("i       In place. Replace existing ali file, ");
+            Write_Str ("or put it with source");
+            Write_Eol;
 
-         --  Line for -jnnn
+            --  Line for -jnnn
 
-         Write_Switch_Char;
-         Write_Str ("jnum    Use nnn processes to compile");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("jnum    Use nnn processes to compile");
+            Write_Eol;
 
-         --  Line for -k
+            --  Line for -k
 
-         Write_Switch_Char;
-         Write_Str ("k       Keep going after compilation errors");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("k       Keep going after compilation errors");
+            Write_Eol;
 
-         --  Line for -m
+            --  Line for -m
 
-         Write_Switch_Char;
-         Write_Str ("m       Minimal recompilation");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("m       Minimal recompilation");
+            Write_Eol;
 
-         --  Line for -M
+            --  Line for -M
 
-         Write_Switch_Char;
-         Write_Str ("M       List object file dependences for Makefile");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("M       List object file dependences for Makefile");
+            Write_Eol;
 
-         --  Line for -n
+            --  Line for -n
 
-         Write_Switch_Char;
-         Write_Str ("n       Check objects up to date, output next file ");
-         Write_Str ("to compile if not");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("n       Check objects up to date, output next file ");
+            Write_Str ("to compile if not");
+            Write_Eol;
 
-         --  Line for -o
+            --  Line for -o
 
-         Write_Switch_Char;
-         Write_Str ("o name  Choose an alternate executable name");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("o name  Choose an alternate executable name");
+            Write_Eol;
 
-         --  Line for -q
+            --  Line for -q
 
-         Write_Switch_Char;
-         Write_Str ("q       Be quiet/terse");
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("q       Be quiet/terse");
+            Write_Eol;
 
-         --  Line for -v
+            --  Line for -v
 
-         Write_Switch_Char;
-         Write_Str ("v       Motivate all (re)compilations");
-         Write_Eol;
-         Write_Eol;
+            Write_Switch_Char;
+            Write_Str ("v       Motivate all (re)compilations");
+            Write_Eol;
+            Write_Eol;
 
-         --  GCC switches (passed to gcc by gnatmake)
+            Write_Str ("  --GCC=command       Use this gcc command");
+            Write_Eol;
 
-         Write_Str ("Gnat/Gcc switches such as -g, -O, -gnato, etc.");
-         Write_Str ("are directly passed to gcc");
-         Write_Eol;
-         Write_Eol;
+            Write_Str ("  --GNATBIND=command  Use this gnatbind command");
+            Write_Eol;
 
-         --  Source & Library search path switches
+            Write_Str ("  --GNATLINK=command  Use this gnatlink command");
+            Write_Eol;
+            Write_Eol;
 
-         Write_Str ("Source & Library search path switches:");
-         Write_Eol;
+            --  GCC switches (passed to gcc by gnatmake)
 
-         --  Line for -aL
+            Write_Str ("Gnat/Gcc switches such as -g, -O, -gnato, etc.");
+            Write_Str ("are directly passed to gcc");
+            Write_Eol;
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("aLdir  Skip missing library sources if ali in dir");
-         Write_Eol;
+            --  Source & Library search path switches
 
-         --  Line for -A
+            Write_Str ("Source & Library search path switches:");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("Adir   like -aLdir -aIdir");
-         Write_Eol;
+            --  Line for -aL
 
-         --  Line for -aO switch
+            Write_Switch_Char;
+            Write_Str ("aLdir  Skip missing library sources if ali in dir");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("aOdir  Specify library/object files search path");
-         Write_Eol;
+            --  Line for -A
 
-         --  Line for -aI switch
+            Write_Switch_Char;
+            Write_Str ("Adir   like -aLdir -aIdir");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("aIdir  Specify source files search path");
-         Write_Eol;
+            --  Line for -aO switch
 
-         --  Line for -I switch
+            Write_Switch_Char;
+            Write_Str ("aOdir  Specify library/object files search path");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("Idir   Like -aIdir -aOdir");
-         Write_Eol;
+            --  Line for -aI switch
 
-         --  Line for -I- switch
+            Write_Switch_Char;
+            Write_Str ("aIdir  Specify source files search path");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("I-     Don't look for sources & library files");
-         Write_Str (" in the default directory");
-         Write_Eol;
+            --  Line for -I switch
 
-         --  Line for -L
+            Write_Switch_Char;
+            Write_Str ("Idir   Like -aIdir -aOdir");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("Ldir   Look for program libraries also in dir");
-         Write_Eol;
-         Write_Eol;
+            --  Line for -I- switch
 
-         --  General Compiler, Binder, Linker switches
+            Write_Switch_Char;
+            Write_Str ("I-     Don't look for sources & library files");
+            Write_Str (" in the default directory");
+            Write_Eol;
 
-         Write_Str ("To pass an arbitrary switch to the Compiler, Binder or ");
-         Write_Str ("Linker:");
-         Write_Eol;
+            --  Line for -L
 
-         --  Line for -cargs
+            Write_Switch_Char;
+            Write_Str ("Ldir   Look for program libraries also in dir");
+            Write_Eol;
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("cargs opts   opts are passed to the compiler");
-         Write_Eol;
+            --  General Compiler, Binder, Linker switches
 
-         --  Line for -bargs
+            Write_Str ("To pass an arbitrary switch to the Compiler, ");
+            Write_Str ("Binder or Linker:");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("bargs opts   opts are passed to the binder");
-         Write_Eol;
+            --  Line for -cargs
 
-         --  Line for -largs
+            Write_Switch_Char;
+            Write_Str ("cargs opts   opts are passed to the compiler");
+            Write_Eol;
 
-         Write_Switch_Char;
-         Write_Str ("largs opts   opts are passed to the linker");
-         Write_Eol;
+            --  Line for -bargs
+
+            Write_Switch_Char;
+            Write_Str ("bargs opts   opts are passed to the binder");
+            Write_Eol;
+
+            --  Line for -largs
+
+            Write_Switch_Char;
+            Write_Str ("largs opts   opts are passed to the linker");
+            Write_Eol;
+         end if;
 
       end Makeusg;
 

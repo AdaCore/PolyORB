@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -78,86 +78,22 @@ package body Types is
       --  Now the smaller (older) of the two time stamps is in Tlo, the larger
       --  (more recent) is in Thi. Recall that the time stamp format is:
 
-      --     Y  Y  M  M  D  D  H  H  M  M  S  S
-      --    01 02 03 04 05 06 07 08 09 10 11 12
+      --     Y  Y  Y  Y  M  M  D  D  H  H  M  M  S  S
+      --    01 02 03 04 05 06 07 08 09 10 11 12 13 14
 
       --  Note that we do not bother to worry about shifts in the day.
       --  It seems unlikely that such shifts could ever occur in practice
       --  and even if they do we err on the safe side, ie we say that the time
       --  stamps are different.
 
-      Slo := V (Tlo, 11) + 60 * (V (Tlo, 09) + 60 * V (Tlo, 07));
-      Shi := V (Thi, 11) + 60 * (V (Thi, 09) + 60 * V (Thi, 07));
+      Slo := V (Tlo, 13) + 60 * (V (Tlo, 11) + 60 * V (Tlo, 09));
+      Shi := V (Thi, 13) + 60 * (V (Thi, 11) + 60 * V (Thi, 09));
 
       --  So the check is: dates must be the same, times differ 2 sec at most
 
       return Shi <= Slo + 2
-         and then String (Left (1 .. 6)) = String (Right (1 .. 6));
+         and then String (Left (1 .. 8)) = String (Right (1 .. 8));
    end "=";
-
-   ---------
-   -- "<" --
-   ---------
-
-   function "<" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      --  The following test deals with year 2000 problems. Consider any
-      --  date before 700101 to be in the next century.
-
-      if Left (1) in '7' .. '9' and then Right (1) in '0' .. '6' then
-         return True;
-
-      elsif Left (1) in '0' .. '6' and then Right (1) in '7' .. '9' then
-         return False;
-
-      --  If not year 2000 special case, then use standard string comparison.
-      --  Note that this has the right semantics for Empty_Time_Stamp.
-
-      else
-         return String (Left) < String (Right);
-      end if;
-   end "<";
-
-   ----------
-   -- "<=" --
-   ----------
-
-   function "<=" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      --  The following test deals with year 2000 problems. Consider any
-      --  date before 700101 to be in the next century.
-
-      if Left (1) in '7' .. '9' and then Right (1) in '0' .. '6' then
-         return True;
-
-      elsif Left (1) in '0' .. '6' and then Right (1) in '7' .. '9' then
-         return False;
-
-      --  If not year 2000 special case, then use standard string comparison.
-      --  Note that this has the right semantics for Empty_Time_Stamp.
-
-      else
-         return String (Left) <= String (Right);
-      end if;
-   end "<=";
-
-   ---------
-   -- ">" --
-   ---------
-
-   function ">" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      return not (Left <= Right);
-   end ">";
-
-   ----------
-   -- ">=" --
-   ----------
-
-   function ">=" (Left, Right : Time_Stamp_Type) return Boolean is
-   begin
-      return not (Left < Right);
-   end ">=";
 
    -------------------
    -- Get_Char_Code --

@@ -576,7 +576,8 @@ package body ALI is
       ---------------
 
       function Get_Stamp return Time_Stamp_Type is
-         T : Time_Stamp_Type;
+         T     : Time_Stamp_Type;
+         Start : Integer;
 
       begin
          Skip_Space;
@@ -585,7 +586,20 @@ package body ALI is
             Fatal_Error;
          end if;
 
-         for J in T'Range loop
+         --  Following reads old style time stamp missing first two digits
+
+         if Nextc in '7' .. '9' then
+            T (1) := '1';
+            T (2) := '9';
+            Start := 3;
+
+         --  Normal case of full year in time stamp
+
+         else
+            Start := 1;
+         end if;
+
+         for J in Start .. T'Last loop
             T (J) := Getc;
          end loop;
 
@@ -664,18 +678,17 @@ package body ALI is
       Checkc ('"');
       Skip_Eol;
 
-      --  Acquire standard version
+      --  Ignore Standard version line if present (allows new binder to read
+      --  the old format gnatbind files, which used the 'S' line to identify
+      --  the version of Standard, but this feature never proved useful)
 
-      Checkc ('S');
-      Checkc (' ');
-      Checkc ('"');
+      if Nextc = 'S' then
+         while not At_Eol loop
+            C := Getc;
+         end loop;
 
-      for J in ALIs.Table (Id).Std'Range loop
-         ALIs.Table (Id).Std (J) := Getc;
-      end loop;
-
-      Checkc ('"');
-      Skip_Eol;
+         Skip_Eol;
+      end if;
 
       --  Acquire main program line if present
 
@@ -1235,7 +1248,7 @@ package body ALI is
 
       ALIs.Table (Id).Last_Sdep := Sdep.Last;
 
-      if C /= EOF then
+      if C /= EOF and then C /= 'X' then
          Fatal_Error;
       end if;
 

@@ -600,21 +600,65 @@ package body Switch is
          elsif C = 'x' then
             Ptr := Ptr + 1;
 
+            --  Note: the setting of the Xref_Flag_n are obsolescent, since
+            --  they are only for gnatf. For now we treat any other character
+            --  than 0/1/2 as 2 for gnat purposes. If no character follows
+            --  x, then we assume -gnatx1 for gnat1.
+
             if Program = Compiler then
 
                case Switches (Ptr) is
-                  when '1' => Xref_Flag_1 := True;
-                  when '2' => Xref_Flag_2 := True;
-                  when '3' => Xref_Flag_3 := True;
-                  when '4' => Xref_Flag_4 := True;
-                  when '5' => Xref_Flag_5 := True;
-                  when '6' => Xref_Flag_6 := True;
-                  when '9' => Xref_Flag_9 := True;
-                  when 'b' => Xref_Flag_B := True;
-                  when 's' => Xref_Flag_S := True;
+                  when '0' =>
+                     Xref_Level := 0;
+                     Ptr := Ptr + 1;
+
+                  when '1' =>
+                     Xref_Flag_1 := True;
+                     Xref_Level := 1;
+                     Ptr := Ptr + 1;
+
+                  when '2' =>
+                     Xref_Flag_2 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when '3' =>
+                     Xref_Flag_3 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when '4' =>
+                     Xref_Flag_4 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when '5' =>
+                     Xref_Flag_5 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when '6' =>
+                     Xref_Flag_6 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when '9' =>
+                     Xref_Flag_9 := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when 'b' =>
+                     Xref_Flag_B := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
+
+                  when 's' =>
+                     Xref_Flag_S := True;
+                     Xref_Level := 2;
+                     Ptr := Ptr + 1;
 
                   when others =>
-                     raise Bad_Switch;
+                     Xref_Level := 1;
                end case;
 
                Ptr := Ptr + 1;

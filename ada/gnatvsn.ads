@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,7 +31,7 @@
 
 package Gnatvsn is
 
-   Gnat_Version_String : constant String := "3.11w (980216)";
+   Gnat_Version_String : constant String := "3.11w (980302)";
    --  Version output when GNAT (compiler), GNATBIND, or GNATMAKE is run
    --  (with -gnatv switch set)
    --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
@@ -45,13 +45,5 @@ package Gnatvsn is
    --  Library version. This value must be updated whenever any change to the
    --  compiler affects the library formats in such a way as to obsolete
    --  previously compiled library modules.
-
-   Standard_Version : String (1 .. 16)  := "                ";
-   --  A string identifying the version of Standard. Used for library output
-   --  and by the binder to check that all modules use the same version of
-   --  Standard (otherwise the bind is not permitted). This is updated
-   --  whenever a change to Standard requires complete recompilation. The
-   --  actual value of this string is established by the Stand package when
-   --  package Standard is constructed.
 
 end Gnatvsn;

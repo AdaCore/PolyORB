@@ -509,6 +509,10 @@ package Opt is
    --  If set, cross-reference file includes information on required interfaces
    --  for library package specs.
 
+   Xref_Level : Int := 0;
+   --  GNAT
+   --  Cross-reference level (0,1,2) for -gnatx0/x1/x2
+
    function Check_Ada_95 (File_Name : File_Name_Type) return Boolean;
    --  Set Ada_95 mode for predefined and internal units, otherwise set
    --  mode from switches. Return former Ada_83 mode.
