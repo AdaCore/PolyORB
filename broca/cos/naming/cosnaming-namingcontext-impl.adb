@@ -1,4 +1,5 @@
 with CORBA;
+with CORBA.Impl;
 with CORBA.ORB;
 
 with Broca.Basic_Startup;
@@ -552,9 +553,13 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return NamingContext.Ref is
+     return NamingContext.Ref
+   is
+      Its_Ref : NamingContext.Ref;
+
    begin
-      return New_Context;
+      NamingContext.Set (Its_Ref, CORBA.Impl.Object_Ptr (New_Context));
+      return Its_Ref;
    end New_Context;
 
    -----------------
@@ -562,7 +567,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------
 
    function New_Context
-     return NamingContext.Ref
+     return Object_Ptr
    is
       Obj : Object_Ptr;
       Ref : CORBA.Object.Ref;
@@ -572,7 +577,7 @@ package body CosNaming.NamingContext.Impl is
       Obj.Self := Obj;
       Obj.Key  := Allocate;
       Broca.Basic_Startup.Initiate_Servant (PortableServer.Servant (Obj), Ref);
-      return NamingContext.Helper.To_Ref (Ref);
+      return Obj;
    end New_Context;
 
    ------------

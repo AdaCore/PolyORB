@@ -67,7 +67,7 @@ package CosNaming.NamingContext.Impl is
      return CosNaming.NamingContext.Ref;
 
    function New_Context
-     return CosNaming.NamingContext.Ref;
+     return Object_Ptr;
 
    function Bind_New_Context
      (Self : access Object;

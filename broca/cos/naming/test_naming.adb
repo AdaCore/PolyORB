@@ -3,6 +3,7 @@ with Ada.Exceptions;              use Ada.Exceptions;
 with Menu;                        use Menu;
 
 with CORBA;
+with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
 
@@ -271,7 +272,8 @@ begin
    Broca.Basic_Startup.Initiate_Server;
 
    Ada.Text_IO.Put_Line ("create root directory");
-   WDR := NamingContext.Impl.New_Context;
+   NamingContext.Set
+     (WDR, CORBA.Impl.Object_Ptr (NamingContext.Impl.New_Context));
    Bind_Context (WDR, Here, WDR);
    Bind_Context (WDR, Back, WDR);
 
@@ -320,7 +322,9 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Dir   := NamingContext.Impl.New_Context;
+                  NamingContext.Set
+                    (Dir,
+                     CORBA.Impl.Object_Ptr (NamingContext.Impl.New_Context));
                   Bind_Context (From (Argv), To_Name (Argv), Dir);
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));
