@@ -96,6 +96,18 @@ package OmniObject is
    -- (as a local object)
    -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
+   function Is_A(Self: in Implemented_Object ;
+                 Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean ;
+   -- returns true if this object is of this Logical_Type_Id
+   -- or one of its descendants
+
+   Repository_Id : Corba.String
+     := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+
+   function Get_Repository_Id(Self : in Implemented_Object)
+                              return Corba.String ;
+
    -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
@@ -235,6 +247,12 @@ private
    -- (see Ada_OmniObject.hh)
    -- This function is implemented in Ada and exported to C
    -- it calls th Ada function Dispatch
+
+   function  C_Is_A(Self : in Object'Class ;
+                   RepoId : in Interfaces.C.Strings.Chars_Ptr)
+                   return  Sys_Dep.C_Boolean ;
+   pragma Export(CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc") ;
+
 
    function Dispatch (Self : in Object'Class ;
                       Orls : in Giop_S.Object ;

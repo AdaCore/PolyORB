@@ -19,9 +19,6 @@ main:
 	make -C ../../InterfaceORB main
 	make client
 
-aaa:
-	aa $(CPP_LINK_FILES)
-
 client: vehicle.o weapon.o tank.o client.o 
 	$(BIND) -I$(ADABROKER_PATH) client.ali
 	$(LINK)  \

@@ -73,6 +73,9 @@ public:
   // Ada Objects. The implementation is made in Ada.
   // (see omniobject.adb)
 
+  virtual _CORBA_Boolean Ada_Is_A(const char* repoId) ;
+  // calls is_a on this omniobject
+
   void setRepositoryID(const char* repoId) ;
   // call the PR_IRRepositoryId of omniObject
   
@@ -82,6 +85,7 @@ public:
   omniObject_C2Ada *getOmniObject() ;
   // returns the underlying omniObject_C2Ada
   
+
 private:
   void* ada_pointer ;
   // This pointer is only used by the Ada side of this object
@@ -98,4 +102,8 @@ extern void raise_ada_exception (const char *msg) ;
   // this function allows C code to raise Ada exception
   // It is implemented in Ada and only raise a No_Initialisation
   // exception with the message msg. (see corba.ads)
+
+
+
+
 

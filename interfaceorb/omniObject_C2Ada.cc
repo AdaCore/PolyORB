@@ -80,6 +80,17 @@ omniObject_C2Ada::dispatch(GIOP_S &giop,
 };
 
 
+void*
+omniObject_C2Ada::_widenFromTheMostDerivedIntf(const char* repoId,
+					       _CORBA_Boolean is_cxx_type_id=0) {
+  if (Ada_OmniObject_Pointer->Ada_Is_A(repoId) ) {
+    return (void*) this ;
+  } else {
+    return 0 ;
+  }
+}
+
+
 Ada_OmniObject *
 omniObject_C2Ada::get_Ada_OmniObject ()
 {

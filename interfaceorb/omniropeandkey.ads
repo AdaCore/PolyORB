@@ -96,7 +96,7 @@ package OmniRopeAndKey is
 
    function Equals(Self : in Object'Class ;
                    Other : in Object'Class) return Boolean ;
-   pragma Import(C, Equals, "???") ;
+   pragma Import(CPP, Equals, "equals__18Ada_OmniRopeAndKeyT0") ;
    -- redefinition of the operator to compare the C++ objects
    -- see Ada_OmniRopeAndKey.hh
 

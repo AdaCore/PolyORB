@@ -25,7 +25,7 @@
 
 class Ada_OmniObject ;
 
-class omniObject_C2Ada : public omniObject
+class omniObject_C2Ada : public  omniObject
 {
 public:
 
@@ -55,6 +55,9 @@ public:
   // overwrites omniObject::dispatch
   // calls dispatch on Ada_Omniobject
 
+  virtual void* _widenFromTheMostDerivedIntf(const char* repoId,
+					     _CORBA_Boolean is_cxx_type_id=0) ;
+  
   Ada_OmniObject * get_Ada_OmniObject ();
   // returns the underlying Ada_Omniobject object
   

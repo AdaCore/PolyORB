@@ -24,6 +24,8 @@ with Ada.Exceptions ;
 with Ada.Unchecked_Conversion ;
 with System.Address_To_Access_Conversions ;
 
+with Corba ;
+use type Corba.String ;
 
 package body OmniObject is
 
@@ -274,7 +276,9 @@ package body OmniObject is
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
                                 L : in out System.Address ;
                                 Success : out Sys_Dep.C_Boolean) ;
-   pragma Import (CPP,C_Get_Rope_And_Key, "????") ;
+   pragma Import (CPP,
+                  C_Get_Rope_And_Key,
+                  "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
    -- wrapper around  Ada_OmniObject function getRopeAndKey
    -- (see Ada_OmniObject.hh)
 
@@ -352,6 +356,35 @@ package body OmniObject is
       -- to be implemented
       -- should never be called on a proxy object
       return False ;
+   end ;
+
+   -- Get_Repository_Id
+   --------------------
+   function Get_Repository_Id(Self : in Implemented_Object)
+                              return Corba.String is
+   begin
+      return Repository_Id ;
+   end ;
+
+
+   -- Is_A
+   -------
+   function Is_A(Self: in Implemented_Object ;
+                 Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Logical_Type_Id) ;
+   end ;
+
+    -- C_Is_A
+   ---------
+   function C_Is_A(Self : in Object'Class ;
+                   RepoId : in Interfaces.C.Strings.Chars_Ptr)
+                   return  Sys_Dep.C_Boolean is
+      Rep : Corba.String ;
+   begin
+      Rep := Corba.To_Corba_String(Interfaces.C.Strings.Value(RepoId)) ;
+      return Sys_Dep.Boolean_Ada_To_C(Is_A(Self.Implobj.all, Rep)) ;
    end ;
 
 
