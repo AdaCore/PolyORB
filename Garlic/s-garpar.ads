@@ -117,4 +117,30 @@ private package System.Garlic.Partitions is
       Component_Type => Partition_Info,
       Null_Component => Null_Partition);
 
+   function Allocate_PID return Types.Partition_ID;
+   --  Allocate a new partition ID
+
+   procedure Dump_Partition_Info
+     (PID  : in Types.Partition_ID;
+      Info : in Partition_Info);
+   --  Dump a summary of all the information we have on a partition
+
+   function Get_Boot_Server return String;
+   --  This function returns the coordinates of the boot server
+
+   function Get_Partition_Info
+     (Partition : Types.Partition_ID)
+      return Partition_Info;
+   --  If cached, then return local partition info. Otherwise, on a non
+   --  boot partition send a request. Wait for info to be available.
+
+   function Get_Protocol
+     (Partition : Types.Partition_ID)
+      return Protocols.Protocol_Access;
+   pragma Inline (Get_Protocol);
+   --  Same as above. But for boot partition, then get protocol from
+   --  boot server option.
+
+   function Get_Self_Location return Physical_Location.Location_Type;
+
 end System.Garlic.Partitions;

@@ -1,3 +1,18 @@
+1998-10-14  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-garhea.adb, s-garhea.ads: Move some procedures to manage
+ 	partition table from Garlic.Heart to package Garlic.Partitions.
+
+	* s-garpar.adb, s-garpar.ads: Define a body for this package. Move
+ 	some procedures from Garlic.Heart to this package.
+
+	* s-garter.adb: Remove two protected objects. Cleanup.
+
+	* s-garrem.adb: Adapt with clauses.
+
+	* Makefile.am, Makefile.in: Add Garlic.Partitions in source and
+	object lists.
+
 1998-10-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* DALL, UNDALL: Add S_GARGRO debugging env. var.

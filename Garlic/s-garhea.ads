@@ -55,9 +55,6 @@ package System.Garlic.Heart is
    -- Boot server --
    -----------------
 
-   function Get_Boot_Server return String;
-   --  This function returns the coordinates of the boot server
-
    procedure Initialize;
    --  Initialize the package
 

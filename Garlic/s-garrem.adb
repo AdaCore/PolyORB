@@ -39,8 +39,8 @@ with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Interfaces.C.Strings;            use Interfaces.C, Interfaces.C.Strings;
 with System.Garlic.Constants;         use System.Garlic.Constants;
 with System.Garlic.Debug;             use System.Garlic.Debug;
-with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Naming;            use System.Garlic.Naming;
+with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Thin;              use System.Garlic.Thin;
 

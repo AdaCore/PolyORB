@@ -108,7 +108,7 @@ ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garloc.ads ${srcdir}/s-garloc.adb \
 ${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
-${srcdir}/s-garpar.ads                        \
+${srcdir}/s-garpar.ads ${srcdir}/s-garpar.adb \
 ${srcdir}/s-garpro.ads                        \
 ${srcdir}/s-garpri.ads                        \
 ${srcdir}/s-ganata.ads ${srcdir}/s-ganata.adb \

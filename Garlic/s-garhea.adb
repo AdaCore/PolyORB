@@ -47,7 +47,7 @@ with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
-with System.Garlic.Utils;
+with System.Garlic.Utils;             use System.Garlic.Utils;
 with System.Standard_Library;
 
 with System.Garlic.Linker_Options;
@@ -56,8 +56,6 @@ pragma Warnings (Off, System.Garlic.Linker_Options);
 package body System.Garlic.Heart is
 
    use Ada.Streams;
-   use System.Garlic.Types, System.Garlic.Utils;
-   use System.Garlic.Partitions;
 
    package Partitions renames System.Garlic.Partitions.Partitions;
    use Partitions;
@@ -89,29 +87,6 @@ package body System.Garlic.Heart is
 
    Partition_Error_Notification : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies
-
-   function Allocate_PID return Types.Partition_ID;
-   --  Allocate a new partition ID
-
-   procedure Dump_Partition_Info
-     (PID  : in Partition_ID;
-      Info : in Partition_Info);
-   --  Dump a summary of all the information we have on a partition
-
-   function Get_Partition_Info
-     (PID : Partition_ID)
-      return Partition_Info;
-   --  If cached, then return local partition info. Otherwise, on a non
-   --  boot partition send a request. Wait for info to be available.
-
-   function Get_Protocol
-     (Partition : Partition_ID)
-      return Protocol_Access;
-   pragma Inline (Get_Protocol);
-   --  Same as above. But for boot partition, then get protocol from
-   --  boot server option.
-
-   function Get_Self_Location return Location_Type;
 
    procedure Handle_External
      (Partition : in Partition_ID;
@@ -152,31 +127,6 @@ package body System.Garlic.Heart is
 
    procedure Shutdown;
    --  Generates a local shutdown
-
-   ------------------
-   -- Allocate_PID --
-   ------------------
-
-   function Allocate_PID return Partition_ID
-   is
-      Partition : Partition_ID := Null_PID;
-   begin
-      Partitions.Enter;
-      Enter_Critical_Section;
-      for PID in Partitions.Table'Range loop
-         if not Partitions.Table (PID).Allocated then
-            Partitions.Table (PID).Allocated := True;
-            Partition := PID;
-            exit;
-         end if;
-      end loop;
-      Leave_Critical_Section;
-      Partitions.Leave;
-
-      pragma Debug (D (D_Warning, "Allocate partition" & Partition'Img));
-
-      return Partition;
-   end Allocate_PID;
 
    --------------------
    -- Analyze_Stream --
@@ -303,36 +253,6 @@ package body System.Garlic.Heart is
    end Complete_Elaboration;
 
    -------------------------
-   -- Dump_Partition_Info --
-   -------------------------
-
-   procedure Dump_Partition_Info
-     (PID  : in Partition_ID;
-      Info : in Partition_Info) is
-   begin
-      D (D_Dump, "Information on partition" & Partition_ID'Image (PID));
-      if Info.Logical_Name /= null then
-         D (D_Dump, "  Name:         " & Info.Logical_Name.all);
-      else
-         D (D_Dump, "  Name:         <no name>");
-      end if;
-      D (D_Dump, "  Allocated:    " & Info.Allocated'Img);
-      D (D_Dump, "  Location:     " & To_String (Info.Location));
-      D (D_Dump, "  Termination:  " & Info.Termination'Img);
-      D (D_Dump, "  Reconnection: " & Info.Reconnection'Img);
-      D (D_Dump, "  Status:       " & Status_Type'Image (Info.Status));
-   end Dump_Partition_Info;
-
-   ---------------------
-   -- Get_Boot_Server --
-   ---------------------
-
-   function Get_Boot_Server return String is
-   begin
-      return To_String (Partitions.Get_Component (Boot_PID).Location);
-   end Get_Boot_Server;
-
-   -------------------------
    -- Get_My_Partition_ID --
    -------------------------
 
@@ -424,84 +344,6 @@ package body System.Garlic.Heart is
          pragma Debug (D (D_Exception, Exception_Information (E)));
          raise;
    end Get_My_Partition_ID;
-
-   ------------------------
-   -- Get_Partition_Info --
-   ------------------------
-
-   function Get_Partition_Info (PID : Partition_ID)
-      return Partition_Info
-   is
-      Info    : Partition_Info;
-      Version : Version_Id;
-
-      --  Get a consistent content of PID slot. If info is not available,
-      --  then send a request to boot partition and wait until partition
-      --  table is updated.
-
-   begin
-      loop
-         Info := Partitions.Get_Component (PID);
-
-         exit when Info.Status = Done;
-
-         pragma Debug
-           (D (D_Debug,
-               "Looking for information on partition" & PID'Img));
-
-         Partitions.Enter;
-         Info := Partitions.Get_Component (PID);
-
-         --  Note that Partitions.Table (PID) can be updated between
-         --  the two Get_Component occurences. For this reason, there
-         --  is another loop exit at the end of this block.
-
-         if Info.Status = None
-           and then not Options.Boot_Partition
-         then
-            Info.Status := Busy;
-            Partitions.Set_Component (PID, Info);
-
-            declare
-               Query : aliased Params_Stream_Type (0);
-            begin
-               Request_Type'Output
-                 (Query'Access,
-                  Request_Type'(Get_Partition_Info, PID));
-               Send (Boot_PID, Partition_Operation, Query'Access);
-            end;
-         end if;
-
-         Partitions.Leave (Version);
-         if Info.Status = Done then
-            Dump_Partition_Info (PID, Info);
-            exit;
-         end if;
-         Partitions.Differ (Version);
-      end loop;
-
-      return Info;
-   end Get_Partition_Info;
-
-   ------------------
-   -- Get_Protocol --
-   ------------------
-
-   function Get_Protocol (Partition : Partition_ID) return Protocol_Access is
-   begin
-      return Get_Partition_Info (Partition).Protocol;
-   end Get_Protocol;
-
-   -----------------------
-   -- Get_Self_Location --
-   -----------------------
-
-   function Get_Self_Location return Location_Type is
-      Boot_Protocol : constant Protocol_Access :=
-        Partitions.Get_Component (Boot_PID).Protocol;
-   begin
-      return To_Location (Boot_Protocol, Get_Info (Boot_Protocol));
-   end Get_Self_Location;
 
    ------------------------
    -- Handle_Any_Request --

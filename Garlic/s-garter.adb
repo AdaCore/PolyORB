@@ -61,37 +61,8 @@ package body System.Garlic.Termination is
    package Partitions renames System.Garlic.Partitions.Partitions;
    use Partitions;
 
-   procedure Add_Non_Terminating_Task;
-   --  Let Garlic know that a task is not going to terminate and that
-   --  it should not be taken into account during distributed termination.
-
-   procedure Sub_Non_Terminating_Task;
-   --  Let Garlic know that a task is no longer a non terminating task.
-
-   procedure Shutdown;
-   --  Shutdown any active task
-
-   procedure Initialize;
-   --  Initialization
-
-   procedure Activity_Detected;
-   --  Some activity has been detected. This means that the current
-   --  shutdown procedure (if any) must be terminated.
-
-   procedure Local_Termination;
-   --  Terminate when Garlic tasks and the environment task are the only
-   --  active tasks. Don't bother with other partitions.
-
-   procedure Global_Termination;
-   --  Terminate when global termination detected (on main partition)
-
-   protected Count is
-      procedure Increment;
-      procedure Decrement;
-      function Get return Natural;
-   private
-      Counter : Integer := 0;
-   end Count;
+   Non_Terminating_Tasks : Natural := 0;
+   pragma Atomic (Non_Terminating_Tasks);
    --  Count non-terminating tasks. Counter is an Integer instead of a
    --  Natural because it may well go below 0 in case of termination
    --  (some select then abort statements may be protected by calling
@@ -101,51 +72,16 @@ package body System.Garlic.Termination is
    --  A Stamp value is assigned at each round of the termination protocol
    --  to distinguish between different rounds.
 
-   protected Termination_Watcher is
-      procedure Set_Stamp (Stamp : in Stamp_Type);
-      function  Get_Stamp return Stamp_Type;
-      procedure Increment_Stamp;
-      procedure Messages_Sent (N : in Natural);
-      procedure Activity_Detected;
-      procedure Positive_Ack_Received (Stamp : in Stamp_Type);
-      procedure Negative_Ack_Received (Stamp : in Stamp_Type);
-      procedure Force_Termination;
-      entry     Termination_Accepted (Stamp : in Stamp_Type; B : out Boolean);
-      function  Result_Is_Available return Boolean;
-   private
-      Current   : Stamp_Type := Stamp_Type'Last;
-      Count     : Natural;
-      Result    : Boolean;
-      Available : Boolean := False;
-   end Termination_Watcher;
-   --  This watcher may be used:
-   --   1) By the server: Increment_Stamp
-   --                     Get_Stamp
-   --                     Messages_Sent
-   --                     Positive_ or Negative_Ack_Received
-   --      This will unblock Termination_Accepted
-   --   2) By a client:   Set_Stamp
-   --      This will unblock Termination_Accepted, set to True only
-   --      if no Activity_Detected was called.
-
-   procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type);
-   --  Receive a message from Garlic
+   Termination_Stamp : Stamp_Type := Stamp_Type'Last;
+   pragma Atomic (Termination_Stamp);
+   Acknowledge_Count : Natural;
+   Vote_Result_Ready : Boolean;
+   Vote_Result_Value : Boolean;
 
    type Termination_Code is
       (Set_Stamp, Check_Stamp, Positive_Ack, Negative_Ack);
    --  The termination code used in negociation. It is always followed by
    --  a stamp.
-
-   procedure Initiate_Synchronization;
-   --  This procedure sends the two messages to everyone
-
-   function Get_Active_Task_Count return Natural;
-   --  Active task count (i.e. tasks in a non-terminating state -
-   --  non-terminating tasks).
 
    Time_Between_Checks : constant Duration := 3.0;
    Time_To_Synchronize : constant Duration := 10.0;
@@ -155,13 +91,56 @@ package body System.Garlic.Termination is
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
 
+   procedure Add_Non_Terminating_Task;
+   --  Let Garlic know that a task is not going to terminate and that
+   --  it should not be taken into account during distributed termination.
+
+   function Get_Active_Task_Count return Natural;
+   --  Active task count (i.e. tasks in a non-terminating state -
+   --  non-terminating tasks).
+
+   procedure Activity_Detected;
+   --  Some activity has been detected. This means that the current
+   --  shutdown procedure (if any) must be terminated.
+
+   procedure Global_Termination;
+   --  Terminate when global termination detected (on main partition)
+
+   procedure Handle_Request
+     (Partition : in Partition_ID;
+      Opcode    : in External_Opcode;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
+   --  Receive a message from Garlic
+
+   procedure Initialize;
+   --  Initialization
+
+   procedure Local_Termination;
+   --  Terminate when Garlic tasks and the environment task are the only
+   --  active tasks. Don't bother with other partitions.
+
+   procedure Send
+     (PID   : in Partition_ID;
+      Code  : in Termination_Code;
+      Stamp : in Stamp_Type);
+
+   procedure Shutdown;
+   --  Shutdown any active task
+
+   procedure Sub_Non_Terminating_Task;
+   --  Let Garlic know that a task is no longer a non terminating task.
+
    -----------------------
    -- Activity_Detected --
    -----------------------
 
    procedure Activity_Detected is
    begin
-      Termination_Watcher.Activity_Detected;
+      Enter_Critical_Section;
+      Vote_Result_Ready := True;
+      Vote_Result_Value := False;
+      Leave_Critical_Section;
    end Activity_Detected;
 
    ------------------------------
@@ -170,43 +149,10 @@ package body System.Garlic.Termination is
 
    procedure Add_Non_Terminating_Task is
    begin
-      Count.Increment;
+      Enter_Critical_Section;
+      Non_Terminating_Tasks := Non_Terminating_Tasks + 1;
+      Leave_Critical_Section;
    end Add_Non_Terminating_Task;
-
-   -----------
-   -- Count --
-   -----------
-
-   protected body Count is
-
-      ---------------
-      -- Decrement --
-      ---------------
-
-      procedure Decrement is
-      begin
-         Counter := Counter - 1;
-      end Decrement;
-
-      ---------
-      -- Get --
-      ---------
-
-      function Get return Natural is
-      begin
-         return Counter;
-      end Get;
-
-      ---------------
-      -- Increment --
-      ---------------
-
-      procedure Increment is
-      begin
-         Counter := Counter + 1;
-      end Increment;
-
-   end Count;
 
    ---------------------------
    -- Get_Active_Task_Count --
@@ -215,80 +161,18 @@ package body System.Garlic.Termination is
    function Get_Active_Task_Count return Natural is
       Total : Integer;
    begin
-      Total := Environment_Task.Awake_Count - Count.Get
+      Total := Environment_Task.Awake_Count
+        - Non_Terminating_Tasks
         - Independent_Task_Count;
       if Debug_Mode (D_Debug, Private_Debug_Key) then
          List_Tasks;
       end if;
       pragma Debug (D (D_Debug, "awake =" & Environment_Task.Awake_Count'Img));
-      pragma Debug (D (D_Debug, "count =" & Count.Get'Img));
+      pragma Debug (D (D_Debug, "count =" & Non_Terminating_Tasks'Img));
       pragma Debug (D (D_Debug, "indep =" & Independent_Task_Count'Img));
       pragma Debug (D (D_Debug, "total =" & Total'Img));
       return Total;
    end Get_Active_Task_Count;
-
-   ------------------------------
-   -- Initiate_Synchronization --
-   ------------------------------
-
-   procedure Initiate_Synchronization is
-      Stamp : Stamp_Type := Termination_Watcher.Get_Stamp;
-      Count : Natural    := 0;
-      PID   : Partition_ID;
-      Next  : Partition_ID;
-      Info  : Partition_Info;
-   begin
-      Next := Null_PID;
-      loop
-         PID := Next;
-         Next_Partition (Next);
-         exit when Next <= PID;
-         Info := Partitions.Get_Component (Next);
-
-         if Next /= Self_PID
-           and then Info.Status = Done
-           and then Info.Termination /= Local_Termination
-         then
-            declare
-               Query : aliased Params_Stream_Type (0);
-            begin
-               pragma Debug
-                 (D (D_Debug, "Send shutdown query to partition" & Next'Img));
-               Termination_Code'Write (Query'Access, Set_Stamp);
-               Stamp_Type'Write (Query'Access, Stamp);
-               Send (Next, Shutdown_Service, Query'Access);
-               Count := Count + 1;
-            exception
-               when Communication_Error => null;
-            end;
-         end if;
-      end loop;
-
-      Termination_Watcher.Messages_Sent (Count);
-
-      Next := Null_PID;
-      loop
-         PID := Next;
-         Next_Partition (Next);
-         exit when Next <= PID;
-         Info := Partitions.Get_Component (Next);
-
-         if Next /= Self_PID
-           and then Info.Status = Done
-           and then Info.Termination /= Local_Termination
-         then
-            declare
-               Query : aliased Params_Stream_Type (0);
-            begin
-               Termination_Code'Write (Query'Access, Check_Stamp);
-               Stamp_Type'Write (Query'Access, Stamp);
-               Send (Next, Shutdown_Service, Query'Access);
-            exception
-               when Communication_Error => null;
-            end;
-         end if;
-      end loop;
-   end Initiate_Synchronization;
 
    ----------------
    -- Initialize --
@@ -349,13 +233,20 @@ package body System.Garlic.Termination is
 
       case Code is
          when Set_Stamp =>
-            Termination_Watcher.Set_Stamp (Stamp);
+            Enter_Critical_Section;
+            Termination_Stamp := Stamp;
+            Vote_Result_Ready := True;
+            Vote_Result_Value := True;
+            Leave_Critical_Section;
 
          when Check_Stamp =>
             declare
                Ready : Boolean;
             begin
-               Termination_Watcher.Termination_Accepted (Stamp, Ready);
+               pragma Assert (Vote_Result_Ready);
+               Enter_Critical_Section;
+               Ready := Vote_Result_Value and then Stamp = Termination_Stamp;
+               Leave_Critical_Section;
 
                --  To terminate, Get_Active_Task_Count should be 2 because
                --  the env. task is still active (awake) and the task
@@ -375,13 +266,44 @@ package body System.Garlic.Termination is
             end;
 
          when Positive_Ack =>
-            Termination_Watcher.Positive_Ack_Received (Stamp);
+            Enter_Critical_Section;
+            if Stamp = Termination_Stamp then
+               if not Vote_Result_Ready then
+                  Acknowledge_Count := Acknowledge_Count - 1;
+                  if Acknowledge_Count = 0 then
+                     Vote_Result_Ready := True;
+                     Vote_Result_Value := True;
+                  end if;
+               end if;
+            end if;
+            Leave_Critical_Section;
 
          when Negative_Ack =>
-            Termination_Watcher.Negative_Ack_Received (Stamp);
+            Enter_Critical_Section;
+            if Stamp = Termination_Stamp then
+               Vote_Result_Ready := True;
+               Vote_Result_Value := False;
+            end if;
+            Leave_Critical_Section;
 
       end case;
    end Handle_Request;
+
+   ----------
+   -- Send --
+   ----------
+
+   procedure Send
+     (PID   : in Partition_ID;
+      Code  : in Termination_Code;
+      Stamp : in Stamp_Type)
+   is
+      Query : aliased Params_Stream_Type (0);
+   begin
+      Termination_Code'Write (Query'Access, Code);
+      Stamp_Type'Write (Query'Access, Stamp);
+      Send (PID, Shutdown_Service, Query'Access);
+   end Send;
 
    --------------
    -- Shutdown --
@@ -389,7 +311,10 @@ package body System.Garlic.Termination is
 
    procedure Shutdown is
    begin
-      Termination_Watcher.Force_Termination;
+      Enter_Critical_Section;
+      Vote_Result_Ready := True;
+      Vote_Result_Value := True;
+      Leave_Critical_Section;
    end Shutdown;
 
    ------------------------------
@@ -398,7 +323,9 @@ package body System.Garlic.Termination is
 
    procedure Sub_Non_Terminating_Task is
    begin
-      Count.Decrement;
+      Enter_Critical_Section;
+      Non_Terminating_Tasks := Non_Terminating_Tasks - 1;
+      Leave_Critical_Section;
    end Sub_Non_Terminating_Task;
 
    ------------------------
@@ -446,6 +373,7 @@ package body System.Garlic.Termination is
                PID      : Partition_ID;
                Next     : Partition_ID;
                Info     : Partition_Info;
+               Count    : Natural := 0;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means
@@ -470,11 +398,73 @@ package body System.Garlic.Termination is
                   end if;
                end loop;
 
-               if Ready then
+               --  We can start a termination vote.
 
-                  Termination_Watcher.Increment_Stamp;
-                  Stamp := Termination_Watcher.Get_Stamp;
-                  Initiate_Synchronization;
+               if Ready then
+                  --  Update termination stamp to start a new vote.
+
+                  Enter_Critical_Section;
+                  Termination_Stamp := Termination_Stamp + 1;
+                  Vote_Result_Ready := False;
+                  Stamp := Termination_Stamp;
+                  Leave_Critical_Section;
+
+                  --  Send a first wave of requests to indicate the new
+                  --  stamp.
+
+                  Next := Null_PID;
+                  loop
+                     PID := Next;
+                     Next_Partition (Next);
+                     exit when Next <= PID;
+                     Info := Partitions.Get_Component (Next);
+
+                     if Next /= Self_PID
+                       and then Info.Status = Done
+                       and then Info.Termination /= Local_Termination
+                     then
+                        begin
+                           Send (Next, Set_Stamp, Stamp);
+                           Count := Count + 1;
+                        exception when Communication_Error =>
+                           null;
+                        end;
+                     end if;
+                  end loop;
+
+                  --  Note the number of voters.
+
+                  Enter_Critical_Section;
+                  Acknowledge_Count := Count;
+                  if Count = 0 then
+                     Vote_Result_Ready := True;
+                     Vote_Result_Value := True;
+                  end if;
+                  Leave_Critical_Section;
+
+                  --  Send a second wave of requests to see if the
+                  --  partition is ready to terminate or if the partition
+                  --  has received a request from another partition since
+                  --  the first wave .
+
+                  Next := Null_PID;
+                  loop
+                     PID := Next;
+                     Next_Partition (Next);
+                     exit when Next <= PID;
+                     Info := Partitions.Get_Component (Next);
+
+                     if Next /= Self_PID
+                       and then Info.Status = Done
+                       and then Info.Termination /= Local_Termination
+                     then
+                        begin
+                           Send (Next, Check_Stamp, Stamp);
+                        exception when Communication_Error =>
+                           null;
+                        end;
+                     end if;
+                  end loop;
 
                   Success  := False;
                   Deadline := Clock + Time_To_Synchronize;
@@ -489,10 +479,13 @@ package body System.Garlic.Termination is
 
                      delay Polling_Interval;
 
-                     if Termination_Watcher.Result_Is_Available then
-                        Termination_Watcher.Termination_Accepted
-                          (Stamp, Success);
+                     Enter_Critical_Section;
+                     if Vote_Result_Ready then
+                        Success := Vote_Result_Value;
+                        Leave_Critical_Section;
                         exit;
+                     else
+                        Leave_Critical_Section;
                      end if;
                   end loop;
 
@@ -520,128 +513,6 @@ package body System.Garlic.Termination is
 
       end loop Main_Loop;
    end Global_Termination;
-
-   -------------------------
-   -- Termination_Watcher --
-   -------------------------
-
-   protected body Termination_Watcher is
-
-      -----------------------
-      -- Activity_Detected --
-      -----------------------
-
-      procedure Activity_Detected is
-      begin
-         Result    := False;
-         Available := True;
-      end Activity_Detected;
-
-      -----------------------
-      -- Force_Termination --
-      -----------------------
-
-      procedure Force_Termination is
-      begin
-         Result    := True;
-         Available := True;
-      end Force_Termination;
-
-      ---------------
-      -- Get_Stamp --
-      ---------------
-
-      function Get_Stamp return Stamp_Type is
-      begin
-         return Current;
-      end Get_Stamp;
-
-      ---------------------
-      -- Increment_Stamp --
-      ---------------------
-
-      procedure Increment_Stamp is
-      begin
-         Current := Current + 1;
-         Available := False;
-      end Increment_Stamp;
-
-      -------------------
-      -- Messages_Sent --
-      -------------------
-
-      procedure Messages_Sent (N : in Natural) is
-      begin
-         Count := N;
-         if Count = 0 then
-
-            --  There are no other active partitions
-
-            Result    := True;
-            Available := True;
-         end if;
-      end Messages_Sent;
-
-      ---------------------------
-      -- Negative_Ack_Received --
-      ---------------------------
-
-      procedure Negative_Ack_Received (Stamp : in Stamp_Type) is
-      begin
-         if Stamp = Current then
-            Result    := False;
-            Available := True;
-         end if;
-      end Negative_Ack_Received;
-
-      ---------------------------
-      -- Positive_Ack_Received --
-      ---------------------------
-
-      procedure Positive_Ack_Received (Stamp : in Stamp_Type) is
-      begin
-         if Stamp = Current then
-            if not Available then
-               Count := Count - 1;
-               if Count = 0 then
-                  Result    := True;
-                  Available := True;
-               end if;
-            end if;
-         end if;
-      end Positive_Ack_Received;
-
-      -------------------------
-      -- Result_Is_Available --
-      -------------------------
-
-      function Result_Is_Available return Boolean is
-      begin
-         return Available;
-      end Result_Is_Available;
-
-      ---------------
-      -- Set_Stamp --
-      ---------------
-
-      procedure Set_Stamp (Stamp : in Stamp_Type) is
-      begin
-         Current   := Stamp;
-         Result    := True;
-         Available := True;
-      end Set_Stamp;
-
-      --------------------------
-      -- Termination_Accepted --
-      --------------------------
-
-      entry Termination_Accepted (Stamp : in Stamp_Type; B : out Boolean)
-      when Available is
-      begin
-         B := Result and then Stamp = Current;
-      end Termination_Accepted;
-
-   end Termination_Watcher;
 
 begin
    Register_Add_Non_Terminating_Task (Add_Non_Terminating_Task'Access);
