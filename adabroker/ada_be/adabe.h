@@ -478,7 +478,7 @@ public:
   virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  //  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
 
 };
 
@@ -502,7 +502,7 @@ public:
   virtual void produce_proxies_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxies_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_skel_adb(dep_list &with, string &body, string &private_definition);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  //  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
 
 
 private:

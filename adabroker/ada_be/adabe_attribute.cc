@@ -31,7 +31,8 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
     AST_Field(AST_Decl::NT_attr,ft,n,p),
     AST_Decl(AST_Decl::NT_attr,n,p),
     adabe_name(AST_Decl::NT_attr,n,p)
-{  
+{
+  // there's nothing specific to be done
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -40,14 +41,23 @@ adabe_attribute::adabe_attribute(idl_bool ro, AST_Type *ft, UTL_ScopedName *n, U
 void
 adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 {
+  //  compute_ada_name();
+
+  // computing an empty string with
+  // the same length  as the attribute name
   string space = "";
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
-  compute_ada_name();
+
+  // writing a function to read the attribute
   body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
-  body += "                 " + space + "return "; 
+  body += "                 " + space + "return ";
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + " ;\n\n";
+  body += name + " ;\n\n"; // name is the attribute type
+
+  // if the argument is not read only
+  // we provide a function to set him
+  // to a value
   if (!readonly())
     {
       body += "   procedure Set_" + get_ada_local_name();
@@ -65,13 +75,18 @@ void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
   with.add ("OmniProxyCallWrapper");
+
+  // computing an empty string with
+  // the same length  as the attribute name
   string space = "";
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
+
+  // Writing the Get_function (client-side)
   body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
   body += "                 " + space + "return "; 
   AST_Decl *d = field_type();  
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + " is\n";  
+  body += name + " is\n";
   string name_of_the_package = dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()))->get_ada_full_name();
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "   begin \n";
@@ -79,6 +94,9 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      return " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "   end ;\n\n\n";
+
+  // Writing the Set function (if necessary)
+  // for the client side
   if (!readonly())
     {
       body += "   procedure Set_";
@@ -105,12 +123,18 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
+  // computing an empty string with
+  // the same length  as the attribute name
   string space = "";
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
+
+  // writing the get function for server side
   body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " ;\n\n";
+
+  // and the set function for the server side
   if (!readonly())
     {
       body += "   procedure Set_" + get_ada_local_name();
@@ -128,12 +152,15 @@ adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous
 void
 adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
+  // it's up to the programmer
+  // to implement the functions
   body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return ";
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + " is\n";
   body += "   begin\n";
-  body += "   end ;\n\n\n"; 
+  body += "   end ;\n\n\n";
+  
   if (!readonly())
     {
       body += "   procedure Set_" + get_ada_local_name() +"(Self : access Object ; To : in ";
@@ -149,9 +176,16 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
 ////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
-{  
+{
+  // In this function, there' no need for
+  // previous definition (all the types
+  // are allready defined. But we need to
+  // have two parts (a public and a private part)
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, private_definition);
+
+  // Declaration of the get function :
+  // first the public part
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
   body += "   -----------------------------------------------------------\n\n" ;
@@ -164,13 +198,16 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
   body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
   body += "                        return " +  name + "; \n\n\n";
 
+  // next the private part
   private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   private_definition += "      Private_Result : " + name + "_Ptr := null;\n";
   private_definition += "   end record ;\n";
   private_definition += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
-  
+
+  // Declaration of the set function
   if (!readonly())
     {
+      // the public part
       body += "   -----------------------------------------------------------\n" ;
       body += "   ---               Set_" + get_ada_local_name() + "\n" ; 
       body += "   -----------------------------------------------------------\n\n" ;
@@ -185,6 +222,7 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
       body += "   procedure Marshal_Arguments(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object);\n\n";
 
+      // the private part
       private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
       private_definition += "      Arg : " + name + "_Ptr := null;\n";
       private_definition += "   end record ;\n";
@@ -200,10 +238,15 @@ void
 adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &private_definition)
 {
   AST_Decl *d = field_type();
-  with.add("Netbufferedstream") ;
   adabe_name *att = dynamic_cast<adabe_name *>(d);
   string name = att->dump_name(with, private_definition);
+
+  // adding the two needed libraries :
   att->is_marshal_imported(with);
+  with.add("Netbufferedstream") ;
+
+  // body of the functions defined in
+  // the -proxies.ads file
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
   body += "   -----------------------------------------------------------\n\n" ;
@@ -245,6 +288,7 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 
   if (!readonly())
     {
+      // the same for the set function
       body += "   -----------------------------------------------------------\n" ;
       body += "   ---               Set_" + get_ada_local_name() + "\n" ; 
       body += "   -----------------------------------------------------------\n\n" ;
@@ -378,13 +422,16 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "      end if ;\n\n";
     }
 }
-
+/*
 ////////////////////////////////////////////////////////////////////////
 ////////////////     produce_marshal_adb     ///////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
 adabe_attribute::produce_marshal_adb(dep_list &with, string &body, string &previous)
 {
+  // this function simply add
+  // the marshal function for
+  // the field type 
   AST_Decl *d = field_type();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   if (!e->is_marshal_imported(with))
@@ -397,7 +444,7 @@ adabe_attribute::produce_marshal_adb(dep_list &with, string &body, string &previ
 	}
     }
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 ////////////////     miscellaneous           ///////////////////////////
 ////////////////////////////////////////////////////////////////////////

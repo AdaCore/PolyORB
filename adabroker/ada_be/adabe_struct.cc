@@ -166,16 +166,16 @@ adabe_structure::dump_name(dep_list& with, string &previous)
     {
       if (!is_already_defined())
 	{
-	  // has this exception already been defined ?
+	  // has this structure already been defined ?
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
-      // this exception is defined in this file, so
+      // this structure is defined in this file, so
       // a local name is enough
       return get_ada_local_name();
     }
-  // because the exception is defined in another file
+  // because the structure is defined in another file
   // we need to use a full name
   return get_ada_full_name();	   
 }
@@ -191,16 +191,17 @@ adabe_structure::marshal_name(dep_list& with, string &previous)
     {
       if (!is_already_defined())
 	{
-	  // has this exception already been defined ?
+	  // have the marshall functions for this
+	  // structure already been defined
 	  string tmp = "";
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
-      // this exception is defined in this file, so
+      // this structure is defined in this file, so
       // a local name is enough
       return get_ada_local_name();
     }
-  // because the exception is defined in another file
+  // because this structure is defined in another file
   // we need to use a full name
   return get_ada_full_name();	   
 }  

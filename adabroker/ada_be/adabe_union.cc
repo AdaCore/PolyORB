@@ -23,6 +23,9 @@
 *************************************************************************************************/
 #include <adabe.h>
 
+////////////////////////////////////////////////////////////////////////
+////////////////      constructor    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p)
 	: AST_Union(dt, n, p),
 	  AST_Decl(AST_Decl::NT_union, n, p),
@@ -33,9 +36,14 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
   pd_have_default_case = false;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////      produce_ads    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 {
+  //compute_ada_name();
+  
   int count = 0;
   // to count the number of case when the discriminant type is an enum
   
@@ -47,24 +55,33 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
   default_case += "            Null;\n";
   // it is the default case
   
-  compute_ada_name();
-  body += "   type " + get_ada_local_name();
+  // getting the name of the switch
   adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
-  b->compute_ada_name();
   string name = b->dump_name(with, previous);
+
+  body += "   type " + get_ada_local_name();
   body += "(Switch : "  + name;
   body += " := " + name + "'first) is record\n";
   body += "      case Switch is\n";
+
+  // we must now look for the differents values
+  // that can be taken by the switch
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch)
 	{
+	  // print the case of the branch
 	  adabe_union_branch *unionbr = dynamic_cast<adabe_union_branch *>(d);
 	  unionbr->produce_ads(with, body, previous, disc_type());
+
+	  // if a default cas ehas been found,
+	  // set the flag to true
 	  if (unionbr->label()->label_kind() == AST_UnionLabel::UL_default)
 	    has_default_case = true;
+
+	  // increases the counter
 	  count++;
 	}
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
@@ -77,32 +94,51 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 	{
 	case AST_Decl::NT_enum:
 	  if (count != (dynamic_cast<adabe_enum *>(b)->get_number_value()))
+	    // the switch type is an enum an all of the cases
+	    // have not been seen
 	    set_default_case(true);
 	  break;
 	case AST_Decl::NT_typedef:
 	  if ((count != (dynamic_cast<adabe_typedef *>(b)->get_number_value()))
 	      && ((dynamic_cast<adabe_typedef *>(b)->get_number_value()) > 0))
+	    // the switch type is an enum and all of the cases
+	    // have not been seen
 	    set_default_case(true);
 	  break;
 	default:
+	  // the switch if of type int ...
+	  // and a default case maybe added
 	  set_default_case(true);
 	  break;
 	}
-  // case to check if we should add a default case (if it is int, long or char, it's automatically added)
     }
+
+  // adding a default type if needed.
+  // without it gnat won't accept this union
   if (get_default_case()) body += default_case;
+  
+  // ending the declaration
   body += "      end case ;\n";
   body += "   end record ;\n";
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
   body += get_ada_local_name() + " ;\n\n";
+
+  // defining the free function
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";  
+  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
+
+  // this type has been defined
   set_already_defined();
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////    produce_marshall_adb    ////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  // The three functions neede fore the net
+  // transfert:
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -119,19 +155,30 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
   body += "                        return Corba.Unsigned_Long ;\n\n\n";
 
+  // the marshall function have been defined
   set_already_defined ();
 }
 
+////////////////////////////////////////////////////////////////////////
+///////////////    produce_marshal_adb    //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string disc_name = (dynamic_cast<adabe_name *>(disc_type()))->marshal_name(with, previous); 
 
+  // preparing the default case (it MUST NOT
+  // serve )
   string default_case = "";
   default_case += "         when others =>\n";
   default_case += "            Ada.Exceptions.Raise_Exception(Corba.Dummy_User'Identity,\n";
   default_case += "                                            \"Unchecked case is used in the union\") ;\n";
- 
+
+  // defining the marshall, unmarshall
+  // and align size function
+  // This type has a variable size and the
+  // function must automatically be
+  // adjusted
   string marshall = "";
   string unmarshall = "";
   string align_size = "";
@@ -174,11 +221,16 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch) {
+	// 
 	dynamic_cast<adabe_union_branch *>(d)->produce_marshal_adb(with,marshall, unmarshall, align_size, disc_type());
       }
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next();
     }
+
+  // if the defqult case is called
+  // evenif it has not been defined in IDL
+  // an exception is thrown
   if (get_default_case())
     {
       marshall += default_case;
@@ -190,7 +242,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
       with.add("Corba");
       with.add("Ada.Exceptions");
     }
-  // we had to add a default case, if called we will raise an exception
+
   marshall += "      end case ;\n";
   marshall += "   end Marshall ;\n\n";
 
@@ -207,25 +259,37 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += unmarshall;
   body += align_size;
 
+  // the marshall function has been written
   set_already_defined();
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////       dump_name     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 string
 adabe_union::dump_name(dep_list& with, string &previous)
 {
   if (!is_imported(with))
     {
       if (!is_already_defined())
+	  // has this union already been defined ?
 	{
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this union is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // because this union is defined in another file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////    marshal_name     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 string
 adabe_union::marshal_name(dep_list& with, string &previous)
 {
@@ -233,15 +297,24 @@ adabe_union::marshal_name(dep_list& with, string &previous)
     {
       if (!is_already_defined())
 	{
+	  // have the marshall functions for this
+	  // union already been defined ?
 	  string tmp = "";
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
-      return get_ada_local_name();
+      // this union is defined in this file, so
+      // a local name is enough
+       return get_ada_local_name();
     }
+  // because this union is defined in another file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////      miscellaneous  ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)
