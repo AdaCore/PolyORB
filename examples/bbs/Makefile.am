@@ -4,6 +4,7 @@ EXAMPLE = bbs
 
 DSA_SRC=$(srcdir)/../../src/dsa
 
+ir_exe=ir_evolutedp
 corba_exe=evolutedp_corba
 #corba_exe=
 dsa_exe=simplep evolutedp serverp
