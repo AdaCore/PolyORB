@@ -35,8 +35,8 @@ package body Nutils is
    ---------------------
 
    function Is_A_Forward_Of (X, Y : Entity_Id) return Boolean is
-      KX : Node_Kind := Kind (X);
-      KY : Node_Kind := Kind (Y);
+      KX : constant Node_Kind := Kind (X);
+      KY : constant Node_Kind := Kind (Y);
    begin
       case KY is
          when K_Interface_Declaration
@@ -141,7 +141,7 @@ package body Nutils is
 
    function Is_Attribute_Or_Operation (E : Entity_Id) return Boolean
    is
-      K : Node_Kind := Kind (E);
+      K : constant Node_Kind := Kind (E);
    begin
       return K = K_Attribute_Declaration
         or else K = K_Operation_Declaration;

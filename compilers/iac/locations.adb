@@ -11,7 +11,7 @@ package body Locations is
 
    function Image (Loc : in Location) return String
    is
-      Column : Nat := Nat (Loc.Last - Loc.First + 1);
+      Column : constant Nat := Nat (Loc.Last - Loc.First + 1);
    begin
       if Loc.File = No_Name then
          return No_Str;

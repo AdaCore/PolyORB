@@ -79,7 +79,7 @@ package body Parser is
 
    package Expressions is new GNAT.Table (Entity_Id, Natural, 1, 100, 10);
 
-   Preferences : array (T_Tilde .. T_Less_Less) of Natural
+   Preferences : constant array (T_Tilde .. T_Less_Less) of Natural
      := (T_Tilde            => 0,
          T_Percent          => 1,
          T_Slash            => 2,
@@ -175,12 +175,10 @@ package body Parser is
    function P_Attribute_Declaration return Entity_Id is
       Attribute_Decl  : Entity_Id := No_Entity;
       Attr_Type_Spec  : Entity_Id;
-      Attr_Decl_Loc   : Location;
       Is_Readonly     : Boolean := False;
       Declarator      : Entity_Id;
    begin
       Scan_Token; --  past "readonly" or "attribute"
-      Attr_Decl_Loc := Token_Location;
 
       if Token = T_Readonly then
          Is_Readonly := True;
@@ -287,10 +285,8 @@ package body Parser is
       Constant_Decl   : Entity_Id;
       Const_Type_Spec : Entity_Id;
       Const_Expr      : Entity_Id;
-      Const_Decl_Loc  : Location;
    begin
       Scan_Token; --  past "const"
-      Const_Decl_Loc := Token_Location;
 
       Const_Type_Spec := P_Constant_Type;
       if No (Const_Type_Spec) then
@@ -410,7 +406,7 @@ package body Parser is
 
       function Is_Expression_Completed return Boolean
       is
-         T : Token_Type := Next_Token;
+         T : constant Token_Type := Next_Token;
       begin
          return T not in Literal_Type
            and then T /= T_Identifier
@@ -545,8 +541,8 @@ package body Parser is
       -------------
 
       function Precede (L, R : Entity_Id) return Boolean is
-         Op_L : Token_Type := Operator (L);
-         Op_R : Token_Type := Operator (R);
+         Op_L : constant Token_Type := Operator (L);
+         Op_R : constant Token_Type := Operator (R);
       begin
          return Preferences (Op_L) < Preferences (Op_R);
       end Precede;
@@ -1277,7 +1273,7 @@ package body Parser is
                return No_Entity;
             end if;
 
-            Append_Entity_To_List (Entity_Id (Interface_Name), Interface_Spec);
+            Append_Entity_To_List (Interface_Name, Interface_Spec);
 
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
@@ -1560,7 +1556,7 @@ package body Parser is
                exit;
             end if;
 
-            Append_Entity_To_List (Entity_Id (Scoped_Name), Exception_List);
+            Append_Entity_To_List (Scoped_Name, Exception_List);
 
             Save_Lexer (State);
             Scan_Token ((T_Comma, T_Right_Paren));
@@ -1888,7 +1884,6 @@ package body Parser is
    --                              | <fixed_pt_type>
 
    function P_Simple_Type_Spec return Entity_Id is
-      Loc   : Location;
       State : Location;
       List  : Token_List_Type (1 .. 3) := (others => T_Error);
       Size  : Natural := 0;
@@ -1922,7 +1917,6 @@ package body Parser is
       Size := 0;
       Save_Lexer (State);
       Scan_Token;
-      Loc := Token_Location;
       Push_Base_Type_Token (Token);
       case Token is
          when T_Long =>
@@ -2359,7 +2353,6 @@ package body Parser is
       Element_Declarator : Entity_Id;
       Case_Labels        : List_Id;
       Case_Label         : Entity_Id;
-      Case_Label_Loc     : Location;
       State              : Location;
 
    begin
@@ -2429,7 +2422,6 @@ package body Parser is
 
          Case_Label_List :
          loop
-            Case_Label_Loc := Token_Location;
             if Token = T_Case then
                Save_Lexer (State);
                Case_Label := P_Constant_Expression;
@@ -2788,7 +2780,7 @@ package body Parser is
                return No_Entity;
             end if;
 
-            Append_Entity_To_List (Entity_Id (Scoped_Name), Value_Names);
+            Append_Entity_To_List (Scoped_Name, Value_Names);
 
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
@@ -2808,8 +2800,7 @@ package body Parser is
                return No_Entity;
             end if;
 
-            Append_Entity_To_List
-              (Entity_Id (Interface_Name), Interface_Names);
+            Append_Entity_To_List (Interface_Name, Interface_Names);
 
             Save_Lexer (State);
             Scan_Token;

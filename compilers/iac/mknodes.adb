@@ -379,7 +379,7 @@ procedure Mknodes is
 
    procedure Assign_Color_To_Attribute (Attribute : Node_Id) is
       Interface : Node_Id;
-      Kind      : Node_Kind := Base_Kind (Type_Spec (Attribute));
+      Kind      : constant Node_Kind := Base_Kind (Type_Spec (Attribute));
       Is_Used   : Color_Array (No_Color .. Color_Type (N_Attributes));
    begin
       Is_Used := (others => False);
@@ -485,8 +485,8 @@ procedure Mknodes is
    -----------------------
 
    procedure Declare_Attribute (A : Node_Id) is
-      Type_Name : Name_Id := Identifier (Type_Spec (A));
-      Attr_Name : Name_Id := Identifier (A);
+      Type_Name : constant Name_Id := Identifier (Type_Spec (A));
+      Attr_Name : constant Name_Id := Identifier (A);
       Attribute : Node_Id;
    begin
       Attribute := First_Attribute;
@@ -566,7 +566,7 @@ procedure Mknodes is
       Interface : Node_Id)
      return Boolean
    is
-      N : Name_Id := Identifier (Attribute);
+      N : constant Name_Id := Identifier (Attribute);
       I : Node_Id := Interface;
    begin
       while I /= No_Node loop
@@ -1020,6 +1020,8 @@ procedure Mknodes is
       Interface : Node_Id;
       Base_Type : Node_Id;
    begin
+      Write_Str ("pragma Warnings (Off);");
+      Write_Eol;
       W_With ("Debug");
       W_With ("Locations");
       W_With ("Types");
@@ -1174,7 +1176,7 @@ procedure Mknodes is
          W_Indentation;
          Write_Line ("--");
          declare
-            Tree : Node_Array := Inheritance_Tree (Interface);
+            Tree : constant Node_Array := Inheritance_Tree (Interface);
          begin
             for I in Tree'Range loop
                if not No_Attribute (Tree (I)) then
@@ -1471,7 +1473,9 @@ procedure Mknodes is
 
    Source_File_Name  : Name_Id;
    Source_File       : File_Descriptor;
+   pragma Warnings (Off);
    Definition        : Node_Id;
+   pragma Warnings (On);
    Attribute         : Node_Id;
 
 begin

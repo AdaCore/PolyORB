@@ -10,7 +10,7 @@ package body Names is
 
    function First_Homonym (N : Node_Id) return Node_Id
    is
-      HN : Name_Id := Name (N);
+      HN : constant Name_Id := Name (N);
    begin
       return Node_Id (Get_Name_Table_Info (HN));
    end First_Homonym;

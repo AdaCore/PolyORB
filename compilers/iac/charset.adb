@@ -5,7 +5,7 @@ package body Charset is
    type Translate_Table is array (Character) of Character;
    --  Type used to describe translate tables
 
-   Fold_Lower : Translate_Table :=
+   Fold_Lower : constant Translate_Table :=
      (
       'A'                      => LC_A,
       'B'                      => LC_B,

@@ -143,9 +143,9 @@ package body Scopes is
    procedure Enter_Name_In_Scope (N : Node_Id)
    is
       C : Entity_Id := Current_Entity_In_Scope (N);
-      E : Entity_Id := Entity (N);
-      S : Entity_Id := Current_Scope;
-      D : Int       := Current_Scope_Depth;
+      E : constant Entity_Id := Entity (N);
+      S : constant Entity_Id := Current_Scope;
+      D : constant Int       := Current_Scope_Depth;
       H : Node_Id;
    begin
       if Present (C) then
@@ -228,7 +228,7 @@ package body Scopes is
 
    procedure Make_Enclosed_Entities_Visible (E : Entity_Id; V : Boolean)
    is
-      L : List_Id := Enclosed_Entities (E);
+      L : constant List_Id := Enclosed_Entities (E);
       C : Entity_Id;
    begin
       if Is_Empty (L) then
@@ -248,8 +248,8 @@ package body Scopes is
 
    procedure Make_Entity_Visible (E : Entity_Id; V : Boolean)
    is
-      N : Node_Id   := Identifier (E);
-      D : Int       := Current_Scope_Depth;
+      N : constant Node_Id := Identifier (E);
+      D : constant Int     := Current_Scope_Depth;
    begin
       Set_Is_Visible (E, V);
       if V then

@@ -169,7 +169,7 @@ package body Debug is
    end Image;
 
    function Image (N : Int) return String is
-      S : String := Int'Image (N);
+      S : constant String := Int'Image (N);
    begin
       return S (S'First + 1 .. S'Last);
    end Image;

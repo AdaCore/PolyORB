@@ -21,9 +21,6 @@ package body Lexer is
 
    CPP_Tmp_File : Name_Id := No_Name;
 
-   Pragma_State : Boolean := False;
-   --  True when the lexer is scanning a pragma line
-
    procedure Make_Cleanup;
    --  Cleanup temporary files when needed
 
@@ -383,7 +380,7 @@ package body Lexer is
          Result := Read
            (Source_File, Buffer (Token_Location.Scan)'Address, Length);
          exit when Result = Length;
-         if Length /= 0 then
+         if Result <= 0 then
             DE ("cannot read preprocessor output");
             raise Fatal_Error;
          end if;
@@ -953,7 +950,6 @@ package body Lexer is
          Scan_Identifier;
          if To_Token (Token_Name) = T_Pragma then
             Token := T_Pragma;
-            Pragma_State := True;
             return;
          end if;
       end if;
@@ -1024,7 +1020,7 @@ package body Lexer is
          Add_Str_To_Name_Buffer (Quoted_Image (L (Index)));
       end loop;
       declare
-         S : String := Name_Buffer (1 .. Name_Len);
+         S : constant String := Name_Buffer (1 .. Name_Len);
       begin
          Error_Loc (1) := Token_Location;
          DE (S);
@@ -1350,8 +1346,8 @@ package body Lexer is
 
       else
          Add_Str_To_Name_Buffer ("[""");
-         Set_Hex_Chars (Natural (C) / 256);
-         Set_Hex_Chars (Natural (C) mod 256);
+         Set_Hex_Chars (C / 256);
+         Set_Hex_Chars (C mod 256);
          Add_Str_To_Name_Buffer ("]""");
       end if;
    end Store_Encoded_Character;
@@ -1366,9 +1362,7 @@ package body Lexer is
       Get_Name_String (Name);
       To_Lower (Name_Buffer (1 .. Name_Len));
       B := Get_Name_Table_Byte (Name_Find);
-      if First_Token_Pos <= B
-        and then B <= Last_Token_Pos
-      then
+      if B <= Last_Token_Pos then
          return Token_Type'Val (B);
       end if;
       return T_Error;
@@ -1379,7 +1373,7 @@ package body Lexer is
    ----------------------
 
    procedure Unexpected_Token (T : Token_Type; C : String := "") is
-      Where  : String  := " in " & C;
+      Where  : constant String  := " in " & C;
       Length : Natural := 0;
    begin
       if C'Length /= 0 then
