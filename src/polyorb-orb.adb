@@ -180,30 +180,34 @@ package body PolyORB.ORB is
       Q   : access Job_Queue)
       return Boolean
    is
-      Prefix : constant String
-        := "TPF " & Image (Current_Task) & ": ";
       Job : constant Job_Access := Fetch_Job (Q);
+
    begin
-      pragma Debug (O (Prefix & "enter Try_Perform_Work"));
+      pragma Debug (O ("TPF " & Image (Current_Task) & ": "
+                       & "enter Try_Perform_Work"));
 
       if Job /= null then
          Notify_Event (ORB.Scheduling_Policy, Executing_Job_E);
 
          Leave (ORB.ORB_Lock);
 
-         pragma Debug (O (Prefix & "working on job "
+         pragma Debug (O ("TPF " & Image (Current_Task) & ": "
+                          & "working on job "
                           & Ada.Tags.External_Tag (Job'Tag)));
          pragma Assert (Job /= null);
 
          Run (Job);
 
          Enter (ORB.ORB_Lock);
-         pragma Debug (O (Prefix & "leaving Try_Perform_Work"));
+         pragma Debug (O ("TPF " & Image (Current_Task) & ": "
+                          & "leaving Try_Perform_Work"));
          return True;
 
       else
-         pragma Debug (O (Prefix & "nothing to do."));
-         pragma Debug (O (Prefix & "leaving Try_Perform_Work"));
+         pragma Debug (O ("TPF " & Image (Current_Task) & ": "
+                          & "nothing to do."));
+         pragma Debug (O ("TPF " & Image (Current_Task) & ": "
+                          & "leaving Try_Perform_Work"));
 
          return False;
       end if;
