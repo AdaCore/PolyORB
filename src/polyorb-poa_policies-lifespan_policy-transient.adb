@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,12 +54,14 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
      (Self : Transient_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -68,11 +70,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    function Policy_Id
      (Self : Transient_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "LIFESPAN_POLICY.TRANSIENT";
    end Policy_Id;
 
@@ -83,11 +87,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Lifespan_Cookie is
-   begin
+     return Lifespan_Cookie
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return Lifespan_Cookie (PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time);
    end Get_Lifespan_Cookie;
 
@@ -98,11 +104,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    procedure Ensure_Lifespan
      (Self  : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid) is
-   begin
+      U_Oid : Unmarshalled_Oid)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then

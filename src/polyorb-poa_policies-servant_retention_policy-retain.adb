@@ -59,12 +59,14 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
      (Self : Retain_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -73,11 +75,13 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    function Policy_Id
      (Self : Retain_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "SERVANT_RETENTION_POLICY.RETAIN";
    end Policy_Id;
 
@@ -137,15 +141,15 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       POA      : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
       An_Entry : Object_Map_Entry_Access;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       Lock_W (POA.Map_Lock);
       An_Entry := Object_Maps.Remove_By_Id
         (POA.Active_Object_Map.all'Access, U_Oid);
@@ -171,15 +175,16 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       P_Servant : Servants.Servant_Access)
      return Object_Id_Access
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry : Object_Map_Entry_Access;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
 
       if POA.Active_Object_Map /= null then
          Lock_R (POA.Map_Lock);
@@ -204,6 +209,10 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       U_Oid : Unmarshalled_Oid)
      return Servants.Servant_Access
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       use PolyORB.POA_Policies.Lifespan_Policy;
 
       An_Entry : Object_Map_Entry_Access;
@@ -211,10 +220,6 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       Ensure_Lifespan
         (POA.Lifespan_Policy.all,
          OA, U_Oid);
@@ -222,6 +227,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Lock_R (POA.Map_Lock);
       An_Entry := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
       Unlock_R (POA.Map_Lock);
+
       if An_Entry /= null then
          return An_Entry.Servant;
       else

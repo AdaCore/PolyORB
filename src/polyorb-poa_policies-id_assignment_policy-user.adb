@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,13 +54,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
      (Self           : User_Id_Policy;
       Other_Policies : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
 
+   begin
       null;
-      --  XXX TODO check compat for USER_ID
+      --  No rule to test.
 
    end Check_Compatibility;
 
@@ -70,11 +70,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    function Policy_Id
      (Self : User_Id_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "ID_ASSIGNMENT_POLICY.USER_ID";
    end Policy_Id;
 
@@ -114,10 +116,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
 
    function Is_System (Self : User_Id_Policy) return Boolean
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return False;
    end Is_System;
 
@@ -129,10 +132,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
      (Self  : User_Id_Policy;
       U_Oid : Unmarshalled_Oid)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       if U_Oid.System_Generated then
          raise PolyORB.POA.Bad_Param;
       end if;

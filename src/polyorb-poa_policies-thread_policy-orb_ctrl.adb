@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,13 +65,19 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
      (Self : ORB_Ctrl_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
+
+   ------------------------------
+   -- Handle_Request_Execution --
+   ------------------------------
 
    function Handle_Request_Execution
      (Self      : access ORB_Ctrl_Policy;
@@ -80,10 +86,13 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       return PolyORB.Components.Message'Class
    is
       use PolyORB.Servants;
-   begin
+
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return Execute_Servant (Servant_Access (Requestor), Msg);
    end Handle_Request_Execution;
+
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,11 +54,12 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
      (Self           : Multiple_Id_Policy;
       Other_Policies : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -67,11 +68,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
 
    function Policy_Id
      (Self : Multiple_Id_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "ID_UNIQUENESS_POLICY.MULTIPLE_ID";
    end Policy_Id;
 
@@ -84,11 +87,11 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, P_Servant);
       pragma Warnings (On);
 
+   begin
       null;
       --  MULTIPLE_ID: nothing to do.
    end Ensure_Servant_Uniqueness;
@@ -104,13 +107,14 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
       Oid       : Object_Id_Access)
      return Object_Id_Access
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, Oid);
       pragma Warnings (On);
 
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+
+   begin
       return Implicit_Activate_Servant
         (POA.Implicit_Activation_Policy.all, OA, P_Servant);
       --  Activate servant again, regardless of its current

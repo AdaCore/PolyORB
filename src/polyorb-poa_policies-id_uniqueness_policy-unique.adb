@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,6 +33,7 @@
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
+with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.Tasking.Rw_Locks;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
@@ -58,11 +59,27 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
      (Self           : Unique_Id_Policy;
       Other_Policies : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
-      null;
+
+      use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
+
+      --  See CORBA 3.0, 11.3.8.1 for more details.
+
+      --  Unique_Id and Non_Retain policies are not compatible.
+   begin
+      for I in Other_Policies'Range loop
+         if Other_Policies (I).all in
+           POA_Policies.Servant_Retention_Policy.ServantRetentionPolicy
+         then
+            if Other_Policies (I).all in Non_Retain_Policy then
+               raise PolyORB.POA.Invalid_Policy;
+               --  XXX we may raise an exception, but should we ?
+            end if;
+         end if;
+      end loop;
+
    end Check_Compatibility;
 
    ---------------
@@ -71,11 +88,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    function Policy_Id
      (Self : Unique_Id_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "ID_UNIQUENESS_POLICY.UNIQUE_ID";
    end Policy_Id;
 
@@ -88,17 +107,22 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servants.Servant_Access)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+
+   begin
       if POA.Active_Object_Map /= null then
          Lock_R (POA.Map_Lock);
+
          if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
+            Unlock_R (POA.Map_Lock);
             raise PolyORB.POA.Servant_Already_Active;
          end if;
+
          Unlock_R (POA.Map_Lock);
       end if;
    end Ensure_Servant_Uniqueness;
@@ -114,13 +138,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       Oid       : Object_Id_Access)
      return Object_Id_Access
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+   begin
       if Oid /= null then
          --  UNIQUE policy: if already active, return the
          --  previous value.

@@ -30,6 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with PolyORB.POA;
+
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    ------------
@@ -49,12 +52,33 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
      (Self : Non_Retain_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
-      null;
+
+      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+
+   begin
+      --  Compatiblity between Non_Retain and Id_Uniqueness done in
+      --   PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique.
+
+      --  Non_Retain requires either Use_Default_Servent
+      --   or Use_Servant_Manager.
+
+      --  XXX Use_Servant_Manager not implemented !!! Test incomplete.
+
+      for I in Other_Policies'Range loop
+         if Other_Policies (I).all in
+           POA_Policies.Request_Processing_Policy.RequestProcessingPolicy
+         then
+            if not (Other_Policies (I).all in Use_Default_Servant_Policy) then
+               raise PolyORB.POA.Invalid_Policy;
+               --  XXX we may raise an exception, but should we ?
+            end if;
+         end if;
+      end loop;
+
+
    end Check_Compatibility;
 
    ---------------
@@ -64,10 +88,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    function Policy_Id
      (Self : Non_Retain_Policy)
      return String is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "SERVANT_RETENTION_POLICY.RETAIN";
    end Policy_Id;
 
@@ -84,6 +109,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, P_Servant, U_Oid);
       pragma Warnings (On);
+
    begin
       null;
       --  NON_RETAIN: No active object map, nothing to retain,
@@ -102,6 +128,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid);
       pragma Warnings (On);
+
    begin
       null;
       --  NON_RETAIN: Nothing to do.
@@ -120,6 +147,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, P_Servant);
       pragma Warnings (On);
+
    begin
       --  NON_RETAIN: No retained object id available.
       return null;
@@ -138,6 +166,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA, U_Oid);
       pragma Warnings (On);
+
    begin
       --  NON_RETAIN: No retained servant available.
       return null;

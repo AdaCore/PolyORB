@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,12 +49,14 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
      (Self : No_Activation_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -63,11 +65,13 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    function Policy_Id
      (Self : No_Activation_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION";
    end Policy_Id;
 
@@ -81,12 +85,13 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       P_Servant : Servants.Servant_Access)
      return Object_Id_Access
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (P_Servant);
       pragma Warnings (On);
+
+   begin
       return null;
    end Implicit_Activate_Servant;
 

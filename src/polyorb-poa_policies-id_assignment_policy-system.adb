@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -62,11 +62,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self           : System_Id_Policy;
       Other_Policies : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -75,11 +77,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    function Policy_Id
      (Self : System_Id_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
    end Policy_Id;
 
@@ -89,10 +93,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    function Is_System (Self : System_Id_Policy) return Boolean
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+   begin
       return True;
    end Is_System;
 
@@ -131,13 +135,13 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       if Hint /= null then
          begin
             Index := Integer'Value (As_String_Ptr (Hint).all);
+            The_Entry := Get_By_Index
+              (POA.Active_Object_Map.all, Index);
          exception
             when others =>
+               Unlock_W (POA.Map_Lock);
                raise PolyORB.POA.Invalid_Policy;
          end;
-
-         The_Entry := Get_By_Index
-           (POA.Active_Object_Map.all, Index);
          Unlock_W (POA.Map_Lock);
 
          if The_Entry = null then
@@ -173,7 +177,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       return The_Entry.Oid.all;
    exception
       when others =>
-         Unlock_W (POA.Map_Lock);
          raise;
    end Assign_Object_Identifier;
 
@@ -185,10 +188,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self  : System_Id_Policy;
       U_Oid : Unmarshalled_Oid)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       if U_Oid.System_Generated = False then
          raise PolyORB.POA.Bad_Param;
       end if;
