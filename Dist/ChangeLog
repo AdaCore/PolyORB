@@ -1,5 +1,10 @@
 1999-07-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* xe_stdcnf.adb, xe.ads, xe_back.adb: Add a new pragma Priority to
+ 	allow a user to enable priority propagation or not. This pragma is
+ 	just declared in the configuration language. Nothing is generated
+ 	yet.
+
 	* xe_utils.adb: When -bargs and -largs are passed on the command
  	line, Scan_Make_Arg switches into Binder or Linker mode. It is not
  	possible to add glade internal compiler arguments. Fix this
