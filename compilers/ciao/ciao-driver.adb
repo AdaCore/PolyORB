@@ -18,15 +18,13 @@
 
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
---  $Id: //depot/ciao/main/ciao-driver.adb#12 $
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#2 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.Characters.Handling;    use Ada.Characters.Handling;
-with Ada.Strings;                use Ada.Strings;
-with Ada.Strings.Wide_Fixed;     use Ada.Strings.Wide_Fixed;
-with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
+with Ada.Unchecked_Deallocation;
 with Ada.Wide_Text_IO;          use Ada.Wide_Text_IO;
 
 with Asis;
@@ -35,30 +33,30 @@ with Asis.Errors;
 with Asis.Implementation;
 with Asis.Ada_Environments;
 with Asis.Compilation_Units;
-with Asis.Elements;
-with Asis.Declarations;
-with Asis.Text;
 
 with GNAT.Command_Line;          use GNAT.Command_Line;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
 
 with CIAO.Filenames;             use CIAO.Filenames;
-with CIAO.IDL_Tree;
-with CIAO.Namet;
-with CIAO.Nlists;
+--  with CIAO.IDL_Tree;
+--  with CIAO.Namet;
+--  with CIAO.Nlists;
 with CIAO.Options;               use CIAO.Options;
-with CIAO.Types;                 use CIAO.Types;
 with CIAO.Translator;            use CIAO.Translator;
-with CIAO.Generator;             use CIAO.Generator;
-with CIAO.Generator.IDL;
-with CIAO.Generator.Proxy;
 
-with CIAO.Generator.Broca;
+--  with CIAO.Generator;             use CIAO.Generator;
+--  with CIAO.Generator.IDL;
+--  with CIAO.Generator.Proxy;
+--  with CIAO.Generator.Broca;
+
+with CIAO.Types; use CIAO.Types;
+with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Display_Tree;
 
 procedure CIAO.Driver is
 
-   package Proxy_Generator is new CIAO.Generator.Proxy
-     (CIAO.Generator.Broca.ORB_Deps);
+--    package Proxy_Generator is new CIAO.Generator.Proxy
+--      (CIAO.Generator.Broca.ORB_Deps);
 
    Parameter_Error : exception;
 
@@ -121,7 +119,7 @@ procedure CIAO.Driver is
       end if;
 
       --  CIAO.IDL_Tree.Finalize;
-      CIAO.Namet.Finalize;
+      --  CIAO.Namet.Finalize;
       --  CIAO.Nlists.Finalize;
    end Clean;
 
@@ -212,7 +210,7 @@ procedure CIAO.Driver is
          --  first, scanning the command line parameters:
          loop
             case Getopt ("f I: i: k l: q r t v") is
-               when Ascii.NUL =>
+               when ASCII.NUL =>
                   exit;
 
                when 'f' =>
@@ -456,14 +454,14 @@ procedure CIAO.Driver is
    ---------------------
 
    Library_Unit : Asis.Compilation_Unit;
-   IDL_Tree     : Node_Id;
+   IDL_Tree     : Idl_Fe.Types.Node_Id;
 
 begin  --  CIAO.Driver's body.
 
    --  CIAO initializations
-   CIAO.Namet.Initialize;
-   CIAO.Nlists.Initialize;
-   CIAO.IDL_Tree.Initialize;
+--    CIAO.Namet.Initialize;
+--    CIAO.Nlists.Initialize;
+--    CIAO.IDL_Tree.Initialize;
    Initialize;
 
    if not Initialized then
@@ -533,11 +531,13 @@ begin  --  CIAO.Driver's body.
    IDL_Tree := Translate (Library_Unit);
    --  Translate service specification to IDL syntax tree.
 
-   IDL.Generate (IDL_Tree, IDL_File);
-   --  Produce IDL_Source_File.
+--    IDL.Generate (IDL_Tree, IDL_File);
+--    --  Produce IDL_Source_File.
 
-   Proxy_Generator.Generate (IDL_Tree);
-   --  Generate proxy packages.
+--    Proxy_Generator.Generate (IDL_Tree);
+--    --  Generate proxy packages.
+
+   Idl_Fe.Display_Tree.Disp_Tree (Idl_Tree);
 
    Clean;
 

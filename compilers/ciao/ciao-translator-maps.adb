@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //depot/ciao/main/ciao-translator-maps.adb#13 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#2 $
 
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Wide_Text_Io;       use Ada.Wide_Text_Io;
@@ -30,26 +30,30 @@ with Asis.Expressions;       use Asis.Expressions;
 with Asis.Text;              use Asis.Text;
 
 with CIAO.ASIS_Queries;      use CIAO.ASIS_Queries;
-with CIAO.IDL_Tree;          use CIAO.IDL_Tree;
-with CIAO.IDL_Syntax.Scoped_Names;
+--  with CIAO.IDL_Tree;          use CIAO.IDL_Tree;
+--  with CIAO.IDL_Syntax.Scoped_Names;
+
+with Errors;
 
 package body CIAO.Translator.Maps is
 
-   use CIAO.IDL_Syntax;
-
-   function Internal_IDL_Module_Name (Library_Unit_Name : Program_Text)
-     return Program_Text;
+   function Internal_IDL_Module_Name
+     (Library_Unit_Name : String)
+     return String;
 
    function IDL_Module_Name (Library_Unit : Compilation_Unit)
-     return Program_Text is
-      Full_Name : constant Program_Text
-        := Asis.Compilation_Units.Unit_Full_Name (Library_Unit);
+     return String is
+      Full_Name : constant String :=
+        To_String
+        (Asis.Compilation_Units.Unit_Full_Name (Library_Unit));
    begin
       return Internal_IDL_Module_Name (Full_Name);
    end IDL_Module_Name;
 
-   function Internal_IDL_Module_Name (Library_Unit_Name : Program_Text)
-     return Program_Text is
+   function Internal_IDL_Module_Name
+     (Library_Unit_Name : String)
+     return String
+   is
       Total_Dot_Count : Natural := 0;
    begin
       for I in Library_Unit_Name'Range loop
@@ -59,7 +63,7 @@ package body CIAO.Translator.Maps is
       end loop;
 
       declare
-         IDL_Name  : Program_Text (1 .. Library_Unit_Name'Length + Total_Dot_Count);
+         IDL_Name  : String (1 .. Library_Unit_Name'Length + Total_Dot_Count);
          Dot_Count : Natural := 0;
       begin
          for I in Library_Unit_Name'Range loop
@@ -80,153 +84,147 @@ package body CIAO.Translator.Maps is
       end;
    end Internal_IDL_Module_Name;
 
-   function Relative_Scoped_Name (Denoted_Definition : Definition;
-                                  Referer            : Declaration)
-     return Node_Id is
+--    function Relative_Scoped_Name (Denoted_Definition : Definition;
+--                                   Referer            : Declaration)
+--      return Node_Id is
 
-      use CIAO.IDL_Syntax.Scoped_Names;
+--       use CIAO.IDL_Syntax.Scoped_Names;
 
-      Context : constant Asis.Element := Enclosing_Element (Enclosing_Basic_Declaration (Referer));
+--       Context : constant Asis.Element := Enclosing_Element (Enclosing_Basic_Declaration (Referer));
+--    begin
+--       if False
+--         and then Is_Identical
+--         (Enclosing_Element
+--          (Enclosing_Basic_Declaration (Denoted_Definition)),
+--          Context)
+--       then
+--          pragma Assert (False);
+--          --  XXX DISABLED FOR NOW
+--          --  because With_Convert_For_Type expects that full scoped names
+--          --  are generated for all param_type_specs.
+--          --  The real fix for this problem would be to store node ids
+--          --  in param type specs, and to make With_Convert_For_Type
+--          --  work from the node actually defining the type, *not* from
+--          --  the scoped name that denotes it.
+--          --  2000 07 11 Thomas.
+
+--          --  The basic_declarations containing the Referer and the
+--          --  Denoted_Definition occur within the same scope:
+--          --  use short name.
+--          return CIAO.IDL_Syntax.New_Scoped_Name
+--            (Isolated_Element_Image (Denoted_Definition));
+--       else
+--          declare
+--             Enclosing_Declaration : Declaration
+--               := Enclosing_Element (Enclosing_Element (Denoted_Definition));
+--             Origin           : constant Compilation_Unit
+--               := Enclosing_Compilation_Unit (Enclosing_Declaration);
+--             Scoped_Name_Node : Node_Id;
+--             Origin_Scoped_Name_Node : Node_Id;
+--          begin
+--             Scoped_Name_Node := New_Node (N_Scoped_Name);
+--             Set_Name (Scoped_Name_Node,
+--                       New_Name (Isolated_Element_Image (Denoted_Definition)));
+
+--             --  Unwind all enclosing subunit declarations.
+--             while not
+--               (Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
+--                or else Is_Identical (Enclosing_Declaration, Context))
+--             loop
+--                declare
+--                   N : constant Node_Id
+--                     := New_Node (N_Scoped_Name);
+--                   Defining_Names : constant Asis.Defining_Name_List
+--                     := Names (Enclosing_Declaration);
+--                begin
+--                   pragma Assert (Defining_Names'Length = 1);
+
+--                   Set_Name (N, New_Name (Isolated_Element_Image
+--                                          (Defining_Names (Defining_Names'First))));
+--                   Add_Prefix (Scoped_Name_Node, N);
+--                end;
+--                Enclosing_Declaration := Enclosing_Element (Enclosing_Declaration);
+--             end loop;
+
+--             if Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
+--               --  and then not Is_Identical (Enclosing_Declaration, Context)
+--               --  XXX Condition disabled, see above.
+--             then
+--                Origin_Scoped_Name_Node := New_Node (N_Scoped_Name);
+--                Set_Name (Origin_Scoped_Name_Node, New_Name (IDL_Module_Name (Origin)));
+
+--                Add_Prefix (Scoped_Name_Node, Origin_Scoped_Name_Node);
+--                Add_Absolute (Scoped_Name_Node);
+--             end if;
+
+--             Chain_Prefixes (Scoped_Name_Node);
+
+--             return Scoped_Name_Node;
+--          end;
+--       end if;
+--    end Relative_Scoped_Name;
+
+   function Operator_Symbol_Identifier
+     (Op : Asis.Defining_Name)
+     return String is
    begin
-      if False
-        and then Is_Identical
-        (Enclosing_Element
-         (Enclosing_Basic_Declaration (Denoted_Definition)),
-         Context)
-      then
-         pragma Assert (False);
-         --  XXX DISABLED FOR NOW
-         --  because With_Convert_For_Type expects that full scoped names
-         --  are generated for all param_type_specs.
-         --  The real fix for this problem would be to store node ids
-         --  in param type specs, and to make With_Convert_For_Type
-         --  work from the node actually defining the type, *not* from
-         --  the scoped name that denotes it.
-         --  2000 07 11 Thomas.
+      pragma Assert
+        (Defining_Name_Kind (Op) = A_Defining_Operator_Symbol);
 
-         --  The basic_declarations containing the Referer and the
-         --  Denoted_Definition occur within the same scope:
-         --  use short name.
-         return CIAO.IDL_Syntax.New_Scoped_Name
-           (Isolated_Element_Image (Denoted_Definition));
-      else
-         declare
-            Enclosing_Declaration : Declaration
-              := Enclosing_Element (Enclosing_Element (Denoted_Definition));
-            Origin           : constant Compilation_Unit
-              := Enclosing_Compilation_Unit (Enclosing_Declaration);
-            Scoped_Name_Node : Node_Id;
-            Origin_Scoped_Name_Node : Node_Id;
-         begin
-            Scoped_Name_Node := New_Node (N_Scoped_Name);
-            Set_Name (Scoped_Name_Node,
-                      New_Name (Isolated_Element_Image (Denoted_Definition)));
-
-            --  Unwind all enclosing subunit declarations.
-            while not
-              (Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
-               or else Is_Identical (Enclosing_Declaration, Context))
-            loop
-               declare
-                  N : constant Node_Id
-                    := New_Node (N_Scoped_Name);
-                  Defining_Names : constant Asis.Defining_Name_List
-                    := Names (Enclosing_Declaration);
-               begin
-                  pragma Assert (Defining_Names'Length = 1);
-
-                  Set_Name (N, New_Name (Isolated_Element_Image
-                                         (Defining_Names (Defining_Names'First))));
-                  Add_Prefix (Scoped_Name_Node, N);
-               end;
-               Enclosing_Declaration := Enclosing_Element (Enclosing_Declaration);
-            end loop;
-
-            if Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
-              --  and then not Is_Identical (Enclosing_Declaration, Context)
-              --  XXX Condition disabled, see above.
-            then
-               Origin_Scoped_Name_Node := New_Node (N_Scoped_Name);
-               Set_Name (Origin_Scoped_Name_Node, New_Name (IDL_Module_Name (Origin)));
-
-               Add_Prefix (Scoped_Name_Node, Origin_Scoped_Name_Node);
-               Add_Absolute (Scoped_Name_Node);
-            end if;
-
-            Chain_Prefixes (Scoped_Name_Node);
-
-            return Scoped_Name_Node;
-         end;
-      end if;
-   end Relative_Scoped_Name;
-
-   function Operator_Symbol_Identifier (Op : Program_Text)
-     return Program_Text is
-   begin
-      pragma Assert (True
-        and then Op (Op'First) = '"'
-        and then Op (Op'Last)  = '"');
-
-      case Op (2) is
-         when 'a' | 'A' =>
-            if Op (3) = 'b' or else Op (3) = 'B' then
-               return "Op_Abs";
-            else
-               return "Op_And";
-            end if;
-
-         when 'm' | 'M' =>
-            return "Op_Mod";
-         when 'n' | 'N' =>
-            return "Op_Not";
-         when 'o' | 'O' =>
+      case Operator_Kind (Op) is
+         when  An_And_Operator =>
+            return "Op_And";
+         when  An_Or_Operator =>
             return "Op_Or";
-         when 'r' | 'R' =>
-            return "Op_Rem";
-         when 'x' | 'X' =>
+         when  An_Xor_Operator =>
             return "Op_Xor";
-
-         when '=' =>
-            return "Op_Eq";
-         when '/' =>
-            if Op'Length = 3 then
-               return "Op_Divide";
-            else
-               return "Op_Ne";
-            end if;
-         when '<' =>
-            if Op'Length = 3 then
-               return "Op_Lt";
-            else
-               return "Op_Le";
-            end if;
-         when '>' =>
-            if Op'Length = 3 then
-               return "Op_Gt";
-            else
-               return "Op_Ge";
-            end if;
-
-         when '+' =>
-            return "Op_Add";
-         when '-' =>
-            return "Op_Substract";
-         when '&' =>
-            return "Op_Concat";
-         when '*' =>
-            if Op'Length = 3 then
-               return "Op_Multiply";
-            else
-               return "Op_Expon";
-            end if;
+         when  An_Equal_Operator =>
+            return "Op_Equal";
+         when  A_Not_Equal_Operator =>
+            return "Op_Not_Equal";
+         when  A_Less_Than_Operator =>
+            return "Op_Less_Than";
+         when  A_Less_Than_Or_Equal_Operator =>
+            return "Op_Less_Than_Or_Equal";
+         when  A_Greater_Than_Operator =>
+            return "Op_Greater_Than";
+         when  A_Greater_Than_Or_Equal_Operator =>
+            return "Op_Greater_Than_Or_Equal";
+         when A_Plus_Operator =>
+            return "Op_Plus";
+         when A_Minus_Operator =>
+            return "Op_Minus";
+         when A_Concatenate_Operator =>
+            return "Op_Concatenate";
+         when A_Unary_Plus_Operator =>
+            return "Op_Unary_Plus";
+         when A_Unary_Minus_Operator =>
+            return "Op_Unary_Minus";
+         when A_Multiply_Operator =>
+            return "Op_Multiply";
+         when A_Divide_Operator =>
+            return "Op_Divide";
+         when A_Mod_Operator =>
+            return "Op_Mod";
+         when A_Rem_Operator =>
+            return "Op_Rem";
+         when An_Exponentiate_Operator =>
+            return "Op_Exponentiate";
+         when An_Abs_Operator =>
+            return "Op_Abs";
+         when A_Not_Operator =>
+            return "Op_Not";
          when others =>
             -- XXX Error
             raise Program_Error;
+            return "";
       end case;
    end Operator_Symbol_Identifier;
 
-   function Character_Literal_Identifier (Ch : Program_Text)
-     return Program_Text is
+   function Character_Literal_Identifier
+     (Ch : Program_Text)
+     return String
+   is
       Wide_Ch : Wide_Character;
    begin
       pragma Assert (True
@@ -797,19 +795,26 @@ package body CIAO.Translator.Maps is
       end case;
    end Character_Literal_Identifier;
 
-   Base_Types : constant array (Root_Type) of N_Base_Type_Spec
-     := (Root_Integer => N_Base_Type_Long,
-         Root_Modular => N_Base_Type_Unsigned_Long,
-         Root_Real    => N_Base_Type_Double,
+   function Base_Type (T : Root_Type) return Node_Id is
+      use Errors;
+   begin
+      case T is
+         when Root_Integer =>
+            return Make_Long (No_Location);
+         when Root_Modular =>
+            return Make_Unsigned_Long (No_Location);
+         when Root_Real =>
+            return Make_Double (No_Location);
          --  Change these to long long, unsigned long long and long double
          --  if the CORBA software supports it.
-         Root_Boolean => N_Base_Type_Boolean,
-         Root_Char    => N_Base_Type_Char,
-         Root_String  => N_Base_Type_String);
 
-   function Base_Type (T : Root_Type) return N_Base_Type_Spec is
-   begin
-      return Base_Types (T);
+         when Root_Boolean =>
+            return Make_Boolean (No_Location);
+         when Root_Char =>
+            return Make_Char (No_Location);
+         when Root_String =>
+            return Make_String (No_Location);
+      end case;
    end Base_Type;
 
 end CIAO.Translator.Maps;

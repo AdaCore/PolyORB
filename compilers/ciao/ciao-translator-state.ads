@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#3 $
 
 package CIAO.Translator.State is
 
@@ -39,7 +39,7 @@ package CIAO.Translator.State is
       Type_Definition,
       --  We are translating a type_definition into a <type_spec>.
 
-      Translate_Subtype_Mark,
+--       Translate_Subtype_Mark,
       --  We are translating a subtype_mark.
 
       Normal_Formal_Parameter,
@@ -55,10 +55,10 @@ package CIAO.Translator.State is
       --  The category (Pure, Remote_Types or Remote_Call_Interface)
       --  of the library unit being translated.
 
-      IDL_Tree     : Node_Id := Empty;
+      IDL_Tree     : Node_Id := No_Node;
       --  The root of the translated IDL tree.
 
-      Current_Node : Node_Id := Empty;
+      Current_Node : Node_Id := No_Node;
       --  The IDL node which is being constructed.
 
       Pass         : Translation_Pass := Normal;

@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#4 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_Io;  use Ada.Wide_Text_Io;
@@ -272,15 +272,20 @@ package body CIAO.Translator is
             Control := Abandon_Children;
 
          when A_Defining_Name =>
-            declare
-               Success : Boolean;
-            begin
-               Success := Add_Identifier
-                 (State.Current_Node, Map_Defining_Name (Element));
-               pragma Assert (Success);
-            end;
+--             declare
+--                Success : Boolean;
+--                Name : constant String := Map_Defining_Name (Element);
+--             begin
+--                Success := Add_Identifier (State.Current_Node, Name);
+--                if not Success then
+--                   Raise_Translation_Error
+--                     (Element, "Could not add identifier " & Name);
+--                end if;
+--             end;
 
             Control := Abandon_Children;
+            --  Must have been translated explicitly when processing
+            --  the enclosing declaration.
 
          when A_Declaration =>
             Process_Declaration (Element, Control, State);
@@ -386,17 +391,18 @@ package body CIAO.Translator is
 --          Node := New_Interface;
 --          Set_Parent (Node, State.Current_Node);
 --          Add_Interface (State.Current_Node, Node);
-         Forward_Node := Make_Forward (No_Location);
-         Success := Add_Identifier
-           (Forward_Node, Map_Defining_Name (Defining_Name));
-         pragma Assert (Success);
-         Append_Node_To_Contents
-           (State.Current_Node, Forward_Node);
+--          Forward_Node := Make_Forward_Interface (No_Location);
+         --  XXX for now do not define the forward interface.
 
          Node := Make_Interface (No_Location);
-         Set_Forward (Node, Forward_Node);
-         Set_Forward (Forward_Node, Node);
-         Set_Definition (Node, Idl_Fe.Tree.Definition (Forward_Node));
+--          Set_Forward (Node, Forward_Node);
+--          Set_Forward (Forward_Node, Node);
+--          Set_Definition (Node, Idl_Fe.Tree.Definition (Forward_Node));
+         Success := Add_Identifier
+           (Node, Map_Defining_Name (Defining_Name));
+         pragma Assert (Success);
+         Append_Node_To_Contents
+           (State.Current_Node, Node);
 
          if DK = A_Private_Extension_Declaration then
             --  This is an extension of a distributed object declaration:
@@ -443,7 +449,8 @@ package body CIAO.Translator is
 
       begin
          Op_Node := Make_Operation (No_Location);
-         Append_Node_To_Contents (Op_Node, State.Current_Node);
+         Append_Node_To_Contents (State.Current_Node, Op_Node);
+         Push_Scope (Op_Node);
 
          if  Is_Nil (Result_Profile) then
             Value_Type_Node := Make_Void (No_Location);
@@ -470,6 +477,7 @@ package body CIAO.Translator is
                   State            => State);
             end if;
          end loop;
+         Pop_Scope;
       end Process_Operation_Declaration;
 
 --       function Get_Constants_Interface (N : in Node_Id)
@@ -585,7 +593,7 @@ package body CIAO.Translator is
                         if not Is_Limited_Type (Element) then
                            Node := Make_Struct (No_Location);
                            Success := Add_Identifier
-                             (Node, Map_Defining_Name(Defining_Name));
+                             (Node, Map_Defining_Name (Defining_Name));
                         end if;
 
                      when others =>
@@ -605,7 +613,7 @@ package body CIAO.Translator is
                      --  A non-enumerated type.
 
                      Node := Make_Type_Declarator (No_Location);
-                     Append_Node_To_Contents (Node, State.Current_Node);
+                     Append_Node_To_Contents (State.Current_Node, Node);
                      Set_Translation (Element, Node);
                      --  The translation of a type declaration is
                      --  a <type_dcl>.
@@ -645,9 +653,11 @@ package body CIAO.Translator is
                      --  known_discriminant_part is not processed now.
                      if DK = A_Subtype_Declaration then
                         Set_T_Type
-                          (Node, Translate_Subtype_Mark (Type_Definition));
-                        --  XXX TQ 20011207 are we sure that Type_Definition
-                        --  is An_Expression which is a subtype_mark?
+                          (Node, Translate_Subtype_Mark
+                           (Asis.Definitions.Subtype_Mark
+                            (Type_Definition)));
+                        --  In A_Subtype_Declaration, the Type_Definition
+                        --  is A_Subtype_Indication.
                      else
                         State.Current_Node := Node;
                         Translate_Type_Definition
@@ -890,7 +900,6 @@ package body CIAO.Translator is
             declare
                Component_Subtype_Mark : Asis.Expression;
                Declarator_Node        : Node_Id;
-               Type_Spec_Node         : Node_Id;
                Success : Boolean;
             begin
                if DK = A_Discriminant_Specification then
@@ -1107,6 +1116,7 @@ package body CIAO.Translator is
 
                   Node := Make_Interface (No_Location);
                   Append_Node_To_Contents (State.Current_Node, Node);
+                  Push_Scope (Node);
 
                   --  Set_Is_Remote_Subprograms (Node, True);
                   --  XXX CANNOT BE REPRESENTED in idlac tree!
@@ -1123,6 +1133,7 @@ package body CIAO.Translator is
 
                   Node := Make_Module (No_Location);
                   Append_Node_To_Contents (State.Current_Node, Node);
+                  Push_Scope (Node);
 
                   Set_Translation (Element, Node);
                   Success := Add_Identifier
@@ -1138,6 +1149,7 @@ package body CIAO.Translator is
                   end if;
                end loop Do_Visible_Part;
 
+               Pop_Scope;
                State.Current_Node := Old_Current_Node;
 
                Control := Abandon_Children;
@@ -1472,7 +1484,6 @@ package body CIAO.Translator is
       Control : in out Traverse_Control;
       State   : in out Translator_State)
    is
-      Type_Spec_Node   : Node_Id;
       Old_Current_Node : constant Node_Id
         := State.Current_Node;
       TK : constant Asis.Type_Kinds
@@ -1548,8 +1559,6 @@ package body CIAO.Translator is
                        := State.Current_Node;
                      Member_Node       : Node_Id;
                      Declarator_Node   : Node_Id;
-                     S_Declarator_Node : Node_Id;
-                     Member_Type_Node  : Node_Id;
                      Parent_Node       : Node_Id;
                      Success           : Boolean;
                   begin
@@ -1650,6 +1659,7 @@ package body CIAO.Translator is
                            else
                               Set_Sequence_Type (Parent_Node, Sequence_Node);
                            end if;
+                           Parent_Node := Sequence_Node;
                         end;
                      end loop;
 
@@ -1753,7 +1763,7 @@ package body CIAO.Translator is
                return Maps.Character_Literal_Identifier (Name_Image);
 
             when A_Defining_Operator_Symbol =>
-               return Maps.Operator_Symbol_Identifier (Name_Image);
+               return Maps.Operator_Symbol_Identifier (Name);
 
             when A_Defining_Expanded_Name =>
                --  Cannot happen (this is a defining_program_unit_name,
@@ -1966,8 +1976,10 @@ package body CIAO.Translator is
          Initialize_Translator_State
            (Category => Category,
             State    => S);
+         Push_Scope (S.Current_Node);
          Translate_Context_Clause (LU, S);
          Translate_Tree (D, C, S);
+         Pop_Scope;
          return S.IDL_Tree;
       end;
    end Translate;

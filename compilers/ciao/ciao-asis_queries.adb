@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#3 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
@@ -360,12 +360,13 @@ package body CIAO.ASIS_Queries is
                           An_Unconstrained_Array_Definition |
                           A_Constrained_Array_Definition    =>
 
-                           return (Trait_Kind (Component_Definition (Def))
+                           return (Trait_Kind (Array_Component_Definition (Def))
                                    = A_Limited_Trait)
                              or else Is_Limited_Type
                                 (Corresponding_Entity_Name_Declaration
                                  (Asis.Definitions.Subtype_Mark
-                                  (Component_Subtype_Indication (Component))));
+                                  (Component_Subtype_Indication
+                                   (Array_Component_Definition (Def)))));
 
                         when
                           A_Record_Type_Definition        |

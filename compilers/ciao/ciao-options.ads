@@ -44,7 +44,7 @@
 --  This package defines variables for storing CIAO options and parameters,
 --  as well as some internal parameters used by CIAO.
 
-with Gnat.OS_Lib; use Gnat.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 with CIAO.Types;  use CIAO.Types;
 

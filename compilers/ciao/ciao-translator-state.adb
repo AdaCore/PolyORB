@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //depot/ciao/main/ciao-translator-state.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#2 $
 
 with Ada.Wide_Text_Io; use Ada.Wide_Text_Io;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
@@ -27,8 +27,12 @@ with Asis.Elements;
 
 with GNAT.Htable;
 
-with CIAO.IDL_Tree;   use CIAO.IDL_Tree;
-with CIAO.IDL_Syntax; use CIAO.IDL_Syntax;
+--  with CIAO.IDL_Tree;   use CIAO.IDL_Tree;
+--  with CIAO.IDL_Syntax; use CIAO.IDL_Syntax;
+
+with Idl_Fe.Tree;  use Idl_Fe.Tree;
+with Idl_Fe.Types; use Idl_Fe.Types;
+with Errors;       use Errors;
 
 package body CIAO.Translator.State is
 
@@ -37,7 +41,7 @@ package body CIAO.Translator.State is
       State    : out Translator_State) is
    begin
       State.Unit_Category := Category;
-      State.IDL_Tree      := New_Specification;
+      State.IDL_Tree      := Make_Repository (No_Location);
       State.Current_Node  := State.IDL_Tree;
       State.Pass          := Normal;
    end Initialize_Translator_State;
@@ -56,15 +60,15 @@ package body CIAO.Translator.State is
    -----------------------------------------------------------
 
    type Map_Info is record
-      Translation           : Node_Id := Empty;
-      Previous_Current_Node : Node_Id := Empty;
+      Translation           : Node_Id := No_Node;
+      Previous_Current_Node : Node_Id := No_Node;
    end record;
    --  All information we want to keep about the mapping
    --  of an Ada Element is stored as a Map_Info record.
 
    Nil_Map_Info : constant Map_Info :=
-     (Translation           => Empty,
-      Previous_Current_Node => Empty);
+     (Translation           => No_Node,
+      Previous_Current_Node => No_Node);
 
    procedure Set_Map_Info (Element : Asis.Element; Info : Map_Info);
    pragma Inline (Set_Map_Info);
@@ -107,7 +111,8 @@ package body CIAO.Translator.State is
    begin
       Info.Translation := Translation;
       Set_Map_Info (Element, Info);
-      Set_Origin (Translation, Element);
+      --  Set_Origin (Translation, Element);
+      --  XXX might be needed later when generating code.
    end Set_Translation;
 
    procedure Set_Previous_Current_Node

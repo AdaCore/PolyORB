@@ -1393,7 +1393,7 @@ package body Idl_Fe.Types is
                        & "adding definition to the current scope"));
       Add_Identifier_Definition (Scop, Definition, Is_Inheritable);
 
-      pragma Debug (O ("Add_Identifier: puting the definition in its node"));
+      pragma Debug (O ("Add_Identifier: pointing node to definition"));
       Set_Definition (Node, Definition);
 
       pragma Debug (O2 ("Add_Identifier: end"));

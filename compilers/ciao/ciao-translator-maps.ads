@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#4 $
 
 with Asis;       use Asis;
 
@@ -42,9 +42,9 @@ package CIAO.Translator.Maps is
    -- wchich makes reference to it.                       --
    ---------------------------------------------------------
 
-   function Relative_Scoped_Name (Denoted_Definition : Definition;
-                                  Referer            : Declaration)
-     return Node_Id;
+--    function Relative_Scoped_Name (Denoted_Definition : Definition;
+--                                   Referer            : Declaration)
+--      return Node_Id;
 
    ----------------------------------------------
    -- Operator_Symbol_Identifier               --
@@ -52,7 +52,7 @@ package CIAO.Translator.Maps is
    -- a defining operator symbol.              --
    ----------------------------------------------
 
-   function Operator_Symbol_Identifier (Op : Program_Text)
+   function Operator_Symbol_Identifier (Op : Asis.Defining_Name)
      return String;
 
    ----------------------------------------------
@@ -78,7 +78,7 @@ package CIAO.Translator.Maps is
       Root_Char,
       Root_String);
 
-   function Base_Type (T : Root_Type) return N_Base_Type_Spec;
+   function Base_Type (T : Root_Type) return Node_Id;
    pragma Inline (Base_Type);
 
 end CIAO.Translator.Maps;
