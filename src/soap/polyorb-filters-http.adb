@@ -881,6 +881,7 @@ package body PolyORB.Filters.HTTP is
          end if;
          Emit_No_Reply
            (F.Upper, Data_Indication'(Data_Amount => S'Length));
+         Release_Contents (F.In_Buf.all);
       end;
       --  XXX it is unfortunate that we:
       --    1. receive entity data in In_Buf;
