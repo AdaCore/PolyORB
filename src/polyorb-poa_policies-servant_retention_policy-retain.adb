@@ -146,10 +146,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       Lock_W (POA.Map_Lock);
       An_Entry := Object_Maps.Remove_By_Id
         (POA.Active_Object_Map.all'Access, U_Oid);
+      Unlock_W (POA.Map_Lock);
+
       if An_Entry = null then
          raise PolyORB.POA.Object_Not_Active;
       end if;
-      Unlock_W (POA.Map_Lock);
 
       --  Free the Unmarshalled_Oid_Access and the entry.
       --  The servant has to be freed by the application.
@@ -180,10 +181,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       if POA.Active_Object_Map /= null then
          Lock_R (POA.Map_Lock);
          An_Entry := Get_By_Servant (POA.Active_Object_Map.all, P_Servant);
+         Unlock_R (POA.Map_Lock);
+
          if An_Entry /= null then
             return U_Oid_To_Oid (An_Entry.Oid.all);
          end if;
-         Unlock_R (POA.Map_Lock);
       end if;
 
       return null;
@@ -224,6 +226,4 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       end if;
    end Retained_Id_To_Servant;
 
-
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
-
