@@ -39,13 +39,13 @@ package body AWS.Utils is
 
    use Ada;
 
-   pragma Warnings (Off);
+--   pragma Warnings (Off);
    --  XXX GNAT warns that
    --  "statistical properties not guaranteed for size > 48"
    --  This should be investigated.
 
    package Integer_Random is new Ada.Numerics.Discrete_Random (Random_Integer);
-   pragma Warnings (On);
+--   pragma Warnings (On);
 
    Random_Generator : Integer_Random.Generator;
 

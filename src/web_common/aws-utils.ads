@@ -38,8 +38,11 @@ with MD5;
 
 package AWS.Utils is
 
-   type Random_Integer is range 0 .. System.Max_Int;
-   --  Integer type for random number generation.
+   type Random_Integer is range 0 ..
+     Long_Long_Integer'Min (2 ** 48 - 1, System.Max_Int);
+   --  Integer type for random number generation. As GNAT warns us
+   --  about the reliability of random generator for numbers > 2^48,
+   --  we must stay below this limit.
 
    --  General helper functions are to be found here.
 
