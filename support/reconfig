@@ -73,6 +73,10 @@ else
   touch support/libtool.m4
 fi
 
+mv support/ltmain.sh support/ltmain.sh.orig
+sed -e '/xlinker)/,/;;$/s/\$wl/-Xlinker /g' < support/ltmain.sh.orig > support/ltmain.sh
+rm -f support/ltmain.sh.orig
+
 echo "Running aclocal"
 aclocal -I support
 
