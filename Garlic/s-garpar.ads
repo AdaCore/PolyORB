@@ -44,9 +44,17 @@ package System.Garlic.Partitions is
 
    procedure Allocate_PID
      (Partition : out Types.Partition_ID;
+      Name      : in String := "";
       Error     : in out Utils.Error_Type);
-   --  Allocate a new partition ID. This can need the agreement of the boot
-   --  mirrors group.
+   --  Allocate a new partition ID. This can need the agreement of the
+   --  boot mirrors group. When Name is empty string, the partition is
+   --  active because the name of an active partition is not meaningful.
+
+   procedure Register_Passive_Partition
+     (Partition      : out Types.Partition_ID;
+      Partition_Name : in String;
+      Mem_Locations  : in String;
+      Error          : in out Utils.Error_Type);
 
    function Get_Boot_Locations return String;
    --  This function returns all the coordinates of the boot server
@@ -57,9 +65,15 @@ package System.Garlic.Partitions is
       Error          : in out Utils.Error_Type);
    --  Return the pid of the partition used to boot Partition.
 
-   procedure Get_Location
+   procedure Get_Net_Location
      (Partition : in Types.Partition_ID;
       Location  : out Physical_Location.Location_Type;
+      Error     : in out Utils.Error_Type);
+   --  Return the location of a partition
+
+   procedure Get_Mem_Location
+     (Partition : in Types.Partition_ID;
+      Location  : out Utils.String_Access;
       Error     : in out Utils.Error_Type);
    --  Return the location of a partition
 
@@ -128,8 +142,17 @@ package System.Garlic.Partitions is
    --  Return the first boot mirror after this partition or else after
    --  Null_PID.
 
-   procedure Send_Boot_Request
-     (Error    : in out Utils.Error_Type);
+   procedure Send_Partition_Definition
+     (Partition      : in Types.Partition_ID;
+      Partition_Name : in Utils.String_Access;
+      Is_Active_Part : in Boolean;
+      Net_Locations  : in Utils.String_Access;
+      Mem_Locations  : in Utils.String_Access;
+      Termination    : in Types.Termination_Type;
+      Reconnection   : in Types.Reconnection_Type;
+      Has_Light_PCS  : in Boolean;
+      Is_Boot_Mirror : in Boolean;
+      Error          : in out Utils.Error_Type);
    --  Send a boot registration to boot server.  We will send a
    --  Define_New_Partition request to the boot partition. This is step
    --  1. This will cause a dialog to be established and a new Partition_ID
