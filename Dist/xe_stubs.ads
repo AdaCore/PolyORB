@@ -41,4 +41,6 @@ package XE_Stubs is
    procedure Build;
    --  Main procedure to generate all stubs and partition executables.
 
+   procedure Initialize;
+
 end XE_Stubs;

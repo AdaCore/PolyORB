@@ -29,6 +29,7 @@
 with ALI;              use ALI;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Hostparm;         use Hostparm;
+with Krunch;
 with Namet;            use Namet;
 with Osint;            use Osint;
 with Table;
@@ -41,6 +42,17 @@ with XE_Utils;         use XE_Utils;
 package body XE_Stubs is
 
    BS : Boolean renames XE.Building_Script;
+
+   PCS_Name              : Types.File_Name_Type;
+   Build_Stamp_File      : Types.File_Name_Type;
+   Elaboration_File      : Types.File_Name_Type;
+   Elaboration_Name      : Types.File_Name_Type;
+   Partition_Main_File   : Types.File_Name_Type;
+   Partition_Main_Name   : Types.File_Name_Type;
+   Protocol_Config_File  : Types.File_Name_Type;
+   Protocol_Config_Name  : Types.File_Name_Type;
+   Storage_Config_File   : Types.File_Name_Type;
+   Storage_Config_Name   : Types.File_Name_Type;
 
    package Callers  is new Table.Table
      (Table_Component_Type => Unit_Id,
@@ -74,7 +86,7 @@ package body XE_Stubs is
 
    procedure Create_Elaboration_File (PID : in PID_Type);
    --  Create the elaboration unit for the given partition. This unit
-   --  overloads the default GARLIC settings.
+   --  overloads the default PCS settings.
 
    procedure Create_Executable_File (PID : in PID_Type);
    --  Compile main partition file and elaboration file.
@@ -109,14 +121,17 @@ package body XE_Stubs is
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
 
-   function SG_Initialize (N : in Name_Id) return String;
-   --  Return System.Garlic.<N>.Initialize
+   function S    (X : String) return Types.Name_Id;
+   function S    (N : Types.Name_Id) return Types.Name_Id;
+   function PCS  (X : String) return Types.Name_Id;
+   function PCS  (N : Types.Name_Id) return Types.Name_Id;
+   function PCSF (N : Types.Name_Id) return Types.Name_Id;
+   function PCSP (N : Types.Name_Id) return Types.Name_Id;
+   function PCSS (N : Types.Name_Id) return Types.Name_Id;
 
-   function SGF_Initialize (N : in Name_Id) return String;
-   --  Return System.Garlic.Filters.<N>.Initialize
-
-   function SGS_Initialize (N : in Name_Id) return String;
-   --  Return System.Garlic.Storage.<N>.Initialize
+   function PCS_Initialize  (N : in Name_Id) return String;
+   function PCSF_Initialize (N : in Name_Id) return String;
+   function PCSS_Initialize (N : in Name_Id) return String;
 
    Strip_Flag : constant String_Access := new String'("-s");
    --  Option to strip an executable at link time
@@ -436,34 +451,34 @@ package body XE_Stubs is
       --  Header
 
       Dwrite_Line (File, 0, "pragma Warnings (Off);");
-      Dwrite_With_Clause (File, True, SG ("Filters"));
-      Dwrite_With_Clause (File, True, SG ("Heart"));
-      Dwrite_With_Clause (File, True, SG ("Options"));
-      Dwrite_With_Clause (File, True, SG ("Name_Table"));
-      Dwrite_With_Clause (File, True, SG ("Remote"));
-      Dwrite_With_Clause (File, True, SG ("Types"));
-      Dwrite_With_Clause (File, True, SG ("Priorities"));
+      Dwrite_With_Clause (File, True, PCS ("Filters"));
+      Dwrite_With_Clause (File, True, PCS ("Heart"));
+      Dwrite_With_Clause (File, True, PCS ("Options"));
+      Dwrite_With_Clause (File, True, PCS ("Name_Table"));
+      Dwrite_With_Clause (File, True, PCS ("Remote"));
+      Dwrite_With_Clause (File, True, PCS ("Types"));
+      Dwrite_With_Clause (File, True, PCS ("Priorities"));
 
       if Light_PCS then
-         Dwrite_With_Clause (File, False, SG ("No_Tasking"));
+         Dwrite_With_Clause (File, False, PCS ("No_Tasking"));
          Dwrite_Call
-           (File, 0, "pragma Elaborate_All", SG ("No_Tasking"));
+           (File, 0, "pragma Elaborate_All", PCS ("No_Tasking"));
       else
-         Dwrite_With_Clause (File, False, SG ("Tasking"));
+         Dwrite_With_Clause (File, False, PCS ("Tasking"));
          Dwrite_Call
-           (File, 0, "pragma Elaborate_All", SG ("Tasking"));
+           (File, 0, "pragma Elaborate_All", PCS ("Tasking"));
       end if;
 
       --  Add filtering package if needed
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_With_Clause
-           (File, False, SG ("Filters.") & C (Default_Registration_Filter));
+           (File, False, PCS ("Filters.") & C (Default_Registration_Filter));
       end if;
 
       if Get_Filter (PID) /= No_Filter_Name then
          Dwrite_With_Clause
-           (File, False, SG ("Filters.") & C (Get_Filter (PID)));
+           (File, False, PCS ("Filters.") & C (Get_Filter (PID)));
       end if;
 
       if Partitions.Table (PID).First_Channel /= Null_CID then
@@ -471,7 +486,7 @@ package body XE_Stubs is
          while CID /= Null_CID loop
             if Get_Filter (CID) /= No_Filter_Name then
                Dwrite_With_Clause
-                 (File, False, SG ("Filters.") & C (Get_Filter (CID)));
+                 (File, False, PCS ("Filters.") & C (Get_Filter (CID)));
             end if;
             if Channels.Table (CID).Lower.My_Partition = PID then
                CID := Channels.Table (CID).Lower.Next_Channel;
@@ -503,8 +518,9 @@ package body XE_Stubs is
       Dwrite_Call
         (File, 2, "Set_Slave", C (Boolean'Image (PID /= Main_Partition)));
 
-      --  How should the partition terminate. Note that in Garlic,
-      --  Global_Termination is the default. No need to force the default.
+      --  How should the partition terminate. Note that
+      --  Global_Termination is the default. No need to force the
+      --  default.
 
       Termination := Get_Termination (PID);
       if Termination /= Unknown_Termination then
@@ -566,24 +582,24 @@ package body XE_Stubs is
 
       if Light_PCS then
          Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("No_Tasking")));
+           (File, 2, PCS_Initialize (Str_To_Id ("No_Tasking")));
          Dwrite_Call
            (File, 2, "Set_Light_PCS", Str_To_Id ("True"));
 
       elsif Pure_Client then
          Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+           (File, 2, PCS_Initialize (Str_To_Id ("Tasking")));
          Dwrite_Call
            (File, 2, "Set_Pure_Client", Str_To_Id ("True"));
 
       else
          Dwrite_Call
-           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+           (File, 2, PCS_Initialize (Str_To_Id ("Tasking")));
       end if;
 
       --  To be elaborated Name_Table needs Soft_Links to be initialized.
 
-      Dwrite_Call (File, 2, SG_Initialize (Str_To_Id ("Name_Table")));
+      Dwrite_Call (File, 2, PCS_Initialize (Str_To_Id ("Name_Table")));
 
 
       --  If the partition holds the main unit, then it cannot be slave.
@@ -631,18 +647,18 @@ package body XE_Stubs is
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_Call
-           (File, 2, SGF_Initialize (C (Default_Registration_Filter)));
+           (File, 2, PCSF_Initialize (C (Default_Registration_Filter)));
       end if;
 
       if Get_Filter (PID) /= No_Filter_Name then
-         Dwrite_Call (File, 2, SGF_Initialize (C (Get_Filter (PID))));
+         Dwrite_Call (File, 2, PCSF_Initialize (C (Get_Filter (PID))));
       end if;
 
       if Partitions.Table (PID).First_Channel /= Null_CID then
          CID := Partitions.Table (PID).First_Channel;
          while CID /= Null_CID loop
             if Get_Filter (CID) /= No_Filter_Name then
-               Dwrite_Call (File, 2, SGF_Initialize (C (Get_Filter (CID))));
+               Dwrite_Call (File, 2, PCSF_Initialize (C (Get_Filter (CID))));
             end if;
             if Channels.Table (CID).Lower.My_Partition = PID then
                CID := Channels.Table (CID).Lower.Next_Channel;
@@ -801,8 +817,8 @@ package body XE_Stubs is
       Filename := Dir (Directory, Partition_Main_File & ADB_Suffix);
       Create_File (File, Filename);
 
-      Dwrite_With_Clause (File, False, SG ("Startup"));
-      Dwrite_Call (File, 0, "pragma Elaborate_All", SG ("Startup"));
+      Dwrite_With_Clause (File, False, PCS ("Startup"));
+      Dwrite_Call (File, 0, "pragma Elaborate_All", PCS ("Startup"));
       Dwrite_With_Clause (File, True, S ("Partition_Interface"));
       Dwrite_With_Clause (File, False, S ("RPC"));
       if Get_Tasking (PID)
@@ -978,7 +994,7 @@ package body XE_Stubs is
 
       Location := First_LID;
       while Location /= Null_LID loop
-         Major := SGP (C (Locations.Table (Location).Major));
+         Major := PCSP (C (Locations.Table (Location).Major));
          Dwrite_With_Clause (File, False, Major);
          Dwrite_Call (File, 0, "pragma Elaborate_All", Major);
          if not Light_PCS then
@@ -997,7 +1013,7 @@ package body XE_Stubs is
 
       Location := First_LID;
       while Location /= Null_LID loop
-         Major := SGP (C (Locations.Table (Location).Major));
+         Major := PCSP (C (Locations.Table (Location).Major));
          Dwrite_Call (File, 2, "Register", Major & ".Create");
          Location := Locations.Table (Location).Next;
       end loop;
@@ -1077,7 +1093,7 @@ package body XE_Stubs is
             begin
                L := Get_Storage (P);
                if L /= Null_LID then
-                  M := SGS (C (Locations.Table (L).Major));
+                  M := PCSS (C (Locations.Table (L).Major));
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                else
@@ -1101,7 +1117,7 @@ package body XE_Stubs is
             begin
                L := Get_Storage (PID);
                if L /= Null_LID then
-                  M := SGS (C (Locations.Table (L).Major));
+                  M := PCSS (C (Locations.Table (L).Major));
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                else
@@ -1117,7 +1133,7 @@ package body XE_Stubs is
          declare
             M : Name_Id;
          begin
-            M := SGS (C (Locations.Table (Def_Data_Location).Major));
+            M := PCSS (C (Locations.Table (Def_Data_Location).Major));
             Dwrite_With_Clause (File, False, M);
             Dwrite_Call (File, 0, "pragma Elaborate_All", M);
          end;
@@ -1143,7 +1159,7 @@ package body XE_Stubs is
                L := Get_Storage (P);
                if L /= Null_LID then
                   M := C (Locations.Table (L).Major);
-                  Dwrite_Call (File, 2, SGS_Initialize (M));
+                  Dwrite_Call (File, 2, PCSS_Initialize (M));
                end if;
             end;
          end if;
@@ -1159,7 +1175,7 @@ package body XE_Stubs is
                L := Get_Storage (PID);
                if L /= Null_LID then
                   M := C (Locations.Table (L).Major);
-                  Dwrite_Call (File, 2, SGS_Initialize (M));
+                  Dwrite_Call (File, 2, PCSS_Initialize (M));
                end if;
             end;
          end if;
@@ -1171,7 +1187,7 @@ package body XE_Stubs is
             M : Name_Id;
          begin
             M := C (Locations.Table (Def_Data_Location).Major);
-            Dwrite_Call (File, 2, SGS_Initialize (M));
+            Dwrite_Call (File, 2, PCSS_Initialize (M));
          end;
       end if;
 
@@ -1390,6 +1406,46 @@ package body XE_Stubs is
          Delete (Stub_Obj);
       end if;
    end Delete_Stub;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+      function To_Filename (N : Name_Id) return Name_Id;
+      function To_Filename (N : Name_Id) return Name_Id is
+      begin
+         Get_Name_String (N);
+
+         --  Fold to lower case and replace dots by dashes
+
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) := To_Lower (Name_Buffer (J));
+
+            if Name_Buffer (J) = '.' then
+               Name_Buffer (J) := '-';
+            end if;
+         end loop;
+
+         Krunch (Name_Buffer, Name_Len, Name_Len, False);
+
+         return Name_Find;
+      end To_Filename;
+
+      Config : constant Name_Id := Str_To_Id ("Config");
+
+   begin
+      PCS_Name             := Str_To_Id (Get_PCS_Name);
+      Build_Stamp_File     := Str_To_Id ("glade.sta");
+      Elaboration_Name     := PCS ("Elaboration");
+      Elaboration_File     := To_Filename (Elaboration_Name);
+      Partition_Main_Name  := Str_To_Id ("Partition");
+      Partition_Main_File  := To_Filename (Partition_Main_Name);
+      Protocol_Config_Name := PCSP (Config);
+      Protocol_Config_File := To_Filename (Protocol_Config_Name);
+      Storage_Config_Name  := PCSS (Config);
+      Storage_Config_File  := To_Filename (Storage_Config_Name);
+   end Initialize;
 
    -----------------------------
    -- Mark_Units_On_Partition --
@@ -1627,37 +1683,119 @@ package body XE_Stubs is
       return False;
    end Rebuild_Partition;
 
+   -------
+   -- S --
+   -------
+
+   function S (X : String) return Name_Id is
+   begin
+      return S (Str_To_Id (X));
+   end S;
+
+   -------
+   -- S --
+   -------
+
+   function S (N : Name_Id) return Name_Id is
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("System.");
+      Get_Name_String_And_Append (N);
+      return Name_Find;
+   end S;
+
+   --------
+   -- PCS --
+   --------
+
+   function PCS (X : String) return Name_Id is
+   begin
+      return PCS (Str_To_Id (X));
+   end PCS;
+
+   ---------
+   -- PCS --
+   ---------
+
+   function PCS (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Get_Name_String (PCS_Name);
+      Add_Char_To_Name_Buffer ('.');
+      Get_Name_String_And_Append (CN);
+      return Name_Find;
+   end PCS;
+
+   ----------
+   -- PCSP --
+   ----------
+
+   function PCSP (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Protocols.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSP;
+
+   ----------
+   -- PCSF --
+   ----------
+
+   function PCSF (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Filters.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSF;
+
+   ----------
+   -- PCSS --
+   ----------
+
+   function PCSS (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Storages.");
+      Get_Name_String_And_Append (CN);
+      return PCS (Name_Find);
+   end PCSS;
+
    -------------------
-   -- SG_Initialize --
+   -- PCS_Initialize --
    -------------------
 
-   function SG_Initialize (N : Name_Id) return String is
+   function PCS_Initialize (N : Name_Id) return String is
    begin
-      Get_Name_String (SG (N));
+      Get_Name_String (PCS (N));
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
-   end SG_Initialize;
+   end PCS_Initialize;
 
    --------------------
-   -- SGF_Initialize --
+   -- PCSF_Initialize --
    --------------------
 
-   function SGF_Initialize (N : Name_Id) return String is
+   function PCSF_Initialize (N : Name_Id) return String is
    begin
-      Get_Name_String (SGF (N));
+      Get_Name_String (PCSF (N));
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
-   end SGF_Initialize;
+   end PCSF_Initialize;
 
    --------------------
-   -- SGS_Initialize --
+   -- PCSS_Initialize --
    --------------------
 
-   function SGS_Initialize (N : Name_Id) return String is
+   function PCSS_Initialize (N : Name_Id) return String is
    begin
-      Get_Name_String (SGS (N));
+      Get_Name_String (PCSS (N));
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
-   end SGS_Initialize;
+   end PCSS_Initialize;
 
 end XE_Stubs;
