@@ -901,7 +901,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer        : Buffer_Access;
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
-      Sync          : Sync_Scope;
 
       Oid           : constant Object_Id_Access
         := Binding_Data.Get_Object_Key (R.Target_Profile.all);
@@ -911,18 +910,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    begin
       pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
 
-      if Is_Set (Sync_None, R.Req.Req_Flags) then
-         Sync := NONE;
-      elsif Is_Set (Sync_With_Transport, R.Req.Req_Flags) then
-         Sync := WITH_TRANSPORT;
-      elsif Is_Set (Sync_With_Server, R.Req.Req_Flags) then
-         Sync := WITH_SERVER;
-      elsif Is_Set (Sync_With_Target, R.Req.Req_Flags)
-        or else Is_Set (Sync_Call_Back, R.Req.Req_Flags)
-      then
-         Sync := WITH_TARGET;
-      end if;
-
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
@@ -930,16 +917,25 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Marshalling synchronization scope
 
-      case Sync is
-         when NONE | WITH_TRANSPORT =>
-            Marshall (Buffer, Types.Octet (0));
+      if Is_Set (Sync_With_Target, R.Req.Req_Flags)
+        or else Is_Set (Sync_Call_Back, R.Req.Req_Flags)
+      then
+         --  WITH_TARGET
+         Marshall (Buffer, Types.Octet (3));
 
-         when WITH_SERVER =>
-            Marshall (Buffer, Types.Octet (1));
+      elsif Is_Set (Sync_None, R.Req.Req_Flags) then
+         --  NONE
+         Marshall (Buffer, Types.Octet (0));
 
-         when WITH_TARGET =>
-            Marshall (Buffer, Types.Octet (3));
-      end case;
+      elsif Is_Set (Sync_With_Transport, R.Req.Req_Flags) then
+         --  WITH_TRANSPORT
+         Marshall (Buffer, Types.Octet (0));
+
+      elsif Is_Set (Sync_With_Server, R.Req.Req_Flags) then
+         --  WITH_SERVER
+         Marshall (Buffer, Types.Octet (1));
+
+      end if;
 
       --  Reserved
 
