@@ -1,3 +1,14 @@
+1999-03-23  Pascal Obry <obry@gnat.com>
+
+	* xe_reg.ads, xe_reg.adb: New package to handle the NT registry.
+	This is needed for the NT binary release. There is one function
+	exported, Get_GARLIC_Dir that will return the directory where the
+	GARLIC runtime is to be found.
+
+	* Makefile.in, Makefile.am: Change xe_defs.adb generation when
+	under Windows NT. In the NT case, xe_defs.adb will use xe_reg
+	to find the GARLIC library.
+	
 1999-02-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* config.sdefault: Fix installation on NT (Arno's suggestion).
