@@ -4,10 +4,10 @@ with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Names;     use Names;
-with Namet;     use Namet;
+--  with Namet;     use Namet;
 with Nodes;     use Nodes;
 with Nutils;    use Nutils;
-with Output;    use Output;
+--  with Output;    use Output;
 with Scopes;    use Scopes;
 with Types;     use Types;
 with Utils;     use Utils;
@@ -61,6 +61,10 @@ package body Analyzer is
 
    procedure Analyze (E : Node_Id) is
    begin
+      if Kind (E) in K_Float .. K_Value_Base then
+         return;
+      end if;
+
       case Kind (E) is
          when K_Abstract_Value_Declaration =>
             Analyze_Abstract_Value_Declaration (E);
@@ -246,10 +250,15 @@ package body Analyzer is
             exit;
 
          else
+            Error_Loc (1) := Loc (Type_Spec (E));
             DE ("invalid type for constant");
             T := No_Node;
          end if;
       end loop;
+
+      if No (T) then
+         return;
+      end if;
 
       --  Analyze expression, evaluate it and then convert result
 
@@ -276,24 +285,31 @@ package body Analyzer is
    is
       C : Node_Id;
       N : Node_Id;
+      I : Node_Id;
       L : Node_Id := E;
    begin
       Enter_Name_In_Scope (Identifier (E));
 
       C := First_Node (Enumerators (E));
       while Present (C) loop
+         --  Define scoped name referencing enumeration type
+
+         I := Make_Identifier
+           (Loc (E), IDL_Name (Identifier (E)), No_Node, No_Node);
+         N := Make_Scoped_Name
+           (Loc (E), I, No_Node, E);
+         Bind_Identifier_To_Entity (I, N);
+
+         --  Define constant aliasing enumerator
+
+         I := Make_Identifier
+           (Loc (C), IDL_Name (Identifier (C)), No_Node, No_Node);
          N := Make_Constant_Declaration
-           (Loc (E),
-            Make_Scoped_Name
-              (Loc (E),
-               Identifier (E),
-               No_Node),
-            Make_Identifier
-              (Loc (C),
-               IDL_Name (Identifier (C)),
-               Current_Scope),
-            C);
-         Bind_Identifier_To_Entity (Identifier (N), N);
+           (Loc (E), N, I, C);
+         Bind_Identifier_To_Entity (I, N);
+
+         --  This declaration is already analyzed as reference is set
+
          Insert_After_Node (N, L);
          L := N;
          C := Next_Node (C);
@@ -390,84 +406,58 @@ package body Analyzer is
    -----------------------------------
 
    procedure Analyze_Interface_Declaration (E : Node_Id) is
-      F : Node_Id := No_Node;
-      I : Node_Id;
-      C : Node_Id;
-      S : List_Id;
-      B : List_Id;
 
-      procedure Copy_Inherited_Nodes (P, I : Node_Id);
-      --  Copy inherited entities from a parent interface P into a
-      --  child interface I. Operations and attributes are the only
-      --  inherited entities. Do not copy inherited entities that have
-      --  already been copied (diamond diagram).
+      procedure Inherit_From_Interface (P : Node_Id);
 
-      -----------------------------
-      -- Copy_Inherited_Nodes --
-      -----------------------------
+      ----------------------------
+      -- Inherit_From_Interface --
+      ----------------------------
 
-      procedure Copy_Inherited_Nodes (P, I : Node_Id)
+      procedure Inherit_From_Interface (P : Node_Id)
       is
          E : Node_Id;
          N : Node_Id;
-         B : List_Id;
-         D : Node_Id;
-         S : Node_Id;
+         K : Node_Kind;
       begin
-         if No (P) then
-            return;
-         end if;
+         N := Scoped_Identifiers (P);
+         while Present (N) loop
+            E := Node (N);
+            K := Kind (E);
+            if K = K_Operation_Declaration then
+               null;
 
-         --  Nothing to inherit
+            elsif K in K_Simple_Declarator .. K_Complex_Declarator
+              and then Kind (Declaration (E)) = K_Attribute_Declaration
+            then
+               null;
 
-         B := Interface_Body (P);
-         if Is_Empty (B) then
-            return;
-         end if;
-
-         --  Node E is the current candidate to be copied. Node B
-         --  becomes now the target interface body.
-
-         E := First_Node (B);
-         B := Interface_Body (I);
-
-         while Present (E) loop
-            if Kind (E) = K_Attribute_Declaration then
-               D := First_Node (Declarators (E));
-               while Present (D) loop
-                  S := New_Node (K_Scoped_Name, Loc (D));
-                  N := New_Copy (Identifier (D));
-                  Bind_Identifier_To_Entity (N, S);
-                  if D_Scopes then
-                     Write_Str  ("inherit scoped name ");
-                     Write_Name (Name (N));
-                     Write_Eol;
-                  end if;
-                  Enter_Name_In_Scope (N);
-                  D := Next_Node (D);
-               end loop;
-
-            elsif Kind (E) = K_Operation_Declaration then
-               S := New_Node (K_Scoped_Name, Loc (E));
-               N := New_Copy (Identifier (E));
-               Bind_Identifier_To_Entity (N, S);
-               if D_Scopes then
-                  Write_Str  ("inherit scoped name ");
-                  Write_Name (Name (N));
-                  Write_Eol;
-               end if;
-               Enter_Name_In_Scope (N);
+            else
+               E := No_Node;
             end if;
 
-            E := Next_Node (E);
+            if Present (E) then
+               E := Make_Identifier
+                 (Loc (E), IDL_Name (N), E, Scope (N));
+               Enter_Name_In_Scope (E);
+
+            else
+               Make_Implicitely_Visible (N, True);
+            end if;
+            N := Next_Node (N);
          end loop;
-      end Copy_Inherited_Nodes;
+      end Inherit_From_Interface;
+
+      I : Node_Id;
+      C : Node_Id;
+      S : List_Id;
+      N : Node_Id;
 
    begin
       Enter_Name_In_Scope (Identifier (E));
 
       --  Analyze interface names, enter them in scope and make them
-      --  visible.
+      --  visible. Enter their attributes and operations as well and
+      --  made other entities visible.
 
       Push_Scope (E);
       S := Interface_Spec (E);
@@ -478,17 +468,18 @@ package body Analyzer is
             C := Reference (I);
             if Present (C) then
                if Kind (C) = K_Interface_Declaration then
-                  Make_Enclosed_Nodes_Visible (C, True, False);
+                  Inherit_From_Interface (C);
 
                else
                   if Kind (C) = K_Forward_Interface_Declaration then
                      Error_Loc (1) := Loc (E);
                      DE ("interface cannot inherit " &
-                           "from a forward-declared interface");
+                         "from a forward-declared interface");
+
                   else
                      Error_Loc (1) := Loc (E);
                      DE ("interface cannot inherit " &
-                           "from a non-interface");
+                         "from a non-interface");
                   end if;
                end if;
             end if;
@@ -496,56 +487,12 @@ package body Analyzer is
          end loop;
       end if;
 
-      --  Prepare to inherit operations and attributes from parent
-      --  interfaces. Preserve entities from current interface in F.
-      --  Bad_Value body of current interface in order to enter attributes
-      --  and operations of parent interfaces.
-
-      B := Interface_Body (E);
-      if not Is_Empty (B) then
-         F := First_Node (B);
-         Set_First_Node (B, No_Node);
-         Set_Last_Node  (B, No_Node);
-      end if;
-
-      --  Enter attributes and operations of parent interfaces
-
-      S := Interface_Spec (E);
-      if not Is_Empty (S) then
-         I := First_Node (S);
-         while Present (I) loop
-
-            --  The current interface body might be empty
-
-            if Is_Empty (B) then
-               B := New_List (K_Interface_Body, Loc (E));
-               Set_Interface_Body (E, B);
-            end if;
-
-            --  Node I is a scoped name.
-
-            C := Reference (I);
-            if Present (C)
-              and then Kind (C) = K_Interface_Declaration
-            then
-               Copy_Inherited_Nodes (Reference (I), E);
-            end if;
-
-            I := Next_Node (I);
-         end loop;
-      end if;
-
       --  We append and analyze the new entities of the current interface
 
-      while Present (F) loop
-         Analyze (F);
-         C := F;
-         F := Next_Node (F);
-         Set_Next_Node (C, No_Node);
-         if Is_Attribute_Or_Operation (C) then
-            Set_Base_Interface (C, E);
-         end if;
-         Append_Node_To_List (C, B);
+      N := First_Node (Interface_Body (E));
+      while Present (N) loop
+         Analyze (N);
+         N := Next_Node (N);
       end loop;
       Pop_Scope;
 
@@ -556,10 +503,8 @@ package body Analyzer is
          I := First_Node (S);
          while Present (I) loop
             C := Reference (I);
-            if Present (C)
-              and then Kind (C) = K_Interface_Declaration
-            then
-               Make_Enclosed_Nodes_Visible (C, False, False);
+            if Present (C) then
+               null;
             end if;
             I := Next_Node (I);
          end loop;
@@ -686,6 +631,12 @@ package body Analyzer is
       N : Node_Id := Identifier (E);
       C : Node_Id;
    begin
+      --  This scoped name has already been analyzed because probably
+      --  expanded.
+
+      if Present (Reference (E)) then
+         return;
+      end if;
 
       --  Analyze single scoped name. First we have to find a possible
       --  visible entity. If there is one, associate the reference to
