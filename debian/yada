@@ -1,0 +1,1557 @@
+#! /usr/bin/perl -w
+# yada -- Yet Another Debianisation Aid
+# Copyright 1999 Charles Briscoe-Smith
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# You can contact me by email at <cpbs@debian.org>
+#
+# $Id: //depot/adabroker/release-1/debian/yada#1 $
+
+# Bugs:
+#
+# - Build depends and build conflicts do not take virtual packages into
+#   account.  This is a hard one to fix while not breaking encapsulation
+#   on dpkg's database.  Here's one method of extracting a copy of the
+#   status file using only dpkg's defined interface:
+#     dpkg --get-selections '*' | sed 's/[^!-~].*//' | xargs dpkg -s > status
+
+$modified = "";
+
+# $Format: "$project = \"$Project$\";"$
+$project = "yada";
+# $Format: "$projectversion = \"$ProjectVersion$\";"$
+$projectversion = "0.9";
+# $Format: "$projectdate = \"$ProjectDate$\";"$
+$projectdate = "Tue, 07 Dec 1999 20:15:08 +0000";
+# If you modify this file (e.g. for an NMU) please add a version line:
+#$modified .= "Modified by XXX on yyyy/mm/dd\n";
+
+$projectdate =~ s/ ..\:.*//;
+$yadaversion = "Yet Another Debianization Aid ($project v$projectversion, of $projectdate)\n${modified}Copyright 1999 Charles Briscoe-Smith.\nReleased as free software under the terms of the GNU General Public License.";
+
+########################################################################
+# Standard ways of printing error messages
+########################################################################
+sub choke {
+  print STDERR "@_  (Say `$0 --help' for help)\n";
+  exit 1;
+}
+
+BEGIN {
+  my $errors=0;
+  sub gasp {
+    print STDERR "@_\n";
+    $errors++;
+  }
+
+  sub chokepoint {
+    choke "Stopping after $errors errors." if $errors;
+  }
+}
+
+########################################################################
+# Execute an external program, and bomb out if errors occur
+########################################################################
+sub run {
+  print " -> @_\n";
+  if (my $pid = fork) {
+    waitpid $pid, 0;
+    choke "*** YADA error: $_[0] exited with status $?\n" if $? != 0;
+  } elsif (defined $pid) {
+    exec @_ or exit 1;
+  } else {
+    die "Cannot fork a child process";
+  }
+}
+
+########################################################################
+# Pull selected values out of the environment
+########################################################################
+sub getvars {
+  $ROOT=$ENV{"ROOT"};
+  $CONTROL=$ENV{"CONTROL"};
+  $PACKAGE=$ENV{"PACKAGE"};
+  if (not defined $ROOT) {
+    die "I must be called from within a rules file. (ROOT is not defined)\n";
+  }
+  if (not defined $CONTROL) {
+    die "I must be called from within a rules file. (CONTROL is not defined)\n";
+  }
+  if (not defined $PACKAGE) {
+    die "I must be called from within a rules file. (PACKAGE is not defined)\n";
+  }
+}
+
+########################################################################
+# Read paragraphs from debian/packages
+########################################################################
+# Read a paragraph into %par
+sub getpara {
+  while (<PACKAGES>) {
+    next if m/^\s*\#/;
+    s/\s+$//;
+    last unless m/^$/;
+  }
+  %par=();
+  while (defined) {
+    m/^([-A-Za-z0-9]+)\s*\:\s*(.*)$/ or die "Invalid line found";
+    $keyword=$1;
+    $keyword=~tr/A-Z/a-z/;
+    $contents=$2;
+    while (<PACKAGES>) {
+      next if m/^\#/;
+      s/\s+$//s;
+      last unless s/^(\s)//;
+      $x=$1;
+      s/^/$x/ if $x ne " ";
+      s/^\.(\.*)$/$1/;
+      $contents.="\n".$_;
+    }
+    $contents=~s/^\n//s;
+    $par{$keyword}=$contents;
+    last if not defined or m/^$/;
+  }
+}
+
+########################################################################
+# Parse source package from debian/packages
+########################################################################
+%sourcefields=(
+  "source"=>1, "section"=>1, "priority"=>1, "maintainer"=>1,
+  "standards-version"=>1, "upstream-source"=>1, "copyright"=>1,
+  "major-changes"=>1, "packaged-for"=>1, "description"=>1, "build"=>1,
+  "clean"=>1, "home-page"=>1, "packager"=>1, "other-maintainers"=>1,
+  "build-conflicts"=>1, "build-depends"=>1, "build-sequence"=>1,
+  "patches"=>1,
+);
+
+sub parsesourcepara {
+  if ($sourceparanum) {
+    gasp "Paragraph $paragraphnum: duplicate source package.\n  Previously got source package from paragraph $sourceparanum.";
+  }
+  $sourceparanum=$paragraphnum;
+  my %srcpar=();
+  for (keys %par) {
+    if (not defined $sourcefields{$_}) {
+      gasp "Paragraph $paragraphnum: field `$_' not recognised for source packages.";
+    }
+    $srcpar{$_}=$par{$_};
+  }
+  %source=%par;
+}
+
+########################################################################
+# Parse binary package from debian/packages
+########################################################################
+%binaryfields=(
+  "package"=>1, "architecture"=>1, "section"=>1, "priority"=>1,
+  "essential"=>1, "pre-depends"=>1, "depends"=>1, "recommends"=>1,
+  "suggests"=>1, "provides"=>1, "conflicts"=>1, "replaces"=>1,
+  "description"=>1, "install"=>1, "finalise"=>1, "finalize"=>1,
+  "preinst"=>1, "postinst"=>1, "prerm"=>1, "postrm"=>1, "changelog"=>1,
+  "doc-depends"=>1, "alternatives"=>1, "menu"=>1, "shlibs"=>1,
+  "contains-libs"=>1, "doc-base"=>1,
+);
+
+sub parsebinarypara {
+  my $pkg=$par{"package"};
+  if ($binaryparanum{$pkg}) {
+    gasp "Paragraph $paragraphnum: duplicate binary package.\n  Previously got binary package `$pkg' from paragraph $binaryparanum{$pkg}.";
+  }
+  $binaryparanum{$pkg}=$paragraphnum;
+  my %binpar=();
+  foreach (keys %par) {
+    if (not defined $binaryfields{$_}) {
+      gasp "Paragraph $paragraphnum: field `$_' not recognised for binary packages."
+    }
+    $binpar{$_}=$par{$_};
+  }
+  $binary{$pkg}=\%binpar;
+}
+
+########################################################################
+# Open, read and parse the whole of debian/packages
+########################################################################
+sub readpackages {
+  open PACKAGES, "debian/packages"
+    or die "Can't open debian/packages for reading";
+  local $paragraphnum=0;
+  my @skipped=();
+  &getpara;
+  while (1) {
+    $paragraphnum++;
+    last if not %par;
+    if (exists $par{"ignore"}) {
+      push @skipped, $paragraphnum;
+    } else {
+      # What sort of paragraph is this?
+      if (defined $par{"source"}) {
+        &parsesourcepara;
+      } elsif (defined $par{"package"}) {
+        &parsebinarypara;
+      } else {
+        gasp "Paragraph $paragraphnum: contains neither `source' nor `package' field.";
+      }
+    }
+    &getpara;
+  }
+  print "Paragraphs skipped: @skipped\n" if @skipped;
+  &chokepoint;
+}
+
+########################################################################
+# Output control-file fields
+########################################################################
+# Print a key/value pair to the given filehandle.
+sub printkey {
+  my ($OUT, $k, $v)=@_;
+  if ($v=~m/^\./m) { die "Can't escape . at start of line"; }
+  $k=~s/(^|-)(.)/$1\u$2/g;
+  $v=~s/^$/./gm;
+  $v=~s/^/ /gm;
+  print $OUT "$k:$v\n" or die "Can't write to output file";
+}
+
+# Print, to the given filehandle, the named keys from the given paragraph
+sub printkeys {
+  my ($OUT, $par, @keys)=@_;
+  foreach (@keys) {
+    if (defined $$par{$_}) { printkey $OUT, $_, $$par{$_}; }
+  }
+}
+
+########################################################################
+# Output Makefile fragments
+########################################################################
+# Print, on the given handle, make rules to execute the given executable
+# field.
+sub makescript {
+  my ($OUT, $fieldname, $pre, $text) = @_;
+  $_ = $text;
+  if (defined) {
+    if (s/^sh\n//s) {
+      # shell script
+      chomp;
+      s=^=set -e; set -v\n=s;
+      s=^=eval "yada () { perl \$(pwd)/debian/yada \\\"\\\$\@\\\"; }"; =s;
+      s/'/'\\''/g;
+      s/\$/\$\$/g;
+      s/\n/';\\\n\techo -E '/gs;
+      print OUT "$pre && (\\\n\techo -E '" or die;
+      print OUT or die;
+      print OUT "') | /bin/sh\n" or die;
+    } else {
+      gasp "Unknown executable type for `$fieldname'\n";
+    }
+  }
+}
+
+########################################################################
+# Append a line to a file, discarding duplicates
+########################################################################
+sub append {
+  my ($file, $line, $upto) = @_;
+  my $sep = $line;
+  $sep =~ s/$upto.*//s if defined $upto;
+  open APPENDOUT, ">$file.new" or die "Cannot open `$file.new' for output";
+  if (-f $file) {
+    open APPENDIN, "<$file" or die "Cannot open `$file' for input";
+    while (<APPENDIN>) {
+      my $tmp = $_;
+      s/$upto.*//s if defined $upto;
+      print APPENDOUT $tmp unless $_ eq $sep;
+    }
+    close APPENDIN or die "Cannot close `$file'";
+  }
+  print APPENDOUT $line or die "Cannot write to `$file.new'";
+  close APPENDOUT or die "Cannot close `$file.new'";
+  rename "$file.new", "$file" or die "Cannot rename `$file.new' to `$file'";
+}
+
+########################################################################
+# Convert package name into something which can be used for a substvar
+# name -- no dots or pluses, but colons are okay
+########################################################################
+sub normalise {
+  my ($pkg) = @_;
+  $pkg =~ s/\./:d/g;
+  $pkg =~ s/\+/:p/g;
+  return $pkg;
+}
+
+########################################################################
+# Main program starts here
+########################################################################
+if (not defined($_=shift) or m/^(-h|--h(e(lp?)?)?)$/i) {
+  print "$0: $yadaversion
+Usage: yada action [args...]
+Notably:
+  yada rebuild control|rules
+  yada install [-dir|-data|-doc|-bin|-script|-game|-lib|-man|-conffile]
+               [-x|-non-x] [-stripped|-unstripped] [-exec|-no-exec]
+               [-into <dir>] [-as <name>] [-subdir <subdir>]
+               [-section <mansect>] <file>...
+  yada undocumented [-x|-non-x] [-section <mansect>] <name>...
+  yada fixup libtool [path/to/libtool]
+  yada yada
+";
+  #yada symlink [-doc|-bin|-game|-lib|-man] [-into <dir>] [-as <name>]
+  #             <file>...
+  if (defined) { exit 0; } else { exit 1; }
+}
+
+if (m/^(-v|--v(e(r(s(i(on?)?)?)?)?)?)$/i) {
+  print "$0: $yadaversion\n";
+  exit 0;
+}
+
+if (m/^rebuild$/i) {
+  if (not defined($_=shift)) { choke "Rebuild what?"; }
+
+  ######################################################################
+  # Rebuild debian/control
+  ######################################################################
+  if (m/^control$/i) {
+    &readpackages;
+    open OUT, ">debian/control.new"
+      or die "Can't open debian/control.new for writing";
+    @skipped=();
+    foreach ("source", "maintainer", "section", "priority", "standards-version")
+    {
+      if (defined $source{$_}) { &printkey(*OUT{IO}, $_, $source{$_}); }
+    }
+    for (keys %binary) {
+      $par=$binary{$_};
+      if ($$par{"architecture"}=~m/none/i) {
+        push @skipped, $$par{"package"};
+      } else {
+        $npkg = normalise($$par{"package"});
+        if (defined $$par{"pre-depends"}) {
+          $$par{"pre-depends"} =~
+            s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Pre-Depends}$2/;
+          $$par{"pre-depends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+        }
+        if (defined $$par{"depends"}) {
+          $$par{"depends"} =~
+            s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Depends}$2/;
+          $$par{"depends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+        }
+        if (defined $$par{"recommends"}) {
+          $$par{"recommends"} =~
+            s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Recommends}$2/;
+          $$par{"recommends"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+        }
+        if (defined $$par{"suggests"}) {
+          $$par{"suggests"} =~
+            s/(^|\, ?)\s*\[.*?\]\s*(\,|$)/$1\${$npkg:Suggests}$2/;
+          $$par{"suggests"} =~ s/(\,\s*\[.*?\]\s*)+(\,|$)/$2/g;
+        }
+        print OUT "\n" or die "Can't write to debian/control.new";
+        &printkeys(*OUT{IO}, $par, "package", "architecture", "section",
+            "priority", "essential", "pre-depends", "depends",
+            "recommends", "suggests", "provides", "conflicts",
+            "replaces");
+        if (defined $$par{"description"}) {
+          $_ = "$source{\"description\"}\n";
+          s/^.*\n//;
+          s/(.)$/$1\n/s;
+          $$par{"description"} =~ m/^([^\n]*)\n(.*)/s;
+          &printkey(*OUT{IO}, "description", "$1\n$_$2");
+        }
+      }
+    }
+    print "Skipped binary packages: @skipped\n" if @skipped;
+    close OUT or die "Can't close debian/control.new";
+    rename "debian/control.new", "debian/control"
+      or die "Can't rename debian/control.new to debian/control";
+    exit 0;
+  }
+
+  ######################################################################
+  # Rebuild debian/rules
+  ######################################################################
+  if (m/^rules$/i) {
+    open OUT, ">debian/rules.new"
+      or die "Cannot open debian/rules.new for writing";
+    &readpackages;
+
+    $avoidroot=0;
+    $buildseq=$source{"build-sequence"};
+    $buildconfls=$source{"build-conflicts"};
+    $builddeps=$source{"build-depends"};
+
+    %packages=();
+    %architectures=();
+
+    %install=();
+    %architecture=();
+    %finalise=();
+    %docdep=();
+    %preinst=();
+    %postinst=();
+    %prerm=();
+    %postrm=();
+    %predepends=();
+    %depends=();
+    %recommends=();
+    %suggests=();
+
+    for (keys %binary) {
+      $par=$binary{$_};
+      $pkg=$$par{"package"};
+      $packages{$pkg}++;
+      $architecture{$pkg}=$$par{"architecture"};
+      $finalise{$pkg}=$$par{"finalise"};
+      if (defined $$par{"finalize"}) {
+        if (defined $finalise{$pkg}) {
+          gasp "Package `$pkg' has both `Finalise' and `Finalize'.\n";
+        } else {
+          $finalise{$pkg}=$$par{"finalize"};
+        }
+      }
+      $architecture{$pkg}=$$par{"architecture"};
+      $install{$pkg}=$$par{"install"};
+      $docdep{$pkg}=$$par{"doc-depends"};
+      $preinst{$pkg}=$$par{"preinst"};
+      $postinst{$pkg}=$$par{"postinst"};
+      $prerm{$pkg}=$$par{"prerm"};
+      $postrm{$pkg}=$$par{"postrm"};
+      $_=$$par{"pre-depends"};
+      if (defined) {
+        $_=join " ", grep s/^\[\s*(.+?)\s*\]$/$1/, split /\s*,\s*/;
+        s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+        $predepends{$pkg}=$_ if $_ ne "";
+      }
+      $_=$$par{"depends"};
+      if (defined) {
+        $_=join " ", grep s/^\[\s*(.+?)\s*\]$/$1/, split /\s*,\s*/;
+        s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+        $depends{$pkg}=$_ if $_ ne "";
+      }
+      $_=$$par{"recommends"};
+      if (defined) {
+        $_=join " ", grep s/^\s*\[(.+?)\s*\]$/$1/, split /\s*,\s*/;
+        s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+        $recommends{$pkg}=$_ if $_ ne "";
+      }
+      $_=$$par{"suggests"};
+      if (defined) {
+        $_=join " ", grep s/^\s*\[(.+?)\s*\]$/$1/, split /\s*,\s*/;
+        s=(^| )/?([^ ])=$1debian/tmp-$pkg/$2=g;
+        $suggests{$pkg}=$_ if $_ ne "";
+      }
+      $_=$architecture{$pkg};
+      if (defined) {
+        foreach (split / +/) {
+          $architectures{$_}++;
+        }
+      }
+    }
+
+    delete $architectures{"all"};
+    delete $architectures{"any"};
+
+    if (defined $buildseq) {
+      if ($buildseq =~ m/^avoid-root$/i) {
+        $avoidroot=1;
+      } elsif (not $buildseq =~ m/^conserve-space$/i) {
+        gasp "Unrecognised `Build-Sequence'; assuming `conserve-space'.\n",
+              " Build-Sequence: avoid-root | conserve-space\n";
+      }
+    }
+
+    ############################################################################
+    print OUT "#! /usr/bin/make -f
+# Generated automatically from debian/packages
+# by $project v$projectversion, of $projectdate
+" or die;
+    $_ = $modified;
+    s/^(.)/# &/g;
+    print OUT or die;
+    $usearches=0;
+    if (%architectures) {
+      $usearches=1;
+      print OUT "\nbuildarch := \$(shell dpkg --print-architecture)\n\n" or die;
+      foreach (keys %architectures) {
+        print OUT "ifneq \"\$(buildarch)\" \"$_\"\n" or die;
+      }
+      print OUT "buildarch := any\n" or die;
+      foreach (keys %architectures) {
+        print OUT "endif\n" or die;
+      }
+    }
+
+    $patch=$source{"patches"};
+    if (defined $patch) {
+      $patch="debian/".$patch;
+    }
+
+    ############################################################################
+    print OUT <<END or die;
+
+.PHONY: default
+default:
+	\@echo \"Specify a target:\"; \\
+	echo \" build              compile the package\"; \\
+	echo \" binary             make all binary packages\"; \\
+	echo \" binary-arch        make all architecture-dependent binary packages\"; \\
+	echo \" binary-indep       make all architecture-independent binary packages\"; \\
+	echo \" clean              clean up the source package\"; \\
+	echo; \\
+END
+    print OUT <<END or die if defined $buildconfls or defined $builddeps;
+	echo \" depends            check build-time dependencies\"; \\
+END
+    print OUT <<END or die if defined $patch;
+	echo \" patch              apply patches from $patch\"; \\
+	echo \" unpatch            unapply patches from ${patch}{,disabled}\"; \\
+END
+    print OUT <<END or die if $avoidroot;
+	echo \" build-only         compile the package but do not create any install trees\"; \\
+END
+    print OUT <<END or die unless $avoidroot;
+	echo \" install-tree       compile the package and create the install trees\"; \\
+END
+    print OUT <<END or die;
+	echo \" clean-install-tree clean up only under debian/\"; \\
+	echo
+
+END
+################################################################################
+    if (defined $buildconfls or defined $builddeps) {
+      print OUT <<END or die;
+# Check build dependencies and conflicts
+
+.PHONY: depends
+depends: debian/depends-stamp
+debian/depends-stamp:
+	\@echo 'Checking build conflicts and dependencies; just a minute...'
+END
+
+      if (defined $buildconfls) {
+        $_=$buildconfls;
+        s/^\s*(.*?)\s*$/$1/;
+        foreach (split /\s*,\s*/) {
+          if (m/^([-+.a-zA-Z0-9]+)(?:\s*\(\s*(\<\<|\<\=|\=|\>\=|\>\>)\s*([-+.:a-zA-Z0-9]+)\s*\))?$/) {
+            $spec="$1";
+            if (defined $2) {
+              $spec.=" (version $2 $3)";
+            } else {
+              $spec.=" (any version)";
+            }
+            print OUT "\t\@echo -n '$1...'; v=\$\$(dpkg -s '$1' | sed -n '/^[sS][tT][aA][tT][uU][sS]:.* config-files\$\$/q;s/^[vV][eE][rR][sS][iI][oO][nN]: *//p'); \\
+\tif test \"\$\$v\"" or die;
+            if (defined $2) {
+              print OUT " && dpkg --compare-versions \"\$\$v\" '$2' '$3'" or die;
+            }
+            print OUT "; then \\
+\t  echo '*** Build conflicts with package $spec, which is installed'; \\
+\t  exit 1; \\
+\tfi\n" or die;
+    #       if (defined $2) {
+    #         print "Processing conflict with package `$1', versioning ($2 $3) not yet checked\n";
+    #       }
+          } else {
+            gasp "Invalid `Build-Conflicts' syntax: `$_'\n";
+          }
+        }
+      }
+
+      if (defined $builddeps) {
+        $_=$builddeps;
+        s/^\s*(.*?)\s*$/$1/;
+        foreach (split /\s*,\s*/) {
+          $speclist="";
+          foreach (split /\s*\|\s*/) {
+            if (m/^([-+.a-zA-Z0-9]+)(?:\s*\(\s*(\<\<|\<\=|\=|\>\=|\>\>)\s*([-+.:a-zA-Z0-9]+)\s*\))?$/) {
+              $spec="`$1'";
+              if (defined $2) {
+                $spec.=" (version $2 $3)";
+              } else {
+                $spec.=" (any version)";
+              }
+              if ($speclist eq "") { $at="\@"; } else { $at=""; }
+              $speclist.=", or $spec";
+              print OUT "\t${at}echo -n '$1...'; v=\$\$(dpkg -s '$1' | sed -n '/^[sS][tT][aA][tT][uU][sS]:.* config-files\$\$/q;s/^[vV][eE][rR][sS][iI][oO][nN]: *//p'); \\
+\tif test \"\$\$v\"; then \\\n" or die;
+              if (defined $2) {
+                print OUT "\t  if dpkg --compare-versions \"\$\$v\" '$2' '$3'; then \\\n" or die;
+              }
+              print OUT "\t    exit 0; \\\n" or die;
+              if (defined $2) {
+                print OUT "\t  fi; \\\n" or die;
+              }
+              print OUT "\tfi; \\\n" or die;
+            } else {
+              gasp "Invalid `Build-Depends' syntax: `$_'\n";
+            }
+          }
+          $speclist =~ s/^, or //;
+          $speclist =~ s/'/'\\''/g;
+          print OUT "\techo 'Build depends on $speclist, which is not satisfied' | fmt; exit 1\n" or die;
+        }
+      }
+      print OUT <<END or die;
+	\@echo
+	\@echo 'Conflicts and dependencies all satisfied!'
+	touch debian/depends-stamp
+
+END
+    }
+
+    ############################################################################
+
+    print OUT <<END or die if defined $patch;
+.PHONY: patch unpatch
+# Apply patches matching `$patch' to the source tree,
+# and unapply any applied patches `$patch.disabled'
+patch: debian/patch-stamp
+debian/patch-stamp:
+	\@set -e; backupdirs=\$\$(ls -d debian/backup-* 2>/dev/null | wc -l); \\
+	if test \$\$backupdirs -gt 1; then \\
+	  echo \"*** Yada error: There are multiple debian/backup-* directories.\"; \\
+	  echo \"***             I can't cope.  Please clean up for me.\"; \\
+	  exit 1; \\
+	fi; \\
+	if test \$\$backupdirs = 1; then \\
+	  patchname=\"\$\$(echo debian/backup-* | sed 's=^debian/backup-==')\"; \\
+	  echo \"*** Cleaning up after interrupted patching run for \$\$patchname\"; \\
+	  if test -f \"debian/patch-\$\$patchname-applied\"; then \\
+	    rm -rf \"debian/backup-\$\$patchname\"; \\
+	  else \\
+	    (cd \"debian/backup-\$\$patchname\"; find . -type f -print0) | xargs -0ri mv -f -- debian/backup-\$\$patchname/{} {}; \\
+	    find \"debian/backup-\$\$patchname\" -depth -type d -exec rmdir '{}' \\;; \\
+	    if test -e \"debian/backup-\$\$patchname\"; then \\
+	      echo \"*** Yada error: I could not recover cleanly from an interrupted patch.\"; \\
+	      echo \"***             I can't cope.  Please clean up for me.\"; \\
+	      exit 1; \\
+	    fi; \\
+	  fi; \\
+	fi
+
+	\@set -e; backdowndirs=\$\$(ls -d debian/backdown-* 2>/dev/null | wc -l); \\
+	if test \$\$backdowndirs -gt 1; then \\
+	  echo \"*** Yada error: There are multiple debian/backdown-* directories.\"; \\
+	  echo \"***             I can't cope.  Please clean up for me.\"; \\
+	  exit 1; \\
+	fi; \\
+	if test \$\$backdowndirs = 1; then \\
+	  patchname=\"\$\$(echo debian/backdown-* | sed 's=^debian/backdown-==')\"; \\
+	  echo \"*** Cleaning up after interrupted unpatching run for \$\$patchname\"; \\
+	  if test ! -f \"debian/patch-\$\$patchname-applied\"; then \\
+	    rm -rf \"debian/backdown-\$\$patchname\"; \\
+	  else \\
+	    (cd \"debian/backdown-\$\$patchname\"; find . -type f -print0) | xargs -0ri mv -f -- debian/backdown-\$\$patchname/{} {}; \\
+	    find \"debian/backdown-\$\$patchname\" -depth -type d -exec rmdir '{}' \\;; \\
+	    if test -e \"debian/backdown-\$\$patchname\"; then \\
+	      echo \"*** Yada error: I could not recover cleanly from an interrupted patch.\"; \\
+	      echo \"***             I can't cope.  Please clean up for me.\"; \\
+	      exit 1; \\
+	    fi; \\
+	  fi; \\
+	fi
+
+	\@set -e; for stampfile in debian/patch-*-applied; do \\
+	  if test -f \"\$\$stampfile\"; then \\
+	    patchname=\"\$\$(echo \"\$\$stampfile\" | sed 's=^debian/patch-\\(.*\\)-applied\$\$=\\1=')\"; \\
+	    patchfile=\"debian/\$\$patchname.disabled\"; \\
+	    if test -f \"\$\$patchfile\"; then \\
+	      echo \"*** \$\$patchfile is now disabled; patching it out\"; \\
+	      patchoptions=\"\$\$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <\"\$\$patchfile\")\"; \\
+	      patch -R -f -i \"\$\$patchfile\" -b -V simple -B \"debian/backdown-\$\$patchname/\" \$\$patchoptions; \\
+	      rm -f \"\$\$stampfile\"; \\
+	      rm -rf \"debian/backdown-\$\$patchname\"; \\
+	    fi; \\
+	  fi; \\
+	done
+
+	\@set -e; for patchfile in $patch; do \\
+	  if test -f \"\$\$patchfile\"; then \\
+	    patchname=\"\$\$(echo \"\$\$patchfile\" | sed 's=^debian/==')\"; \\
+	    stampfile=\"debian/patch-\$\$patchname-applied\"; \\
+	    if test ! -f \"\$\$stampfile\"; then \\
+	      echo \"*** Applying patch from \$\$patchname\"; \\
+	      patchoptions=\"\$\$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <\"\$\$patchfile\")\"; \\
+	      patch -N -f -i \"\$\$patchfile\" -b -V simple -B \"debian/backup-\$\$patchname/\" \$\$patchoptions; \\
+	      touch \"\$\$stampfile\"; \\
+	      rm -rf \"debian/backup-\$\$patchname\"; \\
+	    fi; \\
+	  fi; \\
+	done
+
+	touch debian/patch-stamp
+
+# Remove all managed patches from the source tree
+unpatch:
+	\@set -e; backupdirs=\$\$(ls -d debian/backup-* 2>/dev/null | wc -l); \\
+	if test \$\$backupdirs -gt 1; then \\
+	  echo \"*** Yada error: There are multiple debian/backup-* directories.\"; \\
+	  echo \"***             I can't cope.  Please clean up for me.\"; \\
+	  exit 1; \\
+	fi; \\
+	if test \$\$backupdirs = 1; then \\
+	  patchname=\"\$\$(echo debian/backup-* | sed 's=^debian/backup-==')\"; \\
+	  echo \"*** Cleaning up after interrupted patching run for \$\$patchname\"; \\
+	  if test -f \"debian/patch-\$\$patchname-applied\"; then \\
+	    rm -rf \"debian/backup-\$\$patchname\"; \\
+	  else \\
+	    (cd \"debian/backup-\$\$patchname\"; find . -type f -print0) | xargs -0ri mv -f -- debian/backup-\$\$patchname/{} {}; \\
+	    find \"debian/backup-\$\$patchname\" -depth -type d -exec rmdir '{}' \\;; \\
+	    if test -e \"debian/backup-\$\$patchname\"; then \\
+	      echo \"*** Yada error: I could not recover cleanly from an interrupted patch.\"; \\
+	      echo \"***             I can't cope.  Please clean up for me.\"; \\
+	      exit 1; \\
+	    fi; \\
+	  fi; \\
+	fi
+
+	\@set -e; backdowndirs=\$\$(ls -d debian/backdown-* 2>/dev/null | wc -l); \\
+	if test \$\$backdowndirs -gt 1; then \\
+	  echo \"*** Yada error: There are multiple debian/backdown-* directories.\"; \\
+	  echo \"***             I can't cope.  Please clean up for me.\"; \\
+	  exit 1; \\
+	fi; \\
+	if test \$\$backdowndirs = 1; then \\
+	  patchname=\"\$\$(echo debian/backdown-* | sed 's=^debian/backdown-==')\"; \\
+	  echo \"*** Cleaning up after interrupted unpatching run for \$\$patchname\"; \\
+	  if test ! -f \"debian/patch-\$\$patchname-applied\"; then \\
+	    rm -rf \"debian/backdown-\$\$patchname\"; \\
+	  else \\
+	    (cd \"debian/backdown-\$\$patchname\"; find . -type f -print0) | xargs -0ri mv -f -- debian/backdown-\$\$patchname/{} {}; \\
+	    find \"debian/backdown-\$\$patchname\" -depth -type d -exec rmdir '{}' \\;; \\
+	    if test -e \"debian/backdown-\$\$patchname\"; then \\
+	      echo \"*** Yada error: I could not recover cleanly from an interrupted patch.\"; \\
+	      echo \"***             I can't cope.  Please clean up for me.\"; \\
+	      exit 1; \\
+	    fi; \\
+	  fi; \\
+	fi
+
+	\@set -e; for stampfile in debian/patch-*-applied; do \\
+	  if test -f \"\$\$stampfile\"; then \\
+	    patchname=\"\$\$(echo \"\$\$stampfile\" | sed 's=^debian/patch-\\(.*\\)-applied\$\$=\\1=')\"; \\
+	    patchfile=\"debian/\$\$patchname\"; \\
+	    if test ! -f \"\$\$patchfile\"; then \\
+	      patchfile=\"\$\$patchfile.disabled\"; \\
+	    fi; \\
+	    if test -f \"\$\$patchfile\"; then \\
+	      echo \"*** Removing patch from \$\$patchname\"; \\
+	      patchoptions=\"\$\$(sed -n '/^#PATCHOPTIONS:/{;s/^[^:]*://;p;q;}' <\"\$\$patchfile\")\"; \\
+	      patch -R -f -i \"\$\$patchfile\" -b -V simple -B \"debian/backdown-\$\$patchname/\" \$\$patchoptions; \\
+	      rm -f \"\$\$stampfile\"; \\
+	      rm -rf \"debian/backdown-\$\$patchname\"; \\
+	    else \\
+	      echo \"*** Yada warning: Cannot find a patchfile named \\`\$\$patchname' to unapply\"; \\
+	    fi; \\
+	  fi; \\
+	done
+
+	rm -f debian/patch-stamp
+
+END
+
+    print OUT <<END or die;
+# Build the package and prepare the install tree
+
+.PHONY: build-only build
+build-only: debian/build-stamp
+END
+    ############################################################################
+
+    if ($avoidroot) {
+      print OUT "build: install-tree\n" or die;
+    } else {
+      print OUT "build: build-only\n" or die;
+    }
+
+    ############################################################################
+    print OUT <<END or die;
+
+# Make sure these rules and the control file are up-to-date
+
+.PHONY: rules control
+rules: debian/rules
+debian/rules: debian/yada debian/packages
+	chmod +x debian/yada
+	debian/yada rebuild rules
+
+control: debian/control
+debian/control: debian/yada debian/packages
+	chmod +x debian/yada
+	debian/yada rebuild control
+
+END
+    print OUT "debian/build-stamp:" or die;
+    if (defined $buildconfls or defined $builddeps) {
+      print OUT " debian/depends-stamp" or die;
+    }
+    if (defined $patch) {
+      print OUT " debian/patch-stamp" or die;
+    }
+    print OUT "\n\t\@[ -f debian/yada -a -f debian/rules ]\n" or die;
+
+    &makescript(*OUT{IO}, "Build", "\t\@umask 022", $source{"build"});
+
+    ############################################################################
+    print OUT <<END or die;
+	touch debian/build-stamp
+
+.PHONY: install-tree
+END
+    if ($usearches) {
+      print OUT "install-tree: install-tree-\$(buildarch)\n" or die;
+    } else {
+      print OUT "install-tree: install-tree-any\n" or die;
+    }
+
+    foreach $arch (keys %architectures) {
+      print OUT "install-tree-$arch:" or die;
+      foreach (keys %packages) {
+        if ($architecture{$_} eq "all" or $architecture{$_} eq "any"
+            or $architecture{$_} =~ m/(^| )$arch( |$)/) {
+          print OUT " \\\n\tdebian/tmp-$_/DEBIAN/control" or die;
+        }
+      }
+      print OUT "\n" or die;
+    }
+
+    print OUT "install-tree-any:" or die;
+    foreach (keys %packages) {
+      if ($architecture{$_} eq "all" or $architecture{$_} eq "any") {
+        print OUT " \\\n\tdebian/tmp-$_/DEBIAN/control" or die;
+      }
+    }
+
+    foreach $pkg (keys %packages) {
+      print OUT "\n\ndebian/tmp-$pkg/DEBIAN/control: debian/build-stamp debian/control
+	rm -rf debian/tmp-$pkg
+	umask 022 && install -d debian/tmp-$pkg/DEBIAN
+	chmod +x debian/yada
+" or die;
+      if (defined $docdep{$pkg}) {
+        print OUT
+"	umask 022 && install -d debian/tmp-$pkg/usr/share/doc/$docdep{$pkg}
+	umask 022 && ln -s $docdep{$pkg} debian/tmp-$pkg/usr/share/doc/$pkg
+" or die;
+      } else {
+	if (defined $source{"upstream-source"}) {
+	  $_=".Debian";
+	} else {
+	  $_="";
+	}
+        print OUT <<EOM or die;
+	install -d debian/tmp-$pkg/usr/share/doc/$pkg
+	umask 022; debian/yada generate copyright \\
+	                       >debian/tmp-$pkg/usr/share/doc/$pkg/copyright
+	install -m 644 -p debian/changelog \\
+	                  debian/tmp-$pkg/usr/share/doc/$pkg/changelog$_
+EOM
+      }
+      &makescript(*OUT{IO}, "Install",
+"	\@umask 022 && export PACKAGE=\"$pkg\" \\
+	    && export ROOT=\"\$\$(pwd)/debian/tmp-$pkg\" \\
+	    && export CONTROL=\"\$\$(pwd)/debian/tmp-$pkg/DEBIAN\"",
+              $install{$pkg});
+      if (defined $predepends{$pkg} or defined $depends{$pkg}
+          or defined $recommends{$pkg} or defined $suggests{$pkg})
+      {
+        # FIXME: provide a way to add more directories to LD_LIBRARY_PATH.
+        print OUT "\tLD_LIBRARY_PATH=\"debian/tmp-$pkg/lib:debian/tmp-$pkg/usr/lib:\$\$LD_LIBRARY_PATH\" dpkg-shlibdeps -p" . normalise($pkg) or die;
+        if (defined $predepends{$pkg}) {
+          print OUT " -dPre-Depends $predepends{$pkg}" or die;
+        }
+        if (defined $depends{$pkg}) {
+          print OUT " -dDepends $depends{$pkg}" or die;
+        }
+        if (defined $recommends{$pkg}) {
+          print OUT " -dRecommends $recommends{$pkg}" or die;
+        }
+        if (defined $suggests{$pkg}) {
+          print OUT " -dSuggests $suggests{$pkg}" or die;
+        }
+        print OUT "\n" or die;
+      }
+      print OUT
+"	debian/yada compress $pkg
+	find debian/tmp-$pkg -type f -print \\
+	  | sed -n 's/^debian\\/tmp-$pkg\\(\\/etc\\/.*\\)\$\$/\\1/p' \\
+	    > debian/tmp-$pkg/DEBIAN/conffiles
+	if test ! -s debian/tmp-$pkg/DEBIAN/conffiles; then rm -f debian/tmp-$pkg/DEBIAN/conffiles; fi
+	debian/yada generate maintscripts $pkg
+" or die;
+      if (defined $docdep{$pkg}) {
+        print OUT "\t-rmdir debian/tmp-$pkg/usr/share/doc/$docdep{$pkg}\n"
+         or die;
+      }
+      print OUT "\tumask 022 && dpkg-gencontrol -isp -p$pkg -Pdebian/tmp-$pkg" or die;
+    }
+
+    ############################################################################
+    print OUT <<END or die;
+
+
+# Build package files
+
+.PHONY: binary binary-arch binary-indep
+binary: binary-arch binary-indep
+END
+    print OUT <<END or die if $usearches;
+binary-arch: binary-arch-\$(buildarch)
+
+END
+    print OUT <<END or die unless $usearches;
+binary-arch: binary-arch-any
+
+END
+    ############################################################################
+
+    foreach $arch (keys %architectures) {
+      print OUT ".PHONY: binary-arch-$arch\nbinary-arch-$arch:" or die;
+      foreach (keys %packages) {
+        if ($architecture{$_} eq "any" or $architecture{$_} =~ m/(^| )$arch( |$)/) {
+          print OUT " \\\n\tbinary-package-$_" or die;
+        }
+      }
+      print OUT "\n" or die;
+    }
+
+    print OUT ".PHONY: binary-arch-any\nbinary-arch-any:" or die;
+    foreach (keys %packages) {
+      if ($architecture{$_} eq "any") {
+        print OUT " \\\n\tbinary-package-$_" or die;
+      }
+    }
+    print OUT "\n" or die;
+
+    print OUT "binary-indep:" or die;
+    foreach (keys %packages) {
+      if ($architecture{$_} eq "all") {
+        print OUT " \\\n\tbinary-package-$_" or die;
+      }
+    }
+
+    foreach $pkg (keys %packages) {
+      print OUT "\n\n.PHONY: binary-package-$pkg
+binary-package-$pkg: check-root debian/tmp-$pkg/DEBIAN/control
+	\@[ -f debian/yada -a -f debian/rules ]
+	chown -R 0.0 debian/tmp-$pkg
+	chmod -R u=rwX,go=rX debian/tmp-$pkg\n" or die;
+      &makescript(*OUT{IO}, "Finalise",
+"	\@umask 022 && export PACKAGE=\"$pkg\" \\
+	    && export ROOT=\"\$\$(pwd)/debian/tmp-$pkg\" \\
+	    && export CONTROL=\"\$\$(pwd)/debian/tmp-$pkg/DEBIAN\"",
+              $finalise{$pkg});
+      print OUT "\t\@if [ -d debian/tmp-$pkg/usr/doc/$pkg ]; then \\\n" .
+                "\t  echo \"*** Yada warning: /usr/doc/$pkg should be " .
+                "/usr/share/doc/$pkg\";\\\n" .
+                "\tfi\n";
+      print OUT "\tdpkg-deb --build debian/tmp-$pkg .." or die;
+    }
+
+    print OUT <<EOM or die;
+
+
+.PHONY: check-root
+check-root:
+	\@[ `id -u` = 0 ] || (echo \"You must be root to do this!\"; false)
+
+# Clean up afterwards
+
+.PHONY: clean clean-install-tree clean-build
+EOM
+    print OUT "clean: clean-install-tree clean-build" or die;
+    if (defined $patch) { print OUT " unpatch" or die; }
+    print OUT <<EOM or die;
+ debian/control debian/rules
+
+clean-build:
+	\@[ -f debian/yada -a -f debian/rules ]
+	rm -f debian/build-stamp debian/depends-stamp
+EOM
+    ############################################################################
+
+    &makescript(*OUT{IO}, "Clean", "\t\@umask 022", $source{"clean"});
+
+    ############################################################################
+    print OUT "
+clean-install-tree: debian/rules
+	\@[ -f debian/yada -a -f debian/rules ]
+	rm -f debian/install-tree-stamp
+	rm -rf debian/tmp* debian/files* debian/substvars
+" or die "Cannot write header to debian/rules.new";
+    ############################################################################
+
+    close OUT or die "Cannot close debian/rules.new";
+    chmod 0755, "debian/rules.new" or die "Cannot make debian/rules.new executable";
+
+    &chokepoint; # "leaving output in debian/rules.new\n";
+    rename "debian/rules.new", "debian/rules"
+      or die "Cannot rename debian/rules.new to debian/rules";
+    exit 0;
+  }
+}
+
+if (m/^install$/i) {
+  &getvars;
+  @files=();
+  $type="data";
+  $tree="/usr";
+  $dest=undef;
+  $destadd=undef;
+  $as=undef;
+  $strip=undef;
+  $exec=undef;
+  $sect=undef;
+  while (defined ($_=shift)) {
+    if ($_ eq "-dir") { $type="dir"; next; }
+    if ($_ eq "-data") { $type="data"; next; }
+    if ($_ eq "-doc") { $type="doc"; next; }
+    if ($_ eq "-bin") { $type="bin"; next; }
+    if ($_ eq "-script") { $type="bin"; $strip=0; next; }
+    if ($_ eq "-game") { $type="games"; next; }
+    if ($_ eq "-lib") { $type="lib"; next; }
+    if ($_ eq "-man") { $type="man"; next; }
+    if ($_ eq "-conffile") { if ($type ne "data") { warn "`-conffile' has changed in meaning!"; } $type="etc"; next; }
+    if ($_ eq "-x") { $tree="/usr/X11R6"; next; }
+    if ($_ eq "-non-x") { $tree="/usr"; next; }
+    if ($_ eq "-stripped") { $strip=1; next; }
+    if ($_ eq "-unstripped") { $strip=0; next; }
+    if ($_ eq "-exec") { $exec=1; next; }
+    if ($_ eq "-no-exec") { $exec=0; next; }
+    if ($_ eq "-into") { $dest=shift; next; }
+    if ($_ eq "-as") { $as=shift; next; }
+    if ($_ eq "-subdir") { $destadd=shift; next; }
+    if ($_ eq "-section") { $sect=shift; next; }
+    if ($_ =~ m/^-/) { print "I don't understand this option: `$_'\n"; exit 1; }
+    push @files, $_;
+  }
+  if (scalar @files == 0) { choke "Install what?"; }
+  if (defined $as and scalar @files != 1) {
+    choke "You can only install one file `-as' something at a time.\n";
+  }
+  if ($type eq "dir") {
+    map s|^/?|$ROOT/|, @files;
+    &run('install', '-d', '-m', '755', @files);
+    exit 0;
+  }
+  if (not defined $dest) {
+    if ($type =~ /doc|man|info/ and $tree eq "/usr") { $tree .= "/share"; }
+    if ($type eq "etc") { $tree=""; }
+    if ($type =~ /etc|bin|lib|games|man/) { $dest="$tree/$type"; }
+    if ($type eq "doc") { $dest="$tree/$type/$PACKAGE"; }
+  }
+  if (not defined $dest) { choke "Where should I install to?"; }
+  if (defined $destadd) {
+    $dest.="/$destadd";
+  }
+  if (not defined $strip) {
+    if ($type =~ /bin|games|lib/) { $strip=1; } else { $strip=0; }
+  }
+  $dest =~ s|^/?|$ROOT/|;
+  stat $dest;
+  if (! -e _) { &run('install', '-d', '-m', '755', "$dest"); stat $dest; }
+  if (! -d _) { die "`$dest' is not a directory"; }
+  if (not defined $exec) {
+    if ($type =~ m/bin|games/) { $exec=1; } else { $exec=0; }
+  }
+  if ($exec) { $mode='755'; } else { $mode='644'; }
+  foreach (@files) {
+    $asname=$as;
+    if (not defined $asname) { $asname=$_; $asname =~ s|.*/||; }
+    if ($type eq "man") {
+      $assect=$sect;
+      if (not defined $assect) { $assect=$asname; $assect =~ s/.*\.//; }
+      $assect =~ s/^(.).*/$1/;
+      $asname =~ s|^|man$assect/|;
+      stat "$dest/man$assect";
+      if (! -e _) {
+        &run('install', '-d', '-m', '755', "$dest/man$assect");
+        stat "$dest/man$assect";
+      }
+      if (! -d _) {
+        die "`$dest/man$assect' is not a directory";
+      }
+    }
+    &run('install', '-p', '-m', $mode, $_, "$dest/$asname");
+    if ($strip) { &run('strip', '--remove-section=.comment',
+                       '--remove-section=.note', "$dest/$asname"); }
+  }
+  exit 0;
+}
+
+if (m/^undocumented$/i) {
+  &getvars;
+  @files=();
+  $x11=0;
+  $sect=undef;
+  while (defined ($_=shift)) {
+    if ($_ eq "-x") { $x11=1; next; }
+    if ($_ eq "-non-x") { $x11=0; next; }
+    if ($_ eq "-section") { $sect=shift; next; }
+    if ($_ =~ m/^-/) { print "I don't understand this option: `$_'\n"; exit 1; }
+    push @files, $_;
+  }
+  if (scalar @files == 0) { choke "What is undocumented?"; }
+  foreach (@files) {
+    if (defined $sect) {
+      $secnum = $sect;
+      s/$/.$sect/;
+    } else {
+      $secnum = $_;
+      $secnum =~ s/.*\.//;
+    }
+    $secnum =~ s/^(.).*/$1/;
+    $pre = '';
+    if ($secnum ne '7') {
+      $pre='../man7/';
+    }
+    if ($x11) {
+      $pre = "../../../share/man/man7/";
+      $dest = "$ROOT/usr/X11R6/man/man$secnum";
+    } else {
+      $dest = "$ROOT/usr/share/man/man$secnum";
+    }
+    stat "$dest";
+    if (! -e _) {
+      &run('install', '-d', '-m', '755', "$dest");
+      stat "$dest";
+    }
+    if (! -d _) {
+      die "`$dest' is not a directory";
+    }
+    $target="${pre}undocumented.7.gz";
+    &run('ln', '-s', $target, "$dest/$_.gz");
+  }
+  exit 0;
+}
+
+if (m/^dpkg-shlibdeps$/i) {
+  &getvars;
+  $ldlp=$ENV{"LD_LIBRARY_PATH"};
+  if (defined $ldlp) {
+    $ldlp.=":$ROOT/lib:$ROOT/usr/lib";
+  } else {
+    $ldlp="$ROOT/lib:$ROOT/usr/lib";
+  }
+  $ENV{"LD_LIBRARY_PATH"}=$ldlp;
+  &run('dpkg-shlibdeps', "-p$PACKAGE", @ARGV);
+  exit 0;
+}
+
+if (m/^generate$/i) {
+  $_=shift;
+  choke "Generate what?" if not defined;
+  if (m/^copyright$/i) {
+    &readpackages;
+    $dist=$source{"packaged-for"};
+    if (defined $dist) {
+      $dist="This is the $dist prepackaged version of ";
+    } else {
+      $dist="This is a prepackaged version of ";
+    }
+    $title=$source{"description"};
+    if (defined $title) {
+      $title=~s/\n.*//s;
+    } else {
+      $title=$source{"source"};
+      gasp "No Source field!" unless defined $title;
+    }
+    $packager=$source{"packager"};
+    $othermaints=$source{"other-maintainers"};
+    $maintainer=$source{"maintainer"};
+    if (defined $othermaints and not defined $packager) {
+      gasp "Other-Maintainers but no Packager?";
+    } elsif (defined $othermaints) {
+      $packager="$packager, then was subsequently maintained by $othermaints";
+    }
+    if (defined $packager) {
+      $maintainer="It was originally Debianised by $packager, and is currently maintained by $maintainer";
+    } else {
+      $maintainer="It was Debianised by $maintainer";
+    }
+    $upstreamuri=$source{"upstream-source"};
+    if (defined $upstreamuri) {
+      $upstreamuri=", using files obtained from $upstreamuri";
+      $native=0;
+    } else {
+      $upstreamuri="";
+      $native=1;
+    }
+    $homeuri=$source{"home-page"};
+    if (defined $homeuri) {
+      $homeuri="\nMore information about $title is available from $homeuri.\n";
+    } else {
+      $homeuri="";
+    }
+    $changes=$source{"major-changes"};
+    gasp "No Major-Changes field in non-native package!"
+      unless $native or defined $changes;
+    if (defined $changes) {
+      if ($changes eq "") {
+        $changes="\nNo major changes were made.\n";
+      } else {
+        $changes =~ s/^/  /gm;
+        $changes = "\nChanges were made as follows:\n$changes\n";
+      }
+    } else {
+      $changes="";
+    }
+    $copyright=$source{"copyright"};
+    gasp "No Copyright field!" unless defined $copyright;
+    $licence = $copyright;
+    $copyright =~ s/^/  /gm;
+    $copyright =~ s/^[^\n]*\n//s;
+    $licence =~ s/\n.*//s;
+    if ($licence ne ".") {
+      for ($licence) {
+        m/^GPL$/
+          && do { $licname="GNU GPL (GNU General Public License)"; }
+        or m/^LGPL$/
+          && do { $licname="GNU LGPL (GNU Library (or Lesser) General"
+                           ." Public License)"; }
+        or m/^Artistic$/
+          && do { $licname="Artistic license"; }
+        or m/^BSD$/
+          && do { $licname="the standard BSD license"; }
+        or gasp "Unknown licence `$_'";
+      }
+      $licence = "On any Debian system, you can find the complete text of the "
+                 ."$licname in the file  /usr/share/common-licenses/$licence\n";
+    }
+    $|=1;  # Ensure the output from fmt comes out in the right place.
+    if (not $copyright =~ m/copyright|\(c\)/i) {
+      warn "***** Are you sure you've included a proper copyright notice?\n";
+    }
+    $copyright = "\nCopyright and licence notice:\n\n$copyright";
+    open FMT, "|fmt" or die "Cannot spawn fmt";
+    print FMT "$dist$title.\n$maintainer$upstreamuri.\n$homeuri"
+      or die "Cannot write data to fmt";
+    close FMT or die "Cannot close pipe to fmt or fmt returned error status";
+    print "$changes$copyright\n\n" or die "Cannot write output";
+    open FMT, "|fmt" or die "Cannot spawn fmt";
+    print FMT "$licence" or die "Cannot write data to fmt";
+    close FMT or die "Cannot close pipe to fmt or fmt returned error status";
+    &chokepoint;
+    exit 0;
+  } elsif (m/^maintscripts$/i) {
+    $pkg=shift;
+    choke "Which package's maintainer scripts to generate?" unless defined $pkg;
+    &readpackages;
+    $par=$binary{$pkg};
+    choke "Cannot find package `$pkg' in debian/packages" unless %$par;
+    if (defined $$par{'doc-base'}) {
+      foreach (split /\n\n+(?=(?:.*[^ \n].*\n)*document\:)/i, $$par{'doc-base'})
+      {
+        m/^document\s*\:\s*(.*?)\s*$/mi;
+        $docbase{$1}=$_;
+      }
+    }
+    for ('preinst', 'postinst', 'prerm', 'postrm') {
+      if (defined $$par{$_}
+            or ($_ eq 'postinst') # and (defined $$par{'menu'}
+                                  #     or defined $$par{'doc-base'}
+                                  #     or defined $$par{'contains-libs'}
+                                  #     or defined $$par{'alternatives'}))
+            or ($_ eq 'prerm') # and (defined $$par{'alternatives'}
+                               #        or defined $$par{'doc-base'}))
+            or ($_ eq 'postrm' and defined $$par{'menu'}))
+      {
+        open MAINT, ">debian/tmp-$pkg/DEBIAN/$_"
+          or die "Cannot open $_ for output";
+        $script=$$par{$_};
+        if (not defined $script or $script =~ s/^sh\n//s) {
+          # shell script
+          chomp;
+          print MAINT "#! /bin/sh\n# This maintainer script was generated by yada\n\nset -e\n" or die;
+	  if ($_ eq 'postinst') {
+	    print MAINT <<EOM or die;
+
+if test "\$1" = configure -a -d /usr/doc -a ! -e "/usr/doc/$pkg" -a -d "/usr/share/doc/$pkg"
+then
+  ln -sf "../share/doc/$pkg" "/usr/doc/$pkg"
+fi
+EOM
+	  }
+	  if ($_ eq 'prerm') {
+	    print MAINT <<EOM or die;
+
+if test \\( "\$1" = upgrade -o "\$1" = remove \\) -a -L "/usr/doc/$pkg"; then
+  rm -f "/usr/doc/$pkg"
+fi
+EOM
+	  }
+          if (($_ eq 'postinst' or $_ eq 'postrm') and defined $$par{'menu'}) {
+            print MAINT "\nif test -x /usr/bin/update-menus; then update-menus; fi\n"
+              or die;
+          }
+          if ($_ eq 'postinst' and defined $$par{'contains-libs'}) {
+            print MAINT "\nif test \"\$1\" = configure; then ldconfig; fi\n"
+              or die;
+          }
+          if ($_ eq 'postinst' and defined $$par{'doc-base'}) {
+            print MAINT "\nif command -v install-docs >/dev/null 2>&1; then\n";
+            foreach (keys %docbase) {
+              print MAINT "  install-docs -i /usr/share/doc-base/$_;\n";
+            }
+            print MAINT "fi\n";
+          }
+          if ($_ eq 'prerm' and defined $$par{'doc-base'}) {
+            print MAINT "\nif command -v install-docs >/dev/null 2>&1; then\n";
+            foreach (keys %docbase) {
+              print MAINT "  install-docs -r $_;\n"
+            }
+            print MAINT "fi\n";
+          }
+          if ($_ eq 'postinst' and defined $$par{'alternatives'}) {
+            $alt = $$par{'alternatives'};
+            $alt =~ s/^\n|\n$//sg;
+            $alt =~ s/\n\n+/\n/sg;
+            $alt =~ s/$/\n/s;
+            gasp "Malformed `Alternatives' field."
+              unless $alt =~ m/^((\S+\s*->\s*\S+\s*->\s*\S+\s*\(\d+\)|>>\s*\S+\s*->\s*\S+\s*->\s*\S+)\n)+$/s;
+            while ($alt ne "") {
+              if ($alt =~ s/^(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\s*\((\d+)\)\n//s) {
+                print MAINT "\nupdate-alternatives --install $1 $2 $3 $4"
+                  or die;
+              } elsif ($alt =~ s/^>>\s*(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\n//s) {
+                print MAINT " \\\n                      --slave $1 $2 $3"
+                  or die;
+              } else {
+                die "Internal error";
+              }
+            }
+            print MAINT "\n" or die;
+          }
+          if ($_ eq 'prerm' and defined $$par{'alternatives'}) {
+            $alt = $$par{'alternatives'};
+            $alt =~ s/^\n|\n$//sg;
+            $alt =~ s/\n\n+/\n/sg;
+            $alt =~ s/$/\n/s;
+            gasp "Malformed `Alternatives' field."
+              unless $alt =~ m/^((\S+\s*->\s*\S+\s*->\s*\S+\s*\(\d+\)|>>\s*\S+\s*->\s*\S+\s*->\s*\S+)\n)+$/s;
+            while ($alt ne "") {
+              if ($alt =~ s/^(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\s*\((\d+)\)\n//s) {
+                print MAINT "update-alternatives --remove $2 $3\n"
+                  or die;
+              } elsif ($alt =~ s/^>>\s*(\S+)\s*->\s*(\S+)\s*->\s*(\S+)\n//s) {
+                1;
+              } else {
+                die "Internal error";
+              }
+            }
+          }
+          if (defined $script) {
+            print MAINT "\n# Package maintainer's commands follow:\n$script\n# End of package maintainer's commands\n\nexit 0\n" or die;
+          } else {
+            print MAINT "\nexit 0\n" or die;
+          }
+        } else {
+          gasp "Unknown executable type for `$_'\n";
+        }
+        close MAINT or die "Cannot close `$_'";
+        chmod 0755, "debian/tmp-$pkg/DEBIAN/$_"
+          or die "Cannot make `$_' executable";
+      }
+    }
+    if (defined $$par{'menu'}) {
+      $_=$$par{'menu'};
+      s/$/\n/s;
+      system("install -d debian/tmp-$pkg/usr/lib/menu") == 0
+        or die "Cannot create menu directory";
+      open MAINT, ">debian/tmp-$pkg/usr/lib/menu/$pkg"
+        or die "Cannot open menu file for writing";
+      print MAINT or die "Cannot write to menu file";
+      close MAINT or die "Cannot close menu file";
+    }
+    if (defined $$par{'shlibs'}) {
+      $_=$$par{'shlibs'};
+      s/$/\n/s;
+      open MAINT, ">debian/tmp-$pkg/DEBIAN/shlibs"
+        or die "Cannot open shlibs file for writing";
+      print MAINT or die "Cannot write to shlibs file";
+      close MAINT or die "Cannot close shlibs file";
+    }
+    if (defined $$par{'doc-base'}) {
+      system("install -d debian/tmp-$pkg/usr/share/doc-base") == 0
+        or die "Cannot create doc-base directory";
+      foreach (keys %docbase) {
+        $tmp=$docbase{$_};
+        $tmp=~s/$/\n/s;
+        open MAINT, ">debian/tmp-$pkg/usr/share/doc-base/$_"
+          or die "Cannot open doc-base file `$_' for writing";
+        print MAINT $tmp or die "Cannot write to doc-base file `$_'";
+        close MAINT or die "Cannot close doc-base file `$_'";
+      }
+    }
+    exit 0;
+  }
+
+  choke "Generate what?  (`$_' not understood.)";
+}
+
+if (m/^compress$/i) {
+  $pkg = shift;
+  choke "What package should I compress?" unless defined $pkg;
+  system("set -e; set -v; find debian/tmp-$pkg/usr/info debian/tmp-$pkg/usr/share/info debian/tmp-$pkg/usr/man debian/tmp-$pkg/usr/share/man debian/tmp-$pkg/usr/X11*/man -type f ! -name \\*.gz -print0 2>/dev/null | xargs -0r gzip -9n") == 0
+    or die "Problem compressing files (stage 1)";
+  system("set -e; find debian/tmp-$pkg/usr/share/doc -type f \\( -size +2k -or -name changelog\\* \\) ! -name \\*.htm\\* ! -name \\*.gif ! -name copyright ! -name \\*.gz -print0 2>/dev/null | xargs -0r gzip -9n") == 0
+    or die "Problem compressing files (stage 2)";
+  open FILES, "find debian/tmp-$pkg -type l -print0 |"
+    or die "Cannot find symlinks";
+  $/="\0";
+  while (<FILES>) {
+    chomp;
+    m=(.*)/([^/]*)$=; $dir=$1; $name=$2;
+    $_ = readlink or die "Cannot read symlink `$_'";
+    $changes  = s=//+=/=g;
+    $changes += s=(^|/)\./=$1=g;
+    do {
+      $matches = s=(^|/)(?!\.\./)[^/]+/\.\./=$1=g;
+      $changes += $matches;
+    } while ($matches);
+    if (m=^/=) {
+      $dest="debian/tmp-$pkg";
+    } else {
+      $dest=$dir;
+    }
+    if (! -e "$dest/$_" && -f "$dest/$_.gz" && ! -e "$dir/$name.gz") {
+      unlink "$dir/$name" or die "Cannot unlink `$dir/$name'";
+      symlink "$_.gz", "$dir/$name.gz"
+        or die "Cannot create symlink `$dir/$name.gz'";
+    } elsif ($changes) {
+      unlink "$dir/$name" or die "Cannot unlink `$dir/$name'";
+      symlink "$_", "$dir/$name" or die "Cannot create symlink `$dir/$name'";
+    }
+  }
+  close FILES or die "Problem closing pipe";
+  exit 0;
+}
+
+if (m/^fixup$/i) {
+  $_ = shift;
+  if (m/^libtool$/i) {
+    $script = shift;
+    $script = "libtool" if not defined $script;
+    # The following adapted from Lintian's libtool-workarounds.txt
+    # Patch the generated libtool to avoid passing -rpath when linking,
+    # and to explicitly link libraries against the libraries they
+    # depend on.
+    open APPENDIN, "<$script" or die "Cannot open `$script' for reading";
+    open APPENDOUT, ">$script.new"
+      or die "Cannot open `$script.new' for writing";
+    while (<APPENDIN>) {
+      s/^hardcode_libdir_flag_spec.*$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/;
+      s/"$/ \\\$deplibs"/ if /^archive_cmds="/;
+      print APPENDOUT or die;
+    }
+    close APPENDIN or die "Cannot close $script";
+    close APPENDOUT or die "Cannot close $script.new";
+    chmod 0755, "$script.new" or die "Cannot change mode of `$script.new'";
+    rename "$script.new", $script
+      or die "Cannot move `$script.new' to `$script'";
+    exit 0;
+  }
+
+  choke "Fixup what?  (`$_' not understood.)";
+}
+
+if (m/^yada$/i) {
+  if (! -d "debian") {
+    mkdir "debian", 0775 or die "Cannot create directory `debian'";
+    print "Creating directory `debian'\n";
+  }
+  if ($0 ne "debian/yada" and $0 ne "./debian/yada") {
+    print "Copying updated `yada' script into debian directory\n";
+    if (-e "debian/yada") {
+      print "(Keeping old version as `yada.old')\n";
+      rename "debian/yada", "debian/yada.old";
+    }
+    &run('cp', '--', $0, 'debian/yada');
+  }
+  $pkg=`pwd`;
+  chomp $pkg;
+  $pkgver=$pkg;
+  $pkgver=~s|.*-||;
+  $pkg=~s|.*/||;
+  $pkg=~s|-[^-]*||;
+  $today=`date -R`;
+  if (-e "debian/changelog") {
+    print "You already have a `debian/changelog'; I won't overwrite it.\n";
+  } else {
+    open CHANGELOG, ">debian/changelog"
+      or die "Cannot open debian/changelog for writing";
+    print "Creating initial `debian/changelog'\n";
+    print CHANGELOG <<EOM or die "Cannot write to `debian/changelog'";
+$pkg ($pkgver-1) unstable; urgency=low
+
+  * Initial Debian version.
+
+ -- Wile E. Coyote <coyote\@acme.com>  $today
+EOM
+    close CHANGELOG or die "Cannot close `debian/changelog' after writing";
+  }
+  if (-e "debian/packages") {
+    print "You already have a `debian/packages'; I won't overwrite it.\n";
+    exit 0;
+  }
+  open PACKAGES, ">debian/packages"
+    or die "Cannot open `debian/packages' for writing";
+  print "Creating example `debian/packages'\n";
+  print PACKAGES <<EOM or die "Cannot write to `debian/packages'";
+# debian/packages for $pkg
+# Written by Charles Briscoe-Smith, May 1999.  Public Domain.
+# Customised for $pkg by 
+
+# This is an -example- packages file; read /usr/share/doc/yada/yada.txt.gz to
+# find out how to customise it to your needs.
+
+Source: $pkg
+Section: unknown
+Priority: unknown
+Maintainer: Mr. Nobody <nobody\@root.org>
+Packager: T. Raven <nevermore\@poe.net>
+Standards-Version: 0.0
+Upstream-Source: <URL:ftp://some.where/over/the/rainbow.tar.gz>
+Home-Page: <URL:http://some.thing/nasty/in/the/woodshed.html>
+Description: Some package
+Packaged-For: Yoyodyne Inc.
+Copyright: GPL
+ Copyright 1999 A. Snide Badger
+Major-Changes:
+ Introduced many bugs by not editing debian/packages appropriately.
+Build: sh
+ ./configure --prefix=/usr
+ make
+Clean: sh
+ make distclean || true
+
+Package: $pkg
+Architecture: any
+Depends: [/usr/bin/*]
+Description: Some binary package
+ This is a generic binary package.  If you see this text, it hasn't been
+ built properly; the packager should have replaced this with something
+ appropriate.
+Install: sh
+ make install DESTDIR=\$ROOT
+EOM
+  close PACKAGES or die "Cannot close `debian/packages' after writing";
+  exit 0;
+}
+
+choke "I don't understand you.";
+
+exit 1;

@@ -1,0 +1,22 @@
+#FIG 3.2
+Landscape
+Center
+Metric
+A4      
+100.00
+Single
+-2
+1200 2
+4 0 0 0 0 13 24 0.0000 4 315 2700 1125 4725 ThreadPolicy\001
+4 0 0 0 0 0 24 0.0000 4 315 7590 4050 4725 : invocation concurrente ou parall\350le aux op\351rations\001
+4 0 0 0 0 13 24 0.0000 4 315 3150 1125 5400 LifespanPolicy\001
+4 0 0 0 0 0 24 0.0000 4 315 6450 4500 5400 : dur\351e de vie des objets (persistants ou non)\001
+4 0 0 0 0 13 24 0.0000 4 315 4950 1125 6075 ServantRetentionPolicy\001
+4 0 0 0 0 13 24 0.0000 4 315 5175 1125 6750 RequestProcessingPolicy\001
+4 0 0 0 0 0 24 0.0000 4 315 5550 6525 6750 : association entre l'objet et le servant\001
+4 0 0 0 0 0 24 0.0000 4 270 3645 6300 6075 : Dur\351e de vie du servant\001
+4 0 0 0 0 0 24 0.0000 4 315 6930 900 3825 Exemples de policies (d\351finies par le standard):\001
+4 0 0 0 0 0 24 0.0000 4 315 10665 675 7650 Le POA diff\351rencie l'objet (un acc\350s) et son impl\351mentation (le servant).\001
+4 0 0 0 0 0 24 0.0000 4 315 6825 1350 2700 Une politique est d\351finie par un jeu de Policies\001
+4 0 0 0 0 0 24 0.0000 4 315 4230 900 2025 Deuxi\350me \351tape: la politique\001
+4 0 0 0 0 0 24 0.0000 4 300 3540 4050 1350 Introduction au POA (2)\001
