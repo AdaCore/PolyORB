@@ -79,7 +79,7 @@ package body CORBA.Request is
         (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
-         Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
+         Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
          Req       => Request.The_Request,
          Req_Flags => PolyORB.Requests.Default_Flags);
@@ -110,9 +110,9 @@ package body CORBA.Request is
         (Target    => CORBA.Object.Internals.To_PolyORB_Ref
          (CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self))),
          Operation => To_Standard_String (Operation),
-         Arg_List  => CORBA.NVList.To_PolyORB_Ref (Arg_List),
+         Arg_List  => CORBA.NVList.Internals.To_PolyORB_Ref (Arg_List),
          Result    => PResult,
-         Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref (Exc_List),
+         Exc_List  => CORBA.ExceptionList.Internals.To_PolyORB_Ref (Exc_List),
          Req       => Request.The_Request,
          Req_Flags => PolyORB.Requests.Default_Flags);
       --  XX For now, we use the default flags

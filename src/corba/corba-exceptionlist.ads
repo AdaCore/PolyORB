@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -76,15 +76,20 @@ package CORBA.ExceptionList is
       Name : in CORBA.RepositoryId)
      return CORBA.Unsigned_Long;
 
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
+   package Internals is
 
-   function To_PolyORB_Ref (Self : Ref)
-     return PolyORB.Any.ExceptionList.Ref;
+      --  Internal implementation subprograms. These shall not be
+      --  used outside of PolyORB.
 
-   function To_CORBA_Ref (Self : PolyORB.Any.ExceptionList.Ref)
-     return Ref;
+      function To_PolyORB_Ref
+        (Self : Ref)
+        return PolyORB.Any.ExceptionList.Ref;
+
+      function To_CORBA_Ref
+        (Self : PolyORB.Any.ExceptionList.Ref)
+        return Ref;
+
+   end Internals;
 
 private
 

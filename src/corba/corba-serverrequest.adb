@@ -65,7 +65,7 @@ package body CORBA.ServerRequest is
       use PolyORB.Errors;
 
       PolyORB_Args : PolyORB.Any.NVList.Ref
-        := CORBA.NVList.To_PolyORB_Ref (NV);
+        := CORBA.NVList.Internals.To_PolyORB_Ref (NV);
       Error : Error_Container;
 
    begin
@@ -76,7 +76,7 @@ package body CORBA.ServerRequest is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      NV := CORBA.NVList.To_CORBA_Ref (PolyORB_Args);
+      NV := CORBA.NVList.Internals.To_CORBA_Ref (PolyORB_Args);
 
       if Server_Intermediate /= null then
          Server_Intermediate (PolyORB.Requests.Request_Access (O), True);

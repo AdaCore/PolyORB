@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -31,8 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -63,14 +63,19 @@ package CORBA.NVList is
    --  Implementation Note: As per the IDL-to-Ada mapping, Free and
    --  Free_Memory are no-ops.
 
-   ------------------------------------------
-   -- The following is specific to PolyORB --
-   ------------------------------------------
+   package Internals is
 
-   function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
+      --  Internal implementation subprograms. These shall not be
+      --  used outside of PolyORB.
 
-   function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
-   function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      function Item (Self : Ref; Index : CORBA.Long) return CORBA.NamedValue;
+
+      function To_PolyORB_Ref (Self : Ref) return PolyORB.Any.NVList.Ref;
+      function To_CORBA_Ref (Self : PolyORB.Any.NVList.Ref) return Ref;
+      pragma Inline (To_PolyORB_Ref);
+      pragma Inline (To_CORBA_Ref);
+
+   end Internals;
 
 private
 
@@ -80,7 +85,5 @@ private
    pragma Inline (Add_Item);
    pragma Inline (Get_Count);
    pragma Inline (Free);
-   pragma Inline (To_PolyORB_Ref);
-   pragma Inline (To_CORBA_Ref);
 
 end CORBA.NVList;

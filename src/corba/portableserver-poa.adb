@@ -665,7 +665,8 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      return PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Servant));
+      return PortableServer.Servant
+        (CORBA.Impl.Internals.To_CORBA_Servant (Servant));
    end Get_Servant;
 
    -----------------
@@ -1005,7 +1006,7 @@ package body PortableServer.POA is
          end if;
       end;
 
-      return Servant (CORBA.Impl.To_CORBA_Servant
+      return Servant (CORBA.Impl.Internals.To_CORBA_Servant
                       (PolyORB.Servants.Servant_Access (The_Servant)));
    end Reference_To_Servant;
 
@@ -1049,7 +1050,7 @@ package body PortableServer.POA is
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      return Servant (CORBA.Impl.To_CORBA_Servant (S));
+      return Servant (CORBA.Impl.Internals.To_CORBA_Servant (S));
    end Id_To_Servant;
 
    ---------------------

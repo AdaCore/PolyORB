@@ -140,7 +140,7 @@ package body PolyORB.CORBA_P.ServantActivator is
       CORBA_POA : PortableServer.POA_Forward.Ref;
 
       POA_Servant : constant PortableServer.Servant :=
-        PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Serv));
+        PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant (Serv));
 
       Activator : PortableServer.ServantActivator.Ref'Class :=
         PortableServer.ServantActivator.Ref'Class

@@ -2376,7 +2376,8 @@ package body Ada_Be.Idl2Ada is
 
                      if Raise_Something then
                         PL (CU,
-                            "Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref ("
+                            "Exc_List  => CORBA.ExceptionList.Internals."
+                            & "To_PolyORB_Ref ("
                             & T_Excp_List & "),");
                      end if;
 

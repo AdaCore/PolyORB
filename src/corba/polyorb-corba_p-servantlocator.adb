@@ -139,7 +139,8 @@ package body PolyORB.CORBA_P.ServantLocator is
       CORBA_POA     : PortableServer.POA_Forward.Ref;
 
       CORBA_Servant : constant PortableServer.Servant :=
-        PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (The_Servant));
+        PortableServer.Servant (CORBA.Impl.Internals.To_CORBA_Servant
+                                (The_Servant));
 
       Locator : PortableServer.ServantLocator.Ref'Class :=
         PortableServer.ServantLocator.Ref'Class
