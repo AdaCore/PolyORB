@@ -8,6 +8,27 @@ AM_INIT_AUTOMAKE(polyorb,0.1)
 LIBVERSIONINFO=0:0:0
 AC_SUBST(LIBVERSIONINFO)
 #
+# XmlAda location
+#
+XMLADA_INCLUDE=""
+XMLADA_LIBS=""
+AC_MSG_CHECKING([XmlAda])
+has_xmlada=no
+AC_ARG_ENABLE(xmlada,
+[  --enable-xmlada     Use an existing installation of AdaSockets (no)],
+[if xmlada-config --version | grep "^XmlAda" > /dev/null 2>&1; then
+   XMLADA_INCLUDE="`xmlada-config --cflags`"
+   XMLADA_LIBS="`xmlada-config --libs`"
+   has_xmlada=yes
+else
+   has_xmlada="no (not found)"
+fi],
+[])
+AM_CONDITIONAL(HAS_XMLADA, test x"$has_xmlada" = xyes)
+AC_SUBST(XMLADA_INCLUDE)
+AC_SUBST(XMLADA_LIBS)
+AC_MSG_RESULT($has_xmlada)
+#
 # IR
 #
 #AC_MSG_CHECKING([whether to build the Interface Repository])

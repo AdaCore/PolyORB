@@ -11,9 +11,22 @@ GPERF_LIBADD = $(GPERF_C:.c=.lo)
 ADA_SPECS_WITH_BODY = \
 	$(GPERF_SPECS) \
 	polyorb-filters-http.ads \
-	polyorb-protocols-soap.ads
+	polyorb-protocols-soap.ads \
+	aws-mime.ads \
+	aws-response.ads \
+	soap-message-payload.ads \
+	soap-message-reader.ads \
+	soap-message-response-error.ads \
+	soap-message-response.ads \
+	soap-message-xml.ads \
+	soap-message.ads \
+	soap-parameters.ads \
+	soap-types.ads \
+	soap-utils.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY)
+	aws.ads \
+	soap.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
@@ -28,7 +41,7 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 
-ADAFLAGS = $(GNATFLAGS) -I. -I$(srcdir) -I.. -I$(srcdir)/..
+ADAFLAGS = $(GNATFLAGS) -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(XMLADA_INCLUDE)
 
 ADACOMPILER = ../../support/adacompiler
 
