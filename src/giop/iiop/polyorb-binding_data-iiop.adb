@@ -48,6 +48,7 @@ with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
 with PolyORB.References.IOR;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Binding_Data.IIOP is
@@ -63,14 +64,6 @@ package body PolyORB.Binding_Data.IIOP is
    package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.iiop");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
-
-   procedure Marshall_Socket
-     (Buffer : access Buffer_Type;
-      Sock   :        Sockets.Sock_Addr_Type);
-
-   procedure Unmarshall_Socket
-     (Buffer : access Buffer_Type;
-      Sock   :    out Sockets.Sock_Addr_Type);
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
@@ -275,10 +268,10 @@ package body PolyORB.Binding_Data.IIOP is
      (Buf     : access Buffer_Type;
       Profile :        Profile_Access)
    is
+      use PolyORB.Utils.Sockets;
+
       IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (Profile.all);
-
       Profile_Body : Buffer_Access := new Buffer_Type;
-
    begin
       pragma Debug (O ("Marshall_IIOP_Profile_body: enter"));
 
@@ -321,6 +314,8 @@ package body PolyORB.Binding_Data.IIOP is
      (Buffer       : access Buffer_Type)
      return Profile_Access
    is
+      use PolyORB.Utils.Sockets;
+
       Result  : constant Profile_Access := new IIOP_Profile_Type;
       TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
 
@@ -358,61 +353,6 @@ package body PolyORB.Binding_Data.IIOP is
 
       return Result;
    end Unmarshall_IIOP_Profile_Body;
-
-   ---------------------
-   -- Marshall_Socket --
-   ---------------------
-
-   procedure Marshall_Socket
-     (Buffer : access Buffer_Type;
-      Sock   :        Sockets.Sock_Addr_Type)
-   is
-      use PolyORB.Sockets;
-
-      Str  : constant Types.String := To_PolyORB_String (Image (Sock.Addr));
-   begin
-      --  Marshalling of the Host as a string
-      Marshall (Buffer, Str);
-
-      --  Marshalling of the port
-      Marshall (Buffer, Types.Unsigned_Short (Sock.Port));
-
-   end Marshall_Socket;
-
-   -----------------------
-   -- Unmarshall_Socket --
-   -----------------------
-
-   procedure Unmarshall_Socket
-    (Buffer : access Buffer_Type;
-     Sock   :    out Sockets.Sock_Addr_Type)
-   is
-      use PolyORB.Sockets;
-
-      Addr_Image : constant Standard.String
-        := PolyORB.Types.To_Standard_String
-        (PolyORB.Types.String'(Unmarshall (Buffer)));
-      Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
-      Hostname_Seen : Boolean := False;
-   begin
-      for J in Addr_Image'Range loop
-         if Addr_Image (J) not in '0' .. '9'
-           and then Addr_Image (J) /= '.'
-         then
-            Hostname_Seen := True;
-            exit;
-         end if;
-      end loop;
-
-      if Hostname_Seen then
-         Sock.Addr := Addresses (Get_Host_By_Name (Addr_Image), 1);
-      else
-         Sock.Addr := Inet_Addr (Addr_Image);
-      end if;
-
-      Sock.Port := Port_Type (Port);
-
-   end Unmarshall_Socket;
 
    -----------
    -- Image --

@@ -124,6 +124,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-htables-perfect.ads \
 		polyorb-utils-report.ads \
 		polyorb-utils-simple_flags.ads \
+		polyorb-utils-sockets.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \
 		polyorb-utils-text_buffers.ads
@@ -344,6 +345,7 @@ polyorb-utils-htables.lo:polyorb.ads polyorb-utils.ads polyorb-utils-htables.ads
 polyorb-utils-htables-perfect.lo:polyorb.ads polyorb-utils.ads polyorb-utils-dynamic_tables.adb polyorb-utils-dynamic_tables.ads polyorb-utils-htables.ads polyorb-utils-htables-perfect.adb polyorb-utils-htables-perfect.ads polyorb-utils-strings.ads 
 polyorb-utils-report.lo:polyorb.ads polyorb-utils.ads polyorb-utils-report.adb polyorb-utils-report.ads 
 polyorb-utils-simple_flags.lo:polyorb.ads polyorb-log.adb polyorb-log.ads polyorb-utils.ads polyorb-utils-simple_flags.adb polyorb-utils-simple_flags.ads 
+polyorb-utils-sockets.lo:polyorb.ads polyorb-annotations.ads polyorb-any.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-filters.ads polyorb-jobs.ads polyorb-objects.ads polyorb-opaque.ads polyorb-opaque-chunk_pools.ads polyorb-references.ads polyorb-representations.ads polyorb-representations-cdr.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-transport.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-chained_lists.ads polyorb-utils-sockets.adb polyorb-utils-sockets.ads polyorb-utils-strings.ads 
 polyorb-utils-strings.lo:polyorb.ads polyorb-utils.ads polyorb-utils-strings.adb polyorb-utils-strings.ads 
 polyorb-utils-strings-lists.lo:polyorb.ads polyorb-utils.ads polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils-strings.ads polyorb-utils-strings-lists.adb polyorb-utils-strings-lists.ads 
 polyorb-utils-text_buffers.lo:polyorb.ads polyorb-buffers.ads polyorb-opaque.ads polyorb-opaque-chunk_pools.ads polyorb-sockets.ads polyorb-utils.ads polyorb-utils-buffers.ads polyorb-utils-chained_lists.ads polyorb-utils-text_buffers.adb polyorb-utils-text_buffers.ads 

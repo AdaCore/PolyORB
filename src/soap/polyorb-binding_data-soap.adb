@@ -58,6 +58,7 @@ with PolyORB.Representations.CDR;
 
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Sockets;
 
 with AWS.URL;
 
@@ -83,19 +84,6 @@ package body PolyORB.Binding_Data.SOAP is
 
    procedure Initialize;
    --  Initialize the SOAP binding subsystem.
-
-   procedure Marshall_Socket
-     (Buffer   : access Buffer_Type;
-      Sock     : Sockets.Sock_Addr_Type);
-
-   procedure Unmarshall_Socket
-    (Buffer   : access Buffer_Type;
-     Sock     : out Sockets.Sock_Addr_Type);
-   --  XXX code duplicated from Binding_Data.IIOP, should be
-   --  factored out.
-
-   function To_Any (SA : Sockets.Sock_Addr_Type) return Any.Any;
-   function From_Any (A : Any.Any) return Sockets.Sock_Addr_Type;
 
    procedure Initialize (P : in out SOAP_Profile_Type) is
    begin
@@ -300,6 +288,7 @@ package body PolyORB.Binding_Data.SOAP is
      (Buf     : access Buffer_Type;
       Profile : Profile_Access)
    is
+      use PolyORB.Utils.Sockets;
       use PolyORB.Buffers;
 
       SOAP_Profile : SOAP_Profile_Type renames SOAP_Profile_Type (Profile.all);
@@ -332,13 +321,14 @@ package body PolyORB.Binding_Data.SOAP is
      (Buffer       : access Buffer_Type)
      return Profile_Access
    is
+      use PolyORB.Utils.Sockets;
+
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       --  Length         : CORBA.Long;
       Result         : constant Profile_Access := new SOAP_Profile_Type;
       TResult        : SOAP_Profile_Type
         renames SOAP_Profile_Type (Result.all);
-
    begin
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
@@ -353,18 +343,7 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.URI_Path := Unmarshall (Profile_Buffer);
       Release (Profile_Buffer);
       return Result;
-
    end Unmarshall_SOAP_Profile_Body;
-
-   procedure Marshall_Socket
-     (Buffer   : access Buffer_Type;
-      Sock     : Sockets.Sock_Addr_Type)
-   is
-   begin
-      Marshall_From_Any (Buffer, To_Any (Sock));
-   end Marshall_Socket;
-
-   TC_Sock_Addr : Any.TypeCode.Object;
 
    procedure Initialize is
       use PolyORB.Any;
@@ -375,64 +354,14 @@ package body PolyORB.Binding_Data.SOAP is
         (Section => "soap",
          Key     => "polyorb.binding_data.soap.preference",
          Default => "0");
-
-      function "+" (S : Standard.String) return Types.String
-        renames To_PolyORB_String;
    begin
       Preference := Preference_Default + Profile_Preference'Value
         (Preference_Offset);
-
-      TC_Sock_Addr := Any.TypeCode.TC_Struct;
-      Add_Parameter (TC_Sock_Addr, To_Any (+"sock_addr"));
-      Add_Parameter (TC_Sock_Addr, To_Any (+"IDL:sock_addr:1.0"));
-      Add_Parameter (TC_Sock_Addr, To_Any (Any.TC_String));
-      Add_Parameter (TC_Sock_Addr, To_Any (+"host"));
-      Add_Parameter (TC_Sock_Addr, To_Any (Any.TC_Unsigned_Short));
-      Add_Parameter (TC_Sock_Addr, To_Any (+"port"));
-
       References.IOR.Register
         (Tag_SOAP,
          Marshall_SOAP_Profile_Body'Access,
          Unmarshall_SOAP_Profile_Body'Access);
    end Initialize;
-
-   function To_Any (SA : Sockets.Sock_Addr_Type) return Any.Any is
-      use PolyORB.Any;
-
-      Result : Any.Any := Get_Empty_Any_Aggregate (TC_Sock_Addr);
-   begin
-      Any.Add_Aggregate_Element
-        (Result, To_Any (To_PolyORB_String (Sockets.Image (SA.Addr))));
-      Any.Add_Aggregate_Element
-        (Result, To_Any (Types.Unsigned_Short (SA.Port)));
-      return Result;
-   end To_Any;
-
-   function From_Any (A : Any.Any) return Sockets.Sock_Addr_Type is
-      use Sockets;
-
-      Host : constant Types.String
-        := Any.From_Any (Any.Get_Aggregate_Element
-                         (A, Any.TC_String, 0));
-      Port : constant Types.Unsigned_Short
-        := Any.From_Any (Any.Get_Aggregate_Element
-                         (A, Any.TC_Unsigned_Short, 1));
-   begin
-      return Sockets.Sock_Addr_Type'
-        (Family => Family_Inet,
-         Addr   => Inet_Addr (To_Standard_String (Host)),
-         Port   => Port_Type (Port));
-   end From_Any;
-
-   procedure Unmarshall_Socket
-    (Buffer   : access Buffer_Type;
-     Sock     : out Sockets.Sock_Addr_Type)
-   is
-      A : Any.Any := Any.Get_Empty_Any (TC_Sock_Addr);
-   begin
-      Unmarshall_To_Any (Buffer, A);
-      Sock := From_Any (A);
-   end Unmarshall_Socket;
 
    -----------
    -- Image --
