@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.SRP.Print is
 
    procedure Print_SRP_Profile (Prof : Profile_Access);

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.UIPMC.Print is
 
    procedure Print_UIPMC_Profile (Prof : Profile_Access);

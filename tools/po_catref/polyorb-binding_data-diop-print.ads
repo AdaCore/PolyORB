@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.DIOP.Print is
 
    procedure Print_DIOP_Profile (Prof : Profile_Access);

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.IIOP.Print is
 
    procedure Print_IIOP_Profile (Prof : Profile_Access);

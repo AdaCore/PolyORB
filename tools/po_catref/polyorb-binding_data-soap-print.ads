@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Binding_Data.SOAP.Print is
 
    procedure Print_SOAP_Profile (Prof : Profile_Access);
