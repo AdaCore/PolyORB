@@ -1,0 +1,17 @@
+#! /bin/sh
+#
+# Print the list of linker options to use with AdaBroker
+#
+
+CXX=${CXX-g++}
+
+$CXX -o boolsize boolsize.cc -lstdc++ 2>/dev/null && STDCPP= || STDCPP="--  "
+$CXX -o boolsize boolsize.cc -lposix4 2>/dev/null && POSIX4= || POSIX4="--  "
+$CXX -o boolsize boolsize.cc -lsocket 2>/dev/null && SOCKET= || SOCKET="--  "
+$CXX -o boolsize boolsize.cc || exit 1
+BOOL=`./boolsize`
+
+sed -e "s/@STDCPP@/$STDCPP/" -e "s/@POSIX4@/$POSIX4/" \
+    -e "s/@SOCKET@/$SOCKET/" -e "s/@BOOL@/$BOOL/" \
+    < ../interfaceorb/adabroker-sysdep.ads.in \
+    > ../interfaceorb/adabroker-sysdep.ads

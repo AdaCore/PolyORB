@@ -241,22 +241,14 @@ package body Ada_Be.Expansion is
          Hash,
          Equals);
 
-      Old_Repository : Node_Id := Node;
-      New_Repository : Node_Id;
+      Repository_Contents : constant Node_List
+        := Contents (Node);
+      New_Repository_Contents : Node_List
+        := Nil_List;
    begin
-      pragma Assert (Kind (Old_Repository) = K_Repository);
+      Push_Scope (Node);
 
-      --  create a new node Ben_Idl_File with the same ID as the old one
-      --  and replace the ID of the old one
-      New_Repository := Make_Repository;
-      Replace_Node (Old_Repository, New_Repository);
-
-      --  to prevent idl_fe-types to crash
-      --  is it correct for name clashes ?
-      Push_Scope (New_Repository);
-
-      --  loop over the nodes of the old list
-      Init (Iterator, Contents (Old_Repository));
+      Init (Iterator, Repository_Contents);
       while not Is_End (Iterator) loop
          declare
             Current : Node_Id;
@@ -286,6 +278,10 @@ package body Ada_Be.Expansion is
 
                --  set its name
                --  is it correct when conflict ?
+               if Get_Current_Scope /= Node then
+                  Pop_Scope;
+                  Push_Scope (Node);
+               end if;
                Success := Add_Identifier
                  (Idl_File_Node,
                   Filename.all & "_IDL_File");
@@ -295,19 +291,32 @@ package body Ada_Be.Expansion is
                   raise Program_Error;
                end if;
 
-               --  add the new node to the hashtable
+               --  add the new node to the hashtable.
                Idlnodes.Set (Filename, Idl_File_Node);
-               --  add the new node to the repository
-               Append_Node_To_Contents (New_Repository, Idl_File_Node);
+               --  add the new node to the repository.
+               Append_Node (New_Repository_Contents, Idl_File_Node);
             end if;
 
-            --  add the current node to the correct Ben_Idl_File
+            pragma Assert (Idl_File_Node /= No_Node);
+
+            if Get_Current_Scope /= Idl_File_Node then
+               --  Entering a new file.
+               Pop_Scope;
+               Push_Scope (Idl_File_Node);
+            end if;
+
             Append_Node_To_Contents (Idl_File_Node, Current);
+            if Is_Named (Current) then
+               --  Reparent current node.
+               Success := Add_Identifier (Current, Name (Current));
+               pragma Assert (Success);
+            end if;
          end;
       end loop;
 
-      Expand_Node_List (Contents (New_Repository), True);
-      --  Pop_Scope;
+      Set_Contents (Node, New_Repository_Contents);
+      Expand_Node_List (Contents (Node), True);
+      Pop_Scope;
    end Expand_Repository;
 
 
@@ -320,7 +329,7 @@ package body Ada_Be.Expansion is
       pragma Assert (Kind (Node) = K_Module);
       Push_Scope (Node);
       Expand_Node_List (Contents (Node), True);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Module;
 
    --------------------------
@@ -332,7 +341,7 @@ package body Ada_Be.Expansion is
       pragma Assert (Kind (Node) = K_Ben_Idl_File);
       Push_Scope (Node);
       Expand_Node_List (Contents (Node), True);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Ben_Idl_File;
 
    -----------------------
@@ -437,7 +446,7 @@ package body Ada_Be.Expansion is
 
       Set_Contents (Node, Export_List);
 
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Interface;
 
    -----------------------
@@ -579,6 +588,7 @@ package body Ada_Be.Expansion is
             Set_Mode (Param_Node, Mode_Out);
             Set_Param_Type (Param_Node, Operation_Type (Node));
             Set_Declarator (Param_Node, Decl_Node);
+            Set_Parent (Decl_Node, Param_Node);
             --  Create a new parameter node.
 
             Set_Parameters (Node, Append_Node
@@ -647,9 +657,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Struct
      (Node : Node_Id) is
    begin
-      --  Push_Scope (Node);
+      Push_Scope (Node);
       Expand_Node_List (Members (Node), False);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Struct;
 
    procedure Expand_Member
@@ -670,13 +680,13 @@ package body Ada_Be.Expansion is
    is
       R_Node : Node_Id;
    begin
-      --  Push_Scope (Node);
+      Push_Scope (Node);
       Expand_Constructed_Type (Switch_Type (Node), R_Node);
       if R_Node /= No_Node then
          Set_Switch_Type (Node, R_Node);
       end if;
       Expand_Node_List (Cases (Node), False);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Union;
 
    procedure Expand_Case
@@ -892,7 +902,8 @@ package body Ada_Be.Expansion is
          Parent_Node : constant Node_Id
            := Parent (Node);
 
-         Array_Node : constant Node_Id := Make_Declarator;
+         Array_Node : constant Node_Id
+           := Make_Declarator;
          Array_Type_Node : constant Node_Id
            := Make_Type_Declarator;
 
@@ -931,6 +942,7 @@ package body Ada_Be.Expansion is
          Set_Declarators
            (Array_Type_Node,
             Append_Node (Nil_List, Array_Node));
+         Set_Parent (Array_Node, Array_Type_Node);
          Success := Add_Identifier
            (Array_Node, Name (Node) & "_Array");
          pragma Assert (Success);

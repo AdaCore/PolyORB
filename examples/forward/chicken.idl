@@ -1,0 +1,11 @@
+
+#ifndef CHICKEN
+#define CHICKEN
+interface Chicken ;
+#include "egg.idl"
+
+interface Chicken {
+  
+  Egg lay(out unsigned short number) ;
+};
+#endif

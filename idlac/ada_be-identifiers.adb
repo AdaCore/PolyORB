@@ -78,7 +78,7 @@ package body Ada_Be.Identifiers is
         or else Kind (Node) = K_Forward_Interface
         or else Kind (Node) = K_Forward_ValueType
       then
-         return "Forward_" & Result (First .. Result'Last);
+         return Result (First .. Result'Last) & "_Forward";
       else
          return Result (First .. Result'Last);
       end if;

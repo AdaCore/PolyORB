@@ -561,7 +561,11 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "type Object is");
             if Parents (Node) = Nil_List then
                Add_With (CU, "PortableServer");
-               Put (CU, "  abstract new PortableServer.Servant_Base");
+               Put (CU, "  ");
+               if Abst (Node) then
+                  Put (CU, "abstract ");
+               end if;
+               Put (CU, "new PortableServer.Servant_Base");
             else
                declare
                   It : Node_Iterator;
@@ -582,7 +586,11 @@ package body Ada_Be.Idl2Ada is
                      --  of all its parents.
 
                      if First then
-                        Put (CU, "  abstract new "
+                        Put (CU, "  ");
+                        if Abst (Node) then
+                           Put (CU, "abstract ");
+                        end if;
+                        Put (CU, "new "
                              & Ada_Full_Name (P_Node)
                              & Impl_Suffix & ".Object");
                         First := False;
@@ -991,32 +999,6 @@ package body Ada_Be.Idl2Ada is
    begin
       case Kind (Node) is
 
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
-
          ----------------
          -- Operations --
          ----------------
@@ -1027,9 +1009,6 @@ package body Ada_Be.Idl2Ada is
                Gen_Operation_Profile (CU, "access Object", Node);
                PL (CU, ";");
             end if;
-
-            --        when K_Attribute =>
-            --  null;
 
          when others =>
             null;
@@ -1043,32 +1022,6 @@ package body Ada_Be.Idl2Ada is
       Node : Node_Id) is
    begin
       case Kind (Node) is
-
-         --  Scopes
-
-         when
-           K_Repository |
-           K_Module     |
-           K_Interface  =>
-            null;
-
-         when K_Forward_Interface =>
-            null; --  ??? XXX
-
-         -----------------
-         -- Value types --
-         -----------------
-
-         when K_ValueType =>
-            null;
-         when K_Forward_ValueType =>
-            null;
-         when K_Boxed_ValueType =>
-            null;
-         when K_State_Member =>
-            null;
-         when K_Initializer =>
-            null;
 
          ----------------
          -- Operations --
@@ -2586,13 +2539,33 @@ package body Ada_Be.Idl2Ada is
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Declarator        |
            K_Forward_Interface |
            K_Sequence_Instance |
            K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream_Suffix,
                       Use_It => True);
+
+         when K_Declarator =>
+            declare
+               P_Node : constant Node_Id
+                 := Parent (Node);
+            begin
+               if True
+                 and then Kind (P_Node) = K_Type_Declarator
+                 and then Is_Empty (Array_Bounds (Node))
+                 and then Is_Interface_Type (T_Type (P_Node)) then
+                  --  For a typedef of an interface type, the
+                  --  dependance must be on the stream unit for
+                  --  the scope that contains the actual definition.
+                  Add_With_Stream (CU, T_Type (P_Node));
+               else
+                  Add_With
+                    (CU, Ada_Full_Name (Parent_Scope (Node))
+                     & Stream_Suffix,
+                     Use_It => True);
+               end if;
+            end;
 
          when K_Scoped_Name =>
             Add_With_Stream (CU, Value (Node));

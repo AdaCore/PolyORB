@@ -1,0 +1,698 @@
+
+
+include ../Makefile.vars
+
+
+################################################################
+
+MPEG_PLAY = readfile.c util.c parseblock.c motionvector.c decoders.c \
+		main.c gdith.c fs2.c fs2fast.c fs4.c hybrid.c hybriderr.c \
+		2x2.c gray.c mono.c jrevdct.c 16bit.c util32.c ordered.c \
+		ordered2.c mb_ordered.c video.c floatdct.c ctrlbar.c
+
+###############################################################
+
+all : mpegplay
+
+
+#
+#
+mpegplay:	$(MPEG_PLAY:.c=.o) 
+
+
+clean:
+	$(RM) *.o  core 
+
+
+depend:
+	$(MAKEDEP)  $(MPEG_PLAY) 
+
+
+
+
+
+# C DEPENDENCIES
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+readfile.o: ../imageMpegLocal.H /usr/include/stdio.h
+readfile.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+readfile.o: /usr/include/string.h
+readfile.o: /usr/local/packages/egcs/include/g++/iostream.h
+readfile.o: /usr/local/packages/egcs/include/g++/streambuf.h
+readfile.o: /usr/local/packages/egcs/include/g++/libio.h
+readfile.o: /usr/local/packages/egcs/include/g++/iomanip.h
+readfile.o: /usr/include/math.h /usr/include/sys/types.h
+readfile.o: /usr/include/sys/isa_defs.h /usr/include/sys/machtypes.h
+readfile.o: /usr/include/sys/select.h /usr/include/sys/time.h
+readfile.o: /usr/include/time.h /usr/include/signal.h
+readfile.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+readfile.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+readfile.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+readfile.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+readfile.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+readfile.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+readfile.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+readfile.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+readfile.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+readfile.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+readfile.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+readfile.o: /usr/include/sys/byteorder.h ../dominante.hh
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+readfile.o: /usr/include/assert.h /usr/include/stddef.h
+readfile.o: /usr/include/strings.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+readfile.o: /usr/include/thread.h /usr/include/synch.h
+readfile.o: /usr/include/sys/synch.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+readfile.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+readfile.o: ../varBuffer.H ../protectedShMem.H ../panic.h
+readfile.o: /usr/include/errno.h /usr/include/sys/errno.h ../bool.h
+readfile.o: ../protectedShMem.C /usr/include/unistd.h /usr/include/sys/ipc.h
+readfile.o: /usr/include/sys/shm.h ../varBuffer.C ../VIDEO/video.h
+readfile.o: /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/X.h
+readfile.o: /usr/X11R6/include/X11/Xfuncproto.h
+readfile.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+readfile.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+readfile.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+readfile.o: dither.h
+util.o: /usr/include/stdlib.h /usr/include/sys/feature_tests.h
+util.o: ../imageMpegLocal.H /usr/include/stdio.h /usr/include/string.h
+util.o: /usr/local/packages/egcs/include/g++/iostream.h
+util.o: /usr/local/packages/egcs/include/g++/streambuf.h
+util.o: /usr/local/packages/egcs/include/g++/libio.h
+util.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+util.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+util.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+util.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+util.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+util.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+util.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+util.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+util.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+util.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+util.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+util.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+util.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+util.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+util.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+util.o: /usr/include/sys/byteorder.h ../dominante.hh
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+util.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+util.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+util.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+util.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+util.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+util.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+util.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+util.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+util.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+util.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+util.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+parseblock.o: /usr/include/assert.h ../imageMpegLocal.H /usr/include/stdio.h
+parseblock.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+parseblock.o: /usr/include/string.h
+parseblock.o: /usr/local/packages/egcs/include/g++/iostream.h
+parseblock.o: /usr/local/packages/egcs/include/g++/streambuf.h
+parseblock.o: /usr/local/packages/egcs/include/g++/libio.h
+parseblock.o: /usr/local/packages/egcs/include/g++/iomanip.h
+parseblock.o: /usr/include/math.h /usr/include/sys/types.h
+parseblock.o: /usr/include/sys/isa_defs.h /usr/include/sys/machtypes.h
+parseblock.o: /usr/include/sys/select.h /usr/include/sys/time.h
+parseblock.o: /usr/include/time.h /usr/include/signal.h
+parseblock.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+parseblock.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+parseblock.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+parseblock.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+parseblock.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+parseblock.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+parseblock.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+parseblock.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+parseblock.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+parseblock.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+parseblock.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+parseblock.o: /usr/include/sys/byteorder.h ../dominante.hh
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+parseblock.o: /usr/include/stddef.h /usr/include/strings.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+parseblock.o: /usr/include/thread.h /usr/include/synch.h
+parseblock.o: /usr/include/sys/synch.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+parseblock.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+parseblock.o: ../varBuffer.H ../protectedShMem.H ../panic.h
+parseblock.o: /usr/include/errno.h /usr/include/sys/errno.h ../bool.h
+parseblock.o: ../protectedShMem.C /usr/include/unistd.h
+parseblock.o: /usr/include/sys/ipc.h /usr/include/sys/shm.h ../varBuffer.C
+parseblock.o: ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+parseblock.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+parseblock.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+parseblock.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+parseblock.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h
+parseblock.o: video.h decoders.h table.h
+motionvector.o: ../imageMpegLocal.H /usr/include/stdio.h
+motionvector.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+motionvector.o: /usr/include/string.h
+motionvector.o: /usr/local/packages/egcs/include/g++/iostream.h
+motionvector.o: /usr/local/packages/egcs/include/g++/streambuf.h
+motionvector.o: /usr/local/packages/egcs/include/g++/libio.h
+motionvector.o: /usr/local/packages/egcs/include/g++/iomanip.h
+motionvector.o: /usr/include/math.h /usr/include/sys/types.h
+motionvector.o: /usr/include/sys/isa_defs.h /usr/include/sys/machtypes.h
+motionvector.o: /usr/include/sys/select.h /usr/include/sys/time.h
+motionvector.o: /usr/include/time.h /usr/include/signal.h
+motionvector.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+motionvector.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+motionvector.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+motionvector.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+motionvector.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+motionvector.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+motionvector.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+motionvector.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+motionvector.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+motionvector.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+motionvector.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+motionvector.o: /usr/include/sys/byteorder.h ../dominante.hh
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+motionvector.o: /usr/include/assert.h /usr/include/stddef.h
+motionvector.o: /usr/include/strings.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+motionvector.o: /usr/include/thread.h /usr/include/synch.h
+motionvector.o: /usr/include/sys/synch.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+motionvector.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+motionvector.o: ../varBuffer.H ../protectedShMem.H ../panic.h
+motionvector.o: /usr/include/errno.h /usr/include/sys/errno.h ../bool.h
+motionvector.o: ../protectedShMem.C /usr/include/unistd.h
+motionvector.o: /usr/include/sys/ipc.h /usr/include/sys/shm.h ../varBuffer.C
+motionvector.o: ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+motionvector.o: /usr/X11R6/include/X11/X.h
+motionvector.o: /usr/X11R6/include/X11/Xfuncproto.h
+motionvector.o: /usr/X11R6/include/X11/Xosdefs.h
+motionvector.o: /usr/X11R6/include/X11/Xutil.h ../VIDEO/util.h
+motionvector.o: ../VIDEO/dither.h ../VIDEO/ctrlbar.h ../VIDEO/decoders.h
+motionvector.o: util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+decoders.o: /usr/include/stdio.h /usr/include/sys/feature_tests.h
+decoders.o: /usr/include/assert.h ../imageMpegLocal.H /usr/include/stdlib.h
+decoders.o: /usr/include/string.h
+decoders.o: /usr/local/packages/egcs/include/g++/iostream.h
+decoders.o: /usr/local/packages/egcs/include/g++/streambuf.h
+decoders.o: /usr/local/packages/egcs/include/g++/libio.h
+decoders.o: /usr/local/packages/egcs/include/g++/iomanip.h
+decoders.o: /usr/include/math.h /usr/include/sys/types.h
+decoders.o: /usr/include/sys/isa_defs.h /usr/include/sys/machtypes.h
+decoders.o: /usr/include/sys/select.h /usr/include/sys/time.h
+decoders.o: /usr/include/time.h /usr/include/signal.h
+decoders.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+decoders.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+decoders.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+decoders.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+decoders.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+decoders.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+decoders.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+decoders.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+decoders.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+decoders.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+decoders.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+decoders.o: /usr/include/sys/byteorder.h ../dominante.hh
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+decoders.o: /usr/include/stddef.h /usr/include/strings.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+decoders.o: /usr/include/thread.h /usr/include/synch.h
+decoders.o: /usr/include/sys/synch.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+decoders.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+decoders.o: ../varBuffer.H ../protectedShMem.H ../panic.h
+decoders.o: /usr/include/errno.h /usr/include/sys/errno.h ../bool.h
+decoders.o: ../protectedShMem.C /usr/include/unistd.h /usr/include/sys/ipc.h
+decoders.o: /usr/include/sys/shm.h ../varBuffer.C ../VIDEO/video.h
+decoders.o: /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/X.h
+decoders.o: /usr/X11R6/include/X11/Xfuncproto.h
+decoders.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+decoders.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+decoders.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h
+decoders.o: decoders.h video.h
+main.o: ../imageMpegLocal.H /usr/include/stdio.h
+main.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+main.o: /usr/include/string.h /usr/local/packages/egcs/include/g++/iostream.h
+main.o: /usr/local/packages/egcs/include/g++/streambuf.h
+main.o: /usr/local/packages/egcs/include/g++/libio.h
+main.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+main.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+main.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+main.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+main.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+main.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+main.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+main.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+main.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+main.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+main.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+main.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+main.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+main.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+main.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+main.o: /usr/include/sys/byteorder.h ../dominante.hh
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+main.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+main.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+main.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+main.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+main.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+main.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+main.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+main.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+main.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+main.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+main.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h
+gdith.o: /usr/include/math.h ../imageMpegLocal.H /usr/include/stdio.h
+gdith.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+gdith.o: /usr/include/string.h
+gdith.o: /usr/local/packages/egcs/include/g++/iostream.h
+gdith.o: /usr/local/packages/egcs/include/g++/streambuf.h
+gdith.o: /usr/local/packages/egcs/include/g++/libio.h
+gdith.o: /usr/local/packages/egcs/include/g++/iomanip.h
+gdith.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+gdith.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+gdith.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+gdith.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+gdith.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+gdith.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+gdith.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+gdith.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+gdith.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+gdith.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+gdith.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+gdith.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+gdith.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+gdith.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+gdith.o: /usr/include/sys/byteorder.h ../dominante.hh
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+gdith.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+gdith.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+gdith.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+gdith.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+gdith.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+gdith.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+gdith.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+gdith.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+gdith.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+gdith.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+gdith.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+gdith.o: dither.h
+jrevdct.o: /usr/include/string.h /usr/include/sys/feature_tests.h
+jrevdct.o: ../imageMpegLocal.H /usr/include/stdio.h /usr/include/stdlib.h
+jrevdct.o: /usr/local/packages/egcs/include/g++/iostream.h
+jrevdct.o: /usr/local/packages/egcs/include/g++/streambuf.h
+jrevdct.o: /usr/local/packages/egcs/include/g++/libio.h
+jrevdct.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+jrevdct.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+jrevdct.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+jrevdct.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+jrevdct.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+jrevdct.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+jrevdct.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+jrevdct.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+jrevdct.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+jrevdct.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+jrevdct.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+jrevdct.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+jrevdct.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+jrevdct.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+jrevdct.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+jrevdct.o: /usr/include/sys/byteorder.h ../dominante.hh
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+jrevdct.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+jrevdct.o: /usr/include/thread.h /usr/include/synch.h
+jrevdct.o: /usr/include/sys/synch.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+jrevdct.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+jrevdct.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+jrevdct.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+jrevdct.o: /usr/include/unistd.h /usr/include/sys/ipc.h
+jrevdct.o: /usr/include/sys/shm.h ../varBuffer.C ../VIDEO/video.h
+jrevdct.o: /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/X.h
+jrevdct.o: /usr/X11R6/include/X11/Xfuncproto.h
+jrevdct.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+jrevdct.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+jrevdct.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+16bit.o: ../imageMpegLocal.H /usr/include/stdio.h
+16bit.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+16bit.o: /usr/include/string.h
+16bit.o: /usr/local/packages/egcs/include/g++/iostream.h
+16bit.o: /usr/local/packages/egcs/include/g++/streambuf.h
+16bit.o: /usr/local/packages/egcs/include/g++/libio.h
+16bit.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+16bit.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+16bit.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+16bit.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+16bit.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+16bit.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+16bit.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+16bit.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+16bit.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+16bit.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+16bit.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+16bit.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+16bit.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+16bit.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+16bit.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+16bit.o: /usr/include/sys/byteorder.h ../dominante.hh
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+16bit.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+16bit.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+16bit.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+16bit.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+16bit.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+16bit.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+16bit.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+16bit.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+16bit.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+16bit.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+16bit.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+16bit.o: dither.h
+util32.o: /usr/include/stdio.h /usr/include/sys/feature_tests.h
+util32.o: ../imageMpegLocal.H /usr/include/stdlib.h /usr/include/string.h
+util32.o: /usr/local/packages/egcs/include/g++/iostream.h
+util32.o: /usr/local/packages/egcs/include/g++/streambuf.h
+util32.o: /usr/local/packages/egcs/include/g++/libio.h
+util32.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+util32.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+util32.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+util32.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+util32.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+util32.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+util32.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+util32.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+util32.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+util32.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+util32.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+util32.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+util32.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+util32.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+util32.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+util32.o: /usr/include/sys/byteorder.h ../dominante.hh
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+util32.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+util32.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+util32.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+util32.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+util32.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+util32.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+util32.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+util32.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+util32.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+util32.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+util32.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+ordered.o: ../imageMpegLocal.H /usr/include/stdio.h
+ordered.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+ordered.o: /usr/include/string.h
+ordered.o: /usr/local/packages/egcs/include/g++/iostream.h
+ordered.o: /usr/local/packages/egcs/include/g++/streambuf.h
+ordered.o: /usr/local/packages/egcs/include/g++/libio.h
+ordered.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+ordered.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+ordered.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+ordered.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+ordered.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+ordered.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+ordered.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+ordered.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+ordered.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+ordered.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+ordered.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+ordered.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+ordered.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+ordered.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+ordered.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+ordered.o: /usr/include/sys/byteorder.h ../dominante.hh
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+ordered.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+ordered.o: /usr/include/thread.h /usr/include/synch.h
+ordered.o: /usr/include/sys/synch.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+ordered.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+ordered.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+ordered.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+ordered.o: /usr/include/unistd.h /usr/include/sys/ipc.h
+ordered.o: /usr/include/sys/shm.h ../varBuffer.C ../VIDEO/video.h
+ordered.o: /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/X.h
+ordered.o: /usr/X11R6/include/X11/Xfuncproto.h
+ordered.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+ordered.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+ordered.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h video.h
+ordered.o: dither.h
+video.o: /usr/include/stdio.h /usr/include/sys/feature_tests.h
+video.o: /usr/include/stdlib.h /usr/include/assert.h /usr/include/sys/time.h
+video.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+video.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+video.o: /usr/include/time.h ../imageMpegLocal.H /usr/include/string.h
+video.o: /usr/local/packages/egcs/include/g++/iostream.h
+video.o: /usr/local/packages/egcs/include/g++/streambuf.h
+video.o: /usr/local/packages/egcs/include/g++/libio.h
+video.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+video.o: /usr/include/signal.h /usr/include/sys/signal.h
+video.o: /usr/include/sys/unistd.h /usr/include/netinet/in.h
+video.o: /usr/include/sys/stream.h /usr/include/sys/vnode.h
+video.o: /usr/include/sys/t_lock.h /usr/include/sys/machlock.h
+video.o: /usr/include/sys/dki_lkinfo.h /usr/include/sys/dl.h
+video.o: /usr/include/sys/sleepq.h /usr/include/sys/turnstile.h
+video.o: /usr/include/sys/param.h /usr/include/sys/pirec.h
+video.o: /usr/include/sys/mutex.h /usr/include/sys/rwlock.h
+video.o: /usr/include/sys/semaphore.h /usr/include/sys/condvar.h
+video.o: /usr/include/sys/cred.h /usr/include/sys/uio.h
+video.o: /usr/include/vm/seg_enum.h /usr/include/sys/poll.h
+video.o: /usr/include/sys/strmdep.h /usr/include/sys/byteorder.h
+video.o: ../dominante.hh
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+video.o: /usr/include/stddef.h /usr/include/strings.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+video.o: /usr/include/thread.h /usr/include/synch.h /usr/include/sys/synch.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+video.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+video.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+video.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+video.o: /usr/include/unistd.h /usr/include/sys/ipc.h /usr/include/sys/shm.h
+video.o: ../varBuffer.C ../VIDEO/video.h /usr/X11R6/include/X11/Xlib.h
+video.o: /usr/X11R6/include/X11/X.h /usr/X11R6/include/X11/Xfuncproto.h
+video.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+video.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+video.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h decoders.h
+video.o: video.h table.h
+ctrlbar.o: ../imageMpegLocal.H /usr/include/stdio.h
+ctrlbar.o: /usr/include/sys/feature_tests.h /usr/include/stdlib.h
+ctrlbar.o: /usr/include/string.h
+ctrlbar.o: /usr/local/packages/egcs/include/g++/iostream.h
+ctrlbar.o: /usr/local/packages/egcs/include/g++/streambuf.h
+ctrlbar.o: /usr/local/packages/egcs/include/g++/libio.h
+ctrlbar.o: /usr/local/packages/egcs/include/g++/iomanip.h /usr/include/math.h
+ctrlbar.o: /usr/include/sys/types.h /usr/include/sys/isa_defs.h
+ctrlbar.o: /usr/include/sys/machtypes.h /usr/include/sys/select.h
+ctrlbar.o: /usr/include/sys/time.h /usr/include/time.h /usr/include/signal.h
+ctrlbar.o: /usr/include/sys/signal.h /usr/include/sys/unistd.h
+ctrlbar.o: /usr/include/netinet/in.h /usr/include/sys/stream.h
+ctrlbar.o: /usr/include/sys/vnode.h /usr/include/sys/t_lock.h
+ctrlbar.o: /usr/include/sys/machlock.h /usr/include/sys/dki_lkinfo.h
+ctrlbar.o: /usr/include/sys/dl.h /usr/include/sys/sleepq.h
+ctrlbar.o: /usr/include/sys/turnstile.h /usr/include/sys/param.h
+ctrlbar.o: /usr/include/sys/pirec.h /usr/include/sys/mutex.h
+ctrlbar.o: /usr/include/sys/rwlock.h /usr/include/sys/semaphore.h
+ctrlbar.o: /usr/include/sys/condvar.h /usr/include/sys/cred.h
+ctrlbar.o: /usr/include/sys/uio.h /usr/include/vm/seg_enum.h
+ctrlbar.o: /usr/include/sys/poll.h /usr/include/sys/strmdep.h
+ctrlbar.o: /usr/include/sys/byteorder.h ../dominante.hh
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniInternal.h
+ctrlbar.o: /usr/include/assert.h /usr/include/stddef.h /usr/include/strings.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_sysdep.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/CORBA_basetypes.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/seqtemplates.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IOP.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/GIOP.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/IIOP.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omnithread/solaris.h
+ctrlbar.o: /usr/include/thread.h /usr/include/synch.h
+ctrlbar.o: /usr/include/sys/synch.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/rope.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/bufferedStream.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/giopDriver.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/omniORB.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/templates.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/proxyFactory.h
+ctrlbar.o: /infres/inf1/astre/singhoff/POLKA/COMMONv2/POLKA-ORB/include/omniORB2/Naming.hh
+ctrlbar.o: ../varBuffer.H ../protectedShMem.H ../panic.h /usr/include/errno.h
+ctrlbar.o: /usr/include/sys/errno.h ../bool.h ../protectedShMem.C
+ctrlbar.o: /usr/include/unistd.h /usr/include/sys/ipc.h
+ctrlbar.o: /usr/include/sys/shm.h ../varBuffer.C ../VIDEO/video.h
+ctrlbar.o: /usr/X11R6/include/X11/Xlib.h /usr/X11R6/include/X11/X.h
+ctrlbar.o: /usr/X11R6/include/X11/Xfuncproto.h
+ctrlbar.o: /usr/X11R6/include/X11/Xosdefs.h /usr/X11R6/include/X11/Xutil.h
+ctrlbar.o: ../VIDEO/util.h ../VIDEO/dither.h ../VIDEO/ctrlbar.h
+ctrlbar.o: ../VIDEO/decoders.h util.h ../VIDEO/fs2.h ../VIDEO/fs4.h

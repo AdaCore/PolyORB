@@ -714,26 +714,26 @@ package body Idl_Fe.Types is
       Definition_List : Identifier_Definition_List;
       Index : Uniq_Id;
    begin
-      pragma Debug (O2 ("Push_scope : enter"));
+      pragma Debug (O2 ("Push_Scope : enter"));
       Stack := new Scope_Stack;
       Stack.Parent := Current_Scope;
       Stack.Scope := Scope;
       if Current_Scope = null then
-         pragma Debug (O ("Push_scope : current_scope is null."));
-         pragma Debug (O ("Push_scope : root scope is defined at " &
+         pragma Debug (O ("Push_Scope : current_scope is null."));
+         pragma Debug (O ("Push_Scope : root scope is defined at " &
                           Idl_Fe.Errors.Display_Location
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
       Current_Scope := Stack;
 
-      pragma Debug (O ("Push_scope : puting the old definition " &
+      pragma Debug (O ("Push_Scope : putting the old definition " &
                        "in the id_table."));
       --  add all definition of the new scope into the hash table,
       --  in case there are some. Usefull when a scoped is reopened
       Definition_List := Identifier_List (Scope);
       while Definition_List /= null loop
-         pragma Debug (O ("Push_scope : call to create_identifier_index."));
+         pragma Debug (O ("Push_Scope : call to create_identifier_index."));
          --  first find a place for this identifier in the table
          Create_Identifier_Index
            (Definition_List.Definition.Name.all,
@@ -748,9 +748,9 @@ package body Idl_Fe.Types is
          --  and finally add it to the scope
          Id_Table.Table (Index).Definition := Definition_List.Definition;
          Definition_List := Definition_List.Next;
-         pragma Debug (O ("Push_scope : end of loop."));
+         pragma Debug (O ("Push_Scope : end of loop."));
       end loop;
-      pragma Debug (O2 ("Push_scope : end"));
+      pragma Debug (O2 ("Push_Scope : end"));
    end Push_Scope;
 
    -----------------

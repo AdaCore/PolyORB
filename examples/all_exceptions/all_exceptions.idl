@@ -1,0 +1,73 @@
+interface all_exceptions {
+
+  void Unknown_exception_test ();
+  
+  void Bad_Param_exception_test ();
+  
+  void No_Memory_exception_test ();
+
+  void Imp_Limit_exception_test ();
+  
+  void Comm_Failure_exception_test ();
+
+  void Inv_Objref_exception_test ();
+
+  void No_Permission_exception_test ();
+
+  void Internal_exception_test ();
+
+  void Marshal_exception_test ();
+
+  void Initialization_Failure_exception_test ();
+
+  void No_Implement_exception_test ();
+
+  void Bad_Typecode_exception_test ();
+
+  void Bad_Operation_exception_test ();
+
+  void No_Resources_exception_test ();
+
+  void No_Response_exception_test ();
+
+  void Persist_Store_exception_test ();
+
+  void Bad_Inv_Order_exception_test ();
+
+  void Transient_exception_test ();
+
+  void Free_Mem_exception_test ();
+
+  void Inv_Ident_exception_test ();
+
+  void Inv_Flag_exception_test ();
+
+  void Intf_Repos_exception_test ();
+
+  void Bad_Context_exception_test ();
+
+  void Obj_Adapter_exception_test ();
+
+  void Data_Conversion_exception_test ();
+
+  void AdaBroker_Fatal_Error_exception_test ();
+
+  void Not_Implemented_Yet_exception_test ();
+
+  void Not_Initialized_Yet_exception_test ();
+
+  void C_Out_Of_Range_exception_test ();
+
+  void Wrong_Union_Case_exception_test ();
+
+  void Object_Not_Exist_exception_test ();
+  
+  void Transaction_Required_exception_test ();
+  
+  void Transaction_Rolledback_exception_test ();
+  
+  void Invalid_Transaction_exception_test ();
+  
+  void Wrong_Transaction_exception_test ();
+
+};
