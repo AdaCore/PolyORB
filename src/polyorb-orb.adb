@@ -1220,7 +1220,7 @@ begin
          & "binding_data.iiop?"
          & "protocols.srp?"
          & "protocols.giop?"
-         & "protocols.srp?"
+         & "protocols.soap?"
          & "smart_pointers"
          & "exceptions.stack",
        Provides => Empty,
