@@ -20,6 +20,7 @@ with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 
 with Sequences.Unbounded;
 
