@@ -289,12 +289,6 @@ package body Exp_Dist is
    --  Return True if the current parameter is a controlling formal argument
    --  of type Stub_Type or access to Stub_Type.
 
-   function Underlying_RACW_Type
-     (RAS_Typ : Entity_Id)
-      return Entity_Id;
-   --  Given a remote access-to-subprogram type or its equivalent
-   --  record type, return the RACW type generated to implement it.
-
    procedure Set_Renaming_TSS
      (Typ     : Entity_Id;
       Nam     : Entity_Id;
