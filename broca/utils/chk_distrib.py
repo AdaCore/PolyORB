@@ -5,18 +5,11 @@ import string, sys, re, os, glob
 
 # All dirs: check MANIFEST vs. files
 
-subdirs = [
-  'idlac',
-  'cos/event',
-  'cos/naming',
-  'cos/time',
-  'examples/all_functions',
-  'examples/all_types',
-  'examples/echo',
-  'examples/generic',
-  'examples/module',
-  'examples/random'
-  ]
+def get_subdirs (dir):
+  return map (lambda s, d=dir: d + "/" + s,
+    string.split (re.match \
+    ("^SUBDIRS = (.*)$",
+     open (dir + "/Makefile.am", "r").readlines ()[0]).group (1), ' '))
 
 def read_MANIFEST (dir):
   MANIFEST = []
@@ -116,6 +109,7 @@ if len (sys.argv) > 1:
   allsrc = read_allsrc (sys.argv[1])
   compare_lists ("files", "allsrc", 0)
 
+subdirs = [ 'idlac' ] + get_subdirs ("examples")  + get_subdirs ("cos") 
 for d in subdirs:
   print "Checking " + d + "/...\n"
   

@@ -129,6 +129,13 @@ examples/generic/genericserver.ads
 examples/generic/header.txt
 examples/generic/report.adb
 examples/generic/report.ads
+examples/local/Makefile.am
+examples/local/Makefile.in
+examples/local/client.adb
+examples/local/echo-impl.adb
+examples/local/echo-impl.ads
+examples/local/local.idl
+examples/local/server.adb
 examples/module/Makefile.am
 examples/module/Makefile.in
 examples/module/client.adb
