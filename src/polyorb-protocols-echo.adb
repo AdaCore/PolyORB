@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Exceptions;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Any.NVList;
 
@@ -55,6 +54,7 @@ with PolyORB.Requests; use PolyORB.Requests;
 
 with PolyORB.Representations.Test; use PolyORB.Representations.Test;
 with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.Echo is
 
@@ -151,8 +151,7 @@ package body PolyORB.Protocols.Echo is
       --  No setup is necessary for newly-created client connections.
    end Handle_Connect_Confirmation;
 
-   type String_Ptr is access all Standard.String;
-   type String_Array is array (Integer range <>) of String_Ptr;
+   type String_Array is array (Integer range <>) of Utils.Strings.String_Ptr;
 
    function Split (S : String) return String_Array;
    function Split (S : String) return String_Array
@@ -180,10 +179,7 @@ package body PolyORB.Protocols.Echo is
 
    procedure Free (SA : in out String_Array);
 
-   procedure Free (SA : in out String_Array)
-   is
-      procedure Free is
-         new Ada.Unchecked_Deallocation (Standard.String, String_Ptr);
+   procedure Free (SA : in out String_Array) is
    begin
       for I in SA'Range loop
          Free (SA (I));

@@ -36,14 +36,14 @@
 --  engines can be plugged on it.)
 
 with Ada.Streams;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
-with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
+with PolyORB.Utils.Strings;
 
 package PolyORB.Filters.HTTP is
 
@@ -220,9 +220,6 @@ private
 
    function Image (V : HTTP_Version) return String;
 
-   type String_Ptr is access all Standard.String;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Standard.String, String_Ptr);
    package String_Lists is new PolyORB.Utils.Chained_Lists (String);
 
    type HTTP_Filter is new Filter with record
@@ -260,7 +257,7 @@ private
       Status  : HTTP_Status_Code;
 
       Request_Method : PolyORB.HTTP_Methods.Method;
-      Request_URI    : String_Ptr;
+      Request_URI    : Utils.Strings.String_Ptr;
 
       Content_Length    : Ada.Streams.Stream_Element_Offset;
       Transfer_Encoding : String_Lists.List;

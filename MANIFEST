@@ -342,6 +342,8 @@ src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
 src/polyorb-utils-srp.adb
 src/polyorb-utils-srp.ads
+src/polyorb-utils-strings.adb
+src/polyorb-utils-strings.ads
 src/polyorb-utils-text_buffers.adb
 src/polyorb-utils-text_buffers.ads
 src/polyorb-utils.adb

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . D Y N A M I C _ D I C T                  --
+--                P O L Y O R B . U T I L S . S T R I N G S                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,98 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic dictionnary of objects, indexed by Strings.
+--  General-purpose string pointer.
 
 --  $Id$
 
-with GNAT.HTable;
-with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
+package body PolyORB.Utils.Strings is
 
-package body PolyORB.Dynamic_Dict is
-
-   --------------------------------------------------------
-   -- A hash table that stores the Value associated with --
-   -- a String key.                                      --
-   --------------------------------------------------------
-
-   type Hash_Val is new Integer range 0 .. 32;
-
-   function Hash (S : String_Ptr) return Hash_Val;
-   function Equal (S1, S2 : String_Ptr) return Boolean;
-   --  Simple {hash,equality} functions operating on a string access.
-   --  Used in instanciation of GNAT.HTable.
-
-   function Hash (S : String_Ptr) return Hash_Val
-   is
-      function Hash_String is new GNAT.HTable.Hash (Hash_Val);
+   function "+" (S : Standard.String) return String_Ptr is
    begin
-      pragma Assert (S /= null);
-      return Hash_String (S.all);
-   end Hash;
+      return new Standard.String'(S);
+   end "+";
 
-   function Equal (S1, S2 : String_Ptr) return Boolean is
-   begin
-      pragma Assert (S1 /= null and then S2 /= null);
-      return S1.all = S2.all;
-   end Equal;
-
-   type Dict_Entry is record
-      Key_Ptr   : String_Ptr;
-      The_Value : Value;
-   end record;
-
-   pragma Warnings (Off);
-   Null_Dict_Entry : Dict_Entry;
-   pragma Warnings (On);
-   --  No explicit initialisation.
-
-   package HT is new GNAT.HTable.Simple_HTable
-     (Header_Num => Hash_Val,
-      Element    => Dict_Entry,
-      No_Element => Null_Dict_Entry,
-      Key        => String_Ptr,
-      Hash       => Hash,
-      Equal      => Equal);
-
-   ------------
-   -- Lookup --
-   ------------
-
-   function Lookup
-      (K : String)
-     return Value
-   is
-      KK : aliased String := K;
-      E  : constant Dict_Entry := HT.Get (KK'Unchecked_Access);
-   begin
-      if E.Key_Ptr = null then
-         raise Key_Not_Found;
-      end if;
-      return E.The_Value;
-   end Lookup;
-
-   procedure Register
-     (K : String;
-      V : Value)
-   is
-      KK : String_Ptr := new String'(K);
-      E  : Dict_Entry := HT.Get (KK);
-   begin
-      if E.Key_Ptr = null then
-         E.Key_Ptr := KK;
-      else
-         Free (KK);
-      end if;
-
-      E.The_Value := V;
-      HT.Set (E.Key_Ptr, E);
-   end Register;
-
-   procedure Unregister
-     (K : String)
-   is
-   begin
-      raise Not_Implemented;
-   end Unregister;
-
-end PolyORB.Dynamic_Dict;
+end PolyORB.Utils.Strings;

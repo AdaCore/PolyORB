@@ -70,6 +70,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-buffers.ads \
 		polyorb-utils-chained_lists.ads \
 		polyorb-utils-srp.ads \
+		polyorb-utils-strings.ads \
 		polyorb-utils-text_buffers.ads \
 		sequences-bounded.ads \
 		sequences-unbounded.ads \

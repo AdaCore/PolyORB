@@ -36,7 +36,6 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -45,6 +44,7 @@ package body PolyORB.References is
 
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
+   use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -115,9 +115,6 @@ package body PolyORB.References is
 
       return To_String (Res);
    end Image;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (String, String_Ptr);
 
    procedure Finalize (RI : in out Reference_Info)
    is

@@ -135,7 +135,7 @@ package body PolyORB.Filters.HTTP is
       F.Status  := S_Unknown;
 
       F.Request_Method := PolyORB.HTTP_Methods.Extension_Method;
-      Deallocate (F.Request_URI);
+      Utils.Strings.Free (F.Request_URI);
 
       F.Content_Length := -1;
       Deallocate (F.Transfer_Encoding);
@@ -704,7 +704,7 @@ package body PolyORB.Filters.HTTP is
          raise Protocol_Error;
       end if;
 
-      Deallocate (F.Request_URI);
+      Utils.Strings.Free (F.Request_URI);
       F.Request_URI := new String'(S (URI .. Space - 1));
       F.Version     := Parse_HTTP_Version (S (Version .. S'Last));
       F.State := Header;
@@ -857,6 +857,7 @@ package body PolyORB.Filters.HTTP is
    is
       use PolyORB.Buffers;
       use PolyORB.Types;
+      use type PolyORB.Utils.Strings.String_Ptr;
    begin
       pragma Debug (O ("Message_Complete: enter"));
 

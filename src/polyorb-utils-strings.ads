@@ -2,20 +2,20 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                   P O L Y O R B . R E F E R E N C E S                    --
+--                P O L Y O R B . U T I L S . S T R I N G S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                Copyright (C) 2001 Free Software Fundation                --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -30,65 +30,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object references.
+--  General-purpose string pointer.
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with Sequences.Unbounded;
 
-with PolyORB.Binding_Data; use PolyORB.Binding_Data;
-with PolyORB.Smart_Pointers;
-with PolyORB.Utils.Strings;
+package PolyORB.Utils.Strings is
 
-package PolyORB.References is
+   pragma Preelaborate;
 
-   pragma Elaborate_Body;
+   type String_Ptr is access all Standard.String;
 
-   package Profile_Seqs is
-      new Sequences.Unbounded (Binding_Data.Profile_Access);
-   subtype Profile_Array is Profile_Seqs.Element_Array;
+   function "+" (S : Standard.String) return String_Ptr;
+   pragma Inline ("+");
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Standard.String, String_Ptr);
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
-   --  An object reference of any kind.
-
-   procedure Create_Reference
-     (Profiles : Profile_Array;
-      Type_Id  : String;
-      R        : out Ref);
-   --  Create a reference with Profiles as its profiles.
-   --  The returned ref R is nil iff Profiles'Length = 0.
-
-   function Profiles_Of (R : Ref) return Profile_Array;
-   --  Return the list of profiles constituting Ref.
-
-   function Type_Id_Of  (R : Ref) return String;
-   --  Return the type identifier of Ref.
-
-   --  function Is_Nil (R : Ref) return Boolean;
-   --  True iff R is a Nil reference, i.e. a reference that
-   --  does not designate any object.
-
-   function Image (R : Ref) return String;
-   --  For debugging purposes.
-
-   type Ref_Ptr is access all Ref;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Ref, Ref_Ptr);
-
-private
-
-   subtype Profile_Seq is Profile_Seqs.Sequence;
-
-   type Reference_Info is new PolyORB.Smart_Pointers.Entity with
-      record
-         Type_Id  : Utils.Strings.String_Ptr;
-         Profiles : Profile_Seq;
-         --  The collection of tagged profiles that designate
-         --  transport access points where this object can be
-         --  contacted, together with the object ids to be used.
-      end record;
-
-   procedure Finalize (RI : in out Reference_Info);
-
-end PolyORB.References;
+end PolyORB.Utils.Strings;
