@@ -51,8 +51,7 @@ package body System.Garlic.Replay is
      Debug_Initialize ("S_GARREP", "(s-garrep): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -86,7 +85,7 @@ package body System.Garlic.Replay is
       Data  : Stream_Element_Access;
       Error : Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Replay engine started"));
+      pragma Debug (D ("Replay engine started"));
 
       while not End_Of_File (Trace_File) loop
 
@@ -98,8 +97,7 @@ package body System.Garlic.Replay is
 
          begin
             pragma Debug
-              (D (D_Debug,
-                  "Read trace from partition" & Trace.PID'Img &
+              (D ("Read trace from partition" & Trace.PID'Img &
                   " of length" & Trace.Data'Length'Img));
 
             --  The message should arrive at about the same time as
@@ -108,8 +106,7 @@ package body System.Garlic.Replay is
             declare
                Latency : Duration := To_Duration (Trace.Time);
             begin
-               pragma Debug
-                 (D (D_Debug, "Replay network latency" & Latency'Img));
+               pragma Debug (D ("Replay network latency" & Latency'Img));
                delay Latency;
             end;
 
@@ -124,7 +121,7 @@ package body System.Garlic.Replay is
 
             exit when Found (Error);
 
-            pragma Debug (D (D_Debug, "Message delivered"));
+            pragma Debug (D ("Message delivered"));
          end;
       end loop;
 
@@ -200,7 +197,7 @@ package body System.Garlic.Replay is
       Error     : in out Error_Type) is
    begin
       pragma Debug
-         (D (D_Debug, "Send (but do nothing)" & Data'Length'Img & " bytes"));
+         (D ("Send (but do nothing)" & Data'Length'Img & " bytes"));
 
       --  Send is a no-op since every partition gets its messages from
       --  the trace file.
@@ -215,7 +212,7 @@ package body System.Garlic.Replay is
    procedure Shutdown (Protocol : access Replay_Protocol) is
    begin
       if Execution_Mode = Replay_Mode then
-         pragma Debug (D (D_Debug, "Closing trace file"));
+         pragma Debug (D ("Closing trace file"));
          Close (Trace_File);
       end if;
    end Shutdown;

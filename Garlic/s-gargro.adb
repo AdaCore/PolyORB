@@ -48,8 +48,7 @@ package body System.Garlic.Group is
      Debug_Initialize ("S_GARGRO", "(s-gargro): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -78,7 +77,7 @@ package body System.Garlic.Group is
    is
    begin
       Wait (Barrier);
-      pragma Debug (D (D_Debug, "Broadcast facility is locked"));
+      pragma Debug (D ("Broadcast facility is locked"));
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
       Any_Opcode'Write (Params, Opcode);
@@ -104,7 +103,7 @@ package body System.Garlic.Group is
       Inner_Query : aliased Params_Stream_Type (Query.Count);
       Inner_Reply : aliased Params_Stream_Type (Query.Count);
    begin
-      pragma Debug (D (D_Debug, "Handle broadcast request"));
+      pragma Debug (D ("Handle broadcast request"));
       Copy (Query.all, Inner_Query);
 
       Partition_ID'Read (Inner_Query'Access, Inner_PID);
@@ -121,22 +120,22 @@ package body System.Garlic.Group is
 
       if Inner_PID = Self_PID then
          if Empty (Reply) then
-            pragma Debug (D (D_Debug, "Broadcast facility is unlocked"));
+            pragma Debug (D ("Broadcast facility is unlocked"));
             Signal (Barrier);
 
          else
-            pragma Debug (D (D_Debug, "Continue broacast for a second time"));
+            pragma Debug (D ("Continue broacast for a second time"));
 
             Send_Neighbor (Group_Service, Reply, Error);
          end if;
 
       else
          if Empty (Inner_Query'Access) then
-            pragma Debug (D (D_Debug, "Forward same query"));
+            pragma Debug (D ("Forward same query"));
             Copy (Query.all, Inner_Query);
 
          else
-            pragma Debug (D (D_Debug, "Forward new query"));
+            pragma Debug (D ("Forward new query"));
             Insert (Inner_Query);
             Partition_ID'Write (Inner_Query'Access, Inner_PID);
             Any_Opcode'Write   (Inner_Query'Access, Inner_Code);

@@ -124,6 +124,8 @@ package System.Garlic.Units is
       Component_Type => Unit_Info,
       Null_Component => Null_Unit);
 
+   procedure Dump_Unit_Table;
+
    procedure Get_Unit_Info
      (Unit  : in Unit_Id;
       Info  : out Unit_Info;

@@ -50,16 +50,8 @@ package body System.Garlic.Debug is
    Current : Debug_Key := 0;
    --  The current debug key
 
-   Flags_Map : array (Debug_Key, Debug_Level) of Boolean :=
-     (others => (others => False));
-   --  Map of flags
-
    Banner_Map : array (Debug_Key) of String_Access;
    --  Map of banners
-
-   Reverse_Character_Map : array (Character) of Debug_Level :=
-     (others => No_Debug);
-   --  Map characters on debug levels
 
    protected Semaphore is
       entry P;
@@ -143,11 +135,8 @@ package body System.Garlic.Debug is
       return Debug_Key
    is
       Value : constant String_Access := Getenv (Variable);
-      C     : Character;
-      L     : Debug_Level;
-
    begin
-      if Value = null or else Value.all = "" then
+      if Value = null or else Value.all /= "true" then
          return Not_Debugging;
       end if;
       if Current >= Debug_Key'Last then
@@ -158,23 +147,6 @@ package body System.Garlic.Debug is
       end if;
       Current := Current + 1;
       Banner_Map (Current) := new String'(Banner);
-      for Index in 1 .. Value'Length loop
-         C := Value (Index);
-         if C >= 'a' then
-            C := Character'Val (Character'Pos (C) - Character'Pos ('a') +
-                                Character'Pos ('A'));
-         end if;
-         if C = '+' then
-            for L in Debug_Level loop
-               Flags_Map (Current, L) := True;
-            end loop;
-         else
-            L := Reverse_Character_Map (C);
-            if L /= No_Debug then
-               Flags_Map (Current, L) := True;
-            end if;
-         end if;
-      end loop;
       return Current;
    end Debug_Initialize;
 
@@ -183,12 +155,11 @@ package body System.Garlic.Debug is
    ----------------
 
    function Debug_Mode
-     (Level : Debug_Level;
-      Key   : Debug_Key)
+     (Key   : Debug_Key)
       return Boolean
    is
    begin
-      return Key /= Not_Debugging and then Flags_Map (Key, Level);
+      return Key /= Not_Debugging and then Banner_Map (Key) /= null;
    end Debug_Mode;
 
    ------------------------------------
@@ -209,22 +180,14 @@ package body System.Garlic.Debug is
    ----------------------
 
    procedure Print_Debug_Info
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key)
    is
-      Banner : String_Access;
-      Flag   : Boolean;
    begin
       if Key /= Not_Debugging then
-         Banner := Banner_Map (Key);
-         Flag   := Flags_Map (Key, Level);
-         if Flag then
-            pragma Assert (Banner /= null);
-            Semaphore.P;
-            GNAT.IO.Put_Line (Banner.all & Message);
-            Semaphore.V;
-         end if;
+         Semaphore.P;
+         GNAT.IO.Put_Line (Banner_Map (Key).all & Message);
+         Semaphore.V;
       end if;
    end Print_Debug_Info;
 
@@ -255,9 +218,6 @@ package body System.Garlic.Debug is
    end Semaphore;
 
 begin
-   for Level in Debug_Level loop
-      Reverse_Character_Map (Debug_Letters (Level)) := Level;
-   end loop;
    if RTS_Sanity_Directory'Length /= 0 then
       Create_Termination_Sanity_File;
    end if;

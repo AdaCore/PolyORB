@@ -118,13 +118,12 @@ package body System.Garlic.Streams is
    ----------
 
    procedure Dump
-     (Level  : in System.Garlic.Debug.Debug_Level;
-      Stream : access Ada.Streams.Stream_Element_Array;
+     (Stream : access Ada.Streams.Stream_Element_Array;
       Key    : in System.Garlic.Debug.Debug_Key) is
       Index   : Natural := 1;
       Output  : Output_Line;
    begin
-      if Debug_Mode (Level, Key) then
+      if Debug_Mode (Key) then
          for I in Stream'Range loop
             Output (Index)     := ' ';
             Output (Index + 1) := Hex (Natural (Stream (I) / 16) + 1);
@@ -132,14 +131,14 @@ package body System.Garlic.Streams is
             Index := Index + 3;
 
             if Index > Output'Length then
-               Print_Debug_Info (Level, Output, Key);
+               Print_Debug_Info (Output, Key);
                Index := 1;
                Output := Nil;
             end if;
          end loop;
 
          if Index /= 1 then
-            Print_Debug_Info (Level, Output (1 .. Index - 1), Key);
+            Print_Debug_Info (Output (1 .. Index - 1), Key);
          end if;
       end if;
    end Dump;

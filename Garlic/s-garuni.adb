@@ -52,8 +52,7 @@ package body System.Garlic.Units is
      Debug_Initialize ("S_GARUNI", "(s-garuni): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -67,8 +66,6 @@ package body System.Garlic.Units is
    procedure Dump_Unit_Info
      (Unit : in Unit_Id;
       Info : in Unit_Info);
-
-   procedure Dump_Unit_Table;
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -179,16 +176,16 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info) is
    begin
-      D (D_Dump, "* Unit " & Units.Get_Name (Unit));
-      D (D_Dump, "   Partition    "  & Info.Partition'Img);
-      D (D_Dump, "   Receiver     "  & Info.Receiver'Img);
+      D ("* Unit " & Units.Get_Name (Unit));
+      D ("   Partition    "  & Info.Partition'Img);
+      D ("   Receiver     "  & Info.Receiver'Img);
       if Info.Version /= null then
-         D (D_Dump, "   Version       " & Info.Version.all);
+         D ("   Version       " & Info.Version.all);
       else
-         D (D_Dump, "   Version       <no version>");
+         D ("   Version       <no version>");
       end if;
-      D (D_Dump, "   Status        " & Info.Status'Img);
-      D (D_Dump, "   Next Unit    " & Info.Next_Unit'Img);
+      D ("   Status        " & Info.Status'Img);
+      D ("   Next Unit    " & Info.Next_Unit'Img);
    end Dump_Unit_Info;
 
    ---------------------
@@ -200,12 +197,12 @@ package body System.Garlic.Units is
       Unit : Unit_Id;
       Info : Unit_Info;
    begin
-      D (D_Dump, "Unit Info Table");
-      D (D_Dump, "---------------");
+      D ("Unit Info Table");
+      D ("---------------");
       for P in Units_Per_Partition'Range loop
          Unit := Units_Per_Partition (P);
          if Unit /= Null_Unit_Id then
-            D (D_Dump, "** Partition" & P'Img);
+            D ("** Partition" & P'Img);
          end if;
          while Unit /= Null_Unit_Id loop
             Info := Units.Get_Component (Unit);
@@ -234,9 +231,8 @@ package body System.Garlic.Units is
          exit when Current.Status in Defined .. Invalid;
 
          pragma Debug
-           (D (D_Debug,
-               "Looking for information on unit "&  Units.Get_Name (Unit)));
-         Dump_Unit_Info (Unit, Current);
+           (D ("Looking for information on unit "&  Units.Get_Name (Unit)));
+         pragma Debug (Dump_Unit_Info (Unit, Current));
 
          Units.Enter;
          Current := Units.Get_Component (Unit);
@@ -291,8 +287,7 @@ package body System.Garlic.Units is
       Request := Request_Type'Input (Query);
 
       pragma Debug
-        (D (D_Warning,
-            "Receive from partition" & Partition'Img &
+        (D ("Receive from partition" & Partition'Img &
             " request " & Request.Kind'Img));
 
       Units.Enter;
@@ -310,16 +305,14 @@ package body System.Garlic.Units is
 
             case Info.Status is
                when Defined | Invalid =>
-                  pragma Debug
-                    (D (D_Debug, Units.Get_Name (Unit) & " is known"));
+                  pragma Debug (D (Units.Get_Name (Unit) & " is known"));
 
                   Request_Type'Output (Reply, Push_Units);
                   Write_Units (Reply);
 
                when Declared | Undefined =>
                   pragma Debug
-                    (D (D_Debug,
-                        "Queuing request from" & Partition'Img &
+                    (D ("Queuing request from" & Partition'Img &
                         " on " & Units.Get_Name (Unit)));
 
                   --  Queue this request in order to answer it when info is
@@ -397,7 +390,7 @@ package body System.Garlic.Units is
          Write_Units (Token'Access);
       end if;
 
-      Dump_Unit_Table;
+      pragma Debug (Dump_Unit_Table);
 
       Units.Leave;
 
@@ -491,8 +484,7 @@ package body System.Garlic.Units is
          Info.Status := Status;
 
          pragma Debug
-           (D (D_Debug,
-               "RCI unit " & Units.Get_Name (Unit) &
+           (D ("RCI unit " & Units.Get_Name (Unit) &
                " status is now " & Status'Img));
 
          Units.Set_Component (Unit, Info);
@@ -517,12 +509,12 @@ package body System.Garlic.Units is
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, Partition);
          pragma Debug
-           (D (D_Debug, "Read units mapped on partition" & Partition'Img));
+           (D ("Read units mapped on partition" & Partition'Img));
 
          while Boolean'Input (Stream) loop
             Unit := Units.Get_Index (String'Input (Stream));
             pragma Debug
-              (D (D_Debug, "Read unit info about " & Units.Get_Name (Unit)));
+              (D ("Read unit info about " & Units.Get_Name (Unit)));
 
             Unsigned_64'Read (Stream, Receiver);
             Version := new String'(String'Input (Stream));
@@ -569,7 +561,7 @@ package body System.Garlic.Units is
       end if;
 
       while Node /= null loop
-         pragma Debug (D (D_Debug, "Register unit " & Node.Name.all));
+         pragma Debug (D ("Register unit " & Node.Name.all));
 
          Boolean'Write     (Query'Access, True);
          String'Output     (Query'Access, Node.Name.all);
@@ -748,8 +740,7 @@ package body System.Garlic.Units is
       if New_Unit_Info.Status in Declared .. Invalid then
          if Previous_Unit = Null_Unit_Id then
             pragma Debug
-              (D (D_Debug,
-                  "Add new unit " & Units.Get_Name (Unit) &
+              (D ("Add new unit " & Units.Get_Name (Unit) &
                   " to partition" & Partition'Img));
 
             New_Unit_Info.Next_Unit := Units_Per_Partition (Partition);

@@ -40,8 +40,7 @@ package body System.Garlic.Soft_Links is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GASOLI", "(s-gasoli): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -68,10 +67,10 @@ package body System.Garlic.Soft_Links is
       procedure Call is
       begin
          if Var /= null then
-            pragma Debug (D (D_Debug, Name & ": exec call"));
+            pragma Debug (D (Name & ": exec call"));
             Var.all;
          else
-            pragma Debug (D (D_Debug, Name & ": fake call"));
+            pragma Debug (D (Name & ": fake call"));
             null;
          end if;
       end Call;
@@ -82,7 +81,7 @@ package body System.Garlic.Soft_Links is
 
       procedure Register (P : in Parameterless_Procedure) is
       begin
-         pragma Debug (D (D_Debug, Name & ": register"));
+         pragma Debug (D (Name & ": register"));
          Var := P;
       end Register;
 

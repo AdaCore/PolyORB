@@ -54,8 +54,7 @@ package body System.Garlic.Non_Blocking is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GANOBL", "(s-ganobl): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -196,9 +195,7 @@ package body System.Garlic.Non_Blocking is
       begin
 
          pragma Debug
-           (D (D_Debug,
-               "Entry recv on" & RRFD'Img &
-               " for" & Len'Img & " bytes"));
+           (D ("Entry recv on" & RRFD'Img & " for" & Len'Img & " bytes"));
 
          --  We have to handle len = 0 separatly because recv does
          --  not behave the same way on different platforms.
@@ -211,10 +208,10 @@ package body System.Garlic.Non_Blocking is
             Empty := not R_Mask;
          else
             Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
-            pragma Debug (D (D_Debug, "length = " & Len'Img));
-            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            pragma Debug (D ("length = " & Len'Img));
+            pragma Debug (D ("dummy  = " & Dummy'Img));
             if Dummy < 0 then
-               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               pragma Debug (D ("errno  = " & Errno'Img));
                null;
             end if;
             if Dummy < 0 then
@@ -257,8 +254,7 @@ package body System.Garlic.Non_Blocking is
       begin
 
          pragma Debug
-           (D (D_Debug,
-               "Entry recv_requeue on" & RRFD'Img &
+           (D ("Entry recv_requeue on" & RRFD'Img &
                " for" & Len'Img & " bytes"));
 
          if Len = 0 then
@@ -266,10 +262,10 @@ package body System.Garlic.Non_Blocking is
             Empty  := False;
          else
             Dummy  := Thin.C_Recv (RRFD, Buf, Len, Flags);
-            pragma Debug (D (D_Debug, "length = " & Len'Img));
-            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            pragma Debug (D ("length = " & Len'Img));
+            pragma Debug (D ("dummy  = " & Dummy'Img));
             if Dummy < 0 then
-               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               pragma Debug (D ("errno  = " & Errno'Img));
                null;
             end if;
             if Dummy < 0 then
@@ -339,9 +335,7 @@ package body System.Garlic.Non_Blocking is
       begin
 
          pragma Debug
-           (D (D_Debug,
-               "Entry send on" & RSFD'Img &
-               " for" & Len'Img & " bytes"));
+           (D ("Entry send on" & RSFD'Img & " for" & Len'Img & " bytes"));
 
          --  We have to handle len = 0 separatly because send does
          --  not behave the same way on different platforms.
@@ -352,10 +346,10 @@ package body System.Garlic.Non_Blocking is
             Empty := not S_Mask;
          else
             Dummy  := Thin.C_Send (RSFD, Buf, Len, Flags);
-            pragma Debug (D (D_Debug, "length = " & Len'Img));
-            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            pragma Debug (D ("length = " & Len'Img));
+            pragma Debug (D ("dummy  = " & Dummy'Img));
             if Dummy < 0 then
-               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               pragma Debug (D ("errno  = " & Errno'Img));
                null;
             end if;
             if Dummy > 0 then
@@ -393,8 +387,7 @@ package body System.Garlic.Non_Blocking is
       begin
 
          pragma Debug
-           (D (D_Debug,
-               "Entry send_requeue on" & RSFD'Img &
+           (D ("Entry send_requeue on" & RSFD'Img &
                " for" & Len'Img & " bytes"));
 
          if Len = 0 then
@@ -402,10 +395,10 @@ package body System.Garlic.Non_Blocking is
             Empty := False;
          else
             Dummy  := Thin.C_Send (RSFD, Buf, Len, Flags);
-            pragma Debug (D (D_Debug, "length = " & Len'Img));
-            pragma Debug (D (D_Debug, "dummy  = " & Dummy'Img));
+            pragma Debug (D ("length = " & Len'Img));
+            pragma Debug (D ("dummy  = " & Dummy'Img));
             if Dummy < 0 then
-               pragma Debug (D (D_Debug, "errno  = " & Errno'Img));
+               pragma Debug (D ("errno  = " & Errno'Img));
                null;
             end if;
             if Dummy > 0 then
@@ -451,9 +444,9 @@ package body System.Garlic.Non_Blocking is
       Return_FD : int;
    begin
       Set_Asynchronous_Non_Blocking (S);
-      pragma Debug (D (D_Debug, "Blocking until something to accept"));
+      pragma Debug (D ("Blocking until something to accept"));
       Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
-      pragma Debug (D (D_Debug, "There is something to accept"));
+      pragma Debug (D ("There is something to accept"));
       Return_FD := Thin.C_Accept (S, Addr, Addrlen);
       Set_Asynchronous_Non_Blocking (Return_FD);
       return Return_FD;
@@ -466,7 +459,7 @@ package body System.Garlic.Non_Blocking is
    function C_Close (Fildes : C.int) return C.int is
    begin
       In_Use (Fildes) := False;
-      pragma Debug (D (D_Debug, "Close on " & Fildes'Img));
+      pragma Debug (D ("Close on " & Fildes'Img));
       return Thin.C_Close (Fildes);
    end C_Close;
 
@@ -486,8 +479,7 @@ package body System.Garlic.Non_Blocking is
       Set_Asynchronous_Non_Blocking (S);
       Dummy := Thin.C_Connect (S, Name, Namelen);
       pragma Debug
-        (D (D_Debug,
-            "Connect (first) return code is" & C.int'Image (Dummy) &
+        (D ("Connect (first) return code is" & C.int'Image (Dummy) &
             " and errno is" & Integer'Image (Errno)));
       if Dummy /= Thin.Failure or else
         Errno /= Einprogress then
@@ -496,8 +488,7 @@ package body System.Garlic.Non_Blocking is
       Asynchronous.Send (S) (Dummy_CP, 0, 0, Dummy);
       Dummy := Thin.C_Connect (S, Name, Namelen);
       pragma Debug
-        (D (D_Debug,
-            "Connect return code is" & C.int'Image (Dummy) &
+        (D ("Connect return code is" & C.int'Image (Dummy) &
             " and errno is" & Integer'Image (Errno)));
       if Dummy = Thin.Failure and then Errno = Eisconn then
          In_Use (S) := True;
@@ -520,7 +511,7 @@ package body System.Garlic.Non_Blocking is
      return int is
       Count : int;
    begin
-      pragma Debug (D (D_Debug, "Recv on " & S'Img));
+      pragma Debug (D ("Recv on " & S'Img));
       In_Use (S) := True;
       Asynchronous.Recv (S) (Buf, Len, Flags, Count);
       return Count;
@@ -538,7 +529,7 @@ package body System.Garlic.Non_Blocking is
      return C.int is
       Count : int;
    begin
-      pragma Debug (D (D_Debug, "Send on " & S'Img));
+      pragma Debug (D ("Send on " & S'Img));
       In_Use (S) := True;
       Asynchronous.Send (S) (Buf, Len, Flags, Count);
       return Count;
@@ -582,14 +573,14 @@ package body System.Garlic.Non_Blocking is
 
          if R_Mask then
             Rfds := 2 ** Integer (Socket);
-            pragma Debug (D (D_Debug, "select recv :" & Socket'Img));
+            pragma Debug (D ("select recv :" & Socket'Img));
          else
             Rfds := 0;
          end if;
 
          if S_Mask then
             Sfds := 2 ** Integer (Socket);
-            pragma Debug (D (D_Debug, "select send :" & Socket'Img));
+            pragma Debug (D ("select send :" & Socket'Img));
          else
             Sfds := 0;
          end if;
@@ -600,7 +591,7 @@ package body System.Garlic.Non_Blocking is
                               Sfds'Unchecked_Access,
                               null,
                               Timeout'Unchecked_Access);
-         pragma Debug (D (D_Debug, "select value :" & Dummy'Img));
+         pragma Debug (D ("select value :" & Dummy'Img));
 
          R_Mask := Rfds /= 0;
          S_Mask := Sfds /= 0;
@@ -625,9 +616,9 @@ package body System.Garlic.Non_Blocking is
    begin
       Soft_Links.Add_Non_Terminating_Task;
       while Continue loop
-         pragma Debug (D (D_Debug, "Before SIGIO"));
+         pragma Debug (D ("Before SIGIO"));
          Sigio.Wait;
-         pragma Debug (D (D_Debug, "After  SIGIO"));
+         pragma Debug (D ("After  SIGIO"));
 
          Asynchronous.Get_Masks (RFD, SFD, Max);
 
@@ -645,7 +636,7 @@ package body System.Garlic.Non_Blocking is
             Continue := False;
             for FD in In_Use'Range loop
                if In_Use (FD) then
-                  pragma Debug (D (D_Debug, "Use " & FD'Img));
+                  pragma Debug (D ("Use " & FD'Img));
                   Continue := True;
                   exit;
                end if;
@@ -653,13 +644,12 @@ package body System.Garlic.Non_Blocking is
             Shutdown := not Continue;
          end if;
       end loop;
-      pragma Debug (D (D_Debug, "Selection terminated"));
+      pragma Debug (D ("Selection terminated"));
       Soft_Links.Sub_Non_Terminating_Task;
    exception
       when E : others =>
          pragma Warnings (Off, E);
-         pragma Debug
-           (D (D_Debug, Exception_Name (E) & " received in Selection"));
+         pragma Debug (D (Exception_Name (E) & " received in Selection"));
          Soft_Links.Sub_Non_Terminating_Task;
    end Selection;
 
@@ -676,13 +666,13 @@ package body System.Garlic.Non_Blocking is
          end if;
       end if;
 
-      pragma Debug (D (D_Debug, "Set asynchronous non-blocking"));
+      pragma Debug (D ("Set asynchronous non-blocking"));
       if not SVR4_Stream_IO then
          --  Use an alternate method for SVR4
 
-         pragma Debug (D (D_Debug, "Set flag fasync or fndelay"));
+         pragma Debug (D ("Set flag fasync or fndelay"));
          Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync + Fndelay);
-         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
+         pragma Debug (D ("Return " & Dummy'Img));
 
       elsif I_Setsig /= -1
         and then S_Rdnorm /= -1
@@ -690,12 +680,12 @@ package body System.Garlic.Non_Blocking is
       then
          --  Use an alternate method for SVR4
 
-         pragma Debug (D (D_Debug, "Set non-blocking with alternate method"));
+         pragma Debug (D ("Set non-blocking with alternate method"));
          Dummy := Thin.C_Fcntl (FD, F_Setfl, Fndelay);
-         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
-         pragma Debug (D (D_Debug, "Set asynchronous with alternate method"));
+         pragma Debug (D ("Return " & Dummy'Img));
+         pragma Debug (D ("Set asynchronous with alternate method"));
          Dummy := Thin.C_Ioctl (FD, I_Setsig, S_Rdnorm + S_Wrnorm);
-         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
+         pragma Debug (D ("Return " & Dummy'Img));
       end if;
    end Set_Asynchronous_Non_Blocking;
 
@@ -756,19 +746,19 @@ package body System.Garlic.Non_Blocking is
       Soft_Links.Add_Non_Terminating_Task;
       while not Shutdown loop
          delay Safety_Delay;
-         pragma Debug (D (D_Debug, "Simulate SIGIO"));
+         pragma Debug (D ("Simulate SIGIO"));
          Sigio.Timeout;
       end loop;
       Sigio.Stats (Signals, Timeouts);
-      pragma Debug (D (D_Debug, "signals  =" & Signals'Img));
-      pragma Debug (D (D_Debug, "timeouts =" & Timeouts'Img));
+      pragma Debug (D ("signals  =" & Signals'Img));
+      pragma Debug (D ("timeouts =" & Timeouts'Img));
       Soft_Links.Sub_Non_Terminating_Task;
 
    exception
       when E : others =>
          pragma Warnings (Off, E);
          pragma Debug
-           (D (D_Debug, Exception_Name (E) & " received in Sigio_Simulation"));
+           (D (Exception_Name (E) & " received in Sigio_Simulation"));
          Soft_Links.Sub_Non_Terminating_Task;
    end Sigio_Simulation;
 

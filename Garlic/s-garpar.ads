@@ -120,10 +120,7 @@ package System.Garlic.Partitions is
       return Types.Partition_ID;
    --  Return the pid of the partition used to boot Partition.
 
-   procedure Dump_Partition_Info
-     (PID  : in Types.Partition_ID;
-      Info : in Partition_Info);
-   --  Dump a summary of all the information we have on a partition
+   procedure Dump_Partition_Table;
 
    function Get_Boot_Server return String;
    --  This function returns the coordinates of the boot server

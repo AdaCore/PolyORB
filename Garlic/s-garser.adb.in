@@ -34,19 +34,10 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Options;
-with System.Garlic.Debug; use System.Garlic.Debug;
 
 @LAUNCHING_INCLUDED@with System.Garlic.Remote;
 
 package body System.Garlic.Services is
-
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("SERVICES", "(s-garser): ");
-   procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
 
    ----------------
    -- Initialize --
@@ -55,9 +46,6 @@ package body System.Garlic.Services is
    procedure Initialize is
    begin
       if Options.Detach then
-         pragma Debug
-            (D (D_Elaborate,
-                "Detaching, you won't see any more debug messages"));
          @LAUNCHING_INCLUDED@Remote.Detach;
          null;
       end if;

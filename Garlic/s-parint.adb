@@ -58,8 +58,7 @@ package body System.Partition_Interface is
      Debug_Initialize ("S_PARINT", "(s-parint): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -226,7 +225,7 @@ package body System.Partition_Interface is
       I : Unit_Info;
       E : aliased Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
+      pragma Debug (D ("Request Get_Active_Partition_ID"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
@@ -235,6 +234,8 @@ package body System.Partition_Interface is
       if Found (E) then
          Raise_Communication_Error (E'Access);
       end if;
+
+      D ("Unit " & N & " is configured on" & I.Partition'Img);
 
       return RPC.Partition_ID (I.Partition);
    end Get_Active_Partition_ID;
@@ -252,7 +253,7 @@ package body System.Partition_Interface is
       I : Unit_Info;
       E : aliased Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Request Get_Active_Version"));
+      pragma Debug (D ("Request Get_Active_Version"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
@@ -326,7 +327,7 @@ package body System.Partition_Interface is
       I : Unit_Info;
       E : aliased Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
+      pragma Debug (D ("Request Get_Package_Receiver"));
 
       To_Lower (N);
       U := Units.Get_Index (N);
@@ -458,7 +459,7 @@ package body System.Partition_Interface is
    is
       N : String := Name;
    begin
-      pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
+      pragma Debug (D ("Request Register_Receiving_Stub"));
 
       To_Lower (N);
       Register_Unit
@@ -533,25 +534,20 @@ package body System.Partition_Interface is
       Dummy   : Caller_List;
       Error   : aliased Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Complete elaboration"));
       System.Garlic.Heart.Complete_Elaboration;
+      D ("Complete elaboration");
 
       Register_Units_On_Boot_Server (Error);
       if Found (Error) then
          Raise_Communication_Error (Error'Access);
       end if;
 
-      pragma Debug (D (D_Debug, "Establish RPC Receiver"));
       RPC.Establish_RPC_Receiver (RPC.Partition_ID (Self_PID), null);
 
       while Caller /= null loop
-         pragma Debug (D (D_Debug, "Check " & Caller.Name.all &
-                          " version consistency"));
+         D ("Check " & Caller.Name.all & " version consistency");
          if Different (Caller.Version.all,
                        Get_Unit_Version (Caller.Name.all, Caller.RCI)) then
-
-            pragma Debug (D (D_Debug, "Versions differ for unit """ &
-                             Caller.Name.all & """"));
 
             --  If not boot partition, then terminate without waiting for
             --  boot partition request.
@@ -573,20 +569,24 @@ package body System.Partition_Interface is
          Free (Dummy);
       end loop;
 
-      pragma Debug (D (D_Debug, "Execute main suprogram"));
+      if Debug_Mode (Private_Debug_Key) then
+         Dump_Partition_Table;
+         Dump_Unit_Table;
+      end if;
+
+      D ("Execute partition main subprogram");
       if Main /= null then
          Main.all;
       end if;
 
-      pragma Debug (D (D_Debug, "Complete termination"));
+      D ("Watch for termination");
       Complete_Termination (System.Garlic.Options.Termination);
 
    exception
       when E : others =>
-         pragma Warnings (Off, E);
-         pragma Debug (D (D_Exception, "Run: " & Exception_Information (E)));
-         pragma Debug (D (D_Debug,
-                          "Complete termination after handling exception"));
+         D ("Handle exception " & Exception_Name (E) &
+            " in partition main subprogram");
+         D ("Watch for termination");
          Complete_Termination (System.Garlic.Options.Termination);
          raise;
    end Run;

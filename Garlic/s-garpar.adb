@@ -52,8 +52,7 @@ package body System.Garlic.Partitions is
      Debug_Initialize ("S_GARPAR", "(s-garpar): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -69,12 +68,15 @@ package body System.Garlic.Partitions is
    --  Internal allocation. From indicates the partition that initiated
    --  the allocation process.
 
+   procedure Dump_Partition_Info
+     (PID  : in Types.Partition_ID;
+      Info : in Partition_Info);
+   --  Dump a summary of all the information we have on a partition
+
    procedure Merge (Old_Info, New_Info : in out Partition_Info);
    --  Solve conflicts between current and incoming info. Conflicts are
    --  rather slight because invalidated and restarted partitions have
    --  different pid.
-
-   procedure Dump_Partition_Table;
 
    Copy_Table : constant Request_Type := (Kind => Copy_Partition_Table);
    Pull_Table : constant Request_Type := (Kind => Pull_Partition_Table);
@@ -116,8 +118,7 @@ package body System.Garlic.Partitions is
       Allocator_Value := Allocate (Self_PID);
       Partitions.Leave;
 
-      pragma Debug
-        (D (D_Warning, "Propose new partition" & Allocator_Value'Img));
+      pragma Debug (D ("Propose new partition" & Allocator_Value'Img));
 
       Request_Type'Output
         (Query'Access, (Compute_Partition_ID, Allocator_Value));
@@ -127,8 +128,7 @@ package body System.Garlic.Partitions is
          Wait (Allocator_Ready);
          Partition := Allocator_Value;
 
-         pragma Debug
-           (D (D_Warning, "Validate new partition" & Allocator_Value'Img));
+         pragma Debug (D ("Validate new partition" & Allocator_Value'Img));
       end if;
 
       Leave (Allocator_Mutex);
@@ -156,20 +156,20 @@ package body System.Garlic.Partitions is
      (PID  : in Partition_ID;
       Info : in Partition_Info) is
    begin
-      D (D_Dump, "* Partition" & PID'Img);
+      D ("* Partition" & PID'Img);
       if Info.Logical_Name /= null then
-         D (D_Dump, "  Name           " & Info.Logical_Name.all);
+         D ("  Name           " & Info.Logical_Name.all);
       else
-         D (D_Dump, "  Name           <newly allocated>");
+         D ("  Name           <newly allocated>");
          return;
       end if;
-      D (D_Dump, "  Allocated      " & Info.Allocated'Img);
-      D (D_Dump, "  Location       " & To_String (Info.Location));
-      D (D_Dump, "  Termination    " & Info.Termination'Img);
-      D (D_Dump, "  Reconnection   " & Info.Reconnection'Img);
-      D (D_Dump, "  Is_Boot_Mirror " & Info.Is_Boot_Mirror'Img);
-      D (D_Dump, "  Boot_Partition"  & Info.Boot_Partition'Img);
-      D (D_Dump, "  Status:        " & Status_Type'Image (Info.Status));
+      D ("  Allocated      " & Info.Allocated'Img);
+      D ("  Location       " & To_String (Info.Location));
+      D ("  Termination    " & Info.Termination'Img);
+      D ("  Reconnection   " & Info.Reconnection'Img);
+      D ("  Is_Boot_Mirror " & Info.Is_Boot_Mirror'Img);
+      D ("  Boot_Partition"  & Info.Boot_Partition'Img);
+      D ("  Status:        " & Status_Type'Image (Info.Status));
    end Dump_Partition_Info;
 
    --------------------------
@@ -178,8 +178,8 @@ package body System.Garlic.Partitions is
 
    procedure Dump_Partition_Table is
    begin
-      D (D_Dump, "Partition Info Table");
-      D (D_Dump, "--------------------");
+      D ("Partition Info Table");
+      D ("--------------------");
       for P in Partitions.Table'Range loop
          if Partitions.Table (P).Allocated then
             Dump_Partition_Info (P, Partitions.Get_Component (P));
@@ -268,8 +268,7 @@ package body System.Garlic.Partitions is
          exit when Current.Status in Done .. Dead;
 
          pragma Debug
-           (D (D_Debug,
-               "Looking for information on partition" & Partition'Img));
+           (D ("Looking for information on partition" & Partition'Img));
 
          Partitions.Enter;
          Current := Partitions.Get_Component (Partition);
@@ -378,8 +377,7 @@ package body System.Garlic.Partitions is
       Request := Request_Type'Input (Query);
 
       pragma Debug
-        (D (D_Warning,
-            "Receive from partition" & Partition'Img &
+        (D ("Receive from partition" & Partition'Img &
             " request " & Request.Kind'Img));
 
       --  Suspend any request different from a push table request until
@@ -388,7 +386,7 @@ package body System.Garlic.Partitions is
       if Self_PID = Null_PID
         and then Request.Kind /= Push_Partition_Table
       then
-         pragma Debug (D (D_Debug, "Postpone request until pid is known"));
+         pragma Debug (D ("Postpone request until pid is known"));
 
          Wait_For_My_Partition_ID;
       end if;
@@ -397,23 +395,20 @@ package body System.Garlic.Partitions is
       case Request.Kind is
 
          when Copy_Partition_Table =>
-            pragma Debug
-              (D (D_Debug, "Copy partition table from" & Partition'Img));
+            pragma Debug (D ("Copy partition table from" & Partition'Img));
 
             --  Broadcast to any partition in the group. This is step 8.
 
             Read_Partitions  (Query);
             if Partition /= Self_PID then
-               pragma Debug
-                 (D (D_Debug, "Send partition table to group"));
+               pragma Debug (D ("Send partition table to group"));
 
                Request_Type'Output (Query, Copy_Table);
                Write_Partitions    (Query);
             end if;
 
          when Pull_Partition_Table =>
-            pragma Debug
-              (D (D_Debug, "Push partition table to" & Partition'Img));
+            pragma Debug (D ("Push partition table to" & Partition'Img));
 
             Request_Type'Output (Reply, (Push_Partition_Table, Null_PID));
             Write_Partitions    (Reply);
@@ -426,8 +421,7 @@ package body System.Garlic.Partitions is
             end if;
 
          when Define_New_Partition =>
-            pragma Debug
-              (D (D_Debug, "Define new partition" & Partition'Img));
+            pragma Debug (D ("Define new partition" & Partition'Img));
 
             if Options.Is_Boot_Mirror then
 
@@ -441,8 +435,7 @@ package body System.Garlic.Partitions is
 
                Partitions.Set_Component (Partition, Request.Info);
 
-               pragma Debug
-                 (D (D_Debug, "Send partition table to group"));
+               pragma Debug (D ("Send partition table to group"));
 
                Request_Type'Output (To_All'Access, Copy_Table);
                Write_Partitions    (To_All'Access);
@@ -451,14 +444,13 @@ package body System.Garlic.Partitions is
             --  Reply to a partition declaration with a set partition
             --  info request. This is step 3 for boot partition.
 
-            pragma Debug
-              (D (D_Debug, "Send partition table back to" & Partition'Img));
+            pragma Debug (D ("Send partition table back to" & Partition'Img));
 
             Request_Type'Output (Reply, (Push_Partition_Table, Partition));
             Write_Partitions    (Reply);
 
          when Push_Partition_Table =>
-            pragma Debug (D (D_Debug, "Push partition table"));
+            pragma Debug (D ("Push partition table"));
 
             Read_Partitions (Query);
 
@@ -499,15 +491,14 @@ package body System.Garlic.Partitions is
                   --  send an add partition info request. This is step 7.
 
                   if Info.Is_Boot_Mirror then
-                     pragma Debug
-                       (D (D_Debug, "Send partition table to group"));
+                     pragma Debug (D ("Send partition table to group"));
 
                      Request_Type'Output (To_All'Access, Copy_Table);
                      Write_Partitions    (To_All'Access);
                   end if;
 
                else
-                  pragma Debug (D (D_Debug, "Waiting for boot mirrors"));
+                  pragma Debug (D ("Waiting for boot mirrors"));
                   delay 2.0;
 
                   Request_Type'Output (Reply, Pull_Table);
@@ -516,7 +507,7 @@ package body System.Garlic.Partitions is
 
       end case;
 
-      Dump_Partition_Table;
+      pragma Debug (Dump_Partition_Table);
 
       Partitions.Leave;
 
@@ -565,7 +556,7 @@ package body System.Garlic.Partitions is
          end loop;
 
          if Mirror /= Last_PID then
-            pragma Debug (D (D_Debug, "New boot PID is" & Mirror'Img));
+            pragma Debug (D ("New boot PID is" & Mirror'Img));
 
             Boot_PID := Mirror;
             if Boot_PID = Self_PID then
@@ -631,7 +622,7 @@ package body System.Garlic.Partitions is
       Partitions.Leave;
 
       pragma Debug
-        (D (D_Debug, "Partition next to" & Partition'Img & " is" & Next'Img));
+        (D ("Partition next to" & Partition'Img & " is" & Next'Img));
 
       Partition := Next;
    end Next_Partition;
@@ -763,9 +754,7 @@ package body System.Garlic.Partitions is
       end if;
 
       pragma Debug
-        (D (D_Warning,
-            "Approve new PID" & PID'Img &
-            " proposed by PID" & From'Img));
+        (D ("Approve new PID" & PID'Img & " proposed by PID" & From'Img));
 
       --  We are back on the partition that initiated the allocation process.
 
@@ -800,7 +789,7 @@ package body System.Garlic.Partitions is
 
       Leave_Critical_Section;
 
-      Dump_Partition_Table;
+      pragma Debug (Dump_Partition_Table);
    end Write_Partitions;
 
 begin

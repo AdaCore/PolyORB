@@ -43,8 +43,7 @@ package body System.Garlic.Physical_Location is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GAPHLO", "(s-gaphlo): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -240,13 +239,13 @@ package body System.Garlic.Physical_Location is
 
    procedure Shutdown is
    begin
-      pragma Debug (D (D_Debug, "Initiating protocols shutdown"));
+      pragma Debug (D ("Initiating protocols shutdown"));
       for I in Protocols_List'Range loop
          if Protocols_List (I) /= null then
             Shutdown (Protocols_List (I));
          end if;
       end loop;
-      pragma Debug (D (D_Debug, "Protocols shutdown completed"));
+      pragma Debug (D ("Protocols shutdown completed"));
    end Shutdown;
 
    -----------------

@@ -63,8 +63,7 @@ package body System.Garlic.Startup is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARSTA", "(s-garsta): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -73,7 +72,7 @@ package body System.Garlic.Startup is
 
 begin
 
-   pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
+   pragma Debug (D ("Entering partition startup phase"));
 
    --  Phase (0) (see s-garlic.ads)
 
@@ -183,7 +182,7 @@ begin
       Raise_Communication_Error (Error);
    end if;
 
-   pragma Debug (D (D_Elaborate, "Startup phase terminated"));
+   pragma Debug (D ("Startup phase terminated"));
 
 end System.Garlic.Startup;
 

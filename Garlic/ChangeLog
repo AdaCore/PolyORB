@@ -1,3 +1,14 @@
+1998-12-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gardeb.adb, s-gardeb.ads: Change debugging facilities. Reduce
+	to only one debugging level. A debugging env variable has be set
+	to "true" to be active.
+	
+	* all files: Adapt to new debugging facilities.
+
+	* s-rpc.adb, s-parint.adb: Debugging facilities are always present 
+	even when GLADE ws not configured with --enable-debug.
+
 1998-12-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Add comments in Initialize.

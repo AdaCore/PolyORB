@@ -44,8 +44,7 @@ package body System.Garlic.Table is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTAB", "(s-gartab): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 

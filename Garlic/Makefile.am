@@ -367,7 +367,7 @@ s-garuni.o: s-garlic.ads s-gardeb.ads s-gargro.ads s-garhea.ads s-ganata.ads s-g
 s-garuti.o: s-garlic.ads s-gardeb.ads s-garuti.ads s-garuti.adb
 s-gasoli.o: s-garlic.ads s-gardeb.ads s-gasoli.ads s-gasoli.adb
 s-gatcop.o: s-garlic.ads s-gardeb.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-gatcop.ads s-garthi.ads s-gartyp.ads s-garuti.ads
-s-gtplsp.o: s-garlic.ads s-gtplsp.ads
+s-gtplsp.o: s-garlic.ads s-gtplsp.ads s-garthi.ads
 s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-garpar.ads s-gaphlo.ads s-garpro.ads s-garrem.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
 s-rpc.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-gasoli.ads s-garsta.ads s-gastha.ads s-garstr.ads s-gartab.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-rpc.ads s-rpc.adb s-rpcpoo.ads s-rpstio.ads
 s-rpcpoo.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gasoli.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpcpoo.ads s-rpcpoo.adb

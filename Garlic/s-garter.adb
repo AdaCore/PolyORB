@@ -44,7 +44,7 @@ with System.Garlic.Types;         use System.Garlic.Types;
 with System.Garlic.Utils;         use System.Garlic.Utils;
 
 with System.Task_Primitives.Operations;
-with System.Tasking.Debug;    use System.Tasking, System.Tasking.Debug;
+with System.Tasking.Debug;        use System.Tasking, System.Tasking.Debug;
 with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Utilities);
@@ -54,8 +54,7 @@ package body System.Garlic.Termination is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTER", "(s-garter): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -122,6 +121,8 @@ package body System.Garlic.Termination is
    --  Terminate when Garlic tasks and the environment task are the only
    --  active tasks. Don't bother with other partitions.
 
+   procedure Dump_Task_Table;
+
    procedure Send
      (PID   : in Partition_ID;
       Code  : in Termination_Code;
@@ -167,13 +168,7 @@ package body System.Garlic.Termination is
       Total := Environment_Task.Awake_Count
         - Non_Terminating_Tasks
         - Independent_Task_Count;
-      if Debug_Mode (D_Debug, Private_Debug_Key) then
-         List_Tasks;
-      end if;
-      pragma Debug (D (D_Debug, "awake =" & Environment_Task.Awake_Count'Img));
-      pragma Debug (D (D_Debug, "count =" & Non_Terminating_Tasks'Img));
-      pragma Debug (D (D_Debug, "indep =" & Independent_Task_Count'Img));
-      pragma Debug (D (D_Debug, "total =" & Total'Img));
+      pragma Debug (Dump_Task_Table);
       return Total;
    end Get_Active_Task_Count;
 
@@ -202,7 +197,7 @@ package body System.Garlic.Termination is
 
          delay Time_Between_Checks;
       end loop;
-      pragma Debug (D (D_Debug, "Local termination detected"));
+      pragma Debug (D ("Local termination detected"));
       Heart.Soft_Shutdown;
    end Local_Termination;
 
@@ -260,10 +255,10 @@ package body System.Garlic.Termination is
                  and then Get_Active_Task_Count = 2
                  and then Options.Termination /= Deferred_Termination
                then
-                  pragma Debug (D (D_Debug, "Partition can terminate"));
+                  pragma Debug (D ("Partition can terminate"));
                   Termination_Code'Write (Reply, Positive_Ack);
                else
-                  pragma Debug (D (D_Debug, "Partition cannot terminate"));
+                  pragma Debug (D ("Partition cannot terminate"));
                   Termination_Code'Write (Reply, Negative_Ack);
                end if;
                Stamp_Type'Write (Reply, Stamp);
@@ -292,6 +287,20 @@ package body System.Garlic.Termination is
 
       end case;
    end Handle_Request;
+
+   ----------------------
+   -- Dump_Task_Table --
+   ----------------------
+
+   procedure Dump_Task_Table is
+   begin
+      if Debug_Mode (Private_Debug_Key) then
+         List_Tasks;
+         D ("awake =" & Environment_Task.Awake_Count'Img);
+         D ("count =" & Non_Terminating_Tasks'Img);
+         D ("indep =" & Independent_Task_Count'Img);
+      end if;
+   end Dump_Task_Table;
 
    ----------
    -- Send --
@@ -353,7 +362,7 @@ package body System.Garlic.Termination is
 
          --  Wait for a given time
 
-         pragma Debug (D (D_Debug, "Waiting for some time"));
+         pragma Debug (D ("Waiting for some time"));
 
          --  The following block may cause an additionnal delay of
          --  Time_Between_Checks before the shutdown, but it will only
@@ -395,8 +404,7 @@ package body System.Garlic.Termination is
                     and then Info.Termination = Local_Termination
                   then
                      pragma Debug
-                       (D (D_Debug,
-                           "Partition" & PID'Img & " still active"));
+                       (D ("Partition" & PID'Img & " still active"));
                      Ready := False;
                      exit;
                   end if;

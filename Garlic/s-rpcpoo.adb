@@ -57,8 +57,7 @@ package body System.RPC.Pool is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_RPCPOO", "(s-rpcpoo): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -242,7 +241,7 @@ package body System.RPC.Pool is
 
       use Ada.Exceptions;
    begin
-      pragma Debug (D (D_Debug, "Anonymous task starting"));
+      pragma Debug (D ("Anonymous task starting"));
       select
          accept Set_Identifier (Identifier : in Task_Identifier_Access) do
             Self := Identifier;
@@ -251,7 +250,7 @@ package body System.RPC.Pool is
          terminate;
       end select;
       loop
-         pragma Debug (D (D_Debug, "Waiting for a job"));
+         pragma Debug (D ("Waiting for a job"));
          select
             accept Set_Job
               (The_PID    : in Types.Partition_ID;
@@ -283,12 +282,12 @@ package body System.RPC.Pool is
          Task_Manager.Unabort_One (PID, RPC);
          Types.Partition_ID'Read (Params, Dest);
          if not Dest'Valid then
-            pragma Debug (D (D_Debug, "Invalid destination received"));
+            pragma Debug (D ("Invalid destination received"));
             raise Constraint_Error;
          end if;
          Any_Priority'Read (Params, Prio);
          if not Prio'Valid then
-            pragma Debug (D (D_Debug, "Invalid priority received"));
+            pragma Debug (D ("Invalid priority received"));
             raise Constraint_Error;
          end if;
          Ada.Dynamic_Priorities.Set_Priority (Prio);
@@ -300,7 +299,7 @@ package body System.RPC.Pool is
                Header : constant RPC_Header := (Abortion_Reply, RPC);
                Error  : aliased Error_Type;
             begin
-               pragma Debug (D (D_Debug, "Abortion queried by caller"));
+               pragma Debug (D ("Abortion queried by caller"));
                Insert_RPC_Header (Empty'Access, Header);
                Send (PID, Remote_Call, Empty'Access, Error);
                if Found (Error) then
@@ -310,11 +309,11 @@ package body System.RPC.Pool is
                Cancelled := True;
             end;
          then abort
-            pragma Debug (D (D_Debug, "Job to achieve"));
+            pragma Debug (D ("Job to achieve"));
             Receiver := Convert
                (System.Address (Interfaces.Unsigned_64'Input (Params)));
             Receiver (Params, Result);
-            pragma Debug (D (D_Debug, "Job achieved without abortion"));
+            pragma Debug (D ("Job achieved without abortion"));
          end select;
 
          declare
@@ -327,14 +326,14 @@ package body System.RPC.Pool is
             Streams.Deallocate (Copy);
          end;
          if Async or else Cancelled then
-            pragma Debug (D (D_Debug, "Result not sent"));
+            pragma Debug (D ("Result not sent"));
             Streams.Deallocate (Result);
          else
             declare
                Header : constant RPC_Header := (RPC_Reply, RPC);
                Error  : aliased Error_Type;
             begin
-               pragma Debug (D (D_Debug, "Result will be sent"));
+               pragma Debug (D ("Result will be sent"));
                Insert_RPC_Header (Result, Header);
                Send (PID, Remote_Call, Result, Error);
                if Found (Error) then
@@ -345,24 +344,24 @@ package body System.RPC.Pool is
             end;
          end if;
          Task_Manager.Free_One;
-         pragma Debug (D (D_Debug, "Job finished, queuing"));
+         pragma Debug (D ("Job finished, queuing"));
          declare
             Queued : Boolean;
          begin
             Free_Tasks.Queue (Self, Queued);
             if not Queued then
-               pragma Debug (D (D_Debug, "Too many tasks, queuing refused"));
+               pragma Debug (D ("Too many tasks, queuing refused"));
                exit;
             end if;
          end;
       end loop;
       Free (Self);
-      pragma Debug (D (D_Debug, "Anonymous task finishing"));
+      pragma Debug (D ("Anonymous task finishing"));
 
    exception
       when E : others =>
          pragma Warnings (Off, E);
-         pragma Debug (D (D_Debug, "Error in anonymous task " &
+         pragma Debug (D ("Error in anonymous task " &
                           "(exception " & Exception_Name (E) & ")"));
          null;
 
@@ -460,10 +459,8 @@ package body System.RPC.Pool is
 
       procedure Status is
       begin
-         pragma Debug (D (D_Debug,
-                          "Free tasks:" & Free_Tasks_Count'Img));
-         pragma Debug (D (D_Debug,
-                          "Total tasks:" & Total_Tasks_Count'Img));
+         pragma Debug (D ("Free tasks:" & Free_Tasks_Count'Img));
+         pragma Debug (D ("Total tasks:" & Total_Tasks_Count'Img));
          null;
       end Status;
 
@@ -473,7 +470,7 @@ package body System.RPC.Pool is
 
       procedure Shutdown is
       begin
-         pragma Debug (D (D_Debug, "Free_Tasks.Shutdown called"));
+         pragma Debug (D ("Free_Tasks.Shutdown called"));
          Shutdown_In_Progress := True;
       end Shutdown;
 
@@ -510,7 +507,7 @@ package body System.RPC.Pool is
 
    procedure Shutdown is
    begin
-      pragma Debug (D (D_Debug, "Shutdown called"));
+      pragma Debug (D ("Shutdown called"));
       Free (Task_Manager);
       Free_Tasks.Shutdown;
    end Shutdown;
@@ -538,7 +535,7 @@ package body System.RPC.Pool is
                Count_Abort := Count_Abort + 1;
                if Is_Aborted_Waiting'Count > 0 then
                   In_Progress := True;
-                  pragma Debug (D (D_Debug, "Will signal abortion"));
+                  pragma Debug (D ("Will signal abortion"));
                end if;
                return;
             end if;

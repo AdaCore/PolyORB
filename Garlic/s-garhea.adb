@@ -64,8 +64,7 @@ package body System.Garlic.Heart is
      Debug_Initialize ("S_GARHEA", "(s-garhea): ");
 
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -147,8 +146,8 @@ package body System.Garlic.Heart is
    begin
       --  Dump the stream for debugging purpose
 
-      pragma Debug (D (D_Dump, "Dumping stream to analyze"));
-      pragma Debug (Dump (D_Dump, Filtered, Private_Debug_Key));
+      pragma Debug (D ("Dumping stream to analyze"));
+      pragma Debug (Dump (Filtered, Private_Debug_Key));
 
       --  Read the partition id from the stream and check that it is valid
 
@@ -201,9 +200,7 @@ package body System.Garlic.Heart is
 
       if PID /= Null_PID then
          pragma Debug
-           (D (D_Debug,
-               "Received request " & Code'Img &
-               " from partition" & PID'Img));
+           (D ("Received request " & Code'Img & " from partition" & PID'Img));
 
          --  Unfilter the data and put it in a stream
 
@@ -249,8 +246,7 @@ package body System.Garlic.Heart is
 
    procedure Complete_Elaboration is
    begin
-      pragma Debug
-        (D (D_Debug, "Complete termination"));
+      pragma Debug (D ("Complete termination"));
 
       Signal_All (Elaboration_Barrier);
    end Complete_Elaboration;
@@ -270,7 +266,7 @@ package body System.Garlic.Heart is
 
       if Self_PID = Null_PID then
 
-         pragma Debug (D (D_Debug, "Looking for my partition id"));
+         pragma Debug (D ("Looking for my partition id"));
 
          if Options.Is_Boot_Server then
 
@@ -291,7 +287,6 @@ package body System.Garlic.Heart is
             Server_Info.Boot_Partition := Self_PID;
             Partitions.Set_Component (Boot_PID, Server_Info);
 
-            Dump_Partition_Info (Boot_PID, Server_Info);
             Partitions.Leave;
 
             Set_My_Partition_ID (Error);
@@ -306,9 +301,6 @@ package body System.Garlic.Heart is
             end if;
             Wait_For_My_Partition_ID;
          end if;
-
-         Dump_Partition_Info (Boot_PID, Partitions.Get_Component (Boot_PID));
-         Dump_Partition_Info (Self_PID, Partitions.Get_Component (Self_PID));
       end if;
 
       PID := Self_PID;
@@ -420,19 +412,18 @@ package body System.Garlic.Heart is
          return;
       end if;
 
-      pragma Debug (D (D_Warning, "Partition" & Partition'Img & " is dead"));
+      pragma Debug (D ("Partition" & Partition'Img & " is dead"));
 
       Invalidate_Partition (Partition);
 
       if Shutdown_Policy = Shutdown_On_Any_Partition_Error then
-         pragma Debug (D (D_Debug, "Due to the policy, I will shutdown"));
+         pragma Debug (D ("Due to the policy, I will shutdown"));
          Soft_Shutdown;
       end if;
 
       if Partition = Boot_PID and then
         Shutdown_Policy = Shutdown_On_Boot_Partition_Error then
-         pragma Debug
-           (D (D_Debug, "I cannot live without a boot partition"));
+         pragma Debug (D ("I cannot live without a boot partition"));
          Soft_Shutdown;
       end if;
 
@@ -508,8 +499,8 @@ package body System.Garlic.Heart is
    begin
       --  Dump the stream for debugging purpose
 
-      pragma Debug (D (D_Dump, "Dumping stream to process"));
-      pragma Debug (Dump (D_Dump, Unfiltered, Private_Debug_Key));
+      pragma Debug (D ("Dumping stream to process"));
+      pragma Debug (Dump (Unfiltered, Private_Debug_Key));
 
       To_Params_Stream_Type (Unfiltered.all, Query'Access);
 
@@ -517,7 +508,7 @@ package body System.Garlic.Heart is
         (Partition, Opcode, Query'Access, Reply'Access, Error);
 
       if not Empty (Reply'Access) then
-         pragma Debug (D (D_Debug, "Send reply to" & Partition'Img));
+         pragma Debug (D ("Send reply to" & Partition'Img));
          Send (Partition, Opcode, Reply'Access, Error);
       end if;
 
@@ -533,9 +524,7 @@ package body System.Garlic.Heart is
      (Opcode  : in Any_Opcode;
       Handler : in Request_Handler) is
    begin
-      pragma Debug
-        (D (D_Debug,
-            "Register request handler for opcode " & Opcode'Img));
+      pragma Debug (D ("Register request handler for opcode " & Opcode'Img));
 
       Handlers (Opcode) := Handler;
    end Register_Handler;
@@ -566,9 +555,7 @@ package body System.Garlic.Heart is
       Protocol : Protocol_Access;
    begin
       pragma Debug
-        (D (D_Warning,
-            "Send " & Opcode'Img &
-            " request to partition" & Partition'Img));
+        (D ("Send " & Opcode'Img & " request to partition" & Partition'Img));
 
       --  Filter the data according to the remote partition and the opcode
 
@@ -694,9 +681,7 @@ package body System.Garlic.Heart is
          Info.Logical_Name := Options.Partition_Name;
       end if;
 
-      pragma Debug
-        (D (D_Warning,
-            "Set boot location to " & To_String (Info.Location)));
+      pragma Debug (D ("Set boot location to " & To_String (Info.Location)));
 
       --  Use Last_PID to store boot partition info
 

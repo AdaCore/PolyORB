@@ -109,8 +109,7 @@ package System.Garlic.Streams is
    --  may occur in case of cancellation.
 
    procedure Dump
-     (Level  : in System.Garlic.Debug.Debug_Level;
-      Stream : access Ada.Streams.Stream_Element_Array;
+     (Stream : access Ada.Streams.Stream_Element_Array;
       Key    : in System.Garlic.Debug.Debug_Key);
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.

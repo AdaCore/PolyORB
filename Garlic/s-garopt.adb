@@ -49,8 +49,7 @@ package body System.Garlic.Options is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GAROPT", "(s-garopt): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    --  Debugging stuff
@@ -153,74 +152,68 @@ package body System.Garlic.Options is
 
          if Argument (Index) = "--boot_server" then
 
-            pragma Debug
-              (D (D_Debug, "--boot_server available on command line"));
+            pragma Debug (D ("--boot_server available on command line"));
 
             Next_Argument (Index);
             Set_Boot_Server (Argument (Index));
 
          elsif Argument (Index) = "--boot_mirror" then
 
-            pragma Debug
-              (D (D_Debug, "--boot_mirror available on command line"));
+            pragma Debug (D ("--boot_mirror available on command line"));
 
             Set_Boot_Mirror (True);
 
          elsif Argument (Index) = "--self_location" then
 
-            pragma Debug
-              (D (D_Debug, "--self_location available on command line"));
+            pragma Debug (D ("--self_location available on command line"));
 
             Next_Argument (Index);
             Set_Self_Location (Argument (Index));
 
          elsif Argument (Index) = "--connection_hits" then
 
-            pragma Debug
-              (D (D_Debug, "--connection_hits available on command line"));
+            pragma Debug (D ("--connection_hits available on command line"));
 
             Next_Argument (Index);
             Set_Connection_Hits (Natural'Value (Argument (Index)));
 
          elsif Argument (Index) = "--detach" then
 
-            pragma Debug (D (D_Debug, "--detach available on command line"));
+            pragma Debug (D ("--detach available on command line"));
             Set_Detach (True);
 
          elsif Argument (Index) = "--slave" then
 
-            pragma Debug (D (D_Debug, "--slave available on command line"));
+            pragma Debug (D ("--slave available on command line"));
             Set_Slave (True);
 
          elsif Argument (Index) = "--reconnection" then
 
-            pragma Debug (D (D_Debug,
-                             "--reconnection available on command line"));
+            pragma Debug (D ("--reconnection available on command line"));
 
             Next_Argument (Index);
             Set_Reconnection (Value (Argument (Index)));
 
          elsif Argument (Index) = "--termination" then
 
-            pragma Debug (D (D_Debug,
-                             "--termination available on command line"));
+            pragma Debug (D ("--termination available on command line"));
 
             Next_Argument (Index);
             Set_Termination (Value (Argument (Index)));
 
          elsif Argument (Index) = "--nolaunch" then
 
-            pragma Debug (D (D_Debug, "--nolaunch available on command line"));
+            pragma Debug (D ("--nolaunch available on command line"));
             Set_Nolaunch (True);
 
          elsif Argument (Index) = "--trace" then
 
-            pragma Debug (D (D_Debug, "--trace available on command line"));
+            pragma Debug (D ("--trace available on command line"));
             Set_Execution_Mode (Trace_Mode);
 
          elsif Argument (Index) = "--replay" then
 
-            pragma Debug (D (D_Debug, "--replay available on command line"));
+            pragma Debug (D ("--replay available on command line"));
             Set_Execution_Mode (Replay_Mode);
 
          end if;

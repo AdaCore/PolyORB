@@ -44,61 +44,16 @@ package System.Garlic.Debug is
    --    Private_Debug_Key : constant Debug_Key :=
    --      Debug_Initialize ("GARLIC", "(s-garlic): ");
    --    procedure D
-   --      (Level   : in Debug_Levels;
-   --       Message : in String;
+   --      (Message : in String;
    --       Key     : in Debug_Key := Private_Debug_Key)
    --      renames Print_Debug_Info;
    --
    --  Then, later in the code, you can do:
-   --    pragma Debug (D (D_Elaborate, "Elaboration terminated"));
+   --    pragma Debug (D ("Elaboration terminated"));
 
    pragma Elaborate_Body;
    --  Since this package may be used during elaboration, the body must
    --  be elaborated right after the spec.
-
-   type Debug_Level is
-      (D_Communication,         --  Communication stuff,
-       D_Debug,                 --  Misc
-       D_Dump,                  --  Dump packets
-       D_Elaborate,             --  Elaboration
-       D_Exception,             --  Exceptions
-       D_Garlic,                --  GARLIC internal
-       D_Interface,             --  Interface with C
-       D_Lookup,                --  Unit lookup
-       D_Low,                   --  Low level subprograms
-       D_Module,                --  Protocol module
-       D_Protocol,              --  Queries/Answer
-       D_Register,              --  Unit registration
-       D_Request,               --  RPC request
-       D_RNS,                   --  RNS internal
-       D_Server,                --  Server
-       D_Table,                 --  Tables
-       D_Terminate,             --  Termination
-       D_Warning,               --  Warning
-       No_Debug);               --  Internal -- do NOT use
-   --  Debug levels
-
-   Debug_Letters : constant array (Debug_Level) of Character :=
-     (D_Communication => 'C',
-      D_Debug         => 'D',
-      D_Dump          => 'X',
-      D_Elaborate     => 'E',
-      D_Exception     => 'F',
-      D_Garlic        => 'G',
-      D_Interface     => 'I',
-      D_Lookup        => 'K',
-      D_Low           => 'L',
-      D_Module        => 'M',
-      D_Protocol      => 'P',
-      D_Register      => 'R',
-      D_Request       => 'Q',
-      D_RNS           => 'Y',
-      D_Server        => 'S',
-      D_Table         => 'T',
-      D_Terminate     => 'Z',
-      D_Warning       => 'W',
-      No_Debug        => ' ');
-   --  Letters used to turn debugging on for a given topic
 
    type Debug_Key is private;
    --  The key used for further references to the variable
@@ -113,16 +68,14 @@ package System.Garlic.Debug is
    --  banner to use when printing debugging information
 
    procedure Print_Debug_Info
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key);
    pragma Inline (Print_Debug_Info);
    --  This procedure prints debugging information if the given flag was
    --  set in the right environment variable
 
    function Debug_Mode
-     (Level : Debug_Level;
-      Key   : Debug_Key)
+     (Key     : Debug_Key)
       return Boolean;
    pragma Inline (Debug_Mode);
    --  Return true if this level is active

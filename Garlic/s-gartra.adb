@@ -42,8 +42,7 @@ package body System.Garlic.Trace is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARTRA", "(s-gartra): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -62,13 +61,11 @@ package body System.Garlic.Trace is
    procedure Initialize is
    begin
       pragma Debug
-        (D (D_Debug,
-            "Initializing trace / replay in mode " & Execution_Mode'Img));
+        (D ("Initializing trace / replay in mode " & Execution_Mode'Img));
 
       if Execution_Mode = Trace_Mode then
          Trace_Time := Clock;
-         pragma Debug
-           (D (D_Debug, "Creating trace file " & Trace_File_Name.all));
+         pragma Debug (D ("Creating trace file " & Trace_File_Name.all));
             Create (Trace_File, Out_File, Trace_File_Name.all);
       end if;
    end Initialize;
@@ -117,8 +114,7 @@ package body System.Garlic.Trace is
       Trace.PID      := Partition;
 
       pragma Debug
-        (D (D_Debug,
-            "Writing trace from partition" & Trace.PID'Img &
+        (D ("Writing trace from partition" & Trace.PID'Img &
             " of length" & Trace.Data'Length'Img));
 
       Trace_Type'Output (Stream (Trace_File), Trace);
@@ -146,7 +142,7 @@ package body System.Garlic.Trace is
    procedure Shutdown is
    begin
       if Execution_Mode = Trace_Mode then
-         pragma Debug (D (D_Debug, "Closing trace file"));
+         pragma Debug (D ("Closing trace file"));
          Close (Trace_File);
       end if;
    end Shutdown;

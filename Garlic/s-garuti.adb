@@ -43,8 +43,7 @@ package body System.Garlic.Utils is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARUTI", "(s-garuti): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -482,7 +481,7 @@ package body System.Garlic.Utils is
    is
    begin
       if Error /= null then
-         pragma Debug (D (D_Debug, "*** Catch *** " & Error.all));
+         pragma Debug (D ("*** Catch *** " & Error.all));
 
          Free (Error);
       end if;
@@ -505,14 +504,14 @@ package body System.Garlic.Utils is
    is
    begin
       if Error /= null then
-         pragma Debug (D (D_Exception, "*** Abort *** " & Error.all));
+         pragma Debug (D ("*** Abort *** " & Error.all));
 
          Free (Error);
       end if;
 
       Error := new String'(Message);
 
-      pragma Debug (D (D_Exception, "*** Throw *** " & Error.all));
+      pragma Debug (D ("*** Throw *** " & Error.all));
    end Throw;
 
 end System.Garlic.Utils;

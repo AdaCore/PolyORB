@@ -66,8 +66,7 @@ package body System.RPC is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_RPC", "(s-rpc   ): ");
    procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
+     (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
@@ -102,7 +101,7 @@ package body System.RPC is
 
    procedure Wait_For
      (RPC    : in  RPC_Id;
-      Result : out Streams.Stream_Element_Access);
+      Stream : out Streams.Stream_Element_Access);
 
    procedure Finalize (Keeper : in out Abort_Keeper);
    --  Handle abortion from Do_RPC
@@ -178,8 +177,6 @@ package body System.RPC is
       Header : constant RPC_Header := (Kind => APC_Query);
       Error  : aliased Error_Type;
    begin
-      pragma Debug
-        (D (D_Debug, "Doing a APC for partition" & Partition'Img));
       Insert_RPC_Header (Params.X'Access, Header);
       Partition_ID'Write (Params, Partition);
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
@@ -191,6 +188,8 @@ package body System.RPC is
          Raise_Exception (Communication_Error'Identity,
                           Content (Error'Access));
       end if;
+
+      D ("Execute APC on partition" & Partition'Img);
    end Do_APC;
 
    ------------
@@ -208,9 +207,6 @@ package body System.RPC is
       Keeper : Abort_Keeper;
       Error  : aliased Error_Type;
    begin
-      pragma Debug
-        (D (D_Debug, "Doing a RPC for partition" & Partition'Img));
-
       begin
          pragma Abort_Defer;
          Allocate (RPC, Types.Partition_ID (Partition));
@@ -230,25 +226,19 @@ package body System.RPC is
          Keeper.PID  := Types.Partition_ID (Partition);
          Keeper.Sent := True;
       end;
-      pragma Debug (D (D_Debug, "Waiting for the result"));
-      begin
-         Wait_For (RPC, Stream);
-      exception when E : others =>
-         pragma Debug
-           (D (D_Debug,
-               "Reraise exception " & Exception_Name (E) &
-               " in Wait_For"));
-         raise;
-      end;
+
+      D ("Execute RPC number" & RPC'Img & " on partition" & Partition'Img);
+
+      Wait_For (RPC, Stream);
+
       begin
          pragma Abort_Defer;
-         pragma Debug (D (D_Debug, "The result is available"));
          Keeper.Sent := False;
-         pragma Debug (D (D_Debug, "Copying the result"));
          Streams.Write (Result.X, Stream.all);
          Streams.Free (Stream);
       end;
-      pragma Debug (D (D_Debug, "Returning from Do_RPC"));
+
+      D ("Complete RPC number " & RPC'Img & " on partition" & Partition'Img);
    end Do_RPC;
 
    ----------------------------
@@ -260,8 +250,8 @@ package body System.RPC is
       Receiver  : in RPC_Receiver)
    is
    begin
-      pragma Debug
-        (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
+      D ("Accept RPCs on this partition" & Partition'Img);
+
       RPC_Allowed := True;
       Signal_All (RPC_Barrier);
       Register_RPC_Error_Notifier (Notify_Partition_Error'Access);
@@ -277,10 +267,8 @@ package body System.RPC is
       if Keeper.Sent then
          Enter (Callers_Mutex);
          if Callers (Keeper.RPC).Status = Running then
-            pragma Debug
-              (D (D_Debug,
-                  "Invalidate RPC (rpc =" & Keeper.RPC'Img &
-                  ") on partition" & Keeper.PID'Img));
+            D ("Forward local abortion of RPC number" & Keeper.RPC'Img &
+               " to partition" & Keeper.PID'Img);
             Send_Abort_Message (Keeper.PID, Keeper.RPC);
             Callers (Keeper.RPC).Status := Aborted;
          elsif Callers (Keeper.RPC).Status = Aborted then
@@ -352,25 +340,18 @@ package body System.RPC is
                RPC          : RPC_Id := RPC_Id'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Query;
             begin
-               pragma Debug
-                 (D (D_Debug,
-                     "RPC or APC request received from partition" &
-                     Partition'Img));
                Streams.Move (Query.all, Params_Copy.all);
                if not Asynchronous then
                   RPC := Header.RPC;
-                  pragma Debug
-                    (D (D_Debug,
-                        "(request id is" & RPC'Img & ")"));
+                  D ("Execute RPC number" & RPC'Img &
+                     " from partition" & Partition'Img);
+               else
+                  D ("Execute APC from partition" & Partition'Img);
                end if;
                Allocate_Task (Partition, RPC, Params_Copy, Asynchronous);
             end;
 
          when RPC_Reply =>
-            pragma Debug
-              (D (D_Debug,
-                  "RPC reply received from partition" & Partition'Img &
-                  " (rpc" & Header.RPC'Img & ")"));
             Enter (Callers_Mutex);
             if Callers (Header.RPC).Status = Aborted then
                Callers (Header.RPC).Status := Unknown;
@@ -383,17 +364,9 @@ package body System.RPC is
             Leave (Callers_Mutex);
 
          when Abortion_Query =>
-            pragma Debug
-                  (D (D_Debug,
-                      "RPC abortion query received from partition" &
-                      Partition'Img & " (rpc" & Header.RPC'Img & ")"));
             Abort_Task (Partition, Header.RPC);
 
          when Abortion_Reply =>
-            pragma Debug
-              (D (D_Debug,
-                  "RPC abortion reply received from partition" &
-                  Partition'Img & " (rpc" & Header.RPC'Img & ")"));
             Enter (Callers_Mutex);
             Callers (Header.RPC).Status := Unknown;
             Callers (Header.RPC).PID    := Types.Null_PID;
@@ -455,7 +428,6 @@ package body System.RPC is
       Header : constant RPC_Header := (Abortion_Query, RPC);
       Error  : Error_Type;
    begin
-      pragma Debug (D (D_Debug, "Sending abortion message"));
       Insert_RPC_Header (Params'Access, Header);
       Send (PID, Remote_Call, Params'Access, Error);
       Catch (Error);
@@ -468,7 +440,6 @@ package body System.RPC is
    procedure Shutdown
    is
    begin
-      pragma Debug (D (D_Debug, "Shutdown has been called"));
       Pool.Shutdown;
 
       --  Resume tasks waiting for an update of units info table.
@@ -482,7 +453,7 @@ package body System.RPC is
 
    procedure Wait_For
      (RPC    : in  RPC_Id;
-      Result : out Streams.Stream_Element_Access)
+      Stream : out Streams.Stream_Element_Access)
    is
       Version : Version_Id;
    begin
@@ -490,7 +461,7 @@ package body System.RPC is
          Enter (Callers_Mutex);
          case Callers (RPC).Status is
             when Completed =>
-               Result := Callers (RPC).Result;
+               Stream := Callers (RPC).Result;
                Callers (RPC).Status := Unknown;
                Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
