@@ -20,6 +20,11 @@ package body Droopi.Annotations is
       for I in The_Notes'Range loop
          if The_Notes (I)'Tag = N'Tag then
             The_Notes (I).all := N;
+            --  Here we have checked that The_Notes (I).all and N
+            --  are of the same type, but this does not guarantee
+            --  that the assignment will succeed: Constraint_Error
+            --  may be raised if that type has known discriminants
+            --  without default values.
             return;
          end if;
       end loop;
