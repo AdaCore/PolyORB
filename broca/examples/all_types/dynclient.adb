@@ -755,21 +755,17 @@ procedure DynClient is
       Result_Value : All_Types.U_sequence :=
         U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
    begin
-      Ada.Text_Io.Put_Line ("OK1");
       --  creating the argument list
       Argument := All_Types.Helper.To_Any (Arg);
-      Ada.Text_Io.Put_Line ("OK2");
       CORBA.NVList.Add_Item (Arg_List,
                              Arg_Name,
                              Argument,
                              CORBA.ARG_IN);
       --  setting the result type
-      Ada.Text_Io.Put_Line ("OK3");
       Result := (Name => Identifier (Result_Name),
                  Argument => All_Types.Helper.To_Any (Result_Value),
                  Arg_Modes => 0);
       --  creating a request
-      Ada.Text_Io.Put_Line ("OK4");
       CORBA.Object.Create_Request (Myall_Types,
                                    Ctx,
                                    Operation_Name,
@@ -778,13 +774,10 @@ procedure DynClient is
                                    Request,
                                    0);
       --  sending message
-      Ada.Text_Io.Put_Line ("OK5");
       CORBA.Request.Invoke (Request, 0);
       --  FIXME : not logical
-      Ada.Text_Io.Put_Line ("OK6");
       CORBA.NVList.Free (Arg_List);
       --  getting the answer
-      Ada.Text_Io.Put_Line ("OK7");
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoUsequence;
