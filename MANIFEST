@@ -733,6 +733,10 @@ src/polyorb-orb-thread_pool.adb
 src/polyorb-orb-thread_pool.ads
 src/polyorb-orb.adb
 src/polyorb-orb.ads
+src/polyorb-orb_controller-basic.adb
+src/polyorb-orb_controller-basic.ads
+src/polyorb-orb_controller.adb
+src/polyorb-orb_controller.ads
 src/polyorb-parameters-file.adb
 src/polyorb-parameters-file.ads
 src/polyorb-parameters.adb
@@ -816,8 +820,6 @@ src/polyorb-representations-test.ads
 src/polyorb-representations.ads
 src/polyorb-requests.adb
 src/polyorb-requests.ads
-src/polyorb-scheduler.adb
-src/polyorb-scheduler.ads
 src/polyorb-sequences-bounded-helper.adb
 src/polyorb-sequences-bounded-helper.ads
 src/polyorb-sequences-bounded.adb
