@@ -44,6 +44,12 @@ package body XE_Utils is
    Current_Main_Source : Natural := 1;
    Last_Main_Source    : Natural := 0;
 
+   type Make_Program_Type is (None, Compiler, Binder, Linker);
+
+   Program_Args : Make_Program_Type := None;
+   --  Used to indicate if we are scanning gnatmake, gcc, gnatbind, or
+   --  gnatbind options within the gnatmake command line.
+
    Usage_Needed : Boolean := False;
 
    function Dup (Fd : File_Descriptor) return File_Descriptor;
@@ -539,8 +545,6 @@ package body XE_Utils is
       end if;
 
       XE_Defs.Initialize;
-      Add_Make_Switch ("-largs");
-      Add_Make_Switch ("-lgarlic");
 
       if Usage_Needed then
          XE_Usage;
@@ -805,6 +809,34 @@ package body XE_Utils is
          return;
       end if;
 
+      if Argv = "-cargs" then
+         Program_Args := Compiler;
+         Add_Make_Switch (Argv);
+         return;
+
+      elsif Argv = "-bargs" then
+         Program_Args := Binder;
+         Add_Make_Switch (Argv);
+         return;
+
+      elsif Argv = "-largs" then
+         Program_Args := Linker;
+         Add_Make_Switch (Argv);
+         return;
+
+      elsif Argv = "-margs" then
+         Program_Args := None;
+         Add_Make_Switch (Argv);
+         return;
+      end if;
+
+      if Program_Args = Binder
+        or else Program_Args = Linker
+      then
+         Add_Make_Switch (Argv);
+         return;
+      end if;
+
       if Project_File_Name_Present then
          Project_File_Name :=
            new String'(Normalize_Pathname (Argv));
@@ -886,6 +918,9 @@ package body XE_Utils is
                  |  'g'
                  |  'O' =>
                   Add_Make_Switch (Argv);
+
+               when 't' =>
+                  Keep_Tmp_Files := True;
 
                when 'd' =>
                   Debug_Mode   := True;

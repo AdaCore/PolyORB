@@ -39,54 +39,125 @@ with XE_Utils;    use XE_Utils;
 
 package body XE_Back is
 
-   PCS_Name              : File_Name_Type;
    Build_Stamp_File      : File_Name_Type;
    Elaboration_File      : File_Name_Type;
    Partition_Main_File   : File_Name_Type;
    Protocol_Config_File  : File_Name_Type;
    Storage_Config_File   : File_Name_Type;
-
-   Config                : Unit_Name_Type;
    Partition_Main_Name   : Unit_Name_Type;
-   Partition_Interface   : Unit_Name_Type;
-   RPC                   : Unit_Name_Type;
-   RPC_Server            : Unit_Name_Type;
+
+   type RU_Id is
+     (RU_System,
+      RU_System_Garlic,
+      RU_System_Garlic_Elaboration,
+      RU_System_Garlic_Filters,
+      RU_System_Garlic_Heart,
+      RU_System_Garlic_Name_Table,
+      RU_System_Garlic_No_Tasking,
+      RU_System_Garlic_Options,
+      RU_System_Garlic_Priorities,
+      RU_System_Garlic_Protocols,
+      RU_System_Garlic_Protocols_Config,
+      RU_System_Garlic_Remote,
+      RU_System_Garlic_Startup,
+      RU_System_Garlic_Storages,
+      RU_System_Garlic_Storages_Config,
+      RU_System_Garlic_Tasking,
+      RU_System_Garlic_Types,
+      RU_System_Partition_Interface,
+      RU_System_RPC,
+      RU_System_RPC_Server);
+
+   RU : array (RU_Id) of Unit_Name_Type;
 
    type RE_Id is
-     (RE_Null,
-      RE_Elaboration,
-      RE_Filters,
-      RE_Heart,
-      RE_Initialize,
-      RE_Name_Table,
-      RE_No_Tasking,
-      RE_Options,
-      RE_Priorities,
-      RE_Protocols,
-      RE_Remote,
-      RE_Startup,
-      RE_Storages,
-      RE_Tasking,
-      RE_Types);
+     (RE_Register_Partition_To_Launch,
+      RE_Set_RPC_Handler_Priority,
+      RE_Set_RPC_Handler_Priority_Policy,
+      RE_Set_Rsh_Command,
+      RE_Set_Rsh_Options,
+      RE_Set_Slave,
+      RE_Set_Termination,
+      RE_Set_Reconnection,
+      RE_Set_Boot_Location,
+      RE_Set_Self_Location,
+      RE_Set_Data_Location,
+      RE_Set_Nolaunch,
+      RE_Set_Task_Pool_Bounds,
+      RE_Set_Light_PCS,
+      RE_Set_Pure_Client,
+      RE_Initialize_0,
+      RE_Initialize_1,
+      RE_Initialize_2,
+      RE_Set_Partition_Name,
+      RE_Set_Registration_Filter,
+      RE_Set_Default_Filter,
+      RE_Set_Channel_Filter,
+      RE_Register_Passive_Partition,
+      RE_Register_Passive_Package,
+      RE_Register_Passive_Package_On_Passive_Partition,
+      RE_Elaborate_Passive_Partition,
+      RE_Check,
+      RE_Run,
+      RE_Partition_ID,
+      RE_Register);
 
-   Image : array (RE_Id) of Unit_Name_Type;
+   RE : array (RE_Id) of Unit_Name_Type;
 
-   function PCS
-     (F : RE_Id;
-      N : Name_Id := No_Name;
-      L : RE_Id   := RE_Null)
-     return Name_Id;
+   RE_Unit_Table : constant array (RE_Id) of RU_Id :=
+     (RE_Register_Partition_To_Launch    => RU_System_Garlic_Remote,
+      RE_Set_RPC_Handler_Priority        => RU_System_Garlic_Priorities,
+      RE_Set_RPC_Handler_Priority_Policy => RU_System_Garlic_Priorities,
+      RE_Set_Rsh_Command                 => RU_System_Garlic_Options,
+      RE_Set_Rsh_Options                 => RU_System_Garlic_Options,
+      RE_Set_Slave                       => RU_System_Garlic_Options,
+      RE_Set_Termination                 => RU_System_Garlic_Options,
+      RE_Set_Reconnection                => RU_System_Garlic_Options,
+      RE_Set_Boot_Location               => RU_System_Garlic_Options,
+      RE_Set_Self_Location               => RU_System_Garlic_Options,
+      RE_Set_Data_Location               => RU_System_Garlic_Options,
+      RE_Set_Nolaunch                    => RU_System_Garlic_Options,
+      RE_Set_Task_Pool_Bounds            => RU_System_Garlic_Options,
+      RE_Set_Light_PCS                   => RU_System_Garlic_Options,
+      RE_Set_Pure_Client                 => RU_System_Garlic_Options,
+      RE_Initialize_0                    => RU_System_Garlic_No_Tasking,
+      RE_Initialize_1                    => RU_System_Garlic_Tasking,
+      RE_Initialize_2                    => RU_System_Garlic_Name_Table,
+      RE_Set_Partition_Name              => RU_System_Garlic_Options,
+      RE_Set_Registration_Filter         => RU_System_Garlic_Filters,
+      RE_Set_Default_Filter              => RU_System_Garlic_Filters,
+      RE_Set_Channel_Filter              => RU_System_Garlic_Filters,
+      RE_Register_Passive_Partition      => RU_System_Partition_Interface,
+      RE_Register_Passive_Package        => RU_System_Partition_Interface,
+      RE_Register_Passive_Package_On_Passive_Partition
+                                         => RU_System_Partition_Interface,
+      RE_Elaborate_Passive_Partition     => RU_System_Partition_Interface,
+      RE_Check                           => RU_System_Partition_Interface,
+      RE_Run                             => RU_System_Partition_Interface,
+      RE_Partition_ID                    => RU_System_RPC,
+      RE_Register                        => RU_System_Garlic_Protocols);
 
-   function PCS
-     (F : RE_Id;
-      N : Name_Id := No_Name;
-      L : RE_Id   := RE_Null)
-     return String;
+   function "and" (N : Name_Id; S : String) return Name_Id;
+   function "and" (L, R : Name_Id) return Name_Id;
+
+   type Casing_Rule is record
+      Size : Natural;
+      From : String_Access;
+      Into : String_Access;
+   end record;
+
+   Rules : array (1 .. 64) of Casing_Rule;
+   Rules_Last : Natural := 0;
+
+   procedure Apply_Casing_Rules (S : in out String);
+   procedure Register_Casing_Rule (S : String);
 
    procedure Add_Protocol
      (First : in out Location_Id;
       Last  : in out Location_Id;
       Name  : Name_Id);
+   --  Add a protocol of name Name to the chained list which starts at
+   --  First and ends at Last.
 
    function Location_List_Image (Location : Location_Id) return Name_Id;
    --  Explore linked list of locations to build its image
@@ -148,20 +219,40 @@ package body XE_Back is
    --  another configuration is detected as inconsistent.
 
    procedure Write_Call
-     (S1 : String;
+     (SP : Unit_Name_Type;
       N1 : Name_Id := No_Name;
-      S2 : String  := No_Str;
+      S1 : String  := No_Str;
       N2 : Name_Id := No_Name;
-      S3 : String  := No_Str;
+      S2 : String  := No_Str;
       N3 : Name_Id := No_Name;
-      S4 : String  := No_Str);
+      S3 : String  := No_Str);
    --  Insert a procedure call. The first non-null parameter
    --  is supposed to be the procedure name. The next parameters
    --  are parameters for this procedure call.
 
-   procedure Write_With_Clause (Uname : Name_Id);
-   procedure Write_Use_Clause  (Uname : Name_Id);
-   --  Add a with clause and possibly a use clause as well.
+   procedure Write_With_Clause
+     (W : Name_Id;
+      U : Boolean := False;
+      E : Boolean := False);
+   --  Add a with clause W, a use clause when U is true and an
+   --  elaborate clause when E is true.
+
+   -----------
+   -- "and" --
+   -----------
+
+   function "and" (N : Name_Id; S : String) return Name_Id is
+   begin
+      Get_Name_String (N);
+      Add_Char_To_Name_Buffer ('.');
+      Add_Str_To_Name_Buffer (S);
+      return Name_Find;
+   end "and";
+
+   function "and" (L, R : Name_Id) return Name_Id is
+   begin
+      return L and Get_Name_String (R);
+   end "and";
 
    ------------------
    -- Add_Protocol --
@@ -186,6 +277,36 @@ package body XE_Back is
       end if;
       Add_Location (First, Last, Name, No_Name);
    end Add_Protocol;
+
+   ------------------------
+   -- Apply_Casing_Rules --
+   ------------------------
+
+   procedure Apply_Casing_Rules (S : in out String) is
+      New_Word : Boolean := True;
+      Length   : Natural := S'Length;
+      C        : String  := S;
+
+   begin
+      Capitalize (S);
+      To_Lower (C);
+      for I in S'Range loop
+         if New_Word then
+            New_Word := False;
+            for J in 1 .. Rules_Last loop
+               if Rules (J).Size <= Length
+                 and then C (I .. I + Rules (J).Size - 1) = Rules (J).From.all
+               then
+                  S (I .. I + Rules (J).Size - 1) := Rules (J).Into.all;
+               end if;
+            end loop;
+         end if;
+         if S (I) = '_' then
+            New_Word := True;
+         end if;
+         Length := Length - 1;
+      end loop;
+   end Apply_Casing_Rules;
 
    -------------
    -- Backend --
@@ -341,7 +462,7 @@ package body XE_Back is
 
          Executable := Strip_Exec_Suffix (Executable);
          Write_Call
-           ("Register_Partition_To_Launch",
+           (RE (RE_Register_Partition_To_Launch),
             Capitalize (Id (Boolean'Image (Use_Rem_Host))),
             Get_Name_String (Remote_Host),
             Quote (To_Absolute_File (Executable) & Current.Command_Line));
@@ -361,39 +482,32 @@ package body XE_Back is
       Set_Output  (File);
       Write_Line  ("pragma Warnings (Off);");
 
-      Write_With_Clause (PCS (RE_Filters));
-      Write_Use_Clause  (PCS (RE_Filters));
-      Write_With_Clause (PCS (RE_Heart));
-      Write_Use_Clause  (PCS (RE_Heart));
-      Write_With_Clause (PCS (RE_Options));
-      Write_Use_Clause  (PCS (RE_Options));
-      Write_With_Clause (PCS (RE_Name_Table));
-      Write_Use_Clause  (PCS (RE_Name_Table));
-      Write_With_Clause (PCS (RE_Remote));
-      Write_Use_Clause  (PCS (RE_Remote));
-      Write_With_Clause (PCS (RE_Types));
-      Write_Use_Clause  (PCS (RE_Types));
-      Write_With_Clause (PCS (RE_Priorities));
-      Write_Use_Clause  (PCS (RE_Priorities));
+      Write_With_Clause (RU (RU_System_Garlic_Filters), True);
+      Write_With_Clause (RU (RU_System_Garlic_Heart), True);
+      Write_With_Clause (RU (RU_System_Garlic_Name_Table), True);
+      Write_With_Clause (RU (RU_System_Garlic_Options), True);
+      Write_With_Clause (RU (RU_System_Garlic_Priorities), True);
+      Write_With_Clause (RU (RU_System_Garlic_Remote), True);
+      Write_With_Clause (RU (RU_System_Garlic_Types), True);
 
       if Current.Tasking = 'N' then
-         Write_With_Clause (PCS (RE_No_Tasking));
-         Write_Call ("pragma Elaborate_All", PCS (RE_No_Tasking));
+         Write_With_Clause (RU (RU_System_Garlic_No_Tasking), False, True);
 
       else
-         Write_With_Clause (PCS (RE_Tasking));
-         Write_Call ("pragma Elaborate_All", PCS (RE_Tasking));
+         Write_With_Clause (RU (RU_System_Garlic_Tasking), False, True);
       end if;
 
       --  Add filtering package if needed
 
       Filter := Default_Registration_Filter;
       if Present (Filter) then
-         Write_With_Clause (PCS (RE_Filters, Filter));
+         Write_With_Clause (RU (RU_System_Garlic_Filters)
+                            and Capitalize (Filter));
       end if;
 
       if Present (Current.Filter) then
-         Write_With_Clause (PCS (RE_Filters, Current.Filter));
+         Write_With_Clause (RU (RU_System_Garlic_Filters)
+                            and Capitalize (Current.Filter));
       end if;
 
       if Current.First_Channel /= No_Channel_Id then
@@ -401,7 +515,8 @@ package body XE_Back is
          while Channel /= No_Channel_Id loop
             Filter := Channels.Table (Channel).Filter;
             if Present (Filter) then
-               Write_With_Clause (PCS (RE_Filters, Filter));
+               Write_With_Clause (RU (RU_System_Garlic_Filters)
+                                  and Capitalize (Filter));
             end if;
             if Channels.Table (Channel).Lower.My_Partition = P then
                Channel := Channels.Table (Channel).Lower.Next_Channel;
@@ -412,7 +527,7 @@ package body XE_Back is
       end if;
 
       Write_Str  ("package body ");
-      Write_Name (PCS (RE_Elaboration));
+      Write_Name (RU (RU_System_Garlic_Elaboration));
       Write_Line (" is");
 
       Increment_Indentation;
@@ -423,25 +538,26 @@ package body XE_Back is
 
       Increment_Indentation;
       if Current.Priority /= No_Priority then
-         Write_Call ("Set_RPC_Handler_Priority", No_Name,
+         Write_Call (RE (RE_Set_RPC_Handler_Priority),
+                     No_Name,
                      Current.Priority'Img);
       end if;
 
       if Default_Priority_Policy /= No_Priority_Policy then
-         Write_Call ("Set_RPC_Handler_Priority_Policy",
+         Write_Call (RE (RE_Set_RPC_Handler_Priority_Policy),
                      Priority_Policy_Img (Default_Priority_Policy));
       end if;
 
-      Write_Call ("Set_Rsh_Command", Quote (Get_Rsh_Command));
-      Write_Call ("Set_Rsh_Options", Quote (Get_Rsh_Options));
+      Write_Call (RE (RE_Set_Rsh_Command), Quote (Get_Rsh_Command));
+      Write_Call (RE (RE_Set_Rsh_Options), Quote (Get_Rsh_Options));
 
       --  If the partition holds the main unit, then it cannot be slave.
       --  Otherwise, it is.
 
       if P /= Main_Partition then
-         Write_Call ("Set_Slave", Id ("True"));
+         Write_Call (RE (RE_Set_Slave), Id ("True"));
       else
-         Write_Call ("Set_Slave", Id ("False"));
+         Write_Call (RE (RE_Set_Slave), Id ("False"));
       end if;
 
       --  How should the partition terminate. Note that
@@ -449,7 +565,7 @@ package body XE_Back is
       --  default.
 
       if Current.Termination /= No_Termination then
-         Write_Call ("Set_Termination",
+         Write_Call (RE (RE_Set_Termination),
                      Termination_Img (Current.Termination));
       end if;
 
@@ -457,7 +573,7 @@ package body XE_Back is
       --  reconnections?
 
       if Current.Reconnection /= No_Reconnection then
-         Write_Call ("Set_Reconnection",
+         Write_Call (RE (RE_Set_Reconnection),
                      Reconnection_Img (Current.Reconnection));
       end if;
 
@@ -465,7 +581,7 @@ package body XE_Back is
       --  if present).
 
       if Default_First_Boot_Location /= No_Location_Id then
-         Write_Call ("Set_Boot_Location",
+         Write_Call (RE (RE_Set_Boot_Location),
                      Location_List_Image (Default_First_Boot_Location));
       end if;
 
@@ -473,7 +589,7 @@ package body XE_Back is
       --  several locations separated by commas).
 
       if Current.First_Network_Loc /= No_Location_Id then
-         Write_Call ("Set_Self_Location",
+         Write_Call (RE (RE_Set_Self_Location),
                      Location_List_Image (Current.First_Network_Loc));
       end if;
 
@@ -481,7 +597,7 @@ package body XE_Back is
       --  several locations separated by commas).
 
       if Current.Storage_Loc /= No_Location_Id then
-         Write_Call ("Set_Data_Location",
+         Write_Call (RE (RE_Set_Data_Location),
                      Location_List_Image (Current.Storage_Loc));
       end if;
 
@@ -489,7 +605,7 @@ package body XE_Back is
       --  to having --nolaunch on the command line.
 
       if Default_Starter /= Ada_Import then
-         Write_Call ("Set_Nolaunch", No_Name, "True");
+         Write_Call (RE (RE_Set_Nolaunch), No_Name, "True");
       end if;
 
       --  Do we want to control the number of anonymous tasks
@@ -501,39 +617,40 @@ package body XE_Back is
          Add_Str_To_Name_Buffer (Int'Image (Current.Task_Pool (2)));
          Add_Char_To_Name_Buffer (',');
          Add_Str_To_Name_Buffer (Int'Image (Current.Task_Pool (3)));
-         Write_Call ("Set_Task_Pool_Bounds", Id (Name_Buffer (2 .. Name_Len)));
+         Write_Call (RE (RE_Set_Task_Pool_Bounds),
+                     Id (Name_Buffer (2 .. Name_Len)));
       end if;
 
       --  Set tasking policy and with appropriate package
 
       if Current.Tasking = 'N' then
-         Write_Call (PCS (RE_No_Tasking, Image (RE_Initialize)));
-         Write_Call ("Set_Light_PCS", Id ("True"));
+         Write_Call (RE (RE_Initialize_0));
+         Write_Call (RE (RE_Set_Light_PCS), Id ("True"));
 
       elsif Current.Tasking = 'U' then
-         Write_Call (PCS (RE_Tasking, Image (RE_Initialize)));
-         Write_Call ("Set_Pure_Client", Id ("True"));
+         Write_Call (RE (RE_Initialize_1));
+         Write_Call (RE (RE_Set_Pure_Client), Id ("True"));
 
       else  --  Get_Tasking (P) = 'P'
-         Write_Call (PCS (RE_Tasking, Image (RE_Initialize)));
+         Write_Call (RE (RE_Initialize_1));
       end if;
 
       --  Elaborate Name_Table
 
-      Write_Call (PCS (RE_Name_Table, Image (RE_Initialize)));
+      Write_Call (RE (RE_Initialize_2));
 
-      Write_Call ("Set_Partition_Name", Quote (Current.Name));
+      Write_Call (RE (RE_Set_Partition_Name), Quote (Current.Name));
 
       --  Set registration filter, default filter and partition filters
 
       Filter := Default_Registration_Filter;
       if Present (Filter) then
-         Write_Call ("Set_Registration_Filter", Quote (Filter));
+         Write_Call (RE (RE_Set_Registration_Filter), Quote (Filter));
       end if;
 
       Filter := Partitions.Table (Default_Partition_Id).Filter;
       if Present (Filter) then
-         Write_Call ("Set_Default_Filter", Quote (Filter));
+         Write_Call (RE (RE_Set_Default_Filter), Quote (Filter));
       end if;
 
       Channel := Current.First_Channel;
@@ -549,7 +666,7 @@ package body XE_Back is
          end if;
 
          if Present (Filter) then
-            Write_Call ("Set_Channel_Filter",
+            Write_Call (RE (RE_Set_Channel_Filter),
                         Quote (Partitions.Table (Peer).Name), No_Str,
                         Quote (Filter));
          end if;
@@ -559,11 +676,13 @@ package body XE_Back is
 
       Filter := Default_Registration_Filter;
       if Present (Filter) then
-         Write_Call (PCS (RE_Filters, Filter, RE_Initialize));
+         Write_Call (RU (RU_System_Garlic_Filters)
+                     and Capitalize (Filter) and "Initialize");
       end if;
 
       if Present (Current.Filter) then
-         Write_Call (PCS (RE_Filters, Current.Filter, RE_Initialize));
+         Write_Call (RU (RU_System_Garlic_Filters)
+                     and Capitalize (Current.Filter) and "Initialize");
       end if;
 
       Channel := Current.First_Channel;
@@ -571,7 +690,8 @@ package body XE_Back is
          Filter := Channels.Table (Channel).Filter;
 
          if Present (Filter) then
-            Write_Call (PCS (RE_Filters, Filter, RE_Initialize));
+            Write_Call (RU (RU_System_Garlic_Filters)
+                        and Capitalize (Filter) and "Initialize");
          end if;
 
          if Channels.Table (Channel).Lower.My_Partition = P then
@@ -598,7 +718,7 @@ package body XE_Back is
       Write_Line ("end Initialize;");
       Decrement_Indentation;
       Write_Str  ("end ");
-      Write_Name (PCS (RE_Elaboration));
+      Write_Name (RU (RU_System_Garlic_Elaboration));
       Write_Line (";");
       Close (File);
       Set_Standard_Output;
@@ -650,7 +770,7 @@ package body XE_Back is
          Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
-      --  Compile GARLIC elaboration file
+      --  Compile Garlic elaboration file
 
       Sfile := Elaboration_File & ADB_Suffix_Id;
       if Project_File_Name = null then
@@ -681,7 +801,7 @@ package body XE_Back is
       --  We already checked the consistency of all the partition
       --  units. In case of an inconsistency of exception mode, we may
       --  have to rebuild some parts of garlic (units configured just
-      --  for this partition). Note that some parts of GARLIC may have
+      --  for this partition). Note that some parts of Garlic may have
       --  been already recompiled when the monolithic application was
       --  initially build. Some bodies may be missing as they are
       --  assigned to partitions we do not want to build. So compile
@@ -763,14 +883,12 @@ package body XE_Back is
       Set_Output  (File);
       Write_Line  ("pragma Warnings (Off);");
 
-      Write_With_Clause (Partition_Interface);
-      Write_Use_Clause  (Partition_Interface);
-      Write_With_Clause (RPC);
+      Write_With_Clause (RU (RU_System_Partition_Interface), True);
+      Write_With_Clause (RU (RU_System_RPC));
       if Current.Tasking /= 'N' then
-         Write_With_Clause (RPC_Server);
+         Write_With_Clause (RU (RU_System_RPC_Server));
       end if;
-      Write_With_Clause (PCS (RE_Startup));
-      Write_Call        ("pragma Elaborate_All", PCS (RE_Startup));
+      Write_With_Clause (RU (RU_System_Garlic_Startup), False, True);
 
       --  Assign RCI or SP skels on the partition
 
@@ -795,7 +913,9 @@ package body XE_Back is
       Increment_Indentation;
       Write_Indentation;
       Write_Name (Variable);
-      Write_Line (" : System.RPC.Partition_ID;");
+      Write_Line (" : ");
+      Write_Name (RE (RE_Partition_ID));
+      Write_Line (";");
 
       Decrement_Indentation;
       Write_Line ("begin");
@@ -815,23 +935,24 @@ package body XE_Back is
                Location := Default_Data_Location;
             end if;
 
-            Write_Call ("Register_Passive_Partition",
+            Write_Call (RE (RE_Register_Passive_Partition),
                         Variable, No_Str,
                         Quote (Partitions.Table (J).Name),
                         Get_Name_String (Location_List_Image (Location)));
 
             Conf_Unit := Partitions.Table (J).First_Unit;
             while Conf_Unit /= No_Conf_Unit_Id loop
-               Write_Call ("Register_Passive_Package_On_Passive_Partition",
-                           Variable, No_Str,
-                           Quote (Conf_Units.Table (Conf_Unit).Name), No_Str,
-                           Conf_Units.Table (Conf_Unit).Name & "'Version");
+               Write_Call
+                 (RE (RE_Register_Passive_Package_On_Passive_Partition),
+                  Variable, No_Str,
+                  Quote (Conf_Units.Table (Conf_Unit).Name), No_Str,
+                  Conf_Units.Table (Conf_Unit).Name & "'Version");
                Conf_Unit := Conf_Units.Table (Conf_Unit).Next_Unit;
             end loop;
 
             Conf_Unit := Partitions.Table (J).First_Unit;
             if Conf_Unit /= No_Conf_Unit_Id then
-               Write_Call ("Elaborate_Passive_Partition", Variable);
+               Write_Call (RE (RE_Elaborate_Passive_Partition), Variable);
             end if;
          end if;
       end loop;
@@ -843,7 +964,7 @@ package body XE_Back is
       while Conf_Unit /= No_Conf_Unit_Id loop
          Unit := Conf_Units.Table (Conf_Unit).My_Unit;
          if Units.Table (Unit).Shared_Passive then
-            Write_Call ("Register_Passive_Package",
+            Write_Call (RE (RE_Register_Passive_Package),
                         Quote (Conf_Units.Table (Conf_Unit).Name),
                         Get_Name_String (Name (Unit)) & "'Version");
          end if;
@@ -855,7 +976,7 @@ package body XE_Back is
       if Default_Version_Check then
          for J in Current.First_Stub .. Current.Last_Stub loop
             Unit := ALIs.Table (Get_ALI_Id (Stubs.Table (J))).Last_Unit;
-            Write_Call ("Check",
+            Write_Call (RE (RE_Check),
                         Quote (Stubs.Table (J)), No_Str,
                         Stubs.Table (J) & "'Version",
                         Units.Table (Unit).RCI'Img);
@@ -867,10 +988,10 @@ package body XE_Back is
       if Present (Current.Main_Subprogram) then
          Get_Name_String (Current.Main_Subprogram);
          Add_Str_To_Name_Buffer ("'Access");
-         Write_Call ("Run", Name_Find);
+         Write_Call (RE (RE_Run), Name_Find);
 
       else
-         Write_Call ("Run");
+         Write_Call (RE (RE_Run));
       end if;
 
       Decrement_Indentation;
@@ -979,19 +1100,18 @@ package body XE_Back is
 
       Location := First_Loc;
       while Location /= No_Location_Id loop
-         Major := PCS (RE_Protocols, Locations.Table (Location).Major);
-         Write_With_Clause (Major);
-         Write_Call ("pragma Elaborate_All", Major);
+         Major := Capitalize (Locations.Table (Location).Major);
+         Major := RU (RU_System_Garlic_Protocols) and Major;
+         Write_With_Clause (Major, False, True);
          if Current.Tasking /= 'N' then
-            Major := Major & ".Server";
-            Write_With_Clause (Major);
-            Write_Call ("pragma Elaborate_All", Major);
+            Major := Major and "Server";
+            Write_With_Clause (Major, False, True);
          end if;
          Location := Locations.Table (Location).Next_Location;
       end loop;
 
       Write_Str  ("package body ");
-      Write_Name (PCS (RE_Protocols, Config));
+      Write_Name (RU (RU_System_Garlic_Protocols_Config));
       Write_Line (" is");
 
       Increment_Indentation;
@@ -1005,8 +1125,9 @@ package body XE_Back is
       Increment_Indentation;
       Location := First_Loc;
       while Location /= No_Location_Id loop
-         Major := PCS (RE_Protocols, Locations.Table (Location).Major);
-         Write_Call ("Register", Major & ".Create");
+         Major := Capitalize (Locations.Table (Location).Major);
+         Major := RU (RU_System_Garlic_Protocols) and Major;
+         Write_Call (RE (RE_Register), Major and "Create");
          Location := Locations.Table (Location).Next_Location;
       end loop;
 
@@ -1016,7 +1137,7 @@ package body XE_Back is
       Decrement_Indentation;
       Write_Eol;
       Write_Str  ("end ");
-      Write_Name (PCS (RE_Protocols, Config));
+      Write_Name (RU (RU_System_Garlic_Protocols_Config));
       Write_Line (";");
 
       Close (File);
@@ -1333,9 +1454,9 @@ package body XE_Back is
             Location  := Partitions.Table (Partition).Storage_Loc;
 
             if Location /= No_Location_Id then
-               Major := PCS (RE_Storages, Locations.Table (Location).Major);
-               Write_With_Clause (Major);
-               Write_Call ("pragma Elaborate_All", Major);
+               Major := Capitalize (Locations.Table (Location).Major);
+               Major := RU (RU_System_Garlic_Storages) and Major;
+               Write_With_Clause (Major, False, True);
 
             else
                Use_Default := True;
@@ -1359,9 +1480,10 @@ package body XE_Back is
 
             Location := Current.Storage_Loc;
             if Location /= No_Location_Id then
-               Major := PCS (RE_Storages, Locations.Table (Location).Major);
-               Write_With_Clause (Major);
-               Write_Call ("pragma Elaborate_All", Major);
+               Major := Capitalize (Locations.Table (Location).Major);
+               Major := RU (RU_System_Garlic_Storages) and Major;
+               Write_With_Clause (Major, False, True);
+
             else
                Use_Default := True;
             end if;
@@ -1375,9 +1497,9 @@ package body XE_Back is
 
       if Use_Default then
          Location := Default_Data_Location;
-         Major := PCS (RE_Storages, Locations.Table (Location).Major);
-         Write_With_Clause (Major);
-         Write_Call ("pragma Elaborate_All", Major);
+         Major := Capitalize (Locations.Table (Location).Major);
+         Major := RU (RU_System_Garlic_Storages) and Major;
+         Write_With_Clause (Major, False, True);
       end if;
 
       if File = Invalid_FD then
@@ -1387,7 +1509,7 @@ package body XE_Back is
       --  Initialize storage supports
 
       Write_Str  ("package body ");
-      Write_Name (PCS (RE_Storages, Config));
+      Write_Name (RU (RU_System_Garlic_Storages_Config));
       Write_Line (" is");
       Increment_Indentation;
       Write_Indentation;
@@ -1407,7 +1529,8 @@ package body XE_Back is
             Location  := Partitions.Table (Partition).Storage_Loc;
             if Location /= No_Location_Id then
                Major := Locations.Table (Location).Major;
-               Write_Call (PCS (RE_Storages, Major, RE_Initialize));
+               Write_Call (RU (RU_System_Garlic_Storages)
+                           and Capitalize (Major) and "Initialize");
             end if;
          end if;
       end loop;
@@ -1421,7 +1544,8 @@ package body XE_Back is
 
             if Location /= No_Location_Id then
                Major := Locations.Table (Location).Major;
-               Write_Call (PCS (RE_Storages, Major, RE_Initialize));
+               Write_Call (RU (RU_System_Garlic_Storages)
+                           and Capitalize (Major) and "Initialize");
             end if;
          end if;
 
@@ -1430,7 +1554,8 @@ package body XE_Back is
 
       if Use_Default then
          Major := Locations.Table (Default_Data_Location).Major;
-         Write_Call (PCS (RE_Storages, Major, RE_Initialize));
+         Write_Call (RU (RU_System_Garlic_Storages)
+                     and Capitalize (Major) and "Initialize");
       end if;
 
       Decrement_Indentation;
@@ -1439,7 +1564,7 @@ package body XE_Back is
       Decrement_Indentation;
       Write_Eol;
       Write_Str  ("end ");
-      Write_Name (PCS (RE_Storages, Config));
+      Write_Name (RU (RU_System_Garlic_Storages_Config));
       Write_Line (";");
 
       Close (File);
@@ -1535,25 +1660,73 @@ package body XE_Back is
    ----------------
 
    procedure Initialize is
+      Position : Integer;
+      Length   : Natural;
+
    begin
-      PCS_Name             := Id (Get_PCS_Name);
       Build_Stamp_File     := Id ("glade.sta");
       Elaboration_File     := Id ("s-garela");
       Partition_Main_File  := Id ("partition");
       Protocol_Config_File := Id ("s-gaprco");
       Storage_Config_File  := Id ("s-gastco");
-
       Partition_Main_Name  := Id ("Partition");
-      Config               := Id ("Config");
-      Partition_Interface  := Id ("System.Partition_Interface");
-      RPC                  := Id ("System.RPC");
-      RPC_Server           := Id ("System.RPC.Server");
 
-      for E in Image'Range loop
-         Set_Str_To_Name_Buffer (E'Img);
+      Register_Casing_Rule ("PCS");
+
+      for U in RU_Id'First .. RU_Id'Last loop
+         Set_Str_To_Name_Buffer (RU_Id'Image (U));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
-         Capitalize (Name_Buffer (1 .. Name_Len));
-         Image (E) := Name_Find;
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+         Position := 0;
+         RU (U)   := Name_Find;
+         Length   := Name_Len;
+         Set_Name_Table_Info (RU (U), RU_Id'Pos (U) + 1);
+
+         while Name_Len > 0 loop
+            if Name_Buffer (Name_Len) = '_' then
+               Name_Len := Name_Len - 1;
+               Position := Integer (Get_Name_Table_Info (Name_Find));
+               exit when Position > 0;
+
+            else
+               Name_Len := Name_Len - 1;
+            end if;
+         end loop;
+
+         --  When there is a parent, remove parent unit name from
+         --  unit name to get real identifier.
+
+         if Position > 0 then
+            Set_Str_To_Name_Buffer (Name_Buffer (Name_Len + 2 .. Length));
+            RU (U) := RU (RU_Id'Val (Position - 1)) and Name_Find;
+
+         else
+            Set_Str_To_Name_Buffer (Name_Buffer (1 .. Length));
+            RU (U) := Name_Find;
+         end if;
+
+         if Debug_Mode then
+            Message (U'Img & " = " & Get_Name_String (RU (U)));
+         end if;
+      end loop;
+
+      for E in RE_Id loop
+         Set_Str_To_Name_Buffer (RE_Id'Image (E));
+         Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
+         Apply_Casing_Rules (Name_Buffer (1 .. Name_Len));
+
+         while Name_Buffer (Name_Len) in '0' .. '9'
+           or else Name_Buffer (Name_Len) = '_'
+         loop
+            Name_Len := Name_Len - 1;
+         end loop;
+
+         RE (E) := RU (RE_Unit_Table (E)) and Name_Find;
+
+         if Debug_Mode then
+            Message (E'Img & " = " & Get_Name_String (RE (E)));
+         end if;
       end loop;
    end Initialize;
 
@@ -1590,39 +1763,6 @@ package body XE_Back is
    begin
       return Name (Units.Table (U).Uname);
    end Name;
-
-   ---------
-   -- PCS --
-   ---------
-
-   function PCS
-     (F : RE_Id;
-      N : Name_Id := No_Name;
-      L : RE_Id   := RE_Null)
-     return Name_Id is
-   begin
-      Get_Name_String (PCS_Name);
-      Add_Char_To_Name_Buffer ('.');
-      Get_Name_String_And_Append (Image (F));
-      if Present (N) then
-         Add_Char_To_Name_Buffer ('.');
-         Get_Name_String_And_Append (N);
-         if L /= RE_Null then
-            Add_Char_To_Name_Buffer ('.');
-            Get_Name_String_And_Append (Image (L));
-         end if;
-      end if;
-      return Capitalize (Name_Find);
-   end PCS;
-
-   function PCS
-     (F : RE_Id;
-      N : Name_Id := No_Name;
-      L : RE_Id   := RE_Null)
-     return String is
-   begin
-      return Get_Name_String (PCS (F, N, L));
-   end PCS;
 
    -----------------------
    -- Rebuild_Partition --
@@ -1720,18 +1860,31 @@ package body XE_Back is
       return False;
    end Rebuild_Partition;
 
+   --------------------------
+   -- Register_Casing_Rule --
+   --------------------------
+
+   procedure Register_Casing_Rule (S : String) is
+   begin
+      Rules_Last := Rules_Last + 1;
+      Rules (Rules_Last).Size := S'Length;
+      Rules (Rules_Last).Into := new String'(S);
+      Rules (Rules_Last).From := new String'(S);
+      To_Lower (Rules (Rules_Last).From.all);
+   end Register_Casing_Rule;
+
    ----------------
    -- Write_Call --
    ----------------
 
    procedure Write_Call
-     (S1 : String;
+     (SP : Unit_Name_Type;
       N1 : Name_Id := No_Name;
-      S2 : String  := No_Str;
+      S1 : String  := No_Str;
       N2 : Name_Id := No_Name;
-      S3 : String  := No_Str;
+      S2 : String  := No_Str;
       N3 : Name_Id := No_Name;
-      S4 : String  := No_Str)
+      S3 : String  := No_Str)
    is
       Max_String_Length : constant := 64;
       N_Params          : Integer  := 0;
@@ -1772,12 +1925,12 @@ package body XE_Back is
       procedure Write_Separator is
       begin
          N_Params := N_Params + 1;
-         if N_Params = 2 then
+         if N_Params = 1 then
             Write_Eol;
             Increment_Indentation;
             Write_Indentation (-1);
             Write_Str ("(");
-         elsif N_Params > 2 then
+         else
             Write_Str (",");
             Write_Eol;
             Write_Indentation;
@@ -1786,36 +1939,32 @@ package body XE_Back is
 
    begin
       Write_Indentation;
-      if S1 /= No_Str then
-         Write_Separator;
-         Write_Parameter (S1);
-      end if;
+      Write_Name (SP);
       if Present (N1) then
          Write_Separator;
          Write_Parameter (Get_Name_String (N1));
       end if;
-      if S2 /= No_Str then
+      if S1 /= No_Str then
          Write_Separator;
-         Write_Parameter (S2);
+         Write_Parameter (S1);
       end if;
       if Present (N2) then
          Write_Separator;
          Write_Parameter (Get_Name_String (N2));
       end if;
-      if S3 /= No_Str then
+      if S2 /= No_Str then
          Write_Separator;
-         Write_Parameter (S3);
+         Write_Parameter (S2);
       end if;
       if Present (N3) then
          Write_Separator;
          Write_Parameter (Get_Name_String (N3));
       end if;
-      if S4 /= No_Str then
+      if S3 /= No_Str then
          Write_Separator;
-         Write_Parameter (S4);
+         Write_Parameter (S3);
       end if;
-      pragma Assert (N_Params /= 0);
-      if N_Params /= 1 then
+      if N_Params /= 0 then
          Write_Str (")");
          Decrement_Indentation;
       end if;
@@ -1864,32 +2013,29 @@ package body XE_Back is
       end if;
    end Write_Image;
 
-   ----------------------
-   -- Write_Use_Clause --
-   ----------------------
-
-   procedure Write_Use_Clause (Uname : Name_Id) is
-   begin
-      Name_Len := 0;
-      Add_Str_To_Name_Buffer ("use  ");
-      Get_Name_String_And_Append (Uname);
-      Add_Char_To_Name_Buffer (';');
-      Write_Str (Name_Buffer (1 .. Name_Len));
-      Write_Eol;
-   end Write_Use_Clause;
-
    ------------------------
    -- Write_With_Clause --
    ------------------------
 
-   procedure Write_With_Clause (Uname : Name_Id) is
+   procedure Write_With_Clause
+     (W : Name_Id;
+      U : Boolean := False;
+      E : Boolean := False) is
    begin
       Name_Len := 0;
       Add_Str_To_Name_Buffer ("with ");
-      Get_Name_String_And_Append (Uname);
+      Get_Name_String_And_Append (W);
       Add_Char_To_Name_Buffer (';');
       Write_Str (Name_Buffer (1 .. Name_Len));
       Write_Eol;
+      if U then
+         Name_Buffer (1 .. 4) := "use ";
+         Write_Str (Name_Buffer (1 .. Name_Len));
+         Write_Eol;
+      end if;
+      if E then
+         Write_Call (Id ("pragma Elaborate_All"), W);
+      end if;
    end Write_With_Clause;
 
 end XE_Back;

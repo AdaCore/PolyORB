@@ -1,23 +1,22 @@
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
 GNAT_FOR_HOST = @GNAT_FOR_HOST@
-GARLIC        = $(libdir)/garlic
 COMPILE       = -f -u -a
 GNAT_RTS_FLAG = @GNAT_RTS_FLAG@
-GNATDISTFLAGS = $(GNAT_RTS_FLAG) -@GNATDISTOPT@ -I$(prefix)/lib/garlic
+GNATDISTFLAGS = $(GNAT_RTS_FLAG) -@GNATDISTOPT@ @PCSFLAGS@
 GNATFLAGS     = -gnatpg -gnatyo @GNATFLAGS@ $(GNAT_RTS_FLAG)
-PCS_NAME      = System.Garlic
+PCSNAME       = @PCSNAME@
 RSH_CMD       = @RSH_CMD@
 RSH_OPT       = @RSH_OPT@
 srcdir        = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o
+gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.o xe_back.o
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
 CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) b_xe_defs$(EXEEXT) \
-             xe_defs.adb xe_sysdep.adb
+             xe_defs.adb xe_sysdep.adb xe_back.adb
 
 force: 
 
@@ -42,7 +41,7 @@ xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
 	@./b_xe_defs$(EXEEXT) $(GNATDISTFLAGS) \
 	   RSH_CMD="$(RSH_CMD)" \
 	   RSH_OPT="$(RSH_OPT)" \
-	   PCS_NAME="$(PCS_NAME)" \
+	   PCSNAME="$(PCSNAME)" \
 	   DEFSTORAGEDATA="$(DEFSTORAGEDATA)" \
 	   DEFSTORAGENAME="$(DEFSTORAGENAME)" \
 	   DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
@@ -54,3 +53,9 @@ xe_sysdep.o: xe_sysdep.adb xe_sysdep.ads
 
 xe_defs.o: xe_defs.adb xe_defs.ads
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
+
+xe_back.o: xe_back.adb xe_back.ads
+	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) $<
+
+xe_back.adb: Makefile
+	cp xe_back-$(PCSNAME).adb xe_back.adb
