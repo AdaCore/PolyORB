@@ -39,6 +39,35 @@ package body Broca.Sequences is
 
    package OS renames Octet_Sequences;
 
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in Octet_Sequences.Sequence)
+   is
+      Octets : constant OS.Element_Array
+        := OS.To_Element_Array (Data);
+      --  subtype Sub_Element_Array is OS.Element_Array (Octets'Range);
+      --  subtype Sub_Buffer_Type is Buffer_Type (0 .. Octets'Length - 1);
+      --  function Element_Array_To_Buffer_Type is
+      --    new Ada.Unchecked_Conversion (Sub_Element_Array, Sub_Buffer_Type);
+   begin
+      Marshall (Buffer, CORBA.Unsigned_Long (Octets'Length));
+      for I in Octets'Range loop
+         Marshall (Buffer, Octets (I));
+      end loop;
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Octet_Sequences.Sequence)
+   is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
    --------------------
    -- To_Octet_Array --
    --------------------
@@ -72,34 +101,16 @@ package body Broca.Sequences is
       return T1_To_T2 (Data);
    end To_CORBA_Octet_Array;
 
-   --------------
-   -- Marshall --
-   --------------
+   --------------------
+   -- To_Octet_Array --
+   --------------------
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : in Octet_Sequences.Sequence)
-   is
-      Octets : constant OS.Element_Array
-        := OS.To_Element_Array (Data);
-      --  subtype Sub_Element_Array is OS.Element_Array (Octets'Range);
-      --  subtype Sub_Buffer_Type is Buffer_Type (0 .. Octets'Length - 1);
-      --  function Element_Array_To_Buffer_Type is
-      --    new Ada.Unchecked_Conversion (Sub_Element_Array, Sub_Buffer_Type);
+   function To_Octet_Array
+     (Data : Octet_Sequence)
+     return Octet_Array is
    begin
-      Marshall (Buffer, CORBA.Unsigned_Long (Octets'Length));
-      for I in Octets'Range loop
-         Marshall (Buffer, Octets (I));
-      end loop;
-   end Marshall;
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Octet_Sequences.Sequence)
-   is
-   begin
-      Marshall (Buffer, Data.all);
-   end Marshall;
+      return To_Octet_Array (Octet_Sequences.To_Element_Array (Data));
+   end To_Octet_Array;
 
    ----------------
    -- Unmarshall --

@@ -69,9 +69,35 @@ private
    --  unmarshalling subprograms for the type defined
    --  by Node.
 
-   -------------
-   -- Helpers --
-   -------------
+   --------------------------------------
+   -- Top-level generation subprograms --
+   --------------------------------------
+
+   procedure Gen_Node_Stubs_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   procedure Gen_Node_Stubs_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the stubs code for a node.
+
+   -------------------------
+   -- Utility subprograms --
+   -------------------------
+
+   function Idl_Operation_Id
+     (Node : Node_Id)
+     return String;
+   --  The GIOP operation identifier (to use in
+   --  a GIOP Request message) corresponding
+   --  to K_Operation Node.
+
+   procedure Add_With_Entity
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Add a semantic dependency of CU on the
+   --  package that contains the mapping of
+   --  the entity defined by Node.
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
@@ -89,10 +115,13 @@ private
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
       Object_Type : in String;
-      Node : Node_Id);
+      Node : Node_Id;
+      With_Name : Boolean := True);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
+   --  If With_name is false, then the profile is generated, without
+   --  the subprogram name, to create an access to subprogram type.
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;
@@ -101,19 +130,23 @@ private
    --  Generate the profile for an K_Initializer node,
    --  with the specified Return_Type
 
-
-   procedure Gen_Node_Stubs_Spec
+   procedure Gen_Local_Is_A
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   procedure Gen_Node_Stubs_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the stubs code for a node.
+   --  Generate a function that checks locally whether a
+   --  given repository ID denotes an ancestor type of
+   --  Node.
 
    procedure Gen_Constant_Value
      (CU : in out Compilation_Unit;
       Node : Node_Id);
    --  Generate the representation of a constant expression.
+
+   procedure Gen_Node_Default
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the text for a node whose mapping is
+   --  common to all generated files.
 
    ---------------
    -- Shortcuts --

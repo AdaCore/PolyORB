@@ -33,20 +33,22 @@
 
 with CORBA;
 with CORBA.Impl;
-with Broca.Buffers;
---  with Broca.Refs;
-with Broca.IOP;
 
-with CORBA.Impl;
+with Broca.Buffers;
+with Broca.IOP;
 
 package Broca.Object is
 
-   --  type Object_Type is new Broca.Refs.Entity with
    type Object_Type is new CORBA.Impl.Object with
       record
          Type_Id  : CORBA.String;
          Profiles : IOP.Profile_Ptr_Array_Ptr;
       end record;
+
+   type Object_Ptr is access all Object_Type'Class;
+
+   procedure Finalize
+     (X : in out Object_Type);
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
@@ -55,8 +57,6 @@ package Broca.Object is
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Result : out Broca.Object.Object_Type);
-
-   type Object_Ptr is access all Object_Type'Class;
 
    function Find_Profile
      (Object : Object_Ptr)

@@ -43,6 +43,7 @@ with Broca.Soft_Links;  use Broca.Soft_Links;
 with Broca.Buffers.IO_Operations;
 with Broca.IOP;         use Broca.IOP;
 with Broca.Sequences;   use Broca.Sequences;
+with Broca.Sockets;
 
 with Sockets.Constants;
 with Sockets.Naming;
@@ -53,6 +54,10 @@ pragma Elaborate_All (Broca.Debug);
 
 package body Broca.IIOP is
 
+   package Constants renames Standard.Sockets.Constants;
+   package Naming renames Standard.Sockets.Naming;
+   package Thin renames Standard.Sockets.Thin;
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.iiop");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -61,13 +66,17 @@ package body Broca.IIOP is
 
    type Strand_Connection_Type is new Connection_Type with
       record
-         Strand : Strand_Access;
+         Strand : Strand_Type;
       end record;
+
+   No_Strand : constant Strand_Type
+     := (List   => null,
+         Socket => Thin.Failure);
 
    function Receive
      (Connection : access Strand_Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array;
+     return Opaque.Octet_Array_Ptr;
 
    procedure Release
      (Connection : access Strand_Connection_Type);
@@ -76,17 +85,12 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type);
 
-
    function Image (Profile : access Profile_IIOP_Type) return String;
    --  For debugging purpose ...
 
-   procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class);
-
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr);
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+     return Profile_Ptr;
 
    function Port_To_Network_Port
      (Port : CORBA.Unsigned_Short)
@@ -97,38 +101,13 @@ package body Broca.IIOP is
 
    function Hash_String is new GNAT.HTable.Hash (Hash_Type);
 
-   type Profile_Key is
-      record
-         Host   : CORBA.String;
-         Port   : CORBA.Unsigned_Short;
-         ObjKey : Broca.Sequences.Octet_Sequence;
-      end record;
-
-   function Hash_Profile  (K : Profile_Key) return Hash_Type;
-   function Equal_Profile (K1, K2 : Profile_Key) return Boolean;
-
-   type Strand_Key is
-      record
-         Host : CORBA.String;
-         Port : CORBA.Unsigned_Short;
-      end record;
-
    function Hash_Strand  (K : Strand_Key) return Hash_Type;
    function Equal_Strand (K1, K2 : Strand_Key) return Boolean;
-
-   package PHT is
-      new GNAT.HTable.Simple_HTable
-        (Hash_Type,
-         Profile_IIOP_Access,
-         null,
-         Profile_Key,
-         Hash_Profile,
-         Equal_Profile);
 
    package SHT is
       new GNAT.HTable.Simple_HTable
         (Hash_Type,
-         Strand_List_Access,
+         Strand_List_Ptr,
          null,
          Strand_Key,
          Hash_Strand,
@@ -140,32 +119,25 @@ package body Broca.IIOP is
    --  in order to serve several methods of the same object at the
    --  same time.
 
-   --------------------
-   -- Create_Profile --
-   --------------------
-
-   procedure Create_Profile
-     (Buffer  : access Buffer_Type;
-      Profile : out Profile_Ptr) is
+   procedure Finalize
+     (The_List : in out Strand_List) is
    begin
-      Unmarshall_IIOP_Profile_Body (Buffer, Profile);
-   end Create_Profile;
+      pragma Debug (O ("Finalize (Strand_List)"));
 
-   -------------------
-   -- Equal_Profile --
-   -------------------
+      Enter_Critical_Section;
+      SHT.Remove (The_List.Key);
 
-   function Equal_Profile
-     (K1, K2 : Profile_Key)
-     return Boolean
-   is
-      use Broca.Sequences.Octet_Sequences;
-
-   begin
-      return K1.Port = K2.Port
-        and then K1.Host = K2.Host
-        and then K1.ObjKey = K2.ObjKey;
-   end Equal_Profile;
+      declare
+         Socks : Strand_Sequences.Element_Array
+           := Strand_Sequences.To_Element_Array
+           (Strand_Sequences.Sequence (The_List.L));
+      begin
+         Leave_Critical_Section;
+         for I in Socks'Range loop
+            Thin.C_Close (Socks (I).Socket);
+         end loop;
+      end;
+   end Finalize;
 
    ------------------
    -- Equal_Strand --
@@ -188,11 +160,21 @@ package body Broca.IIOP is
      return Connection_Ptr
    is
       use Interfaces.C;
-      use Sockets.Naming;
-      use Sockets.Constants;
-      use Sockets.Thin;
+      use Naming;
+      use Constants;
+      use Thin;
 
-      Strand  : Strand_Access;
+      use Broca.Refs;
+
+      use Strand_Sequences;
+
+      Key : constant Strand_Key
+        := (Host => Profile.Host,
+            Port => Profile.Port);
+
+      The_Strand_List : Strand_List_Ptr;
+
+      Strand  : Strand_Type;
 
    begin
       Enter_Critical_Section;
@@ -200,48 +182,51 @@ package body Broca.IIOP is
       --  Create the strand list node if needed and register it into
       --  the strands hash table.
 
-      if Profile.Strands = null then
+      The_Strand_List := SHT.Get (Key);
+
+      if The_Strand_List = null then
          pragma Debug (O ("init strand list for profile " & Image (Profile)));
 
-         declare
-            Key : Strand_Key;
-
-         begin
-            Key.Host := Profile.Host;
-            Key.Port := Profile.Port;
-
-            Profile.Strands := new Strand_List_Type;
-
-            SHT.Set (Key, Profile.Strands);
-         end;
+         The_Strand_List := new Strand_List;
+         The_Strand_List.Key := Key;
+         SHT.Set (Key, The_Strand_List);
       end if;
 
-      --  If the strands list is not empty, then get a strand from it.
+      if Is_Nil (Profile.Strands) then
+         pragma Debug (O ("Creating ref to strand list"));
+         Set (Profile.Strands, Broca.Refs.Entity_Ptr (The_Strand_List));
+      else
+         pragma Debug (O ("Checking ref to strand list"));
+         pragma Assert (Entity_Of (Profile.Strands)
+                        = Broca.Refs.Entity_Ptr (The_Strand_List));
+         --  If a profile has a non-nil reference to a strands list,
+         --  and SHT contains a list with the same key, ensure
+         --  consistency.
+         null;
+      end if;
 
-      if Profile.Strands.Head /= null then
+      --  Try to reuse an existing strand
+
+      if Length (The_Strand_List.L) > 0 then
          pragma Debug (O ("reuse strand from profile " & Image (Profile)));
 
-         Strand               := Profile.Strands.Head;
-         Profile.Strands.Head := Strand.Next;
-         if Profile.Strands.Head = null then
-            Profile.Strands.Tail := null;
-         end if;
-      end if;
+         Strand := Element_Of (The_Strand_List.L, 1);
+         Delete (The_Strand_List.L, 1, 1);
+         Leave_Critical_Section;
+      else
+         Leave_Critical_Section;
 
-      Leave_Critical_Section;
+         --  No strands available: create a new one.
 
-      --  If there is no strand availble, then create a new one.
+         --  FIXME: Add a mechanism to close idle strands.
 
-      if Strand = null then
          pragma Debug (O ("create new strand for profile " & Image (Profile)));
 
          declare
             Addr : Sockaddr_In;
             Host : String := To_Standard_String (Profile.Host);
-
          begin
-            Strand      := new Strand_Type;
-            Strand.List := Profile.Strands;
+            Strand.List := The_Strand_List;
 
             Strand.Socket := C_Socket (Af_Inet, Sock_Stream, 0);
             if Strand.Socket = Failure then
@@ -270,8 +255,8 @@ package body Broca.IIOP is
          end;
       end if;
 
-      return
-        new Strand_Connection_Type'(Connection_Type with Strand => Strand);
+      return new Strand_Connection_Type'
+        (Connection_Type with Strand => Strand);
    end Find_Connection;
 
    --------------------
@@ -296,17 +281,6 @@ package body Broca.IIOP is
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
-   ------------------
-   -- Hash_Profile --
-   ------------------
-
-   function Hash_Profile
-     (K : Profile_Key)
-     return Hash_Type is
-   begin
-      return Hash_String (To_Standard_String (K.Host) & ' ' & K.Port'Img);
-   end Hash_Profile;
-
    -----------------
    -- Hash_Strand --
    -----------------
@@ -327,38 +301,94 @@ package body Broca.IIOP is
       return To_Standard_String (Profile.Host) & Profile.Port'Img & " <...>";
    end Image;
 
-   --------------------------------
-   -- Marshall_IIOP_Profile_Body --
-   --------------------------------
+   ---------------------------
+   -- Marshall_Profile_Body --
+   ---------------------------
 
-   procedure Marshall_IIOP_Profile_Body
-     (IOR     : access Buffer_Type;
-      Profile : access Profile_Type'Class)
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_Type)
    is
       use Broca.CDR;
 
-      IIOP_Profile : Profile_IIOP_Type renames Profile_IIOP_Type (Profile.all);
-      Profile_Body : aliased Buffer_Type;
+      Profile_Body : Buffer_Access
+        := new Buffer_Type;
 
    begin
-
       --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
-
-      Start_Encapsulation (Profile_Body'Access);
+      Start_Encapsulation (Profile_Body);
 
       --  Version
-      --  FIXME: Version should not be hard-coded.
-      Marshall (Profile_Body'Access, CORBA.Octet'(1));
-      Marshall (Profile_Body'Access, CORBA.Octet'(0));
+      Marshall (Profile_Body, IIOP_Version.Major);
+      Marshall (Profile_Body, IIOP_Version.Minor);
 
-      Marshall (Profile_Body'Access, IIOP_Profile.Host);
-      Marshall (Profile_Body'Access, IIOP_Profile.Port);
-      Marshall (Profile_Body'Access, IIOP_Profile.ObjKey);
+      Marshall (Profile_Body, Profile.Host);
+      Marshall (Profile_Body, Profile.Port);
+      Marshall (Profile_Body, Profile.ObjKey);
 
-      --  Marshall the Profile_Body into IOR.
-      Marshall (IOR, Encapsulate (Profile_Body'Access));
+      --  Marshall the Profile_Body into Buffer.
+      Marshall (Buffer, Encapsulate (Profile_Body));
       Release (Profile_Body);
-   end Marshall_IIOP_Profile_Body;
+   end Marshall_Profile_Body;
+
+   ----------------------------------
+   -- Unmarshall_IIOP_Profile_Body --
+   ----------------------------------
+
+   function Unmarshall_IIOP_Profile_Body
+     (Buffer   : access Buffer_Type)
+     return Profile_Ptr
+   is
+      Version : Version_Type;
+      Length  : CORBA.Long;
+
+      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
+      Profile_Buffer : aliased Buffer_Type;
+
+      Host   : CORBA.String;
+      Port   : CORBA.Unsigned_Short;
+      ObjKey : Broca.Sequences.Octet_Sequence;
+      Result : Profile_IIOP_Access;
+
+   begin
+      pragma Debug (O ("Unmarshall_IIOP_Profile_Body : enter"));
+      Decapsulate (Profile_Body'Access, Profile_Buffer'Access);
+
+      Version.Major := Unmarshall (Profile_Buffer'Access);
+      Version.Minor := Unmarshall (Profile_Buffer'Access);
+
+      if Version.Major /= IIOP_Version.Major
+        or else Version.Minor > IIOP_Version.Minor
+      then
+         pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
+                          & "Invalid IIOP version number"));
+         --  null;
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      Host   := Unmarshall (Profile_Buffer'Access);
+      Port   := Unmarshall (Profile_Buffer'Access);
+      ObjKey := Unmarshall (Profile_Buffer'Access);
+
+      if Version.Minor = 1 then
+         Length := Unmarshall (Profile_Buffer'Access);
+         if Length /= 0 then
+            --  FIXME: Multiple components are not yet handled.
+            Broca.Exceptions.Raise_Bad_Param;
+         end if;
+      end if;
+
+      Result := new Profile_IIOP_Type;
+
+      Result.Version := Version;
+      Result.Host    := Host;
+      Result.Port    := Port;
+      Result.ObjKey  := ObjKey;
+
+      pragma Debug (O ("Created profile: " & Image (Result)));
+
+      return Profile_Ptr (Result);
+   end Unmarshall_IIOP_Profile_Body;
 
    --------------------------
    -- Port_To_Network_Port --
@@ -384,11 +414,11 @@ package body Broca.IIOP is
    function Receive
      (Connection : access Strand_Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array
+     return Opaque.Octet_Array_Ptr
    is
       use Broca.Opaque;
 
-      Result : Octet_Array (1 .. Length);
+      Result : Octet_Array_Ptr := new Octet_Array (1 .. Length);
 
    begin
       if Length = 0 then
@@ -397,24 +427,14 @@ package body Broca.IIOP is
          return Result;
       end if;
 
-      declare
-         use Sockets.Thin;
-         use Interfaces.C;
+      if
+        Sockets.Receive (Connection.Strand.Socket, Result, Length) /= Length
+      then
+         Free (Result);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
 
-         Received : Interfaces.C.int;
-
-      begin
-         Received := C_Recv
-           (Connection.Strand.Socket,
-            Result (1)'Address,
-            Interfaces.C.int (Length), 0);
-
-         if Received /=  Interfaces.C.int (Length) then
-            Broca.Exceptions.Raise_Comm_Failure;
-         end if;
-
-         return Result;
-      end;
+      return Result;
    end Receive;
 
    -------------
@@ -422,24 +442,17 @@ package body Broca.IIOP is
    -------------
 
    procedure Release
-     (Connection : access Strand_Connection_Type)
-   is
-      List : Strand_List_Access;
-
+     (Connection : access Strand_Connection_Type) is
    begin
       pragma Debug (O ("release strand"));
 
       --  Push the free strand into the strands list.
 
       Enter_Critical_Section;
-      List := Connection.Strand.List;
-      if List.Tail /= null then
-         List.Tail.Next := Connection.Strand;
-
-      else
-         List.Head := Connection.Strand;
-      end if;
-      List.Tail := Connection.Strand;
+      Append
+        (Connection.Strand.List.L,
+         Connection.Strand);
+      Connection.Strand := No_Strand;
       Leave_Critical_Section;
    end Release;
 
@@ -451,7 +464,7 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type)
    is
-      use Sockets.Thin;
+      use Thin;
       use Interfaces.C;
 
    begin
@@ -469,69 +482,10 @@ package body Broca.IIOP is
       pragma Debug (O ("message correctly sent"));
    end Send;
 
-   ----------------------------------
-   -- Unmarshall_IIOP_Profile_Body --
-   ----------------------------------
-
-   procedure Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr)
-   is
-      Version : Version_Type;
-      Key     : Profile_Key;
-      Length  : CORBA.Long;
-
-      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-      Profile_Buffer : aliased Buffer_Type;
-
-      Result : Profile_IIOP_Access;
-
-   begin
-      Decapsulate (Profile_Body'Access, Profile_Buffer'Access);
-
-      Version.Major := Unmarshall (Profile_Buffer'Access);
-      Version.Minor := Unmarshall (Profile_Buffer'Access);
-
-      if Version.Major /= 1
-        or else Version.Minor > 1
-      then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-
-      Key.Host   := Unmarshall (Profile_Buffer'Access);
-      Key.Port   := Unmarshall (Profile_Buffer'Access);
-      Key.ObjKey := Unmarshall (Profile_Buffer'Access);
-
-      if Version.Minor = 1 then
-         Length := Unmarshall (Profile_Buffer'Access);
-         if Length /= 0 then
-            --  FIXME: Multiple components are not yet handled.
-            Broca.Exceptions.Raise_Bad_Param;
-         end if;
-      end if;
-
-      --  Try to find an existing profile in the hash table.
-
-      Enter_Critical_Section;
-
-      Result := PHT.Get (Key);
-      if Result = null then
-         Result := new Profile_IIOP_Type;
-         Result.Version := Version;
-         Result.Host    := Key.Host;
-         Result.Port    := Key.Port;
-         Result.ObjKey  := Key.ObjKey;
-         PHT.Set (Key, Result);
-      end if;
-
-      Leave_Critical_Section;
-
-      Profile := Profile_Ptr (Result);
-   end Unmarshall_IIOP_Profile_Body;
-
 begin
-   Register
+
+   Broca.IOP.Register
      (Tag_Internet_IOP,
-      Marshall_IIOP_Profile_Body'Access,
       Unmarshall_IIOP_Profile_Body'Access);
+
 end Broca.IIOP;

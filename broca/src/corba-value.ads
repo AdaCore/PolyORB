@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         C O R B A . V A L U E                            --
+--                          C O R B A . V A L U E                           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -53,5 +53,15 @@ package CORBA.Value is
    --  of the reference-counting semantics of CORBA.Impl.OBject.
    --
    --  An issue against ptc/00-05-04 has been raised with OMG.
+
+   --  I suggest that we define Is_A here to be able to
+   --  implement To_Ref and To_Abstract_Ref for valuetypes.
+   --  (Fabien)
+   --  Shall we raise an issue to OMG ?
+
+   function Is_A
+     (Self : in Base;
+      Logical_Type_Id : Standard.String)
+      return CORBA.Boolean;
 
 end CORBA.Value;

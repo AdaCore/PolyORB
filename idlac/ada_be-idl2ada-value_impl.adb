@@ -26,6 +26,7 @@
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic;           use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
@@ -58,57 +59,66 @@ package body Ada_Be.Idl2Ada.Value_Impl is
             Put (CU, "type Object is new ");
 
             --  check parent
-            if Parents (Node) = Nil_List then
-               Add_With (CU, "CORBA.Value");
-               Put (CU, "CORBA.Value.Impl_Base");
-            else
-               declare
-                  First_Parent : Node_Id := Head (Parents (Node));
-               begin
-                  Add_With (CU, Ada_Full_Name (First_Parent));
-                  Put (CU, Ada_Type_Name (First_Parent));
-               end;
-            end if;
+            declare
+               Primary_Parent : Node_Id
+                 := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+            begin
+               if Primary_Parent = No_Node then
+                  Add_With (CU, "CORBA.Value");
+                  Put (CU, "CORBA.Value.Impl_Base");
+               else
+                  Add_With (CU,
+                            Ada_Full_Name (Primary_Parent)
+                            & ".Value_Impl");
+                  Put (CU, Ada_Full_Name (Primary_Parent)
+                       & ".Value_Impl.Object");
+               end if;
+            end;
 
             --  write members
-            if Is_Empty (Contents (Node)) then
-               PL (CU, " with null record;");
-            else
-               PL (CU, " with record");
-               II (CU);
-               declare
-                  It   : Node_Iterator;
-                  Member_Node : Node_Id;
-               begin
-                  Init (It, Contents (Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, Member_Node);
-                     if Kind (Member_Node) = K_State_Member then
-                        declare
-                           Decl_Iterator : Node_Iterator;
-                           Decl_Node : Node_Id;
-                        begin
-                           Init (Decl_Iterator,
-                                 State_Declarators (Member_Node));
-                           while not Is_End (Decl_Iterator) loop
-                              Get_Next_Node (Decl_Iterator, Decl_Node);
-                              if Kind (Decl_Node) = K_Declarator then
-                                 Gen_Node_Stubs_Spec (CU, Decl_Node);
-                                 Put (CU, " : ");
-                                 Gen_Node_Stubs_Spec
-                                   (CU, State_Type (Member_Node));
-                                 PL (CU, ";");
-                              end if;
-                           end loop;
-                        end;
-                     end if;
-                  end loop;
-               end;
+            declare
+               First : Boolean := True;
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+            begin
+               Init (It, Contents (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+                  if Kind (Member_Node) = K_State_Member then
+                     declare
+                        Decl_Iterator : Node_Iterator;
+                        Decl_Node : Node_Id;
+                     begin
+                        if First then
+                           PL (CU, " with record");
+                           II (CU);
+                           First := False;
+                        end if;
+                        Init (Decl_Iterator,
+                              State_Declarators (Member_Node));
+                        while not Is_End (Decl_Iterator) loop
+                           Get_Next_Node (Decl_Iterator, Decl_Node);
+                           if Kind (Decl_Node) = K_Declarator then
+                              Gen_Node_Stubs_Spec (CU, Decl_Node);
+                              Put (CU, " : ");
+                              Gen_Node_Stubs_Spec
+                                (CU, State_Type (Member_Node));
+                              PL (CU, ";");
+                           end if;
+                        end loop;
+                     end;
+                  end if;
+               end loop;
+               if First then
+                  PL (CU, " with null record;");
+               else
+                  DI (CU);
+                  PL (CU, "end record;");
+               end if;
+               NL (CU);
+            end;
 
-               DI (CU);
-               PL (CU, "end record;");
-               PL (CU, "type Object_Ptr is access all Object'Class;");
-            end if;
+            PL (CU, "type Object_Ptr is access all Object'Class;");
 
          when K_Initializer =>
             Gen_Initializer_Profile (CU,
@@ -140,7 +150,58 @@ package body Ada_Be.Idl2Ada.Value_Impl is
       case Kind (Node) is
 
          when K_Operation =>
-            Ada_Be.Idl2Ada.Impl.Gen_Node_Body (CU, Node);
+            --  for public state members, the operation body is
+            --  fully generated.
+            if Original_Node (Node) = No_Node
+              or else Kind (Original_Node (Node)) /= K_State_Member then
+               Ada_Be.Idl2Ada.Impl.Gen_Node_Body (CU, Node);
+            else
+               pragma Debug (O ("Generating .value_impl for state member"));
+               declare
+                  Is_Get : constant Boolean
+                    := Kind (Operation_Type (Node)) /= K_Void;
+               begin
+                  NL (CU);
+                  Gen_Operation_Profile (CU, "access Object", Node);
+                  PL (CU, " is");
+                  PL (CU, "begin");
+                  II (CU);
+                  if Is_Get then
+                     Put (CU,
+                          "return Self.all.");
+                     Put (CU,
+                          Ada_Name (Head (State_Declarators
+                                          (Original_Node (Node)))));
+                     PL (CU, ";");
+                  else
+                     Put (CU,
+                          "Self.all.");
+                     Put (CU,
+                          Ada_Name (Head (State_Declarators
+                                          (Original_Node (Node)))));
+                     PL (CU, " := To;");
+                  end if;
+                  DI (CU);
+                  PL (CU, "end " & Ada_Operation_Name (Node) & ";");
+               end;
+            end if;
+
+         when K_Initializer =>
+            Gen_Initializer_Profile (CU,
+                                     "Object_Ptr",
+                                     Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "Result : Object_Ptr := new Object;");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            NL (CU);
+            PL (CU, "--  Insert implementation of " & Ada_Name (Node));
+            NL (CU);
+            PL (CU, "return Result;");
+            DI (CU);
+            PL (CU, "end " & Ada_Name (Node) & ";");
 
          when others =>
             null;

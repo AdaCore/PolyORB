@@ -78,20 +78,23 @@ package Broca.ORB is
    procedure POA_State_Changed (POA : Broca.POA.Ref);
 
    --  Well Known ObjectIds.
-   Root_POA_ObjectId             : constant CORBA.ORB.ObjectId;
-   POA_Current_Objectid          : constant CORBA.ORB.ObjectId;
-   Interface_Repository_ObjectId : constant CORBA.ORB.ObjectId;
+   Root_POA_ObjectId               : constant CORBA.ORB.ObjectId;
+   POA_Current_Objectid            : constant CORBA.ORB.ObjectId;
+   Interface_Repository_ObjectId   : constant CORBA.ORB.ObjectId;
+   Name_Service_ObjectId           : constant CORBA.ORB.ObjectId;
 
 private
 
-   Root_POA_ObjectId : constant CORBA.ORB.ObjectId :=
-     CORBA.ORB.ObjectId (CORBA.String'(CORBA.To_CORBA_String ("RootPOA")));
+   Root_POA_ObjectId               : constant CORBA.ORB.ObjectId :=
+     CORBA.ORB.To_CORBA_String ("RootPOA");
 
-   POA_Current_Objectid : constant CORBA.ORB.ObjectId :=
-     CORBA.ORB.ObjectId (CORBA.String'(CORBA.To_CORBA_String ("POACurrent")));
+   POA_Current_Objectid            : constant CORBA.ORB.ObjectId :=
+     CORBA.ORB.To_CORBA_String ("POACurrent");
 
-   Interface_Repository_Objectid : constant CORBA.ORB.ObjectId :=
-     CORBA.ORB.ObjectId
-     (CORBA.String'(CORBA.To_CORBA_String ("InterfaceRepository")));
+   Interface_Repository_Objectid   : constant CORBA.ORB.ObjectId :=
+     CORBA.ORB.To_CORBA_String ("InterfaceRepository");
+
+   Name_Service_ObjectId           : constant CORBA.ORB.ObjectId :=
+     CORBA.ORB.To_CORBA_String ("NamingService");
 
 end Broca.ORB;

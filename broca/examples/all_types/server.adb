@@ -31,15 +31,15 @@ with all_types.Impl;
 with CORBA;
 with CORBA.Object;
 
-with Broca.Basic_Startup; use Broca.Basic_Startup;
-pragma Elaborate (Broca.Basic_Startup);
+with Broca.Server_Tools; use Broca.Server_Tools;
+pragma Elaborate (Broca.Server_Tools);
 
 with Ada.Text_IO;
 
 procedure Server is
    Ref : CORBA.Object.Ref;
-
 begin
+   Ada.Text_IO.Put_Line ("Server begins here");
    Initiate_Servant (new all_types.Impl.Object, Ref);
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &

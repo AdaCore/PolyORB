@@ -24,8 +24,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
+with Ada.Text_IO;       use Ada.Text_IO;
 with GNAT.OS_Lib;
+with Idlac_Flags;       use Idlac_Flags;
 
 package body Errors is
 
@@ -40,6 +42,15 @@ package body Errors is
    procedure Display_Error (Message : in String;
                             Level : in Error_Kind;
                             Loc : Location);
+
+   procedure Pinpoint_Error
+     (Message : in String;
+      Loc     : in Location);
+   --  Print a full description of the error message with pointers on the
+   --  error location.
+
+   function Full_Name (Loc : Location) return String;
+   --  Return the full file name (i.e., a usable one)
 
    ---------------------
    --  Nat_To_String  --
@@ -102,19 +113,12 @@ package body Errors is
    begin
       case Level is
          when Fatal =>
-            Put (Current_Error, "FATAL ERROR occured");
+            Pinpoint_Error ("Fatal: " & Message, Loc);
          when Error =>
-            Put (Current_Error, "ERROR occured");
+            Pinpoint_Error ("Error: " & Message, Loc);
          when Warning =>
-            Put (Current_Error, "WARNING occured");
+            Pinpoint_Error ("Warning: " & Message, Loc);
       end case;
-      if Loc.Line > 0 then
-         Put (Current_Error, " at " & Display_Location (Loc));
-      end if;
-      New_Line (Current_Error);
-      Put (Current_Error, "    ");
-      Put_Line (Current_Error, Message);
-      New_Line (Current_Error);
    end Display_Error;
 
    -----------
@@ -175,5 +179,102 @@ package body Errors is
    begin
       return Warning_Count;
    end Warning_Number;
+
+   ---------------
+   -- Full_Name --
+   ---------------
+
+   function Full_Name (Loc : Location) return String is
+   begin
+      if Loc.Filename = null then
+         return "<standard input>";
+      end if;
+
+      if Loc.Dirname = null then
+         return Loc.Filename.all;
+      else
+         return Loc.Dirname.all & GNAT.OS_Lib.Directory_Separator &
+           Loc.Filename.all;
+      end if;
+   end Full_Name;
+
+   --------------------
+   -- PinPoint_Error --
+   --------------------
+
+   procedure Pinpoint_Error
+     (Message : in String;
+      Loc     : in Location)
+   is
+
+      procedure Format (Message : in String);
+      --  Format an error message so that it fits (hopefully) on a 80
+      --  characters screen.
+
+      ------------
+      -- Format --
+      ------------
+
+      procedure Format (Message : in String) is
+         Sep : Natural;
+      begin
+         if Message = "" then
+            return;
+         elsif Message (Message'First) = ' ' then
+            Format (Message (Message'First + 1 .. Message'Last));
+            return;
+         end if;
+
+         Put (Current_Error, " >>> ");
+         if Message'Length <= 75 then
+            Put_Line (Current_Error, Message);
+         else
+            Sep := Index (Message (Message'First .. Message'First + 74),
+                          " ", Backward);
+            if Sep = 0 then
+               Put_Line (Current_Error,
+                         Message (Message'First .. Message'First + 74));
+               Format (Message (Message'First + 75 .. Message'Last));
+            else
+               Put_Line (Current_Error, Message (Message'First .. Sep - 1));
+               Format (Message (Sep + 1 .. Message'Last));
+            end if;
+         end if;
+      end Format;
+
+   begin
+      if Verbose and then Loc.Line > 0 and then Loc.Col > 0 then
+         Put_Line (Current_Error, "At " & Display_Location (Loc));
+         New_Line (Current_Error);
+         declare
+            File_Name : constant String := Full_Name (Loc);
+            File      : File_Type;
+            Line      : String (1 .. 1024);
+            Last      : Natural;
+            LN        : constant String := Nat_To_String (Loc.Col);
+            LNN       : constant Positive := LN'Length;
+         begin
+            Open (File, In_File, File_Name);
+            for I in 1 .. Loc.Line loop
+               Get_Line (File, Line, Last);
+            end loop;
+            Put_Line (Current_Error, LN & "   " & Line (1 .. Last));
+            for I in 1 .. LNN + 3 + Loc.Col loop
+               Put (Current_Error, " ");
+            end loop;
+            Put_Line (Current_Error, "^");
+            Format (Message);
+            Close (File);
+         exception
+            when Name_Error =>
+               Put_Line (Current_Error, Message);
+         end;
+         New_Line (Current_Error);
+      else
+         Put_Line (Current_Error,
+                   Full_Name (Loc) & ":" & Nat_To_String (Loc.Line) &
+                   ":" & Nat_To_String (Loc.Col) & " " & Message);
+      end if;
+   end Pinpoint_Error;
 
 end Errors;

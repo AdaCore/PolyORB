@@ -1,5 +1,5 @@
 
-with Text_IO; use Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with CORBA; use CORBA;
 with Myexceptions;  use Myexceptions;
 with Broca.Exceptions;  use Broca.Exceptions;

@@ -35,7 +35,98 @@ with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
 
+with Broca.Names;
+with Broca.Repository;
+with Broca.GIOP;
+with Broca.Exceptions;
+with Broca.Object;
+
 package body CORBA.Object is
+
+   ----------
+   -- Is_A --
+   ----------
+
+   function Is_A
+     (Self            : in Ref;
+      Logical_Type_Id : in Standard.String)
+      return CORBA.Boolean
+   is
+      use CORBA;
+      use Broca.Repository;
+
+      Self_Ref : Ref := Self;
+
+   begin
+
+      if
+        Is_Equivalent
+        (Logical_Type_Id,
+         Broca.Names.OMG_RepositoryId ("CORBA/Object"))
+      --  Any object Is_A CORBA::Object.
+
+        or else
+
+        Is_Equivalent
+        (CORBA.To_CORBA_String (Logical_Type_Id),
+         CORBA.RepositoryId (Broca.Object.Object_Ptr
+                             (Object_Of (Self)).Type_Id))
+      --  Any object is of the class of its
+      --  actual (i. e. most derived) type.
+
+      then
+         return True;
+      end if;
+
+      --  If class membership cannot be determined locally,
+      --  perform a remote call on the object.
+
+      --  Some of this code is replicated from the generated
+      --  stubs code for object operations.
+
+      declare
+         Returns : CORBA.Boolean;
+         is_a_Operation : constant CORBA.Identifier
+           := CORBA.To_CORBA_String ("_is_a");
+         Handler : Broca.GIOP.Request_Handler;
+         Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
+      begin
+         if Is_Nil (Self) then
+            Broca.Exceptions.Raise_Inv_Objref;
+         end if;
+
+         loop
+            Broca.GIOP.Send_Request_Marshall
+              (Handler, Self_Ref, True, is_a_Operation);
+
+            Marshall
+              (Handler.Buffer'Access,
+               Logical_Type_Id);
+
+            Broca.GIOP.Send_Request_Send
+              (Handler, Self_Ref, True, Send_Request_Result);
+
+            case Send_Request_Result is
+               when Broca.GIOP.Sr_No_Reply =>
+                  Broca.GIOP.Release (Handler);
+                  Broca.GIOP.Release (Handler);
+                  raise Program_Error;
+               when Broca.GIOP.Sr_Forward =>
+                  null;
+               when Broca.GIOP.Sr_Reply =>
+
+                  --  Unmarshall return value.
+                  Returns := Unmarshall (Handler.Buffer'Access);
+
+                  Broca.GIOP.Release (Handler);
+                  return Returns;
+               when Broca.GIOP.Sr_User_Exception =>
+                  Broca.GIOP.Release (Handler);
+                  raise Program_Error;
+            end case;
+         end loop;
+      end;
+   end Is_A;
 
    ----------------------
    -- Object_To_String --
@@ -84,5 +175,41 @@ package body CORBA.Object is
                                     Request,
                                     Req_Flags);
    end Create_Request;
+
+   --------------------
+   -- Create_Request --
+   --------------------
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      CORBA.Request.Create_Request (CORBA.AbstractBase.Ref (Self),
+                                    Ctx,
+                                    Operation,
+                                    Arg_List,
+                                    Result,
+                                    Exc_List,
+                                    Ctxt_List,
+                                    Request,
+                                    Req_Flags);
+   end Create_Request;
+
+   -----------------
+   --  Duplicate  --
+   -----------------
+   function Duplicate (Object : access Content_ObjRef)
+                       return Any_Content_Ptr is
+   begin
+      return new Content_ObjRef'
+        (Value => Content_ObjRef_Ptr (Object).Value);
+   end Duplicate;
 
 end CORBA.Object;

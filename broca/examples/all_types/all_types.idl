@@ -45,6 +45,8 @@ interface all_types {
   // ------------------------
   typedef long matrix[3][3];
   matrix echoMatrix (in matrix arg);
+  typedef long bigmatrix[30][15];
+  bigmatrix echoBigMatrix (in bigmatrix arg);
 
   // Structs
   // -------

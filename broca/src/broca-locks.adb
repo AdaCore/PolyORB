@@ -31,7 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Debug;
+
 package body Broca.Locks is
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("broca.locks");
+   procedure O is new Broca.Debug.Output (Flag);
 
    protected body Mutex_Type is
       entry Lock when Owner = Null_Task_Id is
@@ -71,6 +81,7 @@ package body Broca.Locks is
    protected body Rw_Lock_Type is
       entry Lock_W when Count = 0 is
       begin
+         pragma Debug (O ("Lock_W"));
          R_Prevented := False;
          Count := -1;
       end Lock_W;
@@ -81,11 +92,13 @@ package body Broca.Locks is
         and Lock_W'Count = 0
         and not R_Prevented is
       begin
+         pragma Debug (O ("Lock_R"));
          Count := Count + 1;
       end Lock_R;
 
       procedure Unlock_W is
       begin
+         pragma Debug (O ("Unlock_W"));
          if Count /= -1 then
             raise Program_Error;
          else
@@ -95,6 +108,7 @@ package body Broca.Locks is
 
       procedure Unlock_R is
       begin
+         pragma Debug (O ("Unlock_R"));
          if Count <= 0 then
             raise Program_Error;
          else

@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . R E Q U E S T                          --
+--                        C O R B A . R E Q U E S T                         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -34,6 +34,8 @@
 with System;
 with CORBA.AbstractBase;
 with CORBA.NVList;
+with CORBA.ExceptionList;
+with CORBA.ContextList;
 with CORBA.Context;
 
 package CORBA.Request is
@@ -76,8 +78,16 @@ package CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
 
-   --  returns the return value corresponding to a request
-   function Return_Value (Self : Object) return NamedValue;
+   procedure Create_Request
+     (Self      : in     CORBA.AbstractBase.Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
 
 private
 
@@ -88,6 +98,8 @@ private
          Operation  : CORBA.Identifier;
          Args_List  : CORBA.NVList.Ref;
          Result     : CORBA.NamedValue;
+         Exc_List   : CORBA.ExceptionList.Ref;
+         Ctxt_List  : CORBA.ContextList.Ref;
          Req_Flags  : CORBA.Flags;
       end record;
 

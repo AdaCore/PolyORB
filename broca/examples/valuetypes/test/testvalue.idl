@@ -1,0 +1,11 @@
+valuetype VA {
+  void fooA(in long param);
+};
+
+abstract valuetype VB {
+  void fooB();
+};
+
+valuetype VC: VA, VB {
+  void fooC();
+};

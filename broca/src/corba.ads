@@ -32,11 +32,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Finalization;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
+with Ada.Unchecked_Deallocation;
 with Interfaces;
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+with Broca.Locks;
 
 package CORBA is
 
@@ -713,6 +714,17 @@ package CORBA is
    --  Any  --
    -----------
 
+   --  This is the returned exception in case of dynamic invocation
+   UnknownUserException : exception;
+   type UnknownUserException_Members is
+     new CORBA.IDL_Exception_Members with record
+        IDL_Exception : Any;
+     end record;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To   : out UnknownUserException_Members);
+
    function "=" (Left, Right : in Any) return Boolean;
 
    function Equal (Left, Right : in Any) return Boolean
@@ -756,6 +768,10 @@ package CORBA is
 
    function Get_Type (The_Any : in Any) return TypeCode.Object;
 
+   --  not in spec : returns the most precise type of an Any. It
+   --  means that it removes any alias level
+   function Get_Precise_Type (The_Any : in Any) return TypeCode.Object;
+
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
    procedure Set_Type (The_Any : in out Any;
@@ -766,8 +782,57 @@ package CORBA is
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  Not in spec : get empty Any (no value ptr)
+   --  returns  an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
+
+   --  Not in spec : return true if the Any has a value, false
+   --  if it is an empty one
+   function Is_Empty (Any_Value : in CORBA.Any) return Boolean;
+
+   --  These functions allows the user to set the value of an any
+   --  directly if he knows its kind. It a function is called on a
+   --  bad kind of any, a BAD_TYPECODE exception will be raised
+   --  Note that the Any can be empty. In this case, the value
+   --  will be created
+   --  Should never be called outside the broca.cdr package
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Octet);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Short);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Unsigned_Long_Long);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Boolean);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Char);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wchar);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Wide_String);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Float);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Long_Double);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.TypeCode.Object);
+   procedure Set_Any_Value (Any_Value : in out CORBA.Any;
+                            Value : in CORBA.Any);
+
+   --  This one is a bit special : it doesn't put any value but
+   --  create the aggregate value if it does not exist.
+   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any);
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
@@ -813,55 +878,6 @@ package CORBA is
       Arg_Modes : CORBA.Flags;
    end record;
 
-   ----------------------------
-   --  Interface Repository  --
-   ----------------------------
-
-   type VersionSpec is new CORBA.String;
-
-   --  Structs
-   type StructMember is record
-      Name : CORBA.Identifier;
-      IDL_Type : CORBA.TypeCode.Object;
-      --  Type_Def : IDLType;
-   end record;
-
-   package IDL_SEQUENCE_StructMember is
-      new Sequences.Unbounded (StructMember);
-   type StructMemberSeq is new IDL_SEQUENCE_StructMember.Sequence;
-
-   --  Unions
-   type UnionMember is record
-      Name : CORBA.Identifier;
---      Label : CORBA.Any;
-      IDL_Type : CORBA.TypeCode.Object;
-      --  Type_Def : IDLType ;
-   end record;
-
-   package IDL_SEQUENCE_UnionMember is
-      new Sequences.Unbounded (UnionMember);
-   type UnionMemberSeq is new IDL_SEQUENCE_UnionMember.Sequence;
-
-   --  Enums
-   package IDL_SEQUENCE_Identifier is
-      new Sequences.Unbounded (CORBA.Identifier);
-   type EnumMemberSeq is new IDL_SEQUENCE_Identifier.Sequence;
-
-   --  values
-   type ValueMember is record
-      Name :       CORBA.Identifier;
-      Id :         CORBA.RepositoryId;
-      Defined_In : CORBA.RepositoryId;
-      Version :    CORBA.VersionSpec;
-      IDL_Type :   CORBA.TypeCode.Object;
-      --  Type_Def :   CORBA.IDLtype;
-      IDL_Access : CORBA.Visibility;
-   end record;
-
-   package IDL_SEQUENCE_ValueMember is
-      new Sequences.Unbounded (ValueMember);
-   type ValueMemberSeq is new IDL_SEQUENCE_ValueMember.Sequence;
-
 private
 
    --  Null_String : constant CORBA.String :=
@@ -885,9 +901,9 @@ private
    --
    --  To be able to carry values of different types, the second
    --  field is an Any_Content_Ptr which is an access to any type
-   --  deriving from Content. Every basic types XXX that can be carried
-   --  into an Any should be associated to a child of Content (Content_XXX)
-   --  which contains a field of the XXX type.
+   --  deriving from Content. Every basic types Foo that can be carried
+   --  into an Any should be associated to a child of Content (Content_Foo)
+   --  which contains a field of the Foo type.
    --  For complex types (with several values, like structures, arrays...),
    --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
@@ -895,110 +911,164 @@ private
 
 
    type Content is abstract tagged null record;
-   type Any_Content_Ptr is access Content'Class;
+   type Any_Content_Ptr is access all Content'Class;
    Null_Content_Ptr : constant Any_Content_Ptr := null;
+   type Any_Content_Ptr_Ptr is access Any_Content_Ptr;
+   Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
+
+   --  This function duplicates its argument and give back
+   --  a deep copy of it.
+   --  It is actually overridden fro every subtype of Content
+   function Duplicate (Object : access Content)
+                       return Any_Content_Ptr;
+
+   --  Frees a Content_Ptr
+   --  It is overridden for aggregates since those have to
+   --  deallocate all the list of their elements
+   procedure Deallocate (Object : access Content);
+
+   --  Frees an Any_Content_Ptr
+   procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
+     (Content'Class, Any_Content_Ptr);
+   --  Frees an Any_Content_Ptr_Ptr
+   procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
+     (Any_Content_Ptr, Any_Content_Ptr_Ptr);
 
    type Content_Octet is new Content with
       record
          Value : CORBA.Octet;
       end record;
    type Content_Octet_Ptr is access all Content_Octet;
+   function Duplicate (Object : access Content_Octet)
+                       return Any_Content_Ptr;
 
    type Content_Short is new Content with
       record
          Value : CORBA.Short;
       end record;
    type Content_Short_Ptr is access all Content_Short;
+   function Duplicate (Object : access Content_Short)
+                       return Any_Content_Ptr;
 
    type Content_Long is new Content with
       record
          Value : CORBA.Long;
       end record;
    type Content_Long_Ptr is access all Content_Long;
+   function Duplicate (Object : access Content_Long)
+                       return Any_Content_Ptr;
 
    type Content_Long_Long is new Content with
       record
          Value : CORBA.Long_Long;
       end record;
    type Content_Long_Long_Ptr is access all Content_Long_Long;
+   function Duplicate (Object : access Content_Long_Long)
+                       return Any_Content_Ptr;
 
    type Content_UShort is new Content with
       record
          Value : CORBA.Unsigned_Short;
       end record;
    type Content_UShort_Ptr is access all Content_UShort;
+   function Duplicate (Object : access Content_UShort)
+                       return Any_Content_Ptr;
 
    type Content_ULong is new Content with
       record
          Value : CORBA.Unsigned_Long;
       end record;
    type Content_ULong_Ptr is access all Content_ULong;
+   function Duplicate (Object : access Content_ULong)
+                       return Any_Content_Ptr;
 
    type Content_ULong_Long is new Content with
       record
          Value : CORBA.Unsigned_Long_Long;
       end record;
    type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+   function Duplicate (Object : access Content_ULong_Long)
+                       return Any_Content_Ptr;
 
    type Content_Boolean is new Content with
       record
          Value : CORBA.Boolean;
       end record;
    type Content_Boolean_Ptr is access all Content_Boolean;
+   function Duplicate (Object : access Content_Boolean)
+                       return Any_Content_Ptr;
 
    type Content_Char is new Content with
       record
          Value : CORBA.Char;
       end record;
    type Content_Char_Ptr is access all Content_Char;
+   function Duplicate (Object : access Content_Char)
+                       return Any_Content_Ptr;
 
    type Content_Wchar is new Content with
       record
          Value : CORBA.Wchar;
       end record;
    type Content_Wchar_Ptr is access all Content_Wchar;
+   function Duplicate (Object : access Content_Wchar)
+                       return Any_Content_Ptr;
 
    type Content_String is new Content with
       record
          Value : CORBA.String;
       end record;
    type Content_String_Ptr is access all Content_String;
+   function Duplicate (Object : access Content_String)
+                       return Any_Content_Ptr;
 
    type Content_Wide_String is new Content with
       record
          Value : CORBA.Wide_String;
       end record;
    type Content_Wide_String_Ptr is access all Content_Wide_String;
+   function Duplicate (Object : access Content_Wide_String)
+                       return Any_Content_Ptr;
 
    type Content_Float is new Content with
       record
          Value : CORBA.Float;
       end record;
    type Content_Float_Ptr is access all Content_Float;
+   function Duplicate (Object : access Content_Float)
+                       return Any_Content_Ptr;
 
    type Content_Double is new Content with
       record
          Value : CORBA.Double;
       end record;
    type Content_Double_Ptr is access all Content_Double;
+   function Duplicate (Object : access Content_Double)
+                       return Any_Content_Ptr;
 
    type Content_Long_Double is new Content with
       record
          Value : CORBA.Long_Double;
       end record;
    type Content_Long_Double_Ptr is access all Content_Long_Double;
+   function Duplicate (Object : access Content_Long_Double)
+                       return Any_Content_Ptr;
 
    type Content_TypeCode is new Content with
       record
          Value : CORBA.TypeCode.Object;
       end record;
    type Content_TypeCode_Ptr is access all Content_TypeCode;
+   function Duplicate (Object : access Content_TypeCode)
+                       return Any_Content_Ptr;
 
    type Content_Any is new Content with
       record
          Value : CORBA.Any;
       end record;
    type Content_Any_Ptr is access all Content_Any;
+   function Duplicate (Object : access Content_Any)
+                       return Any_Content_Ptr;
 
    --  a list of any
    type Content_Cell;
@@ -1008,6 +1078,10 @@ private
       Next : Content_List := null;
    end record;
    Null_Content_List : constant Content_List := null;
+   function Duplicate (List : in Content_List) return Content_List;
+   procedure Deep_Deallocate (List : in out Content_List);
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Content_Cell, Content_List);
 
    --  for complex types that could be defined in Idl
    --  content_aggregate will be used.
@@ -1028,19 +1102,54 @@ private
    --     - for Value : FIXME
    --     - for Valuebox : FIXME
    --     - for Abstract_Interface : FIXME
-   type Content_Aggregate is new Content with
-      record
-         Value : Content_List := null;
-      end record;
+   type Content_Aggregate is new Content with record
+      Value : Content_List := null;
+   end record;
    type Content_Aggregate_Ptr is access all Content_Aggregate;
+   function Duplicate (Object : access Content_Aggregate)
+                       return Any_Content_Ptr;
+   procedure Deallocate (Object : in out Content_Aggregate_Ptr);
+
+   type Natural_Ptr is access Natural;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Natural, Natural_Ptr);
+
+   --  a lock for the Any
+   type Rw_Lock_Type_Ptr is access all Broca.Locks.Rw_Lock_Type;
+   procedure Deallocate is new Ada.Unchecked_Deallocation
+     (Broca.Locks.Rw_Lock_Type, Rw_Lock_Type_Ptr);
 
    --  The actual Any type
-   type Any is
-     record
-        The_Value : Any_Content_Ptr;
-        The_Type  : CORBA.TypeCode.Object;
-     end record;
+   --  The first two fields are clear, the third one tells whether
+   --  the Any has a semantic of reference or of value and the last
+   --  one counts the number of references on the field The_Value.
+   type Any is new Ada.Finalization.Controlled with record
+      The_Value : Any_Content_Ptr_Ptr;
+      The_Type  : CORBA.TypeCode.Object;
+      As_Reference : Boolean := False;
+      Ref_Counter : Natural_Ptr;
+      Any_Lock : Rw_Lock_Type_Ptr;
+   end record;
 
+   --  Some methods to deal with the Any fields.
+   --  These are the only way to deal with the fields if you want to
+   --  stay thread safe
+   --  Apart from the management of locks, these methods do not
+   --  make any test. So use them carefully
+   procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
+   procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr);
+   function Get_Value (Obj : Any) return Any_Content_Ptr;
+   function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr;
+   function Get_Counter (Obj : Any) return Natural_Ptr;
+
+   --  The control procedures to the Any type
+   procedure Initialize (Object : in out Any);
+   procedure Adjust (Object : in out Any);
+   procedure Finalize (Object : in out Any);
+
+   --  And the management of the counter
+   procedure Inc_Usage (Obj : in Any);
+   procedure Dec_Usage (Obj : in out Any);
 
    ------------------
    --  Named_Value --

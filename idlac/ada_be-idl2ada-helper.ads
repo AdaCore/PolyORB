@@ -40,4 +40,16 @@ private package Ada_Be.Idl2Ada.Helper is
       Node : Node_Id);
    --  Generate an helper package
 
+   procedure Gen_Forward_Interface_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the spec of the helper package for a forward interface
+   --  declaration called directly by ada_be.idl2ada.gen_scope
+
+   procedure Gen_Forward_Interface_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the body of the helper package for a forward interface
+   --  declaration called directly by ada_be.idl2ada.gen_scope
+
 end Ada_Be.Idl2Ada.Helper;

@@ -1,70 +1,54 @@
-IDLAC = ../../idlac/idlac
-SOCK_CONS = ../../adasockets/src/sockets-constants.ads
+include $(srcdir)/../Makefile.common
 
 GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../../src \
 	-I$(srcdir)/../../src \
+	-I$(COS_DIRS) \
 	-I../../adasockets/src \
 	-I$(srcdir)/../../adasockets/src \
 	-g -O2 -m -gnata
 
-IDL_1=$(srcdir)/File.idl
-IDL_2=$(srcdir)/CosNaming.idl
+PROGS= ab_names test_naming
 
-ADA_1=file
-ADA_2=cosnaming
-ADA_2_1=cosnaming-namingcontext
-ADA_2_2=cosnaming-bindingiterator
+bin_PROGS = ab_names
 
-GEN_1 = \
-        $(ADA_1)_idl_file.ads $(ADA_1)_idl_file.adb \
-        $(ADA_1).ads $(ADA_1).adb \
-        $(ADA_1)-skel.ads $(ADA_1)-skel.adb \
-        $(ADA_1)-stream.ads $(ADA_1)-stream.adb \
-        $(ADA_1)-helper.ads $(ADA_1)-helper.adb
+COS_DIRS=../../idls/cos/naming
+COS_IMPL=\
+  cosnaming-bindingiterator-impl.adb \
+  cosnaming-bindingiterator-impl.ads \
+  cosnaming-namingcontext-impl.adb \
+  cosnaming-namingcontext-impl.ads
 
-GEN_2 = \
-        $(ADA_2)_idl_file.ads $(ADA_2)_idl_file.adb \
-        $(ADA_2).ads $(ADA_2).adb \
-        $(ADA_2)-skel.ads $(ADA_2)-skel.adb \
-        $(ADA_2)-stream.ads $(ADA_2)-stream.adb \
-        $(ADA_2)-helper.ads $(ADA_2)-helper.adb \
-        $(ADA_2_1).ads $(ADA_2_1).adb \
-        $(ADA_2_1)-skel.ads $(ADA_2_1)-skel.adb \
-        $(ADA_2_1)-stream.ads $(ADA_2_1)-stream.adb \
-        $(ADA_2_1)-helper.ads $(ADA_2_1)-helper.adb \
-        $(ADA_2_2).ads $(ADA_2_2).adb \
-        $(ADA_2_2)-skel.ads $(ADA_2_2)-skel.adb \
-        $(ADA_2_2)-stream.ads $(ADA_2_2)-stream.adb \
-        $(ADA_2_2)-helper.ads $(ADA_2_2)-helper.adb  
+IDL=$(srcdir)/File.idl
 
-IMP_1 = $(ADA_1)-impl.ads $(ADA_1)-impl.adb
+GEN=\
+file-helper.adb \
+file-helper.ads \
+file-skel.adb \
+file-skel.ads \
+file-stream.adb \
+file-stream.ads \
+file.adb \
+file.ads \
+file_idl_file.ads
 
-IMP_2 = $(ADA_2_1)-impl.ads $(ADA_2_1)-impl.adb \
-	$(ADA_2_2)-impl.ads $(ADA_2_2)-impl.adb 
+IMPL=\
+file-impl.adb \
+file-impl.ads
 
-CLEANFILES = b~*.* *.o *.ali $(GEN_1) $(GEN_2) test_naming
+CLEANFILES += $(GEN)
 
-DISTCLEANFILES = test_naming
+$(GEN): $(IDL) $(IDLAC)
+	$(IDLAC) $(IDL)
 
-all-local: test_naming
-
-SUFFIXES = .idl .ads .adb
-
-$(GEN_1): $(IDL_1) $(IDLAC)
-	$(IDLAC) $(IDL_1)
-
-$(GEN_2): $(IDL_2) $(IDLAC)
-	$(IDLAC) $(IDL_2)
-
-$(IDLAC): force
-	cd ../../idlac && $(MAKE) idlac
-
-$(SOCK_CONS):
-	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
-
-test_naming: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
+test_naming: force $(GEN) $(IMPL) $(COS_IMPL)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
-force::
-	cd ../../src && $(MAKE)
+ab_names: force $(GEN) $(IMPL) $(COS_IMPL) ab_names.adb
+	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
+
+naming_tools.o:
+	$(GNATMAKE) -c naming_tools $(GNATMAKE_FLAGS)
+
+naming_tools.o: naming_tools.ads naming_tools.adb cosnaming.ads
+naming_tools.o: cosnaming-namingcontext.ads cosnaming-namingcontext-helper.ads

@@ -32,13 +32,18 @@
 ------------------------------------------------------------------------------
 
 package PortableServer.ServantManager.Impl is
-   type Object is abstract new PortableServer.Servant_Base with private;
 
-   --  FIXME
+   type Object is abstract new PortableServer.Servant_Base
+     with private;
    type Object_Ptr is access all Object'Class;
-   function To_Ref (Self : Object_Ptr)
-                    return PortableServer.ServantManager.Ref;
+
+   function To_Ref
+     (Self : Object_Ptr)
+     return Ref;
 
 private
-   type Object is abstract new PortableServer.Servant_Base with null record;
+
+   type Object is abstract new PortableServer.Servant_Base
+     with null record;
+
 end PortableServer.ServantManager.Impl;

@@ -28,7 +28,7 @@
 
 --   echo dynamic client.
 with Ada.Command_Line;
-with Text_IO; use Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with CORBA; use CORBA;
 with CORBA.Object;
 with CORBA.Context;
@@ -44,11 +44,10 @@ procedure DynClient is
    myecho : CORBA.Object.Ref;
    Request : CORBA.Request.Object;
    Ctx : CORBA.Context.Ref;
-   Arg : CORBA.Any;
+   Argument : CORBA.Any;
    Arg_List : CORBA.NVList.Ref;
    Result : CORBA.NamedValue;
    Result_Name : CORBA.String := To_CORBA_String ("Result");
-   Result_Value : CORBA.String := To_CORBA_String ("Not Successfull");
    Recv_Msg : CORBA.String;
 begin
 
@@ -64,15 +63,16 @@ begin
    CORBA.ORB.String_To_Object (IOR, myecho);
 
    --  creating the argument list
-   Arg := CORBA.To_Any (Sent_Msg);
+   CORBA.ORB.Create_List (0, Arg_List);
+   Argument := CORBA.To_Any (Sent_Msg);
    CORBA.NVList.Add_Item (Arg_List,
                           Arg_Name,
-                          Arg,
+                          Argument,
                           CORBA.ARG_IN);
 
    --  setting the result type
    Result := (Name => Identifier (Result_Name),
-              Argument => To_Any (Result_Value),
+              Argument => Get_Empty_Any (CORBA.TC_String),
               Arg_Modes => 0);
 
    --  creating a request
@@ -88,7 +88,7 @@ begin
    CORBA.Request.Invoke (Request, 0);
 
    --  getting the answer
-   Recv_Msg := From_Any (CORBA.Request.Return_Value (Request).Argument);
+   Recv_Msg := From_Any (Result.Argument);
 
    --  printing result
    Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));

@@ -32,14 +32,37 @@
 ------------------------------------------------------------------------------
 
 with CORBA; use CORBA;
+with Ada.Characters.Handling;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
 
 package body Broca.Repository is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.repository");
    procedure O is new Broca.Debug.Output (Flag);
+
+   function Is_Equivalent
+     (RI1 : CORBA.RepositoryId;
+      RI2 : CORBA.RepositoryId)
+     return Boolean
+   is
+      use CORBA;
+   begin
+      return Is_Equivalent
+        (To_Standard_String (RI1),
+         To_Standard_String (RI2));
+   end Is_Equivalent;
+
+   function Is_Equivalent
+     (RI1 : Standard.String;
+      RI2 : Standard.String)
+     return Boolean
+   is
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (RI1) = To_Lower (RI2);
+   end Is_Equivalent;
 
    --  Single linked list of all the factories.
    Factories : Factory_Ptr;

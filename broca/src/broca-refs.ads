@@ -42,7 +42,9 @@ package Broca.Refs is
    -- Entity --
    ------------
 
-   type Entity is abstract tagged limited private;
+   type Entity is abstract
+     new Ada.Finalization.Limited_Controlled
+     with private;
    --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
@@ -57,7 +59,8 @@ package Broca.Refs is
       Value  : out Entity);
 
    type Ref_Ptr is access all Entity'Class;
-   --  FIXME: Rename Ref_Ptr to Entity_Ptr
+   subtype Entity_Ptr is Ref_Ptr;
+   --  FIXME: Rename Ref_Ptr to Entity_Ptr, remove subtype decl.
 
    procedure Inc_Usage (Obj : Ref_Ptr);
    procedure Dec_Usage (Obj : in out Ref_Ptr);
@@ -76,7 +79,6 @@ package Broca.Refs is
    procedure Adjust     (The_Ref : in out Ref);
    procedure Finalize   (The_Ref : in out Ref);
 
-   --  procedure Set (The_Ref : in out Ref; The_Entity : Ref_Ptr);
    procedure Set
      (The_Ref : in out Ref;
       The_Entity : Ref_Ptr);
@@ -99,7 +101,8 @@ package Broca.Refs is
 
 private
 
-   type Entity is abstract tagged limited
+   type Entity is abstract
+     new Ada.Finalization.Limited_Controlled with
       record
          Counter : Integer := 0;
       end record;

@@ -38,6 +38,8 @@ with GNAT.OS_Lib;
 
 with Idl_Fe.Debug;
 
+with Idl_Fe.Types; use Idl_Fe.Types;
+
 with Platform;
 
 package body Idl_Fe.Lexer is
@@ -48,6 +50,57 @@ package body Idl_Fe.Lexer is
 
    Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.lexer");
    procedure O is new Idl_Fe.Debug.Output (Flag);
+
+   subtype Idl_Token_Keyword is Idl_Token range T_Abstract .. T_Wstring;
+
+   All_Idl_Keywords : array (Idl_Token_Keyword) of String_Cacc :=
+     (T_Abstract    => new String'("abstract"),
+      T_Any         => new String'("any"),
+      T_Attribute   => new String'("attribute"),
+      T_Boolean     => new String'("boolean"),
+      T_Case        => new String'("case"),
+      T_Char        => new String'("char"),
+      T_Const       => new String'("const"),
+      T_Context     => new String'("context"),
+      T_Custom      => new String'("custom"),
+      T_Default     => new String'("default"),
+      T_Double      => new String'("double"),
+      T_Enum        => new String'("enum"),
+      T_Exception   => new String'("exception"),
+      T_Factory     => new String'("factory"),
+      T_False       => new String'("FALSE"),
+      T_Fixed       => new String'("fixed"),
+      T_Float       => new String'("float"),
+      T_In          => new String'("in"),
+      T_Inout       => new String'("inout"),
+      T_Interface   => new String'("interface"),
+      T_Long        => new String'("long"),
+      T_Module      => new String'("module"),
+      T_Native      => new String'("native"),
+      T_Object      => new String'("Object"),
+      T_Octet       => new String'("octet"),
+      T_Oneway      => new String'("oneway"),
+      T_Out         => new String'("out"),
+      T_Private     => new String'("private"),
+      T_Public      => new String'("public"),
+      T_Raises      => new String'("raises"),
+      T_Readonly    => new String'("readonly"),
+      T_Sequence    => new String'("sequence"),
+      T_Short       => new String'("short"),
+      T_String      => new String'("string"),
+      T_Struct      => new String'("struct"),
+      T_Supports    => new String'("supports"),
+      T_Switch      => new String'("switch"),
+      T_True        => new String'("TRUE"),
+      T_Truncatable => new String'("truncatable"),
+      T_Typedef     => new String'("typedef"),
+      T_Unsigned    => new String'("unsigned"),
+      T_Union       => new String'("union"),
+      T_ValueBase   => new String'("ValueBase"),
+      T_ValueType   => new String'("valuetype"),
+      T_Void        => new String'("void"),
+      T_Wchar       => new String'("wchar"),
+      T_Wstring     => new String'("wstring"));
 
    -----------------------------------
    --  A state for pragma scanning  --
@@ -101,7 +154,7 @@ package body Idl_Fe.Lexer is
    ------------------------
    function Get_Real_Location return Errors.Location is
    begin
-      pragma Debug (O ("Get_Real_Location : Line = " &
+      pragma Debug (O ("Get_Real_Location: Line = " &
                        Natural'Image (Current_Location.Line) &
                        ", Col = " &
                        Natural'Image (Current_Location.Col +
@@ -196,7 +249,8 @@ package body Idl_Fe.Lexer is
    ----------------------
    procedure Refresh_Offset is
    begin
-      Offset := Offset + 8 - (Current_Location.Col + Offset) mod 8;
+      Offset :=
+        ((Current_Location.Col + Offset + 7) / 8) * 8 - Current_Location.Col;
    end Refresh_Offset;
 
    -------------------
@@ -220,20 +274,20 @@ package body Idl_Fe.Lexer is
    procedure Skip_Comment is
    begin
       loop
-         pragma Debug (O ("Skip_Comment : enter"));
+         pragma Debug (O ("Skip_Comment: enter"));
          while Next_Char /= '*' loop
             null;
          end loop;
-         pragma Debug (O ("Skip_Comment : '*' found"));
+         pragma Debug (O ("Skip_Comment: '*' found"));
          while Next_Char = '*' loop
             null;
          end loop;
-         pragma Debug (O ("Skip_Comment : no more '*'s"));
+         pragma Debug (O ("Skip_Comment: no more '*'s"));
          if Get_Current_Char = '/' then
-            pragma Debug (O ("Skip_Comment : end"));
+            pragma Debug (O ("Skip_Comment: end"));
             return;
          end if;
-         pragma Debug (O ("Skip_Comment : back to entry"));
+         pragma Debug (O ("Skip_Comment: back to entry"));
       end loop;
    end Skip_Comment;
 
@@ -425,25 +479,36 @@ package body Idl_Fe.Lexer is
    --  Is_Idl_Keyword  --
    ----------------------
    procedure Is_Idl_Keyword (S : in String;
+                             Is_Escaped : in Boolean;
                              Is_A_Keyword : out Idl_Keyword_State;
                              Tok : out Idl_Token) is
       Result : Ident_Equality;
-      Pos : Natural := 0;
    begin
       for I in All_Idl_Keywords'Range loop
-         Pos := Pos + 1;
          Result := Idl_Identifier_Equal (S, All_Idl_Keywords (I).all);
          case Result is
             when Differ =>
                null;
             when Case_Differ =>
-               Is_A_Keyword := Idl_Keyword_State (Bad_Case);
-               Tok := Idl_Token'Val (Pos);
-               return;
+               if Is_Escaped then
+                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
+                  Tok := Idl_Token (T_Error);
+                  return;
+               else
+                  Is_A_Keyword := Idl_Keyword_State (Bad_Case);
+                  Tok := I;
+                  return;
+               end if;
             when Equal =>
-               Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
-               Tok := Idl_Token'Val (Pos);
-               return;
+               if Is_Escaped then
+                  Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
+                  Tok := Idl_Token (T_Error);
+                  return;
+               else
+                  Is_A_Keyword := Idl_Keyword_State (Is_Keyword);
+                  Tok := I;
+                  return;
+               end if;
          end case;
       end loop;
       Is_A_Keyword := Idl_Keyword_State (Is_Identifier);
@@ -473,7 +538,7 @@ package body Idl_Fe.Lexer is
                Result := T_Lit_Char;
             when ''' =>
                if View_Next_Next_Char /= ''' then
-                  Errors.Error ("Invalid character : '\', "
+                  Errors.Error ("Invalid character: '\', "
                                              & "it should probably be '\\'",
                                              Errors.Error,
                                              Get_Real_Location);
@@ -528,7 +593,7 @@ package body Idl_Fe.Lexer is
                   Go_To_End_Of_Char;
                   Set_End_Mark;
                   Errors.Error ("Invalid hexadecimal character " &
-                                             "code : "
+                                             "code: "
                                              & Get_Marked_Text,
                                              Errors.Error,
                                              Get_Real_Location);
@@ -567,7 +632,7 @@ package body Idl_Fe.Lexer is
                   Set_End_Mark;
                   if Wide then
                      Errors.Error ("Invalid unicode character " &
-                                                "code : "
+                                                "code: "
                                                 & Get_Marked_Text,
                                                 Errors.Error,
                                                 Get_Real_Location);
@@ -585,7 +650,7 @@ package body Idl_Fe.Lexer is
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_E =>
                Go_To_End_Of_Char;
                Set_End_Mark;
-               Errors.Error ("Invalid octal character code : "
+               Errors.Error ("Invalid octal character code: "
                                           & Get_Marked_Text
                                           & ". For hexadecimal codes, " &
                                           "use \xhh",
@@ -595,7 +660,7 @@ package body Idl_Fe.Lexer is
             when others =>
                Go_To_End_Of_Char;
                Set_End_Mark;
-               Errors.Error ("Invalid definition of character : "
+               Errors.Error ("Invalid definition of character: "
                                           & Get_Marked_Text,
                                           Errors.Error,
                                           Get_Real_Location);
@@ -603,13 +668,13 @@ package body Idl_Fe.Lexer is
          end case;
       elsif Get_Current_Char = ''' then
          if View_Next_Char = ''' then
-            Errors.Error ("Invalid character : ''', "
+            Errors.Error ("Invalid character: ''', "
                                        & "it should probably be '\''",
                                        Errors.Error,
                                        Get_Real_Location);
             Result := T_Error;
          else
-            Errors.Error ("Invalid character : ''",
+            Errors.Error ("Invalid character: ''",
                                        Errors.Error,
                                        Get_Real_Location);
             return T_Error;
@@ -620,7 +685,7 @@ package body Idl_Fe.Lexer is
       Set_End_Mark;
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
-         Errors.Error ("Invalid character : '"
+         Errors.Error ("Invalid character: '"
                                     & Get_Marked_Text & "'",
                                     Errors.Error,
                                     Get_Real_Location);
@@ -742,12 +807,13 @@ package body Idl_Fe.Lexer is
    -----------------------
    --  Scan_Identifier  --
    -----------------------
-   function Scan_Identifier return Idl_Token is
+   function Scan_Identifier (Is_Escaped : Boolean) return Idl_Token is
       Is_A_Keyword : Idl_Keyword_State;
       Tok : Idl_Token;
    begin
       Set_Mark;
-      if Get_Current_Char = 'L'
+      if not Is_Escaped
+        and Get_Current_Char = 'L'
         and View_Next_Char = ''' then
          Skip_Char;
          Set_End_Mark;
@@ -759,7 +825,8 @@ package body Idl_Fe.Lexer is
             when others =>
                raise Errors.Internal_Error;
          end case;
-      elsif Get_Current_Char = 'L'
+      elsif not Is_Escaped
+        and Get_Current_Char = 'L'
         and View_Next_Char = Quotation then
          Skip_Char;
          Set_End_Mark;
@@ -778,6 +845,7 @@ package body Idl_Fe.Lexer is
          end loop;
          Set_End_Mark;
          Is_Idl_Keyword (Get_Marked_Text,
+                         Is_Escaped,
                          Is_A_Keyword,
                          Tok);
          case Is_A_Keyword is
@@ -883,22 +951,7 @@ package body Idl_Fe.Lexer is
    begin
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
-         return Scan_Identifier;
-
-         --  FIXME: unreachable code below
-         pragma Warnings (Off);
-         if Current_Token = T_Identifier then
-            Errors.Error
-              ("Invalid identifier name. An identifier cannot begin" &
-               " with '_', except if the end is an idl keyword",
-               Errors.Error,
-               Get_Real_Location);
-            return T_Error;
-         else
-            return T_Identifier;
-         end if;
-         pragma Warnings (On);
-
+         return Scan_Identifier (True);
       else
          Errors.Error ("Invalid character '_'",
                                     Errors.Error,
@@ -946,23 +999,16 @@ package body Idl_Fe.Lexer is
               or To_Lower (Get_Marked_Text) = "error" then
                Errors.Error
                  ("cannot handle preprocessor directive in "
-                  & "lexer, use -p",  --  FIXME : -p ???
+                  & "lexer, please run cpp first.",
                   Errors.Error,
                   Get_Real_Location);
                Skip_Line;
             elsif To_Lower (Get_Marked_Text) = "pragma" then
---               Skip_Spaces;
---               Skip_Char;
---               Set_Mark;
---               while View_Next_Char /= LF loop
---                  Skip_Char;
---               end loop;
---               Set_End_Mark;
                Pragma_State := True;
                return True;
             else
                Errors.Error
-                 ("unknow preprocessor directive : "
+                 ("Uunknow preprocessor directive: "
                   & Get_Marked_Text & ".",
                   Errors.Error,
                   Get_Real_Location);
@@ -996,13 +1042,12 @@ package body Idl_Fe.Lexer is
                         use Ada.Strings;
                         Separator : Natural;
                         Text : String := Get_Marked_Text;
-                        Text_Last : Natural := Text'Last;
                      begin
                         --  verifies the name ends with ".idl"
-                        if Text'Length > 3 and then
-                          Text (Text'Last - 3 .. Text'Last) = ".idl" then
-                           Text_Last := Text_Last - 4;
-                        else
+                        if Text'Length < 4
+                          or else
+                          Text (Text'Last - 3 .. Text'Last) /= ".idl"
+                        then
                            Errors.Error
                              ("An idl file name should have a " &
                               Ada.Characters.Latin_1.Quotation &
@@ -1025,11 +1070,11 @@ package body Idl_Fe.Lexer is
                            Current_Location.Dirname :=
                             new String'(Text (Text'First .. Separator - 1));
                            Current_Location.Filename :=
-                            new String'(Text (Separator + 1 .. Text_Last));
+                            new String'(Text (Separator + 1 .. Text'Last));
                         else
                            Current_Location.Dirname := null;
                            Current_Location.Filename :=
-                            new String'(Text (Text'First .. Text_Last));
+                            new String'(Text (Text'First .. Text'Last));
                         end if;
                      end;
                      Skip_Spaces;
@@ -1058,7 +1103,7 @@ package body Idl_Fe.Lexer is
             --  This is an end of line.
             return False;
          when others =>
-            pragma Debug (O ("Scan_Preprocessor : bad preprocessor line"));
+            pragma Debug (O ("Scan_Preprocessor: bad preprocessor line"));
             Errors.Error ("bad preprocessor line",
                                        Errors.Error,
                                        Get_Real_Location);
@@ -1148,73 +1193,15 @@ package body Idl_Fe.Lexer is
       end;
 
       if Preprocess then
-         declare
-            use GNAT.Command_Line;
-
-            Spawn_Result : Boolean;
-            Fd : File_Descriptor;
-         begin
-            --  Use default options:
-            --  -E           only preprocess
-            --  -C           do not discard comments
-            --  -x c++       use c++ preprocessor semantic
-            Add_Argument ("-E");
-            Add_Argument ("-C");
-            Add_Argument ("-x");
-            Add_Argument ("c++");
-            Add_Argument ("-ansi");
-
-            Goto_Section ("cppargs");
-            while Getopt ("*") /= ASCII.Nul loop
-               --  Pass user options to the preprocessor.
-               Add_Argument (Full_Switch);
-            end loop;
-
-            --  Always add the current directory at the end of the
-            --  include list.
-            Add_Argument ("-I");
-            Add_Argument (".");
-
-            Create_Temp_File (Fd, Tmp_File_Name);
-            if Fd = Invalid_FD then
-               Errors.Error
-                 (Ada.Command_Line.Command_Name &
-                  ": cannot create temporary " &
-                  "file name",
-                  Errors.Fatal,
-                  Get_Real_Location);
-            end if;
-            --  We don't need the fd.
-            Close (Fd);
-
-            Add_Argument ("-o");
-            Add_Argument (Tmp_File_Name);
-            Args (Arg_Count) := new String'(Filename);
-            Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
-                   Args (1 .. Arg_Count),
-                   Spawn_Result);
-            pragma Debug (O ("Initialize : preprocessing done"));
-            if not Spawn_Result then
-               pragma Debug (O ("Initialize : preprocessing failed"));
-               Errors.Error
-                 (Ada.Command_Line.Command_Name &
-                  " : preprocessor failed",
-                  Errors.Fatal,
-                  Errors.No_Location);
-            end if;
-            Ada.Text_IO.Open
-              (Idl_File,
-               Ada.Text_IO.In_File,
-               Tmp_File_Name);
-         end;
+         Preprocess_File (Filename);
       else
          Ada.Text_IO.Open
            (Idl_File,
             Ada.Text_IO.In_File,
             Filename);
+         Ada.Text_IO.Set_Input (Idl_File);
       end if;
-      pragma Debug (O ("Initialize : end"));
-      Ada.Text_IO.Set_Input (Idl_File);
+      pragma Debug (O ("Initialize: end"));
    end Initialize;
 
    ----------------------
@@ -1338,7 +1325,7 @@ package body Idl_Fe.Lexer is
               | LC_German_Sharp_S
               | LC_Y_Diaeresis =>
                Set_Token_Location;
-               return Scan_Identifier;
+               return Scan_Identifier (False);
             when '_' =>
                Set_Token_Location;
                return Scan_Underscore;
@@ -1373,16 +1360,10 @@ package body Idl_Fe.Lexer is
    exception
       when Ada.Text_IO.End_Error =>
          if not Keep_Temporary_Files then
-            declare
-               use GNAT.OS_Lib;
-               Spawn_Result : Boolean;
-            begin
-               Delete_File (Tmp_File_Name'Address, Spawn_Result);
-            end;
+            Remove_Temporary_Files;
          end if;
          return T_Eof;
    end Get_Next_Token;
-
 
    -------------------------------------
    --  methods useful for the parser  --
@@ -1393,7 +1374,7 @@ package body Idl_Fe.Lexer is
    --------------------------
    function Get_Lexer_Location return Errors.Location is
    begin
-      pragma Debug (O ("Get_Lexer_Location : filename is " &
+      pragma Debug (O ("Get_Lexer_Location: filename is " &
                        Current_Token_Location.Filename.all));
       return Current_Token_Location;
    end Get_Lexer_Location;
@@ -1404,41 +1385,82 @@ package body Idl_Fe.Lexer is
    function Get_Lexer_String return String renames Get_Marked_Text;
 
 
-   -------------------------
-   --  Maybe useless ???  --
-   -------------------------
+   ----------------
+   -- Preprocess --
+   ----------------
 
-   --    --  compares two idl words
-   --    function Idl_Compare (Left, Right : String) return Boolean is
-   --       use Gnat.Case_Util;
-   --    begin
-   --       if Left'Length /= Right'Length then
-   --          return False;
-   --       end if;
-   --       for I in Left'Range loop
-   --          if To_Lower (Left (I))
-   --            /= To_Lower (Right (Right'First + I - Left'First))
-   --          then
-   --             return False;
-   --          end if;
-   --       end loop;
-   --       return True;
-   --    end Idl_Compare;
+   procedure Preprocess_File (Filename : in String) is
+      use GNAT.Command_Line, GNAT.OS_Lib;
 
-   --    --  returns an image of the current identifier
-   --    function Image (Tok : Idl_Token) return String is
-   --    begin
-   --       case Tok is
-   --          when T_Identifier =>
-   --             if Tok = Token then
-   --                return "identifier `" & Get_Identifier & ''';
-   --             else
-   --                return "identifier";
-   --             end if;
-   --          when others =>
-   --             return '`' & Idl_Token'Image (Token) & ''';
-   --       end case;
-   --    end Image;
+      Spawn_Result : Boolean;
+      Fd           : File_Descriptor;
+      Idl_File     : Ada.Text_IO.File_Type;
+
+   begin
+      --  Use default options:
+      --  -E           only preprocess
+      --  -C           do not discard comments
+      --  -x c++       use c++ preprocessor semantic
+      Add_Argument ("-E");
+      Add_Argument ("-C");
+      Add_Argument ("-x");
+      Add_Argument ("c++");
+      Add_Argument ("-ansi");
+
+      Goto_Section ("cppargs");
+      while Getopt ("*") /= ASCII.Nul loop
+         --  Pass user options to the preprocessor.
+         Add_Argument (Full_Switch);
+      end loop;
+
+      --  Always add the current directory at the end of the
+      --  include list.
+      Add_Argument ("-I");
+      Add_Argument (".");
+
+      Create_Temp_File (Fd, Tmp_File_Name);
+      if Fd = Invalid_FD then
+         Errors.Error
+           (Ada.Command_Line.Command_Name &
+            ": cannot create temporary " &
+            "file name",
+            Errors.Fatal,
+            Get_Real_Location);
+      end if;
+      --  We don't need the fd.
+      Close (Fd);
+
+      Add_Argument ("-o");
+      Add_Argument (Tmp_File_Name);
+      Args (Arg_Count) := new String'(Filename);
+      Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
+             Args (1 .. Arg_Count),
+             Spawn_Result);
+      pragma Debug (O ("Initialize: preprocessing done"));
+      if not Spawn_Result then
+         pragma Debug (O ("Initialize: preprocessing failed"));
+         Errors.Error
+           (Ada.Command_Line.Command_Name &
+            ": preprocessor failed",
+            Errors.Fatal,
+            Errors.No_Location);
+      end if;
+      Ada.Text_IO.Open
+        (Idl_File,
+         Ada.Text_IO.In_File,
+         Tmp_File_Name);
+      Ada.Text_IO.Set_Input (Idl_File);
+   end Preprocess_File;
+
+   ----------------------------
+   -- Remove_Temporary_Files --
+   ----------------------------
+
+   procedure Remove_Temporary_Files is
+      Spawn_Result : Boolean;
+   begin
+      GNAT.OS_Lib.Delete_File (Tmp_File_Name'Address, Spawn_Result);
+   end Remove_Temporary_Files;
 
 end Idl_Fe.Lexer;
 

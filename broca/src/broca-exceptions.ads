@@ -43,7 +43,6 @@
 
 with Ada.Exceptions;
 with CORBA; use CORBA;
-with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Exceptions is
 
@@ -70,13 +69,27 @@ package Broca.Exceptions is
      (From : in CORBA.Exception_Occurrence;
       To   : out System_Exception_Members);
 
-   --  Only for a system exception.
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Excpt  : in CORBA.Exception_Occurrence);
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : in Standard.String)
+     return Ada.Exceptions.Exception_Id;
+   --  return the corresponding Ada Exception_Id for
+   --  an IDL repository. Returns Null_Id if RepoId
+   --  is unknown.
 
-   procedure Unmarshall_And_Raise (Buffer : access Buffer_Type);
-   pragma No_Return (Unmarshall_And_Raise);
+   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
+                                return CORBA.RepositoryId;
+
+   ------------------------------------------------------------
+   -- conversion between Unsigned_Long and Completion_Status --
+   ------------------------------------------------------------
+
+   To_Completion_Status :
+     constant array (CORBA.Unsigned_Long range 0 .. 2) of Completion_Status
+     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
+
+   To_Unsigned_Long :
+     constant array (Completion_Status) of CORBA.Unsigned_Long
+     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
 
    -------------------------------------------
    --  Utilities to raise System Exceptions --

@@ -1,10 +1,45 @@
-with Ada.Text_IO;
+------------------------------------------------------------------------------
+--                                                                          --
+--                           ADABROKER SERVICES                             --
+--                                                                          --
+--                          T E S T _ N A M I N G                           --
+--                                                                          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Exceptions;              use Ada.Exceptions;
+with Ada.Text_IO;
+with Ada.Strings.Unbounded;
+with GNAT.Command_Line;           use GNAT.Command_Line;
 with Menu;                        use Menu;
 
 with CORBA;
+with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ORB;
+with PortableServer;
 
 with CosNaming;                        use CosNaming;
 with CosNaming.NamingContext;          use CosNaming.NamingContext;
@@ -17,8 +52,10 @@ with File;                         use File;
 with File.Impl;
 with File.Helper;
 
-with Broca.Basic_Startup;
-pragma Elaborate (Broca.Basic_Startup);
+with Naming_Tools;                 use Naming_Tools;
+
+with Broca.Server_Tools;
+with Broca.GIOP;
 
 procedure Test_Naming is
 
@@ -28,6 +65,8 @@ procedure Test_Naming is
    Null_Istring : constant Istring       := Istring (CORBA.Null_String);
    Null_NC      : constant NameComponent := (Null_Istring, Null_Istring);
 
+   Test_Name    : constant String        := "test_naming";
+
    type Command is
      (Help,
       Quit,
@@ -35,9 +74,13 @@ procedure Test_Naming is
       Read,
       Write,
       List,
+      Ls,
       Lmkdir,
+      Mkdir,
+      Md,
       Rmkdir,
       Chdir,
+      Cd,
       Rmdir,
       Mount,
       Df);
@@ -57,9 +100,13 @@ procedure Test_Naming is
          Read   => M ("read <F>, read string from file F"),
          Write  => M ("write <F> <S>, write string S in file F"),
          List   => M ("list [<D>], list files in dir D [def = <.>]"),
+         Ls     => M ("   (alias for LIST)"),
          Lmkdir => M ("lmdir <D>, make local dir and bind it to <D>"),
+         Mkdir  => M ("   (alias for LMKDIR)"),
+         Md     => M ("   (alias for LMKDIR)"),
          Rmkdir => M ("rmkdir <D>, make dir in parent dir and bind it to <D>"),
          Chdir  => M ("chdir <D>, change current dir to <D>"),
+         Cd     => M ("   (alias for CHDIR)"),
          Rmdir  => M ("rmdir <D>, remove dir <D>"),
          Mount  => M ("mount <D> <IOR>, bind dir <D> to a given dir <IOR>"),
          Df     => M ("df [<D>], print <IOR> of a given dir <D> [def = <.>]"));
@@ -98,6 +145,8 @@ procedure Test_Naming is
      (N   : Name;
       Sep : Character := '/')
      return String;
+
+   procedure Usage;
 
    Argv    : String_Access;
    Argc    : Natural;
@@ -241,7 +290,8 @@ procedure Test_Naming is
          return "";
 
       elsif N'Length = 1 then
-         return To_Standard_String (N (N'First).Id);
+         return To_Standard_String (N (N'First).Id) & ASCII.HT &
+                To_Standard_String (N (N'First).Kind);
 
       else
          return To_Standard_String (N (N'First).Id) & Sep &
@@ -249,31 +299,146 @@ procedure Test_Naming is
       end if;
    end To_String;
 
+   -----------
+   -- Usage --
+   -----------
+
+   procedure Usage is
+   begin
+      for I in Help_Messages'Range loop
+         Ada.Text_IO.Put_Line (I'Img & Ascii.HT & Help_Messages (I).all);
+      end loop;
+      Ada.Text_IO.New_Line;
+   end Usage;
+
    Back    : Name := To_Name (new String'(".."));
    Here    : Name := To_Name (new String'("."));
    Cmmd    : Command;
+   Register_Service : Boolean := False;
 
 begin
-   Broca.Basic_Startup.Initiate_Server;
+   Broca.Server_Tools.Initiate_Server;
+   begin
+      Initialize_Option_Scan ('-', False, "");
 
-   Ada.Text_IO.Put_Line ("create root directory");
-   WDR := NamingContext.Impl.New_Context;
-   Bind_Context (WDR, Here, WDR);
-   Bind_Context (WDR, Back, WDR);
+      loop
+         case Getopt ("i n s I: p:") is
+            when ASCII.Nul =>
+               exit;
+
+            when 's' =>
+               Register_Service := True;
+
+            when 'i' =>
+               begin
+                  Ada.Text_IO.Put ("retrieving root directory initial reference...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+                  WDR := NamingContext.Helper.To_Ref
+                    (CORBA.ORB.Resolve_Initial_References
+                     (CORBA.ORB.To_CORBA_String ("NamingService")));
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line ("error");
+                     raise;
+               end;
+
+            when 'I' =>
+               begin
+                  Ada.Text_IO.Put ("locating main service by IOR...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+                  CORBA.ORB.String_To_Object
+                    (CORBA.To_CORBA_String (Parameter), WDR);
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line (" error");
+                     raise;
+               end;
+
+            when 'n' =>
+               begin
+                  Ada.Text_IO.Put ("locating main service by name...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+
+                  WDR := NamingContext.Helper.To_Ref (Locate (Test_Name));
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line (" error");
+                     raise;
+               end;
+
+            when 'p' =>
+               Broca.GIOP.Set_Default_Principal
+                 (Ada.Strings.Unbounded.To_Unbounded_String (Parameter));
+
+            when others =>
+               --  This never happens.
+               raise Program_Error;
+         end case;
+      end loop;
+
+   exception
+      when Invalid_Switch    =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Current_Error, "Invalid Switch " & Full_Switch);
+         Usage;
+      when Invalid_Parameter =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Current_Error, "No parameter for " & Full_Switch);
+         Usage;
+   end;
+
+   if Is_Nil (WDR) then
+      Ada.Text_IO.Put_Line ("creating root directory");
+      Broca.Server_Tools.Servant_To_Reference
+        (PortableServer.Servant (NamingContext.Impl.Create), WDR);
+
+      if Register_Service then
+         Ada.Text_IO.Put ("registering main service by name...");
+         Ada.Text_IO.Flush;
+         begin
+            Register (Test_Name, CORBA.Object.Ref (WDR));
+         exception
+            when AlreadyBound =>
+               Ada.Text_IO.Put (" rebinding...");
+               Register (Test_Name, CORBA.Object.Ref (WDR), Rebind => True);
+         end;
+         Ada.Text_IO.Put_Line (" done");
+      end if;
+   end if;
+
+   begin
+      Bind_Context (WDR, Here, WDR);
+      Bind_Context (WDR, Back, WDR);
+   exception
+      when others =>
+         null;
+   end;
 
    loop
       Argc := Count;
       if Argc > 0 then
          begin
             Argv := Argument (1);
-            Cmmd := Command'Value (Argv.all);
+            begin
+               Cmmd := Command'Value (Argv.all);
+            exception when Constraint_Error =>
+               raise Syntax_Error;
+            end;
             case Cmmd is
                when Help =>
-                 for I in Help_Messages'Range loop
-                    Ada.Text_IO.Put_Line
-                      (I'Img & Ascii.HT & Help_Messages (I).all);
-                 end loop;
-                 Ada.Text_IO.New_Line;
+                  Usage;
 
                when Quit =>
                  exit;
@@ -284,7 +449,7 @@ begin
                   end if;
                   Ada.Text_IO.Put_Line ('/' & To_String (WDN));
 
-               when Chdir =>
+               when Chdir | Cd =>
                   if Argc /= 2 then
                     raise Syntax_Error;
                   end if;
@@ -301,15 +466,16 @@ begin
                   Bind_Context (Dir, Here, Dir);
                   Bind_Context (Dir, Back, Parent (Argv));
 
-                  when Lmkdir =>
-                     if Argc /= 2 then
-                       raise Syntax_Error;
-                     end if;
-                     Argv  := Argument (2);
-                     Dir   := NamingContext.Impl.New_Context;
-                     Bind_Context (From (Argv), To_Name (Argv), Dir);
-                     Bind_Context (Dir, Here, Dir);
-                     Bind_Context (Dir, Back, Parent (Argv));
+               when Lmkdir | Mkdir | Md =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+                  Argv  := Argument (2);
+                  Broca.Server_Tools.Servant_To_Reference
+                    (PortableServer.Servant (NamingContext.Impl.Create), Dir);
+                  Bind_Context (From (Argv), To_Name (Argv), Dir);
+                  Bind_Context (Dir, Here, Dir);
+                  Bind_Context (Dir, Back, Parent (Argv));
 
                when Write =>
                   if Argc /= 3 then
@@ -320,10 +486,11 @@ begin
                      Fil := To_File (Argv);
 
                   exception when others =>
+                     Ada.Text_IO.Put_Line ("Creating file " & Argv.all);
                      Fil := File.Impl.New_File;
                      Bind (From (Argv),
                            To_Name (Argv),
-                           CORBA.Object.Ref (Obj));
+                           CORBA.Object.Ref (Fil));
                   end;
                   Argv := Argument (3);
                   Set_Image (Fil, CORBA.To_CORBA_String (Argv.all));
@@ -337,7 +504,7 @@ begin
                   Ada.Text_IO.Put_Line
                     (CORBA.To_Standard_String (Get_Image (Fil)));
 
-               when List =>
+               when List | Ls =>
                   if Argc >= 3 then
                      raise Syntax_Error;
                   end if;
@@ -369,6 +536,8 @@ begin
                         end if;
                         Ada.Text_IO.New_Line;
                      end loop;
+
+                     Destroy (Iterator);
                   end;
 
                when Mount =>
@@ -428,8 +597,11 @@ begin
             end case;
 
          exception
+            when Syntax_Error =>
+               Ada.Text_IO.Put_Line ("syntax error");
+
             when E : others =>
-               Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
+               Ada.Text_IO.Put_Line ("raised "& Exception_Information (E));
                Ada.Text_IO.Put_Line (Exception_Message (E));
          end;
       end if;

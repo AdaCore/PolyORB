@@ -108,6 +108,11 @@ package all_types.Impl is
       arg : in matrix)
       return matrix;
 
+   function echoBigMatrix
+     (Self : access Object;
+      arg : in bigmatrix)
+      return bigmatrix;
+
    procedure testException
      (Self : access Object;
       arg : in CORBA.Long);

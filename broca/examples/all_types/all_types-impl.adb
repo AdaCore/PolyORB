@@ -169,6 +169,15 @@ package body all_types.Impl is
       return arg;
    end echoMatrix;
 
+   function echoBigMatrix
+     (Self : access Object;
+      arg : in bigmatrix)
+      return bigmatrix
+   is
+   begin
+      return arg;
+   end echoBigMatrix;
+
    procedure testException
      (Self : access Object;
       arg : in CORBA.Long)

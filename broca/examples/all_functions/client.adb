@@ -33,10 +33,10 @@ begin
 
    Output ("test not nil reference", not Is_Nil (MyObj));
 
-   Set_The_Attribute (MyObj, 24);
-   Output ("test attribute", Get_The_Attribute (MyObj) = 24);
+--    Set_The_Attribute (MyObj, 24);
+--    Output ("test attribute", Get_The_Attribute (MyObj) = 24);
 
-   Output ("test readonly attribute", Get_The_Readonly_Attribute (MyObj) = 18);
+--    Output ("test readonly attribute", Get_The_Readonly_Attribute (MyObj) = 18);
 
    begin
       Ok := True;

@@ -31,9 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
+
 with CORBA;
 with CORBA.Object;
-with Broca.Object;
+with CORBA.AbstractBase;
+
 with Broca.Opaque;
 with Broca.Buffers;
 with Broca.IOP;
@@ -100,6 +103,8 @@ package Broca.GIOP is
      (Buffer     : access Buffers.Buffer_Type;
       Request_Id : in CORBA.Unsigned_Long;
       Reference  : in CORBA.Object.Ref);
+   --  FIXME: What is the purpose of this procedure?
+   --    Should it take a CORBA.AbstractBase.Ref instead?
 
    function Unmarshall
      (Buffer : access Buffers.Buffer_Type)
@@ -136,9 +141,21 @@ package Broca.GIOP is
    --  Free the resources associated with a request
    --  handler after use.
 
+   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String;
+
+   procedure Set_Default_Principal
+     (Principal : Ada.Strings.Unbounded.Unbounded_String
+     := Nobody_Principal);
+   --  Set the value that will be used as the requesting_principal
+   --  component in a GIOP 1.0 or 1.1 request header.
+   --  This interface is exposed to allow the user to contact
+   --  GNOME services that use the requesting_principal as a cookie
+   --  to authenticate incoming requests.
+   --  This is an AdaBroker specific interface.
+
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;
-      Target            : in Object.Object_Ptr;
+      Target_Ref        : in CORBA.AbstractBase.Ref'Class;
       Response_Expected : in Boolean;
       Operation         : in CORBA.Identifier);
    --  Send a request.
@@ -151,7 +168,7 @@ package Broca.GIOP is
 
    procedure Send_Request_Send
      (Handler          : in out Request_Handler;
-      Target           : in Object.Object_Ptr;
+      Target_Ref       : in out CORBA.AbstractBase.Ref'Class;
       Reponse_Expected : in Boolean;
       Result           : out Send_Request_Result_Type);
 
@@ -160,5 +177,8 @@ private
    type Request_Handler_Data is limited record
      Message_Body : Broca.Opaque.Octet_Array_Ptr := null;
    end record;
+
+   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
+     := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
 
 end Broca.GIOP;

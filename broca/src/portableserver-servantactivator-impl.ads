@@ -37,24 +37,27 @@ with PortableServer.POA;
 
 package PortableServer.ServantActivator.Impl is
 
-   type Object is abstract new PortableServer.ServantManager.Impl.Object with
-     private;
+   type Object is abstract new PortableServer.ServantManager.Impl.Object
+     with private;
+   type Object_Ptr is access all Object'Class;
 
    procedure Incarnate
      (Self    : in out Object;
-      Oid     : in ObjectId;
-      Adapter : in PortableServer.POA.Ref;
-      Returns : out Servant) is abstract;
+      Oid     : in     ObjectId;
+      Adapter : in     PortableServer.POA.Ref;
+      Returns :    out Servant)
+      is abstract;
 
    procedure Etherealize
-     (Self    : in out Object;
-      Oid     : in PortableServer.ObjectId;
-      Adapter : in PortableServer.POA_Forward.Ref;
-      Serv    : in PortableServer.Servant;
-      Cleanup_In_Progress : in CORBA.Boolean;
-      Remaining_Activations : in CORBA.Boolean) is abstract;
+     (Self                  : in out Object;
+      Oid                   : in     PortableServer.ObjectId;
+      Adapter               : in     PortableServer.POA_Forward.Ref;
+      Serv                  : in     PortableServer.Servant;
+      Cleanup_In_Progress   : in     CORBA.Boolean;
+      Remaining_Activations : in     CORBA.Boolean)
+      is abstract;
 
 private
-   type Object is abstract new PortableServer.ServantManager.Impl.Object with
-     null record;
+   type Object is abstract new PortableServer.ServantManager.Impl.Object
+     with null record;
 end PortableServer.ServantActivator.Impl;

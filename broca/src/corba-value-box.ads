@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                   C O R B A . V A L U E . B O X                          --
+--                      C O R B A . V A L U E . B O X                       --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -19,6 +19,13 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
 --             AdaBroker is maintained by ENST Paris University.            --
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
@@ -32,7 +39,8 @@ package CORBA.Value.Box is
 
    type Box_Ref is new CORBA.Value.Base with private;
 
-   function Is_Null (The_Ref : in Box_Ref) return Boolean;
+   --  function Is_Null (The_Ref : in Box_Ref) return Boolean;
+   --  inherited from corba.abstractbase.ref
 
    function Create (With_Value : in Boxed) return Box_Ref;
    function "+" (With_Value : in Boxed) return Box_Ref
@@ -44,5 +52,14 @@ package CORBA.Value.Box is
      renames Contents;
 
    procedure Release (The_Ref : in out Box_Ref);
+
+private
+
+   type Box_Ref is new CORBA.Value.Base with null record;
+
+   type Object is new CORBA.Value.Impl_Base with record
+      Content : Boxed_Access;
+   end record;
+   type Object_Ptr is access all Object;
 
 end CORBA.Value.Box;

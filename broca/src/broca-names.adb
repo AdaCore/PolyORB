@@ -51,7 +51,7 @@ package body Broca.Names is
 
    function OMG_RepositoryId (Name : String) return String is
    begin
-      return "IDL:" & Prefix & "/CORBA/" & Name & ":" & Version;
+      return "IDL:" & Prefix & "/" & Name & ":" & Version;
    end OMG_RepositoryId;
 
    -----------------

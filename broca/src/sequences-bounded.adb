@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---              C O R B A . S E Q U E N C E S . B O U N D E D               --
+--                    S E Q U E N C E S . B O U N D E D                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

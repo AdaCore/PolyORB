@@ -1,11 +1,47 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           ADABROKER SERVICES                             --
+--                                                                          --
+--         C O S N A M I N G . N A M I N G C O N T E X T . I M P L          --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--                                                                          --
+-- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--             AdaBroker is maintained by ENST Paris University.            --
+--                     (email: broker@inf.enst.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
 with CORBA;
+with CORBA.Impl;
 with CORBA.ORB;
 
-with Broca.Basic_Startup;
+with Broca.Server_Tools;
 with Broca.Exceptions;
 with Broca.Debug;
 
 with PortableServer.POA;
+
+with CosNaming; use CosNaming;
 
 with CosNaming.BindingIterator;
 with CosNaming.BindingIterator.Impl;
@@ -27,7 +63,9 @@ package body CosNaming.NamingContext.Impl is
      := Broca.Debug.Is_Active ("cosnaming.namingcontext");
    procedure O is new Broca.Debug.Output (Flag);
 
-   package Names renames CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
+   type String_Access is access String;
+
+   package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
 
    Null_NC : constant NameComponent
      := (Istring (Ada.Strings.Unbounded.Null_Unbounded_String),
@@ -55,25 +93,25 @@ package body CosNaming.NamingContext.Impl is
       Equal      => Equal);
 
    function Encode
-     (Ctx : NamingContext_Ptr;
+     (Ctx : Object_Ptr;
       N   : NameComponent)
      return String;
    --  Encode this name component using the naming context internal
    --  id, the name component name and name component type.
 
    procedure Append_BO_To_NC
-     (NC  : in NamingContext_Ptr;
+     (NC  : in Object_Ptr;
       Key : in String;
       BN  : in NameComponent;
       BT  : in BindingType;
       Obj : in CORBA.Object.Ref);
    --  Append a bound object to a naming context (NC). This bound
-   --  object is composed of a binding (BN, BT) and an object Obj. Set
-   --  a new entry in the hash table using its Key.
+   --  object is composed of a binding (BN, BT) and an object Obj.
+   --  Set a new entry in the hash table using its Key.
 
    procedure Display_NC
      (Text : in String;
-      NC   : in NamingContext_Ptr);
+      NC   : in Object_Ptr);
    --  Display the list of bound objects of naming context NC with a
    --  output title Text.
 
@@ -90,13 +128,13 @@ package body CosNaming.NamingContext.Impl is
    --  (thread safe).
 
    function Look_For_BO_In_NC
-     (NC  : NamingContext_Ptr;
+     (NC  : Object_Ptr;
       Key : String)
      return Bound_Object_Ptr;
    --  Look for a bound object in a naming context NC using its Key.
 
    procedure Remove_BO_From_NC
-     (NC : in     NamingContext_Ptr;
+     (NC : in     Object_Ptr;
       BO : in out Bound_Object_Ptr);
    --  Remove a bound object from a naming context NC.
 
@@ -104,7 +142,7 @@ package body CosNaming.NamingContext.Impl is
    --  Basic function which returns a sequence of one name component.
 
    procedure Valid
-     (NC     : NamingContext_Ptr;
+     (NC     : Object_Ptr;
       Locked : Boolean := False);
    --  Check whether NC is null. If null, raise an exception and
    --  unlock global lock if locked.
@@ -148,7 +186,7 @@ package body CosNaming.NamingContext.Impl is
    ---------------------
 
    procedure Append_BO_To_NC
-     (NC  : in NamingContext_Ptr;
+     (NC  : in Object_Ptr;
       Key : in String;
       BN  : in NameComponent;
       BT  : in BindingType;
@@ -189,7 +227,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind
      (Self : access Object;
-      N    : in CosNaming.Name;
+      N    : in Name;
       Obj  : in CORBA.Object.Ref)
    is
       Len  : Natural;
@@ -225,8 +263,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Bind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref)
+      N    : in Name;
+      NC   : in NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -262,8 +300,8 @@ package body CosNaming.NamingContext.Impl is
 
    function Bind_New_Context
      (Self : access Object;
-      N    : in CosNaming.Name)
-     return CosNaming.NamingContext.Ref
+      N    : in Name)
+     return NamingContext.Ref
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -281,6 +319,22 @@ package body CosNaming.NamingContext.Impl is
          return Ctx;
       end if;
    end Bind_New_Context;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create
+     return Object_Ptr
+   is
+      Obj : Object_Ptr;
+
+   begin
+      Obj      := new Object;
+      Obj.Self := Obj;
+      Obj.Key  := Allocate;
+      return Obj;
+   end Create;
 
    -------------
    -- Destroy --
@@ -301,7 +355,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Display_NC
      (Text : in String;
-      NC   : in NamingContext_Ptr)
+      NC   : in Object_Ptr)
    is
       BO : Bound_Object_Ptr;
 
@@ -331,7 +385,7 @@ package body CosNaming.NamingContext.Impl is
    ------------
 
    function Encode
-     (Ctx : NamingContext_Ptr;
+     (Ctx : Object_Ptr;
       N   : NameComponent)
      return String
    is
@@ -463,15 +517,15 @@ package body CosNaming.NamingContext.Impl is
    procedure List
      (Self     : access Object;
       How_Many : in CORBA.Unsigned_Long;
-      BL       : out CosNaming.BindingList;
-      BI       : out CosNaming.BindingIterator_Forward.Ref)
+      BL       : out BindingList;
+      BI       : out BindingIterator_Forward.Ref)
    is
-      use CosNaming.BindingIterator.Impl;
+      use BindingIterator.Impl;
 
       Len  : Natural := 0;
       Size : Natural := Natural (How_Many);
       Head : Bound_Object_Ptr;
-      Iter : BindingIterator_Ptr;
+      Iter : BindingIterator.Impl.Object_Ptr;
       Oid  : PortableServer.ObjectId;
       Ref  : CORBA.Object.Ref;
 
@@ -508,7 +562,7 @@ package body CosNaming.NamingContext.Impl is
          end;
       end if;
 
-      Iter       := new CosNaming.BindingIterator.Impl.Object;
+      Iter       := BindingIterator.Impl.Create;
       Iter.Index := Size + 1;
       Iter.Table := new Bindings.Element_Array (1 .. Len);
 
@@ -523,10 +577,7 @@ package body CosNaming.NamingContext.Impl is
 
       --  Activate object Iterator.
 
-      Broca.Basic_Startup.Initiate_Servant
-        (PortableServer.Servant (Iter), Ref);
-      BI := BindingIterator.Convert_Forward.To_Forward
-        (BindingIterator.Helper.To_Ref (Ref));
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Iter), BI);
    end List;
 
    -----------------------
@@ -534,7 +585,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------------
 
    function Look_For_BO_In_NC
-     (NC  : NamingContext_Ptr;
+     (NC  : Object_Ptr;
       Key : String)
      return Bound_Object_Ptr is
    begin
@@ -548,27 +599,14 @@ package body CosNaming.NamingContext.Impl is
 
    function New_Context
      (Self : access Object)
-     return CosNaming.NamingContext.Ref is
-   begin
-      return New_Context;
-   end New_Context;
-
-   -----------------
-   -- New_Context --
-   -----------------
-
-   function New_Context
-     return CosNaming.NamingContext.Ref
+     return NamingContext.Ref
    is
-      Obj : NamingContext_Ptr;
-      Ref : CORBA.Object.Ref;
+      My_Ref : NamingContext.Ref;
 
    begin
-      Obj      := new Object;
-      Obj.Self := Obj;
-      Obj.Key  := Allocate;
-      Broca.Basic_Startup.Initiate_Servant (PortableServer.Servant (Obj), Ref);
-      return NamingContext.Helper.To_Ref (Ref);
+      Broca.Server_Tools.Initiate_Servant
+        (PortableServer.Servant (Create), My_Ref);
+      return My_Ref;
    end New_Context;
 
    ------------
@@ -577,7 +615,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind
      (Self : access Object;
-      N    : in CosNaming.Name;
+      N    : in Name;
       Obj  : in CORBA.Object.Ref)
    is
       Len  : Natural;
@@ -636,8 +674,8 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Rebind_Context
      (Self : access Object;
-      N    : in CosNaming.Name;
-      NC   : in CosNaming.NamingContext.Ref)
+      N    : in Name;
+      NC   : in NamingContext.Ref)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -695,7 +733,7 @@ package body CosNaming.NamingContext.Impl is
    -----------------------
 
    procedure Remove_BO_From_NC
-     (NC : in     NamingContext_Ptr;
+     (NC : in     Object_Ptr;
       BO : in out Bound_Object_Ptr) is
    begin
       Valid (NC, True);
@@ -731,7 +769,7 @@ package body CosNaming.NamingContext.Impl is
 
    function Resolve
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : in Name)
      return CORBA.Object.Ref
    is
       Len  : Natural;
@@ -789,7 +827,7 @@ package body CosNaming.NamingContext.Impl is
 
    procedure Unbind
      (Self : access Object;
-      N    : in CosNaming.Name)
+      N    : in Name)
    is
       Len  : Natural;
       Ctx  : NamingContext.Ref;
@@ -834,7 +872,7 @@ package body CosNaming.NamingContext.Impl is
    -----------
 
    procedure Valid
-     (NC     : NamingContext_Ptr;
+     (NC     : Object_Ptr;
       Locked : Boolean := False) is
    begin
       if NC = null then

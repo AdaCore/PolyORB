@@ -31,11 +31,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
+with Ada.Unchecked_Deallocation;
+
 with Broca.IOP;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Exceptions;
+with Broca.Debug;
 
 package body Broca.Object is
+
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (X : in out Object_Type)
+   is
+      use Broca.IOP;
+
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Profile_Type'Class, Profile_Ptr);
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Profile_Ptr_Array, Profile_Ptr_Array_Ptr);
+
+   begin
+      pragma Debug (O ("In Finalize (Object_Type):"));
+      for I in X.Profiles'Range loop
+         pragma Debug (O ("Freeing Profiles (" & I'Img & ")"));
+         Free (X.Profiles (I));
+      end loop;
+      pragma Debug (O ("Freeing Profiles"));
+      Free (X.Profiles);
+   end Finalize;
 
    --------------
    -- Marshall --
@@ -64,10 +96,30 @@ package body Broca.Object is
    -- Find_Profile --
    ------------------
 
-   function Find_Profile (Object : Object_Ptr) return IOP.Profile_Ptr is
+   function Find_Profile
+     (Object : Object_Ptr)
+     return IOP.Profile_Ptr
+   is
+      use CORBA;
+      use Broca.IOP;
+
    begin
       pragma Assert (Object /= null);
-      return Object.Profiles (Object.Profiles'First);
+
+      --  FIXME: Knowledge about what transport
+      --     protocols are supported should not
+      --     be embedded here. For now, only IIOP
+      --     is supported.
+
+      for I in Object.Profiles'Range loop
+         if Get_Profile_Tag (Object.Profiles (I).all)
+           = Tag_Internet_IOP then
+            return Object.Profiles (I);
+         end if;
+      end loop;
+
+      Broca.Exceptions.Raise_Bad_Param;
+      return null;
    end Find_Profile;
 
 end Broca.Object;

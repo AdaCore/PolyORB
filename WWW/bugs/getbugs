@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bn=`basename $0`
+dir=`echo $0 | sed "s,$bn\$,,"`
+exec $dir/query-pr-summary.cgi --quiet $*
