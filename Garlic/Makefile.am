@@ -204,18 +204,21 @@ inlining: all-local
 	else\
 	   echo "Run-time compiled with inlining flags";\
 	fi;
+	${RM} -f inline.adb inline.o inline.ali inline
 	@if test ! -f inlining; then\
 	   ${RM} -r gnatlib;\
 	   mkdir gnatlib;\
-	   grep s-stratt `${srcdir}/../Dist/config.sdefault pathtolib`*.ali |\
-	      ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' >gnatlib/tocheck;\
+	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`; \
+	   for o in `cd $$gnatlibdir && echo *.ali`; do \
+	     grep s-stratt $$gnatlibdir/$$o /dev/null; \
+	   done | ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck; \
 	   for o in `cat gnatlib/tocheck`; do\
-	      if [ ! -f $$o ]; then\
-	          s=`gnatls -a -s $$o`;\
+	      if [ ! -f $$o ]; then \
+	          s=`gnatls -a -s $$o`; \
 	          echo "${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s" \
-	               "-o gnatlib/$$o";\
-	          ${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s -o gnatlib/$$o;\
-	          echo $$o >>gnatlib/rebuild;\
+	               "-o gnatlib/$$o"; \
+	          ${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s -o gnatlib/$$o; \
+	          echo $$o >>gnatlib/rebuild; \
 	      fi;\
 	   done;\
 	   echo yes >inlining;\
