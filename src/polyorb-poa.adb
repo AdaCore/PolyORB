@@ -103,7 +103,7 @@ package body PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
+      URI :        Types.String)
      return Object_Id_Access
    is
       pragma Warnings (Off);

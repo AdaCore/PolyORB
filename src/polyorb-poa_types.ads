@@ -57,10 +57,6 @@ package PolyORB.POA_Types is
    use PolyORB.Objects;
    use PolyORB.Types;
 
-   Invalid_Object_Id : exception
-     renames PolyORB.Obj_Adapters.Invalid_Object_Id;
-   Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
-
    ----------------
    -- Time_Stamp --
    ----------------
@@ -108,6 +104,7 @@ package PolyORB.POA_Types is
 
    package POA_Sequences is new PolyORB.Sequences.Unbounded
      (Obj_Adapter_Access);
+
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
@@ -121,6 +118,7 @@ package PolyORB.POA_Types is
       PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
       PolyORB.Utils.HFunctions.Mul.Hash,
       PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+
    subtype POATable is POA_HTables.Table_Instance;
    type POATable_Access is access all POATable;
 
@@ -133,6 +131,7 @@ package PolyORB.POA_Types is
 
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
+
    function "=" (X, Y : Object_Id_Access) return Boolean
      renames PolyORB.Objects."=";
 
@@ -152,11 +151,13 @@ package PolyORB.POA_Types is
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
-   function "=" (Left, Right : in Unmarshalled_Oid)
-                return Standard.Boolean;
+   function "="
+     (Left, Right : in Unmarshalled_Oid)
+     return Standard.Boolean;
 
    function Image
-     (Oid : Object_Id) return Types.String;
+     (Oid : Object_Id)
+     return Types.String;
    --  For debugging purposes.
 
    function Create_Id
@@ -186,7 +187,9 @@ package PolyORB.POA_Types is
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
-   function Get_Name (Oid : Object_Id) return Types.String;
+   function Get_Name
+     (Oid : Object_Id)
+     return Types.String;
    --  Return 'Name' component marshalled in Oid.
 
    function Oid_To_U_Oid
@@ -285,8 +288,8 @@ package PolyORB.POA_Types is
       Oid        : in     Object_Id;
       Adapter    : access Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
-      The_Cookie : out    Cookie;
-      Returns    : out    PolyORB.Servants.Servant_Access)
+      The_Cookie :    out Cookie;
+      Returns    :    out PolyORB.Servants.Servant_Access)
      is abstract;
 
    procedure Postinvoke

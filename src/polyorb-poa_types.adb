@@ -64,7 +64,8 @@ package body PolyORB.POA_Types is
       ULo :    out Types.Unsigned_Long);
    --  Extract an unsigned long.
 
-   function Put_ULong (ULo : Types.Unsigned_Long)
+   function Put_ULong
+     (ULo : Types.Unsigned_Long)
      return Stream_Element_Array;
    --  Store an unsigned long.
 
@@ -74,7 +75,8 @@ package body PolyORB.POA_Types is
       Boo :    out Types.Boolean);
    --  Extract a boolean.
 
-   function Put_Boolean (Boo : Types.Boolean)
+   function Put_Boolean
+     (Boo : Types.Boolean)
      return Stream_Element_Array;
    --  Store a boolean.
 
@@ -84,7 +86,8 @@ package body PolyORB.POA_Types is
       Str :    out Types.String);
    --  Extract a string.
 
-   function Put_String (Str : Types.String)
+   function Put_String
+     (Str : Types.String)
      return Stream_Element_Array;
    --  Store a string.
 
@@ -199,7 +202,8 @@ package body PolyORB.POA_Types is
    -- Put_ULong --
    ---------------
 
-   function Put_ULong (ULo : Types.Unsigned_Long)
+   function Put_ULong
+     (ULo : Types.Unsigned_Long)
      return Stream_Element_Array
    is
       R : Stream_Element_Array (0 .. 3);
@@ -238,7 +242,8 @@ package body PolyORB.POA_Types is
    -- Put_Boolean --
    -----------------
 
-   function Put_Boolean (Boo : Types.Boolean)
+   function Put_Boolean
+     (Boo : Types.Boolean)
      return Stream_Element_Array
    is
       R : Stream_Element_Array (0 .. 0);
@@ -284,7 +289,8 @@ package body PolyORB.POA_Types is
    -- Put_String --
    ----------------
 
-   function Put_String (Str : Types.String)
+   function Put_String
+     (Str : Types.String)
      return Stream_Element_Array
    is
       S : constant Standard.String := To_Standard_String (Str);

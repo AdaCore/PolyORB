@@ -48,7 +48,6 @@
 
 with PolyORB.Exceptions;
 with PolyORB.Object_Maps;
-with PolyORB.Objects;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Thread_Policy;
@@ -282,11 +281,8 @@ package PolyORB.POA is
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
+      URI :        Types.String)
      return Object_Id_Access;
    --  Convert an object id from its representation as a relative URI.
-
-   Invalid_Object_Id : exception renames PolyORB.POA_Types.Invalid_Object_Id;
-   Invalid_Method    : exception renames PolyORB.POA_Types.Invalid_Method;
 
 end PolyORB.POA;
