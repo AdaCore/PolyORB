@@ -48,15 +48,27 @@ package body PolyORB.Asynch_Ev.Sockets is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
+
    procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Create_Selector (AEM.Selector);
    end Create;
 
+   -------------
+   -- Destroy --
+   -------------
+
    procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Close_Selector (AEM.Selector);
    end Destroy;
+
+   ---------------------
+   -- Register_Source --
+   ---------------------
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
@@ -72,6 +84,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
       Success := True;
    end Register_Source;
+
+   -----------------------
+   -- Unregister_Source --
+   -----------------------
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
@@ -92,6 +108,10 @@ package body PolyORB.Asynch_Ev.Sockets is
          end if;
       end loop All_Sources;
    end Unregister_Source;
+
+   -------------------
+   -- Check_Sources --
+   -------------------
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
@@ -159,12 +179,20 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    end Check_Sources;
 
+   -------------------------
+   -- Abort_Check_Sources --
+   -------------------------
+
    procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
       Abort_Selector (AEM.Selector);
    end Abort_Check_Sources;
+
+   -------------------------
+   -- Create_Event_Source --
+   -------------------------
 
    function Create_Event_Source
      (Socket : PolyORB.Sockets.Socket_Type)
@@ -177,6 +205,10 @@ package body PolyORB.Asynch_Ev.Sockets is
       return Result;
    end Create_Event_Source;
 
+   ---------------------------------
+   -- Create_Socket_Event_Monitor --
+   ---------------------------------
+
    function Create_Socket_Event_Monitor
      return Asynch_Ev_Monitor_Access;
 
@@ -185,6 +217,10 @@ package body PolyORB.Asynch_Ev.Sockets is
    begin
       return new Socket_Event_Monitor;
    end Create_Socket_Event_Monitor;
+
+   --------------------
+   -- AEM_Factory_Of --
+   --------------------
 
    function AEM_Factory_Of (AES : Socket_Event_Source)
      return AEM_Factory is

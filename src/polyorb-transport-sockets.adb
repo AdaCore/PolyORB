@@ -173,7 +173,7 @@ package body PolyORB.Transport.Sockets is
       pragma Debug (O ("Write: enter"));
       begin
          Enter (TE.Mutex);
-         --  XXX Send_Buffer is not atomicn, needs to be protected.
+         --  XXX Send_Buffer is not atomic, needs to be protected.
       exception
          when E : others =>
             pragma Debug (O ("Enter (TE.Mutex) raised "
