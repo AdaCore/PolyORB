@@ -426,7 +426,7 @@ package body System.Stream_Attributes is
       for N in SF_L + 2 - F_Bytes .. SF_L loop
          X := X * FB + Short_Float (S (N));
       end loop;
-      X := Short_Float'Scaling (X, -F_Size);
+      X := Scaling (X, -F_Size); --  Short_Float
 
       if BS <= S (1) then
          P := False;
@@ -468,12 +468,12 @@ package body System.Stream_Attributes is
       --  Denormalized float.
       if E = 0 then
 
-         X := Short_Float'Scaling (X, 1 - E_Bias);
+         X := Scaling (X, 1 - E_Bias); --  Short_Float
 
       --  Normalized float.
       else
 
-         X := Short_Float'Scaling (X + 1.0, Integer (E) - E_Bias);
+         X := Scaling (X + 1.0, Integer (E) - E_Bias); --  Short_Float
 
       end if;
 
@@ -518,7 +518,7 @@ package body System.Stream_Attributes is
       for N in F_L + 2 - F_Bytes .. F_L loop
          X := X * FB + Float (S (N));
       end loop;
-      X := Float'Scaling (X, -F_Size);
+      X := Scaling (X, -F_Size); --  Float
 
       if BS <= S (1) then
          P := False;
@@ -560,12 +560,12 @@ package body System.Stream_Attributes is
       --  Denormalized float.
       if E = 0 then
 
-         X := Float'Scaling (X, 1 - E_Bias);
+         X := Scaling (X, 1 - E_Bias); --  Float
 
       --  Normalized float.
       else
 
-         X := Float'Scaling (X + 1.0, Integer (E) - E_Bias);
+         X := Scaling (X + 1.0, Integer (E) - E_Bias); --  Float
 
       end if;
 
@@ -610,7 +610,7 @@ package body System.Stream_Attributes is
       for N in LF_L + 2 - F_Bytes .. LF_L loop
          X := X * FB + Long_Float (S (N));
       end loop;
-      X := Long_Float'Scaling (X, -F_Size);
+      X := Scaling (X, -F_Size); --  Long_Float
 
       if BS <= S (1) then
          P := False;
@@ -652,12 +652,12 @@ package body System.Stream_Attributes is
       --  Denormalized float.
       if E = 0 then
 
-         X := Long_Float'Scaling (X, 1 - E_Bias);
+         X := Scaling (X, 1 - E_Bias); --  Long_Float
 
       --  Normalized float.
       else
 
-         X := Long_Float'Scaling (X + 1.0, Integer (E) - E_Bias);
+         X := Scaling (X + 1.0, Integer (E) - E_Bias); --  Long_Float
 
       end if;
 
@@ -702,7 +702,7 @@ package body System.Stream_Attributes is
       for N in LLF_L + 2 - F_Bytes .. LLF_L loop
          X := X * FB + Long_Long_Float (S (N));
       end loop;
-      X := Long_Long_Float'Scaling (X, -F_Size);
+      X := Scaling (X, -F_Size); --  Long_Long_Float
 
       if BS <= S (1) then
          P := False;
@@ -744,12 +744,12 @@ package body System.Stream_Attributes is
       --  Denormalized float.
       if E = 0 then
 
-         X := Long_Long_Float'Scaling (X, 1 - E_Bias);
+         X := Scaling (X, 1 - E_Bias); --  Long_Long_Float
 
       --  Normalized float.
       else
 
-         X := Long_Long_Float'Scaling (X + 1.0, Integer (E) - E_Bias);
+         X := Scaling (X + 1.0, Integer (E) - E_Bias); --  Long_Long_Float
 
       end if;
 
@@ -1212,7 +1212,7 @@ package body System.Stream_Attributes is
             --  Denormalized float.
             if E <= 1 - E_Bias then
                E := 0;
-               F := Short_Float'Scaling (F, E_Bias - 1);
+               F := Scaling (F, E_Bias - 1); --  Short_Float
 
             --  Signed infinites.
             else
@@ -1238,7 +1238,7 @@ package body System.Stream_Attributes is
             N := (F_Bytes - 1) / UB;
             P := Fields (I).F_Bits;
             loop
-               F := Short_Float'Scaling  (F, P);
+               F := Scaling  (F, P); --  Short_Float
                Q := Short_Float'Truncation (F);
                U := Unsigned (Q);
                for I in reverse SF_L - UB * (N + 1) + 1 .. SF_L - UB * N loop
@@ -1317,7 +1317,7 @@ package body System.Stream_Attributes is
             --  Denormalized float.
             if E <= 1 - E_Bias then
                E := 0;
-               F := Float'Scaling (F, E_Bias - 1);
+               F := Scaling (F, E_Bias - 1); --  Float
 
             --  Signed infinites.
             else
@@ -1343,7 +1343,7 @@ package body System.Stream_Attributes is
             N := (F_Bytes - 1) / UB;
             P := Fields (I).F_Bits;
             loop
-               F := Float'Scaling  (F, P);
+               F := Scaling  (F, P); --  Float
                Q := Float'Truncation (F);
                U := Unsigned (Q);
                for I in reverse F_L - UB * (N + 1) + 1 .. F_L - UB * N loop
@@ -1422,7 +1422,7 @@ package body System.Stream_Attributes is
             --  Denormalized float.
             if E <= 1 - E_Bias then
                E := 0;
-               F := Long_Float'Scaling (F, E_Bias - 1);
+               F := Scaling (F, E_Bias - 1); --  Long_Float
 
             --  Signed infinites.
             else
@@ -1448,7 +1448,7 @@ package body System.Stream_Attributes is
             N := (F_Bytes - 1) / UB;
             P := Fields (I).F_Bits;
             loop
-               F := Long_Float'Scaling  (F, P);
+               F := Scaling  (F, P); --  Long_Float
                Q := Long_Float'Truncation (F);
                U := Unsigned (Q);
                for I in reverse LF_L - UB * (N + 1) + 1 .. LF_L - UB * N loop
@@ -1527,7 +1527,7 @@ package body System.Stream_Attributes is
             --  Denormalized float.
             if E <= 1 - E_Bias then
                E := 0;
-               F := Long_Long_Float'Scaling (F, E_Bias - 1);
+               F := Scaling (F, E_Bias - 1); --  Long_Long_Float
 
             --  Signed infinites.
             else
@@ -1553,7 +1553,7 @@ package body System.Stream_Attributes is
             N := (F_Bytes - 1) / UB;
             P := Fields (I).F_Bits;
             loop
-               F := Long_Long_Float'Scaling  (F, P);
+               F := Scaling  (F, P); --  Long_Long_Float
                Q := Long_Long_Float'Truncation (F);
                U := Unsigned (Q);
                for I in reverse LLF_L - UB * (N + 1) + 1 .. LLF_L - UB * N loop
