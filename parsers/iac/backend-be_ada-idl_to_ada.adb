@@ -19,20 +19,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
      (K : FEN.Node_Kind)
      return RE_Id;
 
-   -------------------
-   -- Bind_FE_To_BE --
-   -------------------
-
-   procedure Bind_FE_To_BE
-     (F : Node_Id;
-      B : Node_Id)
-   is
-   begin
-      if Present (B) then
-         BEN.Set_FE_Node (B, F);
-      end if;
-   end Bind_FE_To_BE;
-
    -------------
    -- Convert --
    -------------
@@ -75,6 +61,34 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
    end Is_Base_Type;
 
+   -------------------
+   -- Link_BE_To_FE --
+   -------------------
+
+   procedure Link_BE_To_FE
+     (B : Node_Id;
+      F : Node_Id)
+   is
+   begin
+      if Present (F) then
+         BEN.Set_FE_Node (F, B);
+      end if;
+   end Link_BE_To_FE;
+
+   -------------------
+   -- Link_FE_To_BE --
+   -------------------
+
+   procedure Link_FE_To_BE
+     (F : Node_Id;
+      B : Node_Id)
+   is
+   begin
+      if Present (B) then
+         BEN.Set_FE_Node (B, F);
+      end if;
+   end Link_FE_To_BE;
+
    ------------------------------
    -- Map_Accessor_Declaration --
    ------------------------------
@@ -101,9 +115,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Param_Type := Map_Designator
         (Type_Spec (Declaration (Attribute)));
 
-      Bind_FE_To_BE
-        (Type_Spec (Declaration (Attribute)),
-         Defining_Identifier (Param_Type));
+      Link_BE_To_FE
+        (Defining_Identifier (Param_Type),
+         Type_Spec (Declaration (Attribute)));
 
       --  For the setter subprogram, add the second parameter To.
 

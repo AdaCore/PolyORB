@@ -1,6 +1,35 @@
+with Frontend.Nodes; use Frontend.Nodes;
+--  with Frontend.Debug;
+
+with Backend.BE_Ada.Expand; use Backend.BE_Ada.Expand;
+--  with Backend.BE_Ada.Debug;
+with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
+with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
+
+
 package body Backend.BE_Ada.Helpers is
 
+   package FEN renames Frontend.Nodes;
+
    package body Package_Spec is
+
+      procedure Any_Conversion_Spec (T : Node_Id);
+      --  Insert an any conversions functions for a given type
+      --  (T) node in the helper package.
+      procedure Narrowing_Ref_Spec (E : Node_Id);
+      --  Insert windening object reference helper.
+      procedure TypeCode_Spec (T : Node_Id);
+      --  Insert a TypeCode constant for a given type (T) node in the Helper
+      --  package.
+      procedure Widening_Ref_Spec (E : Node_Id);
+      --  Insert widening object reference helper.
+      pragma Unreferenced (Narrowing_Ref_Spec, TypeCode_Spec,
+                             Any_Conversion_Spec, Widening_Ref_Spec);
+
+      procedure Visit_Interface_Declaration (E : Node_Id);
+      procedure Visit_Specification (E : Node_Id);
 
       -------------------------
       -- Any_Conversion_Spec --
@@ -16,7 +45,8 @@ package body Backend.BE_Ada.Helpers is
       -- Narrowing_Ref_Spec --
       ------------------------
 
-      procedure Narrowing_Ref_Spec is
+      procedure Narrowing_Ref_Spec (E : Node_Id) is
+         pragma Unreferenced (E);
       begin
          null;
       end Narrowing_Ref_Spec;
@@ -36,21 +66,83 @@ package body Backend.BE_Ada.Helpers is
       -----------
 
       procedure Visit (E : Node_Id) is
-         pragma Unreferenced (E);
       begin
-         null;
+         case FEN.Kind (E) is
+
+            when K_Interface_Declaration =>
+               Visit_Interface_Declaration (E);
+
+            when K_Specification =>
+               Visit_Specification (E);
+
+            when others =>
+               null;
+         end case;
       end Visit;
+
+      ---------------------------------
+      -- Visit_Interface_Declaration --
+      ---------------------------------
+
+      procedure Visit_Interface_Declaration (E : Node_Id) is
+         N : Node_Id;
+         P : Node_Id;
+      begin
+         --   Widening_Ref_Spec (E);
+         P := Map_IDL_Unit (E);
+         Push_Entity (P);
+
+         N := First_Entity (Interface_Body (E));
+
+         while Present (N) loop
+            Visit (N);
+            N := Next_Entity (N);
+         end loop;
+         Pop_Entity;
+      end Visit_Interface_Declaration;
+
+      -------------------------
+      -- Visit_Specification --
+      -------------------------
+
+      procedure Visit_Specification (E : Node_Id) is
+         Definition : Node_Id;
+
+      begin
+         Push_Entity (Map_IDL_Unit (E));
+         Definition := First_Entity (Definitions (E));
+         while Present (Definition) loop
+            Visit (Definition);
+            Definition := Next_Entity (Definition);
+         end loop;
+         Pop_Entity;
+      end Visit_Specification;
 
       -----------------------
       -- Widening_Ref_Spec --
       -----------------------
 
-      procedure Widening_Ref_Spec is
+      procedure Widening_Ref_Spec (E : Node_Id) is
+         Profile   : List_Id;
+         Parameter : Node_Id;
+
       begin
-         null;
+         Profile  := New_List (K_Parameter_Profile);
+         Parameter := Make_Parameter_Specification
+           (Make_Defining_Identifier (PN (P_Self)),
+            Expand_Designator
+            (Defining_Identifier (BE_Node (E)),
+             Defining_Identifier (Main_Package (Current_Entity))));
+         Append_Node_To_List (Parameter, Profile);
+
+         Append_Node_To_List
+           (Make_Subprogram_Specification
+            (Make_Defining_Identifier (SN (S_To_Ref)), Profile, RE (RE_Any)),
+            Visible_Part (Current_Package));
       end Widening_Ref_Spec;
 
    end Package_Spec;
+
    package body Package_Body is
 
       -------------------------
@@ -67,7 +159,8 @@ package body Backend.BE_Ada.Helpers is
       -- Narrowing_Ref_Body --
       ------------------------
 
-      procedure Narrowing_Ref_Body is
+      procedure Narrowing_Ref_Body (E : Node_Id) is
+         pragma Unreferenced (E);
       begin
          null;
       end Narrowing_Ref_Body;
@@ -92,7 +185,8 @@ package body Backend.BE_Ada.Helpers is
          null;
       end Visit;
 
-      procedure Widening_Ref_Body is
+      procedure Widening_Ref_Body (E : Node_Id) is
+         pragma Unreferenced (E);
       begin
          null;
       end Widening_Ref_Body;

@@ -16,13 +16,14 @@ module Frontend::Nodes {
 
   interface Node_Id {
     Node_Id    Next_Entity;
-    Node_Id    BE_Node;
-    // Link nodes together
+   
   };
 
   interface Definition : Node_Id {
     Node_Id    Identifier;
     // Identifier associated to definition
+    Node_Id    BE_Node;
+    // Link nodes together
   };
 
   interface Forward_Declaration : Definition {

@@ -153,7 +153,6 @@ package body Frontend.Debug is
       C : Node_Id;
    begin
       if A = "Next_Entity"
-        or else A = "BE_Node"
         or else A = "Homonym"
         or else A = "Name"
         or else A = "Visible"

@@ -151,7 +151,11 @@ package Backend.BE_Ada.Nutils is
    VN : array (Variable_Id) of Name_Id;
 
    type Subprogram_Id is
-     (S_Get_Members);
+     (S_Get_Members,
+      S_Unchecked_To_Ref,
+      S_To_Ref,
+      S_From_Any,
+      S_To_Any);
 
    SN : array (Subprogram_Id) of Name_Id;
 

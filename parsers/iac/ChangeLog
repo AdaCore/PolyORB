@@ -1,3 +1,13 @@
+2004-07-16  Saber Souli  <souli@neraka.enst.fr>
+
+	* frontend-debug.adb: View BE_Node information in the
+	idl tree dump. 
+
+	* backend-be_ada-stubs.adb: Minor change, relatif to the
+	modification in the frontend-nodes.idl. 
+
+	* frontend-nodes.idl: Removed BE_Node from Node_Id to Definition. 
+
 2004-07-15  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada.adb: Reformatting.  

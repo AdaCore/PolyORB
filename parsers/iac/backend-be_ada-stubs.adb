@@ -24,7 +24,7 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
-
+   pragma Unreferenced (Marshaller_Declarations, Marshaller_Body);
 
    package body Package_Spec is
 
@@ -93,9 +93,9 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Attribute_Declaration (E : Node_Id) is
          N : Node_Id;
          A : Node_Id;
-         P : Node_Id;
-         D : List_Id;
-         S : List_Id;
+         --  P : Node_Id;
+         --  D : List_Id;
+         --  S : List_Id;
 
       begin
          A := First_Entity (Declarators (E));
@@ -110,11 +110,11 @@ package body Backend.BE_Ada.Stubs is
               (Accessor => Getter, Attribute => A);
             Append_Node_To_List (N, Visible_Part (Current_Package));
 
-            Set_Main_Body;
-            D := Marshaller_Declarations (N);
-            S := Marshaller_Body (N, D);
-            P := Make_Subprogram_Implementation (N, D, S);
-            Append_Node_To_List (P, Statements (Current_Package));
+            --  Set_Main_Body;
+            --  D := Marshaller_Declarations (N);
+            --  S := Marshaller_Body (N, D);
+            --  P := Make_Subprogram_Implementation (N, D, S);
+            --  Append_Node_To_List (P, Statements (Current_Package));
 
             if not Is_Readonly (E) then
                Set_Main_Spec;
@@ -122,11 +122,11 @@ package body Backend.BE_Ada.Stubs is
                  (Accessor => Setter, Attribute => A);
                Append_Node_To_List (N, Visible_Part (Current_Package));
 
-               Set_Main_Body;
-               D := Marshaller_Declarations (N);
-               S := Marshaller_Body (N, D);
-               P := Make_Subprogram_Implementation (N, D, S);
-               Append_Node_To_List (P, Statements (Current_Package));
+               --  Set_Main_Body;
+               --  D := Marshaller_Declarations (N);
+               --  S := Marshaller_Body (N, D);
+               --  P := Make_Subprogram_Implementation (N, D, S);
+               --  Append_Node_To_List (P, Statements (Current_Package));
             end if;
 
             A := Next_Entity (A);
@@ -259,7 +259,7 @@ package body Backend.BE_Ada.Stubs is
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
-
+         Link_FE_To_BE (Identifier (E), N);
          N := First_Entity (Interface_Body (E));
 
          while Present (N) loop
@@ -294,15 +294,15 @@ package body Backend.BE_Ada.Stubs is
       ---------------------------------
 
       procedure Visit_Operation_Declaration (E : Node_Id) is
-         Subp_Body : Node_Id;
+         --  Subp_Body : Node_Id;
          Subp_Spec : Node_Id;
          Profile   : List_Id;
          IDL_Param : Node_Id;
          Ada_Param : Node_Id;
          Mode      : Mode_Id := Mode_In;
          Returns   : Node_Id := No_Node;
-         Declarative_Part : List_Id;
-         Body_Part  : List_Id;
+         --  Declarative_Part : List_Id;
+         --  Body_Part  : List_Id;
          Type_Designator : Node_Id;
 
       begin
@@ -322,9 +322,9 @@ package body Backend.BE_Ada.Stubs is
          while Present (IDL_Param) loop
             Type_Designator := Map_Designator
               (Type_Spec (IDL_Param));
-            Bind_FE_To_BE
-              (Type_Spec (IDL_Param),
-               Defining_Identifier (Type_Designator));
+            Link_BE_To_FE
+              (Defining_Identifier (Type_Designator),
+               Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
               (Map_Defining_Identifier (Declarator (IDL_Param)),
                Type_Designator,
@@ -357,9 +357,9 @@ package body Backend.BE_Ada.Stubs is
                Append_Node_To_List (Ada_Param, Profile);
             end if;
          end if;
-         Bind_FE_To_BE
-           (Type_Spec (E),
-            Defining_Identifier (Type_Designator));
+         Link_BE_To_FE
+           (Defining_Identifier (Type_Designator),
+            Type_Spec (E));
 
          --  Add subprogram to main specification
 
@@ -367,16 +367,16 @@ package body Backend.BE_Ada.Stubs is
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-         Bind_FE_To_BE (E, Subp_Spec);
+         Link_BE_To_FE (Subp_Spec, E);
 
          --  Add subprogram to main implementation
 
-         Set_Main_Body;
-         Declarative_Part := Marshaller_Declarations (Subp_Spec);
-         Body_Part := Marshaller_Body (Subp_Spec, Declarative_Part);
-         Subp_Body := Make_Subprogram_Implementation
-           (Subp_Spec, Declarative_Part, Body_Part);
-         Append_Node_To_List (Subp_Body, Statements (Current_Package));
+         --  Set_Main_Body;
+         --  Declarative_Part := Marshaller_Declarations (Subp_Spec);
+         --  Body_Part := Marshaller_Body (Subp_Spec, Declarative_Part);
+         --  Subp_Body := Make_Subprogram_Implementation
+         --    (Subp_Spec, Declarative_Part, Body_Part);
+         --  Append_Node_To_List (Subp_Body, Statements (Current_Package));
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -410,7 +410,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Record_Type_Definition
             (Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Bind_FE_To_BE (E, N);
+         Link_BE_To_FE (N, E);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -443,7 +443,7 @@ package body Backend.BE_Ada.Stubs is
                   (Subtype_Indication    => T,
                    Record_Extension_Part => No_Node));
             end if;
-            Bind_FE_To_BE (E, N);
+            Link_BE_To_FE (N, E);
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List
@@ -478,7 +478,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Component_Declaration
             (Make_Defining_Identifier (CN (C_Switch)), T,
              Make_Type_Attribute (T, A_First)));
-         Bind_FE_To_BE (E, N);
+         Link_BE_To_FE (E, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
