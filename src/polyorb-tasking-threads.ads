@@ -30,17 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides base types for tasking.
+--  This package provides the base abstract interface for threads.
 --  Real implementations for the different profiles are given by extending
 --  Thread_Type and by registering the implementations of some procedures.
 
 --  $Id$
 
---  Some terminology issues :
---  in this package, and in its profile specific implementations,
---  a task designate the common abstraction, which an abstraction
---  of processors. A Thread will only designate the type defined in
---  this package, which is just a record for the parameter of the task.
+--  Some terminology issues:
+--  in this package, and in its profile-specific implementations,
+--  a task designate the common abstraction of processors as provided
+--  by the Ada 95 language.
+--  A Thread will only denote the type defined in this package,
+--  which is only a container for the parameters of the task.
 
 with System;
 
@@ -55,29 +56,26 @@ package PolyORB.Tasking.Threads is
    --------------
 
    type Runnable is abstract tagged limited null record;
-   --  Runnable is a type for elementary jobs.
+   --  Runnable is a type for elementary work units.
 
    type Runnable_Access is access all Runnable'Class;
 
-   procedure Run (R : access Runnable)
-     is abstract;
+   procedure Run (R : access Runnable) is abstract;
    --  Main procedure for the Runnable.
 
    type Runnable_Controller is tagged limited null record;
    --  A Runnable_Controller is used by the tasking runtime to
-   --  control the deallocation of the Runnable. You may have
-   --  to extends this type to personalize the deallocation of your
-   --  Runnable objects. For example, this implementation suppose
-   --  that your Runnable have been allocated on the heap; it
-   --  will fail if it is allocated in an other way.
+   --  control the deallocation of Runnables. This type should be
+   --  extended to customize the deallocation policy for Runnable
 
    type Runnable_Controller_Access is access all Runnable_Controller'Class;
 
    procedure Free_Runnable
      (C : in out Runnable_Controller;
       R : in out Runnable_Access);
-   --  The purpose of this method is to Free the Runnable.
-   --  By default, it just make a call to Unchecked_Deallocation.
+   --  Deallocate R.
+   --  This default implementation assumes that the Runnable has
+   --  been dynamically allocated, and performs an Unchecked_Deallocation.
 
    ----------------
    -- Thread Ids --
@@ -85,12 +83,8 @@ package PolyORB.Tasking.Threads is
 
    type Thread_Id is abstract tagged null record;
    --  Type used for identifying Threads.  An unique Thread_Id is
-   --  given at each Thread at creation time; that means that, if we
-   --  create two Threads and compare two copies of their Thread_Id
-   --  using the "=" operator, the comparison must return False.  We
-   --  should not use Ada.Task_Identification here, as in some high
-   --  integrity runtimes it is not provided.
-   --  A subclass of this type can be found for every tasking profile.
+   --  assigned to each Thread at creation time.
+   --  This type is derived by each concrete tasking profile.
 
    type Thread_Id_Access is access all Thread_Id'Class;
 
@@ -113,6 +107,7 @@ package PolyORB.Tasking.Threads is
    --  different task.  The difference between a Runnable and a Thread
    --  is that a thread has some informations about the scheduling,
    --  such as its priority.
+   --  This type is derived by each concrete tasking profile.
 
    type Thread_Access is access all Thread_Type'Class;
 
@@ -127,12 +122,8 @@ package PolyORB.Tasking.Threads is
    --------------------
 
    type Thread_Factory_Type is abstract tagged limited null record;
-   --  This type is a factory for the Thread type.  A subclass of this
-   --  factory exists for every tasking profile : Full Tasking,
-   --  Ravenscar and No Tasking.  This type provides functionalities
-   --  depending of the tasking profile, and it particularly provides
-   --  functionnalities to create the Thread type corresponding to the
-   --  chosen profile.
+   --  A factory of Thread_Type objects.
+   --  This type is derived by each concrete tasking profile.
 
    type Thread_Factory_Access is access all Thread_Factory_Type'Class;
 
@@ -141,10 +132,7 @@ package PolyORB.Tasking.Threads is
       Source : Thread_Id'Class;
       Target : Thread_Id_Access)
       is abstract;
-   --  Copy Source in Target.all. It assume of course that the types of
-   --  Target and Source are the same; if not, it raise an assertion failure.
-   --  Indeed, their types depend on the profile under which they are created,
-   --  and in a logic node every object is created under the same profile.
+   --  Copy Source into Target.all, which must be of the same concrete type.
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
@@ -154,26 +142,19 @@ package PolyORB.Tasking.Threads is
       C                : Runnable_Controller_Access)
      return Thread_Access
      is abstract;
-   --  Create a Thread according to the tasking profile.  R is the
+   --  Create a Thread according to the tasking profile. R is the
    --  Runnable that will be executed by the task associated to the
-   --  created Thread.  Name will be the name of the type of thread.
-   --  This name will be used to get the configuration of this thread
-   --  from the configuration module. Default_Priority will be the priority
+   --  created Thread.  Name is used as a key to look up configuration
+   --  information. Default_Priority will be the priority
    --  of the task if no priority is given in the configuration file.
-   --  Then :
-   --  * if a preallocated task with these paramaters is available, it
-   --  runs the runnable in it;
-   --  * otherwise, if it is allowed by the tasking profile, it create
-   --  a new task with this parameters;
-   --  * if it can do neither of this two possibilities, it failed
-   --  returning an exception. The type of the exception is profile
-   --  dependant.
-   --  The deallocation is delegated to C, and is the responsablity of
-   --  the tasking runtime. C should be allocated on the heap, as
-   --  we deallocate it with Unchecked_Deallocation.
-   --  Note that the main context is associated to a preallocated Thread
-   --  at initialization time, in order to be able to use PolyORB.Tasking
-   --  API in this context.
+
+   --  If a preallocated task with appropriate parameters exists, the
+   --  Runnable is executed by that task.
+   --  Otherwise, if the tasking profile allows dynamic task allocation,
+   --  a new task is created and executes the Runnable.
+   --  Otherwise, a profile-dependant exception is raised.
+   --  The deallocation of R after completion is delegated to C.
+   --  It is assumed that C is dynamically allocated.
 
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
