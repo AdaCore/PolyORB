@@ -377,11 +377,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Debug (O ("Request queued."));
    end Process_Request;
 
-   -------------------
-   -- Process_Reply --
-   -------------------
+   ----------------
+   -- Send_Reply --
+   ----------------
 
-   procedure Process_Reply
+   procedure Send_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -402,7 +402,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       end if;
 
       Ctx.Message_Type := Reply;
-      Common_Process_Reply
+      Common_Send_Reply
         (Sess'Access,
          Request,
          Ctx.Request_Id'Access,
@@ -413,7 +413,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          Request.Exception_Info := Error_To_Any (Error);
          Catch (Error);
 
-         Common_Process_Reply
+         Common_Send_Reply
            (Sess'Access,
             Request,
             Ctx.Request_Id'Access,
@@ -425,7 +425,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
             raise GIOP_Error;
          end if;
       end if;
-   end Process_Reply;
+   end Send_Reply;
 
    ----------------------------
    -- Process_Locate_Request --
@@ -434,6 +434,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Process_Locate_Request
      (S : in out Session'Class)
    is
+      use PolyORB.Errors;
+
       Sess    : GIOP_Session renames GIOP_Session (S);
       Ctx     : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
       Buffer  : Buffer_Access renames Sess.Buffer_In;
@@ -444,13 +446,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Warnings (On);
       Target       : References.Ref;
       Result       : Locate_Reply_Type;
+      Error        : Errors.Error_Container;
    begin
       Result := Object_Here;
-
-      --  XXX need to be implemented
-
       Ctx.Message_Type := Locate_Reply;
-      Common_Locate_Reply (Sess'Access, Request_Id, Result, Target);
+      Common_Locate_Reply (Sess'Access, Request_Id, Result, Target, Error);
+      if Found (Error) then
+         Catch (Error);
+         raise GIOP_Error;
+      end if;
       Expect_GIOP_Header (Sess'Access);
    end Process_Locate_Request;
 
@@ -461,14 +465,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Locate_Object
      (Implem : access GIOP_Implem_1_0;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.ORB;
       use PolyORB.Binding_Data;
+      use PolyORB.Errors;
+      use PolyORB.ORB;
       use PolyORB.Types;
 
       Sess          : GIOP_Session renames GIOP_Session (S.all);
@@ -500,7 +506,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-      Emit_Message (Sess.Implem, S, Buffer);
+      Emit_Message (Sess.Implem, S, Buffer, Error);
       Release (Buffer);
    end Locate_Object;
 
@@ -571,7 +577,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-      Emit_Message (Sess.Implem, Sess'Access, Buffer);
+      Emit_Message (Sess.Implem, Sess'Access, Buffer, Error);
       pragma Debug (O ("Request sent, Id :" & Ctx.Message_Size'Img));
       Release (Buffer);
    end Send_Request;
@@ -589,18 +595,23 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
+      use PolyORB.Errors;
       use PolyORB.ORB;
 
-      Sess          : GIOP_Session renames GIOP_Session (S.all);
-      Ctx           : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
-
+      Sess  : GIOP_Session renames GIOP_Session (S.all);
+      Ctx   : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
+      Error : Errors.Error_Container;
    begin
       if Sess.Role = Server then
          raise GIOP_Error;
       end if;
 
       Ctx.Message_Type := Cancel_Request;
-      Common_Process_Abort_Request (Sess'Access, R);
+      Common_Process_Abort_Request (Sess'Access, R, Error);
+      if Found (Error) then
+         Catch (Error);
+         raise GIOP_Error;
+      end if;
    end Process_Abort_Request;
 
    ---------------------------------

@@ -88,7 +88,7 @@ package PolyORB.Protocols.GIOP.Common is
      (Buffer : access PolyORB.Buffers.Buffer_Type)
      return Reply_Status_Type;
 
-   procedure Common_Process_Reply
+   procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
@@ -119,7 +119,8 @@ package PolyORB.Protocols.GIOP.Common is
      (Sess               : access GIOP_Session;
       Locate_Request_Id  :        Types.Unsigned_Long;
       Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref);
+      Forward_Ref        :        References.Ref;
+      Error              : in out Errors.Error_Container);
 
    procedure Common_Process_Locate_Reply
      (Sess              : access GIOP_Session;
@@ -131,8 +132,9 @@ package PolyORB.Protocols.GIOP.Common is
    ----------------------------------
 
    procedure Common_Process_Abort_Request
-     (Sess : access GIOP_Session;
-      R    : in     Request_Access);
+     (Sess  : access GIOP_Session;
+      R     :        Request_Access;
+      Error : in out Errors.Error_Container);
 
    ---------------------------
    -- Common_Reply_Received --

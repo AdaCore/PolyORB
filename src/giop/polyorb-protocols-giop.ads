@@ -228,7 +228,8 @@ private
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        PolyORB.Buffers.Buffer_Access);
+      Buffer :        PolyORB.Buffers.Buffer_Access;
+      Error  : in out Errors.Error_Container);
    --  function which emit data to lower layer
    --  can be overidden to fragment messages
 
@@ -239,7 +240,7 @@ private
       is abstract;
    --  cancel a request
 
-   procedure Process_Reply
+   procedure Send_Reply
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
       Request :        Requests.Request_Access)
@@ -248,17 +249,18 @@ private
    procedure Send_Request
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access;
+      R      :        Pending_Request_Access;
       Error  : in out Errors.Error_Container)
       is abstract;
-   --  send a request
+   --  Send a request
 
    procedure Locate_Object
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access)
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container)
       is abstract;
-   --  send a locate request to loacte an object
+   --  Send a locate request to loacte an object
 
    procedure Marshall_Argument_List
      (Implem              : access GIOP_Implem;

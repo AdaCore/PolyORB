@@ -135,10 +135,10 @@ package body PolyORB.Protocols.GIOP.Common is
    end Unmarshall;
 
    --------------------------
-   -- Common_Process_Reply --
+   -- Common_Send_Reply --
    --------------------------
 
-   procedure Common_Process_Reply
+   procedure Common_Send_Reply
      (Sess           : access GIOP_Session;
       Request        :        Requests.Request_Access;
       Request_Id_Ptr : access Types.Unsigned_Long;
@@ -325,11 +325,11 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Emit reply
 
-      Emit_Message (Sess.Implem, Sess, Buffer_Out);
+      Emit_Message (Sess.Implem, Sess, Buffer_Out, Error);
 
       Release (Buffer_Out);
       pragma Debug (O ("Reply sent"));
-   end Common_Process_Reply;
+   end Common_Send_Reply;
 
    -------------------------
    -- Common_Locate_Reply --
@@ -339,7 +339,8 @@ package body PolyORB.Protocols.GIOP.Common is
      (Sess               : access GIOP_Session;
       Locate_Request_Id  :        Types.Unsigned_Long;
       Loc_Type           :        Locate_Reply_Type;
-      Forward_Ref        :        References.Ref)
+      Forward_Ref        :        References.Ref;
+      Error              : in out Errors.Error_Container)
    is
       use PolyORB.Components;
       use PolyORB.Types;
@@ -375,7 +376,7 @@ package body PolyORB.Protocols.GIOP.Common is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
-      Emit_Message (Sess.Implem, Sess, Buffer);
+      Emit_Message (Sess.Implem, Sess, Buffer, Error);
       Release (Buffer);
    end Common_Locate_Reply;
 
@@ -498,8 +499,9 @@ package body PolyORB.Protocols.GIOP.Common is
    ----------------------------------
 
    procedure Common_Process_Abort_Request
-     (Sess : access GIOP_Session;
-      R    : in     Request_Access)
+     (Sess  : access GIOP_Session;
+      R     :        Request_Access;
+      Error : in out Errors.Error_Container)
    is
       use PolyORB.Annotations;
       use PolyORB.Types;
@@ -528,7 +530,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
       --  Sending the message
 
-      Emit_Message (Sess.Implem, Sess, Buffer);
+      Emit_Message (Sess.Implem, Sess, Buffer, Error);
 
       Release (Buffer);
    end Common_Process_Abort_Request;

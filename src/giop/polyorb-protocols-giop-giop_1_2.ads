@@ -129,7 +129,7 @@ private
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class);
 
-   procedure Process_Reply
+   procedure Send_Reply
      (Implem  : access GIOP_Implem_1_2;
       S       : access Session'Class;
       Request :        Requests.Request_Access);
@@ -137,12 +137,14 @@ private
    procedure Emit_Message
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
-      Buffer :        PolyORB.Buffers.Buffer_Access);
+      Buffer :        PolyORB.Buffers.Buffer_Access;
+      Error  : in out Errors.Error_Container);
 
    procedure Locate_Object
      (Implem : access GIOP_Implem_1_2;
       S      : access Session'Class;
-      R      : in     Pending_Request_Access);
+      R      :        Pending_Request_Access;
+      Error  : in out Errors.Error_Container);
 
    procedure Send_Request
      (Implem : access GIOP_Implem_1_2;

@@ -410,31 +410,30 @@ package body PolyORB.Protocols.GIOP is
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
          Add_Pending_Request (Sess, New_Pending_Req);
-         Locate_Object (Sess.Implem, Sess, New_Pending_Req);
-
+         Locate_Object (Sess.Implem, Sess, New_Pending_Req, Error);
       else
          Add_Pending_Request (Sess, New_Pending_Req);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
+      end if;
 
-         if Found (Error) then
-            Remove_Pending_Request
-              (Sess, New_Pending_Req.Request_Id, Success);
+      if Found (Error) then
+         Remove_Pending_Request
+           (Sess, New_Pending_Req.Request_Id, Success);
 
-            if not Success then
-               raise GIOP_Error;
-            end if;
-
-            R.Exception_Info := Error_To_Any (Error);
-            Catch (Error);
-
-            declare
-               ORB : constant ORB_Access := ORB_Access (Sess.Server);
-            begin
-               Emit_No_Reply
-                 (Component_Access (ORB),
-                  Servants.Iface.Executed_Request'(Req => R));
-            end;
+         if not Success then
+            raise GIOP_Error;
          end if;
+
+         R.Exception_Info := Error_To_Any (Error);
+         Catch (Error);
+
+         declare
+            ORB : constant ORB_Access := ORB_Access (Sess.Server);
+         begin
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Servants.Iface.Executed_Request'(Req => R));
+         end;
       end if;
    end Invoke_Request;
 
@@ -457,7 +456,7 @@ package body PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session;
       R    :        Requests.Request_Access) is
    begin
-      Process_Reply (Sess.Implem, Sess, R);
+      Send_Reply (Sess.Implem, Sess, R);
    end Send_Reply;
 
    ----------------------------
@@ -486,7 +485,8 @@ package body PolyORB.Protocols.GIOP is
    procedure Emit_Message
      (Implem : access GIOP_Implem;
       S      : access Session'Class;
-      Buffer :        Buffer_Access)
+      Buffer :        Buffer_Access;
+      Error  : in out Errors.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Implem);
@@ -494,8 +494,15 @@ package body PolyORB.Protocols.GIOP is
 
       use PolyORB.Filters.Iface;
 
+      M : constant Message'Class :=
+        Emit (Lower (S), Data_Out'(Out_Buf => Buffer));
    begin
-      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer));
+      if M in Filter_Error'Class then
+         Error := Filter_Error (M).Error;
+      else
+         pragma Assert (M in Null_Message'Class);
+         null;
+      end if;
    end Emit_Message;
 
    -------------------------------------------------------------------------
