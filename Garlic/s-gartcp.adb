@@ -136,13 +136,13 @@ package body System.Garlic.TCP is
    subtype Operation_Code is String (1 .. 4);
    --  An operation code.
 
-   Open_Code : constant Operation_Code := "OPEN";
+   Open_Code : constant Operation_Code := "OOOO";
    --  Code corresponding to the opening of a new connection.
 
-   Data_Code : constant Operation_Code := "DATA";
+   Data_Code : constant Operation_Code := "DDDD";
    --  Code corresponding to transfer of data.
 
-   Quit_Code : constant Operation_Code := "QUIT";
+   Quit_Code : constant Operation_Code := "QQQQ";
    --  Code corresponding to a shutdown operation.
 
    function Establish_Connection (Location  : Host_Location;
