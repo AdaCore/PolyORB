@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ package PolyORB.Utils.Chained_Lists is
    --  Return the number of elements in L
 
    function Element (L : List; Index : Natural) return Element_Access;
-   --  Return the element at position Index (0-based) in L.
+   --  Return the element at position Index (0-based) in L
 
    procedure Extract_First
      (L      : in out List;
@@ -58,14 +58,14 @@ package PolyORB.Utils.Chained_Lists is
    --  and remove it from the list.
 
    function First (L : List) return Iterator;
-   --  Return an iterator on L positioned at L's first element.
+   --  Return an iterator on L positioned at L's first element
 
    function Value (I : Iterator) return Element_Access;
    --  Return an access to the value of the list element currently
    --  designated by I.
 
    procedure Next (I : in out Iterator);
-   --  Move I to the next element in the list.
+   --  Move I to the next element in the list
 
    function Last (L : List) return Iterator;
    --  Return an iterator position at the end of L (i.e. immediately
@@ -77,10 +77,10 @@ package PolyORB.Utils.Chained_Lists is
    --  last element).
 
    procedure Prepend (L : in out List; I : T);
-   --  Prepend value I at the beginning of L.
+   --  Prepend value I at the beginning of L
 
    procedure Append (L : in out List; I : T);
-   --  Append value I at the end of L.
+   --  Append value I at the end of L
 
    procedure Insert (L : in out List; I : T; Before : in out Iterator);
    --  Insert I into L before the designated position.
@@ -105,31 +105,30 @@ package PolyORB.Utils.Chained_Lists is
      (L : in out List;
       I : T;
       All_Occurrences : Boolean := True);
-   --  Remove first/all occurences of value I from list L.
+   --  Remove first/all occurences of value I from list L
 
    Empty : constant List;
-   --  A list that contains no elements.
+   --  A list that contains no elements
 
    function "+" (I : T) return List;
-   --  Make a list with I as its only element.
+   --  Make a list with I as its only element
 
    function "&" (I : T; L : List) return List;
-   --  Prepend I to L.
+   --  Prepend I to L
 
    function "&" (L : List; I : T) return List;
-   --  Append I to L.
+   --  Append I to L
 
    function "&" (L1, L2 : List) return List;
-   --  Concatenate L1 and L2;
+   --  Concatenate L1 and L2
 
    function Duplicate (L : List) return List;
-   --  Return a copy of list L.
+   --  Return a copy of list L
 
    procedure Deallocate (L : in out List);
-   --  Release the storage associated with L.
+   --  Release the storage associated with L
 
 private
-
    pragma Inline (First);
    pragma Inline (Value);
    pragma Inline (Last);
