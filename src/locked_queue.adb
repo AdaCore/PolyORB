@@ -2,12 +2,36 @@
 
 with Unchecked_Deallocation;
 
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
+
 package body Locked_Queue is
 
-   use Droopi.Locks;
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log
+     ("locked_queue");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Free is new Unchecked_Deallocation
      (Queue_Node, Queue_Node_Access);
+
+   ----------
+   -- Lock --
+   ----------
+
+   protected body Lock is
+      entry Enter when not Taken is
+      begin
+         Taken := True;
+      end Enter;
+
+      procedure Leave is
+      begin
+         Taken := False;
+      end Leave;
+   end Lock;
 
    ------------
    -- Create --
@@ -19,12 +43,7 @@ package body Locked_Queue is
    is
    begin
       Result.Max_Count := Max_Count;
-
-      Create (Result.State_Lock);
-      Create (Result.Full_Lock);
-      Create (Result.Empty_Lock);
-
-      Lock_W (Result.Empty_Lock);
+      Result.Empty_Lock.Enter;
    end Create;
 
    ---------
@@ -36,9 +55,10 @@ package body Locked_Queue is
       E : in     Queue_Element)
    is
    begin
-      Lock_W (Q.Full_Lock);
+      pragma Debug (O ("adding"));
+      Q.Full_Lock.Enter;
 
-      Lock_W (Q.State_Lock);
+      Q.State_Lock.Enter;
       if Q.Last = null then
          Q.Last := new Queue_Node'
            (Element => new Queue_Element'(E),
@@ -51,14 +71,15 @@ package body Locked_Queue is
          Q.Last := Q.Last.Next;
       end if;
       Q.Count := Q.Count + 1;
-      Unlock_W (Q.State_Lock);
+      Q.State_Lock.Leave;
 
       if Q.Count = 1 then
-         Unlock_W (Q.Empty_Lock);
+         pragma Debug (O ("unlocked empty lock"));
+         Q.Empty_Lock.Leave;
       end if;
 
       if Q.Count /= Q.Max_Count then
-         Unlock_W (Q.Full_Lock);
+         Q.Full_Lock.Leave;
       end if;
    end Add;
 
@@ -71,11 +92,13 @@ package body Locked_Queue is
       E :    out Queue_Element)
    is
    begin
-      Lock_W (Q.Empty_Lock);
+      pragma Debug (O ("trying to get empty lock"));
+      Q.Empty_Lock.Enter;
+      pragma Debug (O ("got empty lock"));
 
       --  When execution reaches this, necessarily Q.First /= null.
 
-      Lock_W (Q.State_Lock);
+      Q.State_Lock.Enter;
 
       declare
          --  Old_First : Queue_Node_Access := Q.First;
@@ -88,16 +111,16 @@ package body Locked_Queue is
       end;
 
       Q.Count := Q.Count - 1;
-      Unlock_W (Q.State_Lock);
+      Q.State_Lock.Leave;
 
       --  When execution reaches this, necessarily the queue is not full.
 
       if Q.Count = Q.Max_Count - 1 then
-         Unlock_W (Q.Full_Lock);
+         Q.Full_Lock.Leave;
       end if;
 
       if Q.Count > 0 then
-         Unlock_W (Q.Empty_Lock);
+         Q.Empty_Lock.Leave;
       end if;
 
    end Get_Head;

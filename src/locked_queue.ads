@@ -2,10 +2,6 @@
 
 --  This package implements a basic thread-safe bounded queue.
 
-with Droopi.Locks;
---  ??? : Since we use only writers locks, we could use a lighter
---        implementation.
-
 generic
 
    type Queue_Element is private;
@@ -54,17 +50,25 @@ private
       Next    : Queue_Node_Access;
    end record;
 
+   protected type Lock is
+      entry Enter;
+      procedure Leave;
+   private
+      Taken : Boolean := False;
+   end Lock;
+
+
    type Queue is record
       Max_Count  : Positive;
 
-      State_Lock : Droopi.Locks.Rw_Lock_Access;
+      State_Lock : Lock;
       --  This locks the global state of the queue, and should be
       --  taken when modifying First, Last and Count fields.
 
-      Full_Lock  : Droopi.Locks.Rw_Lock_Access;
+      Full_Lock  : Lock;
       --  This lock is taken when the queue is full.
 
-      Empty_Lock : Droopi.Locks.Rw_Lock_Access;
+      Empty_Lock : Lock;
       --  This lock is taken when the queue is empty.
 
       First      : Queue_Node_Access := null;
