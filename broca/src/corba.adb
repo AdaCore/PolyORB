@@ -1530,6 +1530,7 @@ package body CORBA is
       if TypeCode.Kind (Item.The_Type) /= Tk_Ulong then
          raise Bad_TypeCode;
       end if;
+      pragma Assert (Item.The_Value /= null);
       pragma Debug (O ("any content type is "
                        & Ada.Tags.External_Tag (Item.The_Value'Tag)));
       return Content_ULong_Ptr (Item.The_Value).Value;
