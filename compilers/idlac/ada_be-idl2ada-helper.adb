@@ -806,7 +806,6 @@ package body Ada_Be.Idl2Ada.Helper is
              & ".Value_Impl.Object_Ptr :=");
          PL (CU, "   new " & Ada_Full_Name (Node) & ".Value_Impl.Object;");
          PL (CU, "Temp_Any : CORBA.Any;");
-         PL (CU, "New_Ref : " & Type_Full_Name & ";");
          PL (CU, "Temp_Ref : Value_Ptr :=");
          PL (CU, "   new " & Type_Full_Name & ";");
          DI (CU);
@@ -859,12 +858,20 @@ package body Ada_Be.Idl2Ada.Helper is
                                   K_Forward_ValueType)))
                            then
                               PL (CU, "--  ValueType specific.");
+                              PL (CU, "declare");
+                              PL (CU, "   New_Ref : " &
+                                  Ada_Type_Name (State_Type (Member_Node)) &
+                                  ";");
+                              PL (CU, "begin");
+                              II (CU);
                               PL (CU,
                                   Ada_Helper_Name (State_Type (Member_Node))
                                   & ".From_Any (Temp_Any, New_Ref,"
                                   & " Unmarshalled_List);");
                               PL (CU, "Result." & Ada_Name (Decl_Node)
                                   & " := New_Ref;");
+                              DI (CU);
+                              PL (CU, "end;");
                            else
                               PL (CU, "--  Regular member.");
                               PL (CU, "Result." & Ada_Name (Decl_Node)
@@ -989,7 +996,7 @@ package body Ada_Be.Idl2Ada.Helper is
                               II (CU);
                               PL (CU, "Temp_Any := Get_Empty_Any_Aggregate"
                                   & " ("
-                                  & Ada_TC_Name (State_Type (Member_Node))
+                                  & Ada_Full_TC_Name (State_Type (Member_Node))
                                   & ");");
                               PL (CU,
                                   Ada_Helper_Name (State_Type (Member_Node)) &
