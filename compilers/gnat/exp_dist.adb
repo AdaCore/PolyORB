@@ -1454,32 +1454,35 @@ package body Exp_Dist is
 
       --  Read the source Partition_ID and RPC_Receiver from incoming stream
 
-      Statements := New_List (
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
-          Attribute_Name => Name_Read,
-          Expressions    => New_List (
-            Stream_Parameter,
-            New_Occurrence_Of (Source_Partition, Loc))),
+--       Statements := New_List (
+--         Make_Attribute_Reference (Loc,
+--           Prefix         =>
+--             New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
+--           Attribute_Name => Name_Read,
+--           Expressions    => New_List (
+--             Stream_Parameter,
+--             New_Occurrence_Of (Source_Partition, Loc))),
 
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
-          Attribute_Name =>
-            Name_Read,
-          Expressions    => New_List (
-            Stream_Parameter,
-            New_Occurrence_Of (Source_Receiver, Loc))),
+--         Make_Attribute_Reference (Loc,
+--           Prefix         =>
+--             New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
+--           Attribute_Name =>
+--             Name_Read,
+--           Expressions    => New_List (
+--             Stream_Parameter,
+--             New_Occurrence_Of (Source_Receiver, Loc))),
 
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
-          Attribute_Name =>
-            Name_Read,
-          Expressions    => New_List (
-            Stream_Parameter,
-            New_Occurrence_Of (Source_Address, Loc))));
+--         Make_Attribute_Reference (Loc,
+--           Prefix         =>
+--             New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
+--           Attribute_Name =>
+--             Name_Read,
+--           Expressions    => New_List (
+--             Stream_Parameter,
+--             New_Occurrence_Of (Source_Address, Loc))));
+
+      Statements := New_List (Make_Null_Statement (Loc));
+      --  XXX Should read an IOR
 
       --  If the Address is Null_Address, then return a null object
 
@@ -1510,29 +1513,8 @@ package body Exp_Dist is
       --  will be created with all the information needed to rebuild the
       --  real object at the other end.
 
-      Remote_Statements := New_List (
-
-        Make_Assignment_Statement (Loc,
-          Name       => Make_Selected_Component (Loc,
-            Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
-            Selector_Name => Make_Identifier (Loc, Name_Origin)),
-          Expression =>
-            New_Occurrence_Of (Source_Partition, Loc)),
-
-        Make_Assignment_Statement (Loc,
-          Name       => Make_Selected_Component (Loc,
-            Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
-            Selector_Name => Make_Identifier (Loc, Name_Receiver)),
-          Expression =>
-            New_Occurrence_Of (Source_Receiver, Loc)));
-
---          Make_Assignment_Statement (Loc,
---            Name       => Make_Selected_Component (Loc,
---              Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
---              Selector_Name => Make_Identifier (Loc, Name_Addr)),
---            Expression =>
---              New_Occurrence_Of (Source_Address, Loc)));
---  XXX
+      Remote_Statements := New_List (Make_Null_Statement (Loc));
+      --  XXX should rebuild Stubbed_Result.Target from the IOR we have just read.
 
       Append_To (Remote_Statements,
         Make_Assignment_Statement (Loc,
@@ -1565,6 +1547,7 @@ package body Exp_Dist is
               Right_Opnd => New_Occurrence_Of (Source_Partition, Loc)),
           Then_Statements => Local_Statements,
           Else_Statements => Remote_Statements));
+      --  XXX should rewrite locality test to test locality of received IOR.
 
       Build_Stream_Procedure
         (Loc, RACW_Type, Body_Node,
@@ -1922,86 +1905,20 @@ package body Exp_Dist is
       --  Build the code fragment corresponding to the marshalling of a
       --  local object.
 
-      Local_Statements := New_List (
-
-        Pack_Entity_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => RTE (RE_Get_Local_Partition_Id)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => OK_Convert_To (RTE (RE_Unsigned_64),
-            Make_Attribute_Reference (Loc,
-              Prefix         => New_Occurrence_Of (Object_RPC_Receiver, Loc),
-              Attribute_Name => Name_Address)),
-          Etyp   => RTE (RE_Unsigned_64)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => OK_Convert_To (RTE (RE_Unsigned_64),
-            Make_Attribute_Reference (Loc,
-              Prefix         =>
-                Make_Explicit_Dereference (Loc,
-                  Prefix => Object),
-              Attribute_Name => Name_Address)),
-          Etyp   => RTE (RE_Unsigned_64)));
+      Local_Statements := New_List (Make_Null_Statement (Loc));
+      --  XXX pack an IOR for local object into stream
 
       --  Build the code fragment corresponding to the marshalling of
       --  a remote object.
 
-      Remote_Statements := New_List (
-
-        Pack_Node_Into_Stream_Access (Loc,
-         Stream => Stream_Parameter,
-         Object =>
-            Make_Selected_Component (Loc,
-              Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                Object),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Origin)),
-         Etyp   => RTE (RE_Partition_ID)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-         Stream => Stream_Parameter,
-         Object =>
-            Make_Selected_Component (Loc,
-              Prefix        => Unchecked_Convert_To (Stub_Type_Access,
-                Object),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Receiver)),
-         Etyp   => RTE (RE_Unsigned_64)));
-
---          Pack_Node_Into_Stream_Access (Loc,
---           Stream => Stream_Parameter,
---           Object =>
---              Make_Selected_Component (Loc,
---                Prefix        => Unchecked_Convert_To (Stub_Type_Access,
---                  Object),
---                Selector_Name =>
---                  Make_Identifier (Loc, Name_Addr)),
---           Etyp   => RTE (RE_Unsigned_64)));
+      Remote_Statements := New_List (Make_Null_Statement (Loc));
+      --  XXX pack IOR from stub.Target into stream
 
       --  Build the code fragment corresponding to the marshalling of a null
       --  object.
 
-      Null_Statements := New_List (
-
-        Pack_Entity_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => RTE (RE_Get_Local_Partition_Id)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => OK_Convert_To (RTE (RE_Unsigned_64),
-            Make_Attribute_Reference (Loc,
-              Prefix         => New_Occurrence_Of (Object_RPC_Receiver, Loc),
-              Attribute_Name => Name_Address)),
-          Etyp   => RTE (RE_Unsigned_64)),
-
-        Pack_Node_Into_Stream_Access (Loc,
-          Stream => Stream_Parameter,
-          Object => Make_Integer_Literal (Loc, Uint_0),
-          Etyp   => RTE (RE_Unsigned_64)));
+      Null_Statements := New_List (Make_Null_Statement (Loc));
+      --  XXX pack nil IOR into stream
 
       Statements := New_List (
         Make_Implicit_If_Statement (RACW_Type,
@@ -3362,24 +3279,6 @@ package body Exp_Dist is
 
                     Make_Component_Declaration (Loc,
                       Defining_Identifier =>
-                        Make_Defining_Identifier (Loc, Name_Origin),
-                      Component_Definition =>
-                        Make_Component_Definition (Loc,
-                          Aliased_Present    => False,
-                          Subtype_Indication =>
-                            New_Occurrence_Of (RTE (RE_Partition_ID), Loc))),
-
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
-                        Make_Defining_Identifier (Loc, Name_Receiver),
-                      Component_Definition =>
-                        Make_Component_Definition (Loc,
-                          Aliased_Present    => False,
-                          Subtype_Indication =>
-                            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc))),
-
-                    Make_Component_Declaration (Loc,
-                      Defining_Identifier =>
                         Make_Defining_Identifier (Loc, Name_Target),
                       Component_Definition =>
                         Make_Component_Definition (Loc,
@@ -4212,21 +4111,24 @@ package body Exp_Dist is
             Designated_Object := New_Occurrence_Of (Parameter_Entity, Loc);
          end if;
 
-         Condition :=
-           Make_Op_Eq (Loc,
-             Left_Opnd  =>
-               Make_Selected_Component (Loc,
-                 Prefix        =>
-                   New_Occurrence_Of (Parameter_Entity, Loc),
-               Selector_Name =>
-                 Make_Identifier (Loc, Name_Origin)),
+         Condition := New_Reference_To (RTE (RE_False));
+         --  XXX rewrite to co-location check between Parameter_Entity
+         --  and Controlling_Parameter_Entity.
 
-             Right_Opnd =>
-               Make_Selected_Component (Loc,
-                 Prefix        =>
-                   New_Occurrence_Of (Controlling_Parameter, Loc),
-               Selector_Name =>
-                 Make_Identifier (Loc, Name_Origin)));
+--            Make_Op_Eq (Loc,
+--              Left_Opnd  =>
+--                Make_Selected_Component (Loc,
+--                  Prefix        =>
+--                    New_Occurrence_Of (Parameter_Entity, Loc),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Origin)),
+
+--              Right_Opnd =>
+--                Make_Selected_Component (Loc,
+--                  Prefix        =>
+--                    New_Occurrence_Of (Controlling_Parameter, Loc),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Origin)));
 
          Append_To (Decls,
            Make_Raise_Constraint_Error (Loc,

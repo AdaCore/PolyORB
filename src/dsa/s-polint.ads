@@ -193,12 +193,6 @@ package System.PolyORB_Interface is
    --  Conversion from Entity_Ptr to Ref and reverse
 
    type RACW_Stub_Type is tagged limited record
-      Origin       : System.RPC.Partition_ID;
-      Receiver     : Interfaces.Unsigned_64;
-      --  XXX the 2 fields above are placeholders and must not
-      --  be used (they are kept here only while Exp_Dist is
-      --  not completely updated for PolyORB).
-
       Target       : Entity_Ptr;
       --  Target cannot be a References.Ref (a controlled type)
       --  because that would pollute RACW_Stub_Type's dispatch
