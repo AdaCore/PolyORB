@@ -1,0 +1,22 @@
+README for the PolyORB CORBA interoperability tests
+---------------------------------------------------
+
+$Id: //droopi/main/examples/corba/all_types/interop/java/README#1 $
+
+* Compilation
+
+edit the makefile to setup:
+
+- Java SDK and JRE;
+
+- Path to ORB jar files ...
+
+* To run the tests
+
+make run_dynserver
+make run_dynclient
+
+the IOR is stored in the `IOR` file and read _from this file_ by DynClient.
+
+
+
