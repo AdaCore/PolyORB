@@ -50,6 +50,7 @@ package body System.Garlic.Exceptions is
       else
          Raise_Exception (Communication_Error'Identity, Msg);
       end if;
+      Raise_Communication_Error;  -- Keep the compiler happy
    end Raise_Communication_Error;
 
    ----------------------
