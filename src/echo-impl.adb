@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/echo-impl.adb#9 $
+--  $Id: //droopi/main/src/echo-impl.adb#10 $
 
 with Ada.Text_IO;
 

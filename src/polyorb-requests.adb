@@ -127,8 +127,66 @@ package body PolyORB.Requests is
          end;
          Self.Deferred_Arguments_Session := null;
       else
-         pragma Assert (Self.Deferred_Arguments_Session = null);
-         Args := Self.Args;
+         pragma Assert
+           (Self.Deferred_Arguments_Session = null
+            and then not Is_Nil (Self.Args));
+
+         pragma Debug (O ("in Arguments: " & Image (Self.Args)));
+
+         declare
+            use PolyORB.Any;
+            use PolyORB.Any.NVList.Internals;
+            use PolyORB.Any.NVList.Internals.NV_Sequence;
+            P_Arg_Index : Integer := 1;
+            --  Index in Self.Args (protocol layer arguments)
+         begin
+            for A_Arg_Index in 1 .. Get_Count (Args) loop
+               --  Index in Args (application layer arguments)
+               declare
+                  A_Arg : NamedValue
+                    := Element_Of (List_Of (Args).all,
+                                   Integer (A_Arg_Index));
+                  P_Arg : constant NamedValue
+                    := Element_Of (List_Of (Self.Args).all, P_Arg_Index);
+               begin
+                  if A_Arg.Arg_Modes = ARG_IN
+                    or else A_Arg.Arg_Modes = ARG_INOUT
+                  then
+                     --  Application says it wants this arg as
+                     --  input: take it from P_Args.
+                     Copy_Any_Value (A_Arg.Argument, P_Arg.Argument);
+                     --  These MUST be type-compatible!
+
+                     P_Arg_Index := P_Arg_Index + 1;
+                  else
+                     --  An ARG_OUT argument
+
+                     if P_Arg.Arg_Modes = ARG_OUT then
+                        --  present: skip it.
+                        P_Arg_Index := P_Arg_Index + 1;
+                     end if;
+                  end if;
+               end;
+            end loop;
+         end;
+
+         --  XXX This is not the whole story.
+
+         --  In an ideal world, Self.Args (from the Protocol layer)
+         --  and Args (from the application layer) are mode-conformant.
+         --  Unfortunately, some protocols (eg SOAP) do not support
+         --  deferred unmarshalling, and insist on unmarshalling Self.Args
+         --  before Arguments is called. Consequence: 'OUT' mode arguments
+         --  might be missing in Self.Args, and 'INOUT' arguments might
+         --  be marked as 'IN'. Also, there is no guarantee that the order
+         --  of arguments is the same in Args and Self.Args. An attempt
+         --  should be made to reconcile argument names and argument types
+         --  (tricky. See how Ada compilers do parameter reconciliation with
+         --  support for both named and positional parameter associations.)
+
+         --  Here we do our best by assuming that P_Args are exactly conformant
+         --  with A_Args, possibly with ARG_OUT arguments missing.
+
       end if;
    end Arguments;
 

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#5 $
+--  $Id: //droopi/main/src/polyorb-any.ads#6 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -613,6 +613,15 @@ package PolyORB.Any is
    function Get_Empty_Any_Aggregate
      (Tc : TypeCode.Object)
      return Any;
+
+   procedure Copy_Any_Value (Dest : in out Any; Src : Any);
+   --  Set the value of Dest from the value of Src (as
+   --  Set_Any_Value would do, but without the need to
+   --  know the precise type of Src). Dest and Src must be Any's
+   --  with identical typecodes. Dest may be empty.
+   --  This is not the same as Set_Any_Value (Dest, Src), which
+   --  sets the value of Dest (an Any which a Tk_Any type code)
+   --  to be Src (not the /value/ of Src).
 
    function Get_By_Ref
      (A : in Any)

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#8 $
+--  $Id: //droopi/main/src/polyorb-any.adb#9 $
 
 with Ada.Tags;
 
@@ -2311,6 +2311,27 @@ package body PolyORB.Any is
               Ref_Counter  => The_Counter,
               Any_Lock     => A.Any_Lock);
    end Get_By_Ref;
+
+   procedure Copy_Any_Value (Dest : in out Any; Src : Any)
+   is
+   begin
+      if TypeCode.Kind (Get_Precise_Type (Dest))
+        /= TypeCode.Kind (Get_Precise_Type (Src))
+      then
+         raise TypeCode.Bad_TypeCode;
+      end if;
+
+      Lock_W (Dest.Any_Lock);
+      if Dest.The_Value.all /= Null_Content_Ptr then
+         Deallocate (Dest.The_Value.all);
+         --  We can do a simple deallocate/replacement here
+         --  because The_Value.all.all is not alised (ie
+         --  it is pointed to only by the Any_Content_Ptr
+         --  The_Value.all).
+      end if;
+      Dest.The_Value.all := Duplicate (Get_Value (Src));
+      Unlock_W (Dest.Any_Lock);
+   end Copy_Any_Value;
 
    -----------------
    --  Duplicate  --
