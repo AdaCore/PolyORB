@@ -175,6 +175,7 @@ AC_OUTPUT([Makefile
            Examples/check-config
            Examples/Makefile
            Examples/Eratho/Makefile
+           Examples/Eratho/absolute/Makefile
            Examples/Eratho/cycle/Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile

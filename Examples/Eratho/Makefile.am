@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = cycle dynamic spiral
+SUBDIRS = absolute cycle dynamic spiral

@@ -63,7 +63,7 @@ PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = cycle dynamic spiral
+SUBDIRS = absolute cycle dynamic spiral
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README Makefile.am Makefile.in README
