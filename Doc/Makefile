@@ -69,9 +69,10 @@ idl.sed
 
 TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi)
 
-JPEGFILES = $(FIGFILES:=.jpeg)
-PDFFILES  = $(FIGFILES:=.pdf)
-EPSFILES  = $(FIGFILES:=.eps)
+JPGFILES = $(FIGFILES:=.jpg)
+PDFFILES = $(FIGFILES:=.pdf)
+EPSFILES = $(FIGFILES:=.eps)
+TXTFILES = $(FIGFILES:=.txt)
 
 GUIDE=glade_ug
 
@@ -79,7 +80,7 @@ GRAPHS=$(CONFIGS) $(IMAGES)
 
 default: $(GUIDE).ps
 
-all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).pdf
+all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 
 $(GUIDE).html: $(GUIDE).texi $(JPEGFILES) $(SEDFILES)
 	texi2html -menu -monolithic $(GUIDE).texi
@@ -95,6 +96,9 @@ $(GUIDE).dvi: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
 
 $(GUIDE).pdf: $(GUIDE).texi $(PDFFILES) $(SEDFILES)
 	texi2pdf $(GUIDE).texi
+
+$(GUIDE).txt: $(GUIDE).texi $(TXTFILES) $(SEDFILES)
+	makeinfo --force --no-headers --no-split -o $(GUIDE).txt $(GUIDE).texi
 
 $(ADAFILES): all-srcs.ada
 	gnatchop -w all-srcs.ada
@@ -114,11 +118,8 @@ $(ADAFILES): all-srcs.ada
 %.fig.eps: %.fig
 	fig2dev -L ps $< $@
 
-%.pdf: %.pdf
-	convert $< $@
-
-%.jpeg:	%.eps
-	convert $< $@
+%.fig.jpg:	%.fig
+	fig2dev -L jpeg $< $@
 
 %.sed: %.kw
 	./gensedfile $< $@
@@ -130,5 +131,10 @@ myconfig.cfg.texi: myconfig.cfg cfg.sed
 
 clean:
 	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
-	rm -f *.jpeg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
+	rm -f *.jpg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
 	rm -f *.*.texi
+
+docs:
+	tar cf glade-doc.tar $(TXTFILES) $(TEXIFILES) $(GUIDE).ps \
+		$(GUIDE).info $(GUIDE).html $(GUIDE).txt
+	gzip glade-doc.tar
