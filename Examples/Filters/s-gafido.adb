@@ -88,6 +88,13 @@ package body System.Garlic.Filters.Double is
       return null;
    end Filter_Params_Write;
 
-begin
-   Register_Filter (New_Filter'Access, "double");
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Register_Filter (New_Filter'Access, "double");
+   end Initialize;
+
 end System.Garlic.Filters.Double;

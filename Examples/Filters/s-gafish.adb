@@ -143,6 +143,13 @@ package body System.Garlic.Filters.Shift is
       Exchange_Params := True;
    end Generate_Params;
 
-begin
-   Register_Filter (Shift_Filter'Access, "shift");
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Register_Filter (Shift_Filter'Access, "shift");
+   end Initialize;
+
 end System.Garlic.Filters.Shift;

@@ -86,6 +86,13 @@ package body System.Garlic.Filters.Reversing is
       return null;
    end Filter_Params_Write;
 
-begin
-   Register_Filter (New_Filter'Access, "reversing");
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Register_Filter (New_Filter'Access, "reversing");
+   end Initialize;
+
 end System.Garlic.Filters.Reversing;

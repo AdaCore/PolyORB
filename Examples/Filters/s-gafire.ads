@@ -3,6 +3,8 @@ with System.Garlic.Streams;
 
 package System.Garlic.Filters.Reversing is
 
+   procedure Initialize;
+
 private
 
    type New_Filter_Type is new Filter_Type with null record;

@@ -3,6 +3,8 @@ with System.Garlic.Streams;
 
 package System.Garlic.Filters.Shift is
 
+   procedure Initialize;
+
 private
 
    type Shift_Filter_Type is new Filter_Type with null record;
