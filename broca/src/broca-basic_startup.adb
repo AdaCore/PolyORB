@@ -6,6 +6,7 @@ with PortableServer.POAManager;
 
 with Broca.Rootpoa;
 pragma Elaborate (Broca.Rootpoa);
+pragma Elaborate_All (PortableServer.POA);
 
 package body Broca.Basic_Startup is
 

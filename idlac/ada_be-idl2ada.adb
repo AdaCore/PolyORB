@@ -2096,7 +2096,12 @@ package body Ada_Be.Idl2Ada is
             null;
 
          when
-           K_Interface         |
+           K_Interface =>
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, ";");
+
+         when
            K_Forward_Interface |
            K_Enum              |
            K_Union             |
@@ -2701,24 +2706,24 @@ package body Ada_Be.Idl2Ada is
          when
            K_Interface         |
            K_Forward_Interface =>
-
-            NL (CU);
-            Gen_Marshall_Profile (CU, Node);
-            Add_With (CU, "Broca.CDR.Refs");
             if NK = K_Forward_Interface then
                NL (CU);
-               PL (CU, "is");
+               Gen_Marshall_Profile (CU, Node);
+               if NK = K_Forward_Interface then
+                  NL (CU);
+                  PL (CU, "is");
+                  II (CU);
+                  PL (CU, "use " & Ada_Name (Node) & ";");
+                  DI (CU);
+               else
+                  PL (CU, " is");
+               end if;
+               PL (CU, "begin");
                II (CU);
-               PL (CU, "use " & Ada_Name (Node) & ";");
+               PL (CU, "Broca.CDR.Marshall (Buffer, Val);");
                DI (CU);
-            else
-               PL (CU, " is");
+               PL (CU, "end Marshall;");
             end if;
-            PL (CU, "begin");
-            II (CU);
-            PL (CU, "Broca.CDR.Refs.Marshall (Buffer, Val);");
-            DI (CU);
-            PL (CU, "end Marshall;");
 
             NL (CU);
             Gen_Unmarshall_Profile (CU, Node);
@@ -2736,7 +2741,7 @@ package body Ada_Be.Idl2Ada is
             DI (CU);
             PL (CU, "begin");
             II (CU);
-            PL (CU, "Broca.CDR.Refs.Unmarshall (Buffer, New_Ref);");
+            PL (CU, "Broca.CDR.Unmarshall (Buffer, New_Ref);");
             PL (CU, "return New_Ref;");
             DI (CU);
             PL (CU, "end Unmarshall;");

@@ -35,6 +35,9 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 
 with Broca.Debug;
+with Broca.Exceptions;
+with Broca.Refs;
+with Broca.Object;
 
 package body Broca.CDR is
 
@@ -1705,5 +1708,42 @@ package body Broca.CDR is
                 CORBA.Boolean
                 (Endianness (Buffer.all) = Little_Endian));
    end Start_Encapsulation;
+
+   ----------------
+   --  Marshall  --
+   ----------------
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Object.Ref'Class) is
+   begin
+      if CORBA.Object.Is_Nil (Data) then
+         Broca.Exceptions.Raise_Marshal;
+      end if;
+      Broca.Refs.Marshall (Buffer,
+                           Broca.Refs.Ref_Type'Class (Data.Ptr.all));
+   end Marshall;
+
+   ----------------
+   --  Marshall  --
+   ----------------
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Impl.Object) is
+   begin
+      Broca.Refs.Marshall (Buffer,
+                           Broca.Refs.Ref_Type'Class (Data));
+   end Marshall;
+
+   -----------------
+   --  Unmarshall --
+   -----------------
+   procedure Unmarshall (Buffer : access Buffer_Type;
+                         Data : in out CORBA.Object.Ref'Class) is
+      Obj : constant CORBA.Impl.Object_Ptr
+        := new Broca.Object.Object_Type;
+   begin
+      Broca.Object.Unmarshall (Buffer, Broca.Object.Object_Type (Obj.all));
+      CORBA.Object.Set (Data, Obj);
+   end Unmarshall;
 
 end Broca.CDR;
