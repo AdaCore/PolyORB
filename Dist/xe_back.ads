@@ -105,10 +105,10 @@ package XE_Back is
    Default_Command_Line  : Command_Line_Type     := No_Command_Line;
    Default_Termination   : Termination_Type      := Unknown_Termination;
    Default_Filter        : Filter_Name_Type      := No_Filter_Name;
-   Protocol_Name         : Name_Id               := No_Name;
-   Protocol_Data         : Name_Id               := No_Name;
-   Starter_Method        : Starter_Method_Type   := Ada_Starter;
-   Version_Checks        : Boolean               := True;
+   Default_Protocol_Name : Name_Id               := No_Name;
+   Default_Protocol_Data : Name_Id               := No_Name;
+   Default_Starter       : Starter_Method_Type   := Ada_Starter;
+   Default_Version_Check : Boolean               := True;
 
    -- Table element types --
 
@@ -252,7 +252,7 @@ package XE_Back is
    function Get_Partition_Dir   (P : PID_Type) return File_Name_Type;
    --  Look for partition_dir into partitions. If null, return default.
 
-   function  Get_PID  (N : Name_Id) return PID_Type;
+   function Get_PID  (N : Name_Id) return PID_Type;
    function Get_Relative_Exec   (P : PID_Type) return File_Name_Type;
    --  Look for storage_dir into partitions and compute relative executable
    --  name into partitions. If null, return default.

@@ -1329,18 +1329,22 @@ package body XE_Back is
 
          when Pragma_Starter =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Starter_Method := Convert (Get_Variable_Mark (Value));
+            Default_Starter := Convert (Get_Variable_Mark (Value));
 
          when Pragma_Boot_Server =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Protocol_Name := Get_Node_Name (Node_Id (Value));
+            Default_Protocol_Name := Get_Node_Name (Node_Id (Value));
             Next_Subprogram_Parameter (Parameter);
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Protocol_Data := Get_Node_Name (Node_Id (Value));
+            Default_Protocol_Data := Get_Node_Name (Node_Id (Value));
 
          when Pragma_Version =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Version_Checks := (Get_Variable_Mark (Value) /= 0);
+            Default_Version_Check := (Get_Variable_Mark (Value) /= 0);
+
+         when Pragma_Filter =>
+            Value := Get_Variable_Value (Variable_Id (Parameter));
+            Default_Filter := Get_Node_Name (Node_Id (Value));
 
       end case;
 
@@ -1419,7 +1423,7 @@ package body XE_Back is
       Write_Eol;
 
       Write_Str ("   Starter     : ");
-      case Starter_Method is
+      case Default_Starter is
          when Ada_Starter =>
             Write_Str ("Ada code");
          when Shell_Starter =>
@@ -1429,11 +1433,11 @@ package body XE_Back is
       end case;
       Write_Eol;
 
-      if Protocol_Name /= No_Name then
+      if Default_Protocol_Name /= No_Name then
          Write_Str  ("   Protocol    : ");
-         Write_Name (Protocol_Name);
+         Write_Name (Default_Protocol_Name);
          Write_Str  ("://");
-         Write_Name (Protocol_Data);
+         Write_Name (Default_Protocol_Data);
          Write_Eol;
       end if;
       Write_Eol;

@@ -90,12 +90,13 @@ package XE is
 
    -- Pragma_Type --
 
-   type Pragma_Type is new Int range 301 .. 304;
+   type Pragma_Type is new Int range 301 .. 305;
 
    Pragma_Starter         : constant Pragma_Type := 301;
    Pragma_Import          : constant Pragma_Type := 302;
    Pragma_Boot_Server     : constant Pragma_Type := 303;
    Pragma_Version         : constant Pragma_Type := 304;
+   Pragma_Filter          : constant Pragma_Type := 305;
 
 
    -- Starter_Method_Type --

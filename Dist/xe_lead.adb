@@ -89,28 +89,28 @@ procedure XE_Lead is
    procedure Set_Boot_Server
      (Partition : in PID_Type) is
    begin
-      if Protocol_Name = No_Name then
+      if Default_Protocol_Name = No_Name then
          Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:5555");
          Write_Eol  (FD);
       else
          Write_Str  (FD, "BOOT_SERVER=");
-         Write_Name (FD, Protocol_Name);
+         Write_Name (FD, Default_Protocol_Name);
          Write_Str  (FD, "://");
-         Write_Name (FD, Protocol_Data);
+         Write_Name (FD, Default_Protocol_Data);
          Write_Eol  (FD);
       end if;
    end Set_Boot_Server;
 
 begin
 
-   if Starter_Method /= None_Starter and then not Quiet_Output then
+   if Default_Starter /= None_Starter and then not Quiet_Output then
       Write_Program_Name;
       Write_Str  (": generating starter ");
       Write_Name (Main_Subprogram);
       Write_Eol;
    end if;
 
-   case Starter_Method is
+   case Default_Starter is
 
       when Shell_Starter =>
 
@@ -186,3 +186,5 @@ begin
    end case;
 
 end XE_Lead;
+
+

@@ -1,3 +1,13 @@
+Thu Feb 20 14:49:39 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_stubs.adb: Add filtering.
+
+	* xe_build.adb, xe_lead.adb, xe_stubs.adb, xe.adb, xe_check.adb,
+ 	xe_parse.adb, xe_usage.adb, xe_back.adb, xe_defs.adb, xe_scan.adb,
+ 	xe_utils.adb: Reorganize code.
+
+	* xe_utils.ads: Include all kind of renamaing of GNAT entities.
+
 Mon Feb 17 10:25:00 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
         * xe_back.adb: Fixed a bug in Set_Attribute_Type.

@@ -383,6 +383,7 @@ package body XE_Stubs is
       Partition   : Partition_Name_Type;
       Elaboration : File_Name_Type;
       Most_Recent : File_Name_Type;
+      Part_Peer   : PID_Type;
 
       FD : File_Descriptor;
 
@@ -419,9 +420,15 @@ package body XE_Stubs is
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "with System.Garlic.Heart;");
       Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "with System.Garlic.Filters;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "with System.Garlic.Filters.None;");
+      Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "use System.Garlic.Options;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "use System.Garlic.Heart;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "use System.Garlic.Filters;");
       Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "package body ");
       Dwrite_Name (FD, Elaboration_Full_Name);
@@ -458,16 +465,43 @@ package body XE_Stubs is
       --  If a protocol has been specified, then use it (with its data
       --  if present).
 
-      if Protocol_Name /= No_Name then
+      if Default_Protocol_Name /= No_Name then
          Dwrite_Str  (FD, "   Set_Boot_Server (""");
-         Dwrite_Name (FD, Protocol_Name);
-         if Protocol_Data /= No_Name then
+         Dwrite_Name (FD, Default_Protocol_Name);
+         if Default_Protocol_Data /= No_Name then
             Dwrite_Str  (FD, "://");
-            Dwrite_Name (FD, Protocol_Data);
+            Dwrite_Name (FD, Default_Protocol_Data);
          end if;
          Dwrite_Str  (FD, """);");
          Dwrite_Eol  (FD);
       end if;
+
+      Dwrite_Str     (FD, "   Set_Partition_Name (""");
+      Dwrite_Name    (FD, Partition);
+      Dwrite_Str     (FD, """);");
+      Dwrite_Eol     (FD);
+
+      Dwrite_Str     (FD, "   Set_Default_Filter (""");
+      Dwrite_Name    (FD, Default_Filter);
+      Dwrite_Str     (FD, """);");
+      Dwrite_Eol     (FD);
+
+      for C in Channels.First .. Channels.Last loop
+         Part_Peer := Null_PID;
+         if Channels.Table (C).Lower = PID then
+            Part_Peer := Channels.Table (C).Upper;
+         elsif Channels.Table (C).Upper = PID then
+            Part_Peer := Channels.Table (C).Lower;
+         end if;
+         if Part_Peer /= Null_PID then
+            Dwrite_Str  (FD, "   Set_Channel_Filter (""");
+            Dwrite_Name (FD, Partitions.Table (Part_Peer).Name);
+            Dwrite_Str  (FD, """, """);
+            Dwrite_Name (FD, Channels.Table (C).Filter);
+            Dwrite_Str  (FD, """);");
+            Dwrite_Eol  (FD);
+         end if;
+      end loop;
 
       --  Footer.
       Dwrite_Str  (FD, "end ");
@@ -584,7 +618,7 @@ package body XE_Stubs is
       Dwrite_Str (FD, "with system.io;");
       Dwrite_Eol (FD);
 
-      if PID = Main_Partition and then Starter_Method = Ada_Starter then
+      if PID = Main_Partition and then Default_Starter = Ada_Starter then
          Dwrite_Str (FD, "with system.garlic.remote;");
          Dwrite_Eol (FD);
          Dwrite_Str (FD, "with system.garlic.options;");
@@ -607,7 +641,7 @@ package body XE_Stubs is
       Dwrite_Eol  (FD);
 
       if PID = Main_Partition then
-         if Starter_Method = Ada_Starter and
+         if Default_Starter = Ada_Starter and
             Partitions.First /= Partitions.Last then
             Dwrite_Str (FD, "   if not system.garlic.options");
             Dwrite_Str (FD, ".get_nolaunch then");
@@ -647,7 +681,7 @@ package body XE_Stubs is
       Dwrite_Str (FD, "   system.garlic.heart.elaboration_is_terminated;");
       Dwrite_Eol (FD);
 
-      if Version_Checks then
+      if Default_Version_Check then
 
          --  Version consistency between receiver and caller.
          --  Checks perform on all the rci caller stubs.
