@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with GNAT.Expect;
 with GNAT.OS_Lib;
@@ -65,8 +67,6 @@ package body Test_Suite.Test_Case.Client_Server is
       task type Client_Task is
          entry Initialize (IOR : String);
       end Client_Task;
-
-      Client_T : Client_Task;
 
       task body Client_Task
       is
@@ -110,9 +110,12 @@ package body Test_Suite.Test_Case.Client_Server is
                Log (Output, "'" & IOR & "'");
                Separator (Output);
 
-               Non_Blocking_Spawn (Fd_Client,
-                                   Client_Command,
-                                   Client_Argument_List);
+               Non_Blocking_Spawn
+                 (Descriptor  => Fd_Client,
+                  Command     => Client_Command,
+                  Args        => Client_Argument_List,
+                  Buffer_Size => 4096,
+                  Err_To_Out  => True);
 
                --  Redirect Output
 
@@ -122,7 +125,12 @@ package body Test_Suite.Test_Case.Client_Server is
                            GNAT.Expect.Output);
 
                --  Parse output
-               Expect (Fd_Client, Result, Item_To_Match, Test_To_Run.Timeout);
+
+               Expect
+                 (Fd_Client,
+                  Result,
+                  Item_To_Match,
+                  Test_To_Run.Timeout);
 
                case Result is
                   when 1 =>
@@ -148,7 +156,7 @@ package body Test_Suite.Test_Case.Client_Server is
             exception
                when GNAT.Expect.Process_Died =>
 
-                  Log (Output, "==> Process Terminated <==");
+                  Log (Output, "==> Client Process Terminated <==");
 
                   Close (Fd_Client);
                   Close_Test_Output_Context (Output, Test_Result);
@@ -203,19 +211,34 @@ package body Test_Suite.Test_Case.Client_Server is
             Log (Output, "Running server: " & Server_Command);
             Separator (Output);
 
-            Non_Blocking_Spawn (Fd_Server, Server_Command, Null_Argument_List);
+            Non_Blocking_Spawn
+              (Descriptor  => Fd_Server,
+               Command     => Server_Command,
+               Args        => Null_Argument_List,
+               Buffer_Size => 4096,
+               Err_To_Out  => True);
 
             --  Match Server IOR
 
             Initialize_Filter (Output);
             Add_Filter (Fd_Server, Output_Filter'Access, GNAT.Expect.Output);
+
+            --  Parse output
+
             Expect (Fd_Server, Result, "IOR:([a-z0-9]*)", Match, -1);
 
             case Result is
                when 1 =>
-                  Client_T.Initialize
-                    (Expect_Out (Fd_Server)
-                     (Match (0).First .. Match (0).Last));
+                  --  Start Client Task
+
+                  declare
+                     Client_T : Client_Task;
+                  begin
+                     Client_T.Initialize
+                       (Expect_Out (Fd_Server)
+                        (Match (0).First .. Match (0).Last));
+                  end;
+
                when others =>
                   Log (Output, "Error when parsing server IOR");
 
@@ -231,7 +254,7 @@ package body Test_Suite.Test_Case.Client_Server is
                --  The process may normally exit, or die because of an
                --  internal error. We cannot judge at this stage.
 
-               Log (Output, "==> Process Terminated <==");
+               Log (Output, "==> Server Process Terminated <==");
 
                Close (Fd_Server);
                Close_Test_Output_Context (Output, Test_Result);
