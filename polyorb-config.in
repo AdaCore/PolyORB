@@ -11,6 +11,7 @@ services="@SERVICE_LIST@"
 
 polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
 polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
+corba_idl_dir=""
 
 for P in $appli
 do
@@ -21,6 +22,7 @@ do
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-rtcorba"
+   corba_idl_dir="-I${includedir}/polyorb/corba/cos"
  fi 
 
  if [ "x$P" = "xaws" ]
@@ -58,17 +60,19 @@ Usage: polyorb-config [OPTIONS]
 Options:
         No option:
             Output all the flags (compiler and linker) required
-            to compiler your program
+            to compile your program.
         [--prefix]
             Output the directory in which PolyORB is installed.
         [--version|-v]
-            Output the version of PolyORB
+            Output the version of PolyORB.
         [--config]
             Output PolyORB's configuration parameters.
         [--libs]
             Output the linker flags to use for PolyORB.
         [--cflags]
             Output the compiler flags to use for PolyORB.
+        [--idls]
+            Output flags to set up path to CORBA's IDL for idlac.
         [--help]
             Output this message
 EOF
@@ -104,6 +108,10 @@ while test $# -gt 0; do
       ;;  
     --libs)
       echo $polyorb_lib
+      exit 0
+      ;;
+    --idls)
+      echo $corba_idl_dir
       exit 0
       ;;
     --cflags)

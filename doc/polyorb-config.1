@@ -1,10 +1,11 @@
-.TH POLYORB-CONFIG 1 "November 14, 2003" "PolyORB team" "PolyORB documentation"
+.TH POLYORB-CONFIG 1 "July 13, 2004" "PolyORB team" "PolyORB documentation"
 
 .SH NAME
 polyorb-config - script to get information about the installed version of PolyORB.
 
 .SH SYNOPSIS
-.B polyorb-config [--prefix] [--version|-v] [--config] [--libs] [--cflags] [--help]
+.B polyorb-config [--prefix] [--version|-v] [--config] [--libs]
+[--cflags] [--idls] [--help]
 
 .SH DESCRIPTION
 \fIpolyorb-config\fP is a tool that is used to determine the compiler and linker flags that should be used to compile and link programs that use \fIPolyORB\fP.
@@ -28,7 +29,11 @@ Print the configuration of the currently installed version of
 Print the linker flags that are necessary to link a \fIPolyORB\fP program.
 .TP 8
 .B  \-\-cflags
-Print the compiler flags that are necessary to compile a \fIPolyORB\fP program.
+Print the compiler flags that are necessary to compile a \fIPolyORB\fP
+program.
+.TP 8
+.B  \-\-idls
+Print the flags to set up path to CORBA's IDL for idlac.
 .TP 8
 .B  \-\-help
 Print help message.
