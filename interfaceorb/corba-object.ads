@@ -96,11 +96,26 @@ package Corba.Object is
                                To : out Ref'class) ;
    -- returns a Ref'Class out of an IOR
 
+   function Align_Size (Obj : in Ref_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- This function computes the size needed to marshall the object obj
 
-   function Get_Profile_List (Obj : in Ref)
-                              return Iop.Tagged_Profile_List ;
-   -- return the Profile_List of an Object
+   procedure Marshal (Obj : in Ref_Ptr ;
+                      S : in out NetBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
 
+   procedure Marshal (Obj : in Ref_Ptr ;
+                      S : in out MemBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
+
+   procedure UnMarshal (Obj : out Ref'Class ;
+                        S : in out NetBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
+
+   procedure UnMarshal (Obj : out Ref'Class ;
+                        S : in out MemBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
 
 
    --------------------------------------------------
@@ -137,92 +152,6 @@ package Corba.Object is
    --function NP_Aligned_Size(The_Ref : in Ref ;
    --                         Initial_Offset : in Corba.Unsigned_Long)
    --  return Corba.Unsigned_Long ;
-
-   procedure Marshal_Object_Reference(The_Ref : in Ref ;
-                                      S : in out NetBufferedStream.Object) ;
-
-   --function Unmarshal_Object_Reference(S : in out NetBufferedStream)
-   --  return Ref ;
-
-   --procedure Marshal_Object_Reference(The_Ref : in Ref ;
-   --                                   S : in out MemBufferedStream) ;
-
-   --function Unmarshal_Object_Reference(S : in out MemBufferedStream)
-   --  return Ref ;
-
-
-
-
-   -- procedure PR_Setobj(The_Object : in OmniObject.Object) ;
-   -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
-   -- in corbaObject.cc L121
-   --
-   -- should not be useful any longer
-
-   -- function PR_Getobj return OmniObject.Object ;
-   -- wrapper around omniObject* CORBA::Object::PR_getobj()
-   -- in corbaObject.cc L128
-   --
-   -- should not be useful any longer
-
-   procedure Marshal_Obj_Ref(The_Ref: Ref'Class ;
-                             RepoID : String ;
-                             Nbs : NetBufferedStream.Object) ;
-   -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
-   --        const char* repoId,
-   --        size_t repoIdSize,
-   --        NetBufferedStream &s)
-   -- defined in objectRef.cc L721
-
-   procedure Marshal_Obj_Ref(The_Ref: Ref'Class ;
-                             RepoID : String ;
-                             Mbs : MemBufferedStream.Object) ;
-   -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
-   --        const char* repoId,
-   --        size_t repoIdSize,
-   --        MemBufferedStream &s)
-   -- defined in objectRef.cc L850
-
-   function UnMarshal_Obj_Ref(Repoid : in String ;
-                              Nbs : in NetBufferedStream.Object'Class)
-                              return Ref'Class ;
-   -- return ???
-   -- wrapper around CORBA::Object_ptr
-   --                CORBA::UnMarshalObjRef(
-   --                           const char* repoId,
-   --                           NetBufferedStream& s)
-   -- in objectRef.cc L637
-
-   function UnMarshal_Obj_Ref(Repoid : in String ;
-                              Mbs : in MemBufferedStream.Object'Class)
-                              return Ref'Class ;
-   -- return ???
-   -- wrapper around CORBA::Object_ptr
-   --                CORBA::UnMarshalObjRef(
-   --                           const char* repoId,
-   --                           MemBufferedStream& s)
-   -- in objectRef.cc L765
-
-   function UnMarshal_Obj_Ref(Nbs : in NetBufferedStream.Object'Class)
-                              return Ref'Class ;
-   function UnMarshal_Obj_Ref(Nbs : in MemBufferedStream.Object'Class)
-                              return Ref'Class ;
-   -- wrappers around
-   -- static Object_ptr unmarshalObjRef(NetBufferedStream& s);
-   -- static Object_ptr unmarshalObjRef(MemBufferedStream& s);
-   -- CORBA.H, L1344
-
-
-   function Aligned_Obj_Ref(The_Ref : Ref'Class ;
-                            RepoID : String ;
-                            Initial_Offset : Integer)
-                            return Integer ;
-   -- wrapper around size_t
-   --                CORBA::AlignedObjRef(CORBA::Object_ptr obj,
-   --                const char* repoId,
-   --                size_t repoIdSize,
-   --                size_t initialoffset)
-   -- in objectRef.cc L744
 
 
 

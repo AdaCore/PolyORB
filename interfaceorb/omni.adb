@@ -17,21 +17,21 @@
 
 with Ada.Exceptions ;
 with System.Address_To_Access_Conversions ;
+with Corba ;
+use type Corba.Unsigned_Long ;
 
 Package body Omni is
 
 
-
-
    -- Align_To
    -----------
-   function Align_To(P: in Corba.Unsigned_Long ;
+   function Align_To(Size : in Corba.Unsigned_Long ;
                      Align : in Alignment_T)
                      return Corba.Unsigned_Long is
+      Temp : Corba.Unsigned_Long ;
    begin
-      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                     "Omni.Align_To") ;
-      return Corba.Unsigned_Long(0) ;
+      Temp := Size mod Corba.Unsigned_Long (Align) ;
+      return Size + Corba.Unsigned_Long (Align) - Size ;
    end ;
 
 

@@ -31,7 +31,8 @@ with OmniObjectManager ;
 with Iop ;
 with Rope ;
 with OmniRopeAndKey ;
-
+with Netbufferedstream ;
+with Membufferedstream ;
 
 package OmniObject is
 
@@ -121,9 +122,18 @@ package OmniObject is
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
 
-   function Get_Profile_List (Obj : in Implemented_Object)
-                              return Iop.Tagged_Profile_List ;
-   -- return the Profile_List of an Object
+   function Align_Size (Obj : in Implemented_Object_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- This function computes the size needed to marshall the object obj
+
+   procedure Marshall (Obj : in Implemented_Object_Ptr ;
+                       S : in out NetBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
+
+   procedure Marshall (Obj : in Implemented_Object_Ptr ;
+                       S : in out MemBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
 
 
    -----------------------------------------------
@@ -133,6 +143,20 @@ package OmniObject is
    -----------------------------------------------
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
+
+
+   function Align_Size (Obj : in Object_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long ;
+   -- This function computes the size needed to marshall the object obj
+
+   procedure Marshall (Obj : in Object_Ptr ;
+                       S : in out NetBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
+
+   procedure Marshall (Obj : in Object_Ptr ;
+                       S : in out MemBufferedStream.Object) ;
+   -- This procedure marshalls the object Obj into the stream S
 
    function Create_Omniobject(Most_Derived_Repoid : in Corba.String ;
                               Profiles : in Iop.Tagged_Profile_List ;

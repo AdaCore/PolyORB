@@ -14,6 +14,7 @@ with Ada.Tags ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
 with Omniropeandkey ; use Omniropeandkey ;
+with Ada.Exceptions ;
 
 package body Corba.Object is
 
@@ -217,15 +218,6 @@ package body Corba.Object is
    end ;
 
 
-   -- Get_Profile_List
-   -------------------
-   function Get_Profile_List (Obj : in Ref)
-                              return Iop.Tagged_Profile_List is
-   begin
-      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
-      -- calls the corresponding function on the underlying omniobject
-   end ;
-
 
     --------------------------------------------------
     ---        omniORB specific                    ---
@@ -267,6 +259,113 @@ package body Corba.Object is
    end ;
 
 
+   -- Get_Profile_List
+   -------------------
+   function Get_Profile_List (Obj : in Ref)
+                              return Iop.Tagged_Profile_List is
+   begin
+      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
+      -- calls the corresponding function on the underlying omniobject
+   end ;
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (Obj : in Ref_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in function Align_Size in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         return Omniobject.Align_Size (Obj.all.Omniobj,Initial_Offset) ;
+      end if ;
+   end ;
+
+
+   -- Marshall
+   -----------
+   procedure Marshal (Obj : in Ref_Ptr ;
+                      S : in out NetBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in procedure Marshall in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         Omniobject.Marshall (Obj.all.Omniobj,S) ;
+      end if ;
+   end ;
+
+
+   -- Marshall
+   -----------
+   procedure Marshal (Obj : in Ref_Ptr ;
+                      S : in out MemBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in procedure Marshall in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         Omniobject.Marshall (Obj.all.Omniobj,S) ;
+      end if ;
+   end ;
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshal (Obj : out Ref'Class ;
+                        S : in out NetBufferedStream.Object) is
+      Repo_ID : Corba.String ;
+      Iop_List : Iop.Tagged_Profile_List ;
+      Tmp : Ref'Class := Corba.Object.Nil_Ref ;
+   begin
+      -- first unmarshall the Repo_Id
+      NetBufferedStream.UnMarshall (Repo_ID,S) ;
+      -- then the profile list
+      Iop.UnMarshall (Iop_List,S) ;
+      -- and at last create the object reference to be returned
+      if (Iop.Length(Iop_List) = Corba.Unsigned_Long (0))
+        and (Corba.Length (Repo_ID) = Corba.Unsigned_Long (0)) then
+         -- either a nil object reference
+         Obj := Tmp ;
+      else
+         -- or a real object reference
+         Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
+      end if ;
+   end ;
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshal (Obj : out Ref'Class ;
+                        S : in out MemBufferedStream.Object) is
+      Repo_ID : Corba.String ;
+      Iop_List : Iop.Tagged_Profile_List ;
+      Tmp : Ref'Class := Corba.Object.Nil_Ref ;
+   begin
+      -- first unmarshall the Repo_Id
+      MemBufferedStream.UnMarshall (Repo_ID,S) ;
+      -- then the profile list
+      Iop.UnMarshall (Iop_List,S) ;
+            -- and at last create the object reference to be returned
+      if Iop.Length(Iop_List) = Corba.Unsigned_Long (0)
+        and Corba.Length (Repo_ID) = Corba.Unsigned_Long (0) then
+         -- either a nil object reference
+         Obj := Tmp ;
+      else
+         -- or a real object reference
+         Corba.Object.Create_Ref (Repo_ID,Iop_List,True,Obj) ;
+      end if ;
+   end ;
+
+
     -- C_Create_Proxy_Object_Factory
    ---------------------------------
    procedure C_Create_Proxy_Object_Factory(RepoID : in Interfaces.C.Strings.Chars_ptr) ;
@@ -289,94 +388,6 @@ package body Corba.Object is
    end ;
 
 
-   -- Marshal_Object_Reference
-   ---------------------------
-   procedure Marshal_Object_Reference(The_Ref : in Ref ;
-                                      S : in out NetBufferedStream.Object) is
-      Tmp : Ref'Class := The_Ref ;
-   begin
-      null ;
-   end ;
-
-
-
-    -- Marshal_Obj_Ref
-    ------------------
-    procedure Marshal_Obj_Ref(The_Ref: Ref'Class ;
-                              RepoID : String ;
-                              Nbs : NetBufferedStream.Object) is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.Marshal_Obj_Ref") ;
-    end ;
-
-
-    -- Marshal_Obj_Ref
-    ------------------
-    procedure Marshal_Obj_Ref(The_Ref: Ref'Class ;
-                              RepoID : String ;
-                              Mbs : MemBufferedStream.Object) is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.Marshal_Obj_Ref") ;
-    end ;
-
-    -- UnMarshal_Obj_Ref
-    --------------------
-    function UnMarshal_Obj_Ref(Repoid : in String ;
-                               Nbs : in NetBufferedStream.Object'Class)
-                               return Ref'Class is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.UnMarshal_Obj_Ref") ;
-       return Nil_Ref ;
-    end ;
-
-
-    -- UnMarshal_Obj_Ref
-    --------------------
-    function UnMarshal_Obj_Ref(Repoid : in String ;
-                               Mbs : in MemBufferedStream.Object'Class)
-                               return Ref'Class is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.UnMarshal_Obj_Ref") ;
-       return Nil_Ref ;
-    end ;
-
-    -- UnMarshal_Obj_Ref
-    --------------------
-   function UnMarshal_Obj_Ref(Nbs : in NetBufferedStream.Object'Class)
-                              return Ref'Class is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.UnMarshal_Obj_Ref") ;
-       return Nil_Ref ;
-    end ;
-
-
-    -- UnMarshal_Obj_Ref
-    --------------------
-   function UnMarshal_Obj_Ref(Nbs : in MemBufferedStream.Object'Class)
-                              return Ref'Class is
-    begin
-       Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                      "Corba.Object.UnMarshal_Obj_Ref") ;
-       return Nil_Ref ;
-    end ;
-
-
-    -- Aligned_Obj_Ref
-    --------------------
-   function Aligned_Obj_Ref(The_Ref : Ref'Class ;
-                            RepoID : String ;
-                            Initial_Offset : Integer)
-                            return Integer is
-   begin
-      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Not_Implemented_Yet'Identity,
-                                     "Corba.Object.Aligned_Obj_Ref") ;
-      return 0 ;
-   end ;
 
 
    --------------------------------------------------

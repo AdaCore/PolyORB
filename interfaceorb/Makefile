@@ -54,9 +54,9 @@ main: c2ada adaonly
 c2ada : Ada_Sys_Dep sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o \
 omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
-Ada_netBufferedStream.o netbufferedstream.o corba-object.o corba-boa.o \
-membufferedstream.o iop.o proxyObjectFactory_C2Ada.o  corba-orb.o \
-corba-exceptions.o
+Ada_memBufferedStream.o membufferedstream.o Ada_netBufferedStream.o \
+netbufferedstream.o corba-object.o corba-boa.o membufferedstream.o \
+iop.o proxyObjectFactory_C2Ada.o  corba-orb.o corba-exceptions.o
 #omni_C2Ada.o omni.o 
 
 
@@ -115,6 +115,12 @@ Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 netbufferedstream.o : netbufferedstream.ads netbufferedstream.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) netbufferedstream.adb
 
+Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_memBufferedStream.cc
+
+membufferedstream.o : membufferedstream.ads membufferedstream.adb
+	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) membufferedstream.adb
+
 corba-object.o : corba-object.ads corba-object.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-object.adb
 
@@ -123,9 +129,6 @@ corba-boa.o : corba-boa.ads corba-boa.adb corba-object.ali
 
 corba-orb.o: corba-orb.ads corba-orb.adb corba-object.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-orb.adb
-
-membufferedstream.o : membufferedstream.ads #membufferedstream.adb
-	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) membufferedstream.ads
 
 iop.o : iop.ads iop.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) iop.adb

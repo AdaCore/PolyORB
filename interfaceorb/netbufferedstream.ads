@@ -31,6 +31,7 @@ with System ;
 with Corba ;
 with Sys_Dep ;
 with Rope ;
+with Ada.Unchecked_Deallocation ;
 
 package NetBufferedStream is
 
@@ -43,8 +44,11 @@ package NetBufferedStream is
    -- This object is wrapped around Ada_netBufferedStream
    -- (see Ada_netBufferedStream.hh)
 
-   type Object_Access is access Object ;
+   type Object_Ptr is access all Object ;
    -- just to give a name to pointers on Object
+
+   procedure Free is new Ada.Unchecked_Deallocation(Object, Object_Ptr) ;
+   -- to deallocate pointers
 
    procedure C_Init (Self : in Object'Class ;
                      r : in System.Address ;

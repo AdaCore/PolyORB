@@ -29,6 +29,11 @@ use type System.Address ;
 
 with Corba ;
 use type Corba.String ;
+use type Corba.Unsigned_Long ;
+
+with Ada.Exceptions ;
+with Omni ;
+with Ada.Characters.Latin_1 ;
 
 package body OmniObject is
 
@@ -68,15 +73,6 @@ package body OmniObject is
       -- to please the compiler !!
    end ;
 
-
-    -- Get_Profile_List
-   -------------------
-   function Get_Profile_List (Obj : in Implemented_Object)
-                              return Iop.Tagged_Profile_List is
-   begin
-      return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
-      -- calls the corresponding function on the underlying omniobject
-   end ;
 
 
    -- Initialize
@@ -120,6 +116,54 @@ package body OmniObject is
    end ;
 
 
+   -- Align_Size
+   -------------
+   function Align_Size (Obj : in Implemented_Object_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in function Align_Size in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         return Omniobject.Align_Size (Obj.all.Omniobj,Initial_Offset) ;
+      end if ;
+   end ;
+
+
+   -- Marshall
+   -----------
+   procedure Marshall (Obj : in Implemented_Object_Ptr ;
+                       S : in out NetBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in procedure Marshall in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         Marshall (Obj.all.Omniobj,S) ;
+      end if ;
+   end ;
+
+
+   -- Marshall
+   -----------
+   procedure Marshall (Obj : in Implemented_Object_Ptr ;
+                       S : in out MemBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- never reached normally
+         Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity ,
+                                     "Null pointer argument in procedure Marshall in corba-object.") ;
+      else
+         -- calls the corresponding function on the underlying omniobject
+         Marshall (Obj.all.Omniobj,S) ;
+      end if ;
+   end ;
+
 
    -----------------------------------------------
    -----------------------------------------------
@@ -130,6 +174,67 @@ package body OmniObject is
    -----------------------------------------------
    -----------------------------------------------
    -----------------------------------------------
+
+
+   -- Align_Size
+   -------------
+   function Align_Size (Obj : in Object_Ptr ;
+                        Initial_Offset : in Corba.Unsigned_Long)
+                        return Corba.Unsigned_Long is
+      Offset : Corba.Unsigned_Long ;
+   begin
+      -- Alignment for type Corba.unsigned_long
+      Offset := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      if Obj = null then
+         -- if object null, the marshall will need 12 Bytes
+         return Offset + 12 ;
+      else
+         -- if not null, add size of unsigned_long (size of Repo_Id),
+         -- size of Repo_Id itself and size of profiles
+         declare
+            Repo_ID : Corba.String := Get_Repository_Id (Obj.all) ;
+         begin
+            Offset := Offset + 4 ;
+            Offset := Offset + Corba.Length (Repo_ID) + 1 ;
+            Offset := Iop.Align_Size (Get_Profile_List (Obj.all),Offset) ;
+            return Offset ;
+         end ;
+      end if ;
+   end ;
+
+   -- Marshall
+   -----------
+   procedure Marshall (Obj : in Object_Ptr ;
+                       S : in out NetBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- if object null, marshall null object
+         NetBufferedStream.Marshall (Corba.Unsigned_Long (1),S) ;
+         NetBufferedStream.Marshall (Corba.Char (Ada.Characters.Latin_1.nul),S) ;
+         NetBufferedStream.Marshall (Corba.Unsigned_Long (0),S) ;
+      else
+         -- else marshall the Repo_ID and the iopProfiles
+         NetBufferedStream.Marshall (Get_Repository_Id (Obj.all),S) ;
+         Iop.Marshall (Get_Profile_List (Obj.all), S) ;
+      end if ;
+   end ;
+
+   -- Marshall
+   -----------
+   procedure Marshall (Obj : in Object_Ptr ;
+                       S : in out MemBufferedStream.Object) is
+   begin
+      if Obj = null then
+         -- if object null, marshall null object
+         MemBufferedStream.Marshall (Corba.Unsigned_Long (1),S) ;
+         MemBufferedStream.Marshall (Corba.Char (Ada.Characters.Latin_1.nul),S) ;
+         MemBufferedStream.Marshall (Corba.Unsigned_Long (0),S) ;
+      else
+         -- else marshall the Repo_ID and the iopProfiles
+         MemBufferedStream.Marshall (Get_Repository_Id (Obj.all),S) ;
+         Iop.Marshall (Get_Profile_List (Obj.all), S) ;
+      end if ;
+   end ;
 
 
    -- C_Create_Omniobject
@@ -169,7 +274,6 @@ package body OmniObject is
       Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
       return To_Object_Ptr(Result) ;
    end ;
-
 
 
    -- C_Set_Repository_Id
