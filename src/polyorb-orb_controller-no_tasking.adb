@@ -67,7 +67,8 @@ package body PolyORB.ORB_Controller.No_Tasking is
       pragma Assert (State (TI.all) = Unscheduled);
 
       O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+      pragma Assert (ORB_Controller_Counters_Valid (O));
 
       pragma Assert (O.Registered_Tasks = 1);
       --  At most one task may be registered
@@ -135,8 +136,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  A task completed polling on a monitor
 
-            O.Blocked_Tasks := O.Blocked_Tasks - 1;
-            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+            O.Counters (Blocked) := O.Counters (Blocked) - 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
          when Event_Sources_Added =>
 
@@ -172,8 +174,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
             --  A task has completed the execution of a job
 
-            O.Running_Tasks := O.Running_Tasks - 1;
-            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+            O.Counters (Running) := O.Counters (Running) - 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
          when ORB_Shutdown =>
 
@@ -236,8 +239,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
         or else O.Shutdown
       then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Terminated_Tasks := O.Terminated_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Terminated) := O.Counters (Terminated) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          Set_State_Terminated (TI.all);
 
@@ -246,8 +250,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       elsif O.Number_Of_Pending_Jobs > 0 then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Running_Tasks := O.Running_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Running) := O.Counters (Running) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
 
@@ -258,8 +263,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       elsif O.Number_Of_AES > 0 then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Blocked_Tasks := O.Blocked_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Blocked) := O.Counters (Blocked) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          Set_State_Blocked
            (TI.all,
@@ -285,8 +291,9 @@ package body PolyORB.ORB_Controller.No_Tasking is
 
       pragma Assert (State (TI.all) = Terminated);
 
-      O.Terminated_Tasks := O.Terminated_Tasks - 1;
+      O.Counters (Terminated) := O.Counters (Terminated) - 1;
       O.Registered_Tasks := O.Registered_Tasks - 1;
+      pragma Assert (ORB_Controller_Counters_Valid (O));
 
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Unregister_Task: leave"));

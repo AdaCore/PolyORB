@@ -238,7 +238,14 @@ package PolyORB.ORB_Controller is
 private
 
    function Status (O : access ORB_Controller) return String;
-   --  Output status of task running Broker, for debugging purpose.
+   --  Output status of task running Broker, for debugging purpose
+
+   function ORB_Controller_Counters_Valid
+     (O : access ORB_Controller)
+     return Boolean;
+   --  Return true iff the status of O respects the invariant defined below
+
+   type Counters_Array is array (PTI.Task_State) of Natural;
 
    type ORB_Controller (RS : PRS.Request_Scheduler_Access)
      is abstract tagged limited record
@@ -250,31 +257,11 @@ private
          --  These parameters provide information on ORB Controller
          --  current state.
 
+         Counters : Counters_Array := Counters_Array'(others => 0);
+
          Registered_Tasks : Natural := 0;
          --  Number of task registered by the ORB Controller
-         --  An invariant to be tested is
-         --
-         --  Registered_Tasks =
-         --     Unscheduled_Tasks
-         --   +  Idle_Tasks
-         --   +  Running_Tasks
-         --   +  Blocked_Tasks
-         --   +  Terminated_Tasks
-
-         Unscheduled_Tasks : Natural := 0;
-         --  Number of unscheduled tasks
-
-         Idle_Tasks : Natural := 0;
-         --  Number of idle tasks
-
-         Running_Tasks : Natural := 0;
-         --  Number of tasks processing a job
-
-         Blocked_Tasks : Natural := 0;
-         --  Number of task blocking on AES
-
-         Terminated_Tasks : Natural := 0;
-         --  Number of terminated tasks
+         --  An invariant to be tested is: Registered_Tasks = # (Counter)
 
          Number_Of_Pending_Jobs : Natural := 0;
          --  Number of pending jobs

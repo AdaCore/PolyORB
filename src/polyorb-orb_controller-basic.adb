@@ -87,7 +87,8 @@ package body PolyORB.ORB_Controller.Basic is
       pragma Assert (State (TI.all) = Unscheduled);
 
       O.Registered_Tasks := O.Registered_Tasks + 1;
-      O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+      O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+      pragma Assert (ORB_Controller_Counters_Valid (O));
 
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Register_Task: leave"));
@@ -102,7 +103,7 @@ package body PolyORB.ORB_Controller.Basic is
 
       --  Force all tasks currently waiting on event sources to abort
 
-      if O.Blocked_Tasks > 0 then
+      if O.Counters (Blocked) > 0 then
 
          --  In this implementation, only one task may be blocked on
          --  event sources. We abort it.
@@ -157,8 +158,9 @@ package body PolyORB.ORB_Controller.Basic is
 
             --  A task completed polling on a monitor
 
-            O.Blocked_Tasks := O.Blocked_Tasks - 1;
-            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+            O.Counters (Blocked) := O.Counters (Blocked) - 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
             O.Blocked_Task_Info := null;
 
@@ -191,7 +193,7 @@ package body PolyORB.ORB_Controller.Basic is
 
             end if;
 
-            if O.Blocked_Tasks = 0
+            if O.Counters (Blocked) = 0
               and then not O.Polling_Scheduled
             then
 
@@ -213,8 +215,9 @@ package body PolyORB.ORB_Controller.Basic is
 
             --  A task has completed the execution of a job
 
-            O.Running_Tasks := O.Running_Tasks - 1;
-            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+            O.Counters (Running) := O.Counters (Running) - 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
          when ORB_Shutdown =>
 
@@ -306,8 +309,9 @@ package body PolyORB.ORB_Controller.Basic is
 
             --  Update Scheduler status
 
-            O.Idle_Tasks := O.Idle_Tasks - 1;
-            O.Unscheduled_Tasks := O.Unscheduled_Tasks + 1;
+            O.Counters (Idle) := O.Counters (Idle) - 1;
+            O.Counters (Unscheduled) := O.Counters (Unscheduled) + 1;
+            pragma Assert (ORB_Controller_Counters_Valid (O));
 
             --  A task has left Idle state
 
@@ -337,8 +341,9 @@ package body PolyORB.ORB_Controller.Basic is
         or else O.Shutdown
       then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Terminated_Tasks := O.Terminated_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Terminated) := O.Counters (Terminated) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          Set_State_Terminated (TI.all);
 
@@ -347,8 +352,9 @@ package body PolyORB.ORB_Controller.Basic is
 
       elsif O.Number_Of_Pending_Jobs > 0 then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Running_Tasks := O.Running_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Running) := O.Counters (Running) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          O.Number_Of_Pending_Jobs := O.Number_Of_Pending_Jobs - 1;
 
@@ -360,11 +366,12 @@ package body PolyORB.ORB_Controller.Basic is
       elsif May_Poll (TI.all)
         and then O.Number_Of_AES > 0
         and then O.Polling_Abort_Counter = 0
-        and then O.Blocked_Tasks = 0
+        and then O.Counters (Blocked) = 0
       then
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Blocked_Tasks := O.Blocked_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Blocked) := O.Counters (Blocked) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          O.Polling_Scheduled := False;
          O.Blocked_Task_Info := TI;
@@ -379,8 +386,9 @@ package body PolyORB.ORB_Controller.Basic is
 
       else
 
-         O.Unscheduled_Tasks := O.Unscheduled_Tasks - 1;
-         O.Idle_Tasks := O.Idle_Tasks + 1;
+         O.Counters (Unscheduled) := O.Counters (Unscheduled) - 1;
+         O.Counters (Idle) := O.Counters (Idle) + 1;
+         pragma Assert (ORB_Controller_Counters_Valid (O));
 
          Set_State_Idle (TI.all, Allocate_CV (O), O.ORB_Lock);
          Task_Lists.Prepend (O.Idle_Task_List, TI);
@@ -405,8 +413,9 @@ package body PolyORB.ORB_Controller.Basic is
 
       pragma Assert (State (TI.all) = Terminated);
 
-      O.Terminated_Tasks := O.Terminated_Tasks - 1;
+      O.Counters (Terminated) := O.Counters (Terminated) - 1;
       O.Registered_Tasks := O.Registered_Tasks - 1;
+      pragma Assert (ORB_Controller_Counters_Valid (O));
 
       pragma Debug (O2 (Status (O)));
       pragma Debug (O1 ("Unregister_Task: leave"));
@@ -447,13 +456,13 @@ package body PolyORB.ORB_Controller.Basic is
    begin
       --  Awake all idle tasks
 
-      for J in 1 .. O.Idle_Tasks loop
+      for J in 1 .. O.Counters (Idle) loop
          Awake_One_Idle_Task (O);
       end loop;
 
       --  Unblock blocked tasks
 
-      if O.Blocked_Tasks > 0 then
+      if O.Counters (Blocked) > 0 then
 
          PTI.Request_Abort_Polling (O.Blocked_Task_Info.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
@@ -493,7 +502,7 @@ package body PolyORB.ORB_Controller.Basic is
 
       pragma Debug (O1 ("Try_Allocate_One_Task: enter"));
 
-      if O.Unscheduled_Tasks > 0 then
+      if O.Counters (Unscheduled) > 0 then
 
          --  Some tasks are not scheduled. We assume one of them will
          --  be allocated to handle current event.
@@ -501,7 +510,7 @@ package body PolyORB.ORB_Controller.Basic is
          pragma Debug (O1 ("Assume one unaffected task will handle event"));
          null;
 
-      elsif O.Idle_Tasks > 0 then
+      elsif O.Counters (Idle) > 0 then
 
          Awake_One_Idle_Task (O);
 

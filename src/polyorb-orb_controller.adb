@@ -35,6 +35,8 @@
 
 package body PolyORB.ORB_Controller is
 
+   use PolyORB.Task_Info;
+
    My_Factory : ORB_Controller_Factory_Access;
 
    ------------
@@ -67,12 +69,29 @@ package body PolyORB.ORB_Controller is
    function Status (O : access ORB_Controller) return String is
    begin
       return "Tot:" & Natural'Image (O.Registered_Tasks)
-        & " U:" & Natural'Image (O.Unscheduled_Tasks)
-        & " R:" & Natural'Image (O.Running_Tasks)
-        & " B:" & Natural'Image (O.Blocked_Tasks)
-        & " I:" & Natural'Image (O.Idle_Tasks)
+        & " U:" & Natural'Image (O.Counters (Unscheduled))
+        & " R:" & Natural'Image (O.Counters (Running))
+        & " B:" & Natural'Image (O.Counters (Blocked))
+        & " I:" & Natural'Image (O.Counters (Idle))
         & "| PJ:" & Natural'Image (O.Number_Of_Pending_Jobs)
         & " AES:" & Natural'Image (O.Number_Of_AES);
    end Status;
+
+   -----------------------------------
+   -- ORB_Controller_Counters_Valid --
+   -----------------------------------
+
+   function ORB_Controller_Counters_Valid
+     (O : access ORB_Controller)
+     return Boolean
+   is
+   begin
+      return O.Registered_Tasks =
+        O.Counters (Unscheduled)
+        +  O.Counters (Idle)
+        +  O.Counters (Running)
+        +  O.Counters (Blocked)
+        +  O.Counters (Terminated);
+   end ORB_Controller_Counters_Valid;
 
 end PolyORB.ORB_Controller;
