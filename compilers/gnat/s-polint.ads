@@ -2,6 +2,7 @@ with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Objects.Interface;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -13,6 +14,9 @@ package System.PolyORB_Interface is
    function To_PolyORB_String (S : Standard.String)
      return PolyORB.Types.Identifier
      renames PolyORB.Types.To_PolyORB_String;
+   function To_Standard_String (S : PolyORB.Types.Identifier)
+     return Standard.String
+     renames PolyORB.Types.To_Standard_String;
 
    subtype Any is PolyORB.Any.Any;
    Mode_In    : PolyORB.Any.Flags renames PolyORB.Any.ARG_IN;
@@ -160,5 +164,15 @@ package System.PolyORB_Interface is
      (Base : PolyORB.Any.TypeCode.Object;
       Parameters : Any_Array)
       return PolyORB.Any.TypeCode.Object;
+
+   --  RPC receiver objets are PolyORB components
+
+   subtype Component is PolyORB.Components.Component;
+   subtype Message is PolyORB.Components.Message;
+   subtype Null_Message is PolyORB.Components.Null_Message;
+   subtype Execute_Request is
+     PolyORB.Objects.Interface.Execute_Request;
+   subtype Executed_Request is
+     PolyORB.Objects.Interface.Executed_Request;
 
 end System.PolyORB_Interface;

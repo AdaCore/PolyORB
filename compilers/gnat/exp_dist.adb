@@ -1674,31 +1674,50 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
-      Stream_Parameter : Node_Id;
-      Result_Parameter : Node_Id;
+--        Stream_Parameter : Node_Id;
+--        Result_Parameter : Node_Id;
+      Self_Parameter    : Node_Id;
+      Message_Parameter : Node_Id;
 
-      Pkg_RPC_Receiver            : Node_Id;
-      Pkg_RPC_Receiver_Spec       : Node_Id;
-      Pkg_RPC_Receiver_Formals    : List_Id;
-      Pkg_RPC_Receiver_Decls      : List_Id;
-      Pkg_RPC_Receiver_Statements : List_Id;
-      Pkg_RPC_Receiver_Cases      : constant List_Id := New_List;
-      Pkg_RPC_Receiver_Body       : Node_Id;
+      Pkg_RPC_Receiver             : Node_Id;
+      Pkg_RPC_Receiver_Type        : Node_Id;
+      Pkg_RPC_Receiver_Proc        : Entity_Id;
+      Pkg_RPC_Receiver_Spec        : Node_Id;
+      Pkg_RPC_Receiver_Formals     : List_Id;
+      Pkg_RPC_Receiver_Outer_Decls : List_Id;
+      Pkg_RPC_Receiver_Decls       : List_Id;
+      Pkg_RPC_Receiver_Outer_Stmts : List_Id;
+      Pkg_RPC_Receiver_Stmts  : List_Id;
+      Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
+      Pkg_RPC_Receiver_Body        : Node_Id;
       --  A Pkg_RPC_Receiver is built to decode the request
+
+      Message_Tick_Class : constant Node_Id
+        := Make_Attribute_Reference (Loc,
+             Prefix =>
+               New_Occurrence_Of (RTE (RE_Message), Loc),
+             Attribute_Name =>
+               Name_Class);
+
+      Request                     : Node_Id;
+      --  Request object received from neutral layer
 
       Subp_Id                     : Node_Id;
       --  Subprogram_Id as read from the incoming stream
 
+      Null_Message                : Node_Id;
+      --  Empty message
+
       Current_Declaration       : Node_Id;
       Current_Subprogram_Number : Int := 0;
-      Current_Stubs             : Node_Id;
+--        Current_Stubs             : Node_Id;
 
-      Actuals : List_Id;
+      --  Actuals : List_Id;
 
-      Dummy_Register_Name : Name_Id;
-      Dummy_Register_Spec : Node_Id;
-      Dummy_Register_Decl : Node_Id;
-      Dummy_Register_Body : Node_Id;
+--        Dummy_Register_Name : Name_Id;
+--        Dummy_Register_Spec : Node_Id;
+--        Dummy_Register_Decl : Node_Id;
+--        Dummy_Register_Body : Node_Id;
 
    begin
       --  Building receiving stubs consist in several operations:
@@ -1717,53 +1736,144 @@ package body Exp_Dist is
       --      part of this RCI package on the name server. This is done
       --      by calling System.Partition_Interface.Register_Receiving_Stub
 
-      Stream_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
-      Result_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+--        Stream_Parameter :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+--        Result_Parameter :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
       Subp_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-
+      Request :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+      Null_Message :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
+      Self_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+      Message_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('M'));
       Pkg_RPC_Receiver :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
-      --  The parameters of the package RPC receiver are made of two
-      --  streams, an input one and an output one.
+      --  The RPC receiver (skeleton object) type
+
+      Pkg_RPC_Receiver_Type :=
+        Make_Full_Type_Declaration (Loc,
+          Defining_Identifier =>
+            Pkg_RPC_Receiver,
+          Type_Definition =>
+            Make_Derived_Type_Definition (Loc,
+              Subtype_Indication =>
+                New_Occurrence_Of (RTE (RE_Component), Loc),
+              Record_Extension_Part =>
+                Make_Record_Definition (Loc,
+                  Component_List => Empty,
+                  Null_Present => True)));
+      --  The RPC receiver subprogram
+
+      Pkg_RPC_Receiver_Proc :=
+        Make_Defining_Identifier (Loc, Name_Handle_Message);
+
+--        --  The parameters of the package RPC receiver are made of two
+--        --  streams, an input one and an output one.
+
+--        Pkg_RPC_Receiver_Formals := New_List (
+--          Make_Parameter_Specification (Loc,
+--            Defining_Identifier => Stream_Parameter,
+--            Parameter_Type      =>
+--              Make_Access_Definition (Loc,
+--                Subtype_Mark =>
+--                  New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))),
+--          Make_Parameter_Specification (Loc,
+--            Defining_Identifier => Result_Parameter,
+--            Parameter_Type      =>
+--              Make_Access_Definition (Loc,
+--                Subtype_Mark =>
+--                  New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))));
 
       Pkg_RPC_Receiver_Formals := New_List (
         Make_Parameter_Specification (Loc,
-          Defining_Identifier => Stream_Parameter,
-          Parameter_Type      =>
+          Defining_Identifier => Self_Parameter,
+          Parameter_Type =>
             Make_Access_Definition (Loc,
               Subtype_Mark =>
-                New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))),
+                New_Occurrence_Of (Pkg_RPC_Receiver, Loc))),
         Make_Parameter_Specification (Loc,
-          Defining_Identifier => Result_Parameter,
-          Parameter_Type      =>
-            Make_Access_Definition (Loc,
-              Subtype_Mark =>
-                New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))));
+          Defining_Identifier => Message_Parameter,
+          Parameter_Type      => Message_Tick_Class));
+
+--        Pkg_RPC_Receiver_Spec :=
+--          Make_Procedure_Specification (Loc,
+--            Defining_Unit_Name       => Pkg_RPC_Receiver,
+--            Parameter_Specifications => Pkg_RPC_Receiver_Formals);
 
       Pkg_RPC_Receiver_Spec :=
-        Make_Procedure_Specification (Loc,
-          Defining_Unit_Name       => Pkg_RPC_Receiver,
-          Parameter_Specifications => Pkg_RPC_Receiver_Formals);
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name       => Pkg_RPC_Receiver_Proc,
+          Parameter_Specifications => Pkg_RPC_Receiver_Formals,
+          Subtype_Mark             => Message_Tick_Class);
 
+      Pkg_RPC_Receiver_Outer_Decls := New_List (
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Null_Message,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Null_Message), Loc)));
+
+      Pkg_RPC_Receiver_Outer_Stmts := New_List (
+        Make_If_Statement (Loc,
+          Condition =>
+            Make_Not_In (Loc,
+              Left_Opnd =>
+                New_Occurrence_Of (Message_Parameter, Loc),
+              Right_Opnd =>
+                New_Occurrence_Of (RTE (RE_Execute_Request), Loc)),
+          Then_Statements => New_List (
+              Make_Return_Statement (Loc,
+                Expression => New_Occurrence_Of (Null_Message, Loc)))));
+
+--        Pkg_RPC_Receiver_Decls := New_List (
+--          Make_Object_Declaration (Loc,
+--            Defining_Identifier => Subp_Id,
+--            Object_Definition   =>
+--              New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc)));
       Pkg_RPC_Receiver_Decls := New_List (
         Make_Object_Declaration (Loc,
-          Defining_Identifier => Subp_Id,
+          Defining_Identifier => Request,
+          Constant_Present    => True,
           Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc)));
+            New_Occurrence_Of (RTE (RE_Request_Access), Loc),
+          Expression          =>
+            Make_Selected_Component (Loc,
+              Prefix => OK_Convert_To (
+                RTE (RE_Execute_Request),
+                New_Occurrence_Of (Message_Parameter, Loc)),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Req))),
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Subp_Id,
+          Constant_Present    => True,
+          Object_Definition   =>
+            New_Occurrence_Of (Standard_String, Loc),
+          Expression          =>
+            Make_Function_Call (Loc,
+              Name =>
+                New_Occurrence_Of (RTE (RE_To_Standard_String), Loc),
+              Parameter_Associations => New_List (
+                Make_Selected_Component (Loc,
+                  Prefix =>
+                    New_Occurrence_Of (Request, Loc),
+                  Selector_Name =>
+                    Make_Identifier (Loc, Name_Operation))))));
 
-      Pkg_RPC_Receiver_Statements := New_List (
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc),
-          Attribute_Name =>
-            Name_Read,
-          Expressions    => New_List (
-            New_Occurrence_Of (Stream_Parameter, Loc),
-            New_Occurrence_Of (Subp_Id, Loc))));
+      Pkg_RPC_Receiver_Stmts := New_List;
+
+--        Pkg_RPC_Receiver_Stmts := New_List (
+--          Make_Attribute_Reference (Loc,
+--            Prefix         =>
+--              New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc),
+--            Attribute_Name =>
+--              Name_Read,
+--            Expressions    => New_List (
+--              New_Occurrence_Of (Stream_Parameter, Loc),
+--              New_Occurrence_Of (Subp_Id, Loc))));
 
       --  For each subprogram, the receiving stub will be built and a
       --  case statement will be made on the Subprogram_Id to dispatch
@@ -1780,21 +1890,23 @@ package body Exp_Dist is
               Get_Subprogram_Id (Defining_Unit_Name (Specification (
                 Current_Declaration))));
 
-            Current_Stubs :=
-              Build_Subprogram_Receiving_Stubs
-                (Vis_Decl     => Current_Declaration,
-                 Asynchronous =>
-                   Nkind (Specification (Current_Declaration)) =
-                       N_Procedure_Specification
-                     and then Is_Asynchronous
-                       (Defining_Unit_Name (Specification
-                          (Current_Declaration))));
+--              Current_Stubs :=
+--                Build_Subprogram_Receiving_Stubs
+--                  (Vis_Decl     => Current_Declaration,
+--                   Asynchronous =>
+--                     Nkind (Specification (Current_Declaration)) =
+--                         N_Procedure_Specification
+--                       and then Is_Asynchronous
+--                         (Defining_Unit_Name (Specification
+--                            (Current_Declaration))));
 
-            Append_To (Decls, Current_Stubs);
+--              Append_To (Decls, Current_Stubs);
+--              Analyze (Current_Stubs);
 
-            Analyze (Current_Stubs);
+            --  XXX TBD!
 
-            Actuals := New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+            --  Actuals :=
+            --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
 
             if Nkind (Specification (Current_Declaration))
                 = N_Function_Specification
@@ -1805,9 +1917,9 @@ package body Exp_Dist is
                --  An asynchronous procedure does not want an output parameter
                --  since no result and no exception will ever be returned.
 
-               Append_To (Actuals,
-                 New_Occurrence_Of (Result_Parameter, Loc));
-
+--                 Append_To (Actuals,
+--                   New_Occurrence_Of (Result_Parameter, Loc));
+               null;
             end if;
 
             Append_To (Pkg_RPC_Receiver_Cases,
@@ -1817,13 +1929,14 @@ package body Exp_Dist is
                     Make_Integer_Literal (Loc, Current_Subprogram_Number)),
 
                 Statements       =>
-                  New_List (
-                    Make_Procedure_Call_Statement (Loc,
-                      Name                   =>
-                        New_Occurrence_Of (
-                          Defining_Entity (Current_Stubs), Loc),
-                      Parameter_Associations =>
-                        Actuals))));
+                  New_List (Make_Null_Statement (Loc))));
+--                      Make_Procedure_Call_Statement (Loc,
+--                        Name                   =>
+--                          New_Occurrence_Of (
+--                            Defining_Entity (Current_Stubs), Loc),
+--                        Parameter_Associations =>
+--                          Actuals))));
+            --  XXX TBD
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
@@ -1846,72 +1959,88 @@ package body Exp_Dist is
           Statements       =>
             New_List (Make_Null_Statement (Loc))));
 
-      Append_To (Pkg_RPC_Receiver_Statements,
-        Make_Case_Statement (Loc,
-          Expression   =>
-            New_Occurrence_Of (Subp_Id, Loc),
-          Alternatives => Pkg_RPC_Receiver_Cases));
+--        Append_To (Pkg_RPC_Receiver_Stmts,
+--          Make_Case_Statement (Loc,
+--            Expression   =>
+--              New_Occurrence_Of (Subp_Id, Loc),
+--            Alternatives => Pkg_RPC_Receiver_Cases));
+      Append_To (Pkg_RPC_Receiver_Stmts,
+        Make_Null_Statement (Loc));
+
+      Append_To (Pkg_RPC_Receiver_Outer_Stmts,
+        Make_Block_Statement (Loc,
+          Declarations => Pkg_RPC_Receiver_Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Pkg_RPC_Receiver_Stmts)));
+      Append_To (Pkg_RPC_Receiver_Outer_Stmts,
+        Make_Return_Statement (Loc,
+          Expression =>
+            New_Occurrence_Of (Null_Message, Loc)));
 
       Pkg_RPC_Receiver_Body :=
         Make_Subprogram_Body (Loc,
           Specification              => Pkg_RPC_Receiver_Spec,
-          Declarations               => Pkg_RPC_Receiver_Decls,
+          Declarations               => Pkg_RPC_Receiver_Outer_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => Pkg_RPC_Receiver_Statements));
+              Statements => Pkg_RPC_Receiver_Outer_Stmts));
 
+      Append_To (Decls, Pkg_RPC_Receiver_Type);
+      Analyze (Pkg_RPC_Receiver_Type);
       Append_To (Decls, Pkg_RPC_Receiver_Body);
       Analyze (Pkg_RPC_Receiver_Body);
 
-      --  Construction of the dummy package used to register the package
-      --  receiving stubs on the nameserver.
+--        --  Construction of the dummy package used to register the package
+--        --  receiving stubs on the nameserver.
 
-      Dummy_Register_Name := New_Internal_Name ('P');
+--        Dummy_Register_Name := New_Internal_Name ('P');
 
-      Dummy_Register_Spec :=
-        Make_Package_Specification (Loc,
-          Defining_Unit_Name   =>
-            Make_Defining_Identifier (Loc, Dummy_Register_Name),
-          Visible_Declarations => No_List,
-          End_Label => Empty);
+--        Dummy_Register_Spec :=
+--          Make_Package_Specification (Loc,
+--            Defining_Unit_Name   =>
+--              Make_Defining_Identifier (Loc, Dummy_Register_Name),
+--            Visible_Declarations => No_List,
+--            End_Label => Empty);
 
-      Dummy_Register_Decl :=
-        Make_Package_Declaration (Loc,
-          Specification => Dummy_Register_Spec);
+--        Dummy_Register_Decl :=
+--          Make_Package_Declaration (Loc,
+--            Specification => Dummy_Register_Spec);
 
-      Append_To (Decls,
-        Dummy_Register_Decl);
-      Analyze (Dummy_Register_Decl);
+--        Append_To (Decls,
+--          Dummy_Register_Decl);
+--        Analyze (Dummy_Register_Decl);
 
-      Dummy_Register_Body :=
-        Make_Package_Body (Loc,
-          Defining_Unit_Name         =>
-            Make_Defining_Identifier (Loc, Dummy_Register_Name),
-          Declarations               => No_List,
+--        Dummy_Register_Body :=
+--          Make_Package_Body (Loc,
+--            Defining_Unit_Name         =>
+--              Make_Defining_Identifier (Loc, Dummy_Register_Name),
+--            Declarations               => No_List,
 
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => New_List (
-                Make_Procedure_Call_Statement (Loc,
-                  Name                   =>
-                    New_Occurrence_Of (RTE (RE_Register_Receiving_Stub), Loc),
+--            Handled_Statement_Sequence =>
+--              Make_Handled_Sequence_Of_Statements (Loc,
+--                Statements => New_List (
+--                  Make_Procedure_Call_Statement (Loc,
+--                    Name                   =>
+--                      New_Occurrence_Of
+--                         (RTE (RE_Register_Receiving_Stub), Loc),
+--                    Parameter_Associations => New_List (
+--                      Make_String_Literal (Loc,
+--                        Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
+--                        Attribute_Name =>
+--                          Name_Unrestricted_Access),
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of
+--                             (Defining_Entity (Pkg_Spec), Loc),
+--                        Attribute_Name =>
+--                          Name_Version))))));
 
-                  Parameter_Associations => New_List (
-                    Make_String_Literal (Loc,
-                      Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
-                      Attribute_Name =>
-                        Name_Unrestricted_Access),
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (Defining_Entity (Pkg_Spec), Loc),
-                      Attribute_Name =>
-                        Name_Version))))));
-
-      Append_To (Decls, Dummy_Register_Body);
-      Analyze (Dummy_Register_Body);
+--        Append_To (Decls, Dummy_Register_Body);
+--        Analyze (Dummy_Register_Body);
    end Add_Receiving_Stubs_To_Declarations;
 
    -------------------

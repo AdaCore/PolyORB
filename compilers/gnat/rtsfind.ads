@@ -1025,6 +1025,7 @@ package Rtsfind is
      RE_RPC_Receiver,                    -- System.RPC
 
      RE_To_PolyORB_String,               -- System.PolyORB_Interface
+     RE_To_Standard_String,              -- System.PolyORB_Interface
      RE_TypeCode,                        -- System.PolyORB_Interface
      RE_Any,                             -- System.PolyORB_Interface
      RE_Mode_In,                         -- System.PolyORB_Interface
@@ -1039,6 +1040,10 @@ package Rtsfind is
      RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Invoke,                  -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
+     RE_Component,                       -- System.PolyORB_Interface
+     RE_Message,                         -- System.PolyORB_Interface
+     RE_Null_Message,                    -- System.PolyORB_Interface
+     RE_Execute_Request,                 -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -2017,6 +2022,7 @@ package Rtsfind is
      RE_Subprogram_Id                    => System_Partition_Interface,
 
      RE_To_PolyORB_String                => System_PolyORB_Interface,
+     RE_To_Standard_String               => System_PolyORB_Interface,
      RE_TypeCode                         => System_PolyORB_Interface,
      RE_Any                              => System_PolyORB_Interface,
      RE_Mode_In                          => System_PolyORB_Interface,
@@ -2031,6 +2037,10 @@ package Rtsfind is
      RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Invoke                   => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
+     RE_Component                        => System_PolyORB_Interface,
+     RE_Message                          => System_PolyORB_Interface,
+     RE_Null_Message                     => System_PolyORB_Interface,
+     RE_Execute_Request                  => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,
