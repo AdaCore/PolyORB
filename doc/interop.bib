@@ -1,0 +1,2554 @@
+%% Interoperability of Object-Oriented Distributed Systems Bibliography
+%% Thomas Quinot
+%%
+%% $Id$
+%%
+
+@String{rfc = {Request for Comments}}
+
+@String{OMG = {{Object Management Group}}}
+
+@String{sun = {{Sun Microsystems, Inc.}}}
+
+@String{ietf = {{Internet Engineering Task Force}}}
+
+@String{IEEETCOS = "IEEE Computer Society Technical Committee on
+                 Operating Systems Newsletter"}
+
+@String{SOSP10 = "Proceedings of the 10th {S}ymposium on {O}perating
+                 {S}ystem {P}rinciples"}
+
+@String{SIGOPS = "ACM Operating Systems Review"}
+
+@String{aap =    "Advances in Applied Probability"}
+
+@String{atcs =   "ACM Transactions on Computer Systems"}
+
+@String{ams =    "Annals of Mathematical Statistics"}
+
+@String{bstj =   "Bell System Technical Journal"}
+
+@String{globecom = "Proceedings of the Conference on Global
+                 Communications (GLOBECOM)"}
+
+@String{ccr =    "ACM Computer Communication Review"}
+
+@String{cdc =    "Proceedings of the IEEE Conference on Decision and
+                 Control"}
+
+@String{computer = "{IEEE} {C}omputer"}
+
+@String{icc =    "Conference Record of the International Conference on
+                 Communications (ICC)"}
+
+@String{iccc =   "International Conference on Computers and
+                 Communications"}
+
+@String{ieeeac = "IEEE Transactions on Automatic Control"}
+
+@String{ieeecm = "IEEE Communications Magazine"}
+
+@String{ieeecom = "IEEE Transactions on Communications"}
+
+@String{ieeect = "IEEE Transactions on Circuit Theory"}
+
+@String{ieeeit = "IEEE Transactions on Information Theory"}
+
+@String{ieeese =   "IEEE Transactions on Software Engineering"}
+
+@String{ieeepds =  "IEEE Transactions on Parallel and Distributed Systems"}
+
+@String{ieeejsac = "IEEE Journal on Selected Areas in Communications"}
+
+@String{ieeenet = "IEEE Network"}
+
+@String{ieeeproc = "Proceedings of the IEEE"}
+
+@String{infocom = "Proceedings of the Conference on Computer
+                 Communications (IEEE Infocom)"}
+
+@String{itu = "International Telecommunications Union"}
+
+@String{jams =   "Journal of the Australian Mathematical Society"}
+
+@String{jap =    "Journal of Applied Probability"}
+
+@String{jem =    "Journal of Engineering Mathematics"}
+
+@String{jpdc =   "Journal of Parallel and Distributed Computing"}
+
+@String{milcom = "IEEE International Military Communications Conference
+                 (MILCOM)"}
+
+@String{ms =     "Management Science"}
+
+@String{mor =    "Mathematics of Operations Research"}
+
+@String{ptr =    "Philips Telecommunication and Data Systems Review"}
+
+@String{navres = "Naval Research Logistics Quarterly"}
+
+@String{or =     "Operations Research"}
+
+@String{orl =    "Operations Research Letters"}
+
+@String{pe =     "Performance Evaluation"}
+
+@String{qs =     "Queueing Systems"}
+
+@String{sde3 =   "Proceedings of the ACM SIGSOFT '88: Third Symposium on
+                 Software Development Environments"}
+
+@String{sigcomm = "SIGCOMM Symposium on Communications Architectures and
+                 Protocols"}
+
+@String{sigmetrics = "Proceedings of the ACM Sigmetrics Conference on
+                 Measurement and Modeling of Computer Systems"}
+
+@String{wsc =    "Proceedings of the Winter Simulation Conference"}
+
+@String{ipl =    "Information Processing Letters"}
+
+@String{tocs =   "ACM Transactions on Computer Systems"}
+
+@String{cacm = "Communications of the ACM"}
+
+@String{ENST = {ENST Paris}}
+@String{upmc = {Université Paris VI~---~Pierre-et-Marie-Curie}}
+@String{epfl = {École polytechnique fédérale de Lausanne}}
+
+%%%%%%%%%% Reference papers
+
+@Article{dijkstra68:the-mp-system,
+  author =	 {Edgser W. Dijkstra},
+  title =	 {The structure of the ``THE''-multiprogramming
+                  system},
+  journal =	 cacm,
+  year =	 1968,
+  volume =	 11,
+  number =	 5,
+  pages =	 {341--346},
+  month =	 may
+}
+
+@Article{birrell84:rpc,
+  author =	 "Andrew D. Birrell and Bruce J. Nelson",
+  title =	 "{Implementing Remote Procedure Calls}",
+  journal =	 tocs,
+  year =	 "1984",
+  volume =	 "2",
+  number =	 "1",
+  pages =	 "39--59",
+  month =	 feb,
+  abstract =	 "Remote procedure calls (RPC) appear to be a useful
+                  paradigm for providing communication across a
+                  network between programs written in a high-level
+                  language. This paper describes a package providing a
+                  remote procedure call facility, the options that
+                  face the designer of such a package, and the
+                  decisions we made. We describe the overall structure
+                  of our RPC mechanism, our facilities for binding RPC
+                  clients, the transport level communication protocol,
+                  and some performance measures. We include
+                  descriptions of some optimizations used to achieve
+                  high performance and to minimize the load on server
+                  machines that have many clients.",
+}
+
+@inproceedings{ingalls78:smalltalk,
+  author =	 {Daniel H. H. Ingalls},
+  title =	 {The Smalltalk-76 Programming System Design and
+                  Implementation},
+  booktitle =	 {Conference Record of the Fifth Annual ACM Symposium
+                  on Principles of Programming Languages, Tucson,
+                  Arizona},
+  pages =	 "9--16",
+  year =	 1978,
+  month =	 jan,
+  url =
+                  {http://users.ipa.net/~dwighth/smalltalk/St76/Smalltalk76ProgrammingSystem.html}
+}
+
+% JPDC1.ps
+@Article{naimi96:mutex,
+  author =	 {Mohamed Naimi and Michel Tréhel and André Arnold},
+  title =	 {A Log(N) Distributed Mutual Exclusion Algorithm
+                  Based on the Path Reversal},
+  journal =	 jpdc,
+  year =	 1996,
+  volume =	 34,
+  number =	 1,
+  pages =	 {1--13},
+  month =	 apr,
+  url =          {http://lib.univ-fcomte.fr/PEOPLE/trehel/JPDC1.ps}
+}
+
+% oopsla90.ps
+@InProceedings{bracha90:mixins,
+  author =	 "Gilad Bracha and William Cook",
+  title =	 {Mixin-based Inheritance},
+  booktitle =	 {Proceedings of the Conference on Object-Oriented
+                  Programming Systems, Languages, and Applications
+                  (OOPSLA)},
+  journal =	 {SIGPLAN Notices},
+  volume =	 25,
+  number =	 10,
+  publisher =	 "ACM Press",
+  address =	 "New York, NY",
+  editor =	 "Norman Meyrowitz",
+  isbn =	 "0-201-52430-X",
+  pages =	 "303--311",
+  year =	 1990,
+  month =	 oct,
+  url =		 {http://java.sun.com/people/gbracha/oopsla90.ps}
+}
+
+@Article{mattern87:termination,
+  author =	 {Friedemann Mattern},
+  title =	 {Algorithms for Distributed Termination Detection},
+  journal =	 {Distributed Computing},
+  year =	 1987,
+  volume =	 2,
+  number =	 3,
+  pages =	 {161--175}
+}
+
+
+@InProceedings{kamel90:remote-rdv,
+  author =	 {Ragui Kamel and Siu-Ling Lo},
+  title =	 {Design Issues in the Implementation of Remote
+                  Rendezvous},
+  booktitle =	 {Proceedings of the 10th International Conference on
+                  Distributed Computing Systems (ICDCS'90)},
+  pages =	 {245--252},
+  year =	 1990,
+  month =	 jun,
+  organization = ieee,
+  publisher =	 ieee
+}
+
+% lamport-CACM78.pdf
+@Article{lamport78:ordering,
+  author =	 {Leslie Lamport},
+  title =	 {Time, Clocks, and the Ordering of Events in a
+                  Distributed System},
+  journal =	 cacm,
+  year =	 1978,
+  volume =	 21,
+  number =	 7,
+  pages =	 {558--565},
+  month =	 jul
+}
+
+% RISC.pdf
+@Article{patterson85:risc,
+  author =	 {David A. Patterson},
+  title =	 {Reduced instruction set computers},
+  journal =	 cacm,
+  year =	 1985,
+  volume =	 28,
+  number =	 1,
+  pages =	 {8--21},
+  month =	 jan
+}
+
+% gcsurvey.ps
+@InProceedings{wilson92:gc-survey,
+  author =	 {Paul R. Wilson},
+  title =	 {Uniprocessor Garbage Collection Techniques},
+  booktitle =	 {Proceedings of the 1992 International Workshop on
+                  Memory Management},
+  year =	 1992,
+  address =	 {Saint Malo, France},
+  month =	 sep,
+}
+
+% DynamicPerfHashing_SICOMP.ps
+@Article{dietzfelbinger90:dyn-perf-hash,
+  author =	 {Martin Dietzfelbinger and Anna Karlin and Kurt
+                  Mehlhorn and Friedhelm {Meyer auf der Heide} and Hans
+                  Rohnert and Robert E. Tarjan},
+  title =	 {Dynamic perfect hashing: upper and lower bounds},
+  journal =	 {SIAM Journal on Computing},
+  year =	 1994,
+  volume =	 23,
+  number =	 4,
+  pages =	 {738-761},
+  month =	 aug
+}
+
+@Article{fredman84:static-perf-hash,
+  author =	 {Michael L. Fredman and János Komlós and Endre
+                  Szemerédi},
+  title =	 {Storing a sparse table with $O(1)$ worst case access
+                  time},
+  journal =	 jacm,
+  year =	 1984,
+  volume =	 31,
+  number =	 3,
+  pages =	 {538 - 544},
+  month =	 jun
+}
+
+@InProceedings{schmidt90:gperf,
+  author =	 {Douglas C. Schmidt},
+  title =	 {{GPERF}: a perfect hash function generator},
+  booktitle =	 {Proceedings of the Second USENIX C++ Conference},
+  pages =	 {87--102},
+  year =	 1990,
+  address =	 {San Francisco, California},
+  month =	 apr,
+  url =
+                  {http://www.cs.wustl.edu/~schmidt/PDF/C++-USENIX-90.pdf}
+}
+
+% czech92optimal.ps
+@Article{czech92:minimal-perfect-hash,
+  author =	 {Zbigniew J. Czech and George Havas and Bohdan
+                  S. Majewski},
+  title =	 {An optimal algorithm for generating minimal perfect
+                  hash functions},
+  journal =	 {Information Processing Letters},
+  year =	 1992,
+  volume =	 43,
+  number =	 5,
+  pages =	 {257--264},
+  month =	 oct,
+}
+
+%%%%%%%%%% Standards
+
+@Book{ada-rm,
+	title = {Information Technology -- Programming Languages -- Ada},
+        author= {ISO},
+	publisher = {ISO},
+	year = 1995,
+	month = feb,
+	note = "ISO/IEC/ANSI 8652:1995",
+}
+
+@Book{iso1989:1985:COBOL,
+  author =	 {ISO},
+  title =	 {Programming languages -- COBOL},
+  publisher =	 {ISO},
+  year =	 1985,
+  note =	 {ISO 1989:1985}
+}
+
+@Book{iso7498-1:osi-basic,
+	title = {Information technology -- Open Systems Interconnection -- Basic Reference Model: The Basic Model},
+        author= {ISO},
+	publisher = {ISO},
+	year = 1995,
+	month = feb,
+	note = "ISO/IEC 7498-1:1994",
+}
+
+@Book{asis,
+        title = {Information Technology -- Programming Languages -- Ada
+                  Semantic Interface Specification (ASIS)},
+        author = {ISO},
+        publisher = {ISO},
+        year = 1998,
+        note = "ISO/IEC 15291:1998",
+}
+
+@Book{iso18009:acats,
+  title =	 {Information technology -- Programming languages --
+                  Ada: Conformity assessment of a language processor},
+  author =	 {ISO},
+  publisher =	 {ISO},
+  year =	 1999,
+  note =	 "ISO/IEC 18009:1999"
+}
+
+@Book{iso10746-1:odp-rm,
+  title =	 {Information technology -- Open Distributed
+                  Processing -- Reference model: Overview},
+  author =	 {ISO},
+  publisher =	 {ISO},
+  year =	 1998,
+  month =	 dec,
+  note =	 "ISO/IEC 10746-1:1998",
+}
+
+
+@Book{iso9945-1:posix.1,
+  author =	 {ISO},
+  title =	 {Information technology -- Portable Operating System
+                  Interface (POSIX) -- Part 1: System Application
+                  Program Interface (API) [C Language]},
+  publisher =	 {ISO},
+  year =	 1996,
+  note =	 {ISO/IEC 9945-1:1996, «~POSIX.1~»}
+}
+
+%%%%%%%%%% RMI
+
+@Manual{rmi,
+  title =	 {RMI -- Documentation},
+  author =	 sun
+}
+
+@Manual{java-rmi1.4:2002,
+  title =	 {Java Remote Method Invocation Specification},
+  author =	 sun,
+  organization = sun,
+  year =	 2002,
+  note =	 {version 1.4}
+}
+
+@Manual{java-jndi:1999,
+  title =	 {Java Naming and Directory Interface},
+  author =	 sun,
+  organization = sun,
+  year =	 1999
+}
+
+@Manual{glade:ug,
+  title =	 {GLADE User Guide},
+  author =	 {Laurent Pautet and Samuel Tardieu},
+  organization = {Ada Core Technologies},
+  year = 	 {2000}
+}
+
+@Manual{mpi11:1995,
+  title =	 {MPI: A Message-Passing Interface Standard},
+  author =	 {{Message Passing Interface Forum}},
+  year =	 1995,
+  month =	 jun,
+  note =	 {Version 1.1},
+  url =		 {http://www.mpi-forum.org/docs/mpi-11.ps.Z}
+}
+
+@Book{geist94:pvm,
+  author =	 {Geist, Al and Beguelin, Adam and Dongarra, Jack and
+                  Weicheng, Jiang and Mancheck, Robert and Sunderam,
+                  Vaidyalingam S.},
+  title =	 {PVM: Parallel Virtual Machine},
+  publisher =	 {MIT Press},
+  year =	 1994
+}
+
+@TechReport{soap11:2000,
+  title =	 {Simple Object Access Protocol (SOAP) 1.1},
+  author =	 {Don Box and David Ehnebuske and Gopal Kakivaya and
+                  Andrew Layman and Noah Mendelsohn and Henrik Frystyk
+                  Nielsen and Satish Thatte and Dave Winer},
+  institution =	 {{World Wide Web Consortium}},
+  year =	 2000,
+  month =	 may,
+  type =	 {{W3C} note},
+  url =		 {http://www.w3.org/TR/SOAP/}
+}
+
+@TechReport{X25:1996,
+  title =	 {Interface between Data Terminal Equipment (DTE) and
+                  Data Circuit-terminating Equipment (DCE) for
+                  terminals operating in the packet mode and connected
+                  to public data networks by dedicated circuit},
+  author =	 {ITU-T},
+  institution =	 itu,
+  month =	 oct,
+  year =	 1996,
+  type =	 {Recommendation},
+  number =	 {X.25}
+}
+
+@TechReport{multicast,
+  author =	 {Armstrong, S. and others},
+  title =	 {Multicast Transport Protocol},
+  institution =	 ietf,
+  year =	 1992,
+  month =	 feb,
+}
+
+@TechReport{dahl84:simula,
+  title =	 {Simula: Common Base Language},
+  author =	 {Ole-Johan Dahl and Bjørn Myrhaug and Kristen
+                  Nygaard},
+  institution =	 {Norsk Regnesentral},
+  month =	 feb,
+  year =	 1984,
+  number =	 743
+}
+
+%%%%%%%%%% Operating systems
+
+@Article{BrinchHansen:1972:SM,
+  author =       "Per {Brinch Hansen}",
+  title =        "Structured Multiprogramming",
+  journal =      "Communications of the ACM",
+  volume =       "15",
+  number =       "7",
+  pages =        "574--578",
+  month =        jul,
+  year =         "1972",
+  coden =        "CACMA2",
+  ISSN =         "0001-0782",
+  bibdate =      "Tue Mar 25 13:26:09 MST 1997",
+  acknowledgement = ack-nhfb,
+  annote =       "This paper presents a proposal for structured
+                 representation of multiprogramming in a high level
+                 language. Shared variables are introduced, and their
+                 role in `critical regions (denoted by the structured
+                 statement region var do Statement)' is discussed. A
+                 synchronization primitive `await Boolean' delays a
+                 process until the components of a shared variable
+                 satisfy the boolean expression. For explicit control of
+                 the scheduling of resources, an event queue is
+                 associated with a shared variable, and two procedures
+                 await (event) (leave a critical region associated with
+                 the shared variable and join the event queue) and cause
+                 (event) (enable all processes in the event queue to
+                 reenter their critical regions) are provided, which can
+                 control process scheduling to any degree desired.",
+  classcodes =   "C6150J (Operating systems)",
+  corpsource =   "California Inst. Technol., Pasadena, CA, USA",
+  keywords =     "concurrency; critical regions; event variables; high
+                 level; language; multiprogramming; operating systems;
+                 structured multiprogramming",
+  treatment =    "P Practical",
+}
+
+@Article{Hoare:1974:MOS,
+  author =       "C. A. R. Hoare",
+  title =        "Monitors: An Operating System Structuring Concept",
+  journal =      "Communications of the ACM",
+  volume =       "17",
+  number =       "10",
+  pages =        "549--557",
+  month =        oct,
+  year =         "1974",
+  coden =        "CACMA2",
+  ISSN =         "0001-0782",
+  bibdate =      "Tue Mar 25 13:26:09 MST 1997",
+  note =         "Erratum in {\em Communications of the ACM}, Vol. 18,
+                 No. 2 (February), p. 95, 1975. This paper contains one
+                 of the first solutions to the Dining Philosophers
+                 problem.",
+  abstract =     "This paper develops Brinch-Hansen's concept of a
+                 monitor as a method of structuring an operating system.
+                 It introduces a form of synchronization, describes a
+                 possible method of implementation in terms of
+                 semaphores and gives a suitable proof rule.
+                 Illustrative examples include a single resource
+                 scheduler, a bounded buffer, an alarm clock, a buffer
+                 pool, a disk head optimizer, and a version of the
+                 problem of readers and writers.",
+  acknowledgement = ack-nhfb,
+  annote =       "Monitors",
+  checked =      "7 April 1989",
+  classcodes =   "C6150J (Operating systems)",
+  classification = "722; 723",
+  corpsource =   "Queen's Univ. Belfast, UK",
+  journalabr =   "Commun ACM",
+  keywords =     "alarm clock; bounded buffer; buffer pool; CACM
+                 synchronization communication semaphores; computer
+                 operating systems; disc; exclusion; head optimizer;
+                 monitors; multiprogramming; mutual; operating system
+                 structuring concept; operating systems (computers);
+                 proof rule; readers; scheduler; scheduling; semaphores;
+                 single resource; structured multiprogramming;
+                 structuring; synchronization; writers",
+  treatment =    "A Application; P Practical",
+}
+
+%%%%%%%%%% Distributed shared memory
+
+@Article{lihudak,
+  author = 	 {Li, Kai and Hudak, Paul},
+  title = 	 {Memory Coherence in Shared Virtual Memory Systems},
+  journal = 	 {ACM Transactions on Computer Systems},
+  year = 	 1989,
+  volume =	 7,
+  number =	 4,
+  pages =	 {321--359},
+  month =	 nov,
+}
+
+% treadmarks-overview94.ps
+@Article{amza96:treadmarks,
+  author =	 {Christiana Amza and Alan L. Cox and Sndhya Dwarkadas
+                  and Pete Keleher and Honghui Lu and Ramakrishnan
+                  Rajamony and Weimin Yu and Willy Zwaenepoel},
+  title =	 {TreadMarks: Shared Memory Computing on Networks of
+                  Workstations},
+  journal =	 computer,
+  year =	 1996,
+  volume =	 29,
+  number =	 2,
+  pages =	 {18--28},
+  month =	 feb
+}
+
+% ahamad99.ps
+@Article{ahamad99:consistency,
+  author =	 {Mustaque Ahamad and Rammohan Kordale},
+  title =	 {Scalable Consistency Protocols for Distributed
+                  Services},
+  journal =	 {ieeepds},
+  year =	 1999,
+  volume =	 10,
+  number =	 9,
+  pages =	 {888--903},
+  month =	 sep
+}
+
+%%%%%%%%%% GLADE development
+
+@InProceedings{garlic,
+  author =	 "Kermarrec, Yvon and Pautet, Laurent and Tardieu,
+                  Samuel",
+  title =	 "\textsc{Garlic}: {G}eneric {A}da {R}eusable
+                  {L}ibrary for {I}nterpartition {C}ommunication",
+  booktitle =	 "Proceedings of Tri-Ada'95",
+  year =	 "1995",
+  organization = "ACM",
+  address =	 "Anaheim, California, USA"
+}
+
+@techreport{tardieu95c,
+  author =	 {Kermarrec, Yvon and Pautet, Laurent and Smith, Gary
+                  and Tardieu, Samuel and Theriault, Ron and Volz,
+                  Richard},
+  address =	 {College Station, Texas, USA},
+  institution =	 {Texas A\&M University},
+  month =	 apr,
+  note =	 {(Contract with a grant from Computer Sciences
+                  Corp.)},
+  title =	 {Ada~95 Distribution Annex Implementation for GNAT},
+  year =	 {1995}
+}
+
+@inproceedings{filters,
+  title =	 {Transparent Filtering of Streams in {GLADE}},
+  author =	 {Pautet, Laurent and Wolf, Thomas},
+  booktitle =	 {Proceedings of Tri-Ada'97},
+  organization = acm,
+  address =	 {Saint-Louis, Missouri, USA},
+  year =	 1997,
+}
+
+@InProceedings{tardieu97a:replay,
+  author =	 {Neri, Daniel and Pautet, Laurent and Tardieu,
+                  Samuel},
+  title =	 {Debugging Distributed Applications with Replay
+                  Capabilities},
+  booktitle =	 {Proceedings of Tri-Ada'97},
+  year =	 1997,
+  month =	 dec,
+  pages =	 "189--196",
+  address =	 {Saint-Louis, Missouri, USA},
+  organization = acm
+}
+
+@InProceedings{gnatdist,
+  author =	 {Kermarrec, Yvon and Nana, Laurent and Pautet,
+                  Laurent},
+  title =	 {GNATDIST: a configuration language for distributed
+                  Ada~95 applications},
+  booktitle =	 {Proceedings of Tri-Ada'96},
+  year =	 1996,
+  oragnization = acm,
+  address =	 {Philadelphia, Pennsylvania, USA}
+}
+
+@InProceedings{tardieu98a,
+  author = 	 {Pautet, Laurent and Tardieu, Samuel},
+  title = 	 {Inside the Distributed Systems Annex},
+  booktitle = 	 {Proceedings of AdaEurope'98},
+  year =	 1998,
+  month =        jun,
+  publisher =    {Springer Verlag}
+}
+
+@InProceedings{tardieu01a:modern-distsys,
+  author =       {Pautet, Laurent and Tardieu, Samuel},
+  title =        {Building Modern Distributed Systems},
+  booktitle =    {Proceedings of AdaEurope'01},
+  year =         2001,
+  month =        may,
+  publisher =    {Springer Verlag}
+}
+
+@PhdThesis{tardieu99,
+  author = 	 {Tardieu, Samuel},
+  title = 	 {GLADE, une implémentation de l'annexe des systèmes répartis d'Ada~95},
+  school = 	 {École nationale supérieure des télécommunications},
+  year = 	 1999,
+  type = 	 {Thèse de doctorat},
+  month = 	 oct
+}
+
+@inproceedings{gnat,
+  title =	 {The {GNAT} Project: A {GNU}-{Ada} {9X} Compiler},
+  author =	 {Schonberg, Edmond and Banner, Bernard},
+  booktitle =	 {Proceedings of Tri-Ada'94},
+  organization = acm,
+  address =	 {Baltimore, Maryland, USA},
+  year =	 1994,
+}
+
+
+@InProceedings{briot99:jgnat,
+  author = 	 {Emmanuel Briot},
+  title = 	 {JGNAT: The GNAT Ada~95 environment for the JVM},
+  month =	 sep,
+  booktitle =	 {Ada France 1999},
+  year =	 1999
+}
+
+@inproceedings{tardieu95b,
+  author =	 {Gargaro, Anthony and Kermarrec, Yvon and Pautet,
+                  Laurent and Tardieu, Samuel},
+  institution =	 {ENST de Bretagne},
+  month =	 mar,
+  booktitle =	 {Proceedings of AdaEurope'95},
+  title =	 {PARIS: Partitionned Ada for Remotely Invoked
+                  Services},
+  year =	 {1995}
+}	  
+
+
+@InProceedings{kienzle96:crypto-filter,
+  author =	 {Jörg Kienzle and Thomas Wolf and Alfred Strohmeier},
+  title =	 {Secure Communication in Distributed Ada},
+  booktitle =	 {Proceedings of AdaEurope'96},
+  year =	 1996,
+  month =	 jun,
+  url =		 {http://lglwww.epfl.ch/~wolf/docs/Cryptopaper.ps.gz}
+}
+
+@inproceedings{pautet00:glade-rt,
+  author =	 {Pautet, Laurent and Tardieu, Samuel},
+  title =	 {GLADE: a Framework for Building Large
+                  Object-Oriented Real-Time Distributed Systems},
+  institution =	 ieee,
+  booktitle =	 "Proceedings of the 3rd IEEE International Symposium
+                  on Object-Oriented Real-Time Distributed Computing
+                  (ISORC'00)",
+  address =	 {Newport Beach, California, USA},
+  month =	 jun,
+  year =	 2000
+}
+
+@InProceedings{harbour99:rt-dsa,
+  title =	 {Distributed {Ada} and real-time (session summary)},
+  booktitle =	 {Proceedings of the 9th international workshop on
+                  Real-time Ada (IRTAW'99)},
+  pages =	 {15--18},
+  year =	 1999,
+  author =	 {Gonz\'alez Harbour, Michael and Scott Arthur Moody},
+  publisher =	 {ACM Press}
+}
+
+%%%%%%%%%% TAO
+		
+@Article{schmidt98:tao,
+  author =	 {Douglas C. Schmidt and David L. Levine and Sumedh
+                  Mungee},
+  title =	 {The design of the TAO real-time object request
+                  broker},
+  journal =	 {Computer Communications},
+  year =	 1998,
+  volume =	 21,
+  number =	 4,
+  pages =	 {294--324},
+  month =	 apr
+}
+
+@article{schmidt3,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {Comparing Alternative Client Distributed
+                  Programming Techniques},
+  journal =	 {SIGS C++ Report},
+  month =	 may,
+  year =	 1995,
+  volume =	 "7",
+  number =	 4
+}
+
+@article{schmidt4,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {Comparing Alternative Server Distributed
+                  Programming Techniques},
+  journal =	 {SIGS C++ Report},
+  month =	 oct,
+  year =	 1995,
+  volume =	 "7",
+  number =	 8,
+}
+
+@article{schmidt5,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {Comparing Alternative Programming Techniques for
+                  Multi-threaded Servers -- the Thread-per-Request
+                  Concurrency Model},
+  journal =	 {SIGS C++ Report},
+  volume =	 8,
+  number =	 2,
+  month =	 feb,
+  year =	 1996
+}
+
+@article{schmidt6,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {Comparing Alternative Programming Techniques for
+                  Multi-threaded Servers -- the Thread-Pool
+                  Concurrency Model},
+  journal =	 {SIGS C++ Report},
+  volume =	 8,
+  number =	 4,
+  month =	 apr,
+  year =	 1996
+}
+
+@article{schmidt7,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {Comparing Alternative Programming Techniques for
+                  Multi-threaded Servers -- the Thread-per-Session
+                  Concurrency Model},
+  journal =	 {SIGS C++ Report},
+  volume =	 8,
+  number =	 7,
+  month =	 jul,
+  year =	 1996
+}
+
+@article{schmidt15,
+  author =	 {Douglas C. Schmidt and Steve Vinoski},
+  title =	 {An introduction to CORBA Messaging},
+  journal =	 {SIGS C++ Report},
+  volume =	 10,
+  number =	 10,
+  month =	 nov,
+  year =	 1998
+}
+
+@Article{schmidt98:patterns,
+  author =	 {Douglas C. Schmidt and Chris Cleeland},
+  title =	 {Applying Patterns to Develop Extensible ORB
+                  Middleware},
+  journal =	 {IEEE Communications Magazine Special Issue on Design
+                  Patterns},
+  year =	 1998,
+  url =
+                  {http://www.cs.wustl.edu/~schmidt/PDF/ORB-patterns.pdf}
+}
+
+@InProceedings{cleeland97:external-polymorphism,
+  author =	 {Chris Cleeland and Douglas C. Schmidt and Timothy
+                  H. Harrison},
+  title =	 {External polymorphism --- an Object Structural
+                  Pattern for Transparently Extending C++ Concrete
+                  Data Types},
+  booktitle =	 {Pattern Languages of Program Design 3},
+  crossref =	 {martin97:plop3},
+  url =
+                  {http://www.cs.wustl.edu/~schmidt/PLoP-96/External-Polymorphism.ps.gz}
+}
+
+% PLoP-95.ps.gz
+@InCollection{schmidt96:pattern:half-sync,
+  author =	 {Douglas C. Schmidt and Charles D. Cranor},
+  title =	 {Half-Sync/Half-Async --- an Architectural Pattern
+                  for Efficient and Well-structured Concerrent I/O},
+  booktitle =	 {Pattern Languages of Program Design 2},
+  crossref =	 {vlissides96:plop2},
+  url =		 {http://www.cs.wustl.edu/~schmidt/PDF/PLoP-95.pdf}
+}
+
+@InCollection{schmidt96:pattern:active-object,
+  author =	 {Douglas C. Schmidt and R. Greg Lavender},
+  title =	 {Active Object --- An Object Behavioral Pattern for
+                  Concurrent Programming},
+  booktitle =	 {Pattern Languages of Program Design 2},
+  crossref =	 {vlissides96:plop2},
+  url =		 {http://www.cs.wustl.edu/~schmidt/PDF/Act-Obj.pdf}
+}
+
+% reactor-siemens.pdf
+@InCollection{schmidt96:pattern:reactor,
+  author =	 {Douglas C. Schmidt},
+  title =	 {Reactor --- An Object Behavioral Pattern for Event
+                  Demultiplexing and Event Handler Dispatching},
+  booktitle =	 {Pattern Languages of Program Design},
+  crossref =	 {coplien95:plop1},
+  url = {http://www.cs.wustl.edu/~schmidt/PDF/reactor-siemens.pdf}
+}
+
+@InCollection{schmidt97:pattern:acceptor-connector,
+  author =	 {Douglas C. Schmidt and Charles D. Cranor},
+  title =	 {Acceptor-Connector --- An Object Creational Pattern
+                  for Connecting and Initializing Communication
+                  Services},
+  booktitle =	 {Pattern Languages of Program Design 3},
+  crossref =	 {martin97:plop3},
+  url =		 {http://www.cs.wustl.edu/~schmidt/PDF/Acc-Con.pdf}
+}
+
+@article{schmidt99:pattern:wrapper-facade,
+  author =	 {Douglas C. Schmidt},
+  title =	 {Wrapper Facade: A Structural Pattern for
+                  Encapsulating Functions within Classes},
+  journal =	 {SIGS C++ Report},
+  volume =	 11,
+  number =	 2,
+  month =	 feb,
+  year =	 1999,
+  url = {http://www.cs.wustl.edu/~schmidt/PDF/wrapper-facade.pdf}
+}
+
+% oryan01evaluating.pdf
+@Article{oryan01:real-time,
+  author =	 {Carlos O'Ryan and Douglas C. Schmidt and Fred Kuhns
+                  and Marina Spivak and Jeff Parsons and Irfan Pyarali
+                  and David L. Levine},
+  title =	 {Evaluating Policies and Mechanisms for Supporting
+                  Embedded, Real-Time Applications with CORBA},
+  journal =	 {Journal of Theory and Practice of Object Systems},
+  year =	 2001,
+  publisher =	 {John Wiley \& Sons, Inc},
+  volume =	 13,
+  number =	 2,
+  month =	 feb,
+  note =	 {Special issue on Distributed Objects and
+                  Applications}
+}
+
+
+@InProceedings{oryan00:pluggable-protocols,
+  author =	 {Carlos O'Ryan and Fred Kuhns and Douglas C. Schmidt
+                  and Ossama Othman and Jeff Parsons},
+  title =	 {The Design and Performance of a Pluggable Protocols
+                  Framework for Real-time Distributed Object Computing
+                  Middleware},
+  booktitle =	 {Proceedings of the IFIP International Conference on
+                  Distributed Systems Platforms and Open Distributed
+                  Processing (Middleware'00)},
+  year =	 2000,
+  month =	 apr,
+  url =
+                  {http://www.cs.wustl.edu/~fredk/papers/pluggable_protocols.ps}
+}
+
+% GLOBECOM-97.pdf
+@InProceedings{gokhale97:demux-rtcorba,
+  author =	 {Aniruddha S. Gokhale and Douglas C. Schmidt},
+  title =	 {Evaluating the performance of demultiplexing
+                  strategies for Real-time CORBA},
+  booktitle =	 {Proceedings of GLOBECOM'97},
+  year =	 1997,
+  address =	 {Phoenix, Arizona},
+  month =	 nov,
+  url =
+                  {http://www.cs.wustl.edu/~schmidt/PDF/GLOBECOM-97.pdf}
+}
+
+%%%%%%%%%% SPIF
+
+@InProceedings{dupouy97:spif,
+  author = 	 {Dupouy, Bertrand and Hainque, Olivier and Pautet, Laurent and Tardieu, Samuel},
+  title = 	 {The {SPIF} project},
+  booktitle =	 {Proceedings of the 1997 Ada-Europe International
+                  Conference on Reliable Software Technologies},
+  year =	 1997,
+  month =	 jun,
+  publisher =	 {Springer Verlag}
+}
+
+@TechReport{FEC,
+  author = 	 {Rosenberg, J. and Schulzrinne, H.},
+  title = 	 {An {A}/{V} {P}rofile {E}xtension for {G}eneric {F}orward {E}rror {C}orrection in {RTP}},
+  institution =  {Bell Laboratories},
+  year = 	 1997
+}
+
+@Manual{RTEMS,
+  title = 	 {RTEMS User's Guide},
+  author =	 {OAR},
+  organization = {Online Applications Research Corporation},
+  year =	 1998,
+  note =	 {\url{http://www.oarcorp.com/}}
+}
+
+@TechReport{mururoa,
+  author =	 {Romain Berrendonner and Laurent Bousquet
+                  and Thomas Quinot and Stéphane Thellier},
+  title =	 {Mururoa: Distributed Mutual Exclusion Using
+                  Distributed Objects in {A}da 95},
+  institution =	 ENST,
+  year =	 1997,
+  month =	 dec
+}
+
+@TechReport{multicast,
+  author =	 {Armstrong, S. and others},
+  title =	 {Multicast Transport Protocol},
+  institution =	 ietf,
+  year =	 1992,
+  month =	 feb,
+  type =	 rfc,
+  number =	 {1301}
+}
+
+@InProceedings{tardieu98b,
+  author =	 {Pautet, Laurent and Tardieu, Samuel},
+  title =	 {Building fault tolerant distributed systems using
+                  {IP} multicast},
+  booktitle =	 {Proceedings of SigAda'98},
+  year =	 1998,
+  organization = acm,
+  address =	 {Washington, DC, USA},
+  month =	 nov
+}
+
+@inproceedings{tutorial,
+  title =	 {Developping distributed {A}da application in {A}da
+                  95},
+  author =	 {Pautet, Laurent and Tardieu, Samuel},
+  booktitle =	 {Tutorials of Tri-Ada'97},
+  organization = acm,
+  address =	 {Saint-Louis, Missouri},
+  year =	 1997,
+}
+
+%%%%%%%%%% Programmation Ada 95
+
+@InProceedings{oo-ada9x,
+  author =	 {Strohmeier, Alfred and Barbey, St{\'e}phane and
+                  Kempe, Magnus},
+  title =	 {Object-Oriented Programming and Reuse in {A}da 9{X}},
+  booktitle =	 {Tutorials of Tri-Ada'93},
+  pages =	 {945--984},
+  year =	 1993,
+  volume =	 2,
+  organization = acm,
+  address =	 {Seattle, Washington, USA},
+  month =	 sep
+}
+
+% aseet97_oo.pdf
+@Article{carlisle97:ada-mult-inh,
+  author =	 {Martin C. Carlisle},
+  title =	 {Multiple inheritance using Ada~95},
+  journal =	 {Ada Letters},
+  year =	 1998,
+  month =	 jan,
+  volume =	 18,
+  number =	 1,
+  pages =	 {101--105},
+  url =		 {http://usafa.af.mil/dfcs/papers/mcc/aseet97_oo.html}
+}
+
+@inproceedings{heaney99:patterns,
+  title =	 {Design patterns in Ada~95},
+  author =	 {Matthew Heaney},
+  booktitle =	 {Tutorials of SIGAda'99},
+  organization = acm,
+  address =	 {Redondo Beach, California},
+  year =	 1999,
+  month =	 oct
+}
+
+@Article{grein99:safe-pointers,
+  author =	 {Christoph Grein},
+  title =	 {Safe pointers},
+  journal =	 {Ada User Journal},
+  year =	 1999,
+  volume =	 20,
+  number =	 2,
+  pages =	 {162--168},
+  month =	 jul
+}
+
+%%%%%%%%%% CORBA
+
+@Book{oma,
+  author =	 omg,
+  title =	 {Discussion of the Object Management Architecture},
+  publisher =	 omg,
+  year =	 1997,
+  month =	 jan,
+  note =	 {OMG formal/00-06-41}
+}
+
+@Book{corba-guide,
+  title =	 {The Essential Distributed Objects Survival Guide},
+  author =	 {Orfali, Robert and Harkey, Dan and Edwards, Jeri},
+  publisher =	 {John Wiley \& Sons, Inc},
+  year =	 1996,
+}
+
+@Book{corba,
+  title =	 "The Common Object Request Broker: Architecture and
+                  Specification, revision 2.2",
+  author =	 OMG,
+  publisher =    OMG,
+  year =	 1998,
+  month =	 feb,
+  note =	 {OMG Technical Document formal/98-07-01}
+}
+
+@Book{corba2.6:2001,
+  author =	 OMG,
+  title =	 {The Common Object Request Broker: Architecture and
+                  Specification, revision 2.6},
+  publisher =	 OMG,
+  year =	 2001,
+  month =	 dec,
+  note =	 {OMG Technical Document formal/2001-12-35}
+}
+
+
+@Book{corba-ada-mapping1.2:2001,
+  author =	 OMG,
+  title =	 {Ada Language Mapping Specification, v1.2},
+  publisher =	 OMG,
+  year =	 2001,
+  month =	 oct,
+  note =	 {OMG Technical Document formal/2001-10-42}
+}
+
+@Book{corba-services,
+  title =	 "{CORBA}services: Common Object Services
+                  Specification",
+  author =	 OMG,
+  publisher =	 OMG,
+  year =	 1997,
+  month =	 nov,
+  note =	 {OMG Technical Document formal/98-07-05},
+}
+
+@Book{java-idl,
+  title =	 {Java Language to IDL Mapping},
+  author =	 OMG,
+  publisher =	 OMG,
+  year =	 2000,
+  month =	 jan,
+  note =	 {OMG ptc/00-01-06}
+}
+
+@Book{cos-transaction-1.2.1:2001,
+  author =	 OMG,
+  title =	 {Transaction Service Specification},
+  publisher =	 OMG,
+  year =	 2001,
+  note =	 {version 1.2.1}
+}
+
+@Book{minimumCORBA,
+  title =	 {minimumCORBA},
+  author =	 OMG,
+  publisher =	 OMG,
+  year =	 1998,
+  month =	 aug,
+  note =	 {OMG orbos/98-08-04}
+}
+
+% ieeecom.ps
+@Article{maffeis97:virtual-synchrony,
+  author =	 {Silvano Maffeis and Douglas C. Schmidt},
+  title =	 {Constructing Reliable Distributed Communication
+                  Systems with CORBA},
+  journal =	 {IEEE Communications Magazine},
+  year =	 1997,
+  volume =	 14,
+  number =	 2,
+  month =	 feb,
+  url =		 {http://www.cs.wustl.edu/~schmidt/PDF/ieeecomm.pdf}
+}
+
+%%%%%%%%%% Interoperability
+
+@TechReport{adept-jxa1,
+  title =	 {Interoperation of Ada and Java using ADEPT/JxA},
+  author =	 {Anthony Gargaro and Gary Smith and Ronald Theriault
+                  and Richard Volz and Raymond Waldrop},
+  address =	 {College Station, Texas, USA},
+  institution =	 {Texas A\&M University},
+  month =	 apr,
+  year =	 {1997}
+}
+
+@InProceedings{adept-jxa2,
+  title =	 {Towards Interoperation of Ada and Java Using ADEPT
+                  (Advanced Distributed Execution Partioning Toolset)},
+  booktitle =	 {Proceedings of the 9th Annual Software Technology
+                  Conference},
+  address =	 {Salt Lake City, Utah, USA},
+  month =	 apr,
+  year =	 1997,
+  author =	 {Anthony Gargaro and Gary Smith and Ronald Theriault
+                  and Richard Volz and Raymond Waldrop}
+}
+
+@InProceedings{adept-jxa3,
+  author =	 {Anthony Gargaro and Gary Smith and Ronald Theriault
+                  and Richard Volz and Raymond Waldrop},
+  title =	 {Ada-Java Communication in ADEPT},
+  booktitle =	 {Proceedings of Tri-Ada'97},
+  year =	 1997,
+  organization = acm,
+  address =	 {Saint-Louis, Missouri, USA}
+}
+
+
+@InProceedings{smith99:intermediate-idl,
+  author =	 {Gary W. Smith and Richard A. Volz},
+  title =	 {Distributed Programming with Intermediate IDL},
+  booktitle =	 {Proceedings of the 9th international workshop on
+                  Real-time Ada (IRTAW'99)},
+  year =	 1999,
+  publisher =	 {ACM Press}
+}
+
+% java98.ps
+@InProceedings{breg98,
+  author =	 {Fabian Breg and Shridhar Diwan and Juan Villacis and
+                  Jayashree Balasubramanian and Esra Akman and Dennis
+                  Gannon },
+  title =	 {Java RMI Performance and Object Model
+                  Interoperability: Experiments with Java/HPC++
+                  Distributed Components},
+  booktitle =	 {Proceedings of the ACM 1998 Workshop on Java for
+                  High-Performance Network Computing},
+  pages =	 {91--100},
+  year =	 1998,
+  month =	 may,
+  publisher =	 acm,
+  url =
+                  {http://www.extreme.indiana.edu/hpjava/nexusrmi/java98.ps}
+}
+
+@MastersThesis{bourg99,
+  author =	 {Bourg, Anne-Laure},
+  title =	 {Implémentation d'un compilateur de Java vers IDL},
+  school =	 {ENST},
+  year =	 1999,
+  month =	 jul
+}
+
+% TR548.ps
+@TechReport{slominski01:soaprmi,
+  author =	 {Aleksander Slominski and Madhusudhan Govindaraju and
+                  Dennis Gannon and Randall Bramley},
+  title =	 {SoapRMI C++/Java 1.1: Design and Implementation },
+  institution =	 {Indiana University},
+  year =	 2001,
+  number =	 548,
+  month =	 may,
+  url =
+                  {http://www.cs.indiana.edu/ftp/techreports/TR548.html}
+}
+
+% Universally Interoperable Core, dynamicTAO
+% reflective-middleware-from-your.pdf
+@Article{roman01:reflective,
+  author =	 {Manuel Román and Fabio Kon and Roy H. Campbell},
+  title =	 {Reflective Middleware: From Your Desk to Your Hand},
+  journal =	 {IEEE Distributed Systems Online},
+  year =	 2001,
+  volume =	 2,
+  number =	 5,
+  url =
+                  {http://dsonline.computer.org/0105/features/rom0105_print.htm}
+}
+
+@inproceedings{quinot99a,
+  author =	 {Pautet, Laurent and Quinot, Thomas and Tardieu,
+                  Samuel},
+  institution =	 {ENST},
+  month =	 jun,
+  booktitle =	 {Proceedings of the 1999 Ada-Europe International
+                  Conference on Reliable Software Technologies},
+  title =	 {CORBA \& DSA: Divorce or Marriage?},
+  year =	 1999,
+  url =		 {http://www.infres.enst.fr/~quinot/publis/ae99.ps},
+  abstract =	 {This paper presents a comparison between CORBA and
+                  the Ada~95 Distributed Systems Annex. We also focus
+                  on the latest developments made by the ENST research
+                  team to GLADE that are related to CORBA services.},
+  address =	 {Santander, Spain}
+}
+
+@inproceedings{quinot99b,
+  author =	 {Azavant, Fabien and Cottin, Jean-Marie and Niebel,
+                  Vincent and Pautet, Laurent and Ponce, Sébastien and
+                  Quinot, Thomas and Tardieu, Samuel},
+  institution =	 {ENST},
+  month =	 oct,
+  address =	 {Redondo Beach, CA, USA},
+  booktitle =	 {Proceedings of SigAda'99},
+  organization = acm,
+  title =	 {CORBA and CORBA Services for DSA},
+  year =	 1999,
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/SigAda99.ps},
+  abstract =	 {Comparing CORBA and the Ada~95 Distributed Systems
+                  Annex shows that an advantage of CORBA is its Common
+                  Object Services, providing standard, frequently-used
+                  components for distributed application
+                  development. This paper presents our implementation
+                  of similar services for the DSA. We also introduce
+                  new developments of our team that aim at providing
+                  close interaction between CORBA and Ada
+                  applications. Part of the work presented here was
+                  accomplished by the AdaBroker team: Fabien Azavant,
+                  Emmanuel Chavane, Jean-Marie Cottin, Tristan
+                  Gingold, Laurent Kübler, Vincent Niebel, and
+                  Sébastien Ponce.}
+}
+		  
+@inproceedings{quinot99c,
+  author =	 {Quinot, Thomas},
+  institution =	 {ENST},
+  month =	 sep,
+  year =	 1999,
+  booktitle =	 {Ada France 1999},
+  address =	 {Brest, France},
+  title =	 {CIAO: Opening the Ada~95 Distributed Systems Annex
+                  to CORBA Clients},
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/adafrance.pdf},
+  abstract =	 {While the Distributed Systems Annex of Ada~95
+                  provides developers with a framework for easy
+                  contruction of safe distributed systems, integrating
+                  distribution seamlessly in the strong typing and
+                  well-defined semantics of Ada, it lacks the
+                  cross-platform, multiple-languages capabilities
+                  offered by CORBA. This paper presents CIAO
+                  (\emph{CORBA Interface for Ada distributed
+                  Objects}), a tool for automated generation of
+                  proxies that allow CORBA clients to interact with
+                  services created using the Distributed Systems
+                  Annex. A representation of DSA service
+                  specifications in OMG IDL is first presented. We
+                  then describe an automated translation tool based on
+                  this representation model. This tool is based on
+                  ASIS, a standardized API for the extraction of
+                  syntactic and semantic information from an Ada
+                  compilation environment.}
+}
+
+@Article{quinot00a,
+  author =	 {Laurent Pautet and Thomas Quinot and Samuel Tardieu},
+  title =	 {Objets répartis avec Ada~95},
+  journal =	 {Calculateurs Parallèles},
+  year =	 2000,
+  month =	 sep,
+  note =	 {Numéro thématique «~Évolution des plates-formes
+                  orientées objets répartis~»},
+  pages =	 {45--73},
+  url =		 {http://www.infres.enst.fr/~quinot/publis/calcpar.ps},
+  abstract =	 {This article presents the state of the art in the
+                  implementation of distributed objet systems using
+                  the Ada~95 language. The Distributed Systems
+                  optional annex of the Ada~95 standard is first
+                  descsribed, as well as an implementation of this
+                  annex: GLADE. Usage of the CORBA platform in Ada~95
+                  is then discussed. Present solutions and current
+                  research work on interoperation of both systems is
+                  finally presented.},
+  volume = 	 12,
+  number = 	 1
+}
+
+%%%%%%%%%% PolyORB
+
+
+@Article{quinot01a:droopi,
+  author =	 {Thomas Quinot and Fabrice Kordon and Laurent Pautet},
+  title =	 {DROOPI: Towards a generic middleware},
+  journal =	 {Ada Letters},
+  year =	 2001,
+  month =	 jun,
+  abstract =	 {This paper presents our work to bridge the Ada~95
+                  Distributed Systems Annex (DSA) and CORBA to take
+                  advantages of both environments facilities. Our
+                  project consists in two successive steps. The first
+                  one is CIAO, a DSA to CORBA translator. The second
+                  one aims at the definition of a generic middleware
+                  to be customized to DSA and CORBA. We propose a
+                  definition and an architecture of services for a
+                  generic middleware DROOPI and explain how it can be
+                  customized according various criteria. This generic
+                  middleware takes advantage of the lessons learned in
+                  the design and the development of several other
+                  projects: GLADE, AdaBroker and CIAO. Therefore, in
+                  its motivation and its targetting, we believe DROOPI
+                  is an original project.},
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/ada-letters.ps}
+}
+
+% PDPTA'01
+@InProceedings{quinot01b:droopi,
+  author =	 {Thomas Quinot and Fabrice Kordon and Laurent Pautet},
+  title =	 {Architecture for a reuseable object-oriented
+                  polymorphic middleware},
+  booktitle =	 {Proceedings of the 2001 International Conference on
+                  Parallel and Distributed Processing Techniques and
+                  Applications (PDPTA'2001)},
+  address =	 {Las Vegas, NV, USA},
+  year =	 2001,
+  month =	 jun,
+  abstract =	 {Using a middleware when designing a new distributed
+                  application allows portability across numerous
+                  software and hardware architectures, but introduces
+                  a new layer of potential incompatibilities due to
+                  the existence of various middleware standards. This
+                  paper presents the architecture of DROOPI
+                  (Distributed Reusable Object-Oriented Polymorphic
+                  Infrastructure). This project aims at defining and
+                  implementing a modular middleware emphasizing
+                  software reuse, customizability towards environment
+                  and application requirements, and transparent
+                  interoperability through the support of multiple
+                  middleware personalities. Some of these capabilities
+                  may be found in similar projects. Our objective is
+                  to bring all these properties in a single
+                  environment, enabling communication between various
+                  components using different middleware standards.},
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/pdpta01-314PD.pdf}
+}
+
+% DOA'01
+@InProceedings{quinot01c:droopi,
+  author =	 {Thomas Quinot and Fabrice Kordon and Laurent Pautet},
+  title =	 {From functional to architectural analysis of a
+                  middleware supporting interoperability across
+                  heterogeneous distribution models},
+  booktitle =	 {Proceedings of the 3rd International Symposium on
+                  Distributed Objects and Applications (DOA'01)},
+  address =	 {Rome, Italy},
+  year =	 2001,
+  month =	 sep,
+  abstract =	 {Using a middleware when designing a new distributed
+                  application allows portability across numerous
+                  software and hardware architectures, but introduces
+                  a new layer of potential incompatibilities due to
+                  the existence of various middleware
+                  standards. PolyORB, our generic middleware, directly
+                  addresses this problem: interoperability between
+                  distribution models. It can be customized into
+                  several ``personalities'' (e.g. CORBA, or RMI, or
+                  Ada~95 DSA), such as Jonathan and Quarterware. It
+                  also provides simultaneous support of multiple
+                  personalities within a single middleware
+                  instance. Software component implemented using a
+                  given distribution model may thus interact with
+                  remote entities from a different distribution
+                  model. This paper identifies the functions required
+                  to implement such a middleware and maps them on an
+                  operational design.},
+  url =		 {http://www.infres.enst.fr/~quinot/publis/doa01.ps}
+}
+
+% DOA'02
+@InProceedings{hugues02:polyorb-moma,
+  author =	 {Jérôme Hugues and Fabrice Kordon and Laurent Pautet
+                  and Thomas Quinot},
+  title =	 {A case study of Middleware to Middleware: MOM and
+                  ORB interoperability},
+  booktitle =	 {Proceedings of the 4th International Symposium on
+                  Distributed Objects and Applications (DOA'02)},
+  address =	 {Irvine, CA, USA},
+  year =	 2002,
+  month =	 oct,
+  abstract =	 {Diversity in distributed applications leads to
+                  diversity in distribution models, and hence in
+                  middleware. However, large systems may need
+                  different types of middleware and interoperability
+                  between them, requiring ``Middleware to Middleware''
+                  architectures. We have introduced the
+                  \emph{schizophrenic middleware} concept as a general
+                  solution for interoperability between distribution
+                  models. PolyORB, our implementation of a
+                  schizophrenic middleware, demonstrates full
+                  interoperability between CORBA, SOAP, and the Ada~95
+                  Distributed System Annex (DSA). In this paper, we
+                  present an assessment of the usability of our
+                  platform to implement Message Oriented Middleware
+                  (MOM). We then study MOM and ORB interoperability,
+                  from both an architectural and a functional point of
+                  view, and finally discuss benefits provided by our
+                  architecture to implement middleware.}
+}
+
+@MastersThesis{guitton02:polyorb-profiles,
+  author =	 {Jérôme Guitton},
+  title =	 {Utilisation de profils de restrictions dans un
+                  intergiciel générique},
+  school =	 {ENST},
+  year =	 2002,
+  month =	 sep,
+  type =	 {Mémoire de {DEA}}
+}
+
+@TechReport{pautet01:hdr,
+  author =	 {Laurent Pautet},
+  title =	 {Intergiciels schizophrènes~: une solution à
+                  l'interopérabilité entre modèles de répartition},
+  institution =	 upmc,
+  year =	 2001,
+  type =	 {Mémoire d'habilitation à diriger des recherches},
+  month =	 dec
+}
+
+@InCollection{pautet02:schizo,
+  author = 	 {Laurent Pautet},
+  title =	 {Intergiciels schizophrènes~: une solution à
+                  l'interopérabilité entre modèles de répartition},
+  booktitle = 	 {Avancées dans le domaine des intergiciels},
+  crossref =	 {najm02:intergiciels}
+}
+
+
+@InProceedings{baker01:m2m,
+  author =	 {Sean Baker},
+  title =	 {A2A, B2B --- Now We Need M2M (Middleware to
+                  Middleware) Technology},
+  booktitle =	 {Proceedings of the 3rd International Symposium on
+                  Distributed Objects and Applications (DOA'01)},
+  year =	 2001,
+  month =	 sep,
+  organization = {IONA Technologies},
+  note =	 {Keynote speech}
+}
+
+%%%%%%%%%% AdaBroker development
+
+@TechReport{adabroker,
+  author =	 {Azavant, Fabien and Cottin, Jean-Marie and Kubler,
+                  Laurent and Niebel, Vincent and Ponce,
+                  S{\'e}bastien},
+  title =	 {AdaBroker, using OmniORB2 from Ada},
+  institution =	 ENST,
+  year =	 1999,
+  month =	 mar
+}
+
+@MastersThesis{adabroker:dii1,
+  author =	 {Chavane, Emmanuel},
+  title =	 {AdaBroker development --- Dynamic Invocation},
+  school =	 ENST,
+  year =	 1999,
+  month =	 {July}
+}
+ 
+@MastersThesis{broca,
+  author =	 {Gingold, Tristan},
+  title =	 {Broca, an Ada CORBA implementation},
+  school =	 ENST,
+  year =	 1999,
+  month =	 jul
+}
+
+@MastersThesis{adabroker:valuetypes,
+  author = 	 {Azavant, Fabien},
+  title = 	 {Implementation of ValueTypes in AdaBroker},
+  school = 	 ENST,
+  year = 	 2000,
+  month =	 jun
+}
+
+
+@MastersThesis{adabroker:dii2,
+  author =	 {Ponce, Sébastion},
+  title =	 {Implémentation de l'interface d'invocation
+                  dynamique pour AdaBroker},
+  school =	 ENST,
+  year =	 2000,
+  month =	 jun
+}
+
+@MastersThesis{adabroker:ir,
+  author =	 {Niebel, Vincent},
+  title =	 {Implémentation de l'Interface Repository dans
+                  AdaBroker},
+  school =	 ENST,
+  year =	 2000,
+  month =	 jun
+}
+
+%%%%%%%%%% CIAO development
+
+@TechReport{ciao:mapping,
+  author =	 {Quinot, Thomas},
+  title =	 {Mapping the Ada~95 Distributed Systems Annex to OMG
+                  IDL --- Mapping definition},
+  institution =	 {ENST Paris and University Paris~VI~---
+                  Pierre-et-Marie-Curie},
+  year =	 1999,
+  month =	 may,
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/ciao-mapping.ps.gz}
+}
+   
+@MastersThesis{ciao:translator,
+  author =	 {Quinot, Thomas},
+  title =	 {Mapping the Ada~95 Distributed Systems Annex to OMG
+                  IDL --- Specification and implementation},
+  school =	 ENST,
+  year =	 1999,
+  month =	 aug,
+  url =
+                  {http://www.infres.enst.fr/~quinot/publis/ciao-impl.ps.gz}
+}
+
+%%%%%%%%%% Distributed Operating Systems
+
+@Article{mullender90:amoeba,
+  author =	 "Sape J. Mullender and Guido van Rossum and Andrew S. Tanenbaum and
+                  Robbert van Renesse and Hans van Staveren",
+  title =	 "Amoeba: A distributed operating system",
+  journal =	 {IEEE Computer},
+  year =	 1990,
+  volume =	 23,
+  pages =	 {44--53},
+  month =	 may
+}
+
+% x-kernel.ps
+@Article{hutchinson91:xkernel,
+  author =	 "Norman C. Hutchinson and Larry L. Peterson",
+  title =	 "{The x-Kernel: An Architecture for Implementing
+                  Network Protocols}",
+  journal =	 "IEEE Transactions on Software Engineering",
+  year =	 1991,
+  volume =	 17,
+  number =	 1,
+  month =	 jan,
+  pages =	 "64--76",
+  abstract =	 "This paper describes a new operating system kernel,
+                  called the x-kernel, that provides an explicit
+                  architecture for constructing and composing network
+                  protocols. An important goal of x-kernel is to
+                  provide an architecture that is both general enough
+                  to accommodate a wide range of protocols, yet
+                  efficient enough to perform competitively with less
+                  structured operating systems."
+}
+
+@InProceedings{rashid86a:mach,
+  author =       "M. Accetta and R. Baron and D. Golub and R. Rashid and
+                 A. Tevanian and M. Young",
+  title =        "{Mach: A New Kernel Foundation for UNIX
+                 Development}",
+  booktitle =    "Proceedings of the Summer 1986 USENIX Technical
+                 Conference and Exhibition",
+  month =        jun,
+  year =         "1986",
+  abstract =     "Mach is a multiprocessor operating system kernel and
+                 environment under development at Carnegie Mellon
+                 University. Mach provides a new foundation for UNIX
+                 development that spans networks of uniprocessors and
+                 multiprocessors. This paper describes Mach and the
+                 motivations that led to its design. Also described are
+                 some of the details of its implementation and current
+                 status."
+}
+
+@TechReport{rozier90:chorus,
+  author =	 {M. Rozier and V. Abrossimov and F. Armand and I. Boule and
+                  M. Gien and M. Guillemont and F. Herrmann and C. Kaiser and
+                  S. Langlois and P. Leonard and W. Neuhauser},
+  title =	 {Overview of the CHORUS Distributed Operating
+                  Systems},
+  institution =	 {Chorus Systèmes},
+  year =	 1990,
+  type =	 {Technical Report},
+  number =	 {CS-TR-90-25}
+}
+
+% BAST97.ps.gz
+@TechReport{garbinato97:bast,
+  author =	 {Benoît Garbinato and Rachid Guerraoui},
+  title =	 {Bast, A framework for Reliable Distributed
+                  Computing},
+  institution =	 epfl,
+  year =	 1997
+}
+
+% generic-consensus-service.pdf
+@article{guerraoui01:consensus,
+  author =	 "Rachid Guerraoui and André Schiper",
+  title =	 {The Generic Consensus Service},
+  journal =	 "Software Engineering",
+  volume =	 27,
+  number =	 1,
+  pages =	 "29-41",
+  year =	 2001
+}
+
+
+%%%%%%%%%% Generic and flexible middlewares
+
+% qw.ps
+@InProceedings{singhai98:quarterware,
+  author =	 {Ashish Singhai and Aamod Sane and Roy H. Campbell},
+  title =	 {Quarterware for Middleware},
+  booktitle =	 {Proceedings of the 18th International Conference on
+                  Distributed Computing Systems (ICDCS'98)},
+  year =	 1998,
+  month =	 may,
+  organization = ieee,
+  publisher =	 ieee,
+  url =
+                  {http://choices.cs.uiuc.edu/singhai/Papers/icdcs98.pdf}
+}
+
+@PhdThesis{singhai99:quarterware,
+  author =	 {Ashish Singhai},
+  title =	 {Quarterware: A middleware toolkit of software RISC
+                  components},
+  school =	 {University of Illinois at Urbana-Champaign},
+  year =	 1999
+}
+
+@TechReport{regep00:classif,
+  author =	 {Dan Regep},
+  title =	 {Key characteristics of a generic middleware},
+  institution =	 upmc,
+  year =	 2000,
+  type =	 {Internal report},
+  month =	 jul
+}
+
+% schmidt99.pdf
+@Article{schmidt99:embedded,
+  author =	 {Aniruddha S. Gokhale and Douglas C. Schmidt},
+  title =	 {Optimizing a CORBA Internet Inter-ORB Protocol
+                  (IIOP) Engine for Minimal Footprint Embedded
+                  Multimedia Systems},
+  journal =	 ieeejsac,
+  year =	 1999,
+  volume =	 17,
+  number =	 9,
+  pages =	 {1673--1706},
+  month =	 sep
+}
+
+% MPG-98-27.ps.gz
+@InProceedings{blair98:reflective,
+  author =	 {Blair, Gordon S. and Coulson, Geoff and Robin,
+                  P. and Papathomas, Michael},
+  title =	 {An architecture for Next Generation Middleware},
+  booktitle =	 {Proceedings of the 1st IFIP International Conference on
+                  Distributed Systems Platforms and Open Distributed
+                  Processing (Middleware'98)},
+  year =	 1998,
+  month =	 sep,
+  publisher =	 {Springer Verlag}
+}
+
+@inproceedings{blair00:role,
+  author =	 "Gordon S. Blair and Lynne Blair and Valerie Issarny
+                  and Petr Tuma and Apostolos Zarras",
+  title =	 "The Role of Software Architecture in Constraining
+                  Adaptation in Component-Based Middleware Platforms",
+  booktitle =	 {Proceedings of the 2nd IFIP International Conference
+                  on Distributed Systems Platforms and Open
+                  Distributed Processing (Middleware'2000)},
+  pages =	 "164--184",
+  year =	 2000,
+  url =
+                  {http://www.comp.lancs.ac.uk/computing/users/lb/Postscript/Middleware00.ps.gz}
+}
+
+% icdcs99.ps
+@InProceedings{francu99:act,
+  author =	 {Cristian Francu and Ivan Marsic},
+  title =	 {An Advanced Communication Toolkit for Implementing
+                  the Broker Pattern},
+  booktitle =	 {Proceedings of the 19th International Conference on
+                  Distributed Computing Systems (ICDCS'99)},
+  year =	 1999,
+  month =	 jun,
+  publisher =	 ieee,
+  organization = ieee,
+  url =
+                  {http://www.caip.rutgers.edu/~francu/DISCIPLE/ACT/icdcs99.ps.gz}
+}
+
+% cbus.ps.gz
+@InProceedings{marsic99:cbus,
+  author =	 {Ivan Marsic and Bogdan Dorohonceanu},
+  title =	 {An Application Framework for Synchronous
+                  Collaboration using Java Beans},
+  booktitle =	 {Proceedings of the 32nd Hawaiian International
+                  Conference on System Sciences (HICSS-32)},
+  year =	 1999,
+  month =	 jan,
+  url =
+                  {http://www.caip.rutgers.edu/multimedia/groupware/Publications/framework.ps.gz}
+}
+
+% hamilton93subcontract.ps
+@inproceedings{hamilton93:subcontract,
+  author =	 "Hamilton, Graham and Powell, Michael L. and
+                  Mictchell, James G.",
+  title =	 "Subcontract: A Flexible base for Distributed
+                  Programming",
+  booktitle =	 "Proceedings of the 14th {ACM} Symposium on Operating
+                  Systems Principles",
+  address =	 "Asheville, NC {(USA)}",
+  pages =	 "69--79",
+  year =	 "1993"
+}
+
+%%%%%%%%%% Jonathan
+
+@TechReport{shapiro92:sspchains,
+  author =	 {Marc Shapiro and Peter Dickman and David Plainfossé},
+  title =	 {SSP Chains: Robust, distributed references
+                  supporting acyclic garbage collection},
+  institution =	 {INRIA Rocquencourt},
+  year =	 1992,
+  type =	 {Rapport de recherche},
+  number =	 1799,
+  month =	 nov
+}
+
+@InProceedings{dangtran97:jonathan,
+  author =	 {Frédéric Dang Tran and Jean-Bernard Stéfani},
+  title =	 {Towards an extensible and modular ORB framework},
+  booktitle =	 {Workshop of ECOOP'97},
+  year =	 1997,
+  month =	 apr,
+  url =          {http://sirac.inrialpes.fr/~bellissa/wecoop97/dangtran.ps.gz}
+}
+
+@InProceedings{dumant98:jonathan,
+  author =	 {Bruno Dumant and François Horn and Dang Tran,
+                  Frédéric and Jean-Bernard Stéfani},
+  title =	 {Jonathan: an Open Distributed Processing
+                  Environment in Java},
+  booktitle =	 {Proceedings of the IFIP International Conference on Distributed
+                  Systems Platforms and Open Distributed Processing
+                  (Middleware'98)},
+  year =	 1998,
+  month =	 sep,
+  publisher =	 {Springer Verlag}
+}
+
+@Manual{krakowiak02:jonathan-tutorial,
+  title =	 {Jonathan tutorial},
+  author =	 {Sacha Krakowiak},
+  organization = {Université Joseph-Fourier, Grenoble},
+  month =	 feb,
+  year =	 2002,
+  url =		 {http://www.objectweb.org/jonathan/doc/tutorial/}
+}
+
+@InProceedings{shapiro94:binding,
+  author =	 {Marc Shapiro},
+  title =	 {A Binding Protocol for Distributed Shared Objects},
+  booktitle =	 {Proceedings of the 14th International Conference on
+                  Distributed Computing Systems (ICDCS'94)},
+  year =	 1994,
+  month =	 jun,
+  organization = ieee,
+  publisher =	 ieee,
+  url =
+                  {http://www.laas.research.ec.org/broadcast/trs/papers/56.ps}
+}
+
+%%%%%%%%%% CorbaWeb
+
+% merle96corbaweb.ps.gz
+@InProceedings{merle96:corbaweb,
+  author =	 {Philippe Merle and Christophe Gransart and Jean-Marc
+                  Geib},
+  title =	 {CorbaWeb: A WWW and Corba Worlds Integration},
+  booktitle =	 {Proceedings of the Second USENIX Conference on
+                  Object-Oriented Technologies (COOTS'96), Workshop on
+                  Distributed Object Computing on the Internet},
+  publisher =	 {The USENIX Association},
+  year =	 1996,
+  month =	 jun
+}
+
+% merle97corbaweb.ps.gz
+@InProceedings{merle97:corbaweb,
+  author =	 {Philippe Merle and Christophe Gransart and Jean-Marc
+                  Geib},
+  title =	 {Generic tools: a new way to use Corba},
+  booktitle =	 {Proceedings of the European Conference on
+                  Object-Oriented Programming (ECOOP'97)},
+  year =	 1997,
+  month =	 jun,
+  publisher =	 {Springer Verlag}
+}
+
+% merle97corbascript.ps.gz
+@InProceedings{merle97:corbascript,
+  author =	 {Philippe Merle and Christophe Gransart and Jean-Marc
+                  Geib},
+  title =	 {Using and Implementing CORBA Objects with
+                  CorbaScript},
+  booktitle =	 {Object Oriented Parallel and Distributed
+                  Programming},
+  crossref =	 {baba99:oopdp}
+}
+
+%  booktitle =	 {Proceedings of the Second France-Japan Workshop on
+%                  Object Based Parallel and Distributed Computing
+%                  (OBPDC'97)},
+
+%%%%%%%%%% General papers on middleware architectures
+
+@Article{bernstein96:middleware,
+  author =	 {Philip A. Bernstein},
+  title =	 {Middleware: A Model for Distributed System
+                  Services},
+  journal =	 cacm,
+  year =	 1996,
+  volume =	 39,
+  number =	 2,
+  pages =	 {86--98},
+  month =	 feb
+}
+
+% emmerich.pdf
+@InCollection{emmerich00:se-and-middleware,
+  author =	 {Wolfgang Emmerich},
+  title =	 {Software Engineering and Middleware: A Roadmap},
+  booktitle =	 {The Future of Software Engineering},
+  crossref =	 {finkelstein00:future-of-se},
+  pages =	 {117--129},
+  publisher =	 {ACM Press},
+  year =	 2000
+}
+
+@InCollection{schroeder93:computing-with-bob,
+  author =	 {Schroeder, Michael D.},
+  title =	 {A State-of-the-Art Distributed System: Computing
+                  with BOB},
+  booktitle =	 {Distributed Systems},
+  crossref =	 {mullender},
+}
+
+%%%%%%%%%% Architectures applicatives basées sur les composants
+
+% dasc2000.pdf
+@InProceedings{wills00:ocp,
+  author =	 {Linda Wills and Sam Sander and Suresh Kannan and
+                  Aaron Kahn and J. V. R. Prasad and Daniel Schrage},
+  title =	 {An Open Control Platform for reconfigurable,
+                  distributed, hierarchical control systems},
+  booktitle =	 {Proceedings of the Digital Avionics Systems
+                  Conference},
+  year =	 2000,
+  address =	 {Philadelphia, PA, USA},
+  month =	 oct
+}
+
+@Manual{ejb2.1:2002,
+  title =	 {Enterprise JavaBeans Specification, version 2.1},
+  author =	 {Linda G. DeMichiel},
+  organization = sun,
+  month =	 jun,
+  year =	 2002,
+  url =		 {http://java.sun.com/products/ejb/}
+}
+
+%%%%%%%%%% Miscellaneous
+
+@TechReport{quinot98:atnv6,
+  author = 	 {Thomas Quinot},
+  title = 	 {An IPv6 architecture for the Aeronautical Telecommunication Network},
+  institution =  {Eurocontrol Experimental Centre},
+  year = 	 1998,
+  month =	 sep,
+  url =          {http://www.infres.enst.fr/~quinot/publis/ATNv6.ps}
+}
+
+@InProceedings{ravenscar,
+  author =	 {Brian Dobbing and Alan Burns},
+  title =	 {The {Ravenscar} tasking profile for high integrity
+                  real-time programs},
+  booktitle =	 {Proceedings of SigAda'98},
+  year =	 1998,
+  address =	 {Washington, DC, USA},
+  month =	 nov
+}
+
+@techreport{m3-tutorial,
+  author =	 {Andrew Birell and Greg Nelson and Susan Owicki and
+                  Edward Wobber},
+  title =	 {Network Objects},
+  institution =	 {Digital Systems Research Center},
+  year =	 1994,
+  month =	 feb,
+  number =	 "115/94",
+}
+
+@inproceedings{esterel,
+  title =	 {Using {ESTEREL} for Avionics Software Development:
+                  Motivation, Experiments and Works in Progress},
+  author =	 {Hainque, Olivier and Pautet, Laurent and Le Biannic,
+                  Yann and Nassor, Eric},
+  booktitle =	 {Tutorials of PLRTIA'98},
+  address =	 {Madrid, Spain},
+  year =	 1998,
+}
+
+% tr-b-97-07.ps
+@InProceedings{brose97,
+  author =	 {Gerald Brose and Klaus-Peter Löhr and André Spiegel},
+  title =	 {Java Does not Distribute},
+  booktitle =	 {Proceesings of TOOLS Pacific '97},
+  year =	 1997,
+  month =	 nov,
+  url =
+                  {ftp://fubinf.inf.fu-berlin.de/pub/reports/tr-b-97-07.ps.gz}
+}
+
+% smli_tr-94-29.pdf
+@TechReport{waldo94,
+  author =	 {Jim Waldo and Geoff Wyant and Ann Wollrath and
+                  Samuel C. Kendall},
+  title =	 {A Note on Distributed Computing},
+  institution =	 sun,
+  year =	 1994,
+  type =	 {Technical Report},
+  number =	 {TR-94-29},
+  month =	 nov,
+  abstract =	 {We argue that objects that interact in a distributed
+                  system need to be dealt with in ways that are
+                  intrinsically different from objects that interact
+                  in a single address space. These differences are
+                  required because distributed systems require that
+                  the programmer be aware of latency, have a different
+                  model of memory access, and take into account issues
+                  of concurrency and partial failure. We look at a
+                  number of distributed systems that have attempted to
+                  paper over the distinction between local and remote
+                  objects, and show that such systems fail to support
+                  basic requirements of robustness and
+                  reliability. These failures have been masked in the
+                  past by the small size of the distributed systems
+                  that have been built. In the enterprise-wide
+                  distributed systems foreseen in the near future,
+                  however, such a masking will be impossible. We
+                  conclude by discussing what is required of both
+                  systems-level and application-level programmers and
+                  designers if one is to take distribution seriously.},
+  url =
+                  {http://www.sun.com/research/technical-reports/1994/abstract-29.html}
+}
+
+% smli_tr-95-46.pdf
+@TechReport{waldo95,
+  author =	 {Jim Waldo and Ann Wollrath and Geoff Wyant},
+  title =	 {Simple Activation for Distributed Objects},
+  institution =	 sun,
+  year =	 1995,
+  type =	 {Technical Report},
+  number =	 {TR-95-46},
+  month =	 nov,
+  abstract =	 {In order to support long-lived distributed objects,
+                  object activation is required. Activation allows an
+                  object to alternate between periods of activity,
+                  where the object executes in a process; and periods
+                  of dormancy, where the object is on disk and
+                  utilizes no system resources. We describe an
+                  activation protocol for distributed object
+                  systems. The protocol features overall simplicity as
+                  well as applicability to several different
+                  activation models. We use the Modula-3 network
+                  object system as a base for our implementation;
+                  while we make no changes to the underlying network
+                  object subsystem, we suggest a minor modification
+                  that could be made to the marshalling of network
+                  objects to assist in lazy activation, our preferred
+                  activation model.},
+  url =
+                  {http://www.sun.com/research/techrep/1995/abstract-46.html}
+}
+
+% cacm.ps
+@Unpublished{campbell96,
+  author =	 {Roy H. Campbell and J. W. Coomes and Amitabh Dave
+                  and Nayeem Islam and Y. Li and Willy S. Liao and
+                  Swee Lim and Tin Qian and Dave K. Raila and Ellard
+                  Roush and Aamod Sane and Mohlalefi Sefika and Ashish
+                  Singhai and S. T. Tan},
+  title =	 {Customizable Object-Oriented Operating Systems},
+  note =	 {Submitted for \emph{Communications of the ACM} Special
+                  Issue on Recent Developments in Operating Systems},
+  month =	 sep,
+  year =	 1996,
+  url =		 {http://choices.cs.uiuc.edu/srg/stan/cacm.ps}
+}
+
+% ppopp99.ps
+@InProceedings{maassen99,
+  author =	 {Jason Maassen and Rob van Nieuwpoort and Ronald
+                  Veldema and Henri E. Bal and Aske Plaat },
+  title =	 {An Efficient Implementation of Java's Remote Method
+                  Invocation},
+  booktitle =	 {Proceedings of the 7th ACM SIGPLAN Symposium on
+                  Principles and Practice of Parallel Programming
+                  (PPoPP)},
+  year =	 1999,
+  month =	 may,
+  url =		 {http://www.cs.vu.nl/~aske/Papers/ppopp99.ps.gz}
+}
+
+% nester99.ps
+@InProceedings{nester99,
+  author = 	 {Christian Nester and Michael Philippsen and Bernhard Haumacher },
+  title = 	 {A More Efficient RMI for Java},
+  booktitle = 	 {ACM 1999 Java Grande Conference},
+  pages =	 {153--159},
+  year =	 1999,
+  month =	 jun,
+  publisher =	 {ACM},
+  url =          {http://citeseer.nj.nec.com/nester99more.html}
+}
+
+% renaissance.ps
+@TechReport{renaissance93,
+  author = 	 {Patrick A. Muckelbauer and Vincent F. Russo},
+  title = 	 {The Renaissance Distributed Object System},
+  institution =  {Purdue University},
+  year = 	 1993,
+  type =	 {Technical Report},
+  number =	 {TR.93-022},
+  url = {http://www.cs.purdue.edu/Renaissance/overview.ps}
+}
+
+% rpc-icdcs.ps.Z
+@InProceedings{zelesko96,
+  author =	 {Matthew J. Zelesko and David R. Cheriton},
+  title =	 {Specializing Object-Oriented RPC for Functionality
+                  and Performance},
+  booktitle =	 {Proceedings of the 16th International Conference on
+                  Distributed Computing Systems (ICDCS'96)},
+  year =	 1996,
+  publisher =	 {IEEE}
+}
+
+% jdsm-yu-1.ps
+@InProceedings{java-dsm97,
+  author =	 {Weimin Yu and Alan Cox},
+  title =	 {Java/DSM: A platform for heterogeneous computing},
+  booktitle =	 {Proceedings of ACM 1997 Workshop on Java for Science
+                  and Engineering},
+  year =	 1997,
+  month =	 jun,
+  publisher =	 {ACM},
+  url =
+                  {http://ww1.math.luc.edu/~pshafae/Articles/jdsm-yu-1.ps}
+}
+
+% nexus.ps
+@Article{nexus96,
+  author =	 {Ian Foster and Carl Kesselman and Steven Tuecke},
+  title =	 {The Nexus Approach to Integrating Multithreading and
+                  Communication},
+  journal =	 jpdc,
+  year =	 1996,
+  number =	 37,
+  pages =	 {70--82},
+  url =		 {http://now.cs.berkeley.edu/clumps/jpdc.ps}
+}
+
+@TechReport{rfc1057,
+  author = 	 sun,
+  title = 	 {RPC: Remote Procedure Call Protocol specification: Version 2},
+  institution =  ietf,
+  year = 	 1988,
+  type =	 rfc,
+  number =	 1057,
+  month =	 jun
+}
+
+@Manual{xdr,
+  title =	 {{xdr} -- library routines for external data
+                  representation},
+  author =	 sun,
+  year =	 1987
+}
+
+@TechReport{rfc1831:rpc,
+  author =	 {R. Srinivasan},
+  title =	 {RPC: Remote Procedure Call Protocol Specification
+                  Version 2},
+  institution =	 ietf,
+  year =	 1995,
+  type =	 rfc,
+  number =	 1831,
+  month =	 aug,
+  note =	 sun
+}
+
+@TechReport{rfc1832:xdr,
+  author =	 {R. Srinivasan},
+  title =	 {XDR: External Data Representation Standard},
+  institution =	 ietf,
+  year =	 1995,
+  type =	 rfc,
+  number =	 1832,
+  month =	 aug,
+  note =	 sun
+}
+
+@TechReport{rfc1813,
+  author = 	 sun,
+  title = 	 {NFS Version 3 Protocol Specification},
+  institution =  ietf,
+  year = 	 1995,
+  type =	 rfc,
+  number =	 1813,
+  month =	 jun
+}
+
+@TechReport{rfc2616:http,
+  author =	 {Roy T. Fielding and James Gettys and Jeffrey
+                  C. Mogul and Harry {Frystyk Nielsen} and Larry
+                  Masinter and Paul J. Leach and Tim Berners-Lee},
+  title =	 {Hypertext Transfer Protocol --- HTTP/1.1},
+  institution =	 ietf,
+  year =	 1999,
+  month =	 jun,
+  type =	 rfc,
+  number =	 2616
+}
+
+@TECHREPORT{freier96:sslv3,
+  author = "Alan O. Freier and Philip Karlton and Paul C. Kocher",
+  title = "The {SSL} Protocol --- Version 3.0",
+  type = "Internet Draft",
+  number = "draft-freier-ssl-version3-02.txt",
+  month = nov,
+  year = "1998",
+  note = "\emph{Work in progress}. The Secure Socket Layer has
+    become a \emph{de facto} standard for secure communication
+    over the Internet."}
+
+
+@Manual{elischer96:netgraph,
+  title =	 {The Netgraph Networking System},
+  author =	 {Julian Elischer and Archie Cobbs},
+  organization = {Whistle Communications, Inc.},
+  year =	 1996,
+  note =	 {See also \texttt{netgraph}(4) FreeBSD manual page.},
+  url =		 {http://www.elischer.org/netgraph/}
+}
+
+@inproceedings{swanson93design,
+  author =	 "Mark Swanson and Leigh Stoller and Terence Critchlow
+                  and Robert Kessler",
+  title =	 "The Design of the Schizophrenic Workstation System",
+  booktitle =	 {Proceedings of the Third USENIX Mach Symposium},
+  pages =	 "291--306",
+  year =	 1993,
+  url =		 {http://www.cs.utah.edu/~stoller/pubs/Schizo2.ps}
+}
+
+@book{HILLIS85:cm,
+  author =	 "Daniel W. Hillis" ,
+  title =	 {The Connection Machine},
+  publisher =	 {MIT Press},
+  year =	 1985
+}
+
+@PhdThesis{fenyo01:mpc,
+  author =	 {Alexandre Fenyo},
+  title =	 {Conception et réalisation d'un noyau de
+                  communication bâti sur la primitive d'écriture
+                  distance, pour machines parallèles de type «~grappe
+                  de PC~»},
+  school =	 upmc,
+  year =	 2001,
+  month =	 jul
+}
+
+@Book{tardieu97b,
+  author =	 {Feny{\"o}, Alexandre and Le Guern, Fr\'ed\'eric and Tardieu, Samuel},
+  editor =	 {Eyrolles},
+  title = 	 {Connecter son r\'eseau d'entreprise \`a l'Internet},
+  publisher = 	 {Eyrolles},
+  year = 	 1997,
+  month =        mar,
+}
+
+% madukkarum.pdf
+@InProceedings{madukka98:via-doc,
+  author =	 {Rajesh S. Madukkarumukumana and Hemal V. Shah and
+                  Carlton Pu},
+  title =	 {Harnessing User-Level Networking Architectures for
+                  Distributed Object Computing over High-speed
+                  Networks},
+  booktitle =	 {Proceedings of the 2nd USENIX Windows NT Symposium},
+  year =	 1998,
+  address =	 {Seattle, Washington},
+  month =	 aug,
+  url =
+                  {http://www.usenix.org/publications/library/proceedings/usenix-nt98/full_papers/madukkarum/madukkarum.pdf}
+}
+
+%%%%%%%%%% Principes généraux des architectures logicielles
+
+@InProceedings{mcilroy68:components,
+  author =	 {M. Douglas McIlroy},
+  title =	 {Mass-Produced Software Components},
+  booktitle =	 {Software Engineering, Report on a conference
+                  sponsored by the NATO Science Committee},
+  crossref =	 {naur68:soft-eng},
+  year =	 1968,
+  pages =	 {138--155}
+}
+
+@Proceedings{naur68:soft-eng,
+  title = 	 {Software Engineering, Report on a conference sponsored by the NATO Science Committee},
+  year = 	 1968,
+  editor =	 {P. Naur and B. Randell},
+  month =	 oct,
+  organization = {NATO Science Committee}
+}
+
+
+@InProceedings{garlan95:mismatch,
+  author =	 {David Garlan and Robert Allen and John Ockerbloom},
+  title =	 {Architectural Mismatch, or Why it's hard to build
+                  systems out of existing parts},
+  booktitle =	 {Proceedings of the 17th International Conference on
+                  Software Engineering (ICSE'95)},
+  year =	 1995,
+  month =	 apr,
+  organization = {IEEE/ACM},
+  publisher =	 acm
+}
+
+%%%%%%%%%% Text books
+
+%%  Need to be at the end for proper handling of 'InColletion'
+%%  entries (whose 'crossref' attribute must be a forward reference.)
+
+@Book{coulouris,
+  author = 	 "Coulouris, George and Dollimore, Jean and Kindberg, Tim",
+  title = 	 "Distributed Systems, Concepts and Design",
+  publisher = 	 "Addison-Wesley",
+  year = 	 1994,
+  edition =	 "second"
+}
+
+@Book{meyer88,
+  author =	 {Meyer, Bertrand},
+  title = 	 {Object-oriented Software Construction},
+  publisher = 	 {Prentice-Hall International},
+  year = 	 1988
+}
+
+@Book{mullender,
+  editor = 	 "Mullender, Sape J.",
+  title = 	 "Distributed Systems",
+  publisher = 	 "Addison-Wesley",
+  year = 	 1993,
+  month = mar,
+  edition =	 "second"
+}
+
+@Book{raynal87:srr,
+  author =	 {Raynal, Michel},
+  title = 	 {Systèmes répartis et réseaux},
+  publisher = 	 {Eyrolles},
+  year = 	 1987
+}
+
+@Book{raynal92:gdr,
+  author =	 "Raynal, Michel",
+  title =	 "Gestion des données réparties~: problèmes et
+                  protocoles",
+  publisher =	 "Eyrolles",
+  year =	 1992,
+  series =	 "Collection de la Direction des Études et Recherches
+                  d'Électricité de France"
+}
+
+@Book{shannon,
+  author =	 {Shannon, Claude E. and Weaver, Warren},
+  title = 	 {The Mathematical Theory of Communication},
+  publisher = 	 {University of Illinois Press},
+  year = 	 1963
+}
+
+
+@Book{patterns,
+  author =	 {Erich Gamma and Richard Helm and Ralph Johnson and
+                  John Vlissides},
+  title =	 {Design Patterns, Elements of Reusable
+                  Object-Oriented Software},
+  publisher =	 {Addison-Wesley},
+  year =	 1995
+}
+
+
+@Book{buschmann96:posa1,
+  author =	 {Frank Buschmann and Régine Meunier and Hans Rohnert
+                  and Peter Sommerlad and Michael Stal},
+  title =	 {A System of Patterns},
+  publisher =	 {John Wiley \& Sons},
+  year =	 1996,
+  volume =	 1,
+  series =	 {Pattern-Oriented Software Architecture}
+}
+
+@Book{schmidt97:posa2,
+  author =	 {Douglas C. Schmidt and Michael Stal and Hans Rohnert
+                  and Frank Buschmann},
+  title =	 {Patterns for Concurrent and Networked Objects},
+  publisher =	 {John Wiley \& Sons},
+  year =	 1996,
+  volume =	 2,
+  series =	 {Pattern-Oriented Software Architecture}
+}
+
+@Book{coplien95:plop1,
+  editor =	 {James O. Coplien and Douglas C. Schmidt},
+  title =	 {Pattern Languages of Program Design},
+  publisher =	 {Addison-Wesley},
+  year =	 1995,
+  volume =	 1,
+  series =	 {Software Patterns Series},
+  note =	 {Based on papers presented at the First Annual
+                  Conference of Pattern Languages of Programming
+                  (PLoP'94)}
+}
+
+@Book{vlissides96:plop2,
+  editor =	 {John M. Vlissides and James O. Coplien and Norman
+                  L. Kerth},
+  title =	 {Pattern Languages of Program Design},
+  publisher =	 {Addison-Wesley},
+  year =	 1996,
+  volume =	 2,
+  series =	 {Software Patterns Series},
+  note =	 {Based on papers presented at the Second Annual
+                  Conference of Pattern Languages of Programming
+                  (PLoP'95)}
+}
+
+@Book{martin97:plop3,
+  editor =	 {Robert C. Martin and Dirk Riehle and Frank
+                  Buschmann},
+  title =	 {Pattern Languages of Program Design},
+  publisher =	 {Addison-Wesley},
+  year =	 1997,
+  volume =	 3,
+  series =	 {Software Patterns Series},
+  note =	 {Based on papers presented at the Third Annual
+                  Conference of Pattern Languages Of Programming
+                  (PLoP'96) and EuroPLoP'96}
+}
+
+@Book{mckusick96:44bsd,
+  author =	 {Marshall Kirk McKusick and Keith Bostic and Michael
+                  J. Karels and John S. Quarterman},
+  title =	 {The Design and Implementation of the 4.4BSD
+                  Operating System},
+  publisher =	 {Addison-Wesley},
+  year =	 1996
+}
+
+@Book{stevens98:UNIX-net-programming,
+  author =	 {Richard W. Stevens},
+  title =	 {UNIX Network Programming},
+  publisher =	 {Prentice-Hall},
+  volume =	 {1: Networking APIs: Sockets and XTI},
+  year =	 1998,
+  edition =	 {second}
+}
+
+
+@Book{stevens94:tcpip,
+  author =	 {Richard W. Stevens},
+  title =	 {TCP/IP Illustrated},
+  publisher =	 {Addison-Wesley},
+  year =	 1994,
+  volume =	 {1: The Protocols}
+}
+
+
+@Book{nelson91:modula3,
+  title =	 {Systems Programming with Modula-3},
+  year =	 1991,
+  editor =	 {Greg Nelson},
+  organization = {Compaq Systems Research Center},
+  publisher =	 {Prentice-Hall}
+}
+
+@Book{finkelstein00:future-of-se,
+  editor =	 {Anthony Finkelstein},
+  title =	 {The Future of Software Engineering},
+  publisher =	 {ACM Press},
+  year =	 2000
+}
+
+@Book{baba99:oopdp,
+  editor =	 {Takanobu Baba and Jean-Paul Bahsoun and
+                  Jean-Pierre Briot and Akinori Yonezawa},
+  title =	 {Object Oriented Parallel and Distributed Programming},
+  publisher =	 {Hermès Science Publications},
+  year =	 1999,
+  month =	 jan,
+  note =	 {Papers from the proceedings of the First and Second
+                  France-Japan Workshops on Object Based Parallel and
+                  Distributed Computing (OBPDC'95 and '97)}
+}
+
+@Book{najm02:intergiciels,
+  editor =	 {Demeure, Isabelle and Najm, Élie},
+  title = 	 {Les intergiciels --- développements récents dans
+                  CORBA, Java~RMI et les agents mobiles},
+  publisher = 	 {Hermès Science Publications},
+  year = 	 2002
+}
+
+@Book{ada95-rationale,
+  publisher =	 {Intermetrics},
+  author =	 {Intermetrics},
+  title =	 {Ada~95 Rationale: The Language, The Standard
+                  Libraries},
+  year =	 1995,
+  month =	 jan,
+  url =		 {http://www.adahome.com/Resources/refs/rat95.html}
+}
+
+@TechReport{rfc768:udp,
+  author =	 {Jonathan B. Postel},
+  title =	 {User Datagram Protocol},
+  institution =	 ietf,
+  year =	 1980,
+  month =	 aug,
+  type =	 rfc,
+  number =	 768
+}
+
+@TechReport{rfc791:ip,
+  author =	 {Jonathan B. Postel},
+  title =	 {Internet Protocol Specification},
+  institution =	 ietf,
+  year =	 1981,
+  month =	 sep,
+  type =	 rfc,
+  number =	 791
+}
+
+@TechReport{rtca:do178b,
+  author =	 {SC-167},
+  institution =	 {Radio Technical Commission for Aeronautics},
+  title =	 {Software considerations in airborne systems and
+                  equipment certification},
+  year =	 1992,
+  type =	 {Advisory circular},
+  number =	 {DO-178B}
+}
+
