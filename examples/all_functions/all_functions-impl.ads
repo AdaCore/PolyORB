@@ -35,7 +35,9 @@ package all_functions.Impl is
    procedure out_inout_fun(Self : access Object; a : out Corba.Short; b : in out Corba.Short; c : in out Corba.Short; d : out Corba.Short; Returns : out Corba.Short ) ;
    procedure in_out_inout_fun(Self : access Object; a : in Corba.Short; b : out Corba.Short; c : in out Corba.Short; Returns : out Corba.Short ) ;
 
+   ----   oneway   ----
    procedure Oneway_Void_Proc(Self : access Object) ;
+   ----   oneway   ----
    procedure Oneway_In_Proc(Self : access Object ;
                             A : in Corba.Short ;
                             B : in Corba.Short ;
