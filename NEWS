@@ -16,6 +16,13 @@ New Functionnalities
     task is ever started, in order to avoid creating tasks which will
     never be used.
 
+  * gnat.adc
+    gnatdist handles gnat.adc.
+
+  * Version checks
+    If a RCI version id is a blank string, then the version check is
+    always considered as true.
+
 New Ports
 ---------
 

@@ -55,6 +55,9 @@ package body System.Garlic.Utils is
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
 
+   function Not_Null_Version (V : in String) return Boolean;
+   --  Returns true when V is not a string of blank characters.
+
    ------------------
    -- Barrier_Type --
    ------------------
@@ -219,5 +222,30 @@ package body System.Garlic.Utils is
          return Result;
       end;
    end To_Stream_Element_Array;
+
+   ----------------------
+   -- Not_Null_Version --
+   ----------------------
+
+   function Not_Null_Version (V : in String) return Boolean is
+   begin
+      for I in V'Range loop
+         if V (I) /= ' ' then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Not_Null_Version;
+
+   ---------------
+   -- Different --
+   ---------------
+
+   function Different (V1, V2 : String) return Boolean is
+   begin
+      return     Not_Null_Version (V1)
+        and then Not_Null_Version (V2)
+        and then V1 /= V2;
+   end Different;
 
 end System.Garlic.Utils;

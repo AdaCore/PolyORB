@@ -1,3 +1,9 @@
+Wed Oct 29 19:59:40 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garuti.adb, s-garuti.ads: Add new function Different to test
+	if two version ids are different. If one of the two version ids is
+	a string of blank characters, then the two version ids are identical.
+
 Wed Oct 29 19:27:31 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Set System.Standard_Library.Local_Partition_ID.
