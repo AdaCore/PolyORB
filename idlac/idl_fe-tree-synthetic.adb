@@ -57,11 +57,16 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Name.all;
+      elsif True
+        and then (Kind (Node) = K_Forward_Interface
+                  or else Kind (Node) = K_Forward_ValueType)
+        and then Forward (Node) /= No_Node
+      then
+         return Name (Forward (Node));
       else
          return "##null##";
       end if;
    end Name;
-
 
    function Parent_Scope
      (Node : in Node_Id)
@@ -83,6 +88,12 @@ package body Idl_Fe.Tree.Synthetic is
    begin
       if Definition (Node) /= null then
          return Definition (Node).Parent_Scope;
+      elsif True
+        and then (Kind (Node) = K_Forward_Interface
+                  or else Kind (Node) = K_Forward_ValueType)
+        and then Forward (Node) /= No_Node
+      then
+         return Original_Parent_Scope (Forward (Node));
       else
          return No_Node;
       end if;

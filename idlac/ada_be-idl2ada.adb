@@ -470,8 +470,8 @@ package body Ada_Be.Idl2Ada is
                   NL (Stubs_Spec);
                   PL (Stubs_Spec, "package Convert_Forward is");
                   PL (Stubs_Spec, "  new "
-                      & Ada_Full_Name (Forward (Forward_Node))
-                      & "_Forward.Convert (Ref_Type => Ref);");
+                      & Ada_Full_Name (Forward_Node)
+                      & ".Convert (Ref_Type => Ref);");
                end if;
             end;
 
@@ -675,8 +675,8 @@ package body Ada_Be.Idl2Ada is
          when K_Forward_Interface =>
             Add_With (CU, "CORBA.Forward");
             NL (CU);
-            PL (CU, "package " & Ada_Name (Forward (Node))
-                & "_Forward is new CORBA.Forward;");
+            PL (CU, "package " & Ada_Name (Node)
+                & " is new CORBA.Forward;");
 
          -----------------
          -- Value types --
@@ -1655,6 +1655,7 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Interface         |
+           K_Forward_Interface |
            K_Enum              |
            K_Union             |
            K_Struct            |
@@ -1871,9 +1872,12 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
-      Node : Node_Id) is
+      Node : Node_Id)
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
    begin
-      case Kind (Node) is
+      case NK is
 
          when K_Exception =>
             --  ???
@@ -2176,10 +2180,21 @@ package body Ada_Be.Idl2Ada is
                end if;
             end;
 
-         when K_Interface =>
+         when
+           K_Interface         |
+           K_Forward_Interface =>
+
             NL (CU);
             Gen_Marshall_Profile (CU, Node);
-            PL (CU, " is");
+            if NK = K_Forward_Interface then
+               NL (CU);
+               PL (CU, "is");
+               II (CU);
+               PL (CU, "use " & Ada_Name (Node) & ";");
+               DI (CU);
+            else
+               PL (CU, " is");
+            end if;
             PL (CU, "begin");
             II (CU);
             PL (CU, "Marshall_Reference (Buffer, Val);");
@@ -2188,9 +2203,17 @@ package body Ada_Be.Idl2Ada is
 
             NL (CU);
             Gen_Unmarshall_Profile (CU, Node);
-            PL (CU, " is");
+            if NK = K_Forward_Interface then
+               NL (CU);
+               PL (CU, "is");
+               II (CU);
+               PL (CU, "use " & Ada_Name (Node));
+               DI (CU);
+            else
+               PL (CU, " is");
+            end if;
             II (CU);
-            PL (CU, "New_Ref : Ref;");
+            PL (CU, "New_Ref : " & Ada_Type_Name (Node) & ";");
             DI (CU);
             PL (CU, "begin");
             II (CU);
@@ -2417,7 +2440,9 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when
+           K_Interface         |
+           K_Forward_Interface =>
             return Ada_Full_Name (Node) & ".Ref";
 
          when K_Sequence_Instance =>
@@ -2562,6 +2587,7 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Declarator        |
+           K_Forward_Interface |
            K_Sequence_Instance |
            K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))

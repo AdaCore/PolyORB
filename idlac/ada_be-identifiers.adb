@@ -74,7 +74,14 @@ package body Ada_Be.Identifiers is
       --  words and other name clashes (part of this task
       --  should probably be done during expansion).
 
-      return Result (First .. Result'Last);
+      if False
+        or else Kind (Node) = K_Forward_Interface
+        or else Kind (Node) = K_Forward_ValueType
+      then
+         return "Forward_" & Result (First .. Result'Last);
+      else
+         return Result (First .. Result'Last);
+      end if;
    end Ada_Name;
 
    function Parent_Scope_Name

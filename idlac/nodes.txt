@@ -53,6 +53,12 @@ Interface <-- Imports
 
 Forward_Interface <-- Named
   Forward : Node_Id
+  --  After an IDL file is correctly parsed,
+  --  Forward designates the actual interface
+  --  corresponding to this forward declaration.
+  --  The Name and Parent_Scope of the forward
+  --  declaration must then be retrieved from
+  --  the actual declaration's Definition.
   Abst : Boolean
 
 ValueType <-- Imports
