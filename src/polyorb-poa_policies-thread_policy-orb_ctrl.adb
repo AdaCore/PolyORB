@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Servants;
 
 package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
