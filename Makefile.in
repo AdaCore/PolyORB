@@ -10,11 +10,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-#
-# $Id: Makefile.am,v 1.7 1999/01/11 17:52:24 tardieu Exp $
-#
-
-
 SHELL = @SHELL@
 
 srcdir = @srcdir@
