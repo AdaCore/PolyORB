@@ -140,6 +140,9 @@ is
       use type PolyORB.Servants.Servant_Access;
 
    begin
+
+      --  Lookup object in Active Object Map
+
       Retained_Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
          OA,
@@ -150,6 +153,9 @@ is
       if Found (Error) then
          return;
       end if;
+
+      --  Under USE_DEFAULT_SERVANT policy, if no servant is found in
+      --  the Active Object Map, we return the POA's default servant.
 
       if Servant = null then
          if POA.Obj_Adapter_Access (OA).Default_Servant /= null then
