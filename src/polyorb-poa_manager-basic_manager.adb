@@ -397,7 +397,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
    ---------------------
 
    procedure Reemit_Requests (Self : access Basic_POA_Manager) is
-      use PolyORB.Setup;
       use PolyORB.Components;
       use PolyORB.ORB.Interface;
       use Requests_Queue_P;
