@@ -212,11 +212,12 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      body += "; Result : out ";
-      AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
+      if (!return_is_void()) {
+	body += "; Result : out ";
+	AST_Decl *b = return_type();
+	body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
     }
-  body += "\n" ;
+  body += " ) ;\n" ;
 }
 
 void
@@ -253,7 +254,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += "    procedure " + get_ada_local_name() + "(Self : access Object";
+      body += "   procedure " + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{

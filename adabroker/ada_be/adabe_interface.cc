@@ -342,7 +342,8 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   adabe_interface * inher;
   with.add("Omniobject");
   body += "package " + get_ada_full_name() + ".Impl is\n\n";
-  if (n_inherits() == 0) body += "   type Object is new Omniobject.Implemented_Object ";
+  if (n_inherits() == 0)
+    body += "   type Object is new Omniobject.Implemented_Object with private ;\n";
 
  // forward declarated
 
@@ -438,14 +439,28 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 	}
        i.next();
     }
+  body += "private\n\n" ;
+  body += "   -- You may add fields to this record\n" ;
+  if (n_inherits() == 0) {
+    body += "   type Object is new Omniobject.Implemented_Object with record\n";
+    body += "      null ;\n" ;
+    body += "   end record ;\n\n" ;
+  }
+  body += "--------------------------------------------------\n" ;
+  body += "----          finalization operators          ----\n" ;
+  body += "--------------------------------------------------\n" ;
+  body += "procedure Initialize(Self : in out Object) ;\n" ;
+  body += "procedure Adjust(Self : in out Object) ;\n" ;
+  body += "procedure Finalize(Self : in out Object) ;\n" ;
   body += "end " + get_ada_full_name() + "\n";    
-
+  
 }
 
 void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
   adabe_global::set_adabe_current_file(this);
+  body += "\n\n" ;
   /*
     with.add("Ada.Tags");
     with.add("Ada.exceptions");
@@ -473,6 +488,34 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 	}
       i.next();
     }
+
+  body += "   -----------------------------------------------------------\n" ;
+  body += "   --  Implementations objects are controlled, you can add  --\n" ;
+  body += "   --  instructions in the following functions as specified --\n" ;
+  body += "   -----------------------------------------------------------\n\n" ;
+  body += "   -- Initialize\n" ;
+  body += "   -------------\n" ;
+  body += "   procedure Initialize(Self : in out Object) is\n" ;
+  body += "   begin\n" ;
+  body += "      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),\n" ;
+  body += "                                 Repository_Id, " ;
+  body += get_ada_full_name() + ".Skeleton.Dispatch'Access) ;\n" ;
+  body += "      -- You can add things *BELOW* this line\n" ;
+  body += "   end Initialize ;\n\n\n" ;
+  body += "   -- Adjust\n" ;
+  body += "   ---------\n" ;
+  body += "   procedure Adjust(Self: in out Object) is\n" ;
+  body += "   begin\n" ;
+  body += "      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;\n" ;
+  body += "      -- You can add things *BELOW* this line\n" ;
+  body += "   end ;\n\n\n" ;
+  body += "   -- Finalize\n" ;
+  body += "   -----------\n" ;
+  body += "   procedure Finalize(Self : in out Object) is\n" ;
+  body += "   begin\n" ;
+  body += "      -- You can add things *BEFORE* this line\n" ;
+  body += "      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;\n"  ;
+  body += "   end ;\n\n\n" ;
   body += "end " + get_ada_full_name() + ".Impl ;\n";
 }
 
