@@ -19,6 +19,7 @@ package body Analyzer is
    procedure Analyze_Attribute_Declaration (E : Node_Id);
    procedure Analyze_Complex_Declarator (E : Node_Id);
    procedure Analyze_Constant_Declaration (E : Node_Id);
+   procedure Analyze_Element (E : Node_Id);
    procedure Analyze_Enumeration_Type (E : Node_Id);
    procedure Analyze_Exception_Declaration (E : Node_Id);
    procedure Analyze_Expression (E : Node_Id);
@@ -40,6 +41,7 @@ package body Analyzer is
    procedure Analyze_State_Member (E : Node_Id);
    procedure Analyze_String (E : Node_Id);
    procedure Analyze_Structure_Type (E : Node_Id);
+   procedure Analyze_Switch_Alternative (E : Node_Id);
    procedure Analyze_Type_Declaration (E : Node_Id);
    procedure Analyze_Union_Type (E : Node_Id);
    procedure Analyze_Value_Declaration (E : Node_Id);
@@ -71,6 +73,9 @@ package body Analyzer is
 
          when K_Constant_Declaration =>
             Analyze_Constant_Declaration (E);
+
+         when K_Element =>
+            Analyze_Element (E);
 
          when K_Enumeration_Type =>
             Analyze_Enumeration_Type (E);
@@ -120,11 +125,11 @@ package body Analyzer is
          when K_Scoped_Name =>
             Analyze_Scoped_Name (E);
 
-         when K_Simple_Declarator =>
-            Analyze_Simple_Declarator (E);
-
          when K_Sequence_Type =>
             Analyze_Sequence_Type (E);
+
+         when K_Simple_Declarator =>
+            Analyze_Simple_Declarator (E);
 
          when K_Specification =>
             Analyze_Module (E);
@@ -137,6 +142,9 @@ package body Analyzer is
 
          when K_Structure_Type =>
             Analyze_Structure_Type (E);
+
+         when K_Switch_Alternative =>
+            Analyze_Switch_Alternative (E);
 
          when K_Type_Declaration =>
             Analyze_Type_Declaration (E);
@@ -249,6 +257,16 @@ package body Analyzer is
       Analyze (Expression (E));
       Resolve (E, T);
    end Analyze_Constant_Declaration;
+
+   ---------------------
+   -- Analyze_Element --
+   ---------------------
+
+   procedure Analyze_Element (E : Node_Id) is
+   begin
+      Analyze (Type_Spec (E));
+      Analyze (Declarator (E));
+   end Analyze_Element;
 
    ------------------------------
    -- Analyze_Enumeration_Type --
@@ -770,6 +788,22 @@ package body Analyzer is
       end if;
    end Analyze_Structure_Type;
 
+   --------------------------------
+   -- Analyze_Switch_Alternative --
+   --------------------------------
+
+   procedure Analyze_Switch_Alternative (E : Node_Id)
+   is
+      Label : Node_Id;
+   begin
+      Label := First_Node (Labels (E));
+      while Present (Label) loop
+         Analyze (Label);
+         Label := Next_Node (Label);
+      end loop;
+      Analyze (Element (E));
+   end Analyze_Switch_Alternative;
+
    ------------------------------
    -- Analyze_Type_Declaration --
    ------------------------------
@@ -789,9 +823,17 @@ package body Analyzer is
    -- Analyze_Union_Type --
    ------------------------
 
-   procedure Analyze_Union_Type (E : Node_Id) is
+   procedure Analyze_Union_Type (E : Node_Id)
+   is
+      Alt : Node_Id;
    begin
       Enter_Name_In_Scope (Identifier (E));
+      Analyze (Switch_Type_Spec (E));
+      Alt := First_Node (Switch_Type_Body (E));
+      while Present (Alt) loop
+         Analyze (Alt);
+         Alt := Next_Node (Alt);
+      end loop;
    end Analyze_Union_Type;
 
    -----------------------------------

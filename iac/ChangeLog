@@ -19,7 +19,8 @@
 	* analyzer.adb: Allow enumeration type in constant
 	declaration. Analyze properly enumeration type and create one
 	constant declaration per enumerator. Fix Resolve operation to
-	compute constant expression in case of enumeration type.
+	compute constant expression in case of enumeration type. Analyze
+	union type.
  
 2004-05-22  Laurent Pautet  <pautet@dorine.enst.fr>
 
