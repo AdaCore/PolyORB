@@ -157,7 +157,7 @@ private
    end record;
 
    type Iterator is record
-     Current, Previous : Node_Access;
+     Current : Node_Access;
    end record;
 
    type List is record
