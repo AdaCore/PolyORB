@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#39 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#40 $
 
 @include version.texi
 
@@ -279,12 +279,12 @@ constructs within PolyORB.
 @item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
 
 @item @ref{RT-CORBA} describes PolyORB's implementation of RT-CORBA,
-the real-time extenstions of OMG's CORBA.
+the real-time extensions of OMG's CORBA.
 
 @item @ref{DSA} describes PolyORB's implementation of the Ada
 Distributed System Annex.
 
-@item @ref{MOMA} describes POlyORB's implementation of MOMA, the
+@item @ref{MOMA} describes PolyORB's implementation of MOMA, the
 Message Oriented Middleware for Ada.
 
 @item @ref{AWS} describes the integration of the Ada Web Server (AWS)
@@ -723,8 +723,8 @@ applications.
 PolyORB provides a CORBA-compatible implementation based on mapping of
 the IDL language version 1.2 described in @cite{[OMG01]} and CORBA
 core specifications. PolyORB also proposes an implementation of
-various additionnal specifications described by the OMG, including
-@code{COS Services : COS Naming, Event, Time}, additionnal
+various additional specifications described by the OMG, including
+@code{COS Services : COS Naming, Event, Time}, additional
 specifications; @code{RT-CORBA} or @code{PortableInterceptors}.
 
 @c -------------------------------------------------------------------
@@ -1139,7 +1139,7 @@ configuration file the complete list of packages that provide debug.
 @c -------------------------------------------------------------------
 
 @noindent
-To trace exception propagations in PolyORB's source code, it is
+To trace exception propagation in PolyORB's source code, it is
 necessary to:
 
 @enumerate
@@ -1242,7 +1242,7 @@ The choice of a specific tasking runtime is a compile-time parameter,
 
 @noindent 
 Full tasking runtime refers to configuration in which there are some
-dependences on the tasking constructs defined in chapter 9 of
+dependencies on the tasking constructs defined in chapter 9 of
 @cite{[ISO95]}. It makes use of all capabilities defined in this
 section to manage and synchronize tasks.
 
@@ -1726,7 +1726,7 @@ application with PolyORB} for more information on PolyORB's
 configuration.
 
 When selecting a tasking-capable runtime, ORB-related functions are
-thread safe, following the IDL-to-Ada mapping recommandations.
+thread safe, following the IDL-to-Ada mapping recommendations.
 
 @c -------------------------------------------------------------------
 @node Interface repository
@@ -2361,7 +2361,7 @@ to set up PolyORB.}
 
 @noindent
 @command{po_names} is a stand-alone name server. It has an interface
-similar to CORBA COS Naming, without dragging any dependences on CORBA
+similar to CORBA COS Naming, without dragging any dependencies on CORBA
 mechanisms. This name server is to be used when the CORBA application
 personality is not required, e.g. with the DSA or MOMA application
 personalities.
@@ -2433,7 +2433,7 @@ IDL-to-Ada mapping} for a description of non-implemented features;
 
 @item Chapter 4 describes the ORB Interface. 
 
-@b{XXX TO BE WRITTEN, note there are some differences betwwen ORB Core and
+@b{XXX TO BE WRITTEN, note there are some differences between ORB Core and
 IDL-to-Ada mapping !}
 
 @item Chapter 5 describes Value Type Semantics. 
@@ -2609,7 +2609,7 @@ PolyORB partially implements this chapter from section 2.1 up to
 section 2.10. PolyORB does not provide support for all
 connection-related policies.
 
-See implementation notes in the different package specificiations for
+See implementation notes in the different package specifications for
 more details.
 
 @item RT-CORBA static scheduling (Chapter 3)
@@ -2644,7 +2644,7 @@ Repository. See @ref{CORBA standards conformance} for more details.
 @end itemize
 
 @noindent 
-Support for other components is optionnal.
+Support for other components is optional.
 
 @itemize @bullet
 
@@ -2663,7 +2663,7 @@ Support for IOR and @code{corbaloc} addressing mechanisms is supported
 in CORBA personality, see @ref{CORBA} for more details.
 
 PolyORB does not support the optional IIOP IOR Profile Components,
-Bi-directionnal GIOP, IIOP/SSL.
+Bi-directional GIOP, IIOP/SSL.
 
 @item Chapter 16 describes the DCE ESIOP protocol.
 
