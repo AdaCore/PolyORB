@@ -34,17 +34,14 @@
 
 --  $Id$
 
-with MOMA.Destinations;
-with MOMA.Message_Consumers.Queues;
-
 package MOMA.Connections.Queues is
 
    type Queue is new Connection with null record;
 
    type Queue_Access is access all Queue;
 
-   function Create_Consumer (Queue : Destinations.Queue;
-                             Message_Selector : String)
-                            return Message_Consumers.Queues.Queue;
+   function Place_Holder return Integer;
+   --  XXX only so that it can compile with a body, to be removed when not
+   --  necessary anymore
 
 end MOMA.Connections.Queues;

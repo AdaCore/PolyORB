@@ -34,12 +34,9 @@
 
 --  $Id$
 
---  XXX need to check the use of Create_Consumer, seems unnecessary as
---  Create_Sender & Create_Receiver exist !
 --  XXX should connection be abstract and tagged ?
 --  XXX is a derivation for queues and topics required ?
 
-with MOMA.Message_Consumers;
 with MOMA.Types;
 
 with PolyORB.References;
@@ -80,10 +77,6 @@ package MOMA.Connections is
    --  XXX check the conformance and pertinence of the above spec.
 
    function Get_Meta_Data return MOMA.Types.Meta_Data;
-
-   function Create_Consumer return Message_Consumers.Message_Consumer
-      is abstract;
-   --  XXX should REALLY be there ? check JMS ...
 
    ---------------------------------------
    -- Abstract Create_Session Function --

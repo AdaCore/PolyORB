@@ -34,25 +34,12 @@
 
 --  $Id$
 
-with MOMA.Destinations;
-with MOMA.Sessions.Topics;
-with MOMA.Message_Consumers.Topics;
-
 package MOMA.Connections.Topics is
 
    type Topic is new Connection with null record;
 
-   function Create_Consumer (Topic : MOMA.Destinations.Destination;
-                             Message_Selector : String)
-                             return MOMA.Message_Consumers.Topics.Topic;
-
-   function Create_Session (Self : Topic;
-                            Transacted : Boolean;
-                            Ackowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Topics.Topic;
-
-   function Create_Durable_Consumer  (Topic : MOMA.Destinations.Destination;
-                                      Message_Selector : String)
-                                      return Message_Consumers.Topics.Topic;
+   function Place_Holder return Integer;
+   --  XXX only so that it can compile with a body, to be removed when not
+   --  necessary anymore
 
 end MOMA.Connections.Topics;

@@ -32,58 +32,12 @@
 
 --  $Id$
 
-with PolyORB;
-
 package body MOMA.Connections.Topics is
 
-   ---------------------
-   -- Create_Consumer --
-   ---------------------
-
-   function Create_Consumer
-     (Topic : Destinations.Destination;
-      Message_Selector : String)
-      return Message_Consumers.Topics.Topic
-   is
+   function Place_Holder return Integer is
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Consumer (Topic, Message_Selector);
-      pragma Warnings (On);
-   end Create_Consumer;
-
-   -----------------------------
-   -- Create_Durable_Consumer --
-   -----------------------------
-
-   function Create_Durable_Consumer
-     (Topic : Destinations.Destination;
-      Message_Selector : String)
-      return Message_Consumers.Topics.Topic
-   is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Durable_Consumer (Topic, Message_Selector);
-      pragma Warnings (On);
-   end Create_Durable_Consumer;
-
-   --------------------
-   -- Create_Session --
-   --------------------
-
-   function Create_Session
-     (Self : Topic;
-      Transacted : Boolean;
-      Ackowledge_Mode : MOMA.Types.Acknowledge_Type)
-      return MOMA.Sessions.Topics.Topic
-   is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Session (Self, Transacted, Ackowledge_Mode);
-      pragma Warnings (On);
-   end Create_Session;
+      return 0;
+   end Place_Holder;
 
 end MOMA.Connections.Topics;
 

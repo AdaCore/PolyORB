@@ -34,19 +34,9 @@
 
 package body MOMA.Connections.Queues is
 
-   -------------------------------
-   --  Create_Consumer Function --
-   -------------------------------
-
-   function Create_Consumer (Queue : Destinations.Queue;
-                             Message_Selector : String)
-                            return Message_Consumers.Queues.Queue is
+   function Place_Holder return Integer is
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Consumer (Queue, Message_Selector);
-      pragma Warnings (On);
-   end Create_Consumer;
-
+      return 0;
+   end Place_Holder;
 
 end MOMA.Connections.Queues;
