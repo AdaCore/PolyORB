@@ -541,61 +541,6 @@ package body Exp_Dist is
    --                            Exception_Message (E));
    --    end R;
 
-   ----------------------------------
-   -- Assign_Subprogram_Identifier --
-   ----------------------------------
-
-   procedure Assign_Subprogram_Identifier
-     (Def :     Entity_Id;
-      Id  : out String_Id)
-   is
-      Sdef : constant Source_Ptr := Sloc (Def);
-      Tdef : Source_Buffer_Ptr;
-      N    : constant Name_Id := Chars (Def);
-
-      Overload_Order : constant Int :=
-        Overload_Counter_Table.Get (N) + 1;
-   begin
-      Overload_Counter_Table.Set (N, Overload_Order);
-
-      Get_Name_String (N);
-
-      if False and then not Is_Operator_Symbol_Name (N) then
-
-         --  XXX THIS IS BORKEN because it gets called
-         --  with a def that does not come_from_source.
-
-         --  Not a defining_operator_name
-
-         Tdef := Source_Text (Get_Source_File_Index (Sdef));
-         for J in 1 .. Name_Len loop
-            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
-         end loop;
-
-         if Name_Buffer (1) = 'O' then
-            --  Do not risk a clash with a defining operator name.
-            --  XXX this is an approximation, actually this change
-            --  should be made /only/ if there is an actual clash.
-            Name_Buffer (1) := 'o';
-         end if;
-
-      end if;
-
-      --  Homonym handling: as in Exp_Dbug, but much simpler,
-      --  because the only entities for which we have to generate
-      --  names here need only to be disambiguated within their
-      --  own scope.
-
-      if Overload_Order > 1 then
-         Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "__";
-         Name_Len := Name_Len + 2;
-         Add_Nat_To_Name_Buffer (Overload_Order);
-      end if;
-
-      Id := String_From_Name_Buffer;
-      Subprogram_Identifier_Table.Set (Def, Id);
-   end Assign_Subprogram_Identifier;
-
    ------------------------------------
    -- Local variables and structures --
    ------------------------------------
@@ -829,46 +774,6 @@ package body Exp_Dist is
          Add_Access_Type_To_Process (E => Desig, A => RACW_Type);
       end if;
    end Add_RACW_Features;
-
-   ------------------------------
-   -- Build_Get_Unique_RP_Call --
-   ------------------------------
-
-   function Build_Get_Unique_RP_Call
-     (Loc       : Source_Ptr;
-      Pointer   : Entity_Id;
-      Stub_Type : Entity_Id)
-      return List_Id is
-   begin
-      return New_List (
-
-        Make_Procedure_Call_Statement (Loc,
-          Name                   =>
-            New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
-          Parameter_Associations => New_List (
-            Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
-              New_Occurrence_Of (Pointer, Loc)))),
-
-        Make_Assignment_Statement (Loc,
-          Name =>
-            Make_Selected_Component (Loc,
-              Prefix =>
-                New_Occurrence_Of (Pointer, Loc),
-              Selector_Name =>
-                New_Occurrence_Of (Tag_Component
-                  (Designated_Type (Etype (Pointer))), Loc)),
-          Expression =>
-            Make_Attribute_Reference (Loc,
-              Prefix =>
-                New_Occurrence_Of (Stub_Type, Loc),
-              Attribute_Name =>
-                Name_Tag)));
-
-      --  Note: The assignment to Pointer._Tag is safe here because
-      --  we carefully ensured that Stub_Type has exactly the same layout
-      --  as System.Partition_Interface.RACW_Stub_Type.
-
-   end Build_Get_Unique_RP_Call;
 
    -----------------------
    -- Add_RACW_From_Any --
@@ -2568,6 +2473,10 @@ package body Exp_Dist is
       Set_Renaming_TSS (RAS_Type, Fnam, Name_uFrom_Any);
    end Add_RAS_From_Any;
 
+   --------------------
+   -- Add_RAS_To_Any --
+   --------------------
+
    procedure Add_RAS_To_Any
      (RAS_Type        : in Entity_Id;
       Declarations    : in List_Id)
@@ -3589,6 +3498,61 @@ package body Exp_Dist is
       Append_To (Decls, Object_RPC_Receiver_Declaration);
    end Add_Stub_Type;
 
+   ----------------------------------
+   -- Assign_Subprogram_Identifier --
+   ----------------------------------
+
+   procedure Assign_Subprogram_Identifier
+     (Def :     Entity_Id;
+      Id  : out String_Id)
+   is
+      Sdef : constant Source_Ptr := Sloc (Def);
+      Tdef : Source_Buffer_Ptr;
+      N    : constant Name_Id := Chars (Def);
+
+      Overload_Order : constant Int :=
+        Overload_Counter_Table.Get (N) + 1;
+   begin
+      Overload_Counter_Table.Set (N, Overload_Order);
+
+      Get_Name_String (N);
+
+      if False and then not Is_Operator_Symbol_Name (N) then
+
+         --  XXX THIS IS BORKEN because it gets called
+         --  with a def that does not come_from_source.
+
+         --  Not a defining_operator_name
+
+         Tdef := Source_Text (Get_Source_File_Index (Sdef));
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
+         end loop;
+
+         if Name_Buffer (1) = 'O' then
+            --  Do not risk a clash with a defining operator name.
+            --  XXX this is an approximation, actually this change
+            --  should be made /only/ if there is an actual clash.
+            Name_Buffer (1) := 'o';
+         end if;
+
+      end if;
+
+      --  Homonym handling: as in Exp_Dbug, but much simpler,
+      --  because the only entities for which we have to generate
+      --  names here need only to be disambiguated within their
+      --  own scope.
+
+      if Overload_Order > 1 then
+         Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "__";
+         Name_Len := Name_Len + 2;
+         Add_Nat_To_Name_Buffer (Overload_Order);
+      end if;
+
+      Id := String_From_Name_Buffer;
+      Subprogram_Identifier_Table.Set (Def, Id);
+   end Assign_Subprogram_Identifier;
+
    ---------------------------------
    -- Build_General_Calling_Stubs --
    ---------------------------------
@@ -4084,6 +4048,46 @@ package body Exp_Dist is
              Else_Statements => Non_Asynchronous_Statements));
       end if;
    end Build_General_Calling_Stubs;
+
+   ------------------------------
+   -- Build_Get_Unique_RP_Call --
+   ------------------------------
+
+   function Build_Get_Unique_RP_Call
+     (Loc       : Source_Ptr;
+      Pointer   : Entity_Id;
+      Stub_Type : Entity_Id)
+      return List_Id is
+   begin
+      return New_List (
+
+        Make_Procedure_Call_Statement (Loc,
+          Name                   =>
+            New_Occurrence_Of (RTE (RE_Get_Unique_Remote_Pointer), Loc),
+          Parameter_Associations => New_List (
+            Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
+              New_Occurrence_Of (Pointer, Loc)))),
+
+        Make_Assignment_Statement (Loc,
+          Name =>
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (Pointer, Loc),
+              Selector_Name =>
+                New_Occurrence_Of (Tag_Component
+                  (Designated_Type (Etype (Pointer))), Loc)),
+          Expression =>
+            Make_Attribute_Reference (Loc,
+              Prefix =>
+                New_Occurrence_Of (Stub_Type, Loc),
+              Attribute_Name =>
+                Name_Tag)));
+
+      --  Note: The assignment to Pointer._Tag is safe here because
+      --  we carefully ensured that Stub_Type has exactly the same layout
+      --  as System.Partition_Interface.RACW_Stub_Type.
+
+   end Build_Get_Unique_RP_Call;
 
    -----------------------------------
    -- Build_Ordered_Parameters_List --
@@ -5517,6 +5521,10 @@ package body Exp_Dist is
       return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
    end Hash;
 
+   ----------
+   -- Hash --
+   ----------
+
    function Hash (F : Name_Id) return Hash_Index is
    begin
       return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
@@ -5797,9 +5805,9 @@ package body Exp_Dist is
       end if;
    end Remote_Types_Tagged_Full_View_Encountered;
 
-   ------------------------------------
-   -- Reserver_NamingContext_Methods --
-   ------------------------------------
+   -----------------------------------
+   -- Reserve_NamingContext_Methods --
+   -----------------------------------
 
    procedure Reserve_NamingContext_Methods is
       Str_Resolve : constant String := "resolve";
