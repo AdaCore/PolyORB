@@ -2,10 +2,9 @@
 
 --  $Id$
 
-with Droopi.Sockets;
 with Droopi.Requests;
 
-package Droopi.Tasking_Policies is
+package Droopi.ORB.Task_Policies is
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -23,15 +22,17 @@ package Droopi.Tasking_Policies is
    type Tasking_Policy_Access is access all Tasking_Policy'Class;
 
    procedure Handle_New_Connection
-     (P : access Tasking_Policy;
-      C : Droopi.Sockets.Socket_Type)
+     (P   : access Tasking_Policy;
+      ORB : ORB_Access;
+      AS  : Active_Socket)
      is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication channel C, and start dialog.
 
    procedure Handle_Request
-     (P : access Tasking_Policy;
-      R : Droopi.Requests.Request)
+     (P   : access Tasking_Policy;
+      ORB : ORB_Access;
+      R   : Droopi.Requests.Request)
      is abstract;
    --  Create the necessary processing resources for the execution
    --  of request R, and start this execution.
@@ -48,12 +49,14 @@ package Droopi.Tasking_Policies is
    type No_Tasking is new Tasking_Policy with private;
 
    procedure Handle_New_Connection
-     (P : access No_Tasking;
-      C : Droopi.Sockets.Socket_Type);
+     (P   : access No_Tasking;
+      ORB : ORB_Access;
+      AS  : Active_Socket);
 
    procedure Handle_Request
-     (P : access No_Tasking;
-      R : Droopi.Requests.Request);
+     (P   : access No_Tasking;
+      ORB : ORB_Access;
+      R   : Droopi.Requests.Request);
 
 private
 
@@ -61,4 +64,4 @@ private
 
    type No_Tasking is new Tasking_Policy with null record;
 
-end Droopi.Tasking_Policies;
+end Droopi.ORB.Task_Policies;

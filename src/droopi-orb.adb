@@ -1,5 +1,6 @@
 --  $Id$
 
+with Droopi.ORB.Task_Policies;
 with Droopi.Soft_Links;
 with Droopi.Channels;
 
@@ -8,7 +9,34 @@ package body Droopi.ORB is
    use Droopi.Jobs;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
-   use Droopi.Tasking_Policies;
+   use Droopi.ORB.Task_Policies;
+
+   type ORB is new Root_ORB with record
+      Tasking_Policy : Task_Policies.Tasking_Policy_Access;
+   end record;
+
+   --  Overridden primitive operations of ORB:
+
+   procedure Handle_Event (O : access ORB; AS : Active_Socket);
+
+   function Work_Pending (O : access ORB) return Boolean;
+
+   procedure Perform_Work (O : access ORB);
+
+   procedure Run
+     (O              : access ORB;
+      Exit_Condition : Exit_Condition_Access := null;
+      May_Poll       : Boolean := False);
+
+   procedure Shutdown
+     (O : access ORB;
+      Wait_For_Completion : Boolean := True);
+
+   procedure Insert_Socket
+     (O  : access ORB;
+      AS : Active_Socket);
+
+   procedure Delete_Socket (O : access ORB; S : Socket_Type);
 
    ------------------------------
    -- Server object operations --
@@ -21,14 +49,32 @@ package body Droopi.ORB is
 
             --  A new connection.
 
-            Handle_New_Connection (O.Tasking_Policy, AS.Socket);
+            declare
+               New_AS : Active_Socket
+                 := (Kind     => Communication_Sk,
+                     Socket   => Null_Socket,
+                     Session  => Protocols.Create_Session
+                       (AS.Protocol),
+                     Protocol => AS.Protocol);
+               Addr : Sock_Addr_Type;
+            begin
+               Accept_Socket
+                 (Server  => AS.Socket,
+                  Socket  => New_AS.Socket,
+                  Address => Addr);
+               --  The call to Accept_Socket must not block,
+               --  and must return a valid socket.
 
-            --  Insert connection in list of active connections.
-            --  If the threading policy is "thread-per-session",
-            --  a new specific task is created which will handle all
-            --  messages on that connection, else the associated channel
-            --  is inserted in the set of channels that are monitored
-            --  through select() by general-purpose ORB tasks.
+               Handle_New_Connection
+                 (O.Tasking_Policy, ORB_Access (O), New_AS);
+
+               --  Insert connection in list of active connections.
+               --  If the threading policy is "thread-per-session",
+               --  a new specific task is created which will handle all
+               --  messages on that connection, else the associated channel
+               --  is inserted in the set of channels that are monitored
+               --  through select() by general-purpose ORB tasks.
+            end;
 
          when Communication_SK =>
 
@@ -41,12 +87,13 @@ package body Droopi.ORB is
                --  XXX Initialize Channel to the channel corresponding to
                --  active socket AS.
                Droopi.Channels.Handle_Data (Channel, AS);
-            end;
 
-            --  Signal upper layers that data is available on this
-            --  channel. Further processing and possible tasking decisions
-            --  are delegated to the upstream protocol, since they may depend
-            --  upon the particular messages received.
+               --  Signal upper layers that data is available on this
+               --  channel. Further processing and possible tasking decisions
+               --  are delegated to the upstream protocol, since they may depend
+               --  upon the particular messages received.
+
+            end;
 
          when Invalid_SK =>
 
@@ -157,7 +204,6 @@ package body Droopi.ORB is
                for I in Monitored_Set'Range loop
                   if Is_Set (R_Set, Monitored_Set (I).Socket) then
                      Handle_Event (O, Monitored_Set (I));
-
                   end if;
 
                end loop;
@@ -214,16 +260,13 @@ package body Droopi.ORB is
    end Shutdown;
 
    procedure Insert_Socket
-     (O : access ORB;
-      S : Socket_Type;
-      K : Socket_Kind) is
+     (O  : access ORB;
+      AS : Active_Socket) is
    begin
-      pragma Assert (K /= Invalid_SK);
+      pragma Assert (AS.Kind /= Invalid_SK);
 
       Enter_Critical_Section;
-      Sock_Seqs.Append
-        (O.ORB_Sockets,
-         Active_Socket'(Kind => K, Socket => S));
+      Sock_Seqs.Append (O.ORB_Sockets, AS);
 
       if O.Polling then
          Abort_Selector (O.Selector);

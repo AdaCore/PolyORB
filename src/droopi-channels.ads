@@ -43,7 +43,7 @@ package Droopi.Channels is
 private
 
    type Channel is abstract tagged limited record
-      Session : Session_Access;
+      Session : Droopi.Protocols.Session_Access;
    end record;
 
 end Droopi.Channels;

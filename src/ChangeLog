@@ -1,3 +1,12 @@
+2001-01-24  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.ORB: Type Root_ORB is abstract, because its implementation
+	requires visibility on child package Task_Policies.
+
+	* Droopi.ORB.Task_Policies: Branch from Droopi.Tasking_Policies.
+	Tasking policies are defined in a child package of Droopi.ORB
+	because they need to have visibility of ORB threads management.
+
 2001-01-15  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.Opaque, Droopi.Buffers: Imported from Broca.

@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Droopi.Requests; use Droopi.Requests;
+
 package Droopi.Protocols is
 
    pragma Preelaborate;
@@ -14,9 +16,10 @@ package Droopi.Protocols is
    type Session_Access is access all Session'Class;
 
    type Protocol is abstract tagged limited private;
+   type Protocol_Access is access all Protocol'Class;
 
    function Create_Session
-     (P : Protocol)
+     (P : access Protocol)
      return Session_Access is abstract;
 
    -----------------------------------------------------
@@ -32,6 +35,14 @@ package Droopi.Protocols is
 
    procedure Handle_Data (S : Session) is abstract;
    --  Invoked when some data arrives for session S.
+
+   -------------------------
+   -- Resource management --
+   -------------------------
+
+   procedure Destroy_Session (S : in out Session_Access);
+   --  Destroy the session associated with S, return any associated
+   --  resources to the system, and assign null to S.
 
 private
 
