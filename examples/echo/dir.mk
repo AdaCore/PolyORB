@@ -20,6 +20,6 @@ clean::
 	-rm -f *.o *.ali *~ server client b_*.c $(GENERATED_FILES)
 
 echo.ads: echo.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker echo.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i echo.idl
 
 ada:: echo.ads

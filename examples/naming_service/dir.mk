@@ -28,10 +28,10 @@ GENERATED_FILES += b_client.c
 ada:: echo.ads cosnaming.ads
 
 cosnaming.ads::
-	$(EXPORT_TREE)/$(BINDIR)/adabroker Naming.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i Naming.idl
 
 echo.ads::
-	$(EXPORT_TREE)/$(BINDIR)/adabroker echo.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i echo.idl
 
 clean::
 	-rm -f *.o *.ali *~ server client $(GENERATED_FILES)

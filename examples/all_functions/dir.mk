@@ -19,5 +19,5 @@ clean::
 ada:: all_functions.ads
 
 all_functions.ads: all_functions.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker all_functions.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i all_functions.idl
 

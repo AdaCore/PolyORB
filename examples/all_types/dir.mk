@@ -24,5 +24,5 @@ clean::
 ada:: all_types.ads
 
 all_types.ads: all_types.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker all_types.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i all_types.idl
 

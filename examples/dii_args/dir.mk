@@ -21,6 +21,6 @@ clean_dii_client:
 	rm dii_client dii_client.ali dii_client.o b_dii_client*
 
 args.ads: args.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker args.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i args.idl
 
 ada:: args.ads

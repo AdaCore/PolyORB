@@ -30,6 +30,6 @@ clean_dii_client:
 	rm dii_client dii_client.ali dii_client.o b_dii_client*
 
 mystruct.ads: mystruct.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker mystruct.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i mystruct.idl
 
 ada:: mystruct.ads

@@ -20,5 +20,5 @@ clean::
 ada:: all_exceptions.ads
 
 all_exceptions.ads: all_exceptions.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker all_exceptions.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i all_exceptions.idl
 

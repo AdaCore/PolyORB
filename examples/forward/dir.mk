@@ -12,7 +12,7 @@ clean::
 ada: egg.ads chicken.ads
 
 egg.ads: egg.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker egg.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i egg.idl
 
 chicken.ads: chicken.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker chicken.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i chicken.idl

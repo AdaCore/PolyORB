@@ -17,6 +17,6 @@ clean::
 	-rm -f *.o *.ali *~ server client b_*.c $(GENERATED_FILES)
 
 sema.ads: sema.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker sema.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i sema.idl
 
 ada:: sema.ads

@@ -30,6 +30,6 @@ clean_dii_client:
 	rm dii_client dii_client.ali dii_client.o b_dii_client*
 
 modifier.ads: modifier.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker modifier.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i modifier.idl
 
 ada:: modifier.ads

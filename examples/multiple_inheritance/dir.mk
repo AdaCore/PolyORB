@@ -20,5 +20,5 @@ clean::
 ada:: weapon.ads tank.ads vehicle.ads
 
 weapon.ads tank.ads vehicle.ads: classes.idl
-	$(EXPORT_TREE)/$(BINDIR)/adabroker classes.idl
+	$(EXPORT_TREE)/$(BINDIR)/adabroker -i classes.idl
 
