@@ -422,9 +422,10 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Value_Scope;
 
-   -----------------------------------------------
-   --  Gen_Operation_Stubs_Body_For_ValueTypes  --
-   -----------------------------------------------
+   ---------------------------------------------
+   -- Gen_Operation_Stubs_Body_For_ValueTypes --
+   ---------------------------------------------
+
    procedure Gen_Operation_Stubs_Body_For_ValueTypes
      (CU : in out Compilation_Unit;
       Node : in Node_Id) is
@@ -432,16 +433,14 @@ package body Ada_Be.Idl2Ada is
         := Ada_Operation_Name (Node);
       Is_Function : constant Boolean
         := Kind (Operation_Type (Node)) /= K_Void;
-      It : Node_Iterator;
-      Param : Node_Id;
    begin
       pragma Assert (Kind (Node) = K_Operation);
       if not Is_Implicit_Inherited (Node) then
-         Gen_Operation_Profile (CU,
-                                "in "
-                                & Ada_Type_Defining_Name
-                                (Parent_Scope (Node)),
-                                Node);
+         Gen_Operation_Profile
+           (CU,
+            Ada_Type_Defining_Name
+            (Parent_Scope (Node)),
+            Node);
          PL (CU, " is");
          PL (CU, "begin");
          II (CU);
@@ -462,15 +461,25 @@ package body Ada_Be.Idl2Ada is
               & Op_Name);
          II (CU);
 
-         --  first, controlling argument
+         --  The controlling formal parameter
+
          Put (CU, "(Self.Ptr.all");
-         --  now all the arguments
-         Init (It, Contents (Node));
-         while not Is_End (It) loop
-            Get_Next_Node (It, Param);
-            PL (CU, ";");
-            Put (CU, " " & Ada_Name (Param));
-         end loop;
+
+         --  The remaining formals
+
+         declare
+            It : Node_Iterator;
+            Param_Node : Node_Id;
+         begin
+            Init (It, Parameters (Node));
+            while not Is_End (It) loop
+               Get_Next_Node (It, Param_Node);
+
+               PL (CU, ";");
+               Put (CU, " " & Ada_Name (Declarator (Param_Node)));
+            end loop;
+         end;
+
          PL (CU, ");");
 
          DI (CU);
@@ -2139,9 +2148,10 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Stream_Spec;
 
-   ----------------------------
-   --  Gen_Operation_Profile --
-   ----------------------------
+   ---------------------------
+   -- Gen_Operation_Profile --
+   ---------------------------
+
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
       Object_Type : in String;
