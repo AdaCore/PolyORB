@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#17 $
+# $Id: //droopi/main/utils/make_distrib#18 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -110,8 +110,9 @@ Root: ${tmp}
 Options: allwrite clobber compress
 View:
 __EOF__
-  sed "s,.*,	${view_root}/& //${client}/&," \
-    < ${prev}/MANIFEST) | p4 client -i
+  p4 print -q ${view_root}/MANIFEST | \
+   sed "s,.*,	${view_root}/& //${client}/&," | \
+   p4 client -i
   P4CLIENT=${client}; export P4CLIENT
   set +e
   case "${tag}" in
