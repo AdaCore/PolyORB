@@ -1026,181 +1026,181 @@ package body Exp_Dist is
 
    end Add_RACW_Primitive_Declarations_And_Bodies;
 
-      -----------------------------
-      -- Add_RAS_Dereference_TSS --
-      -----------------------------
+   -----------------------------
+   -- Add_RAS_Dereference_TSS --
+   -----------------------------
 
-      procedure Add_RAS_Dereference_TSS (N : Node_Id) is
-         Loc : constant Source_Ptr := Sloc (N);
+   procedure Add_RAS_Dereference_TSS (N : Node_Id) is
+      Loc : constant Source_Ptr := Sloc (N);
 
-         Type_Def : constant Node_Id   := Type_Definition (N);
+      Type_Def : constant Node_Id   := Type_Definition (N);
 
-         RAS_Type  : constant Entity_Id := Defining_Identifier (N);
-         Fat_Type  : constant Entity_Id := Equivalent_Type (RAS_Type);
-         RACW_Type : constant Entity_Id := Underlying_RACW_Type (RAS_Type);
-         Desig     : constant Entity_Id := Etype (Designated_Type (RACW_Type));
+      RAS_Type  : constant Entity_Id := Defining_Identifier (N);
+      Fat_Type  : constant Entity_Id := Equivalent_Type (RAS_Type);
+      RACW_Type : constant Entity_Id := Underlying_RACW_Type (RAS_Type);
+      Desig     : constant Entity_Id := Etype (Designated_Type (RACW_Type));
 
-         Stub_Elements : constant Stub_Structure := Stubs_Table.Get (Desig);
-         pragma Assert (Stub_Elements /= Empty_Stub_Structure);
+      Stub_Elements : constant Stub_Structure := Stubs_Table.Get (Desig);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
-         RACW_Primitive_Name : Node_Id;
+      RACW_Primitive_Name : Node_Id;
 
-         Proc : constant Entity_Id :=
-                  Make_Defining_Identifier (Loc,
-                    Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
+      Proc : constant Entity_Id :=
+               Make_Defining_Identifier (Loc,
+                 Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
-         Proc_Spec   : Node_Id;
-         Param_Specs : List_Id;
-         Param_Assoc : constant List_Id := New_List;
-         Stmts       : constant List_Id := New_List;
+      Proc_Spec   : Node_Id;
+      Param_Specs : List_Id;
+      Param_Assoc : constant List_Id := New_List;
+      Stmts       : constant List_Id := New_List;
 
-         RAS_Parameter : constant Entity_Id :=
-                           Make_Defining_Identifier (Loc,
-                             Chars => New_Internal_Name ('P'));
+      RAS_Parameter : constant Entity_Id :=
+                        Make_Defining_Identifier (Loc,
+                          Chars => New_Internal_Name ('P'));
 
-         Is_Function : constant Boolean :=
-                         Nkind (Type_Def) = N_Access_Function_Definition;
+      Is_Function : constant Boolean :=
+                      Nkind (Type_Def) = N_Access_Function_Definition;
 
-         Is_Degenerate : Boolean;
-         --  Set to True if the subprogram_specification for this RAS has an
-         --  anonymous access parameter (see Process_Remote_AST_Declaration).
+      Is_Degenerate : Boolean;
+      --  Set to True if the subprogram_specification for this RAS has an
+      --  anonymous access parameter (see Process_Remote_AST_Declaration).
 
-         Spec : constant Node_Id := Type_Def;
+      Spec : constant Node_Id := Type_Def;
 
-         Current_Parameter : Node_Id;
+      Current_Parameter : Node_Id;
 
-      --  Start of processing for Add_RAS_Dereference_TSS
+   --  Start of processing for Add_RAS_Dereference_TSS
 
-      begin
+   begin
 
-         --  The Dereference TSS for a remote access-to-subprogram type
-         --  has the form:
-         --  [function|procedure] ras_typeRD (RAS_Value, <RAS_Parameters>)
-         --     [return <>]
-         --  and is called whenever a value of a RAS type is dereferenced.
+      --  The Dereference TSS for a remote access-to-subprogram type
+      --  has the form:
+      --  [function|procedure] ras_typeRD (RAS_Value, <RAS_Parameters>)
+      --     [return <>]
+      --  and is called whenever a value of a RAS type is dereferenced.
 
-         --  First construct a list of parameter specifications:
+      --  First construct a list of parameter specifications:
 
-         --  The first formal is the RAS values
+      --  The first formal is the RAS values
 
-         Param_Specs := New_List (
+      Param_Specs := New_List (
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier => RAS_Parameter,
+          In_Present          => True,
+          Parameter_Type      =>
+            New_Occurrence_Of (Fat_Type, Loc)));
+
+      --  The following formals are copied from the type declaration
+
+      Is_Degenerate := False;
+      Current_Parameter := First (Parameter_Specifications (Type_Def));
+      Parameters : while Current_Parameter /= Empty loop
+         if Nkind (Parameter_Type (Current_Parameter))
+           = N_Access_Definition
+         then
+            Is_Degenerate := True;
+         end if;
+         Append_To (Param_Specs,
            Make_Parameter_Specification (Loc,
-             Defining_Identifier => RAS_Parameter,
-             In_Present          => True,
-             Parameter_Type      =>
-               New_Occurrence_Of (Fat_Type, Loc)));
+             Defining_Identifier =>
+               Make_Defining_Identifier (Loc,
+                 Chars => Chars (Defining_Identifier (Current_Parameter))),
+             In_Present        => In_Present (Current_Parameter),
+             Out_Present       => Out_Present (Current_Parameter),
+             Parameter_Type    =>
+               New_Copy_Tree (Parameter_Type (Current_Parameter)),
+             Expression        =>
+               New_Copy_Tree (Expression (Current_Parameter))));
 
-         --  The following formals are copied from the type declaration
+         Append_To (Param_Assoc,
+           Make_Identifier (Loc,
+             Chars => Chars (Defining_Identifier (Current_Parameter))));
 
-         Is_Degenerate := False;
-         Current_Parameter := First (Parameter_Specifications (Type_Def));
-         Parameters : while Current_Parameter /= Empty loop
-            if Nkind (Parameter_Type (Current_Parameter))
-              = N_Access_Definition
-            then
-               Is_Degenerate := True;
-            end if;
-            Append_To (Param_Specs,
-              Make_Parameter_Specification (Loc,
-                Defining_Identifier =>
-                  Make_Defining_Identifier (Loc,
-                    Chars => Chars (Defining_Identifier (Current_Parameter))),
-                In_Present        => In_Present (Current_Parameter),
-                Out_Present       => Out_Present (Current_Parameter),
-                Parameter_Type    =>
-                  New_Copy_Tree (Parameter_Type (Current_Parameter)),
-                Expression        =>
-                  New_Copy_Tree (Expression (Current_Parameter))));
+         Next (Current_Parameter);
+      end loop Parameters;
 
-            Append_To (Param_Assoc,
-              Make_Identifier (Loc,
-                Chars => Chars (Defining_Identifier (Current_Parameter))));
+      if Is_Degenerate then
+         Prepend_To (Param_Assoc, New_Occurrence_Of (RAS_Parameter, Loc));
 
-            Next (Current_Parameter);
-         end loop Parameters;
+         --  Generate a dummy body. This code is never actually be executed,
+         --  because null is the only legal value for a degenerate RAS type.
+         --  For legality's sake (in order to avoid generating a function
+         --  that does not contain a return statement), we include a dummy
+         --  recursive call on the TSS itself.
 
-         if Is_Degenerate then
-            Prepend_To (Param_Assoc, New_Occurrence_Of (RAS_Parameter, Loc));
+         Append_To (Stmts,
+           Make_Raise_Program_Error (Loc, Reason => PE_Explicit_Raise));
+         RACW_Primitive_Name := New_Occurrence_Of (Proc, Loc);
 
-            --  Generate a dummy body. This code is never actually be executed,
-            --  because null is the only legal value for a degenerate RAS type.
-            --  For legality's sake (in order to avoid generating a function
-            --  that does not contain a return statement), we include a dummy
-            --  recursive call on the TSS itself.
+      else
+         --  For a normal RAS type, we cast the RAS formal to the
+         --  corresponding tagged type, and perform a dispatching call to
+         --  its Call primitive operation.
 
-            Append_To (Stmts,
-              Make_Raise_Program_Error (Loc, Reason => PE_Explicit_Raise));
-            RACW_Primitive_Name := New_Occurrence_Of (Proc, Loc);
+         Prepend_To (Param_Assoc,
+           Unchecked_Convert_To (RACW_Type,
+             New_Occurrence_Of (RAS_Parameter, Loc)));
 
-         else
-            --  For a normal RAS type, we cast the RAS formal to the
-            --  corresponding tagged type, and perform a dispatching call to
-            --  its Call primitive operation.
+         RACW_Primitive_Name :=
+           Make_Selected_Component (Loc,
+             Prefix =>
+               New_Occurrence_Of (Scope (RACW_Type), Loc),
+             Selector_Name =>
+               Make_Identifier (Loc, Name_Call));
+      end if;
 
-            Prepend_To (Param_Assoc,
-              Unchecked_Convert_To (RACW_Type,
-                New_Occurrence_Of (RAS_Parameter, Loc)));
+      if Is_Function then
+         Append_To (Stmts,
+            Make_Return_Statement (Loc,
+              Expression =>
+                Make_Function_Call (Loc,
+              Name                   =>
+                RACW_Primitive_Name,
+              Parameter_Associations => Param_Assoc)));
 
-            RACW_Primitive_Name :=
-              Make_Selected_Component (Loc,
-                Prefix =>
-                  New_Occurrence_Of (Scope (RACW_Type), Loc),
-                Selector_Name =>
-                  Make_Identifier (Loc, Name_Call));
-         end if;
+      else
+         Append_To (Stmts,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   =>
+               RACW_Primitive_Name,
+             Parameter_Associations => Param_Assoc));
+      end if;
 
-         if Is_Function then
-            Append_To (Stmts,
-               Make_Return_Statement (Loc,
-                 Expression =>
-                   Make_Function_Call (Loc,
-                 Name                   =>
-                   RACW_Primitive_Name,
-                 Parameter_Associations => Param_Assoc)));
+      --  Build the complete subprogram
 
-         else
-            Append_To (Stmts,
-              Make_Procedure_Call_Statement (Loc,
-                Name                   =>
-                  RACW_Primitive_Name,
-                Parameter_Associations => Param_Assoc));
-         end if;
+      if Is_Function then
+         Proc_Spec :=
+           Make_Function_Specification (Loc,
+             Defining_Unit_Name       => Proc,
+             Parameter_Specifications => Param_Specs,
+             Subtype_Mark             =>
+               New_Occurrence_Of (
+                 Entity (Subtype_Mark (Spec)), Loc));
 
-         --  Build the complete subprogram
+         Set_Ekind (Proc, E_Function);
+         Set_Etype (Proc,
+           New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
 
-         if Is_Function then
-            Proc_Spec :=
-              Make_Function_Specification (Loc,
-                Defining_Unit_Name       => Proc,
-                Parameter_Specifications => Param_Specs,
-                Subtype_Mark             =>
-                  New_Occurrence_Of (
-                    Entity (Subtype_Mark (Spec)), Loc));
+      else
+         Proc_Spec :=
+           Make_Procedure_Specification (Loc,
+             Defining_Unit_Name       => Proc,
+             Parameter_Specifications => Param_Specs);
 
-            Set_Ekind (Proc, E_Function);
-            Set_Etype (Proc,
-              New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
+         Set_Ekind (Proc, E_Procedure);
+         Set_Etype (Proc, Standard_Void_Type);
+      end if;
 
-         else
-            Proc_Spec :=
-              Make_Procedure_Specification (Loc,
-                Defining_Unit_Name       => Proc,
-                Parameter_Specifications => Param_Specs);
+      Discard_Node (
+        Make_Subprogram_Body (Loc,
+          Specification              => Proc_Spec,
+          Declarations               => New_List,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Stmts)));
 
-            Set_Ekind (Proc, E_Procedure);
-            Set_Etype (Proc, Standard_Void_Type);
-         end if;
-
-         Discard_Node (
-           Make_Subprogram_Body (Loc,
-             Specification              => Proc_Spec,
-             Declarations               => New_List,
-             Handled_Statement_Sequence =>
-               Make_Handled_Sequence_Of_Statements (Loc,
-                 Statements => Stmts)));
-
-         Set_TSS (Fat_Type, Proc);
-      end Add_RAS_Dereference_TSS;
+      Set_TSS (Fat_Type, Proc);
+   end Add_RAS_Dereference_TSS;
 
    -------------------------------
    -- Add_RAS_Proxy_And_Analyze --
