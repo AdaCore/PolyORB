@@ -73,7 +73,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          C   : PTT.Runnable_Controller_Access);
       --  Start the task.
 
-      pragma Storage_Size (262144);
+      pragma Storage_Size
+        (PolyORB.Configuration.Get_Conf
+           ("tasking",
+            "polyorb.tasking.threads.storage_size",
+            262144));
    end Generic_Task;
 
    type Generic_Task_Access is access Generic_Task;

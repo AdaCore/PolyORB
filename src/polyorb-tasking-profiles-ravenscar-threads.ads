@@ -38,13 +38,6 @@
 --  on. This assures that only one task wait on every entry, as
 --  required in the Ravenscar profile.
 
---  The child packages of this package should only be packages
---  providing tasking facilities. Other packages shoud not have access
---  to "suspend" and "resume", the procedures affecting the internal
---  synchronisation object.
-
---  XXX inconsistant, "suspend" and "resume" are used by CV and mutexes !!!
-
 with System;
 
 with PolyORB.Tasking.Threads;
@@ -53,6 +46,7 @@ with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 generic
    Number_Of_Threads : Integer;
    Task_Priority     : System.Priority;
+   Storage_Size      : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    pragma Elaborate_Body;

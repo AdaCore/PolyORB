@@ -53,12 +53,16 @@ generic
    Task_Priority        : System.Priority;
    --  Priority affected  to the tasks of the pool.
 
+   Storage_Size         : Integer;
+   --  Stack size of the tasks of the pool.
+
 package PolyORB.Profiles.Ravenscar is
 
    package Threads_Package is
       new PolyORB.Tasking.Profiles.Ravenscar.Threads
      (Number_Of_Threads,
-      Task_Priority);
+      Task_Priority,
+      Storage_Size);
 
    package Conditions_Package is
       new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
