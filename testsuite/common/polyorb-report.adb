@@ -19,12 +19,15 @@ package body PolyORB.Report is
       if Last > Max then
          Last := Max;
       end if;
+
       Line (1 .. Last) := Message (Message'First .. Message'First + Last - 1);
+
       if Result then
          Ada.Text_IO.Put_Line (Line & ": PASSED");
       else
          Ada.Text_IO.Put_Line (Line & ": FAILED");
       end if;
+
       Passed := Passed and then Result;
    end Output;
 
@@ -36,6 +39,16 @@ package body PolyORB.Report is
    begin
       Output ("END TESTS", Passed);
    end End_Report;
+
+   --------------
+   -- New_Test --
+   --------------
+
+   procedure New_Test (Test_Name : String) is
+   begin
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line("==> Begin test " & Test_Name & " <==");
+   end New_Test;
 
 end PolyORB.Report;
 
