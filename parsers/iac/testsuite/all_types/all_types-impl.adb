@@ -215,21 +215,21 @@ package body all_types.Impl is
    --    return arg;
    --  end echoNestedStruct;
 
-   --  procedure set_MyColor
-   --  (Self : access Object;
-   --   arg : in Color)
-   --  is
-   --  begin
-   --   Self.Attr_My_Color := arg;
-   --  end set_MyColor;
+   procedure set_MyColor
+     (Self : access Object;
+      arg : in Color)
+   is
+   begin
+      Self.Attr_My_Color := arg;
+   end set_MyColor;
 
-   --  function get_myColor
-   --  (Self : access Object)
-   --  return Color
-   --  is
-   --  begin
-   --   return Self.Attr_My_Color;
-   --  end get_myColor;
+   function get_myColor
+     (Self : access Object)
+     return Color
+   is
+   begin
+      return Self.Attr_My_Color;
+   end get_myColor;
 
    function get_Counter
      (Self : access Object)

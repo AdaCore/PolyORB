@@ -104,5 +104,5 @@ interface all_types {
   // Attributes
   // ----------
   readonly attribute long Counter;
-  //attribute Color myColor;
+  attribute Color myColor;
 };

@@ -303,8 +303,8 @@ begin
       --  arrays limits, raising an exception on the server side.
 
       --  Attributes
-      -- set_myColor (Myall_types, Green);
-      -- Output ("test attribute", get_myColor (Myall_types) = Green);
+      set_myColor (Myall_types, Green);
+      Output ("test attribute", get_myColor (Myall_types) = Green);
 
       declare
          Counter_First_Value : constant CORBA.Long

@@ -42,7 +42,7 @@ package all_types.Impl is
    --  This is simply used to define the operations.
 
    type Object is new PortableServer.Servant_Base with record
-      --  Attr_My_Color : Color := Blue;
+      Attr_My_Color : Color := Blue;
       Attr_Counter  : CORBA.Long := 0;
    end record;
 
@@ -188,13 +188,13 @@ package all_types.Impl is
    --   Arg  : in Money)
    --  return Money;
 
-   -- procedure set_MyColor
-   --  (Self : access Object;
-   --   arg : in Color);
+   procedure set_MyColor
+     (Self : access Object;
+      arg : in Color);
 
-   -- function get_myColor
-   --  (Self : access Object)
-   --  return Color;
+   function get_myColor
+     (Self : access Object)
+     return Color;
 
    function get_Counter
      (Self : access Object)

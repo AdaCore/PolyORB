@@ -1,5 +1,9 @@
 2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
 
+	* testsuite/all_types/all_types.idl: Add Attribute test. 
+
+2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
+
 	* backend-be_ada-skels.adb: Fixed a bug (consider Scoped_Name in return_type of subprograms).  
 
 2004-08-27  Saber Souli  <souli@loozy.rezel.enst.fr>
