@@ -75,7 +75,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    --  Tasking type used in the pools preallocated by this package:
 
-   task type Simple_Task;
+   task type Simple_Task is
+      pragma Storage_Size (131072);
+   end Simple_Task;
    --  Type of the task that run the submitted threads
    --  XXX We should use a facade package to some pools.
    --      The pool packages will generated from the configuration

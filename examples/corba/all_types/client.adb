@@ -28,7 +28,6 @@
 
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Calendar; use Ada.Calendar;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
@@ -49,8 +48,6 @@ procedure Client is
    Howmany : Integer := 1;
    Echo_Long_Only : constant Boolean := Ada.Command_Line.Argument_Count = 3
                       and then Boolean'Value (Ada.Command_Line.Argument (3));
-
-   Start : Time;
 
 begin
    CORBA.ORB.Initialize ("ORB");
@@ -78,7 +75,6 @@ begin
 
    Output ("test not null", not all_types.Is_Nil (Myall_types));
 
-   Start := Clock;
    while Howmany > 0 loop
       declare
          L : constant Unsigned_Long := echoULong (Myall_types, 123);
@@ -298,9 +294,4 @@ begin
       Howmany := Howmany - 1;
    end loop;
 
-   declare
-      Elapsed : constant Duration := Clock - Start;
-   begin
-      Ada.Text_IO.Put_Line ("Elapsed:" & Duration'Image (Elapsed));
-   end;
 end Client;

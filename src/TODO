@@ -6,6 +6,10 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Review stack usage (for example, all_types fails with the default
+  stack size, pragmas Storage_Size are needed in full_tasking and
+  Ravenscar to allow it to proceed).
+
 * Create a new PolyORB.Tasking.Time_Stamps package to allow the
   creation of time stamps. Use it in P.POA.Basic_POA.Time_Stamps
   and in MOMA.
