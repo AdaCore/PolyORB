@@ -1,0 +1,6 @@
+interface Sema {
+  exception Empty {long Missing;};
+  void Try_P (in long Amount) raises (Empty);
+  void P     (in long Amount);
+  void V     (in long Amount);
+};

@@ -1,0 +1,26 @@
+AC_INIT(idlac.adb)
+AC_CONFIG_AUX_DIR(../support)
+#
+# Package description
+#
+AC_CANONICAL_SYSTEM
+AM_INIT_AUTOMAKE
+#
+# Various programs
+#
+AC_PROG_CC
+AM_PROG_WORKING_ADA
+AM_CROSS_PROG_WORKING_ADA
+AC_EXEEXT
+AC_CHECK_PROG(GNATMAKE, gnatmake, gnatmake)
+AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
+AC_CHECK_PROG(PYTHON, python, python)
+AM_PROG_LIBTOOL
+#
+# Check that the GNAT version is recent enough for this version of GLADE
+#
+AM_ADA_PREREQ(19990629, 3.12p)
+#
+# Output
+#
+AC_OUTPUT([Makefile])

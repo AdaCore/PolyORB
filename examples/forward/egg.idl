@@ -1,0 +1,15 @@
+
+#ifndef EGG
+#define EGG
+interface Egg ;
+#include "chicken.idl"
+
+interface Egg {
+
+  exception already_hatched{} ;
+  
+  Chicken hatch() raises (already_hatched) ;
+};
+
+#endif
+

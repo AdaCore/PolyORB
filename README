@@ -1,0 +1,126 @@
+***********************************************************
+***                                                     ***
+***         AdaBroker : an IDL to Ada compiler          ***
+***                                                     ***
+***********************************************************
+
+Installation :
+--------------
+
+- check that egcs and gnat are intalled on your system. Set your
+  environnement variables so that g++ refers to egcs and gcc to gnat.
+
+- create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
+  you use another version of omniORB, update the config.mk file in
+  AdaBroker/config). In any case, the link must be called `omniORB_2.7.1'.
+
+- run 'make export'. It will produce AdaBroker libraries and
+  adabroker executable. The installation procedure is similar to
+  omniORB installation procedure. For instance, adabroker executable
+  is installed in omniORB_2.7.1/bin/<platform>. Same thing for
+  libraries and ali files which are installed in
+  omniORB_2.7.1/lib/<platform>.
+
+- go to AdaBroker/Examples directory and run 'make' to build examples.
+
+- AdaBroker has been tested only with EGCS, but should work OK with most
+  recent C++ compilers. However, we have had failure reports with GCC 2.8.1.
+  This will be fixed as soon as GNAT is officially ported on EGCS.
+
+Usage :
+-------
+
+  adabroker [ -i ] myinterface.idl creates several files :
+
+- myinterface.ads, myinterface.adb : these files contain the mapping
+  for user defined types (client and server side).
+
+- myinterface-impl.ads, myinterface-impl.adb : these files are to be
+  filled by the user. They contain the implementation of the
+  server. They are generated only if the -i flag is specified.
+
+- myinterface-proxy.ads, myinterface-proxy.adb : these files
+  contain utilities to make proxy calls.
+
+- myinterface-skel.ads, myinterface-skel.adb : these files
+  contain utilities for the server-side implementation.
+
+- myinterface-stream.ads, myinterface-stream.adb : they contain
+  subprograms to marshall types according to the GIOP protocol.
+
+
+Features :
+----------
+
+- Most of the CORBA features are implemented except dynamic
+  invocation. This includes CORBA types, CORBA exceptions, forward
+  declarations and multiple inheritance. The Ada tasking is also
+  working with AdaBroker. AdaBroker/Examples provides
+  several examples of the available features.
+
+- This release has been successfully tested on Solaris. It has been
+  reported to work on Linux (RedHat and Debian) with a home-built
+  Ada and C++ compiler based on EGCS 1.1.1 and GNAT 3.11p.
+
+- If you need to debug AdaBroker, you can create a file adabroker.opt in
+  your current directory. This file should contain lines with package
+  names you want to debug. For instance, corba.orb will enable debug
+  messages from package CORBA.ORB. If you want to debug C++ files, you
+  can set the environment variable TRACELEVEL to a given naturel depending
+  on how much detailed you want the output to be.
+
+
+Bug reports:
+------------
+
+If you find a bug and would like to submit fixes, please do so
+indicating what release you use. We accept patch files. To produce
+such a patch file, put your files in the AdaBroker directory and our
+files in the directory AdaBroker.orig, and use the following command:
+
+  diff --recursive --context AdaBroker.orig AdaBroker > patch_file
+
+and send us the patch_file via E-mail at the address 
+
+          adabroker-bugs@adabroker.eu.org
+
+If your diff version do not understand the --recursive or --context
+option, please use the GNU diffutils package which may be found on any
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
+
+
+Mailing-lists:
+--------------
+
+Several mailing-lists have been created for discussions around AdaBroker:
+
+  - adabroker@adabroker.eu.org: general discussions about AdaBroker
+      To subscribe, send a mail to "adabroker-request@adabroker.eu.org"
+      with the single line "subscribe" in the body (subject will be ignored)
+
+  - adabroker-announce@adabroker.eu.org: low trafic mailing-list that will
+      only carry important information about AdaBroker, such as new releases,
+      beta test announces, etc.
+      To subscribe, send a mail to
+      "adabroker-announce-request@adabroker.eu.org" with the single line
+      "subscribe" in the body (subject will be ignored)
+
+
+Contributors:
+-------------
+
+AdaBroker has been developped since January, 1999 by the following
+contributors:
+
+* Fabien Azavant (azavant@enst.fr)
+* Emmanuel Chavane (chavane@enst.fr)
+* Jean-Marie Cottin (cottin@enst.fr)
+* Laurent Kubler (kubler@enst.fr)
+* Vincent Niebel (niebel@enst.fr)
+* Laurent Pautet (pautet@enst.fr)
+* Sebastien Ponce (ponce@enst.fr)
+* Thomas Quinot (quinot@enst.fr)
+* Frank Singhoff (singhoff@enst.fr)
+* Samuel Tardieu (sam@enst.fr)

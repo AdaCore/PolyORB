@@ -2276,7 +2276,7 @@ package body Idl_Fe.Parser is
             Node : Node_Id;
          begin
             Node := Declarator (Result);
-            Parse_Simple_declarator (Node,
+            Parse_Simple_Declarator (Node,
                                      Result,
                                      Success);
             Set_Declarator (Result, Node);
