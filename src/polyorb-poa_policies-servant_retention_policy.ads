@@ -40,11 +40,9 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
    use PolyORB.POA_Types;
 
    type ServantRetentionPolicy is abstract new Policy with null record;
-   subtype Servant_Retention_Policy is ServantRetentionPolicy;
 
    type ServantRetentionPolicy_Access is
      access all ServantRetentionPolicy'Class;
-   subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
    procedure Retain_Servant_Association
      (Self      :        ServantRetentionPolicy;

@@ -34,9 +34,11 @@
 package PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
    type Non_Retain_Policy is new ServantRetentionPolicy with null record;
+
    type Non_Retain_Policy_Access is access all Non_Retain_Policy;
 
-   function Create return Non_Retain_Policy_Access;
+   function Create
+     return Non_Retain_Policy_Access;
 
    procedure Check_Compatibility
      (Self           :        Non_Retain_Policy;

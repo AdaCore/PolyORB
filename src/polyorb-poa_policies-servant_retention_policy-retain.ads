@@ -34,13 +34,15 @@
 package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    type Retain_Policy is new ServantRetentionPolicy with null record;
+
    type Retain_Policy_Access is access all Retain_Policy;
 
-   function Create return Retain_Policy_Access;
+   function Create
+     return Retain_Policy_Access;
 
    procedure Check_Compatibility
-     (Self           : Retain_Policy;
-      Other_Policies : AllPolicies;
+     (Self           :        Retain_Policy;
+      Other_Policies :        AllPolicies;
       Error          : in out PolyORB.Exceptions.Error_Container);
 
    function Policy_Id

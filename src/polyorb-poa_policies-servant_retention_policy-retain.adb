@@ -198,9 +198,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    --------------------------------
 
    procedure Forget_Servant_Association
-     (Self  : Retain_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid;
+     (Self  :        Retain_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
