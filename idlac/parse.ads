@@ -402,6 +402,11 @@ private
                               Switch_Type : in N_Root_Acc;
                               Success : out Boolean);
 
+   --  Rule 41
+   --  <positive_int_const> ::= <const_exp>
+   procedure Parse_Positive_Int_Const (Result : out N_Const_Acc;
+                                       Success : out Boolean);
+
    --  Rule 42
    --  <type_dcl> ::= "typedef" <type_declarator>
    --             |   <struct_type>
@@ -628,6 +633,8 @@ private
 
    --  Rule 79
    --  <enumerator> ::= <identifier>
+   procedure Parse_Enumerator (Result : out N_Enumerator_Acc;
+                               Success : out Boolean);
 
    --  Rule 80
    --  <sequence_type> ::= "sequence" "<" <simple_type_spec>

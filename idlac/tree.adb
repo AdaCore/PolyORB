@@ -445,10 +445,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Enumerator) return Types.Node_Kind is
---    begin
---       return Types.K_Enumerator;
---    end Get_Kind;
+   function Get_Kind (N : N_Enumerator) return Types.Node_Kind is
+   begin
+      return Types.K_Enumerator;
+   end Get_Kind;
 
    function Get_Kind (N : N_Type_Declarator) return Types.Node_Kind is
    begin

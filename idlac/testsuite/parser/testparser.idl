@@ -201,5 +201,38 @@ union union10 switch (boolean) {
 /* Test of rule 75 */
 union union11 switch (boolean) { error };
 union union12 switch (boolean) { case true : long i };
+
+/* Test of rule 76 */
 union union13 switch (boolean) { case true : long i;
 				 case true : long j; };
+union union14 switch (boolean) { case true long k; };
+
+/* Test of rule 78 */
+enum;
+enum enum1 { male, female };
+enum enum1 { male, female };
+enum enum2;
+enum enum3 {};
+enum enum4 { male, female ;
+
+/* Test of rule 79 */
+enum enum5 { , id };
+enum enum6 { male , female };
+
+/* Test of rule 80 */
+typedef sequence sequence1;
+typedef sequence <boolean sequence2;
+typedef sequence <boolean, 8 sequence3;
+typedef sequence <boolean, 8>> sequence4;
+typedef sequence <sequence<boolean>> sequence5;
+
+/* Test of rule 81 */
+typedef string <10 string1;
+
+/* Test of rule 82 */
+typedef wstring <10 wstring1;
+
+/* Test of rule 96 */
+typedef fixed fixed1;
+typedef fixed <6> fixed2;
+typedef fixed <6,7 fixed3;

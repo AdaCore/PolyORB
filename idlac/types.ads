@@ -74,8 +74,8 @@ package Types is
        K_Sequence,
        K_Struct,
        K_Enum,
-       K_ValueBase  --  ,
---        K_Enumerator,
+       K_ValueBase,
+       K_Enumerator  --  ,
 --        K_Or,                   --  Binary operators.
 --        K_And,
 --        K_Xor,

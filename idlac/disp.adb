@@ -406,8 +406,8 @@ package body Disp is
          when K_ValueBase =>
             Put_Line ("ValueBase");
 
---          when K_Enumerator =>
---             Put_Line ("enumerator: " & Get_Name (N_Enumerator (N)));
+         when K_Enumerator =>
+            Put_Line ("enumerator: " & Get_Name (N_Enumerator (N)));
 
          when K_Type_Declarator =>
             Put_Line ("type declarator:");
@@ -421,7 +421,8 @@ package body Disp is
          when K_Sequence =>
             Put_Line ("sequence");
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Sequence (N).S_Type.all, N_Indent + Offset, Full);
+            Disp_Tree (N_Sequence (N).Sequence_Type.all,
+                       N_Indent + Offset, Full);
             if N_Sequence (N).Bound /= null then
                Disp_Indent (N_Indent, "bound:");
                Disp_Tree (N_Sequence (N).Bound.all,
@@ -436,11 +437,9 @@ package body Disp is
             Disp_Tree (N_Const (N).Expression.all, N_Indent + Offset, Full);
 
          when K_Fixed =>
-            Put_Line ("fixed(" &
-                      Fixed_Digits'Image (N_Fixed (N).Digits_Nb) &
-                      "," &
-                      Integer'Image (N_Fixed (N).Scale) &
-                      ")");
+            Put_Line ("fixed");
+            Disp_Tree (N_Fixed (N).Digits_Nb.all, N_Indent + Offset, Full);
+            Disp_Tree (N_Fixed (N).Scale.all, N_Indent + Offset, Full);
 
          when K_Native =>
             Put_Line ("native:" & Get_Name (N_Const (N)));

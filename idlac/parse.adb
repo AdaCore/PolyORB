@@ -1963,6 +1963,16 @@ package body Parse is
 --    end Parse_Const_Exp;
    end Parse_Const_Exp;
 
+   --------------------------------
+   --  Parse_Positive_Int_Const  --
+   --------------------------------
+   procedure Parse_Positive_Int_Const (Result : out N_Const_Acc;
+                                       Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Positive_Int_Const;
+
    ----------------------
    --  Parse_Type_Dcl  --
    ----------------------
@@ -2721,9 +2731,6 @@ package body Parse is
                Errors.Display_Location (Get_Location (Definition.Node.all)),
                Errors.Error,
                Get_Token_Location);
-            Success := False;
-            Result := null;
-            return;
          end if;
          Result := new N_Struct;
          Set_Location (Result.all, Get_Token_Location);
@@ -2761,9 +2768,9 @@ package body Parse is
       if not Success then
          return;
       end if;
-      if not Add_Identifier (Result,
-                             Name.all) then
-         raise Errors.Internal_Error;
+      if not Add_Identifier (Result, Name.all) then
+         --  the error was raised before
+         null;
       end if;
       Free_String_Ptr (Name);
       if Get_Token /= T_Right_Cbracket then
@@ -2870,9 +2877,6 @@ package body Parse is
                Errors.Display_Location (Get_Location (Definition.Node.all)),
                Errors.Error,
                Get_Token_Location);
-            Success := False;
-            Result := null;
-            return;
          end if;
          Result := new N_Union;
          Set_Location (Result.all, Get_Token_Location);
@@ -2958,9 +2962,9 @@ package body Parse is
       if not Success then
          return;
       end if;
-      if not Add_Identifier (Result,
-                             Name.all) then
-         raise Errors.Internal_Error;
+      if not Add_Identifier (Result, Name.all) then
+         --  the error was raised before
+         null;
       end if;
       Free_String_Ptr (Name);
       if Get_Token /= T_Right_Cbracket then
@@ -3214,9 +3218,12 @@ package body Parse is
                                  Element_Decl : out N_Declarator_Acc;
                                  Success : out Boolean) is
    begin
-      Element_Type := null;
-      Element_Decl := null;
-      Success := False;
+      Parse_Type_Spec (Element_Type, Success);
+      if not Success then
+         return;
+      end if;
+      Parse_Declarator (Element_Decl, Success);
+      return;
    end Parse_Element_Spec;
 
    -----------------------
@@ -3225,30 +3232,147 @@ package body Parse is
    procedure Parse_Enum_Type (Result : out N_Enum_Acc;
                               Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       Res : N_Enum_Acc;
---       El : N_Enumerator_Acc;
---    begin
---       Res := new N_Enum;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Enum);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       loop
---          Scan_Expect (T_Identifier);
---          El := new N_Enumerator;
---          Set_Location (El.all, Get_Location);
---          Add_Identifier (El);
---          Append_Node (Res.Enumerators, N_Root_Acc (El));
---          Next_Token;
---          exit when Token /= T_Comma;
---       end loop;
---       Expect (T_Right_Cbracket);
---       Next_Token;
---       return Res;
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 5;
+            Errors.Parser_Error ("identifier expected in enumeration " &
+                                 "definition.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            return;
+         end;
+      end if;
+      Result := new N_Enum;
+      Set_Location (Result.all, Get_Token_Location);
+      Result.Enumerators := Nil_List;
+      declare
+         Definition : Identifier_Definition_Acc;
+      begin
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+            return;
+         else
+            if not Add_Identifier (Result,
+                                   Get_Token_String) then
+               raise Errors.Internal_Error;
+            end if;
+         end if;
+      end;
+      Next_Token;
+      if Get_Token /= T_Left_Cbracket then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("'{' expected in enumeration definition.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            return;
+         end;
+      end if;
+      Next_Token;
+      if Get_Token = T_Right_Cbracket then
+         Errors.Parser_Error ("identifier expected : " &
+                              "an enumeration may not be empty.",
+                              Errors.Error,
+                              Get_Token_Location);
+      end if;
+      declare
+         Enum : N_Enumerator_Acc;
+      begin
+         Parse_Enumerator (Enum, Success);
+         if not Success then
+            return;
+         end if;
+         Append_Node (Result.Enumerators, N_Root_Acc (Enum));
+      end;
+      declare
+         Count : Idl_Enum := 1;
+      begin
+         while Get_Token = T_Comma loop
+            Next_Token;
+            declare
+               Enum : N_Enumerator_Acc;
+            begin
+               Parse_Enumerator (Enum, Success);
+               if not Success then
+                  return;
+               end if;
+               Count := Count + 1;
+               if Count = 0 then
+                  Errors.Parser_Error ("two much possible values in this " &
+                                       "enumeration : maximum is 2^32.",
+                                       Errors.Error,
+                                       Get_Token_Location);
+               end if;
+               Append_Node (Result.Enumerators, N_Root_Acc (Enum));
+            end;
+         end loop;
+      end;
+      if Get_Token /= T_Right_Cbracket then
+         Errors.Parser_Error ("'}' expected at the end of enumeration " &
+                              "definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      return;
    end Parse_Enum_Type;
+
+   ------------------------
+   --  Parse_Enumerator  --
+   ------------------------
+   procedure Parse_Enumerator (Result : out N_Enumerator_Acc;
+                               Success : out Boolean) is
+      Definition : Identifier_Definition_Acc;
+   begin
+      if Get_Token /= T_Identifier then
+         Errors.Parser_Error ("Identifier expected.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      else
+         Result := new N_Enumerator;
+         Set_Location (Result.all, Get_Token_Location);
+         --  try to find a previous definition
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+         else
+            --  no previous definition
+            if not Add_Identifier (Result,
+                                   Get_Token_String) then
+               raise Errors.Internal_Error;
+            end if;
+         end if;
+      end if;
+      Success := True;
+      return;
+   end Parse_Enumerator;
 
    ---------------------------
    --  Parse_Sequence_Type  --
@@ -3256,25 +3380,63 @@ package body Parse is
    procedure Parse_Sequence_Type (Result : out N_Sequence_Acc;
                                   Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       Res : N_Sequence_Acc;
---    begin
---       Res := new N_Sequence;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Sequence);
---       Scan_Expect (T_Less);
---       Next_Token;
---       Res.S_Type := Parse_Simple_Type_Spec;
---       if Token = T_Comma then
---          Next_Token;
---          Res.Bound := Parse_Const_Exp;
---       else
---          Res.Bound := null;
---       end if;
---       Expect (T_Greater);
---       Next_Token;
---       return Res;
+      Next_Token;
+      if Get_Token /= T_Less then
+         Errors.Parser_Error ("'<' expected in sequence definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Result := new N_Sequence;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      Next_Token;
+      Parse_Simple_Type_Spec (Result.Sequence_Type, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Comma and Get_Token /= T_Greater then
+         Errors.Parser_Error ("',' or '>' expected in sequence definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      if Get_Token = T_Comma then
+         Next_Token;
+         Parse_Positive_Int_Const (Result.Bound, Success);
+         if not Success then
+            return;
+         end if;
+      else
+         Result.Bound := null;
+      end if;
+      case Get_Token is
+         when T_Greater =>
+            Next_Token;
+         when T_Greater_Greater =>
+            if Get_Kind (Get_Current_Scope.all) = K_Sequence then
+               Errors.Parser_Error ("'>' expected. You probably forgot " &
+                                    "the space between both letters.",
+                                    Errors.Error,
+                                    Get_Token_Location);
+            else
+               Errors.Parser_Error ("'>' expected at the end of "
+                                    & "sequence definition.",
+                                    Errors.Error,
+                                    Get_Token_Location);
+               Success := False;
+               return;
+            end if;
+         when others =>
+            Errors.Parser_Error ("'>' expected at the end of "
+                                 & "sequence definition.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            return;
+      end case;
+      return;
    end Parse_Sequence_Type;
 
    -------------------------
@@ -3283,21 +3445,26 @@ package body Parse is
    procedure Parse_String_Type (Result : out N_String_Acc;
                                 Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       Res : N_String_Acc;
---    begin
---       Res := new N_String;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_String);
---       Next_Token;
---       if Token = T_Less then
---          Next_Token;
---          Res.Bound := Parse_Const_Exp;
---          Expect (T_Greater);
---          Next_Token;
---       end if;
---       return Res;
+      Next_Token;
+      Result := new N_String;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      if Get_Token = T_Less then
+         Parse_Positive_Int_Const (Result.Bound, Success);
+         if not Success then
+            return;
+         end if;
+         if Get_Token /= T_Greater then
+            Errors.Parser_Error ("'>' expected in string definition.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            return;
+         end if;
+      else
+         Result.Bound := null;
+      end if;
+      Success := True;
+      return;
    end Parse_String_Type;
 
    ------------------------------
@@ -3306,13 +3473,26 @@ package body Parse is
    procedure Parse_Wide_String_Type (Result : out N_Wide_String_Acc;
                                      Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---    begin
---       Errors.Parser_Error ("can't parse wide string type",
---                             Errors.Error);
---       raise Errors.Internal_Error;
---       return null;
+      Next_Token;
+      Result := new N_Wide_String;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      if Get_Token = T_Less then
+         Parse_Positive_Int_Const (Result.Bound, Success);
+         if not Success then
+            return;
+         end if;
+         if Get_Token /= T_Greater then
+            Errors.Parser_Error ("'>' expected in wide string definition.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            return;
+         end if;
+      else
+         Result.Bound := null;
+      end if;
+      Success := True;
+      return;
    end Parse_Wide_String_Type;
 
    ------------------------------
@@ -3383,12 +3563,42 @@ package body Parse is
    procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
                                   Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---       Errors.Parser_Error ("can't parse fixed pt type",
---                             Errors.Error);
---       raise Errors.Internal_Error;
---       return null;
+      Next_Token;
+      Result := new N_Fixed;
+      Set_Location (Result.all, Get_Previous_Token_Location);
+      if Get_Token /= T_Less then
+         Errors.Parser_Error ("'<' expected in fixed point type definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      Parse_Positive_Int_Const (Result.Digits_Nb, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Comma then
+         Errors.Parser_Error ("',' expected in fixed point type definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      Parse_Positive_Int_Const (Result.Scale, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Greater then
+         Errors.Parser_Error ("'>' expected in fixed point type definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      Next_Token;
+      return;
    end Parse_Fixed_Pt_Type;
 
    -----------------------------
