@@ -4,6 +4,11 @@
 
 package body Droopi.Filters is
 
+   procedure Connect_Lower (F : access Filter; Lower : Component_Access) is
+   begin
+      Connect (F.Lower, Lower);
+   end Connect_Lower;
+
    function Lower (F : access Filter) return Component_Access is
    begin
       return F.Lower;
@@ -30,7 +35,7 @@ package body Droopi.Filters is
               := Create_Filter_Chain (FChain.Upper);
          begin
             Connect (F.Upper, Component_Access (Upper));
-            Connect (Upper.Lower, Component_Access (F));
+            Connect_Lower (Upper, Component_Access (F));
          end;
       end if;
       return F;

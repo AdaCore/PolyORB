@@ -4,7 +4,7 @@ with Ada.Exceptions;
 
 with Droopi.Annotations;
 with Droopi.Components;
-with Droopi.Filters.Sockets;
+with Droopi.Filters;
 with Droopi.Log;
 with Droopi.Soft_Links;
 with Droopi.Transport;
@@ -100,17 +100,27 @@ package body Droopi.ORB is
    is record
       case Kind is
          when A_TAP_AES =>
-              TAP : Transport_Access_Point_Access;
-              Filter_Factory_Chain : Filters.Factory_Chain_Access;
+            TAP : Transport_Access_Point_Access;
+            --  Factory of Transport_Endpoint components.
+
+            Filter_Factory_Chain : Filters.Factory_Chain_Access;
+            --  Factory of Filter (protocol stack) components.
+
          when A_TE_AES =>
             TE : Transport_Endpoint_Access;
-            Filter : Filter_Access;
+            --  Transport_Endpoint component (connected to a
+            --  protocol stack).
       end case;
    end record;
 
    type ORB_Note is new Note with record
       D : ORB_Note_Data;
    end record;
+
+   procedure Handle_Event
+     (ORB : access ORB_Type;
+      AES : Asynchronous_Event_Source_Access);
+   --  Process an event that occurred on AES.
 
    procedure Handle_Event
      (ORB : access ORB_Type;
@@ -127,28 +137,32 @@ package body Droopi.ORB is
                New_Filter : Filter_Access;
             begin
                Accept_Connection (Note.D.TAP.all, New_TE);
+               --  Create transport endpoint.
+
                New_AES := Create_Event_Source (New_TE.all);
+               --  Create associated asynchronous event source.
+
                New_Filter := Create_Filter_Chain
                  (Note.D.Filter_Factory_Chain);
+               --  Create filter/protocol stack.
+
+               Connect_Upper (New_TE, Component_Access (New_Filter));
+               Connect_Lower (New_Filter, Component_Access (New_TE));
+               --  Connect filter to transport.
 
                Set_Note (Notepad_Of (New_AES).all,
                          ORB_Note'(Annotations.Note with D =>
                                      (Kind   => A_TE_AES,
-                                      TE     => New_TE,
-                                      Filter => New_Filter)));
+                                      TE     => New_TE)));
+               --  Register link from AES to TE.
+
                --  XXX TODO: Take the newly-created event source
                --  into account.
                --  Insert_Source (ORB, New_AES);
             end;
          when A_TE_AES =>
-            Emit (Component_Access (Note.D.Filter),
-                  Filters.Data_Units.Data_Indication'
-                  (null record));
-   --  XXX Actually the filter will need to know
-   --  which TE to obtain the data from...
-   --  Implementation: take Droopi.Filters.Sockets
-   --  and replace that with Droopi.Filters.Transport...
-   --  TE => Note.D.TE));
+            Emit (Component_Access (Note.D.TE),
+                  Filters.Data_Units.Data_Indication'(null record));
       end case;
    end Handle_Event;
 

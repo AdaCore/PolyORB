@@ -4,7 +4,6 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Droopi.Asynchronous_Events.Sockets;
 with Droopi.Filters;
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
@@ -16,7 +15,6 @@ with Droopi.Sockets;
 
 procedure Droopi.Setup.Test
 is
-   use Droopi.Asynchronous_Events.Sockets;
    use Droopi.ORB;
    use Droopi.Sockets;
 

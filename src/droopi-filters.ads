@@ -20,6 +20,7 @@ package Droopi.Filters is
    type Filter is abstract new Component with private;
    type Filter_Access is access all Filter'Class;
 
+   procedure Connect_Lower (F : access Filter; Lower : Component_Access);
    function Lower (F : access Filter) return Component_Access;
    function Server_Of (F : access Filter) return Schedulers.Server_Access;
 

@@ -7,7 +7,7 @@ with Ada.Streams; use Ada.Streams;
 
 with Droopi.Asynchronous_Events; use Droopi.Asynchronous_Events;
 with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Schedulers;
+with Droopi.Components; use Droopi.Components;
 
 package Droopi.Transport is
 
@@ -23,13 +23,26 @@ package Droopi.Transport is
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
 
-   type Transport_Endpoint
-      is abstract tagged limited private;
+   type Transport_Endpoint is abstract new Component with private;
+
+   procedure Connect_Upper
+     (TE    : access Transport_Endpoint;
+      Upper : Components.Component_Access);
+   --  Connect the "upper layer" signal of TE to Upper.
+
    type Transport_Endpoint_Access is access all Transport_Endpoint'Class;
    --  An opened transport endpoint.
 
-   --  Primitive operations of Transport_Access_Point and
-   --  Transport_Endpoint.
+   function Handle_Message
+     (TE  : access Transport_Endpoint;
+      Msg : Components.Message'Class)
+     return Boolean;
+
+   ----------------------------------------------------
+   -- Primitive operations of Transport_Access_Point --
+   -- and Transport_Endpoint.                        --
+   -- To be overridden by concrete implementations.  --
+   ----------------------------------------------------
 
    --  These primitives are invoked from event-driven ORB
    --  threads, and /must not/ be blocking.
@@ -75,6 +88,12 @@ private
       is abstract tagged limited null record;
 
    type Transport_Endpoint
-      is abstract tagged limited null record;
+      is abstract new Components.Component with record
+         Upper  : Components.Component_Access;
+         --  Communication signal to upper layer.
+
+         In_Buf : Buffers.Buffer_Access;
+         Max    : Ada.Streams.Stream_Element_Count;
+      end record;
 
 end Droopi.Transport;

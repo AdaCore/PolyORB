@@ -5,7 +5,6 @@
 with Sequences.Unbounded;
 
 with Droopi.Asynchronous_Events;
-with Droopi.Filters;
 with Droopi.Jobs;
 with Droopi.Requests;
 with Droopi.Schedulers;
