@@ -1,3 +1,37 @@
+2000-12-11  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-parint.adb, s-garsto.adb: GNAT.HTable is not thread-safe.
+	Protect use of tables from GNAT.HTable.
+	
+	* s-gartab.ads, s-gartab.adb: Add an implementation of a thread
+	safe dynamic table which does not use Name_Table.
+
+	* s-gaprtc.adb, s-garpar.adb, s-rpstio.adb: Use new table
+	implementation of Table.
+	
+	* s-ganata.adb: Add mutex exclusion.
+
+	* s-garsta.adb: Fix elaboration order because of Name_Table
+	changes.
+
+	* s-gafizi.adb, s-gafizi.ads: Add new procedure Initialize which
+	corresponds ot the elaboration code.
+
+	* s-garfil.adb: Prevents multiple filter registrations.
+
+	* s-rpc.adb, s-rpcser.adb: Minor reformatting. Do not deallocate
+	anonymous tasks anymore as the run-time is supposed to deallocate
+	stack when terminated.
+
+	* Makefile.in, Makefile.am: Update dependencies.
+	
+2000-12-10  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-garsto.adb, s-parint.adb: Protect access to HTable because
+	GNAT.HTable is not thread safe.
+
+	* s-ganata.adb: Protect access to Name_Table.
+
 2000-12-07  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* Makefile.am, Makefile.in, linktest.adb: Update dependencies and

@@ -1,3 +1,19 @@
+2000-12-11  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_stubs.adb: Call initialization procedure of each filter
+	package in System.Garlic.Elaboration.Initialize. The problem was
+	that the filter initialization code was executed during filter
+	package elaboration. As Name_Table depends on tasking
+	configuration and as the filter packages depend on Name_Table, we
+	have to postpone the filter initialization after the Name_Table
+	initialization. Note that Name_Table depends on the initialization
+	of the GARLIC tasking. First, we initialize the tasking packages
+	of GARLIC (No_Tasking or Tasking), then Name_Table and finaly the
+	filter packages.
+
+	* xe_utils.adb, xe_utils.ads: Add procedures to deal with Filters
+	units.
+   
 2000-12-07  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* Makefile.am, Makefile.in: Add b~* files to the CLEANFILES
