@@ -30,6 +30,7 @@ adasockets/src/stamp-h.in
 configure
 configure.in
 cos/Makefile.am
+cos/Makefile.common
 cos/Makefile.in
 cos/naming/CosNaming.idl
 cos/naming/File.idl
