@@ -127,9 +127,33 @@ CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
 \end{figure}
 
 La figure~\ref{fig:droopi-arch} donne une vue d'ensemble de
-l'architecture retenue pour DROOPI.
+l'architecture retenue pour DROOPI. Celle-ci comporte trois
+niveaux~:
 
-%%  XXX explication du dessin
+\begin{description}
+\item[Couche applicative] \emph{(en haut)}
+  Les éléments de l'ORB permettant aux objets de l'application
+  de s'intégrer à l'environnement réparti. Ces entités fournissent
+  des services permettant notemment aux objets de l'application
+  de s'enregistrer auprès de l'ORB pour recevoir des requêtes
+  provenant d'objets distants, et d'émettre des requêtes vers
+  des objets distants.
+
+  Cette couche est implémentée pour chaque personnalité. Elle
+  utilise des fonctionnalités du c{\oe}ur de l'ORB qui, elles,
+  sont génériques.
+
+\item[Couche générique --- c{\oe}ur de répartition]
+  Les éléments de l'ORB indépendants de la personnalité.
+  Ces entités implémentent les abstractions et patterns
+  communs à toutes les personnalités de middleware.
+
+\item[Couche protocolaire]
+  Les éléments de l'ORB permettant la communication avec
+  d'autres ORBs. Ces entités, implémentées pour chaque
+  personnalité, exécutent les protocoles de communication
+  inter-ORB.
+\end{description}
 
 \subsection{Client}
 
@@ -231,10 +255,11 @@ classe abstraite \emph{Component}. Un objet peut contenir un certain
 nombre de «~ports~», des voies de communication vers d'autres composants.
 
 Une fonction est offerte pour connecter un port vers un composant.
-Des messages synchrones (équivalents à des appels de méthoes) peuvent
-alors être émis sur le port, et reçues par le composant destinataire.
-Lorsqu'un composant doit recevoir un message, sa méthode \emph{Handle\_Message}
-est exécutée.
+Des messages synchrones peuvent alors être émis sur le port, et reçues par le
+composant destinataire. Lorsqu'un composant doit recevoir un message, sa méthode
+\emph{Handle\_Message} est exécutée. Ce mécanisme consiste en fait à expliciter
+l'envoi de message (local) notionnellement impliqué par l'invocation d'une
+méthode d'objet.
 
 \begin{figure}
 \begin{center}
@@ -514,7 +539,17 @@ construit un message et transmet ce message à un middleware distant
 afin que la requête soit exécutée.
 
 Étant donnée un message reçu, la session construit une requête et la fait
-exécuter par un servant local.
+exécuter par un servant local. Cela nécessite que le serveur local
+ait fourni au préalable une description de la signature de la requête.
+En effet, le message «~sur le fil~» ne contient pas \emph{a priori}
+de description des données transportées (cette information a été perdue
+lors de la transformation de la requête en message côté client). Pour
+reconstituer l'objet de type \emph{Request}, l'ORB côté serveur doit
+connaître la délimitation et le type des paramètres, pour pouvoir les
+désérialiser en fonction du protocole utilisé. Il est donc nécessaire,
+côté serveur, d'avoir une description indépendante de la personnalité
+des signatures de services, par exemple en ayant une sorte d'\emph{Interface
+Reposiotry} générique.
 
 Les sessions sont créées à partir de factories appelées Protocols. Un protocole
 est défini comme un moyen d'associer une session et une représentation à un TE.
