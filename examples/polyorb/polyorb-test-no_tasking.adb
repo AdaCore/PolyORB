@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Initialization;
 with PolyORB.Setup.Test_SOA;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -44,6 +45,7 @@ procedure PolyORB.Test.No_Tasking is
    use PolyORB.Setup.Test_SOA;
 
 begin
+   PolyORB.Initialization.Initialize_World;
    Initialize_Test_Object;
    Run_Test;
 end PolyORB.Test.No_Tasking;

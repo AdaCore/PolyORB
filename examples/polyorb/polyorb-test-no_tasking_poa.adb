@@ -32,6 +32,8 @@
 
 --  Setup a test server with no tasking at all.
 
+with PolyORB.Initialization;
+
 with PolyORB.Setup.Test_SOA;
 with PolyORB.Setup.Test_POA;
 
@@ -41,6 +43,7 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 procedure PolyORB.Test.No_Tasking_POA is
 begin
+   PolyORB.Initialization.Initialize_World;
    PolyORB.Setup.Test_POA.Initialize_Test_Object;
    PolyORB.Setup.Test_SOA.Run_Test;
 end PolyORB.Test.No_Tasking_POA;
