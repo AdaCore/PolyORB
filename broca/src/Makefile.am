@@ -94,7 +94,7 @@ $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
