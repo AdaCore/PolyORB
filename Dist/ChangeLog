@@ -1,3 +1,7 @@
+1999-07-20  Pascal Obry  <obry@gnat.com>
+
+	* xe_utils.ads: add some comments.
+
 1999-07-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stdcnf.adb, xe.ads, xe_back.adb: Add a new pragma Priority to
