@@ -259,7 +259,7 @@ package body Droopi.ORB is
            or else ORB.Shutdown;
 
          if Try_Perform_Work (ORB, ORB.Job_Queue) then
-            null;
+            Enter (ORB.ORB_Lock.all);
          elsif May_Poll then
             pragma Debug (O ("About to poll external event sources."));
             declare
