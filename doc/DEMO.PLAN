@@ -74,7 +74,48 @@ Exhibit messages on CORBA dynclient and DSA server.
 
 DEMO-3: MOM/dist. obj. interoperability
 
-Using IOR retrieved in 4, [XXX TBD (JH)]
+Requires : 
+
+- an ORB server, implementing the echoString function found in
+the all_types example, also provided by the DSA server.
+
+- a MOMA message pool node, can use examples/moma/server
+(by default it is configured as a persistent node => messages
+are stored in files, in a binary yet readable format)
+
+The servers output their IOR, we use them to launch
+examples/all_types/client_moma, its syntax is
+
+client_moma <IOR_string_from_orb_server> <IOR_string_from_moma_message_pool>
+
+The client sends a MExecute message to its 'destination' (1), since it
+is an ORB server this message is altered and a RPC is formated by the
+application personality from this message (2) then sent to the DSA
+server. The reply (3) sent by the DSA server is intercepted by a call
+back component on the MOM client side by the MOMA personality and
+formatted and transformed into a MExecute message containing the
+answer then bounced to the message pool (4).
+
+Thus, from the MOMA client point of view, a MExecute message has been
+processed by a remote node, the answer has been sent to a message pool.
+The communication is transparent. Yet, the client must know how
+to fill the MExecute message fields, as for every MOM applications.
+
+Here is a transcription of the communications between entities.
+
+MOMA Client         'MOMA Personnality'      DSA Server         Message Pool
+  |                            |                 |                  |
+  |                            |                 |                  |
+  |      MExecute Message (1)  |     RPC (2)     |                  |
+  |     -------------------->  |    -------->    |                  |
+  |                            |                 |                  |
+  |                            |      Reply (3)  |                  |
+  |                            |    <----------  |                  |
+  |                            |                 |                  | 
+  |                            |                                    |
+  |                            |        MExecute Message (4)        |       
+  |                            |    --------------------------->    |
+  |                            |                                    |
 
 7. CORBA SOAP client
 --------------------
