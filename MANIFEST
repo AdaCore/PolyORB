@@ -127,6 +127,7 @@ Examples/Messages/main.adb
 Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
+Examples/Messages/pure.ads
 Examples/RACW/Makefile.am
 Examples/RACW/Makefile.in
 Examples/RACW/common.ads
