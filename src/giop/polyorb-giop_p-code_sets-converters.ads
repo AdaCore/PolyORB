@@ -38,8 +38,6 @@
 --  For each pair of native/transmission code sets we define it's own
 --  converter.
 
---  $Id$
-
 with PolyORB.Buffers;
 
 package PolyORB.GIOP_P.Code_Sets.Converters is
