@@ -1,3 +1,11 @@
+Wed Oct 29 19:11:39 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb, xe_utils.ads: Remove unused subprograms (basically
+ 	xe-gcc stuff). Change function Strip_Uname_Suffix into U_To_N.
+
+	* xe_stubs.adb: Change to new stub generation. Handle generic
+ 	packages.
+
 Fri Oct 24 17:49:16 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
 
 	* xe_utils.ads: Add a procedure Free (to deallocate a

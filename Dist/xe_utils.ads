@@ -168,17 +168,6 @@ package XE_Utils is
    procedure Delete
      (File : in File_Name_Type);
 
-   procedure Expand_And_Compile_RCI_Caller
-     (Source, Target : in File_Name_Type);
-   --  Generates the source's caller stubs into target (-gnatzc).
-
-   procedure Expand_And_Compile_RCI_Receiver
-     (Source, Target : in File_Name_Type);
-   --  Generates the source's receiver stubs into target (-gnatzr).
-
-   function Strip_Unit_Suffix (Uname : Name_Id) return Name_Id;
-   --  Extract %[bs] suffix.
-
    procedure Initialize;
    procedure Initialize_ALI renames ALI.Initialize_ALI;
 
@@ -213,6 +202,11 @@ package XE_Utils is
    --  Set into name table and return id.
 
    function Strlen (Name : in Name_Id) return Natural;
+
+   function U_To_N
+     (U : in Unit_Name_Type)
+      return Name_Id;
+   --  Strip %[bs] from U.
 
    procedure Unlink_File
      (File : in File_Name_Type);

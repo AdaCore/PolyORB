@@ -41,7 +41,6 @@ package body XE_Utils is
    Path         : constant String_Access := GNAT.Os_Lib.Getenv ("PATH");
 
    GNAT_Verbose   : String_Access;
-   XE_Gcc         : String_Access;
    Gcc            : String_Access;
    Mkdir          : String_Access;
    Copy           : String_Access;
@@ -52,7 +51,7 @@ package body XE_Utils is
    Gnatlink       : String_Access;
    Gnatmake       : String_Access;
 
-   EOL : constant String (1 .. 1) := (others => Ascii.LF);
+   EOL : constant String := (1 => Ascii.LF);
 
    Output_Flag           : constant String_Access := new String' ("-o");
    Preserve              : constant String_Access := new String' ("-p");
@@ -60,10 +59,8 @@ package body XE_Utils is
    Force                 : constant String_Access := new String' ("-f");
    Compile_Flag          : constant String_Access := new String' ("-c");
    Exclude_File_Flag     : constant String_Access := new String' ("-x");
-   Receiver_Build_Flag   : constant String_Access := new String' ("-gnatzr");
-   Caller_Build_Flag     : constant String_Access := new String' ("-gnatzc");
-   Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzR");
-   Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzC");
+   Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzr");
+   Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzc");
    GNATLib_Compile_Flag  : constant String_Access := new String' ("-gnatg");
 
    Special_File_Flag     : constant String_Access := new String' ("-x");
@@ -138,12 +135,6 @@ package body XE_Utils is
       Exec : in File_Name_Type;
       Args : in Argument_List);
    --  Execute gnatlink and add gnatdist flags
-
-   procedure Execute_XE_Gcc
-     (Source : in String_Access;
-      Target : in String_Access;
-      Flags  : in Argument_List);
-   --  Execute xe-gcc and add gnatdist compilation flags
 
    function Locate
      (Exec_Name  : String;
@@ -536,98 +527,6 @@ package body XE_Utils is
 
    end Execute_Link;
 
-   --------------------
-   -- Execute_XE_Gcc --
-   --------------------
-
-   procedure Execute_XE_Gcc
-     (Source : in String_Access;
-      Target : in String_Access;
-      Flags  : in Argument_List) is
-      N : Natural := 1;
-      L : constant Natural
-        := Gcc_Switches.Last - Gcc_Switches.First + 7 + Flags'Length;
-      A : Argument_List (1 .. L);
-   begin
-      A (N) := Target;
-      N := N + 1;
-      A (N) := Gcc;
-      N := N + 1;
-      A (N) := Special_File_Flag;
-      N := N + 1;
-      A (N) := Ada_File_Flag;
-      N := N + 1;
-      A (N) := Compile_Flag;
-      N := N + 1;
-      for I in Flags'First .. Flags'Last loop
-         A (N) := Flags (I);
-         N := N + 1;
-      end loop;
-      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-         A (N) := Gcc_Switches.Table (I);
-         N := N + 1;
-      end loop;
-      A (N) := Source;
-      Execute (XE_Gcc, A);
-   end Execute_XE_Gcc;
-
-   -----------------------------------
-   -- Expand_And_Compile_RCI_Caller --
-   -----------------------------------
-
-   procedure Expand_And_Compile_RCI_Caller
-     (Source, Target : in File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Caller_Build_Flag,
-          I_GARLIC_Dir));
-   end Expand_And_Compile_RCI_Caller;
-
-   -------------------------------------
-   -- Expand_And_Compile_RCI_Receiver --
-   -------------------------------------
-
-   procedure Expand_And_Compile_RCI_Receiver
-     (Source, Target : in File_Name_Type) is
-      Source_Name_Len : Natural := Strlen (Source);
-      Target_Name_Len : Natural := Strlen (Target);
-      Source_Name     : String (1 .. Source_Name_Len);
-      Target_Name     : String (1 .. Target_Name_Len);
-   begin
-      Get_Name_String (Source);
-      Source_Name := Name_Buffer (1 .. Name_Len);
-      Get_Name_String (Target);
-      Target_Name := Name_Buffer (1 .. Name_Len);
-      Execute_XE_Gcc
-        (new String'(Target_Name),
-         new String'(Source_Name),
-         (Sem_Only_Flag,
-          Receiver_Build_Flag,
-          I_GARLIC_Dir));
-   end Expand_And_Compile_RCI_Receiver;
-
-   -----------------------
-   -- Strip_Unit_Suffix --
-   -----------------------
-
-   function Strip_Unit_Suffix (Uname : Name_Id) return Name_Id is
-   begin
-      Get_Name_String (Uname);
-      Name_Len := Name_Len - 2;
-      return Name_Find;
-   end Strip_Unit_Suffix;
-
    ----------------
    -- Initialize --
    ----------------
@@ -635,9 +534,9 @@ package body XE_Utils is
    procedure Initialize is
       Dir_Sep    : String (1 .. 1) := (others => Directory_Separator);
       Name       : Name_Id;
+
    begin
 
-      XE_Gcc          := Locate ("xe-gcc");
       Gcc             := Locate ("gcc");
       Mkdir           := Locate ("mkdir");
       Copy            := Locate ("cp");
@@ -647,7 +546,6 @@ package body XE_Utils is
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
-
 
       if Verbose_Mode then
          GNAT_Verbose := new String' ("-v");
@@ -936,6 +834,23 @@ package body XE_Utils is
       return Name_Len;
    end Strlen;
 
+   ------------
+   -- U_To_N --
+   ------------
+
+   function U_To_N (U : in Unit_Name_Type) return Name_Id is
+   begin
+      if U /= No_Name then
+         Get_Name_String (U);
+         if Name_Buffer (Name_Len - 1) = '%' then --  %
+            Name_Len := Name_Len - 2;
+         end if;
+         return Name_Find;
+      else
+         return U;
+      end if;
+   end U_To_N;
+
    -----------------
    -- Unlink_File --
    -----------------
@@ -1013,9 +928,9 @@ package body XE_Utils is
       Message ("", File, " does not exist");
    end Write_Missing_File;
 
-   ----------------
-   -- Write_Name --
-   ----------------
+   -------------------
+   -- Uname_To_Name --
+   -------------------
 
    procedure Write_Name
      (File   : in File_Descriptor;
