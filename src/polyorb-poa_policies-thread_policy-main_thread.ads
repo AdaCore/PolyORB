@@ -32,8 +32,6 @@
 
 --  Implementation of the 'Main thread' POA Policy.
 
---  $Id$
-
 package PolyORB.POA_Policies.Thread_Policy.Main_Thread is
 
    type Main_Thread_Policy is new ThreadPolicy with null record;
