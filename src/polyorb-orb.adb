@@ -45,7 +45,6 @@ with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References.Binding;

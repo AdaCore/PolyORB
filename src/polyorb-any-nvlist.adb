@@ -36,7 +36,6 @@ with Ada.Strings.Unbounded;
 with Ada.Tags;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Any.NVList is
 

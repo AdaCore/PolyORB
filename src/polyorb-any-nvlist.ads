@@ -32,12 +32,10 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-pragma Elaborate_All (PolyORB.Sequences.Unbounded);
-
 with PolyORB.Any;
-with PolyORB.Types;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
 package PolyORB.Any.NVList is
 

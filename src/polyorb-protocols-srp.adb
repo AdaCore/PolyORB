@@ -42,7 +42,6 @@ with PolyORB.Buffers;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;

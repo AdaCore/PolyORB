@@ -40,7 +40,6 @@ with PolyORB.POA_Types; use PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
 with PolyORB.Locked_Queue;
-pragma Elaborate_All (PolyORB.Locked_Queue);
 
 package PolyORB.POA_Manager.Basic_Manager is
 

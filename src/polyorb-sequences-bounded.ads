@@ -57,7 +57,7 @@ generic
 
 package PolyORB.Sequences.Bounded is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    Max_Length : constant Positive := Max;
 

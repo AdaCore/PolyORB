@@ -489,8 +489,6 @@ src/polyorb-components.ads
 src/polyorb-configuration.adb
 src/polyorb-configuration.ads
 src/polyorb-constants.ads
-src/polyorb-dict.adb
-src/polyorb-dict.ads
 src/polyorb-dynamic_dict.adb
 src/polyorb-dynamic_dict.ads
 src/polyorb-filters-interface.adb

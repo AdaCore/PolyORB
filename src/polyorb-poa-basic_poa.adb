@@ -39,7 +39,6 @@ with Ada.Streams;
 with Ada.Unchecked_Conversion;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;

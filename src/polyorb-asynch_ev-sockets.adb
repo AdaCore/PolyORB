@@ -37,7 +37,6 @@
 with PolyORB.Constants;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Asynch_Ev.Sockets is
 

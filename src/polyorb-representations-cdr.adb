@@ -40,7 +40,6 @@ with PolyORB.Any.ObjRef;
 with PolyORB.Buffers; use PolyORB.Buffers;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Opaque;  use PolyORB.Opaque;
 with PolyORB.References;
 with PolyORB.References.IOR;

@@ -32,15 +32,13 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.ads#4 $
+--  $Id: //droopi/main/src/polyorb-locks.ads#5 $
 
 with PolyORB.Soft_Links;
 
 package PolyORB.Locks is
 
-   pragma Elaborate_Body;
-   --  Body depends on PolyORB.Log. Removing that dep
-   --  would allow promoting this unit to Preelaborate.
+   pragma Preelaborate;
 
    ----------------------------
    -- A readers/writers lock --

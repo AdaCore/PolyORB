@@ -36,7 +36,6 @@ with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Buffers is
 

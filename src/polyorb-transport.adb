@@ -39,7 +39,6 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.ORB.Interface;
 
 package body PolyORB.Transport is

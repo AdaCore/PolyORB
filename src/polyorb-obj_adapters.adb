@@ -40,7 +40,7 @@ package body PolyORB.Obj_Adapters is
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
-      The_ORB :        PolyORB.Components.Component_Access)
+      The_ORB :        Components.Component_Access)
    is
    begin
       OA.ORB := The_ORB;
@@ -51,29 +51,33 @@ package body PolyORB.Obj_Adapters is
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
-      Id : access Object_Id)
+      Id : access Objects.Object_Id)
      return Types.String is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
-      return Types.To_PolyORB_String ("/" & To_String (Id.all));
+
+      return Types.To_PolyORB_String
+        ("/" & Objects.To_String (Id.all));
    end Oid_To_Rel_URI;
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI : Types.String)
-     return Object_Id_Access
+     return Objects.Object_Id_Access
    is
       S : constant String := Types.To_Standard_String (URI);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
+
       if S (S'First) /= '/' then
          raise Constraint_Error;
       end if;
-      return new Object_Id'(To_Oid (S (S'First + 1 .. S'Last)));
+      return new Objects.Object_Id'
+        (Objects.To_Oid (S (S'First + 1 .. S'Last)));
    end Rel_URI_To_Oid;
 
    function Is_Proxy_Oid
@@ -94,7 +98,7 @@ package body PolyORB.Obj_Adapters is
    function To_Proxy_Oid
      (OA : access Obj_Adapter;
       R  :        References.Ref)
-     return Object_Id_Access
+     return Objects.Object_Id_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA, R);
@@ -110,7 +114,7 @@ package body PolyORB.Obj_Adapters is
      return References.Ref
    is
    begin
-      raise PolyORB.Not_Implemented;
+      raise Not_Implemented;
       pragma Warnings (Off);
       return Proxy_To_Ref (OA, Oid);
       pragma Warnings (On);

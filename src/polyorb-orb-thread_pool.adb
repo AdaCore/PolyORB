@@ -41,9 +41,7 @@ pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters.Interface;
 with PolyORB.Jobs;
 with PolyORB.Locked_Queue;
-pragma Elaborate_All (PolyORB.Locked_Queue);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
 

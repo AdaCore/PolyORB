@@ -36,7 +36,6 @@
 
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
-pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 
 package PolyORB.Initialization is
 

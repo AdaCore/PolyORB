@@ -41,7 +41,6 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Components;
 with PolyORB.Filters;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;

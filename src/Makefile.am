@@ -23,7 +23,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-buffers.ads \
 		polyorb-components.ads \
 		polyorb-configuration.ads \
-		polyorb-dict.ads \
 		polyorb-dynamic_dict.ads \
 		polyorb-filters.ads \
 		polyorb-filters-interface.ads \
@@ -173,7 +172,6 @@ polyorb-buffers.lo:polyorb-buffers.adb polyorb-buffers.ads polyorb-log.adb polyo
 polyorb-components.lo:polyorb-components.adb polyorb-components.ads polyorb-log.adb polyorb-log.ads polyorb-sequences-unbounded.adb polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb.ads 
 polyorb-configuration.lo:polyorb-configuration.adb polyorb-configuration.ads polyorb-dynamic_dict.adb polyorb-dynamic_dict.ads polyorb-log.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-constants.lo:polyorb-constants.ads polyorb.ads 
-polyorb-dict.lo:polyorb-dict.adb polyorb-dict.ads polyorb-sequences-unbounded.adb polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb.ads 
 polyorb-dynamic_dict.lo:polyorb-dynamic_dict.adb polyorb-dynamic_dict.ads polyorb-utils-strings.ads polyorb-utils.ads polyorb.ads 
 polyorb-filters-interface.lo:polyorb-buffers.ads polyorb-components.ads polyorb-filters-interface.adb polyorb-filters-interface.ads polyorb-filters.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-sockets.ads polyorb-types.ads polyorb.ads 
 polyorb-filters-slicers.lo:polyorb-buffers.ads polyorb-components.ads polyorb-filters-interface.ads polyorb-filters-slicers.adb polyorb-filters-slicers.ads polyorb-filters.ads polyorb-log.adb polyorb-log.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-sequences-unbounded.ads polyorb-sequences.ads polyorb-sockets.ads polyorb-types.ads polyorb.ads 

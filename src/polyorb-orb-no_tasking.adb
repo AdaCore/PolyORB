@@ -39,7 +39,6 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
 with PolyORB.No_Tasking;

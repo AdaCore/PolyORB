@@ -40,7 +40,6 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Filters.Interface;
 with PolyORB.If_Descriptors;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Objects.Interface;
 with PolyORB.Protocols.Interface;
 with PolyORB.Types;

@@ -39,7 +39,6 @@ with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Binding_Data is
 

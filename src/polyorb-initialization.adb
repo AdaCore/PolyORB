@@ -34,14 +34,11 @@
 
 --  $Id$
 
+with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
-with PolyORB.Configuration;
-pragma Elaborate_All (PolyORB.Configuration);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package body PolyORB.Initialization is
 

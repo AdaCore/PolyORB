@@ -35,18 +35,17 @@
 --  $Id$
 
 with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
 package PolyORB.Utils.Strings.Lists is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    package String_Ptr_Lists is new PolyORB.Utils.Chained_Lists
      (String_Ptr);
 
    type List is new String_Ptr_Lists.List;
    type Iterator is new String_Ptr_Lists.Iterator;
-   Empty : constant List := List (String_Ptr_Lists.Empty);
+   function Empty return List;
 
    function First (L : List) return Iterator;
    function Value (I : Iterator) return String_Ptr;
@@ -66,6 +65,7 @@ package PolyORB.Utils.Strings.Lists is
 
 private
 
+   pragma Inline (Empty);
    pragma Inline (First);
    pragma Inline (Value);
    pragma Inline (Prepend);

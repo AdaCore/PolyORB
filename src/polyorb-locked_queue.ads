@@ -42,7 +42,7 @@ generic
 
 package PolyORB.Locked_Queue is
 
-   pragma Elaborate_Body;
+   pragma Preelaborate;
 
    type Queue is limited private;
 

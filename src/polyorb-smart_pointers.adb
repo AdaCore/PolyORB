@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#9 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#10 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
@@ -39,7 +39,6 @@ with Ada.Tags;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Strings;

@@ -43,7 +43,6 @@ pragma Warnings (On);
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links;  use PolyORB.Soft_Links;
 with PolyORB.Utils.Strings;
 

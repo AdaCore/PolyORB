@@ -40,7 +40,6 @@ pragma Warnings (Off, Ada.Tags);
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 package body PolyORB.Components is
 

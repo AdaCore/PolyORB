@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -37,9 +37,6 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-
-with PolyORB.Requests;
 with PolyORB.Asynch_Ev;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
@@ -48,9 +45,11 @@ with PolyORB.Jobs;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.References;
+with PolyORB.Requests;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Soft_Links;
-with PolyORB.Transport;
 with PolyORB.Task_Info;
+with PolyORB.Transport;
 
 package PolyORB.ORB is
 
@@ -232,8 +231,8 @@ package PolyORB.ORB is
    procedure Create_Reference
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
-      Typ : in String;
-      Ref : out References.Ref);
+      Typ : in     String;
+      Ref :    out References.Ref);
    --  Create an object reference that designates object Oid
    --  within this ORB.
 

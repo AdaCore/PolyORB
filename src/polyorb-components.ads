@@ -37,7 +37,6 @@
 with Ada.Finalization;
 
 with PolyORB.Sequences.Unbounded;
-pragma Elaborate_All (PolyORB.Sequences.Unbounded);
 
 package PolyORB.Components is
 

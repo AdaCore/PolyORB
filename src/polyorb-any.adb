@@ -30,14 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#29 $
+--  $Id: //droopi/main/src/polyorb-any.adb#30 $
 
 with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Locks;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 
 with System.Address_Image;
 

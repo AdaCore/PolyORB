@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,6 @@
 --  $Id$
 
 with PolyORB.Sequences.Unbounded;
-
 with PolyORB.Soft_Links;
 
 package PolyORB.Obj_Adapters.Simple is
@@ -51,12 +50,12 @@ package PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj : Objects.Servant_Access)
-     return Object_Id;
+      Obj :        Objects.Servant_Access)
+     return Objects.Object_Id;
 
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id);
+      Id :        Objects.Object_Id);
 
    --  In the Simple Object Adapter, the methods of an object
    --  are described using two factory functions (provided by
@@ -78,38 +77,36 @@ package PolyORB.Obj_Adapters.Simple is
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
-      Id      : access Object_Id;
-      If_Desc : Interface_Description);
+      Id      : access Objects.Object_Id;
+      If_Desc :        Interface_Description);
 
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
-      Oid    : access Object_Id;
-      Method : Requests.Operation_Id)
+      Oid    : access Objects.Object_Id;
+      Method :        Requests.Operation_Id)
      return Any.NVList.Ref;
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
-      Oid    : access Object_Id;
-      Method : Requests.Operation_Id)
+      Oid    : access Objects.Object_Id;
+      Method :        Requests.Operation_Id)
      return Any.Any;
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : access Object_Id)
-     return Servant_Access;
+      Id : access Objects.Object_Id)
+     return Objects.Servant_Access;
 
    procedure Release_Servant
-     (OA : access Simple_Obj_Adapter;
-      Id : access Object_Id;
-      Servant : in out Servant_Access);
+     (OA      : access Simple_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant : in out Objects.Servant_Access);
 
 private
 
    type Object_Map_Entry is record
-      --  The Object_Id is simply the position of the
-      --  object within the object map.
-      Servant : Servant_Access;
-      --  May be null (empty entries).
+      Servant : Objects.Servant_Access;
+      --  May be null (for empty entries).
 
       If_Desc : Interface_Description;
    end record;
@@ -120,6 +117,9 @@ private
 
    type Simple_Obj_Adapter is new Obj_Adapter with record
       Object_Map : Object_Map_Entry_Seq;
+      --  Object_Ids are simply the indices of the objects
+      --  within the object map.
+
       Lock : Soft_Links.Adv_Mutex_Access;
    end record;
 

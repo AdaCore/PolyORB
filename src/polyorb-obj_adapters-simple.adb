@@ -63,7 +63,9 @@ package body PolyORB.Obj_Adapters.Simple is
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
       Index : Integer)
-   return Object_Map_Entry is
+      return Object_Map_Entry
+   is
+      use type Objects.Servant_Access;
    begin
       declare
          OME : constant Object_Map_Entry
@@ -97,7 +99,9 @@ package body PolyORB.Obj_Adapters.Simple is
    function Export
      (OA  : access Simple_Obj_Adapter;
       Obj : Objects.Servant_Access)
-     return Object_Id is
+      return Objects.Object_Id
+   is
+      use type Objects.Servant_Access;
    begin
       Enter (OA.Lock);
       declare
@@ -108,11 +112,9 @@ package body PolyORB.Obj_Adapters.Simple is
          for I in M'Range loop
             if M (I).Servant = null then
                Replace_Element
-                 (OA.Object_Map,
-                  1 + I - M'First,
+                 (OA.Object_Map, 1 + I - M'First,
                   Object_Map_Entry'
-                  (Servant => Obj,
-                   If_Desc => (null, null)));
+                    (Servant => Obj, If_Desc => (null, null)));
                New_Id := I;
                exit Map;
             end if;
@@ -124,7 +126,7 @@ package body PolyORB.Obj_Adapters.Simple is
          end if;
          Leave (OA.Lock);
 
-         return Object_Id (Index_To_Oid (New_Id - M'First + 1));
+         return Objects.Object_Id (Index_To_Oid (New_Id - M'First + 1));
       end;
    end Export;
 
@@ -132,9 +134,12 @@ package body PolyORB.Obj_Adapters.Simple is
 
    procedure Unexport
      (OA : access Simple_Obj_Adapter;
-      Id : Object_Id)
+      Id : Objects.Object_Id)
    is
-      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id));
+      use type Objects.Servant_Access;
+
+      Index : constant Integer
+        := Oid_To_Index (Simple_OA_Oid (Id));
    begin
       Enter (OA.Lock);
 
@@ -158,10 +163,13 @@ package body PolyORB.Obj_Adapters.Simple is
 
    procedure Set_Interface_Description
      (OA      : in out Simple_Obj_Adapter;
-      Id      : access Object_Id;
+      Id      : access Objects.Object_Id;
       If_Desc : Interface_Description)
    is
-      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id.all));
+      use type Objects.Servant_Access;
+
+      Index : constant Integer
+        := Oid_To_Index (Simple_OA_Oid (Id.all));
    begin
       Enter (OA.Lock);
 
@@ -185,7 +193,7 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Get_Empty_Arg_List
      (OA     : access Simple_Obj_Adapter;
-      Oid    : access Object_Id;
+      Oid    : access Objects.Object_Id;
       Method : Requests.Operation_Id)
      return Any.NVList.Ref
    is
@@ -216,7 +224,7 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Get_Empty_Result
      (OA     : access Simple_Obj_Adapter;
-      Oid    : access Object_Id;
+      Oid    : access Objects.Object_Id;
       Method : Requests.Operation_Id)
      return Any.Any
    is
@@ -248,10 +256,10 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : access Object_Id)
-     return Servant_Access
+      Id : access Objects.Object_Id)
+     return Objects.Servant_Access
    is
-      Result : Servant_Access;
+      Result : Objects.Servant_Access;
    begin
       Enter (OA.Lock);
       Result := Element_Of (OA.Object_Map, Oid_To_Index
@@ -262,8 +270,8 @@ package body PolyORB.Obj_Adapters.Simple is
 
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
-      Id : access Object_Id;
-      Servant : in out Servant_Access) is
+      Id : access Objects.Object_Id;
+      Servant : in out Objects.Servant_Access) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);

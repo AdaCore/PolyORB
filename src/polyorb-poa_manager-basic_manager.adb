@@ -33,7 +33,6 @@
 --  $Id$
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.POA;
 
 package body PolyORB.POA_Manager.Basic_Manager is

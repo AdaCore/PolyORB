@@ -39,7 +39,6 @@ with PolyORB.Sequences.Unbounded;
 with PolyORB.Binding_Data;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Representations.CDR;
 with PolyORB.Types;
 with PolyORB.Utils;

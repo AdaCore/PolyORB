@@ -39,7 +39,6 @@ with PolyORB.Any.NVList;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.IR_Tools;
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Types;
 
 with CORBA.Repository_Root;

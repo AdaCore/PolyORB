@@ -35,7 +35,6 @@
 with PolyORB.Sequences.Unbounded.Search;
 
 with PolyORB.Log;
-pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
