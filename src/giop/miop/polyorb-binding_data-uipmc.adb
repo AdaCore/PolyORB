@@ -411,7 +411,6 @@ package body PolyORB.Binding_Data.UIPMC is
       TResult.G_I := TC_Group_Info_Access (Temp_Ref).G_I'Access;
 
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
-      Set_OA (TResult, PolyORB.Setup.UIPMC.UIPMC_GOA_Ref);
 
       Release (Profile_Buffer);
 
@@ -539,7 +538,7 @@ package body PolyORB.Binding_Data.UIPMC is
               PolyORB.Sockets.Port_Type'Value (S (Index .. S'Last));
 
             TResult.Object_Id := To_Object_Id (TResult.G_I.all);
-            Set_OA (TResult, PolyORB.Setup.UIPMC.UIPMC_GOA_Ref);
+
             pragma Debug (O ("UIPMC corbaloc to profile: leave"));
             return Result;
          end;
@@ -570,6 +569,22 @@ package body PolyORB.Binding_Data.UIPMC is
            & ", no group information";
       end if;
    end Image;
+
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : UIPMC_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.Setup.UIPMC.UIPMC_GOA);
+   end Get_OA;
 
    ----------------
    -- Initialize --

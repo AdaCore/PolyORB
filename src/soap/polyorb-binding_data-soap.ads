@@ -86,6 +86,11 @@ package PolyORB.Binding_Data.SOAP is
    function Image (Prof : SOAP_Profile_Type) return String;
    --  Represent Prof as a string, for debugging purposes.
 
+   function Get_OA
+     (Profile : SOAP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
+
    ----------------------------
    -- SOAP profile factories --
    ----------------------------

@@ -48,6 +48,7 @@ with PolyORB.Protocols.GIOP.DIOP;
 with PolyORB.Representations.CDR;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
+with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Transport.Datagram.Sockets_Out;
 with PolyORB.Utils.Sockets;
@@ -481,6 +482,22 @@ package body PolyORB.Binding_Data.DIOP is
       end if;
       return null;
    end Corbaloc_To_Profile;
+
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : DIOP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
 
    ----------------
    -- Initialize --

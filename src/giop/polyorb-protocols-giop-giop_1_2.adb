@@ -905,11 +905,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
 
-      Oid           : constant Object_Id_Access
-        := Binding_Data.Get_Object_Key (R.Target_Profile.all);
-      Target_Ref    : constant Target_Address := Target_Address'
-        (Address_Type => Key_Addr,
-         Object_Key   => Oid);
    begin
       pragma Debug (O ("Sending request , Id :" & R.Request_Id'Img));
 
@@ -924,18 +919,22 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
         or else Is_Set (Sync_Call_Back, R.Req.Req_Flags)
       then
          --  WITH_TARGET
+
          Marshall (Buffer, Types.Octet (3));
 
       elsif Is_Set (Sync_None, R.Req.Req_Flags) then
          --  NONE
+
          Marshall (Buffer, Types.Octet (0));
 
       elsif Is_Set (Sync_With_Transport, R.Req.Req_Flags) then
          --  WITH_TRANSPORT
+
          Marshall (Buffer, Types.Octet (0));
 
       elsif Is_Set (Sync_With_Server, R.Req.Req_Flags) then
          --  WITH_SERVER
+
          Marshall (Buffer, Types.Octet (1));
 
       end if;
@@ -953,10 +952,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          use PolyORB.Obj_Adapters.Group_Object_Adapter;
          use PolyORB.Binding_Data;
 
+         OA_Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := Get_OA (R.Target_Profile.all);
       begin
-         if not Is_Nil (Get_OA (R.Target_Profile.all))
-           and then Entity_Of (Get_OA (R.Target_Profile.all)).all
-           in Group_Object_Adapter'Class then
+         if OA_Entity /= null
+           and then OA_Entity.all in Group_Object_Adapter'Class
+         then
             declare
                use PolyORB.References.IOR;
 
@@ -970,10 +971,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                end if;
             end;
          else
-            Marshall (Buffer, Key_Addr);
-            Marshall
-              (Buffer,
-               Stream_Element_Array (Target_Ref.Object_Key.all));
+            declare
+               Oid : constant Object_Id_Access
+                 := Binding_Data.Get_Object_Key (R.Target_Profile.all);
+
+            begin
+               Marshall (Buffer, Key_Addr);
+               Marshall
+                 (Buffer,
+                  Stream_Element_Array (Oid.all));
+            end;
+
          end if;
       end;
 
@@ -1170,6 +1178,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       case Received_Flags is
          when 0 =>
             Sync := WITH_TRANSPORT;
+
             --  At this level, we cannot dissociate NONE from
             --  WITH_TRANSPORT. Besides, this makes no difference at
             --  this level. We assume WITH_TRANSPORT.

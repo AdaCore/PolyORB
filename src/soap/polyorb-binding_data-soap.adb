@@ -508,6 +508,22 @@ package body PolyORB.Binding_Data.SOAP is
         & To_Standard_String (Prof.URI_Path);
    end To_URI;
 
+   ------------
+   -- Get_OA --
+   ------------
+
+   function Get_OA
+     (Profile : SOAP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
+
    ----------------
    -- Initialize --
    ----------------

@@ -38,6 +38,7 @@
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
+with PolyORB.Setup;
 with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Binding_Data.SRP is
@@ -155,5 +156,17 @@ package body PolyORB.Binding_Data.SRP is
       return "Address : " & Image (Prof.Address) &
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
+
+   function Get_OA
+     (Profile : SRP_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Profile);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      return PolyORB.Smart_Pointers.Entity_Ptr
+        (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
+   end Get_OA;
 
 end PolyORB.Binding_Data.SRP;

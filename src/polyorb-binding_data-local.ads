@@ -69,6 +69,11 @@ package PolyORB.Binding_Data.Local is
 
    function Image (Prof : Local_Profile_Type) return String;
 
+   function Get_OA
+     (Profile : Local_Profile_Type)
+     return PolyORB.Smart_Pointers.Entity_Ptr;
+   pragma Inline (Get_OA);
+
    --  Since Local profiles are not associated with any
    --  transport endpoint, there is no need to define
    --  an associated Profile_Factory.
