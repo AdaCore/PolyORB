@@ -718,22 +718,68 @@ package body Exp_Hlpr is
                    Decls))));
 
       else
+
+         --  Default: type is represented as an opaque sequence of bytes.
+
          declare
-            Res : constant Entity_Id
-              := Make_Defining_Identifier (Loc,
-                   New_Internal_Name ('R'));
+            Strm : constant Entity_Id := Make_Defining_Identifier (Loc,
+              New_Internal_Name ('S'));
+            Res : constant Entity_Id := Make_Defining_Identifier (Loc,
+              New_Internal_Name ('R'));
+
          begin
-            --  XXX dummy placeholder (not initialized).
+
+            --  Strm : Buffer_Stream_Type;
+
             Append_To (Decls,
-             Make_Object_Declaration (Loc,
-               Defining_Identifier =>
-                 Res,
-               Aliased_Present     => False,
-               Object_Definition   =>
-                 New_Occurrence_Of (Typ, Loc)));
+              Make_Object_Declaration (Loc,
+                Defining_Identifier =>
+                  Strm,
+                Object_Definition   =>
+                  New_Occurrence_Of (RTE (RE_Buffer_Stream_Type), Loc)));
+
+            --  Any_To_BS (Strm, A);
+
             Append_To (Stms,
-              Make_Return_Statement (Loc,
-                Expression => New_Occurrence_Of (Res, Loc)));
+              Make_Procedure_Call_Statement (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Any_To_BS), Loc),
+                Parameter_Associations => New_List (
+                  New_Occurrence_Of (Strm, Loc),
+                  New_Occurrence_Of (Any_Parameter, Loc))));
+
+            --  declare
+            --     Res : constant T := T'Input (Strm);
+            --  begin
+            --     Release_Buffer (Strm);
+            --     return Res;
+            --  end;
+
+            Append_To (Stms, Make_Block_Statement (Loc,
+              Declarations => New_List (
+                Make_Object_Declaration (Loc,
+                  Defining_Identifier => Res,
+                  Constant_Present    => True,
+                  Object_Definition   =>
+                    New_Occurrence_Of (Typ, Loc),
+                  Expression          =>
+                    Make_Function_Call (Loc,
+                      Name =>
+                        Make_Attribute_Reference (Loc,
+                          Prefix         => Typ,
+                          Attribute_Name => Name_Input),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Strm, Loc))))),
+              Handled_Statement_Sequence =>
+                Make_Handled_Sequence_Of_Statements (Loc,
+                  Statements => New_List (
+                    Make_Procedure_Call_Statement (Loc,
+                      Name => New_Occurrence_Of (RTE (RE_Release_Buffer), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Strm, Loc))),
+                    Make_Return_Statement (Loc,
+                      Expression => New_Occurrence_Of (Res, Loc))))));
+
          end;
       end if;
 
