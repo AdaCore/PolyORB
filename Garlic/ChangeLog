@@ -1,3 +1,23 @@
+1997-12-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Add RACW_Stub_Type and RACW_Stub_Type_Access for
+	use by the new stubs mechanisms for RACW.
+
+1997-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gartab.adb, s-gartab.ads: Add a new function to associate an
+ 	index of a component to a name when the index is already known.
+
+1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Minor reformatting.
+
+1997-12-10  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garrep.adb: Fix an improvement introduced previously.
+
+	* s-garter.adb: Change a "and" into an "and then".
+
 1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garter.adb: Use polling rather than "select delay then abort"
