@@ -28,7 +28,8 @@ module Backend::BE_A::Nodes {
 
   interface Defining_Identifier : Node_Id {
     Name_Id    Name;
-    Node_Id    Node;
+    Node_Id    Corresponding_Node;
+    Node_Id    Parent_Node;
   };
 
 

@@ -1,3 +1,15 @@
+2004-06-21  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_a.adb, backend-be_a-nutils.adb: Clarification between
+	nodes and entities. Start implementing type declaration and
+	designator and module.
+
+	* backend-be_a-generator.adb: Fix output problem on
+	Record_Extension_Part.
+
+	* scopes.adb, parser.adb, backend-be_idl.adb, frontend-nodes.idl:
+	Clarification between nodes and entities.
+
 2004-06-15  Saber Souli   <souli@enst.fr>
   	* output.ads, output.adb 
 	Add procedure Set_Space_Increment (Value : Natural); to change the

@@ -1793,7 +1793,7 @@ package body Parser is
          Parent      := Scoped_Name;
          Scoped_Name := New_Node (K_Scoped_Name, Token_Location);
          Bind_Identifier_To_Entity  (Identifier, Scoped_Name);
-         Set_Parent (Scoped_Name, Parent);
+         Set_Parent_Entity (Scoped_Name, Parent);
 
          exit when Next_Token /= T_Colon_Colon;
          Scan_Token; --  past '::'

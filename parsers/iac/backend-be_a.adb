@@ -31,12 +31,13 @@ package body Backend.BE_A is
    package FEN renames Frontend.Nodes;
 
    procedure Visit (E : Node_Id);
+   procedure Visit_Attribute_Declaration (E : Node_Id);
    procedure Visit_Constant_Declaration (E : Node_Id);
    procedure Visit_Enumeration_Type (E : Node_Id);
-   procedure Visit_Specification (E : Node_Id);
    procedure Visit_Interface_Declaration (E : Node_Id);
-   procedure Visit_Attribute_Declaration (E : Node_Id);
    procedure Visit_Module (E : Node_Id);
+   procedure Visit_Specification (E : Node_Id);
+   procedure Visit_Type_Declaration (E : Node_Id);
 
    function Make_IDL_Unit (E : Node_Id) return Node_Id;
    function Make_Package_Declaration (N : Name_Id) return Node_Id;
@@ -224,6 +225,9 @@ package body Backend.BE_A is
          when K_Attribute_Declaration =>
             Visit_Attribute_Declaration (E);
 
+         when K_Type_Declaration =>
+            Visit_Type_Declaration (E);
+
          when K_Module =>
             Visit_Module (E);
 
@@ -347,8 +351,10 @@ package body Backend.BE_A is
         Make_Full_Type_Declaration
           (Make_Defining_Identifier (Interface_Ref),
            Make_Derived_Type_Definition
-             (False, N,
-              Make_Record_Type_Definition (False, False, False, No_Node)));
+             (Subtype_Indication    => N,
+              Record_Extension_Part =>
+                Make_Record_Type_Definition
+                  (Record_Definition => Make_Record_Definition (No_List))));
       Append_Node_To_List (N, Visible_Part (Current_Package));
 
       N := First_Entity (Interface_Body (E));
@@ -364,9 +370,18 @@ package body Backend.BE_A is
    ------------------
 
    procedure Visit_Module (E : Node_Id) is
-      pragma Unreferenced (E);
+      D : Node_Id;
+      S : Node_Id;
+
    begin
-      null;
+      S := Make_IDL_Unit (E);
+      Push_Entity (S);
+      D := First_Entity (Definitions (E));
+      while Present (D) loop
+         Visit (D);
+         D := Next_Entity (D);
+      end loop;
+      Pop_Entity;
    end Visit_Module;
 
    -------------------------
@@ -387,5 +402,29 @@ package body Backend.BE_A is
       end loop;
       Pop_Entity;
    end Visit_Specification;
+
+   ----------------------------
+   -- Visit_Type_Declaration --
+   ----------------------------
+
+   procedure Visit_Type_Declaration (E : Node_Id) is
+      D : Node_Id;
+      T : Node_Id;
+      N : Node_Id;
+
+   begin
+      Set_Main_Spec;
+      T := Make_Designator (Type_Spec (E));
+      D := First_Entity (Declarators (E));
+      while Present (D) loop
+         N := Make_Full_Type_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (D),
+            Type_Definition     => Make_Derived_Type_Definition
+              (Subtype_Indication    => T,
+               Record_Extension_Part => No_Node));
+         Append_Node_To_List (N, Visible_Part (Current_Package));
+         D := Next_Entity (D);
+      end loop;
+   end Visit_Type_Declaration;
 
 end Backend.BE_A;

@@ -103,21 +103,21 @@ package body Backend.BE_A.Nutils is
    -- Make_Defining_Identifier --
    ------------------------------
 
-   function Make_Defining_Identifier (Node : Node_Id) return Node_Id is
+   function Make_Defining_Identifier (Entity : Node_Id) return Node_Id is
       use FEN;
 
       N : Name_Id;
-      K : constant FEN.Node_Kind := FEN.Kind (Node);
+      K : constant FEN.Node_Kind := FEN.Kind (Entity);
 
    begin
       if K = FEN.K_Identifier then
-         N := FEN.IDL_Name (Node);
+         N := FEN.IDL_Name (Entity);
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := CORBA_Type (K);
 
       else
-         N := FEN.IDL_Name (FEN.Identifier (Node));
+         N := FEN.IDL_Name (FEN.Identifier (Entity));
       end if;
       return Make_Defining_Identifier (N);
    end Make_Defining_Identifier;
@@ -140,7 +140,7 @@ package body Backend.BE_A.Nutils is
    ----------------------------------
 
    function Make_Derived_Type_Definition
-     (Is_Abstract_Type      : Boolean;
+     (Is_Abstract_Type      : Boolean := False;
       Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id)
      return Node_Id
@@ -154,6 +154,36 @@ package body Backend.BE_A.Nutils is
       Set_Record_Extension_Part (N, Record_Extension_Part);
       return N;
    end Make_Derived_Type_Definition;
+
+   ---------------------
+   -- Make_Designator --
+   ---------------------
+
+   function Make_Designator (Entity : Node_Id) return Node_Id is
+      use FEN;
+      P : Node_Id;
+      N : Node_Id;
+      K : FEN.Node_Kind;
+
+   begin
+      K := FEN.Kind (Entity);
+      if K = FEN.K_Scoped_Name then
+         N := Make_Defining_Identifier (Reference (Entity));
+         P := Parent_Entity (Entity);
+         if Present (P) then
+            P := Make_Designator (P);
+         end if;
+         Set_Parent_Entity (N, P);
+
+      elsif K in FEN.K_Float .. FEN.K_Value_Base then
+         N := Make_Defining_Identifier (CORBA_Type (K));
+
+      else
+         raise Program_Error;
+      end if;
+
+      return N;
+   end Make_Designator;
 
    --------------------------------------
    -- Make_Enumeration_Type_Definition --
@@ -220,9 +250,12 @@ package body Backend.BE_A.Nutils is
    function Make_Record_Definition
      (Component_List : List_Id)
      return Node_Id is
-      pragma Unreferenced (Component_List);
+      N : Node_Id;
+
    begin
-      return No_Node;
+      N := New_Node (K_Record_Definition);
+      Set_Component_List (N, Component_List);
+      return N;
    end Make_Record_Definition;
 
    ---------------------------------
@@ -230,9 +263,9 @@ package body Backend.BE_A.Nutils is
    ---------------------------------
 
    function Make_Record_Type_Definition
-     (Is_Abstract_Type  : Boolean;
-      Is_Tagged_Type    : Boolean;
-      Is_Limited_Type   : Boolean;
+     (Is_Abstract_Type  : Boolean := False;
+      Is_Tagged_Type    : Boolean := False;
+      Is_Limited_Type   : Boolean := False;
       Record_Definition : Node_Id)
      return Node_Id is
       N : Node_Id;

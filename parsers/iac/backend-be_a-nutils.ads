@@ -2,8 +2,11 @@ with Lexer;     use Lexer;
 with Types;     use Types;
 
 with Backend.BE_A.Nodes; use Backend.BE_A.Nodes;
+with Frontend.Nodes;
 
 package Backend.BE_A.Nutils is
+
+   package FEN renames Frontend.Nodes;
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
@@ -11,6 +14,9 @@ package Backend.BE_A.Nutils is
    procedure Pop_Entity;
    function  Current_Entity return Node_Id;
    function  Current_Package return Node_Id;
+
+   procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "");
+   --  Declare CORBA type as predefined Ada type.
 
    function New_Node
      (Kind : Node_Kind;
@@ -52,12 +58,16 @@ package Backend.BE_A.Nutils is
    function To_Ada_Name (N : Name_Id) return Name_Id;
 
    function Make_Defining_Identifier
-     (Node : Node_Id)
+     (Entity : Node_Id)
       return Node_Id;
 
    function Make_Defining_Identifier
      (Name : Name_Id)
      return  Node_Id;
+
+   function Make_Designator
+     (Entity : Node_Id)
+     return Node_Id;
 
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
@@ -69,15 +79,15 @@ package Backend.BE_A.Nutils is
      return Node_Id;
 
    function Make_Derived_Type_Definition
-     (Is_Abstract_Type      : Boolean;
+     (Is_Abstract_Type      : Boolean := False;
       Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id)
      return Node_Id;
 
    function Make_Record_Type_Definition
-     (Is_Abstract_Type  : Boolean;
-      Is_Tagged_Type    : Boolean;
-      Is_Limited_Type   : Boolean;
+     (Is_Abstract_Type  : Boolean := False;
+      Is_Tagged_Type    : Boolean := False;
+      Is_Limited_Type   : Boolean := False;
       Record_Definition : Node_Id)
      return Node_Id;
 

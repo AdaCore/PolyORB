@@ -44,7 +44,7 @@ package body Scopes is
 
    procedure Enter_Name_In_Scope (N : Node_Id)
    is
-      E : constant Node_Id := Node (N);
+      E : constant Node_Id := Corresponding_Entity (N);
       S : constant Node_Id := Current_Scope;
       C : constant Node_Id := Node_In_Current_Scope (N);
       H : Node_Id;
@@ -153,7 +153,7 @@ package body Scopes is
    begin
       --  Scoped names are in the scope but cannot be made visible
 
-      if Kind (Node (N)) = K_Scoped_Name then
+      if Kind (Corresponding_Entity (N)) = K_Scoped_Name then
          return;
       end if;
 
@@ -194,7 +194,7 @@ package body Scopes is
          if Scope (C) = S
            and then Name (C) = X
          then
-            return Node (C);
+            return Corresponding_Entity (C);
          end if;
          C := Next_Entity (C);
       end loop;
@@ -213,7 +213,7 @@ package body Scopes is
       X : Node_Id;
    begin
       while Present (H) loop
-         X := Node (H);
+         X := Corresponding_Entity (H);
 
          if Potential_Scope (H) = S then
             return X;
@@ -291,11 +291,11 @@ package body Scopes is
             Set_Explicitely_Visible (C, False);
             Remove_From_Homonyms (C);
             if Export then
-               E := Node (C);
+               E := Corresponding_Entity (C);
                if Kind (E) = K_Scoped_Name then
                   N := Identifier (E);
                   N := Make_Identifier
-                    (Loc (N), Name (N), Node (N), Scope (N));
+                    (Loc (N), Name (N), Corresponding_Entity (N), Scope (N));
                   Set_Potential_Scope  (N, S);
                   Enter_Name_In_Scope  (N);
                end if;
@@ -390,7 +390,7 @@ package body Scopes is
       E : Node_Id;
    begin
       if Present (H) then
-         E := Node (H);
+         E := Corresponding_Entity (H);
 
          --  The current visible entity has already been entered in the scope
 
@@ -399,7 +399,7 @@ package body Scopes is
          end if;
 
          if Explicitely_Visible (H) then
-            return Node (H);
+            return Corresponding_Entity (H);
 
          elsif Implicitely_Visible (H) then
             H := Homonym (H);
@@ -420,7 +420,7 @@ package body Scopes is
                return No_Node;
 
             else
-               return Node (First_Homonym (N));
+               return Corresponding_Entity (First_Homonym (N));
             end if;
          end if;
       end if;
@@ -459,7 +459,7 @@ package body Scopes is
    begin
       W_Str (Image (Loc (N)));
       W_Str ("(");
-      if Kind (Node (N)) = K_Scoped_Name then
+      if Kind (Corresponding_Entity (N)) = K_Scoped_Name then
          W_Str ("S");
       elsif Explicitely_Visible (N) then
          W_Str ("V");

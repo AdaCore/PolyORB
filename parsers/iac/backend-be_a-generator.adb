@@ -105,14 +105,19 @@ package body Backend.BE_A.Generator is
    --------------------------------------
 
    procedure Generate_Derived_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+
    begin
       if Is_Abstract_Type (N) then
          Write_Str ("abstract ");
       end if;
       Write_Str ("new ");
       Generate (Subtype_Indication (N));
-      Write_Str (" with");
-      Generate (Record_Extension_Part (N));
+      R := Record_Extension_Part (N);
+      if Present (R) then
+         Write_Str (" with ");
+         Generate (Record_Extension_Part (N));
+      end if;
    end Generate_Derived_Type_Definition;
 
    -------------------------------
@@ -334,8 +339,6 @@ package body Backend.BE_A.Generator is
       R := Record_Definition (N);
       if Present (R) then
          Generate (R);
-      else
-         Write_Str (" null record");
       end if;
    end Generate_Record_Type_Definition;
 

@@ -65,7 +65,7 @@ package body Frontend.Nutils is
    procedure Bind_Identifier_To_Entity (N : Node_Id; E : Node_Id) is
    begin
       Set_Identifier (E, N);
-      Set_Node       (N, E);
+      Set_Corresponding_Entity       (N, E);
    end Bind_Identifier_To_Entity;
 
    ----------------------
@@ -285,10 +285,10 @@ package body Frontend.Nutils is
       N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
    begin
       pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Identifier (N, Identifier);
+      Set_Identifier    (N, Identifier);
       pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Parent     (N, Parent);
-      Set_Reference (N, Reference);
+      Set_Parent_Entity (N, Parent);
+      Set_Reference     (N, Reference);
 
       return N;
    end Make_Scoped_Name;
@@ -306,11 +306,11 @@ package body Frontend.Nutils is
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);
    begin
-      Set_Name            (N, To_Lower (IDL_Name));
-      Set_IDL_Name        (N, IDL_Name);
-      Set_Node            (N, Node);
-      Set_Scope           (N, Scope);
-      Set_Potential_Scope (N, Scope);
+      Set_Name                 (N, To_Lower (IDL_Name));
+      Set_IDL_Name             (N, IDL_Name);
+      Set_Corresponding_Entity (N, Node);
+      Set_Scope                (N, Scope);
+      Set_Potential_Scope      (N, Scope);
       return N;
    end Make_Identifier;
 

@@ -724,7 +724,7 @@ package body Backend.BE_IDL is
          Write_Name (IDL_Name (E));
       end Generate_Reference_Name;
 
-      P : constant Node_Id := Parent (E);
+      P : constant Node_Id := Parent_Entity (E);
 
    begin
       if Present (P) then

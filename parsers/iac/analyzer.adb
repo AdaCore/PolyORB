@@ -415,7 +415,7 @@ package body Analyzer is
       begin
          N := Scoped_Identifiers (P);
          while Present (N) loop
-            E := Node (N);
+            E := Corresponding_Entity (N);
             K := Kind (E);
             if K = K_Operation_Declaration then
                null;
@@ -653,7 +653,7 @@ package body Analyzer is
 
    procedure Analyze_Scoped_Name (E : Node_Id)
    is
-      P : Node_Id := Parent (E);
+      P : Node_Id := Parent_Entity (E);
       N : Node_Id := Identifier (E);
       C : Node_Id;
    begin
