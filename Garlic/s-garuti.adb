@@ -35,8 +35,8 @@
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
-with System.Tasking_Soft_Links;  use System.Tasking_Soft_Links;
-with System.Garlic.Debug;        use System.Garlic.Debug;
+with System.Soft_Links;   use System.Soft_Links;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
 package body System.Garlic.Utils is
 
