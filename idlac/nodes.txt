@@ -23,7 +23,8 @@ Root
 Named
   Definition : Identifier_Definition_Acc
   Repository_Id : Node_Id
-  --  A repository ID explicitly set for this entity
+  Is_Explicit_Repository_Id : Boolean := False
+  --  The repository ID for this entity was explicitly set
   --  using #pragma ID.
   Parent_Scope_Override : Node_Id
   --  Expansion attribute: override that
@@ -34,6 +35,9 @@ Named
 Scope <-- Named
   Identifier_List : Identifier_Definition_List
   Identifier_Table : Storage
+  Current_Prefix : Node_Id
+  --  The current Repository Id prefix for the scope.
+  --  This attribute is used only during parse.
 
 Forward <-- Scope
   Unimplemented_Forwards : Node_List

@@ -1,9 +1,9 @@
 BROCA_ADASOCKET = $(BROCA_TOP)/adasockets/src
 GNATMAKE = gnatmake
-ADA_FLAGS = -O2 -g -i -m -gnatafg -gnatwu -gnatwl -I$(BROCA_ADASOCKET)
+ADA_FLAGS = -O2 -g -i -m -gnataf -gnatwu -gnatwl -I$(BROCA_ADASOCKET)
 BROCA_FLAGS = $(ADA_FLAGS) -I$(BROCA_TOP)/src -I..
 
-ADABROKER = $(BROCA_TOP)/adabroker/adabroker
+ADABROKER = $(BROCA_TOP)/idlac/idlac
 
 LibPattern = lib%.a
 

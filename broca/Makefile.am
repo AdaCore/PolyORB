@@ -4,6 +4,7 @@ SUBDIRS = idlac adasockets src
 
 autoconf::
 	aclocal -I support && autoconf && automake
-	cd adasockets && (aclocal -I ../support && autoconf && automake)
+	cd adasockets && aclocal -I ../support && autoconf && automake
+	cd idlac && $(MAKE) -f Makefile.am autoconf
 
 CLEANFILES = config-stamp

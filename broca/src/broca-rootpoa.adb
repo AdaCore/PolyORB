@@ -738,8 +738,6 @@ package body Broca.Rootpoa is
          Build_Key_For_ObjectId (Key'Access, Oid);
       end if;
 
-      --  XXX Check that Build_IOR expects an Encapsulation
-      --  as the Key argument.
       Obj.IOR := Octet_Sequences.To_Sequence
         (To_CORBA_Octet_Array
          (Broca.Server.Build_IOR

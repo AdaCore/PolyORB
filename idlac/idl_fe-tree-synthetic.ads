@@ -8,6 +8,14 @@ package Idl_Fe.Tree.Synthetic is
    -- Synthetic attributes of IDL nodes --
    ---------------------------------------
 
+   function Default_Repository_Id
+     (Node : Node_Id)
+     return String;
+   --  The string of "/"-separated identifiers that makes
+   --  up the default repository id for Node.
+   --  Must be called only by the parser, before the
+   --  tree is expanded.
+
    function Is_Interface_Type
      (Node : Node_Id)
      return Boolean;
@@ -54,11 +62,8 @@ package Idl_Fe.Tree.Synthetic is
    function Idl_Repository_Id
      (Node : in Node_Id)
      return String;
-   --  Return a poor ersatz of a Repository ID in OMG IDL
-   --  format for K_Named Node (as defined in "10.6 RepositoryIds").
-   --  In particular, #pragma prefix, #pragma version & the like
-   --  are *NOT* taken into account. FIXME: provide a proper implementation
-   --  of this attribute.
+   --  Return a Repository ID in OMG IDL format for K_Named Node
+   --  (as defined in "10.6 RepositoryIds").
 
    function All_Ancestors
      (Node : Node_Id;
@@ -74,12 +79,18 @@ package Idl_Fe.Tree.Synthetic is
    function Integer_Value
      (Node : Node_Id)
      return Integer;
-   --  Return the value of a numeric constant expression
-   --  node as an integer.
-   --  FIXME: This should be done in the parser with full
-   --    arithmetic evalutaion. This will work only for
-   --    expressions that are numeric literals.
-   --    This function is here just for lack of a better
-   --    way of handling numeric literals.
+   function String_Value
+     (Node : Node_Id)
+     return String;
+   function Boolean_Value
+     (Node : Node_Id)
+     return Boolean;
+   --  Return the value of a constant expression
+   --  node as an {integer,string,boolean}.
+
+   procedure Set_String_Value
+     (Node : Node_Id;
+      Val  : String);
+   --  Set the value of a string node.
 
 end Idl_Fe.Tree.Synthetic;

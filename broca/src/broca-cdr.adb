@@ -240,7 +240,7 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.String)
    is
-      Equiv : constant String := CORBA.To_String (Data) & Ascii.Nul;
+      Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop

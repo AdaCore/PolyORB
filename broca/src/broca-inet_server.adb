@@ -607,14 +607,32 @@ package body Broca.Inet_Server is
          elsif Res /= Broca.GIOP.Message_Header_Size then
             Broca.Exceptions.Raise_Comm_Failure;
          else
-            --  A message header was correctly received.
-            Initialize_Buffer
-              (Buffer'Access,
-               Bytes'Length,
-               Bytes (1)'Address,
-               Little_Endian,
-               --  XXX Check endianness of msg header!
-               0);
+            declare
+               Endianness : Endianness_Type;
+               Byte_Order_Offset : constant := 6;
+               --  The offset of the byte_order boolean field in
+               --  a GIOP message header.
+
+               --  FIXME: This really belongs only in Broca.GIOP
+            begin
+               pragma Debug (O ("Received request"));
+
+               if CORBA.Boolean'Val
+                 (CORBA.Octet (Bytes (Bytes'First
+                  + Byte_Order_Offset)) and 1) then
+                  Endianness := Little_Endian;
+               else
+                  Endianness := Big_Endian;
+               end if;
+
+               --  A message header was correctly received.
+               Initialize_Buffer
+                 (Buffer'Access,
+                  Bytes'Length,
+                  Bytes (Bytes'First)'Address,
+                  Endianness,
+                  0);
+            end;
 
             Broca.Server.Log
               ("message received from fd" & Interfaces.C.int'Image (Sock));

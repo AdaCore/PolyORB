@@ -1,11 +1,13 @@
-AC_INIT(MANIFEST)
+AC_INIT(src/portableserver.ads)
 AC_CONFIG_AUX_DIR(support)
 AC_CONFIG_SUBDIRS(adasockets)
 #
-# Package description
+# Initialization
 #
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(adabroker,1.0pre1)
+LIBVERSIONINFO=0:0:0
+AC_SUBST(LIBVERSIONINFO)
 #
 # Various programs
 #

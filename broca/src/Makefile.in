@@ -73,6 +73,7 @@ GNATCHOP = @GNATCHOP@
 GNATLS = @GNATLS@
 GNATMAKE = @GNATMAKE@
 LIBTOOL = @LIBTOOL@
+LIBVERSIONINFO = @LIBVERSIONINFO@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
@@ -84,7 +85,7 @@ VERSION = @VERSION@
 
 alidir = $(libdir)/adabroker
 
-ADA_FULL =  	   broca-debug.ads 	   broca-opaque-chunk_pools.ads 	   broca-buffers.ads 	   broca-buffers-io_operations.ads            broca-exceptions.ads            broca-exceptions-stack.ads            broca-flags.ads            broca-giop.ads            broca-iiop.ads            broca-inet_server.ads            broca-ior.ads            broca-locks.ads            broca-cdr.ads            broca-object.ads            broca-orb.ads            broca-poa.ads            broca-refs.ads            broca-repository.ads            broca-rootpoa.ads            broca-sequences.ads            broca-server.ads            broca-stream.ads            broca-vararray.ads            corba-forward.ads            corba-object.ads            corba-orb.ads            corba-sequences-unbounded.ads            corba.ads            portableserver-adapteractivator-impl.ads            portableserver-adapteractivator.ads            portableserver-poa.ads            portableserver-poamanager.ads            portableserver-servantactivator.ads            portableserver-servantlocator.ads            portableserver-servantmanager-impl.ads            portableserver.ads
+ADA_FULL =  	   broca-debug.ads 	   broca-opaque-chunk_pools.ads 	   broca-buffers.ads 	   broca-buffers-io_operations.ads            broca-exceptions.ads            broca-exceptions-stack.ads            broca-flags.ads            broca-giop.ads            broca-iiop.ads            broca-inet_server.ads            broca-ior.ads            broca-locks.ads            broca-cdr.ads 	   broca-cdr-refs.ads            broca-object.ads            broca-orb.ads            broca-poa.ads            broca-refs.ads            broca-repository.ads            broca-rootpoa.ads            broca-sequences.ads            broca-server.ads            broca-stream.ads            broca-vararray.ads            corba-forward.ads            corba-object.ads            corba-orb.ads            corba-sequences-unbounded.ads            corba.ads            portableserver-adapteractivator-impl.ads            portableserver-adapteractivator.ads            portableserver-poa.ads            portableserver-poamanager.ads            portableserver-servantactivator.ads            portableserver-servantlocator.ads            portableserver-servantmanager-impl.ads            portableserver.ads
 
 
 ADA_SPECS = $(ADA_FULL)            broca.ads 	   broca-opaque.ads            broca-iop.ads            corba-sequences.ads            portableserver-servantactivator-impl.ads            portableserver-servantlocator-impl.ads            portableserver-servantmanager.ads
@@ -101,11 +102,11 @@ bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
 libbroca_la_LIBADD = $(ADA_LIBADD)
-libbroca_la_LDFLAGS = -lgnat -no-undefined -release 0.9.0
+libbroca_la_LDFLAGS = -lgnat -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = libtool $(ADA) -o libbroca.la
+LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src 	-g -O2 $(CFLAGS)
 
@@ -124,10 +125,10 @@ libbroca_la_DEPENDENCIES =  broca-debug.lo broca-opaque-chunk_pools.lo \
 broca-buffers.lo broca-buffers-io_operations.lo broca-exceptions.lo \
 broca-exceptions-stack.lo broca-flags.lo broca-giop.lo broca-iiop.lo \
 broca-inet_server.lo broca-ior.lo broca-locks.lo broca-cdr.lo \
-broca-object.lo broca-orb.lo broca-poa.lo broca-refs.lo \
-broca-repository.lo broca-rootpoa.lo broca-sequences.lo broca-server.lo \
-broca-stream.lo broca-vararray.lo corba-forward.lo corba-object.lo \
-corba-orb.lo corba-sequences-unbounded.lo corba.lo \
+broca-cdr-refs.lo broca-object.lo broca-orb.lo broca-poa.lo \
+broca-refs.lo broca-repository.lo broca-rootpoa.lo broca-sequences.lo \
+broca-server.lo broca-stream.lo broca-vararray.lo corba-forward.lo \
+corba-object.lo corba-orb.lo corba-sequences-unbounded.lo corba.lo \
 portableserver-adapteractivator-impl.lo \
 portableserver-adapteractivator.lo portableserver-poa.lo \
 portableserver-poamanager.lo portableserver-servantactivator.lo \
@@ -140,7 +141,8 @@ sockets-naming.lo sockets-thin.lo sockets-utils.lo sockets.lo
 libbroca_la_OBJECTS = 
 SCRIPTS =  $(bin_SCRIPTS)
 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in \
+configure
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -258,7 +260,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -282,8 +284,7 @@ install-data: install-data-am
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS \
-		uninstall-local
+uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS
 uninstall: uninstall-am
 all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
 all-redirect: all-am
@@ -335,10 +336,10 @@ mostlyclean-libtool distclean-libtool clean-libtool \
 maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS tags \
 distdir info-am info dvi-am dvi check check-am installcheck-am \
 installcheck install-exec-am install-exec install-data-local \
-install-data-am install-data install-am install uninstall-local \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 %.lo: %.adb
@@ -356,11 +357,10 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
-	$(INSTALL) -d $(alidir)
-	$(INSTALL) -m 444 *.ali $(alidir)
-
-uninstall-local:
-	-$(RM) $(alidir)/*.ali
+	$(INSTALL) -d $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
 ../adasockets/src/sockets-constants.ads:
 	cd ../adasockets/src && $(MAKE) sockets-constants.ads

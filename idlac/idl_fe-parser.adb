@@ -39,7 +39,6 @@ package body Idl_Fe.Parser is
         (Filename, Preprocess, Keep_Temporary_Files);
    end Initialize;
 
-
    --------------------------------------
    --  management of the token stream  --
    --------------------------------------
@@ -378,6 +377,46 @@ package body Idl_Fe.Parser is
 --       end loop;
 --    end Release_All_Used_Values;
 
+   procedure Set_Default_Repository_Id
+     (Node : Node_Id);
+   --  Set Node's default repository id.
+
+   procedure Set_Initial_Current_Prefix
+     (Node : Node_Id);
+   --  Set the current prefix for scope Node
+   --  from its parent's.
+
+   procedure Set_Default_Repository_Id
+     (Node : Node_Id)
+   is
+      Prefix_Node : constant Node_Id
+        := Current_Prefix (Get_Current_Scope);
+      Name_Node : constant Node_Id
+        := Make_Lit_String;
+   begin
+      pragma Assert (not Is_Explicit_Repository_Id (Node));
+
+      if Prefix_Node /= No_Node then
+         Set_String_Value
+           (Name_Node,
+            "IDL:" & String_Value (Prefix_Node) & "/"
+             & Default_Repository_Id (Node) & ":1.0");
+      else
+         Set_String_Value
+           (Name_Node,
+            "IDL:" & Default_Repository_Id (Node) & ":1.0");
+      end if;
+      Set_Repository_Id (Node, Name_Node);
+   end Set_Default_Repository_Id;
+
+   procedure Set_Initial_Current_Prefix
+     (Node : Node_Id) is
+   begin
+      pragma Assert (Is_Scope (Node));
+
+      Set_Current_Prefix
+        (Node, Current_Prefix (Get_Current_Scope));
+   end Set_Initial_Current_Prefix;
 
    --------------------------
    --  Parsing of the idl  --
@@ -584,11 +623,15 @@ package body Idl_Fe.Parser is
                      begin
                         --  Creation of the node
                         Result := Make_Module;
-                        Types.Set_Location (Result,
-                                            Get_Previous_Token_Location);
-                        Ok := Types.Add_Identifier (Result,
-                                                    Get_Token_String);
+                        Set_Location
+                          (Result,
+                           Get_Previous_Token_Location);
+                        Ok := Add_Identifier
+                          (Result,
+                           Get_Token_String);
                         pragma Assert (Ok = True);
+                        Set_Default_Repository_Id (Result);
+                        Set_Initial_Current_Prefix (Result);
                      end;
                   else
                      --  there is a name collision with the module name
@@ -716,6 +759,7 @@ package body Idl_Fe.Parser is
          Set_Abst (Res, False);
       end if;
       Set_Location (Res, Get_Token_Location);
+      Set_Initial_Current_Prefix (Res);
       Next_Token;
       --  Expect an identifier
       if Get_Token = T_Identifier then
@@ -741,14 +785,14 @@ package body Idl_Fe.Parser is
                   end;
                end if;
                Fd_Res := Get_Node (Definition);
-               --  is this interface not a forward declaration
-               --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+               --  FIXME: Is this interface not a forward declaration?
                if View_Next_Token /= T_Semi_Colon then
                   Set_Forward (Fd_Res, Res);
                   Set_Forward (Res, Fd_Res);
                   Redefine_Identifier (Definition, Res);
-                  --  the forward declaration is now implemented
+                  --  The forward declaration is now implemented.
                   Add_Int_Val_Definition (Fd_Res);
+                  Set_Repository_Id (Res, Repository_Id (Fd_Res));
                end if;
             else
                declare
@@ -772,10 +816,10 @@ package body Idl_Fe.Parser is
             pragma Debug (O ("Parse_Interface : identifier not defined"));
             Fd_Res := No_Node;
             Set_Forward (Res, No_Node);
-            if not Add_Identifier (Res,
-                                   Get_Token_String) then
+            if not Add_Identifier (Res, Get_Token_String) then
                raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Res);
             Definition := Find_Identifier_Definition (Get_Token_String);
          end if;
       else
@@ -809,10 +853,15 @@ package body Idl_Fe.Parser is
                   Idl_Fe.Errors.Display_Location (Loc),
                   Idl_Fe.Errors.Warning,
                   Get_Token_Location);
+
+               --  FIXME: Why bother to do the following
+               --  since we have produced a parser error anyway?
+               --  Thomas 2000-04-12
                Fd_Res := Make_Forward_Interface;
                Set_Location (Fd_Res, Get_Location (Res));
                Set_Forward (Fd_Res, No_Node);
                Set_Abst (Fd_Res, Abst (Res));
+               Set_Repository_Id (Fd_Res, Repository_Id (Res));
                --  The first forward should be the right one
                --  not the last
                --  Redefine_Identifier (Definition, Fd_Res);
@@ -826,6 +875,7 @@ package body Idl_Fe.Parser is
             Set_Forward (Fd_Res, No_Node);
             Set_Abst (Fd_Res, Abst (Res));
             Redefine_Identifier (Definition, Fd_Res);
+            Set_Repository_Id (Fd_Res, Repository_Id (Res));
             --  A forward declaration should be added
             Add_Int_Val_Forward (Fd_Res);
             --  Free (Res); ???????????????????
@@ -1542,6 +1592,7 @@ package body Idl_Fe.Parser is
       else
          Set_Location (Result, Get_Previous_Token_Location);
       end if;
+      Set_Initial_Current_Prefix (Result);
       --  try to find a previous definition
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
@@ -1556,6 +1607,7 @@ package body Idl_Fe.Parser is
                Add_Int_Val_Definition (Fd_Decl);
                Set_Forward (Fd_Decl, Result);
                Set_Forward (Result, Fd_Decl);
+               Set_Repository_Id (Result, Repository_Id (Fd_Decl));
                Redefine_Identifier (Definition, Result);
             end;
 
@@ -1572,10 +1624,11 @@ package body Idl_Fe.Parser is
       else
          --  no previous definition
          Set_Forward (Result, No_Node);
-         if not Add_Identifier (Result,
-                                Get_Token_String) then
+         if not Add_Identifier (Result, Get_Token_String) then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
+         Set_Default_Repository_Id (Result);
+
       end if;
       Next_Token;
       if Get_Token = T_Colon
@@ -1688,6 +1741,8 @@ package body Idl_Fe.Parser is
                                 Get_Token_String) then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
+         Set_Default_Repository_Id (Result);
+
       end if;
       --  consumes the identifier
       Next_Token;
@@ -1699,6 +1754,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Parse_End_Value_Box_Dcl  --
    -------------------------------
+
    procedure Parse_End_Value_Box_Dcl (Result : out Node_Id;
                                       Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
@@ -1761,6 +1817,8 @@ package body Idl_Fe.Parser is
                                    Name.all) then
                raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Result);
+
             Free_String_Ptr (Name);
          end;
       end if;
@@ -2215,6 +2273,7 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Init_Dcl  --
    ----------------------
+
    procedure Parse_Init_Dcl (Result : out Node_Id;
                              Success : out Boolean) is
    begin
@@ -2259,6 +2318,8 @@ package body Idl_Fe.Parser is
                                 Get_Token_String) then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
+         Set_Default_Repository_Id (Result);
+
       end if;
       Next_Token;
       if Get_Token /= T_Left_Paren then
@@ -2446,6 +2507,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Const_Dcl  --
    -----------------------
+
    procedure Parse_Const_Dcl (Result : out Node_Id;
                               Success : out Boolean) is
    begin
@@ -2488,6 +2550,8 @@ package body Idl_Fe.Parser is
             if not Add_Identifier (Result, Get_Token_String) then
                raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Result);
+
          end if;
       end if;
       Next_Token;
@@ -3483,6 +3547,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Unary_Exp  --
    -----------------------
+
    procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
                                Expr_Type : in Constant_Value_Ptr) is
@@ -3609,6 +3674,7 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Primary_Exp  --
    -------------------------
+
    procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
                                  Expr_Type : in Constant_Value_Ptr) is
@@ -4344,6 +4410,8 @@ package body Idl_Fe.Parser is
                                    Get_Token_String) then
                raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Result);
+
             Set_Array_Bounds (Result, Nil_List);
             Set_Parent (Result, Parent);
          end if;
@@ -4653,11 +4721,15 @@ package body Idl_Fe.Parser is
       Result := Make_Struct;
       Set_Is_Exception_Members (Result, False);
       Set_Location (Result, Get_Token_Location);
+
       if not Add_Identifier (Result, Get_Token_String) then
          --  the error was raised before
---         Success := False;
+         --         Success := False;
          null;
       end if;
+      Set_Default_Repository_Id (Result);
+      Set_Initial_Current_Prefix (Result);
+
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
          declare
@@ -4820,6 +4892,9 @@ package body Idl_Fe.Parser is
          --  the error was raised before
          Success := False;
       end if;
+      Set_Default_Repository_Id (Result);
+      Set_Initial_Current_Prefix (Result);
+
       Next_Token;
       if Get_Token /= T_Switch then
          declare
@@ -5244,6 +5319,8 @@ package body Idl_Fe.Parser is
          if not Add_Identifier (Result, Get_Token_String) then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
+         Set_Default_Repository_Id (Result);
+
       end if;
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
@@ -5350,6 +5427,8 @@ package body Idl_Fe.Parser is
             if not Add_Identifier (Result, Get_Token_String) then
                raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Result);
+
          end if;
       end if;
       Success := True;
@@ -5556,6 +5635,8 @@ package body Idl_Fe.Parser is
                              Get_Token_String) then
          null;
       end if;
+      Set_Default_Repository_Id (Result);
+
       Set_Array_Bounds (Result, Nil_List);
       --  consumes the identifier
       Next_Token;
@@ -5659,6 +5740,9 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
+      Set_Default_Repository_Id (Result);
+      Set_Initial_Current_Prefix (Result);
+
       pragma Debug (O ("Parse_Except_Dcl : token after add : " &
                        Idl_Token'Image (Get_Token)));
       Next_Token;
@@ -5706,6 +5790,7 @@ package body Idl_Fe.Parser is
    begin
       Result := Make_Operation;
       Set_Location (Result, Get_Token_Location);
+      Set_Initial_Current_Prefix (Result);
       if Get_Token = T_Oneway then
          Set_Is_Oneway (Result, True);
          Next_Token;
@@ -5753,6 +5838,8 @@ package body Idl_Fe.Parser is
                                    Get_Token_String) then
                   raise Idl_Fe.Errors.Internal_Error;
             end if;
+            Set_Default_Repository_Id (Result);
+
          end if;
       end if;
       Next_Token;
@@ -6539,6 +6626,14 @@ package body Idl_Fe.Parser is
            := Get_Token_String;
       begin
          if Pragma_Id = "ID" then
+
+            -----------------------------------------
+            -- #pragma ID <scoped_name> <string>   --
+            --                                     --
+            -- Explicitly give a RepositoryID to a --
+            -- named entity.                       --
+            -----------------------------------------
+
             declare
                Name_Node : Node_Id;
                String_Lit_Node : Node_Id;
@@ -6566,7 +6661,7 @@ package body Idl_Fe.Parser is
                end if;
 
                if Name_Node /= No_Node then
-                  if Repository_Id (Value (Name_Node)) /= No_Node then
+                  if Is_Explicit_Repository_Id (Value (Name_Node)) then
                      Idl_Fe.Errors.Parser_Error
                        ("Entity already has an explicit repository ID.",
                         Idl_Fe.Errors.Error,
@@ -6577,12 +6672,50 @@ package body Idl_Fe.Parser is
                   Set_Repository_Id (Value (Name_Node), String_Lit_Node);
                end if;
 
-               Result := No_Node;
-               Success := True;
+               --  pragma ID does not generate any node:
+               --  return with Success = False.
+
             end;
+
+         elsif Pragma_Id = "prefix" then
+
+            ---------------------------------------
+            -- #pragma prefix <string>           --
+            --                                   --
+            -- Set the current Repository Id for --
+            -- the current scope.                --
+            ---------------------------------------
+
+            declare
+               String_Lit_Node : Node_Id;
+               Res_Success : Boolean;
+               Val : constant Constant_Value_Ptr
+                 := new Constant_Value (Kind => C_String);
+            begin
+               Next_Token;
+
+               Parse_String_Literal
+                 (String_Lit_Node, Res_Success, Val);
+               if not Res_Success then
+                  Idl_Fe.Errors.Parser_Error
+                    ("Repository ID prefix expected.",
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
+                  Go_To_End_Of_Pragma;
+                  return;
+               end if;
+
+               Set_Current_Prefix
+                 (Get_Current_Scope, String_Lit_Node);
+
+               --  pragma prefix does not generate any node:
+               --  return with Success = False.
+
+            end;
+
          else
             Idl_Fe.Errors.Parser_Error
-            ("Unknown pragma : will be ignored." & Pragma_Id,
+            ("Unknown pragma: " & Pragma_Id & ", will be ignored.",
              Idl_Fe.Errors.Warning,
              Get_Token_Location);
             Go_To_End_Of_Pragma;
@@ -6895,9 +7028,11 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_String_Literal  --
    ----------------------------
-   procedure Parse_String_Literal (Result : out Node_Id;
-                                   Success : out Boolean;
-                                   Expr_Type : in Constant_Value_Ptr) is
+
+   procedure Parse_String_Literal
+     (Result : out Node_Id;
+      Success : out Boolean;
+      Expr_Type : in Constant_Value_Ptr) is
 
       function Get_String_Literal return Idl_String;
 

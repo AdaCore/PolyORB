@@ -174,7 +174,11 @@ package body Idl_Fe.Display_Tree is
          Put_Line ("node not properly defined");
          return;
       end if;
-      Put ("[" & Img (N) & "] ");
+      Put ("[" & Img (N));
+      if Is_Named (N) then
+         Put ("/" & Img (Parent_Scope (N)));
+      end if;
+      Put ("] ");
       case Kind (N) is
          when K_Scoped_Name =>
             Put ("scoped name: -> " & Img (Value (N))
@@ -202,6 +206,13 @@ package body Idl_Fe.Display_Tree is
                Put ("abstract ");
             end if;
             Put_Line ("interface " & Name (N));
+            if Repository_Id (N) /= No_Node then
+               Disp_Indent (Indent + 2);
+               Put_Line
+                 ("repository id: """
+                  & String_Value (Repository_Id (N))
+                  & """");
+            end if;
             if Full then
                if Parents (N) /= Nil_List then
                   Disp_Indent (N_Indent);
@@ -426,6 +437,13 @@ package body Idl_Fe.Display_Tree is
          when K_Exception =>
             Put ("exception ");
             Put_Line (Name (N));
+            if Repository_Id (N) /= No_Node then
+               Disp_Indent (Indent + 2);
+               Put_Line
+                 ("repository id: """
+                  & String_Value (Repository_Id (N))
+                  & """");
+            end if;
             if Full then
                Disp_Indent (N_Indent, "members :");
                Disp_List (Members (N), N_Indent + Offset, Full);

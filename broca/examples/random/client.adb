@@ -2,11 +2,11 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                            E C H O . I M P L                             --
+--                               C L I E N T                                --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $LastChangedRevision$
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,20 +26,53 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with PortableServer;
+--   Random client.
+with Ada.Command_Line;
+with Text_IO; use Text_IO;
+with CORBA; use CORBA;
+with CORBA.ORB;
+with Random;
 
-package Echo.Impl is
-   --  My own implementation of echo object.
-   --  This is simply used to define the operations.
+procedure Client is
+   IOR : CORBA.String;
+   myRandom : Random.Ref;
+   Result : CORBA.Long;
 
-   type Object is new PortableServer.Servant_Base with record
-      Msg : CORBA.String;
-   end record;
+begin
 
-   type Object_Acc is access Object;
+   if Ada.Command_Line.Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+   --  transforms the Ada string into CORBA.String
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
 
-end Echo.Impl;
+   --  getting the CORBA.Object
+   CORBA.ORB.String_To_Object (IOR, myRandom);
+
+   --  checking if it worked
+   if Random.Is_Nil (myRandom) then
+      Put_Line ("main : cannot invoke on a nil reference");
+      return;
+   end if;
+
+   Put_Line("Here are some true random numbers:");
+
+   for I in 1 .. 10 loop
+      Result := Random.Lrand48(myRandom);
+      Put (CORBA.Long'Image (Result) & " ");
+   end loop;
+
+exception
+   when E : CORBA.Transient =>
+      declare
+         Memb : System_Exception_Members;
+      begin
+         Get_Members (E, Memb);
+         Put ("received exception transient, minor");
+         Put (Unsigned_Long'Image (Memb.Minor));
+         Put (", completion status: ");
+         Put_Line (Completion_Status'Image (Memb.Completed));
+      end;
+end Client;

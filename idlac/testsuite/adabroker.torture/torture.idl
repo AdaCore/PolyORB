@@ -3,14 +3,11 @@
 // code generator features.
 // $Id$
 
+exception rootScopeException {};
+
 module MyModule {
 
   // typedef string B_ARRAY[123];
-
-  // Parser bug: the conflict with member b
-  // of struct MyStruct below triggers an exception,
-  // instead of a renaming of the structure's array
-  // type.
 
   struct MyStruct {
     unsigned long MyInt;
@@ -74,7 +71,7 @@ module MyModule {
   typedef sequence<unsigned long> longSeq;
 
   interface MyInterface {
-    string echoString (in string arg);
+    string echoString (in string arg) raises (rootScopeException);
     Color echoColor (in Color arg);
     MyInterface echoRef (in MyInterface arg);
     longSeq echoLongSeq (in longSeq arg);
@@ -96,6 +93,7 @@ module MyModule {
   interface smallIf {
     void smallOp (in long arg);
   };
+  #pragma prefix "adabroker.net"
   interface IfC : smallIf, IfB {
     void foo ();
   };

@@ -6,6 +6,7 @@ with GNAT.OS_Lib;
 
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
+with Idl_Fe.Errors;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
@@ -23,6 +24,7 @@ procedure Idlac is
                 & " [-i] [-k] idl_file [-cppargs ...]");
       Put_Line ("  -i    Generate implementation template.");
       Put_Line ("  -k    Keep temporary files.");
+      Put_Line ("  -q    Be quiet.");
       Put_Line ("  -cppargs ARGS");
       Put_Line ("        Pass ARGS to the C++ preprocessor.");
       GNAT.OS_Lib.OS_Exit (1);
@@ -33,6 +35,7 @@ procedure Idlac is
 
    Generate_Impl_Template : Boolean := False;
    Keep_Temporary_Files : Boolean := False;
+   Verbose : Boolean := True;
 
 begin
    begin
@@ -40,7 +43,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("i k") is
+         case Getopt ("i k q") is
             when Ascii.NUL => exit;
 
             when 'i' =>
@@ -50,6 +53,9 @@ begin
             when 'k' =>
                Keep_Temporary_Files
                  := True;
+
+            when 'q' =>
+               Verbose := False;
 
             when others =>
                --  This never happens.
@@ -87,6 +93,31 @@ begin
 
    --  Parse input
    Rep := Idl_Fe.Parser.Parse_Specification;
+
+   if Idl_Fe.Errors.Is_Error then
+
+      Ada.Text_IO.Put
+        (Natural'Image (Idl_Fe.Errors.Error_Number) &
+         " error(s)");
+      if Idl_Fe.Errors.Is_Warning then
+         Ada.Text_IO.Put_Line
+           (" and " &
+            Natural'Image (Idl_Fe.Errors.Warning_Number) &
+            " warning(s)");
+      end if;
+      Ada.Text_IO.Put_Line (" during parsing.");
+
+      return;
+
+   elsif Verbose then
+      if Idl_Fe.Errors.Is_Warning then
+         Ada.Text_IO.Put_Line
+           (Natural'Image (Idl_Fe.Errors.Warning_Number) &
+            " warning(s) during parsing.");
+      else
+         Ada.Text_IO.Put_Line ("Successfully parsed.");
+      end if;
+   end if;
 
    --  Expand tree
    Ada_Be.Expansion.Expand_Repository (Rep);

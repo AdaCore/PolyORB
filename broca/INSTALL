@@ -1,0 +1,11 @@
+To install AdaBroker, execute:
+
+  % ./configure
+  % make
+  % make install
+
+This will install files under /usr/local/bin, /usr/local/lib and
+/usr/local/lib/adabroker.
+
+If you want to choose another prefix than /usr/local, give configure a
+--prefix=whateveryouwant argument.
