@@ -273,9 +273,12 @@ examples/corba/echo/client.adb
 examples/corba/echo/delegated_server.adb
 examples/corba/echo/delegated_server.ads
 examples/corba/echo/dynclient.adb
+examples/corba/echo/dynserver.adb
 examples/corba/echo/echo-impl.adb
 examples/corba/echo/echo-impl.ads
 examples/corba/echo/echo.idl
+examples/corba/echo/echo_dynimpl.adb
+examples/corba/echo/echo_dynimpl.ads
 examples/corba/echo/server.adb
 examples/corba/random/Makefile.am
 examples/corba/random/Makefile.in
