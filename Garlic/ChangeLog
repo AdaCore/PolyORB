@@ -1,3 +1,29 @@
+1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpcpoo.adb: Move with clause from s-rpcpoo.ads to here.
+
+	* s-garter.adb: Remove useless with clauses.
+
+	* s-gafizi.ads: Likewise.
+
+	* s-rpc.adb: Likewise.
+
+	* s-rpcpoo.ads: Likewise.
+
+	* s-garuni.adb: Likewise.
+
+	* s-gafizi.adb: Use pragma Warnings to remove bogus warnings.
+
+	* s-garhea.ads: Likewise.
+
+	* s-gardeb.adb: Likewise.
+
+	* s-gafino.adb: Likewise.
+
+	* s-garuni.adb: Likewise.
+
+	* s-parint.adb: Likewise.
+
 1998-02-15  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpc.adb: Remove unused variables.

@@ -1,3 +1,17 @@
+1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_build.adb: Remove useless with clauses.
+
+	* xe_check.adb: Likewise.
+
+	* xe_lead.adb: Likewise.
+
+	* xe.ads: Likewise.
+
+	* xe_utils.ads: Likewise.
+
+	* xe_stubs.adb: Likewise.
+
 1998-02-15  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_back.adb: Remove unused variables.
