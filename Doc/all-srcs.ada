@@ -71,6 +71,16 @@ begin
    Register (Balance'Access);
    --  [...] Register other services
 end MirrorBank;
+with Types; use Types;
+with RCIBank; use RCIBank;
+procedure RCIClient is
+   B : Integer;
+   C : Customer_Type := "rich";
+   P : Password_Type := "xxxx";
+begin
+   B := Balance (C, P);
+end RCIClient;
+with Types; use Types;
 with RASBank; use RASBank;
 procedure BankClient is
    B : Integer;
@@ -122,16 +132,16 @@ package NewTerminal is
 end NewTerminal;
 with NewTerminal, RACWBank, Types; use NewTerminal, RACWBank, Types;
 procedure Term1Client is
-   MyTerm   : Term_Access   := Create;
-   Customer : Customer_Type := "rich";
-   Password : Password_Type := "xxxx";
+   MyTerm   : Term_Access   := Current;
+   Customer : Customer_Type := "poor";
+   Password : Password_Type := "yyyy";
 begin
    Register (MyTerm, Customer, Password);
    --  [...] Do other things
 end Term1Client;
 with NewTerminal, RACWBank, Types; use NewTerminal, RACWBank, Types;
 procedure Term2Client is
-   MyTerm   : Term_Access   := Create;
+   MyTerm   : Term_Access   := Current;
    Donator  : Customer_Type := "rich";
    Password : Password_Type := "xxxx";
    Customer : Customer_Type := "poor";
@@ -146,7 +156,7 @@ package body RACWBank is
       Customer : in Customer_Type;
       Password : in Password_Type) is
    begin
-      Insert (MyTerm, Customer);
+      Insert_In_Local_Table (MyTerm, Customer);
    end Register;
 
    procedure Transfer
@@ -156,7 +166,8 @@ package body RACWBank is
       Customer : in Customer_Type)
    is
       -- Find Customer terminal.
-      Term : Term_Access := Find (Customer);
+      Term : Term_Access
+        := Find_In_Local_Table (Customer);
    begin
       Withdraw (Donator, Amount);
       Deposit  (Customer, Amount);
@@ -452,3 +463,21 @@ end GenericRCI;
 package RCIInstantiation is new GenericRCI;
 pragma Remote_Call_Interface (RCIInstantiation);
 package NormalInstantiation is new GenericRCI;
+package Pure is
+   pragma Pure;
+
+   Max : constant := 9;
+
+   type My_Integer is new Integer range -Max .. Max;
+
+   type Remote_Object is abstract tagged limited private;
+
+   procedure Primitive_Operation
+     (Object : access Remote_Object;
+      My_Int : My_Integer) is abstract;
+
+private
+
+   type Remote_Object is abstract tagged limited null record;
+
+end Pure;

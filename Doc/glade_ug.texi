@@ -30,17 +30,29 @@ to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 @end titlepage
 
 @ifinfo
-@node Top, Distributed Systems, (dir), (dir)
+@node Top, About This Guide
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of Distributed Systems Annex.
 
 @end ifinfo
 
-@node About This Guide
+@menu
+* About This Guide::            
+* Introduction to Distributed Systems::  
+* The Distributed Systems Annex::  
+* Getting Started With GLADE::  
+* DSA and CORBA::               
+@end menu
+
+@node About This Guide, Introduction to Distributed Systems, Top, Top
 @unnumbered About This Guide
 
-@node What This Guide Contains
+@menu
+* What This Guide Contains::    
+@end menu
+
+@node What This Guide Contains,  , About This Guide, About This Guide
 @unnumberedsec What This Guide Contains
 
 @noindent
@@ -58,7 +70,7 @@ beginners and includes several useful examples for more advanced
 programmers.
 
 @item
-@ref{Getting Started with GLADE}, describes how to use the configuration 
+@ref{Getting Started With GLADE}, describes how to use the configuration 
 tool Gnatdist. It also provides several useful information on GLADE
 Partition Communication Subsystem, GARLIC.
 
@@ -68,14 +80,7 @@ Distributed System Annex.
 
 @end itemize
 
-@menu
-* Distributed Systems::         
-* The Distributed Systems Annex::  
-* Getting Started With GLADE::  
-* DSA and CORBA::               
-@end menu
-
-@node  Distributed Systems, The Distributed Systems Annex, Top, Top
+@node   Introduction to Distributed Systems, The Distributed Systems Annex, About This Guide, Top
 @chapter Introduction to Distributed Systems
 
 A distributed system architecture comprises a network of computers and the
@@ -86,7 +91,13 @@ available to remotely-located components, components must communicate using
 some form of message-passing abstraction.
 
 
-@node
+@menu
+* Using OS Network Services::   
+* Using a Middleware Environment::  
+* Using a Distributed Language::  
+@end menu
+
+@node Using OS Network Services, Using a Middleware Environment, Introduction to Distributed Systems, Introduction to Distributed Systems
 @section Using OS Network Services
 
 There are several programming techniques for developing distributed
@@ -116,7 +127,7 @@ table-driven model. The scheduling code would be embedded into the user
 code. This solution is error-prone and fragile in regard to any future
 modification.
 
-@node
+@node Using a Middleware Environment, Using a Distributed Language, Using OS Network Services, Introduction to Distributed Systems
 @section Using a Middleware Environment
 
 A middleware environment is intended to provide high level abstractions
@@ -166,7 +177,7 @@ distribution is a pre-compilation process and the distributed boundaries
 are always explicit. Using CORBA, the distributed part is written in IDL
 and the core of the application is written in a host language.
 
-@node
+@node Using a Distributed Language,  , Using a Middleware Environment, Introduction to Distributed Systems
 @section Using a Distributed Language
 
 Rather than defining a new language like an IDL, an alternative idea is
@@ -211,7 +222,7 @@ no code to wrap.  The language and its run-time system take care of
 every issue that would divert the programmer's attention from the
 application domain.
 
-@node The Distributed Systems Annex, Getting Started With GLADE, Distributed Systems, Top
+@node  The Distributed Systems Annex, Getting Started With GLADE, Introduction to Distributed Systems, Top
 @chapter The Distributed Systems Annex
 
 The basic idea of the Distributed Systems Annex (DSA) is to allow a user
@@ -278,7 +289,7 @@ sections.
 * Pragma Remote_Call_Interface::  
 * Pragma Remote_Types::         
 * Pragma Shared_Passive::       
-* ::                            
+* Overview of Pragma Pure::     
 * More About Categorization Pragmas::  
 * Most Features in One Example::  
 @end menu
@@ -420,7 +431,7 @@ the body of this package.
 
 @image{types.ads}
 @image{rcibank.ads}
-@image{rciclient.ads}
+@image{rciclient.adb}
 
 @node Remote Access To Subprograms (RAS), Remote Access To Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
 @subsection Remote Access to Subprograms (RAS)
@@ -586,7 +597,7 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node Pragma Shared_Passive, , Pragma Remote_Types, The Distributed Systems Annex
+@node Pragma Shared_Passive, Overview of Pragma Pure, Pragma Remote_Types, The Distributed Systems Annex
 @section Pragma Shared_Passive
 
 
@@ -854,7 +865,7 @@ RCI package (see sample above). Any instantiation defines a new factory
 (see sample above). To be RCI, this instantiation has to be categorized
 once again.
 
-@node Getting Started With GLADE, DSA and CORBA, The Distributed Systems Annex, Top
+@node  Getting Started With GLADE, DSA and CORBA, The Distributed Systems Annex, Top
 @chapter Getting Started With GLADE
 
 This chapter describes the usual ways of using GLADE to compile Ada

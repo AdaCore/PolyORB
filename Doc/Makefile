@@ -50,6 +50,7 @@ asynchronousrci.ads\
 asynchronousmain.adb\
 genericrci.ads\
 rciinstantiation.ads\
+rciclient.adb\
 normalinstantiation.ads
 
 GUIDE=glade_ug
@@ -97,7 +98,7 @@ $(GUIDE).info: $(GUIDE).texi txtfiles
 $(GUIDE).ps: $(GUIDE).dvi
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi epsfiles
+$(GUIDE).dvi: $(GUIDE).texi epsfiles txtfiles
 	texi2dvi $(GUIDE).texi
 
 $(GUIDE).pdf: $(GUIDE).texi pdffiles
