@@ -273,9 +273,6 @@ procedure XE_Stubs is
          Write_Eol (FD);
       end if;
 
-      Write_Str  (FD, "with system.garlic.termination;");
-      Write_Eol  (FD);
-
       Write_Str  (FD, "procedure ");
       Write_Name (FD, PName);
       Write_Str  (FD, " is");
@@ -470,18 +467,6 @@ procedure XE_Stubs is
          end if;
       end if;
 
-      Write_Str
-        (FD, "   system.garlic.termination.main_program_is_terminated;");
-      Write_Eol  (FD);
-      Write_Str  (FD, "exception");
-      Write_Eol  (FD);
-      Write_Str  (FD, "   when others =>");
-      Write_Eol  (FD);
-      Write_Str
-        (FD, "      system.garlic.termination.main_program_is_terminated;");
-      Write_Eol  (FD);
-      Write_Str  (FD, "      raise;");
-      Write_Eol  (FD);
       Write_Str  (FD, "end ");
       Write_Name (FD, PName);
       Write_Str  (FD, ";");

@@ -1,10 +1,3 @@
-Mon Aug 26 20:57:49 1996  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-garter.ads: New procedure Main_Program_Is_Terminated.
-
-	* s-garter.adb: Start the termination task later (when the main
-	  program is terminated) using the new procedure named above.
-
 Fri Aug 16 12:36:11 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.adb: Added a pragma Elaborate_All for
