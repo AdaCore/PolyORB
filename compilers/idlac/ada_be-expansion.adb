@@ -1523,39 +1523,101 @@ package body Ada_Be.Expansion is
    -----------------------
 
    procedure Expand_Scoped_Name (Node : Node_Id) is
-      V : constant Node_Id := Value (Node);
-      Forward_Declaration :  Node_Id;
+      V                   : constant Node_Id := Value (Node);
+      Forward_Declaration : Node_Id;
+
+      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id;
+      --  Create forward decalaration node for specified declaration
+
+      --------------------------------
+      -- Create_Forward_Declaration --
+      --------------------------------
+
+      function Create_Forward_Declaration (Node : in Node_Id) return Node_Id is
+         Result : Node_Id;
+      begin
+         pragma Assert (Kind (Node) = K_Interface);
+
+         Result := Make_Forward_Interface (No_Location);
+         Set_Abst (Result, Abst (Node));
+         Set_Local (Result, Local (Node));
+         Set_Forward (Result, Node);
+         Set_Repository_Id (Result, Repository_Id (Node));
+
+         Set_Forward (Node, Result);
+
+         return Result;
+      end Create_Forward_Declaration;
+
    begin
-      if Kind (V) /= K_Interface
-        and then Kind (V) /= K_ValueType
-      then
+      if Kind (V) /= K_Interface and then Kind (V) /= K_ValueType then
          return;
       end if;
 
       Forward_Declaration := Forward (V);
       if Forward_Declaration = No_Node then
+
+         --  If there is no explicit forward declaration, check whether an
+         --  implicit one is necessary to avoid a circular dependency between
+         --  Ada units.
+
+         if Kind (Get_Current_Scope) = K_Struct
+           and then Parent_Scope (V) = Parent_Scope (Get_Current_Scope)
+         then
+            declare
+               Enclosing_Scope : constant Node_Id
+                 := Parent_Scope (Get_Current_Scope);
+               Enclosing_List  : Node_List := Contents (Enclosing_Scope);
+            begin
+               Forward_Declaration := Create_Forward_Declaration (V);
+               Insert_Before
+                 (List   => Enclosing_List,
+                  Node   => Forward_Declaration,
+                  Before => Get_Current_Scope);
+               Set_Contents (Enclosing_Scope, Enclosing_List);
+
+               Set_Value (Node, Forward_Declaration);
+            end;
+
+         elsif Kind (Get_Current_Scope) = K_Module
+           and then Parent_Scope (V) = Get_Current_Scope
+         then
+            Forward_Declaration := Create_Forward_Declaration (V);
+            Insert_Before_Current (Forward_Declaration);
+
+            Set_Value (Node, Forward_Declaration);
+         end if;
+
          return;
       end if;
 
-      --  Check whether V is within the current scope.
+      --  Check whether V is within the current scope
 
       declare
-         Current_Scope : constant Node_Id := Get_Current_Scope;
-         P : Node_Id := Parent_Scope (V);
+         Current_Scope : Node_Id := Get_Current_Scope;
+         Par_Scope     : Node_Id := Parent_Scope (V);
       begin
-         while not (P = Current_Scope or else P = No_Node) loop
-            P := Parent_Scope (P);
+         if Kind (Current_Scope) = K_Struct then
+            --  Unwind one scope level because structure by itself is scope
+
+            Current_Scope := Parent_Scope (Current_Scope);
+         end if;
+
+         while not (Par_Scope = Current_Scope
+            or else Par_Scope = No_Node)
+         loop
+            Par_Scope := Parent_Scope (Par_Scope);
          end loop;
 
-         if P = Current_Scope then
+         if Par_Scope = Current_Scope then
             Set_Value (Node, Forward_Declaration);
          end if;
       end;
    end Expand_Scoped_Name;
 
-   -----------------------------------------
-   --          Private utilities          --
-   -----------------------------------------
+   -----------------------
+   -- Private utilities --
+   -----------------------
 
    --------------------
    -- Is_Ada_Keyword --
@@ -1635,9 +1697,9 @@ package body Ada_Be.Expansion is
         or else Lower = "xor";
    end Is_Ada_Keyword;
 
-   -----------------------
-   --  Expand_Node_List --
-   -----------------------
+   ----------------------
+   -- Expand_Node_List --
+   ----------------------
 
    procedure Expand_Node_List
      (List : in Node_List;
@@ -1654,8 +1716,7 @@ package body Ada_Be.Expansion is
          if Set_Current_Position then
             Current_Position_In_List := Node;
             pragma Debug
-              (O ("Current_Position_In_List = "
-                  & Img (Integer (Node))));
+              (O ("Current_Position_In_List = " & Img (Integer (Node))));
          end if;
          Expand_Node (Node);
 
@@ -1666,19 +1727,14 @@ package body Ada_Be.Expansion is
       end if;
    end Expand_Node_List;
 
-   --------------------------
-   --  Sequence_Type_Name  --
-   --------------------------
+   ------------------------
+   -- Sequence_Type_Name --
+   -------------------------
 
-   function Sequence_Type_Name
-     (Node : Node_Id)
-     return String
-   is
-      NK : constant Node_Kind
-        := Kind (Node);
+   function Sequence_Type_Name (Node : Node_Id) return String is
+      NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-
          when K_Sequence =>
             if Bound (Node) = No_Node then
                return "SEQUENCE_"
@@ -1751,15 +1807,15 @@ package body Ada_Be.Expansion is
             return "any";
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not mapped to an Ada type.
 
             Error ("A " & Node_Kind'Image (NK)
                    & " cannot be used in a sequence.",
                    Fatal,
                    Get_Location (Node));
 
-            --  Keep the compiler happy.
+            --  Keep the compiler happy
+
             raise Program_Error;
 
       end case;
