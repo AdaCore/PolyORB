@@ -1,6 +1,7 @@
 alidir = $(libdir)/adabroker
 
 ADA_SPECS_WITH_BODY = \
+	   broca-configuration.ads \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
@@ -21,11 +22,13 @@ ADA_SPECS_WITH_BODY = \
            broca-orb.ads \
            broca-poa.ads \
            broca-policy.ads \
+	   broca-protected_objects.adb \
            broca-refs.ads \
            broca-repository.ads \
            broca-rootpoa.ads \
            broca-sequences.ads \
            broca-server.ads \
+	   broca-soft_links.ads \
            broca-stream.ads \
            broca-task_attributes.ads \
            broca-vararray.ads \
