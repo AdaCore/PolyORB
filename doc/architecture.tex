@@ -165,6 +165,10 @@ $\leftrightarrow$ une socket de comm, un identificateur d'IPC.
 
 Primitives~: open/read/write/close
 
+\textbf{Comment ça se goupille pour produire des Data\_Units ?} Read et Write
+pourraient accepter comme arguments des Data\_Units particulières. Un TE pourrait
+être un «~pseudo-filtre~» (une protocol entity au sens de l'OSI...)
+
 Doit pourvoir participer à un poll (e/s asynchrones, liées au mécanisme
 de gestion des événements dans l'ORB) en s'intégrant dans une source d'événements
 asynchrones.
@@ -190,14 +194,14 @@ Lorsqu'un TE est créé à partir d'un TSAP, le TE hérite du protocole de son TSAP
 \subsubsection{Filtres}
 
 Les TE produisent des données (reçues du réseau) et acceptent des données (à émettre
-vers le réseau). Les réifiant ces échanges de données sont les Data_Units.
+vers le réseau). Les réifiant ces échanges de données sont les Data\_Units.
 
-Il peut être nécessaire d'intercaler des traitements de mise en forme des Data_Unit entre
+Il peut être nécessaire d'intercaler des traitements de mise en forme des Data\_Unit entre
 TE et sessions. C'est le rôle des objets abstraits «~filtres~». À un TSAP est associée
 une pile de factories de filtres (dont la dernière, au sommet, définit le protocole
 du TSAP). Lorsqu'une connexion est acceptée et un TE créé, chaque factory est invoquée
 pour créer une pile d'instances de filtres qui sont chaînés. Ces filtres échangent
-ensuite des Data_Unit soit du bas de la pile (du TE) vers le haut (la session) (données
+ensuite des Data\_Unit soit du bas de la pile (du TE) vers le haut (la session) (données
 reçues), soit du haut de la pile vers le bas (données émises).
 
 Un exemple typique de filtre est le délimiteur de messages~: lorsqu'un transport
@@ -205,25 +209,25 @@ offre un service de flux continu de données (par exemple une socket TCP), il est
 nécessaire de délimiter les messages échangés à l'intérieur du flux (par exemple
 en connaissant à l'avance la taille des messages qui vont être reçus, ou bien
 au moyen de fanions placés aux extrémités des messages). Un filtre va recevoir
-les Data_Units issus du réseau (correspondant à des fragments de messages) et les
+les Data\_Units issus du réseau (correspondant à des fragments de messages) et les
 rassembler pour reformer des messages complets (tels qu'attendus par les sessions).
 
 Un pseudo-filtre est associé à chaque type de TE (pour l'instant implémenté uniquement
-pour les sockets) qui produit des Data_Unit quand des données sont reçues sur le réseau,
-et émet sur le réseau les Data_Units acceptées.
+pour les sockets) qui produit des Data\_Unit quand des données sont reçues sur le réseau,
+et émet sur le réseau les Data\_Units acceptées.
 
-De même, les sessions sont des pseudo-filtres qui acceptent les Data_Units issues des couches
+De même, les sessions sont des pseudo-filtres qui acceptent les Data\_Units issues des couches
 inférieures, et agissent en fonction des messages reçues (au lieu de les transmettre
-comme Data_Units aux couches supérieures).
+comme Data\_Units aux couches supérieures).
 
 Pour être honnête~: si on considère que le scheduler de l'ORB est la couche supérieure par
-rapport aux sessions, et que l'objet Request est une Data_Unit, alors la Session est juste un
+rapport aux sessions, et que l'objet Request est une Data\_Unit, alors la Session est juste un
 filtre qui convertit des messages en requests et des replys en messages. À explorer.
 
 Statut~: Droopi.Filters fournit l'abstraction des filtres et aussi les types concrets
-de Data_Units. Il faudrait séparer les deux et ne définir qu'un type Data_Unit abstrait. Ensuite,
-les Data_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
-là où c'est nécessaire (une Data_Unit échangée entre les couches A et B ne serait visible que
+de Data\_Units. Il faudrait séparer les deux et ne définir qu'un type Data\_Unit abstrait. Ensuite,
+les Data\_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
+là où c'est nécessaire (une Data\_Unit échangée entre les couches A et B ne serait visible que
 par les unités implémentant A et B.)
 
 \subsection{Objets communs}

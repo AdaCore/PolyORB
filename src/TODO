@@ -9,24 +9,31 @@ Items still requiring attention
 * Support logging to syslog (also for Java ?)
 * Unified runtime configuration file
   (modifications to Droopi.Log).
-* Droopi.Buffers: remove mentions of CDR.
 * When a connection is closed, release all associated resources.
+* Droopi.Buffers: remove mentions of CDR.
+
 * An object adapter.
-* A single-task client configuration.
-* A multi-tasking server configuration.
-* A multi-tasking client configuration.
 
-* A mechanism for use of non-connected message passing
-  protocols (eg UDP).
+* Different tasking configurations
+  -> A single-task client configuration.
+  -> A multi-tasking server configuration.
+  -> A multi-tasking client configuration.
 
-* A mechanism for optional implementation of reliable
-  message delivery over a non-reliable message delivery
-  protocol (eg UDP with ack/retransmission)
+* An abstraction of transport endpoints.
 
-* A mechanism for message exchange not based on sockets
-  (eg SysV IPC).
-  A provision for polling multiple sources of asynchronous
-  events.
+  -> A mechanism for use of non-connected message passing
+     protocols (eg UDP).
+   
+  -> A mechanism for optional implementation of reliable
+     message delivery over a non-reliable message delivery
+     protocol (eg UDP with ack/retransmission)
+     
+  -> A mechanism for message exchange not based on sockets
+     (eg SysV IPC).
+     A provision for polling multiple sources of asynchronous
+     events.
+
+* Architecture documentation
 
 Items processed
 ---------------
