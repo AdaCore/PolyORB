@@ -864,9 +864,9 @@ package body Exp_Dist is
               Attribute_Name =>
                 Name_Tag)));
 
-      --  Note: The assignment to Pointer._Tag is possible only because
+      --  Note: The assignment to Pointer._Tag is safe here because
       --  we carefully ensured that Stub_Type has exactly the same layout
-      --  as System.PolyORB_Interface.RACW_Stub_Type.
+      --  as System.Partition_Interface.RACW_Stub_Type.
 
    end Build_Get_Unique_RP_Call;
 
@@ -3200,7 +3200,7 @@ package body Exp_Dist is
                --  Add subprogram descriptor (RCI_Subp_Info) to the
                --  subprograms table for this receiver. The aggregate
                --  below must be kept consistent with the declaration
-               --  of type RCI_Subp_Info in System.PolyORB_Interface.
+               --  of type RCI_Subp_Info in System.Partition_Interface.
 
                Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
 
