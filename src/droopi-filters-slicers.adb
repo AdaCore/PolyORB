@@ -3,9 +3,12 @@
 
 --  $Id$
 
+with Droopi.Filters.Interface; use Droopi.Filters.Interface;
+
 package body Droopi.Filters.Slicers is
 
-   pragma Elaborate_Body;
+   use Ada.Streams;
+   use Droopi.Buffers;
 
    procedure Create
      (Fact   : access Slicer_Factory;
@@ -14,49 +17,60 @@ package body Droopi.Filters.Slicers is
       Res : constant Filter_Access := new Slicer_Filter;
    begin
       Slicer_Filter (Res.all).Data_Expected := 0;
-      Upper := Res;
+      Slicer := Res;
    end Create;
 
-   procedure Handle_Message
+   function Handle_Message
      (F : access Slicer_Filter;
-      S : Data_Unit) is
+      S : Components.Message'Class)
+     return Components.Message'Class
+   is
+      Res : Components.Null_Message;
    begin
-      case S.Kind is
+      if S in Data_Expected then
+         declare
+            DEM : Data_Expected renames Data_Expected (S);
+         begin
 
-         when Data_Expected =>
             pragma Assert (F.Data_Expected = 0
                            and then F.In_Buf = null);
-            F.Data_Expected := S.Max;
-            F.In_Buf := S.In_Buf;
+            F.Data_Expected := DEM.Max;
+            F.In_Buf := DEM.In_Buf;
+            F.Buffer_Position := CDR_Position (F.In_Buf);
+         end;
+      elsif S in Data_Indication then
+         declare
+            Data_Received : constant Stream_Element_Count
+              := CDR_Position (F.In_Buf) - F.Buffer_Position;
+         begin
+            if F.In_Buf = null
+              or else Data_Received > F.Data_Expected
+            then
+               raise Unexpected_Data;
+               --  This exception will be propagated to the ORB.
+            end if;
+
+            F.Data_Expected := F.Data_Expected - Data_Received;
             F.Buffer_Position := CDR_Position (F.In_Buf);
 
-         when Data_Indication =>
-            declare
-               Data_Received : constant Stream_Element_Count
-                 := CDR_Position (F.In_Buf) - F.Buffer_Position;
-            begin
-               if F.In_Buf = null
-                 or else Data_Received > F.Data_Expected
-               then
-                  raise Unexpected_Data;
-                  --  This exception will be propagated to the ORB.
-               end if;
+            if F.Data_Expected = 0 then
+               F.In_Buf := null;
+               return Emit
+                 (F.Upper,
+                  Data_Indication'(Root_Data_Unit with null record));
+            end if;
+         end;
 
-               F.Data_Expected := F.Data_Expected - Data_Received;
-               F.Buffer_Position := CDR_Position (F.In_Buf);
+      elsif S in Disconnect_Indication then
+         return Emit
+           (F.Upper,
+            Disconnect_Indication'(Root_Data_Unit with null record));
 
-               if F.Data_Expected = 0 then
-                  F.In_Buf := null;
-                  Handle_Message (F.Upper, Data_Unit'(Kind => Data_Indication));
-               end if;
-            end;
+      elsif S in Data_Out then
+         return Emit (F.Lower, S);
+      end if;
 
-         when Disconnect_Indication =>
-            Handle_Message (F.Upper, Data_Unit'(Kind => Disconnect_Indication));
-
-         when Data_Out =>
-         Handle_Message (F.Lower, S);
-      end case;
+      return Res;
    end Handle_Message;
 
 end Droopi.Filters.Slicers;

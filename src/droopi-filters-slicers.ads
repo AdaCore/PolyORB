@@ -28,6 +28,7 @@ private
    type Slicer_Filter is new Filter with record
       In_Buf : Buffers.Buffer_Access;
       Data_Expected : Ada.Streams.Stream_Element_Count;
+      Buffer_Position : Ada.Streams.Stream_Element_Offset;
    end record;
 
    function Handle_Message
