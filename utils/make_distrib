@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#8 $
+# $Id: //droopi/main/utils/make_distrib#9 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -211,6 +211,12 @@ flist=""
 
 echo Packaging
 cd ..
+for f in `cat ${dir}/MANIFEST`; do
+  if [ ! -f ${dir}/${f} ]; then
+    echo "FATAL: ${dir}/${f} is not a regular file."
+    exit 1
+  fi
+done
 tar cf ${dir}.tar `sed s,^,${dir}/, < ${dir}/MANIFEST`
 gzip --best ${dir}.tar
 ls -l ${dir}.tar.gz
