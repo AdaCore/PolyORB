@@ -1,0 +1,20 @@
+module M {
+ typedef long TestType1;
+ typedef M::TestType1 TestType2;
+ valuetype ValA {
+ typedef string TestType1;
+ M::ValA::TestType1 op1(in M::TestType2 i);
+ };
+ valuetype ValB {
+ M::TestType1 op1(in M::TestType2 i);
+ };
+};
+module N {
+ typedef char TestType1;
+ valuetype ValC : M::ValA {
+ void op2(in M::ValA::TestType1 i);
+ };
+ valuetype ValD : M::ValB {
+ void op2(in N::TestType1 i);
+ };
+};
