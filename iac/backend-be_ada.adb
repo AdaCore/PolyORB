@@ -25,6 +25,8 @@ package body Backend.BE_Ada is
    function G_Package (E : Node_Id) return Node_Id;
    function Package_Name (E : Node_Id) return String;
    function Full_Package_Name (E : Node_Id) return String;
+   function Visit_Interface (E : Node_Id)return Node_Id;
+   function Visite_Module (E : Node_Id) return Node_Id;
 
    use Inheritance_Stack;
    --------------
@@ -51,8 +53,8 @@ package body Backend.BE_Ada is
          Write_Line (Full_Package_Name (D));
          D := BE.Next_Node (D);
       end loop;
-
    end Generate;
+
 
    procedure Generate_Type_Declaration (E : Node_Id)  is
       pragma Unreferenced (E);
@@ -61,9 +63,16 @@ package body Backend.BE_Ada is
       null;
    end Generate_Type_Declaration;
 
+
+   function Visite_Module (E : Node_Id) return Node_Id is
+   begin
+      return G_Package (E);
+   end Visite_Module;
+
    ----------------------------
    -- Generate_Specification --
    ----------------------------
+
    procedure Generate_Specification (E : Node_Id) is
       List_Def : List_Id;
       D      : Node_Id;
@@ -76,13 +85,17 @@ package body Backend.BE_Ada is
          case Kind (D) is
 
             when K_Module =>
-               Ada_Node := G_Package (D);
+               Ada_Node := Visite_Module (D);
                Append_Node_To_List (Ada_Node, Ada_Packages);
                Push_Package (Ada_Node);
-               Generate_Specification (D);
+               Generate_Specification (D); -- Visit definitions of module
                Pop_Package;
+
             when K_Type_Declaration =>
                Generate_Type_Declaration (D);
+
+            when K_Interface_Declaration =>
+               Ada_Node := Visit_Interface (D);
 
             when others =>
                Display_Error ("Definition not recongnized");
@@ -111,17 +124,19 @@ package body Backend.BE_Ada is
    begin
       Node := New_Node (BE.K_Ada_Packages, No_Location);
       Id := New_Node (BE.K_Ada_Identifier, No_Location);
+      Ada_Name := Map_Id_Name_Idl2Ada (Name (Identifier (E)));
+      BE.Set_Name (Id, Ada_Name);
+      BE.Set_Identifier (Node, Id);
+      Parent_Node := Current_Package;
+      BE.Set_Parent (Node, Parent_Node);
       case Kind (E) is
          when K_Module =>
-            Ada_Name := Map_Id_Name_Idl2Ada (Name (Identifier (E)));
-            BE.Set_Name (Id, Ada_Name);
-            BE.Set_Identifier (Node, Id);
             Pkg_Spec := No_Node;
             BE.Set_Package_Spec (Node, Pkg_Spec);
             Pkg_Body := No_Node;
             BE.Set_Package_Body (Node, Pkg_Body);
-            Parent_Node := Current_Package;
-            BE.Set_Parent (Node, Parent_Node);
+         when K_Interface_Declaration =>
+            null;
          when others =>
             Write_Line ("In progress....G_Package");
       end case;
@@ -177,5 +192,11 @@ package body Backend.BE_Ada is
       end loop;
       return To_String (Full_Name);
    end Full_Package_Name;
+
+   function Visit_Interface (E : Node_Id) return Node_Id is
+      pragma Unreferenced (E);
+   begin
+      return No_Node;
+   end Visit_Interface;
 
 end Backend.BE_Ada;

@@ -2,7 +2,7 @@ with Locations; use Locations;
 --   with Output; use Output;
 --   with Debug; use Debug;
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
---   with Namet; use Namet;
+with Namet; use Namet;
 
 
 package body Backend.BE_Ada.Nutils is
@@ -88,10 +88,32 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Remove_Node_From_List;
 
+
    function Map_Id_Name_Idl2Ada (N : Name_Id) return Name_Id is
       --   It's not implemented yet.
+
+      Str : String := Get_Name_String (N);
+      First : Integer := Str'First;
    begin
-      return N;
+      while First <= Str'Last
+        and then Str (First) = '_' loop
+         First := First + 1;
+      end loop;
+
+      for I in First .. Str'Last loop
+         if Str (I) = '_'
+           and then I < Str'Last
+           and then Str (I + 1) = '_' then
+            Str (I + 1) := 'U';
+         end if;
+      end loop;
+      if Str (Str'Last) = '_' then
+         Set_Str_To_Name_Buffer (Str (First .. Str'Last) & 'U');
+      else
+         Set_Str_To_Name_Buffer (Str (First .. Str'Last));
+      end if;
+
+      return Name_Find;
    end Map_Id_Name_Idl2Ada;
 
 end Backend.BE_Ada.Nutils;
