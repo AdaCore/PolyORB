@@ -280,8 +280,10 @@ package body XE_Check is
       end if;
 
       for U in Unit.First .. Unit.Last loop
-         if Unit.Table (U).RCI and then
-            Get_CUID (Unit.Table (U).Uname) = Null_CUID then
+         if Unit.Table (U).RCI
+           and then not Unit.Table (U).Is_Generic
+           and then Get_CUID (Unit.Table (U).Uname) = Null_CUID
+         then
             Write_Program_Name;
             Write_Str (": RCI Ada unit """);
             Write_Unit_Name (Unit.Table (U).Uname);

@@ -1,3 +1,7 @@
+Sun Sep 14 19:47:21 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_check.adb: Do not barf about generic RCI units.
+
 Sat Sep 13 14:32:15 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* config.sdefault: Use output of gnatls to find the right include
