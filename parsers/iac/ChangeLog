@@ -1,3 +1,9 @@
+2004-07-06  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
+	backend-be_ada.adb: Add Ref as a defining identifier. Minor
+	reformatting.
+
 2004-07-06  souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-runtime.ads: Add To_Any_0, To_Get_Empty_Any_0,
