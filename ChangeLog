@@ -1,3 +1,7 @@
+Sun Sep  7 16:20:36 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Note about local launching of partitions.
+
 Tue Aug 12 13:07:16 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Added support for libtool. Removed detection of

@@ -1,3 +1,15 @@
+Changes since GLADE 1.03
+========================
+
+New Functionnalities
+--------------------
+
+  * Local launching
+    If the host on which a partition must be launched is detected as
+    being the same as localhost (same official name or name
+    "localhost"), then rsh is not used any more and partitions are
+    launched using system().
+
 Changes since GLADE 1.02
 ========================
 
