@@ -110,9 +110,13 @@ package Broca.Poa is
            PortableServer.ObjectId (Broca.Sequences.Null_Sequence);
       end record;
 
-   --  Get the IOR.
-   function Object_To_IOR (Obj : Skeleton)
-                           return Broca.Buffers.Buffer_Descriptor;
+   procedure Compute_New_Size
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Skeleton);
+
+   procedure Marshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Skeleton);
 
    type Skeleton_Access is access all Skeleton;
 

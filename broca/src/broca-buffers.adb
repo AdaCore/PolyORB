@@ -15,6 +15,10 @@ package body Broca.Buffers is
      (Buffer : in out Buffer_Descriptor;
       Size   : in Buffer_Index_Type);
 
+   procedure Set_Write_Mode
+     (Buffer : in out Buffer_Descriptor;
+      Write  : in Boolean);
+
    ----------------
    -- Align_Size --
    ----------------
@@ -70,6 +74,7 @@ package body Broca.Buffers is
      (Target : in out Buffer_Descriptor;
       Source : in Buffer_Descriptor) is
    begin
+      Set_Write_Mode (Target, True);
       Target.Buffer (Target.Pos .. Target.Pos + Source.Pos - 1)
         := Source.Buffer (0 .. Source.Pos - 1);
       Target.Pos := Target.Pos + Source.Pos;
@@ -135,10 +140,12 @@ package body Broca.Buffers is
    -- Extract_Buffer --
    --------------------
 
-   procedure Extract_Buffer (Target : in out Buffer_Descriptor;
-                             Source : in out Buffer_Descriptor;
-                             Length : Buffer_Index_Type) is
+   procedure Extract_Buffer
+     (Target : in out Buffer_Descriptor;
+      Source : in out Buffer_Descriptor;
+      Length : in Buffer_Index_Type) is
    begin
+      Set_Write_Mode (Target, False);
       Target.Buffer (Target.Pos .. Target.Pos + Length - 1) :=
         Source.Buffer (Source.Pos .. Source.Pos + Length - 1);
       Source.Pos := Source.Pos + Length;
@@ -157,7 +164,9 @@ package body Broca.Buffers is
       if Buffer.Buffer /= null then
          Free (Buffer.Buffer);
       end if;
-      Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
+      if Size > 0 then
+         Buffer.Buffer := new Buffer_Type (0 .. Size - 1);
+      end if;
    end Fix_Buffer_Size;
 
    ----------
@@ -170,10 +179,37 @@ package body Broca.Buffers is
    is
       Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
    begin
+      Set_Write_Mode (Buffer, False);
       pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
       Bytes := Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1);
       Buffer.Pos := Buffer.Pos + Length;
    end Read;
+
+   -------------------
+   -- Set_Endianess --
+   -------------------
+
+   procedure Set_Endianess
+     (Buffer        : in out Buffer_Descriptor;
+      Little_Endian : in Boolean) is
+   begin
+      Buffer.Little_Endian := Little_Endian;
+   end Set_Endianess;
+
+   --------------------
+   -- Set_Write_Mode --
+   --------------------
+
+   procedure Set_Write_Mode
+     (Buffer : in out Buffer_Descriptor;
+      Write  : in Boolean)
+   is
+   begin
+      if Buffer.Write /= Write then
+         Buffer.Pos := 0;
+         Buffer.Write := Write;
+      end if;
+   end Set_Write_Mode;
 
    ----------
    -- Size --
@@ -205,6 +241,7 @@ package body Broca.Buffers is
    is
       Length : constant Buffer_Index_Type := Buffer_Index_Type (Bytes'Length);
    begin
+      Set_Write_Mode (Buffer, True);
       pragma Assert (Buffer.Pos + Length - 1 <= Buffer.Buffer'Last);
       Buffer.Buffer (Buffer.Pos .. Buffer.Pos + Length - 1) := Bytes;
       Buffer.Pos := Buffer.Pos + Length;

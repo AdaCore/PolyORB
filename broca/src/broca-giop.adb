@@ -1,5 +1,5 @@
 with Broca.Refs;
-with Broca.Marshalling;
+with Broca.Marshalling;  use Broca.Marshalling;
 with Broca.Exceptions;
 with Broca.Flags;
 with Broca.Sequences;
@@ -13,121 +13,238 @@ package body Broca.Giop is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
 
-   procedure Create_Giop_Header
-     (Stream : in out Buffer_Descriptor;
-      Message_Type : CORBA.Unsigned_Long;
-      Message_Size : CORBA.Unsigned_Long)
-   is
-      use Broca.Marshalling;
-   begin
-      Stream.Pos := 0;
-      Stream.Little_Endian := Is_Little_Endian;
-
-      --  1.2.1 The message header.
-      --  Magic
-      Marshall (Stream, 'G');
-      Marshall (Stream, 'I');
-      Marshall (Stream, 'O');
-      Marshall (Stream, 'P');
-
-      --  Version
-      Marshall (Stream, CORBA.Octet'(1));
-      Marshall (Stream, CORBA.Octet'(0));
-
-      --  Byte order
-      Marshall (Stream, Is_Little_Endian);
-
-      --  message type
-      Marshall (Stream, CORBA.Octet (Message_Type));
-
-      --  message size
-      Marshall (Stream, Message_Size);
-   end Create_Giop_Header;
-
-   procedure Create_Reply_System_Exception
-     (Stream : in out Buffer_Descriptor;
-      Request_Id : CORBA.Unsigned_Long;
-      Occurence : CORBA.Exception_Occurrence)
-   is
-      use Broca.Marshalling;
-   begin
-      Stream.Pos := Message_Header_Size;
-
-      --  Service Context
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  Request_Id
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  Reply_Status
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  Exception
-      Broca.Exceptions.Compute_New_Size (Stream, Occurence);
-
-      Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
-
-      Broca.Giop.Create_Giop_Header
-        (Stream, Broca.Giop.Reply,
-         CORBA.Unsigned_Long (Stream.Pos));
-
-      --  Service Context
-      Marshall (Stream, CORBA.Unsigned_Long (No_Context));
-
-      --  Request_Id
-      Marshall (Stream, Request_Id);
-
-      --  Reply_Status
-      Marshall (Stream, Broca.Giop.System_Exception);
-
-      --  Exception
-      Broca.Exceptions.Marshall (Stream, Occurence);
-   end Create_Reply_System_Exception;
-
-   procedure Create_Reply_Location_Forward
-     (Stream : in out Buffer_Descriptor;
-      Request_Id : CORBA.Unsigned_Long;
-      Reference : CORBA.Object.Ref)
-   is
-      use Broca.Marshalling;
-      N_Ref : Buffer_Descriptor;
-   begin
-      N_Ref := Broca.Refs.Object_To_IOR (CORBA.Object.Get (Reference).all);
-      Stream.Pos := Message_Header_Size;
-
-      --  Service Context
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  Request_Id
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  Reply_Status
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-
-      --  IOR
-      Compute_New_Size (Stream, N_Ref);
-
-      Allocate_Buffer_And_Set_Pos (Stream, Stream.Pos);
-
-      Broca.Giop.Create_Giop_Header
-        (Stream, Broca.Giop.Reply,
-         CORBA.Unsigned_Long (Stream.Pos));
-      --  service context.
-      Marshall (Stream, CORBA.Unsigned_Long (No_Context));
-      --  Request_id
-      Marshall (Stream, Request_Id);
-      --  reply_status
-      Marshall (Stream, Broca.Giop.Location_Forward);
-      --  exception.
-      Append_Buffer (Stream, N_Ref);
-   end Create_Reply_Location_Forward;
+   Magic : constant Buffer_Type (0 .. 5) :=
+     (Character'Pos ('G'),
+      Character'Pos ('I'),
+      Character'Pos ('O'),
+      Character'Pos ('P'),
+      1,
+      0);
 
    Nobody_Principal : constant CORBA.String :=
      CORBA.To_CORBA_String ("nobody");
 
-   procedure Send_Request_Size (Handler : in out Request_Handler;
-                                Object : Broca.Object.Object_Acc;
-                                Operation : CORBA.Identifier)
+   MsgType_To_Octet :
+     constant array (MsgType'Range) of CORBA.Octet
+     := (Request          => 0,
+         Reply            => 1,
+         Cancel_Request   => 2,
+         Locate_Request   => 3,
+         Locate_Reply     => 4,
+         Close_Connection => 5,
+         Message_Error    => 6,
+         Fragment         => 7);
+
+   ReplyStatusType_To_Unsigned_Long :
+     constant array (ReplyStatusType'Range) of CORBA.Unsigned_Long
+     := (No_Exception     => 0,
+         User_Exception   => 1,
+         System_Exception => 2,
+         Location_Forward => 3);
+
+   LocateStatusType_To_Unsigned_Long :
+     constant array (LocateStatusType'Range) of CORBA.Unsigned_Long
+     := (Unknown_Object => 0,
+         Object_Here    => 1,
+         Object_Forward => 2);
+
+   Octet_To_MsgType :
+     constant array (CORBA.Octet range 0 .. 7) of MsgType
+     := (0 => Request,
+         1 => Reply,
+         2 => Cancel_Request,
+         3 => Locate_Request,
+         4 => Locate_Reply,
+         5 => Close_Connection,
+         6 => Message_Error,
+         7 => Fragment);
+
+   Unsigned_Long_To_ReplyStatusType :
+     constant array (CORBA.Unsigned_Long range 0 .. 3) of ReplyStatusType
+     := (0 => No_Exception,
+         1 => User_Exception,
+         2 => System_Exception,
+         3 => Location_Forward);
+
+   Unsigned_Long_To_LocateStatusType :
+     constant array (CORBA.Unsigned_Long range 0 .. 2) of LocateStatusType
+     := (0 => Unknown_Object,
+         1 => Object_Here,
+         2 => Object_Forward);
+
+   ------------------------------
+   -- Compute_GIOP_Header_Size --
+   ------------------------------
+
+   procedure Compute_GIOP_Header_Size
+     (Buffer : in out Buffer_Descriptor) is
+   begin
+      Allocate_Buffer_And_Clear_Pos (Buffer, 0);
+      Compute_New_Size (Buffer, O_Size, Message_Header_Size);
+   end Compute_GIOP_Header_Size;
+
+   --------------------------
+   -- Marshall_GIOP_Header --
+   --------------------------
+
+   procedure Marshall_GIOP_Header
+     (Buffer       : in out Buffer_Descriptor;
+      Message_Type : in MsgType)
+   is
+      use Broca.Marshalling;
+      Message_Size : CORBA.Unsigned_Long;
+   begin
+      Allocate_Buffer (Buffer);
+
+      Message_Size := CORBA.Unsigned_Long (Size (Buffer) - Message_Header_Size);
+      --  1.2.1 The message header.
+      --  Magic + Version
+      Write (Buffer, Magic);
+
+      --  Byte order
+      Marshall (Buffer, Is_Little_Endian);
+
+      --  Message type
+      Marshall (Buffer, Message_Type);
+
+      --  Message size
+      Marshall (Buffer, Message_Size);
+   end Marshall_GIOP_Header;
+
+   ----------------------------
+   -- Unmarshall_GIOP_Header --
+   ----------------------------
+
+   procedure Unmarshall_GIOP_Header
+     (Buffer       : in out Buffer_Descriptor;
+      Message_Type : out MsgType;
+      Message_Size : out CORBA.Unsigned_Long)
+   is
+      use Broca.Marshalling;
+      Magic_Num : Buffer_Type := Magic;
+      Endianess : CORBA.Boolean;
+   begin
+      --  Magic + Version
+      Read (Buffer, Magic_Num);
+      if Magic_Num /= Magic then
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+
+      --  Byte order
+      Unmarshall (Buffer, Endianess);
+      Set_Endianess (Buffer, Endianess);
+
+      --  Message type
+      Unmarshall (Buffer, Message_Type);
+
+      --  Message size
+      Unmarshall (Buffer, Message_Size);
+   end Unmarshall_GIOP_Header;
+
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer     : in out Buffer_Descriptor;
+      Request_Id : in CORBA.Unsigned_Long;
+      Occurence  : in CORBA.Exception_Occurrence)
+   is
+      use Broca.Marshalling;
+   begin
+      --  Service context
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  Request id
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  Reply status
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  Exception
+      Broca.Exceptions.Compute_New_Size (Buffer, Occurence);
+   end Compute_New_Size;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer     : in out Buffer_Descriptor;
+      Request_Id : in CORBA.Unsigned_Long;
+      Occurence  : in CORBA.Exception_Occurrence)
+   is
+      use Broca.Marshalling;
+   begin
+      --  Service context
+      Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
+
+      --  Request id
+      Marshall (Buffer, Request_Id);
+
+      --  Reply status
+      Marshall (Buffer, Broca.Giop.System_Exception);
+
+      --  Exception
+      Broca.Exceptions.Marshall (Buffer, Occurence);
+   end Marshall;
+
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer     : in out Buffer_Descriptor;
+      Request_Id : in CORBA.Unsigned_Long;
+      Reference  : in CORBA.Object.Ref)
+   is
+      use Broca.Marshalling;
+   begin
+      --  Service context
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  Request id
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  Reply status
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+
+      --  IOR
+      Broca.Refs.Compute_New_Size (Buffer, Broca.Refs.Ref (Reference));
+   end Compute_New_Size;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer     : in out Buffer_Descriptor;
+      Request_Id : in CORBA.Unsigned_Long;
+      Reference  : in CORBA.Object.Ref)
+   is
+      use Broca.Marshalling;
+   begin
+      --  Service context
+      Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
+
+      --  Request id
+      Marshall (Buffer, Request_Id);
+
+      --  Reply status
+      Marshall (Buffer, Broca.Giop.Location_Forward);
+
+      --  Reference
+      Broca.Refs.Marshall (Buffer, Broca.Refs.Ref (Reference));
+   end Marshall;
+
+   -----------------------
+   -- Send_Request_Size --
+   -----------------------
+
+   procedure Send_Request_Size
+     (Handler   : in out Request_Handler;
+      Object    : in Broca.Object.Object_Acc;
+      Operation : in CORBA.Identifier)
    is
       use Broca.Marshalling;
    begin
@@ -141,17 +258,17 @@ package body Broca.Giop is
       Handler.Profile := Broca.Object.Find_Profile (Object);
       Handler.Connection := Broca.Object.Find_Connection (Handler.Profile);
 
-      --  1.1: compute the size of the message
+      Compute_GIOP_Header_Size (Handler.Buffer);
 
-      --  1.1.1: size of GIOP header.
-      Handler.Buffer.Pos := Broca.Giop.Message_Header_Size;
+      -- Service context
+      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
 
-      --  1.1.2: Size of request header.
-      Handler.Buffer.Pos := Handler.Buffer.Pos
-        + 4 --  service_context.  Not yet supported
-        + 4 --  request_id
-        + 4; --  reponse_expected + reserved
-      --  Size of object_key.
+      --  Request id
+      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
+
+      --  Response expected + Reserved
+      Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
+
       Compute_New_Size
         (Buffer       => Handler.Buffer,
          Length_Size  => UL_Size,
@@ -159,65 +276,64 @@ package body Broca.Giop is
          Array_Length => Broca.Sequences.Octet_Sequences.Length
          (Broca.Object.Get_Object_Key (Handler.Profile.all)));
 
-      --  Size of operation
+      --  Operation
       Compute_New_Size (Handler.Buffer, CORBA.String (Operation));
 
-      --  Size of Principal
-      --  See 13.3.4: encoded as sequence <octet>
+      --  Principal - See 13.3.4: encoded as sequence <octet>
       Compute_New_Size (Handler.Buffer, Nobody_Principal);
    end Send_Request_Size;
 
-   procedure Send_Request_Marshall (Handler : in out Request_Handler;
-                                    Reponse_Expected : Boolean;
-                                    Operation : CORBA.Identifier)
+   ---------------------------
+   -- Send_Request_Marshall --
+   ---------------------------
+
+   procedure Send_Request_Marshall
+     (Handler          : in out Request_Handler;
+      Reponse_Expected : in Boolean;
+      Operation        : in CORBA.Identifier)
    is
       use Broca.Marshalling;
-      Message_Size : CORBA.Unsigned_Long;
    begin
-      pragma Debug (O ("Send_Request_Marshall : enter"));
-      Message_Size := CORBA.Unsigned_Long
-        (Handler.Buffer.Pos - Broca.Giop.Message_Header_Size);
-      pragma Debug (O ("Send_Request_Marshall : Message_Size = " & Message_Size'Img));
-      Allocate_Buffer (Handler.Buffer);
+      Marshall_GIOP_Header (Handler.Buffer, Broca.Giop.Request);
 
-      --  1.2 marshall the request.
-      --  1.2.1 The message header.
-      Broca.Giop.Create_Giop_Header
-        (Handler.Buffer, Broca.Giop.Request, Message_Size);
-
-      --  1.2.2 The request message header.
-      --  service context.
+      --  Service context
       Marshall (Handler.Buffer, CORBA.Unsigned_Long (No_Context));
 
-      --  request_id
+      --  Request id
       Handler.Request_Id := Broca.Object.Get_Request_Id (Handler.Connection);
       Marshall (Handler.Buffer, Handler.Request_Id);
 
-      --  response expected
+      --  Response expected
       Marshall (Handler.Buffer, Reponse_Expected);
 
-      --  object key
+      --  Object key
       Broca.Sequences.Marshall
-        (Handler.Buffer, Broca.Object.Get_Object_Key (Handler.Profile.all));
+        (Handler.Buffer,
+         Broca.Object.Get_Object_Key (Handler.Profile.all));
 
       --  Operation
       Marshall (Handler.Buffer, CORBA.String (Operation));
 
-      --  principal
+      --  Principal
       Marshall (Handler.Buffer, Nobody_Principal);
    end Send_Request_Marshall;
 
-   procedure Send_Request_Send (Handler : in out Request_Handler;
-                                Object : Broca.Object.Object_Acc;
-                                Reponse_Expected : Boolean;
-                                Res : out Send_Request_Result_Type)
+   -----------------------
+   -- Send_Request_Send --
+   -----------------------
+
+   procedure Send_Request_Send
+     (Handler          : in out Request_Handler;
+      Object           : in Broca.Object.Object_Acc;
+      Reponse_Expected : in Boolean;
+      Result           : out Send_Request_Result_Type)
    is
       use Broca.Marshalling;
       use CORBA;
-      Message_Type    : CORBA.Octet;
+      Message_Type    : MsgType;
       Message_Size    : CORBA.Unsigned_Long;
       Service_Context : CORBA.Unsigned_Long;
-      Reply_Status    : CORBA.Unsigned_Long;
+      Reply_Status    : ReplyStatusType;
       Request_Id      : CORBA.Unsigned_Long;
       Tmp : Buffer_Descriptor;
    begin
@@ -226,7 +342,7 @@ package body Broca.Giop is
 
       if not Reponse_Expected then
          Broca.Object.Release_Connection (Handler.Connection);
-         Res := Sr_No_Reply;
+         Result := Sr_No_Reply;
          return;
       end if;
 
@@ -237,26 +353,8 @@ package body Broca.Giop is
       pragma Debug (O ("Receive answer ..."));
       Broca.Object.Receive (Handler.Connection, Handler.Buffer);
       pragma Debug (O ("Receive answer done"));
-      if Handler.Buffer.Pos /= Broca.Giop.Message_Header_Size then
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
 
-      --  1.4.2 Check magic, giop version
-      --  FIXME: todo
-
-      --  1.4.3 decode byte_order.
-      Handler.Buffer.Pos := 6;
-      Unmarshall (Handler.Buffer, Handler.Buffer.Little_Endian);
-
-      --  1.4.3 check message type.
-      Unmarshall (Handler.Buffer, Message_Type);
-      if Message_Type /= CORBA.Octet (Broca.Giop.Reply) then
-         --  FIXME: check for closeconnection or messageerror.
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-
-      --  1.4.4 message_size
-      Unmarshall (Handler.Buffer, Message_Size);
+      Unmarshall_GIOP_Header (Handler.Buffer, Message_Type, Message_Size);
 
       --  Allocate enough bytes for the message.
       Allocate_Buffer_And_Set_Pos
@@ -274,28 +372,32 @@ package body Broca.Giop is
       Handler.Buffer.Pos := Message_Header_Size;
       Free (Tmp.Buffer);
 
-      --  service_context.
+      --  Service context
       Unmarshall (Handler.Buffer, Service_Context);
       if Service_Context /= No_Context then
-         pragma Debug (O ("Send_Request_Send : incorrect context" & Service_Context'Img));
+         pragma Debug
+           (O ("Send_Request_Send : incorrect context" & Service_Context'Img));
          raise Program_Error;
       end if;
 
       --  Request id
       Unmarshall (Handler.Buffer, CORBA.Unsigned_Long (Request_Id));
       if Request_Id /= Handler.Request_Id then
-         pragma Debug (O ("Send_Request_Send : incorrect request id" & Request_Id'Img));
+         pragma Debug
+           (O ("Send_Request_Send : incorrect request id" & Request_Id'Img));
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
-      --  reply status.
+      --  Reply status
       Unmarshall (Handler.Buffer, Reply_Status);
       case Reply_Status is
          when Broca.Giop.No_Exception =>
-            Res := Sr_Reply;
+            Result := Sr_Reply;
             return;
+
          when Broca.Giop.System_Exception =>
             Broca.Exceptions.Unmarshall_And_Raise (Handler.Buffer);
+
          when Broca.Giop.Location_Forward =>
             declare
                New_Ref : CORBA.Object.Ref;
@@ -305,13 +407,88 @@ package body Broca.Giop is
                Object.Profiles :=
                  Broca.Object.Object_Acc (CORBA.Object.Get (New_Ref)).Profiles;
             end;
-            Res := Sr_Forward;
+            Result := Sr_Forward;
             return;
+
          when Broca.Giop.User_Exception =>
-            Res := Sr_User_Exception;
+            Result := Sr_User_Exception;
             return;
+
          when others =>
             raise Program_Error;
       end case;
    end Send_Request_Send;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in MsgType) is
+   begin
+      Compute_New_Size (Buffer, O_Size, O_Size);
+   end Compute_New_Size;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in ReplyStatusType) is
+   begin
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+   end Compute_New_Size;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in LocateStatusType) is
+   begin
+      Compute_New_Size (Buffer, UL_Size, UL_Size);
+   end Compute_New_Size;
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in MsgType) is
+   begin
+      Marshall (Buffer, MsgType_To_Octet (Value));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in ReplyStatusType) is
+   begin
+      Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in LocateStatusType) is
+   begin
+      Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
+   end Marshall;
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out MsgType)
+   is
+      O : CORBA.Octet;
+   begin
+      Unmarshall (Buffer, O);
+      Result := Octet_To_MsgType (O);
+   end Unmarshall;
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out ReplyStatusType)
+   is
+      UL : CORBA.Unsigned_Long;
+   begin
+      Unmarshall (Buffer, UL);
+      Result := Unsigned_Long_To_ReplyStatusType (UL);
+   end Unmarshall;
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out LocateStatusType)
+   is
+      UL : CORBA.Unsigned_Long;
+   begin
+      Unmarshall (Buffer, UL);
+      Result := Unsigned_Long_To_LocateStatusType (UL);
+   end Unmarshall;
+
 end Broca.Giop;

@@ -15,47 +15,6 @@ package Broca.Marshalling is
 
    -- Compute_Size, Marshall and Unmarshall predefined types.
 
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Octet);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Char);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Boolean);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Unsigned_Short);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Short);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Unsigned_Long);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Long);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.String);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Float);
-
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Result : out CORBA.Double);
-
-
    procedure Compute_New_Size
      (Buffer : in out Buffer_Descriptor;
       Value  : in CORBA.String);
@@ -106,9 +65,6 @@ package Broca.Marshalling is
       Element_Size  : in Buffer_Index_Type;
       Array_Length  : in Natural);
 
-   procedure Skip_String (Buffer : in out Buffer_Descriptor);
-   --  Unmarshall String and ignore result.
-
    --  Marshall
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
@@ -153,5 +109,49 @@ package Broca.Marshalling is
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
       Value  : in CORBA.String);
+
+   --  Unmarshall
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Octet);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Char);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Boolean);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Unsigned_Short);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Short);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Unsigned_Long);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Long);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.String);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Float);
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out CORBA.Double);
+
+   procedure Skip_String (Buffer : in out Buffer_Descriptor);
+   --  Unmarshall String and ignore result.
 
 end Broca.Marshalling;

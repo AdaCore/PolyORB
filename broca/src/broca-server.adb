@@ -3,7 +3,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with CORBA; use CORBA;
 with PortableServer;
-with Broca.Buffers; use Broca.Buffers;
+with Broca.Buffers;     use Broca.Buffers;
 with Broca.Exceptions;
 with Broca.Marshalling;
 with Broca.Giop;
@@ -789,15 +789,23 @@ package body Broca.Server is
                   Request_Id, Reponse_Expected, Buffer);
             exception
                when E : CORBA.Object_Not_Exist =>
-                  Broca.Giop.Create_Reply_System_Exception
-                    (Buffer, Request_Id, E);
+                  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+                  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
+                  Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.Giop.Reply);
+                  Broca.GIOP.Marshall (Buffer, Request_Id, E);
+
                when E : PortableServer.ForwardRequest =>
                   declare
-                     Fr_M : PortableServer.ForwardRequest_Members;
+                     FRM : PortableServer.ForwardRequest_Members;
                   begin
-                     PortableServer.Get_Members (E, Fr_M);
-                     Broca.Giop.Create_Reply_Location_Forward
-                       (Buffer, Request_Id, Fr_M.Forward_Reference);
+                     PortableServer.Get_Members (E, FRM);
+                     Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+                     Broca.GIOP.Compute_New_Size
+                       (Buffer, Request_Id, FRM.Forward_Reference);
+                     Broca.GIOP.Marshall_GIOP_Header
+                       (Buffer, Broca.Giop.Reply);
+                     Broca.GIOP.Marshall
+                       (Buffer, Request_Id, FRM.Forward_Reference);
                   end;
             end;
 
@@ -816,8 +824,10 @@ package body Broca.Server is
                Broca.Exceptions.Raise_Transient;
             exception
                when E : CORBA.Transient =>
-                  Broca.Giop.Create_Reply_System_Exception
-                    (Buffer, Request_Id, E);
+                  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+                  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
+                  Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.GIOP.Reply);
+                  Broca.GIOP.Marshall (Buffer, Request_Id, E);
             end;
             Lock_Send (Stream);
             Send (Stream, Buffer);
@@ -841,8 +851,10 @@ package body Broca.Server is
                Broca.Exceptions.Raise_Obj_Adapter;
             exception
                when E : CORBA.Obj_Adapter =>
-                  Broca.Giop.Create_Reply_System_Exception
-                    (Buffer, Request_Id, E);
+                  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+                  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
+                  Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.GIOP.Reply);
+                  Broca.GIOP.Marshall (Buffer, Request_Id, E);
             end;
             Lock_Send (Stream);
             Send (Stream, Buffer);
@@ -864,7 +876,7 @@ package body Broca.Server is
       use Broca.Marshalling;
       use Broca.Giop;
       use Broca.Stream;
-      Message_Type : CORBA.Octet;
+      Message_Type : MsgType;
       Message_Size : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
       Poa : Broca.Poa.POA_Object_Access;
@@ -872,24 +884,7 @@ package body Broca.Server is
       Key : Buffer_Descriptor;
       Tmp : Buffer_Descriptor;
    begin
-      --  Magic must be GIOP.
-      if Buffer.Buffer (0 .. 3) /= Broca.Giop.Magic then
-         --  Must send an error message.
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-
-      --  Check version
-      if Buffer.Buffer (4) /= 1 or else Buffer.Buffer (5) /= 0 then
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-
-      --  byte_order
-      Buffer.Pos := 6;
-      Unmarshall (Buffer, Buffer.Little_Endian);
-
-      --  Message type and length.
-      Unmarshall (Buffer, Message_Type);
-      Unmarshall (Buffer, Message_Size);
+      Unmarshall_GIOP_Header (Buffer, Message_Type, Message_Size);
 
       --  Receive body of the message.
       Allocate_Buffer_And_Set_Pos
@@ -902,7 +897,7 @@ package body Broca.Server is
       Buffer.Pos := Message_Header_Size;
       Free (Tmp.Buffer);
 
-      case CORBA.Unsigned_Long (Message_Type) is
+      case Message_Type is
          when Broca.Giop.Request =>
             Log ("handle request message");
 
@@ -919,10 +914,13 @@ package body Broca.Server is
             Poa.Link_Lock.Unlock_R;
 
             --  FIXME.
-            Broca.Giop.Create_Giop_Header
-              (Buffer, Broca.Giop.Locate_Reply, 8);
+            Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+            Compute_New_Size (Buffer, Request_Id);
+            Compute_New_Size (Buffer, Broca.Giop.Object_Here);
+            Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.Giop.Locate_Reply);
             Marshall (Buffer, Request_Id);
-            Marshall (Buffer, Broca.Giop.Object_Here);
+            Broca.GIOP.Marshall (Buffer, Broca.Giop.Object_Here);
+
             Lock_Send (Stream);
             Send (Stream, Buffer);
             Unlock_Send (Stream);

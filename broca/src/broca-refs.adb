@@ -2,6 +2,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 with Broca.Locks;
 with Broca.Exceptions;
+with Broca.Buffers; use Broca.Buffers;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -70,18 +71,68 @@ package body Broca.Refs is
       end if;
    end Finalize;
 
-   function Object_To_IOR (Obj : Ref_Type) return Broca.Buffers.Buffer_Descriptor
-   is
-      Res : Broca.Buffers.Buffer_Descriptor;
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Ref_Type) is
    begin
       Broca.Exceptions.Raise_Marshal;
-      return Res;
-   end Object_To_IOR;
+   end Compute_New_Size;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Ref_Type) is
+   begin
+      Broca.Exceptions.Raise_Marshal;
+   end Marshall;
+
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Ref) is
+   begin
+      if Value.A_Ref = null then
+         Broca.Exceptions.Raise_Marshal;
+      end if;
+      Compute_New_Size (Buffer, Value.A_Ref.all);
+   end Compute_New_Size;
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Ref) is
+   begin
+      if Value.A_Ref = null then
+         Broca.Exceptions.Raise_Marshal;
+      end if;
+      Marshall (Buffer, Value.A_Ref.all);
+   end Marshall;
+
+   ---------
+   -- Get --
+   ---------
 
    function Get (Self : Ref) return Ref_Acc is
    begin
       return Self.A_Ref;
    end Get;
+
+   ---------
+   -- Set --
+   ---------
 
    procedure Set (Self : in out Ref; Referenced : Ref_Acc) is
    begin

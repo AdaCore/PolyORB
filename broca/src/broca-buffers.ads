@@ -21,6 +21,7 @@ package Broca.Buffers is
       record
          Pos           : Buffer_Index_Type := 0;
          Little_Endian : Boolean := False;
+         Write         : Boolean := True;
          Buffer        : Buffer_Access := null;
       end record;
 
@@ -81,6 +82,10 @@ package Broca.Buffers is
       Bytes   : out Buffer_Type);
    pragma Inline (Read);
    --  Read from Buffer an array of bytes
+
+   procedure Set_Endianess
+     (Buffer        : in out Buffer_Descriptor;
+      Little_Endian : in Boolean);
 
    function Size_Left (Buffer : Buffer_Descriptor) return  Buffer_Index_Type;
    function Size      (Buffer : Buffer_Descriptor) return Buffer_Index_Type;

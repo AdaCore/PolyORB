@@ -1,4 +1,5 @@
 with Broca.Exceptions;
+with Broca.Buffers; use Broca.Buffers;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -6,18 +7,27 @@ pragma Elaborate_All (Broca.Debug);
 package body Broca.Poa is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
    procedure O is new Broca.Debug.Output (Flag);
-   
+
    function Get_The_POAManager (Self : access POA_Object)
                                 return POAManager_Object_Access is
    begin
       return Self.POA_Manager;
    end Get_The_POAManager;
 
-   function Object_To_IOR (Obj : Skeleton)
-                           return Broca.Buffers.Buffer_Descriptor is
+
+   procedure Compute_New_Size
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Skeleton) is
    begin
-      return Obj.Ior;
-   end Object_To_IOR;
+      Compute_New_Size (Buffer, Value.IOR);
+   end Compute_New_Size;
+
+   procedure Marshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Skeleton) is
+   begin
+      Append_Buffer (Buffer, Value.IOR);
+   end Marshall;
 
    function To_Skeleton (Ref : CORBA.Object.Ref'Class)
                          return Skeleton_Access

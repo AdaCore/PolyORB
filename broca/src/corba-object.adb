@@ -1,4 +1,5 @@
 with Broca.Ior;
+with Broca.Buffers; use Broca.Buffers;
 
 package body Corba.Object is
    function Is_Nil (Self : in Ref) return CORBA.Boolean is
@@ -8,8 +9,11 @@ package body Corba.Object is
    end Is_Nil;
 
    function Object_To_String (Obj : CORBA.Object.Ref) return CORBA.String is
+      Buffer : Buffer_Descriptor;
    begin
-      return Broca.Ior.Buffer_To_Ior_String
-        (Broca.Refs.Object_To_IOR (Get (Obj).all));
+      Compute_New_Size (Buffer, Obj);
+      Allocate_Buffer (Buffer);
+      Marshall (Buffer, Obj);
+      return Broca.Ior.Buffer_To_Ior_String (Buffer);
    end Object_To_String;
 end Corba.Object;

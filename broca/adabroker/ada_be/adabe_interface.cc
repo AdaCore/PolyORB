@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -697,7 +697,6 @@ adabe_interface::produce_skel_adb (dep_list & with,
   // Add some useful packages to the with clauses.
   with.add ("CORBA");
   with.add ("Broca.Marshalling");
-  with.add ("Broca.Marshalling.Refs");
   with.add ("Broca.Giop");
   with.add ("Broca.Exceptions");
 
@@ -732,9 +731,7 @@ adabe_interface::produce_skel_adb (dep_list & with,
     "      Stream : in out Broca.Buffers.Buffer_Descriptor)\n"
     "   is\n"
     "      use Broca.Marshalling;\n"
-    "      use Broca.Marshalling.Refs;\n"
     "      use Broca.Buffers;\n"
-    "      Reply_Size : Broca.Buffers.Buffer_Index_Type;\n"
     "   begin\n";
 
   // Generate what is necessary for the first parent

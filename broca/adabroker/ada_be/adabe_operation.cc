@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.10 $
+//                            $Revision: 1.11 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -215,7 +215,6 @@ adabe_operation::produce_adb (dep_list & with,
   with.add ("Broca.Giop");
   with.add ("Broca.Object");
   with.add ("Broca.Marshalling");
-  with.add ("Broca.Marshalling.Refs");
 
   // Create a CORBA string containing the name of the operation.
   string operation_name = get_ada_local_name () + "_Operation";
@@ -266,7 +265,6 @@ adabe_operation::produce_adb (dep_list & with,
   // FIXME: name conflict
   body +=
     "      use Broca.Marshalling;\n"
-    "      use Broca.Marshalling.Refs;\n"
     "      Handler : Broca.Giop.Request_Handler;\n"
     "      Sr_Res : Broca.Giop.Send_Request_Result_Type;\n"
     "   begin\n"
@@ -522,7 +520,7 @@ adabe_operation::produce_skel_adb (dep_list & with,
   if (!oneway)
     {
       body +=
-	"            Stream.Pos := Broca.Giop.Message_Header_Size;\n"
+	"            Broca.GIOP.Compute_GIOP_Header_Size (Stream);\n"
 	"            --  service context\n"
 	"            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
 	"            --  Request_id\n"
@@ -535,19 +533,15 @@ adabe_operation::produce_skel_adb (dep_list & with,
 	  "            --  return value\n"
 	  "            Compute_New_Size (Stream, Returns);\n";
       body +=
-	"            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;\n"
-	"            Allocate_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
-	"\n"
-	"            Broca.Giop.Create_Giop_Header\n"
-	"              (Stream, Broca.Giop.Reply,\n"
-	"               CORBA.Unsigned_Long (Reply_Size));\n"
+	"            Broca.Giop.Marshall_GIOP_Header\n"
+	"              (Stream, Broca.Giop.Reply);\n"
 	"\n"
 	"            --  service context\n"
 	"            Marshall (Stream, CORBA.Unsigned_Long (Broca.Giop.No_Context));\n"
 	"            --  request id\n"
 	"            Marshall (Stream, Request_Id);\n"
 	"            --  reply status\n"
-	"            Marshall (Stream, Broca.Giop.No_Exception);\n";
+	"            Broca.Giop.Marshall (Stream, Broca.Giop.No_Exception);\n";
       body += marshall;
       if (!return_is_void ())
 	body +=

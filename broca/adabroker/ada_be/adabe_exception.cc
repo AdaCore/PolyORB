@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -179,7 +179,7 @@ adabe_exception::produce_skel_adb (dep_list & with,
     }
   body += 
     "                  --  Compute size of reply\n"
-    "                  Stream.Pos := Broca.Giop.Message_Header_Size;\n"
+    "                  Broca.GIOP.Compute_GIOP_Header_Size (Stream);\n"
     "                  --  service context\n"
     "                  Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "                  --  request id\n"
@@ -194,13 +194,8 @@ adabe_exception::produce_skel_adb (dep_list & with,
       body += "                  Compute_New_Size (Stream, Member);\n";
     }  
   body +=
-    "                  Reply_Size :=\n"
-    "                     Stream.Pos - Broca.Giop.Message_Header_Size;\n"
-    "                  Allocate_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
-    "\n"
-    "                  Broca.Giop.Create_Giop_Header\n"
-    "                     (Stream, Broca.Giop.Reply,\n"
-    "                      CORBA.Unsigned_Long (Reply_Size));\n"
+    "                  Broca.Giop.Marshall_GIOP_Header\n"
+    "                     (Stream, Broca.Giop.Reply);\n"
     "\n"
     "                  --  service context\n"
     "                  Marshall (Stream, CORBA.Unsigned_Long (Broca.Giop.No_Context));\n"

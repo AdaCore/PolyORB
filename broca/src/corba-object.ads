@@ -82,5 +82,7 @@ package CORBA.Object is
    --       Returns   : out    Status);
 
 private
+
    type Ref is new Broca.Refs.Ref with null record;
+
 end CORBA.Object;

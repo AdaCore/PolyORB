@@ -231,6 +231,8 @@ package CORBA is
      with null record;
 
 private
+
    Null_String : constant CORBA.String :=
      CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
+
 end CORBA;

@@ -6,13 +6,23 @@ with CORBA; use CORBA;
 with Broca.Marshalling;
 
 package body Broca.Exceptions is
+
    --  User exception members of a user raised CORBA exception are stored
    --  as a task attribute.
    --  As a result, the user is *not* allowed to save an exception with
    --  primitives such as Save_Occurence.
-   package Exception_Attribute is new Ada.Task_Attributes
+   package Exception_Attribute is
+     new Ada.Task_Attributes
      (Attribute => IDL_Exception_Members_Acc,
       Initial_Value => null);
+
+   To_Unsigned_Long :
+     constant array (Completion_Status) of CORBA.Unsigned_Long
+     := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
+
+   To_Completion_Status :
+     constant array (CORBA.Unsigned_Long range 0 .. 2) of Completion_Status
+     := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
 
    --  Extract members from an exception occurence.
    procedure User_Get_Members
@@ -192,8 +202,9 @@ package body Broca.Exceptions is
    Object_Not_Exist_Name : CORBA.RepositoryId :=
      To_RepositoryId ("IDL:omg.org/CORBA/OBJECT_NOT_EXIST:1.0");
 
-   function Occurrence_To_Name (Occurrence : CORBA.Exception_Occurrence)
-                                return CORBA.RepositoryId
+   function Occurrence_To_Name
+     (Occurrence : CORBA.Exception_Occurrence)
+     return CORBA.RepositoryId
    is
       use Ada.Exceptions;
       Id : Exception_Id;
@@ -208,20 +219,33 @@ package body Broca.Exceptions is
       end if;
    end Occurrence_To_Name;
 
-   procedure Compute_New_Size (Buffer : in out Buffer_Descriptor;
-                            Excpt : CORBA.Exception_Occurrence)
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence)
    is
       use Broca.Marshalling;
    begin
+      --  Exception id
       Compute_New_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
-      --  Minor.
+
+      --  Minor
       Compute_New_Size (Buffer, UL_Size, UL_Size);
-      --  Completion status.
+
+      --  Completion status
       Compute_New_Size (Buffer, UL_Size, UL_Size);
    end Compute_New_Size;
 
-   procedure Marshall (Buffer : in out Buffer_Descriptor;
-                       Excpt : CORBA.Exception_Occurrence)
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence)
    is
       use Broca.Marshalling;
       Members : System_Exception_Members;
@@ -229,12 +253,11 @@ package body Broca.Exceptions is
       Get_Members (Excpt, Members);
       Marshall (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Members.Minor);
-      Marshall
-        (Buffer,
-         CORBA.Unsigned_Long (Completion_Status'Pos (Members.Completed)));
+      Marshall (Buffer, To_Unsigned_Long (Members.Completed));
    end Marshall;
 
    Prefix : constant String := "IDL:omg.org/CORBA/";
+   Suffix : constant String := ":1.0";
    --  System Exception Prefix
 
    procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor) is
@@ -251,14 +274,16 @@ package body Broca.Exceptions is
          F : Natural := R'First;
          L : Natural := R'Last;
       begin
-         if R'Length < Prefix'Length
+         if R'Length < Prefix'Length + Suffix'Length
            or else R (F .. F + Prefix'Length - 1) /= Prefix
+           or else R (L - Suffix'Length + 1 .. L) /= Suffix
          then
             Raise_Marshal (Completed_Maybe);
          end if;
 
          Identity := Null_Id;
          F := F + Prefix'Length;
+         L := L - Suffix'Length;
 
          if R (F .. L) = "TRANSIENT" then
             Identity := CORBA.Transient'Identity;
@@ -275,10 +300,13 @@ package body Broca.Exceptions is
          Status := Completion_Status'Pos (Completed_Maybe);
       end if;
 
+      Unmarshall (Buffer, Minor);
+      Unmarshall (Buffer, Status);
+
       --  Raise the exception.
       Raise_Exception
         (Identity,
-         System_Exception_Members'(Minor, Completion_Status'Val (Status)));
+         System_Exception_Members'(Minor, To_Completion_Status (Status)));
    end Unmarshall_And_Raise;
 
    procedure Raise_With_Address (Id : Ada.Exceptions.Exception_Id;

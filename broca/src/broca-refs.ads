@@ -16,10 +16,13 @@ package Broca.Refs is
    --  CORBA.internal is raised).
    procedure Disable_Usage (Obj : in out Ref_Type);
 
-   --  By default, object_to_IOR raise CORBA.marshal exception.
-   --  This is the way to create an IOR from an object.
-   function Object_To_IOR (Obj : Ref_Type)
-                           return Broca.Buffers.Buffer_Descriptor;
+   procedure Compute_New_Size
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Ref_Type);
+
+   procedure Marshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Ref_Type);
 
    type Ref_Acc is access all Ref_Type'Class;
 
@@ -27,15 +30,25 @@ package Broca.Refs is
    procedure Inc_Usage (Obj : Ref_Acc);
    procedure Dec_Usage (Obj : in out Ref_Acc);
 
+   type Ref is new Ada.Finalization.Controlled with private;
    --  The base type of all references.
    --  Inside CORBA (and Broca), this type is often derived but never extended.
    --  It contains one field, which designate the referenced object.
-   type Ref is new Ada.Finalization.Controlled with private;
-   --  Get the object.
+
    function Get (Self : Ref) return Ref_Acc;
+   --  Get inner Ref_Type object.
+
+   procedure Set (Self : in out Ref; Referenced : Ref_Acc);
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
-   procedure Set (Self : in out Ref; Referenced : Ref_Acc);
+
+   procedure Compute_New_Size
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Ref);
+
+   procedure Marshall
+     (Buffer : in out Broca.Buffers.Buffer_Descriptor;
+      Value  : in Ref);
 
 private
    type Ref_Type is new Ada.Finalization.Limited_Controlled with
