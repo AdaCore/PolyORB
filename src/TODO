@@ -37,6 +37,8 @@ Items still requiring attention
   -> Asynchronous
   -> RACW 'Read/'Write
   -> From_Any and To_Any for tagged records and variant records.
+  -> map system exceptions to System.RPC.Communication_Error.
+  -> map user exceptions to appropriate Exception_Occurrences.
    
 * Bind-time configuration tool (to help the user generate a configuration
   package suited to his needs.)
