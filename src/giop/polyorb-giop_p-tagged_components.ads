@@ -49,10 +49,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    -- Tagged_Component --
    ----------------------
 
-   type Tagged_Component is abstract tagged record
-      Tag : Types.Unsigned_Long := Types.Unsigned_Long'Last;
-   end record;
-
+   type Tagged_Component is abstract tagged private;
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
    procedure Marshall
@@ -120,28 +117,37 @@ package PolyORB.GIOP_P.Tagged_Components is
 
    type Octet_Access is access all Ada.Streams.Stream_Element_Array;
 
-   type Unknown_Component is new Tagged_Component with record
-      Data : Octet_Access;
-   end record;
-
-   type Unknown_Component_Access is access all Unknown_Component'Class;
+   type TC_Unknown_Component is new Tagged_Component with private;
+   type TC_Unknown_Component_Access is access all TC_Unknown_Component'Class;
 
    procedure Marshall
-     (C      : access Unknown_Component;
+     (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
    procedure Unmarshall
-     (C      : access Unknown_Component;
+     (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type);
 
    function Get_Tag
-     (C : access Unknown_Component)
+     (C : access TC_Unknown_Component)
      return Types.Unsigned_Long;
 
+   function Get_Data
+     (C : access TC_Unknown_Component)
+     return Octet_Access;
+
    procedure Release_Contents
-     (C : access Unknown_Component);
+     (C : access TC_Unknown_Component);
 
 private
+
+   type Tagged_Component is abstract tagged record
+      Tag : Types.Unsigned_Long := Types.Unsigned_Long'Last;
+   end record;
+
+   type TC_Unknown_Component is new Tagged_Component with record
+      Data : Octet_Access;
+   end record;
 
    package Component_Seq is new
      PolyORB.Sequences.Unbounded (Tagged_Component_Access);

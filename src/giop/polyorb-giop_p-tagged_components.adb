@@ -125,7 +125,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       for J in 1 .. Length (Components) loop
          C := Element_Of (Components, J);
-         if C.all in Unknown_Component then
+         if C.all in TC_Unknown_Component then
             Marshall (C, Buffer);
          else
             Marshall (Buffer, C.all.Tag);
@@ -171,7 +171,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       pragma Debug (O ("Tag not found, use unknown component"));
 
       declare
-         C : constant Tagged_Component_Access := new Unknown_Component;
+         C : constant Tagged_Component_Access := new TC_Unknown_Component;
       begin
          C.Tag := Tag;
          return C;
@@ -204,7 +204,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
       for J in 1 .. Len loop
          Tag  := Unmarshall (Buffer);
          C := Get_New_Component (Tag);
-         if C.all in Unknown_Component then
+         if C.all in TC_Unknown_Component then
             Unmarshall (C, Buffer);
          else
             declare
@@ -274,7 +274,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    --------------
 
    procedure Marshall
-     (C      : access Unknown_Component;
+     (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
       pragma Debug (O ("Marshall unknown component, tag = " & C.Tag'Img));
@@ -287,7 +287,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    ----------------
 
    procedure Unmarshall
-     (C      : access Unknown_Component;
+     (C      : access TC_Unknown_Component;
       Buffer : access Buffer_Type) is
    begin
       pragma Debug (O ("Unmarshall unknown component"));
@@ -299,7 +299,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -------------
 
    function Get_Tag
-     (C : access Unknown_Component)
+     (C : access TC_Unknown_Component)
      return Types.Unsigned_Long is
    begin
       raise Tagged_Components_Error;
@@ -307,12 +307,23 @@ package body PolyORB.GIOP_P.Tagged_Components is
       return Types.Unsigned_Long'Last;
    end Get_Tag;
 
+   --------------
+   -- Get_Data --
+   --------------
+
+   function Get_Data
+     (C : access TC_Unknown_Component)
+     return Octet_Access is
+   begin
+      return C.Data;
+   end Get_Data;
+
    ----------------------
    -- Release_Contents --
    ----------------------
 
    procedure Release_Contents
-     (C : access Unknown_Component)
+     (C : access TC_Unknown_Component)
    is
       procedure Free is new
         Ada.Unchecked_Deallocation (Stream_Element_Array, Octet_Access);
