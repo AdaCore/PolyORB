@@ -45,7 +45,7 @@ in separate directories:
      A subset of GNAT @gnat_version@ sources necessary to build GLADE.
 
   4. Examples
-     A set of examples to demonstrate GLADE capacities. Each example
+     A set of examples to demonstrate GLADE capabilities. Each example
      is self-contained and can be built separately by running 'make'
      in the subdirectory.
  
