@@ -63,42 +63,41 @@ package PolyORB.Utils.HTables.Perfect is
      (T      : out Table_Instance;
       Prime  : Natural := Default_Prime;
       Max    : Natural := Default_Max);
-   --  Initialize the hash table and allocate some internal
-   --  Prime is a prime number used by hash functions. Max is the max
-   --  number of elements to store.
+   --  Initialize the hash table.
+   --  Prime is a prime number used by hash functions.
+   --  Max is the max number of elements to store.
 
    procedure Finalize
      (T : in out Table_Instance);
-   --  Deallocate all the internal structures.
+   --  Deallocate the hash table.
 
    function Lookup
-     (T     : Table_Instance;
-      Key   : String;
+     (T           : Table_Instance;
+      Key         : String;
       Error_Value : Item)
       return Item;
-   --  Find key in hash table and return the associated Item.
-   --  Key is the string to hash.
-   --  When Key does not exist, The function returns Error_Value
-
+   --  Find 'Key' in hash table and return its associated Item.
+   --  When 'Key' does not exist, the function returns 'Error_Value'.
 
    function Lookup
      (T     : Table_Instance;
       Key   : String)
       return Item;
-   --  Find key in hash table and return the associated Item.
-   --  Key is the string to hash.
-   --  When Key does not exist, the function raise No_Key exception
+   --  Find 'Key' in hash table and return its associated Item.
+   --  When 'Key' does not exist, the function raise 'No_Key' exception.
 
    procedure Insert
      (T     : Table_Instance;
       Key   : String;
       Value : Item);
    --  Insert (Key, Value) in hash table.
-   --  Key is the string to hash and Value its corresponding value.
-   --  If Key already exists, nothing is done
-   --  This procedure uses the procedure Insert of polyorb.utils.htables.ads
-   --  and it rorganizes if necessary the table or the sub_tables. In
-   --  addition,it inserts Value in the table Items (see below)
+   --  'Key' is the string to hash and 'Value' its associated Item.
+   --  If 'Key' already exists, nothing is done.
+
+   --  Note : this procedure uses the procedure Insert from
+   --  polyorb.utils.htables.ads. It reorganizes if necessary the
+   --  table or the sub_tables. In addition, it inserts Value in the
+   --  table Items (see below) XXX need a better comment !!
 
    procedure Delete
      (T   : Table_Instance;
