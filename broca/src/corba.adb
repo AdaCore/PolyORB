@@ -796,6 +796,43 @@ package body CORBA is
          end case;
       end Concrete_Base_Type;
 
+      ------------------------------
+      --  Member_Type_With_Label  --
+      ------------------------------
+      function Member_Type_With_Label
+        (Self  : in Object;
+         Label : in Any;
+         Index : in CORBA.Unsigned_Long) return Object is
+         Param_Nb : Unsigned_Long := Parameter_Count (Self);
+         Current_Member : Unsigned_Long := 0;
+         Member_Index : Unsigned_Long := -1;
+         Member : Bounds_Members;
+      begin
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         if Kind (Self) = Tk_Union then
+            while Member_Index < Index loop
+               if Param_Nb < 3 * Current_Member + 6 then
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end if;
+               if Get_Parameter (Self, 3 * Current_Member + 6) = Label then
+                  Member_Index := Member_Index + 1;
+               end if;
+               Current_Member := Current_Member + 1;
+            end loop;
+            return From_Any (Get_Parameter (Self, 3 * Current_Member + 1));
+         else
+            declare
+               Member : BadKind_Members;
+            begin
+               Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                      Member);
+            end;
+         end if;
+      end Member_Type_With_Label;
+
       ---------------------
       --  Get_Parameter  --
       ---------------------
@@ -1501,8 +1538,8 @@ package body CORBA is
    ---------------------------
    --  Get_Aggregate_Count  --
    ---------------------------
-   function Get_Aggregate_Count (Value : Any) return CORBA.Long is
-      N : CORBA.Long := 0;
+   function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long is
+      N : CORBA.Unsigned_Long := 0;
       Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
       while Ptr /= null loop
@@ -1537,7 +1574,7 @@ package body CORBA is
    -----------------------------
    function Get_Aggregate_Element (Value : Any;
                                    Tc : CORBA.TypeCode.Object;
-                                   Index : CORBA.Long)
+                                   Index : CORBA.Unsigned_Long)
                                    return Any is
       Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin

@@ -490,6 +490,17 @@ package CORBA is
 
       --  Not in spec  --
       -------------------
+      --  returns the type of a given member associated with an
+      --  union typecode for a given label. The index is the index
+      --  of the member among the members associated with Label. The
+      --  other members are not taken into account
+      --  Raises badKind if Self is not an union typecode.
+      --  If there is not enough members, raises bounds.
+      function Member_Type_With_Label
+        (Self  : in Object;
+         Label : in Any;
+         Index : in CORBA.Unsigned_Long) return Object;
+
       --  returns the parameter nb index in the list of Self's
       --  parameters. Raises Out_Of_Bounds_Index exception if
       --  this parameter does not exist
@@ -740,6 +751,32 @@ package CORBA is
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
+   --  Not in spec : some methods to deal with any aggregates.
+   --  What is called any aggregate is an any, made of an aggregate
+   --  of values, instead of one unique. It is used for structs,
+   --  unions, enums, arrays, sequences, objref, values...
+
+   --  returns the number of elements in an any aggregate
+   function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long;
+
+   --  Adds an element to an any aggregate
+   --  This element is given as a typecode but only its value is
+   --  added to the aggregate
+   procedure Add_Aggregate_Element (Value : in out Any;
+                                    Element : in Any);
+
+   --  Gets an element in an any agregate
+   --  returns an any made of the typecode Tc and the value read in
+   --  the aggregate
+   function Get_Aggregate_Element (Value : Any;
+                                   Tc : CORBA.TypeCode.Object;
+                                   Index : CORBA.Unsigned_Long)
+                                   return Any;
+
+   --  returns an empty any aggregate
+   --  puts its type to Tc
+   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
+                                     return Any;
 
    ------------------
    --  Named_Value --
@@ -976,28 +1013,6 @@ private
          Value : Content_List := null;
       end record;
    type Content_Aggregate_Ptr is access all Content_Aggregate;
-
-   --  returns the number of elements in an any aggregate
-   function Get_Aggregate_Count (Value : Any) return CORBA.Long;
-
-   --  Adds an element to an any aggregate
-   --  This element is given as a typecode but only its value is
-   --  added to the aggregate
-   procedure Add_Aggregate_Element (Value : in out Any;
-                                    Element : in Any);
-
-   --  Gets an element in an any agregate
-   --  returns an any made of the typecode Tc and the value read in
-   --  the aggregate
-   function Get_Aggregate_Element (Value : Any;
-                                   Tc : CORBA.TypeCode.Object;
-                                   Index : CORBA.Long)
-                                   return Any;
-
-   --  returns an empty any aggregate
-   --  puts its type to Tc
-   function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
-                                     return Any;
 
    --  The actual Any type
    type Any is
