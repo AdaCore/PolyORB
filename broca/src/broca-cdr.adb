@@ -550,11 +550,8 @@ package body Broca.CDR is
                Marshall (Buffer, Ws);
             end;
          when Tk_Fixed =>
-            null;
             --  FIXME : to be done
---             Marshall (Buffer, CORBA.Unsigned_Long'(28));
---             Marshall (Buffer, CORBA.TypeCode.Fixed_Digits (Data));
---             Marshall (Buffer, CORBA.TypeCode.Fixed_Scale (Data));
+            null;
          when Tk_Value =>
             --  FIXME : to be done
             null;
@@ -562,25 +559,11 @@ package body Broca.CDR is
             --  FIXME : to be done
             null;
          when Tk_Native =>
+            --  FIXME : to be done
             null;
---             Marshall (Buffer, CORBA.Unsigned_Long'(31));
---             Start_Encapsulation (Complex_Buffer'Access);
---             Marshall (Complex_Buffer'Access,
---                       CORBA.TypeCode.Id (Data));
---             Marshall (Complex_Buffer'Access,
---                       CORBA.TypeCode.Name (Data));
---             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
---             Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
+            --  FIXME : to be done
             null;
---             Marshall (Buffer, CORBA.Unsigned_Long'(32));
---             Start_Encapsulation (Complex_Buffer'Access);
---             Marshall (Complex_Buffer'Access,
---                       CORBA.TypeCode.Id (Data));
---             Marshall (Complex_Buffer'Access,
---                       CORBA.TypeCode.Name (Data));
---             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
---             Release (Complex_Buffer);
       end case;
    end Marshall_From_Any;
 
