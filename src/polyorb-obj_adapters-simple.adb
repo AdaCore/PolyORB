@@ -280,7 +280,7 @@ package body PolyORB.Obj_Adapters.Simple is
       return Result;
    end Get_Empty_Result;
 
-   No_Thread_Policy : ThreadPolicy_Access := new ORB_Ctrl_Policy;
+   No_Thread_Policy : constant ThreadPolicy_Access := new ORB_Ctrl_Policy;
 
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
