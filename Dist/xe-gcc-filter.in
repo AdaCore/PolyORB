@@ -7,7 +7,7 @@ mv -f $1 ${NAME}
 SED=@SED@
 AWK=@AWK@
 
-grep -i "package RCI_Cache is new" ${NAME} 
+grep -i "package RCI_Cache is new" ${NAME} >/dev/null 2>&1
 if [ "$?" = "1" ]; then
 ${SED} "
 s/^.*system\.rpc\.general.*$//g
