@@ -46,8 +46,19 @@ adabe_field::produce_ads(dep_list& with, string &body, string &previous)
 */
 
 void
-adabe_field::produce_marshal_adb(dep_list& with, string &body, string &previous)
+adabe_field::produce_marshal_adb(dep_list& with, string &marshall, string &unmarshall, string &align_size)
 {
+  marshall += "      Marshall(";
+  marshall += get_ada_local_name ();
+  marshall += ",S) ;\n";
+  
+  unmarshall += "      UnMarshall(";
+  unmarshall += get_ada_local_name ();
+  unmarshall += ",S) ;\n";
+  
+  align_size += "      Tmp := Align_Size(";
+  align_size += get_ada_local_name ();
+  align_size += ", Tmp) ;\n";
 }
   
 IMPL_NARROW_METHODS1(adabe_field, AST_Field)

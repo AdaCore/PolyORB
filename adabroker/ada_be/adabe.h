@@ -251,7 +251,8 @@ public:
   DEF_NARROW_FROM_DECL(adabe_field);
 
   virtual void produce_ads (dep_list &with, string &body, string &previous);
-  virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  void produce_marshal_adb(dep_list& with, string &marshall, string &unmarshall, string &align_size);
+
 
 };
 
@@ -377,8 +378,9 @@ public:
   DEF_NARROW_FROM_DECL(adabe_argument);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_proxies_ads(dep_list &with, string &body, string &input);
-  virtual void produce_proxies_adb(dep_list &with, string &body, string &input);
+  void produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields);
+  void produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
+			   string &align_size, string &marshall, string &unmarshall_decls, string &unmarshall, string &finalize);
 };
 
 

@@ -490,14 +490,10 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
-  
-
-
-  
 }
 
 void
-adabe_interface::produce_proxies_adb(dep_list with, string &body, string &previous)
+adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
   body += "package body " + get_ada_full_name() + ".Proxies is \n";
  
@@ -515,17 +511,14 @@ adabe_interface::produce_proxies_adb(dep_list with, string &body, string &previo
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";	    
-	    adabe_name::narrow_from_decl(d)->produce_proxies_adb(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_proxies_adb(with, tmp1, tmp2);
 	    body += tmp1;
-	    Sprivate += tmp2;	
 	  }
 	  break;
 	default:break;	
 	}
       i.next();
     }
-  body += "private \n";
-  body += Sprivate;
   body += "end " + get_ada_full_name() + ".Proxies ;\n";
 }
 
@@ -580,7 +573,7 @@ adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previ
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";	    
-	    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_marshal_adb(with, tmp1, tmp2);
 	    body += tmp1;
 	  }
 	  break;

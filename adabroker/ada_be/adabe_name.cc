@@ -59,80 +59,15 @@ adabe_name::produce_impl_adb(dep_list&, string&, string&)
 }
 
 void 
-adabe_name::produce_proxies_ads(dep_list&, string &in_decls, boolean &no_in, boolean &no_out, string &fields)
+adabe_name::produce_proxies_ads(dep_list&, string&, string&)
 {
-  if (/* in */) {
-    no_in := false;
-    in_decls += " ;\n                  ";
-    in_decls += get_ada_name ();
-    in_decls += " : in ";
-    in_decls += name;
-  }
-  if (/* out */) {
-    no_out := false;
-  }
-  fields += "      ";
-  fields += get_ada_name ();
-  fields += " : ";
-  fields += name;
-  fields += "_Ptr := null ;\n";
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
 }
 
 void 
-adabe_name::produce_proxies_adb(dep_list&, string &in_decls, boolean &no_in, boolean &no_out, string &init,
-				string &align_size, string &marshall, string &unmarshall_decls, string &unmarshall, string &finalize)
+adabe_name::produce_proxies_adb(dep_list&, string&, string&)
 {
-  if (/* in */) {
-    no_in := false;
-    in_decls += " ;\n                  ";
-    in_decls += get_ada_name ();
-    in_decls += " : in ";
-    in_decls += name;
-
-    init += "      Self.";
-    init += get_ada_name ();
-    init += " := new ";
-    init += name;
-    init += "'(";
-    init += get_ada_name ();
-    init += ") ;\n";
-
-    align_size += "      Align_size(Self.";
-    align_size += get_ada_name ();
-    align_size += ".all, tmp) ;\n";
-
-    marshall += "      Marshall(Self.";
-    marshall += get_ada_name;
-    marshall += ".all,Giop_Client) ;\n";
-  }
-  if (/* out */) {
-    no_out := false;
-    unmarshall_decls += "      ";
-    unmarshall_decls += get_ada_name;
-    unmarshall_decls += " : ";
-    unmarshall_decls += name;
-    unmarshall_decls += " ;\n";
-
-    if (/* in */) {
-      unmarshall += "      Free (Self.";
-      unmarshall += get_ada_name;
-      unmarshall += ") ;\n";
-    }
-    unmarshall += "      Unmarshall(";
-    unmarshall += get_ada_name;
-    unmarshall += ",Giop_Client) ;\n";
-    unmarshall += "      Self.";
-    unmarshall += get_ada_name;
-    unmarshall += " := new";
-    unmarshall += name;
-    unmarshall += "'(";
-    unmarshall += get_ada_name;
-    unmarshall += ") ;\n";
-  }
-
-  finalize += "      Free (Self.";
-  finalize += get_ada_name;
-  finalize += ") ;\n";
+  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
 }
 
 void 
@@ -261,7 +196,7 @@ adabe_name::is_name_already_used(string name, UTL_Scope *in_scope)
 	   cout << "this vaut " << (int) this << "et ada vaut " << (int) ada << endl;
 #endif
 	  
-	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
+	   //	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
 	}
     }
 #ifdef DEBUG_NAME

@@ -50,59 +50,92 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
   produce_ads(with, body, previous);
   }
 */
-void
-adabe_argument::produce_proxies_ads(dep_list& with, string &body, string &input)
+
+
+
+void 
+adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields)
 {
-  if (input == "IN")
-    {
-      string previous = "";
-      string tmp = "";
-      bool verif = false;
-      tmp += get_ada_local_name() + " :";
-      switch (direction())
-	{
-	case dir_IN :
-	case dir_INOUT :
-	  tmp += " in ";
-	  verif = true;
-	  break;
-	case dir_OUT :
-	  break;
-	}
-      AST_Decl *d = field_type();
-      tmp +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
-      if (verif) body += tmp + ", ";
-    }
-  if (input == "OUT")
-    {
-      string tmp = "";
-      string previous = "";
-      bool verif = false;
-      tmp += get_ada_local_name() + " :";
-      switch (direction())
-	{
-	case dir_OUT :
-	case dir_INOUT :
-	  tmp += " out ";
-	  verif = true;
-	  break;
-	case dir_IN :
-	  break;
-	}
-      AST_Decl *d = field_type();
-      tmp +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
-      if (verif) body += tmp + ", ";
-    }
+  string body, previous = "";
+  AST_Decl *d = field_type();
+  string name = (dynamic_cast<adabe_name *>(d))->dump_name(with, body, previous);
+  if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
+    no_in = false;
+    in_decls += " ;\n                  ";
+    in_decls += get_ada_local_name ();
+    in_decls += " : in ";
+    in_decls += name;
+  }
+  if ((direction() == dir_OUT) | (direction() == dir_INOUT)) {
+    no_out = false;
+  }
+  fields += "      ";
+  fields += get_ada_local_name ();
+  fields += " : ";
+  fields += name;
+  fields += "_Ptr := null ;\n";
 }
 
-void
-adabe_argument::produce_proxies_adb(dep_list& with, string &body, string &previous)
+void 
+adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
+				    string &align_size, string &marshall, string &unmarshall_decls, string &unmarshall, string &finalize)
 {
-  body += "      Arg_" + get_ada_local_name() + " :";
+  string body, previous = "";
   AST_Decl *d = field_type();
-  body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous); // virtual method
-  body += "_Ptr := null ;\n";
+  string name =  dynamic_cast<adabe_name *>(d)->dump_name(with, body, previous);
+  if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
+    no_in = false;
+    in_decls += " ;\n                  ";
+    in_decls += get_ada_local_name ();
+    in_decls += " : in ";
+    in_decls += name;
+
+    init += "      Self.";
+    init += get_ada_local_name ();
+    init += " := new ";
+    init += name;
+    init += "'(";
+    init += get_ada_local_name ();
+    init += ") ;\n";
+
+    align_size += "      Align_size(Self.";
+    align_size += get_ada_local_name ();
+    align_size += ".all, tmp) ;\n";
+
+    marshall += "      Marshall(Self.";
+    marshall += get_ada_local_name ();
+    marshall += ".all,Giop_Client) ;\n";
+  }
+  if ((direction() == dir_OUT) | (direction() == dir_INOUT)) {
+    no_out = false;
+    unmarshall_decls += "      ";
+    unmarshall_decls += get_ada_local_name ();
+    unmarshall_decls += " : ";
+    unmarshall_decls += name;
+    unmarshall_decls += " ;\n";
+
+    if (direction() == dir_INOUT) {
+      unmarshall += "      Free (Self.";
+      unmarshall += get_ada_local_name ();
+      unmarshall += ") ;\n";
+    }
+    unmarshall += "      Unmarshall(";
+    unmarshall += get_ada_local_name ();
+    unmarshall += ",Giop_Client) ;\n";
+    unmarshall += "      Self.";
+    unmarshall += get_ada_local_name ();
+    unmarshall += " := new";
+    unmarshall += name;
+    unmarshall += "'(";
+    unmarshall += get_ada_local_name ();
+    unmarshall += ") ;\n";
+  }
+
+  finalize += "      Free (Self.";
+  finalize += get_ada_local_name ();
+  finalize += ") ;\n";
 }
+
 
 IMPL_NARROW_METHODS1(adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL(adabe_argument)

@@ -94,10 +94,10 @@ adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous
 }
 
 void
-adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &private_definition)
 {  
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
   body += "   type get_" + get_ada_local_name() +"_Proxy is new OmniProxyCallDesc.Object with private;\n\n";
   body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) ;\n\n";
   body += "   function Operation(Self : in get_" + get_ada_local_name() + "_Proxy)\n";
@@ -124,7 +124,7 @@ adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &privat
       body += "                         return Corba.Unsigned_Long ;\n\n";
       body += "   procedure Marshal_Arguments(Self : in set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object);\n\n";
-      body += "   procedure Unmarshal_Returned_Values(Self : in out set_" + set_ada_local_name() + "_Proxy ;\n";
+      body += "   procedure Unmarshal_Returned_Values(Self : in out set_" + get_ada_local_name() + "_Proxy ;\n";
       body += "                                       Giop_Client : in Giop_C.Object) ;\n\n";
 
       private_definition += "   type set_" + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
@@ -136,10 +136,10 @@ adabe_attribute::produce_proxies_ads(dep_list with, string &body, string &privat
 
 
 void
-adabe_attribute::produce_proxies_adb(dep_list with, string &body, string &private_definition)
+adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &private_definition)
 {
   AST_Decl *d = field_type();
-  string name = adabe_name::narrow_from_decl(d)->dump_name(with, body, private_definition);
+  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, body, private_definition);
   body += "   procedure Init(Self : in out get_" + get_ada_local_name() + "_Proxy) is\n";
   body += "   begin\n";
   body += "      Set_User_Exceptions(Self, False) ;\n";
@@ -190,7 +190,7 @@ adabe_attribute::produce_proxies_adb(dep_list with, string &body, string &privat
       body += "   begin\n";
       body += "      Marshall(Self.Arg.all, Giop_client) ;\n";
       body += "   end ;\n\n\n";
-      body += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) ;\n\n"
+      body += "   procedure Finalize (Self : in out " + get_ada_local_name() + "_Proxy) ;\n\n";
       body += "   begin\n";
       body += "      Free(Self.Arg) ;\n";
       body += "   end ;\n\n\n";

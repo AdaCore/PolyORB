@@ -61,7 +61,7 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   tmp += get_ada_local_name();
   tmp +="; S : in out Object'Class) is \n";
   tmp +="begin \n";
-  tmp +="   Marshall ("+"; S);";
+  tmp +="   Marshall (\"+\"; S);";
   tmp +="";   
   tmp += "end Marshall;";
 

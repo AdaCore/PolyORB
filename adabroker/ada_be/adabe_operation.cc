@@ -263,15 +263,15 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   string name = get_ada_full_name();
   string in_decls = "";
   string fields = "";
-  boolean no_in := true;
-  boolean no_out := false;
+  bool no_in = true;
+  bool no_out = false;
   // first process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_argument)
-	 dynamic_cast<adabe_name *>(d)->produce_proxies_ads(with, in_decls, no_in, no_out, fields);
+	 dynamic_cast<adabe_argument *>(d)->produce_proxies_ads(with, in_decls, no_in, no_out, fields);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
@@ -320,20 +320,20 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   string name = get_ada_full_name();
   string in_decls = "";
   string init = "";
-  string align_size := "";
-  string marshall := "";
-  string unmarshall_decls := "";
-  string unmarshall := "";
-  string finalize := "";
-  boolean no_in := true;
-  boolean no_out := false;
+  string align_size = "";
+  string marshall = "";
+  string unmarshall_decls = "";
+  string unmarshall = "";
+  string finalize = "";
+  bool no_in = true;
+  bool no_out = false;
   // First process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_argument)
-	 dynamic_cast<adabe_name *>(d)->produce_proxies_adb(with, in_decls, no_in, no_out, init, align_size, marshall, unmarshall_decls, unmarshall, finalize);
+	 dynamic_cast<adabe_argument *>(d)->produce_proxies_adb(with, in_decls, no_in, no_out, init, align_size, marshall, unmarshall_decls, unmarshall, finalize);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
