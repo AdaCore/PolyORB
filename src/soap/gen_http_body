@@ -103,7 +103,7 @@ cat >>${BODY} <<EOF
 begin
    Register_Module
      (Module_Info'
-      (Name => +"http_${name}",
+      (Name => +"http_${name}s",
        Conflicts => Empty,
        Depends => Empty,
        Provides => Empty,
