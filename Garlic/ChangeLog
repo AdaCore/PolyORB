@@ -1,3 +1,8 @@
+2002-10-15  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-gastds.adb, s-gastds.ads: Fix the previous check-in in which
+	lock and unlock requests were completly ignored.
+ 
 2002-10-14  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* all: Use GNAT.Strings instead of System.Garlic.Utils. 

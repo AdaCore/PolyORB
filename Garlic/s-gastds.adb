@@ -169,9 +169,16 @@ package body System.Garlic.Storages.Dsm is
    procedure Complete_Request
      (Var_Data : access DSM_Data_Type) is
    begin
-      pragma Debug (D ("complete request on " & Var_Data.Name.all));
       Enter_Critical_Section;
+      Var_Data.Depth := Var_Data.Depth - 1;
 
+      if Var_Data.Is_A_PO and then Var_Data.Depth /= 0 then
+         pragma Debug (D ("ignore complete request on " & Var_Data.Name.all));
+         Leave_Critical_Section;
+         return;
+      end if;
+
+      pragma Debug (D ("complete request on " & Var_Data.Name.all));
       --  Resume local tasks waiting for the variable lock.
 
       Var_Data.Locked := False;
@@ -279,6 +286,8 @@ package body System.Garlic.Storages.Dsm is
       Var.Owner   := Pkg_Data.Owner;
       Var.Status  := Pkg_Data.Status;
       Var.Locked  := False;
+      Var.Is_A_PO := False;
+      Var.Depth   := 0;
       Var.Version := No_Version;
       Var.Stream  := null;
       Var.Offset  := 0;
@@ -333,6 +342,7 @@ package body System.Garlic.Storages.Dsm is
         D.Version'Img & ", " &
         D.Status'Img & ", " &
         D.Locked'Img & "," &
+        D.Depth'Img & "," &
         D.Owner'Img & ", " &
         Image (D.Copies) & ", " &
         Image (D.Stream) & ")";
@@ -448,20 +458,47 @@ package body System.Garlic.Storages.Dsm is
       Owner   : Partition_ID;
       Stream  : aliased Params_Stream_Type (0);
       Error   : aliased Error_Type;
+      Mode    : Request_Type := Request;
 
    begin
-      pragma Assert (Request in Read .. Write);
-
       Success := True;
+
+      --  We handle a Lock request as a Write request. This variable
+      --  is indicated as a protected object and further Read and
+      --  Write requests are ignored. We count the number of ignored
+      --  Initiate_Request in order to ignore the equivalent number of
+      --  Complete_Request.
+
+      Enter_Critical_Section;
+      if Request = Lock then
+         Mode := Write;
+         Var_Data.Is_A_PO := True;
+         Var_Data.Depth   := Var_Data.Depth + 1;
+
+      elsif Var_Data.Is_A_PO then
+         pragma Debug
+           (D ("ignore initiate " & Request'Img &
+               " on " & Image (DSM_Data_Access (Var_Data))));
+
+         if Request = Read and then Var_Data.Stream = null then
+            Success := False;
+
+         else
+            Var_Data.Depth := Var_Data.Depth + 1;
+         end if;
+         Var_Data.Offset := 0;
+         Leave_Critical_Section;
+         return;
+      end if;
 
       --  Wait to get the lock.
 
       loop
-         Enter_Critical_Section;
          exit when not Var_Data.Locked;
          Lookup (Var_Data.Watcher, Version);
          Leave_Critical_Section;
          Differ (Var_Data.Watcher, Version);
+         Enter_Critical_Section;
       end loop;
       Var_Data.Locked := True;
 
@@ -469,7 +506,7 @@ package body System.Garlic.Storages.Dsm is
         (D ("initiate " & Request'Img &
             " on " & Image (DSM_Data_Access (Var_Data))));
 
-      if Request = Write then
+      if Mode = Write then
 
          --  When the variable status is not Write, send a request to
          --  the probable owner in order to get it in Write mode.
@@ -497,7 +534,7 @@ package body System.Garlic.Storages.Dsm is
             Leave_Critical_Section;
          end if;
 
-      elsif Request = Read then
+      elsif Mode = Read then
 
          --  When the variable status is None, send a request to the
          --  probable owner in order to get variable in Read mode.

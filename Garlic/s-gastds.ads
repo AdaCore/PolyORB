@@ -190,6 +190,8 @@ private
       Copies  : Copy_Set_Access;
       Version : Types.Version_Id;
       Locked  : Boolean;
+      Is_A_PO : Boolean;
+      Depth   : Natural;
       Watcher : Soft_Links.Watcher_Access;
       Stream  : Streams.Stream_Element_Access;
       Offset  : Ada.Streams.Stream_Element_Offset;
