@@ -109,6 +109,16 @@ package body Tree is
       return K_Boxed_ValueType;
    end Get_Kind;
 
+   function Get_Kind (N : N_State_Member) return Node_Kind is
+   begin
+      return K_State_Member;
+   end Get_Kind;
+
+   function Get_Kind (N : N_Initializer) return Node_Kind is
+   begin
+      return K_Initializer;
+   end Get_Kind;
+
    function Get_Kind (N : N_Scoped_Name) return Node_Kind is
    begin
       return K_Scoped_Name;

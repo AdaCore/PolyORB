@@ -91,3 +91,5 @@ abstract valuetype value42 supports valueinterface1, valueinterface3 {};
 abstract valuetype value43 supports valueinterface1, valueinterface3, valueinterface4 {};
 abstract valuetype value44 supports valueinterface1, valueinterface3, valueinterface4, valueinterface5 {};
 
+/* Test of rule 21 */
+valuetype value45 { Error };

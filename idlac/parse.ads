@@ -124,7 +124,7 @@ private
    --    --           |   <except_dcl> ";"
    --    --           |   <attr_dcl> ";"
    --    --           |   <op_dcl> ";"
-   procedure Parse_Export (List : in out Node_List;
+   procedure Parse_Export (Result : out N_Root_Acc;
                            Success : out Boolean);
 
    --    --  Rule 11:
@@ -255,7 +255,7 @@ private
 
    --  Rule 21
    --  <value_element> ::= <export> | < state_member> | <init_dcl>
-   procedure Parse_Value_Element  (List : in out Node_List;
+   procedure Parse_Value_Element  (Result : out N_Root_Acc;
                                    Success : out Boolean);
 
 
@@ -263,10 +263,14 @@ private
    --  Rule 22
    --  <state_member> ::= ( "public" | "private" )
    --                     <type_spec> <declarators> ";"
+   procedure Parse_State_Member (Result : out N_State_Member_Acc;
+                                 Success : out Boolean);
 
    --  Rule 23
    --  <init_dcl> ::= "factory" <identifier> "("
    --                 [ <init_param_decls> ] ")" ";"
+   procedure Parse_Init_Dcl (Result : out N_Initializer_Acc;
+                             Success : out Boolean);
 
    --  Rule 24
    --  <init_param_decls> ::= <init_param_decl> { "," <init_param_decl> }

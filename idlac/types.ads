@@ -39,6 +39,8 @@ package Types is
        K_ValueType,
        K_Forward_ValueType,
        K_Boxed_ValueType,
+       K_State_Member,
+       K_Initializer,
 --        K_Operation,
 --        K_Attribute,
 --        K_Void,

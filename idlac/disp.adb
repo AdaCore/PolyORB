@@ -139,6 +139,14 @@ package body Disp is
 
          when K_Boxed_ValueType =>
             Put_Line ("boxed valuetype " & Get_Name (N_Boxed_ValueType (N)));
+
+         when K_State_Member =>
+            Put_Line ("statemember");
+
+         when K_Initializer =>
+            Put_Line ("initializer");
+
+
 --            Disp_Tree (N_Boxed_ValueType (N).Boxed_Type.all,
 --                       N_Indent + Offset,
 --                       Full);

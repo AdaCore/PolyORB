@@ -16,7 +16,7 @@
 --  MA 02111-1307, USA.
 --
 
-with Ada.Text_IO; use Ada.Text_IO;
+--  with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with Tokens; use Tokens;
@@ -463,10 +463,43 @@ package body Parse is
    --------------------
    --  Parse_Export  --
    --------------------
-   procedure Parse_Export (List : in out Node_List;
+   procedure Parse_Export (Result : out N_Root_Acc;
                            Success : out Boolean) is
    begin
+      Result := null;
       Success := False;
+--       case Token is
+--          when T_Readonly | T_Attribute =>
+--             Parse_Attr_Dcl (List);
+--          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
+--            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
+--            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
+--            T_String | T_Wstring =>
+--             Append_Node (List, N_Root_Acc (Parse_Op_Dcl));
+--          when T_Right_Cbracket =>
+--             return;
+--          when T_Exception =>
+--             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
+--          when T_Union =>
+--             Append_Node (List, N_Root_Acc (Parse_Union_Type));
+--          when T_Struct =>
+--             Append_Node (List, N_Root_Acc (Parse_Struct_Type));
+--          when T_Enum =>
+--             Append_Node (List, N_Root_Acc (Parse_Enum_Type));
+--          when T_Typedef =>
+--             Append_Node (List, Parse_Type_Dcl);
+--          when others =>
+--             Errors.Parser_Error ("declaration of an operation expected",
+--                                  Errors.Error);
+--             raise Parse_Error;
+--       end case;
+--       if Token /= T_Semi_Colon then
+--          Errors.Parser_Error ("`;' expected here, found "
+--                               & Idl_Token'Image (Token),
+--                               Errors.Error);
+--       else
+--          Next_Token;
+--       end if;
    end Parse_Export;
 
    -------------------------
@@ -823,19 +856,19 @@ package body Parse is
       while Get_Token /= T_Right_Cbracket loop
          declare
             Element_Success : Boolean;
+            Element : N_Root_Acc;
          begin
             if Abst then
                --  rule Value5
-               Parse_Export (Result.Contents, Element_Success);
-               if not Element_Success then
-                  Go_To_Next_Export;
-               end if;
+               Parse_Export (Element, Element_Success);
             else
                --  rule Value6
-               Parse_Value_Element (Result.Contents, Element_Success);
-               if not Element_Success then
-                  Go_To_Next_Value_Element;
-               end if;
+                  Parse_Value_Element (Element, Element_Success);
+            end if;
+            if not Element_Success then
+               Go_To_Next_Value_Element;
+            else
+               Append_Node (Result.Contents, Element);
             end if;
          end;
       end loop;
@@ -1235,11 +1268,82 @@ package body Parse is
    ---------------------------
    --  Parse_Value_Element  --
    ---------------------------
-   procedure Parse_Value_Element  (List : in out Node_List;
+   procedure Parse_Value_Element  (Result : out N_Root_Acc;
                                    Success : out Boolean) is
    begin
-      Success := False;
+      case Get_Token is
+         when T_Typedef
+           | T_Struct
+           | T_Union
+           | T_Enum
+           | T_Native
+           | T_Const
+           | T_Exception
+           | T_Readonly
+           | T_Attribute
+           | T_Oneway
+           | T_Void
+           | T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase
+           | T_String
+           | T_Wstring
+           | T_Identifier
+           | T_Colon_Colon =>
+            Parse_Export (Result, Success);
+         when T_Public
+           | T_Private =>
+            declare
+               Res : N_State_Member_Acc;
+            begin
+               Parse_State_Member (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Factory =>
+            declare
+               Res : N_Initializer_Acc;
+            begin
+               Parse_Init_Dcl (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            Errors.Parser_Error ("value_element expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+            return;
+      end case;
    end Parse_Value_Element;
+
+   --------------------------
+   --  Parse_State_Member  --
+   --------------------------
+   procedure Parse_State_Member (Result : out N_State_Member_Acc;
+                                 Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_State_Member;
+
+   ----------------------
+   --  Parse_Init_Dcl  --
+   ----------------------
+   procedure Parse_Init_Dcl (Result : out N_Initializer_Acc;
+                             Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Init_Dcl;
 
    -----------------------
    --  Parse_Const_Dcl  --
@@ -2273,47 +2377,6 @@ package body Parse is
 --    end Parse_Type_Declarator;
 
 
---    --  Rule 9:
---    --  <export> ::= <type_dcl> ";"
---    --           |   <const_dcl> ";"
---    --           |   <except_dcl> ";"
---    --           |   <attr_dcl> ";"
---    --           |   <op_dcl> ";"
---    procedure Parse_Export (List : in out Node_List) is
---    begin
---       case Token is
---          when T_Readonly | T_Attribute =>
---             Parse_Attr_Dcl (List);
---          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
---            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
---            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
---            T_String | T_Wstring =>
---             Append_Node (List, N_Root_Acc (Parse_Op_Dcl));
---          when T_Right_Cbracket =>
---             return;
---          when T_Exception =>
---             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
---          when T_Union =>
---             Append_Node (List, N_Root_Acc (Parse_Union_Type));
---          when T_Struct =>
---             Append_Node (List, N_Root_Acc (Parse_Struct_Type));
---          when T_Enum =>
---             Append_Node (List, N_Root_Acc (Parse_Enum_Type));
---          when T_Typedef =>
---             Append_Node (List, Parse_Type_Dcl);
---          when others =>
---             Errors.Parser_Error ("declaration of an operation expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---       if Token /= T_Semi_Colon then
---          Errors.Parser_Error ("`;' expected here, found "
---                               & Idl_Token'Image (Token),
---                               Errors.Error);
---       else
---          Next_Token;
---       end if;
---    end Parse_Export;
 
 --    --  Rule 8:
 --    --  <interface_body> ::= <export>*

@@ -4,3 +4,6 @@ gidlac
 b_*.c
 b~*
 .gdb_history
+testparser
+testlexer
+

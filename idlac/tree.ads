@@ -138,6 +138,18 @@ package Tree is
    type N_Boxed_ValueType_Acc is access all N_Boxed_ValueType;
    function Get_Kind (N : N_Boxed_ValueType) return Node_Kind;
 
+   type N_State_Member is new N_Root with record
+      null;
+   end record;
+   type N_State_Member_Acc is access all N_State_Member;
+   function Get_Kind (N : N_State_Member) return Node_Kind;
+
+   type N_Initializer is new N_Named with record
+      null;
+   end record;
+   type N_Initializer_Acc is access all N_Initializer;
+   function Get_Kind (N : N_Initializer) return Node_Kind;
+
    --  A scoped name.
    type N_Scoped_Name is new N_Root with record
       Value : N_Named_Acc;
