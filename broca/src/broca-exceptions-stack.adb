@@ -42,6 +42,19 @@ package body Broca.Exceptions.Stack is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.exceptions.stack");
    procedure O is new Broca.Debug.Output (Flag);
 
+   --  When an exception with members is raised (Raise_Exception), we
+   --  allocate an exception occurrence id and attach to the exception
+   --  occurrence a message with a magic string and the id. The member
+   --  is stored in dynamic structure with the id. When we call
+   --  Get_Members, we retrieve the exception occurrence id from the
+   --  attached message. The member may have been removed in the
+   --  meantime if too many exceptions were raised between the call to
+   --  Raise_Exception and Get_Members (very rare). We have to keep
+   --  the list size in a max size because the user may not retrieve
+   --  the member of an exception with members. In this case, the
+   --  members will never be deallocated. This limit forces some kind
+   --  of garbage collection.
+
    Magic : constant String := "AB_Exc_Occ";
 
    type IDL_Exception_Members_Ptr is
@@ -65,7 +78,7 @@ package body Broca.Exceptions.Stack is
    Exc_Occ_Tail : Exc_Occ_List;
 
    Exc_Occ_List_Size     : Natural := 0;
-   Max_Exc_Occ_List_Size : constant Natural := 1000;
+   Max_Exc_Occ_List_Size : constant Natural := 100;
 
    procedure Free is
       new Ada.Unchecked_Deallocation
@@ -77,14 +90,25 @@ package body Broca.Exceptions.Stack is
          IDL_Exception_Members_Ptr);
 
    function Image (V : Exc_Occ_Id_Type) return String;
-   function Value (M : String) return Exc_Occ_Id_Type;
+   --  Store the magic string and the exception occurrence id.
 
-   procedure Dump_All_Exceptions;
-   procedure Dump_All_Exceptions
+   function Value (M : String) return Exc_Occ_Id_Type;
+   --  Extract the exception occurrence id from the exception
+   --  message. Return Null_Id if the exception message has no the
+   --  expected format.
+
+   procedure Dump_All_Occurrences;
+   --  Dump the occurrence list (not protected).
+
+   --------------------------
+   -- Dump_All_Occurrences --
+   --------------------------
+
+   procedure Dump_All_Occurrences
    is
       Current : Exc_Occ_List := Exc_Occ_Head;
    begin
-      O ("Dump_All_Exceptions:");
+      O ("Dump_All_Occurrences:");
 
       if Current = null then
          O ("No stored exceptions.");
@@ -97,7 +121,7 @@ package body Broca.Exceptions.Stack is
          O ("  " & Image (Current.Id));
          Current := Current.Next;
       end loop;
-   end Dump_All_Exceptions;
+   end Dump_All_Occurrences;
 
    -----------------
    -- Get_Members --
@@ -117,13 +141,17 @@ package body Broca.Exceptions.Stack is
                        & Ada.Exceptions.Exception_Name (Exc_Occ)));
       pragma Debug (O ("    message: "
                        & Ada.Exceptions.Exception_Message (Exc_Occ)));
-      pragma Debug (Dump_All_Exceptions);
+      pragma Debug (Dump_All_Occurrences);
+
+      --  If Exc_Occ_Id = Null_Id, the exception has no member.
 
       Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
       if Exc_Occ_Id = Null_Id then
          Leave_Critical_Section;
          return;
       end if;
+
+      --  Scan the list using the exception occurrence id.
 
       Current := Exc_Occ_Head;
       while Current /= null loop
@@ -135,8 +163,14 @@ package body Broca.Exceptions.Stack is
 
       if Current = null then
          Leave_Critical_Section;
+
+         --  Too many exceptions were raised and this member is no
+         --  longer available.
+
          Broca.Exceptions.Raise_Imp_Limit;
       end if;
+
+      --  Remove member from list.
 
       if Previous /= null then
          Previous.Next := Current.Next;
@@ -147,6 +181,8 @@ package body Broca.Exceptions.Stack is
       if Exc_Occ_Tail = Current then
          Exc_Occ_Tail := Previous;
       end if;
+
+      --  Update out parameter. An exception can be raised here.
 
       Exc_Mbr := Current.Mbr.all;
 
@@ -190,6 +226,10 @@ package body Broca.Exceptions.Stack is
 
    begin
       Enter_Critical_Section;
+
+      --  Keep the list size to a max size. Otherwise, remove the
+      --  oldest member (first in the list).
+
       if Exc_Occ_List_Size = Max_Exc_Occ_List_Size then
          Current := Exc_Occ_Head;
          Exc_Occ_Head := Exc_Occ_Head.Next;
@@ -203,7 +243,9 @@ package body Broca.Exceptions.Stack is
       end if;
 
       pragma Debug (O ("Assigning ID: " & Image (Seed_Id)));
-      pragma Debug (Dump_All_Exceptions);
+      pragma Debug (Dump_All_Occurrences);
+
+      --  Generate a fresh exception occurrence id.
 
       Exc_Occ_Id   := Seed_Id;
       Current.Id   := Seed_Id;
@@ -215,6 +257,8 @@ package body Broca.Exceptions.Stack is
       end if;
       Seed_Id := Seed_Id + 1;
 
+      --  Append to the list.
+
       if Exc_Occ_Head = null then
          Exc_Occ_Head := Current;
       end if;
@@ -223,12 +267,12 @@ package body Broca.Exceptions.Stack is
       end if;
       Exc_Occ_Tail := Current;
 
-      Leave_Critical_Section;
-
       pragma Debug (O ("Raise ("
                        & Ada.Exceptions.Exception_Name (Exc_Id)
                        & ", " & Image (Exc_Occ_Id) & ")."));
-      pragma Debug (Dump_All_Exceptions);
+      pragma Debug (Dump_All_Occurrences);
+      Leave_Critical_Section;
+
       Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
       raise Program_Error;
    end Raise_Exception;
@@ -246,6 +290,8 @@ package body Broca.Exceptions.Stack is
          return Null_Id;
       end if;
 
+      --  Look for the magic string.
+
       for I in Magic'Range loop
          if Magic (I) /= M (N) then
             return Null_Id;
@@ -257,6 +303,8 @@ package body Broca.Exceptions.Stack is
          return Null_Id;
       end if;
       N := N + 1;
+
+      --  Scan the exception occurrence id.
 
       while N <= M'Last loop
          if M (N) not in '0' .. '9' then
