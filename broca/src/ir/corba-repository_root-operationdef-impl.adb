@@ -11,6 +11,9 @@ with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ExceptionDef.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
+with Broca.Server_Tools;
+with PortableServer;
+
 package body CORBA.Repository_Root.OperationDef.Impl is
 
    ----------------------
@@ -49,12 +52,15 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
+      Obj : Portableserver.Servant;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Self.Result_Def,
+                                               Obj);
       --  The result should be the type of the result_def
       return IDLType.Impl.Get_Type
         (IDLType.Impl.To_IDLType
          (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of (Self.Result_Def))));
+          (Obj)));
    end get_result;
 
 

@@ -135,6 +135,7 @@ package body PortableServer is
       Current : Skeleton_List;
 
    begin
+      pragma Debug (O ("Register_Skeleton enter"));
       Enter_Critical_Section;
       Current := All_Skeletons;
       while Current /= null loop
@@ -150,12 +151,14 @@ package body PortableServer is
                      Is_A       => Is_A,
                      Dispatcher => Dispatcher),
             Next => All_Skeletons);
+      pragma Debug (O ("Registered : type_id = " &
+                       CORBA.To_Standard_String (Type_Id)));
       Leave_Critical_Section;
    end Register_Skeleton;
 
-   -----------------------
-   -- Register_Skeleton --
-   -----------------------
+   -------------------------
+   -- Unregister_Skeleton --
+   -------------------------
 
    procedure Unregister_Skeleton
      (Type_Id : in CORBA.RepositoryId)

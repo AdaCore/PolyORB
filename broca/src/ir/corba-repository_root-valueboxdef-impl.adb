@@ -22,11 +22,12 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
    -----------------
    function To_Object (Fw_Ref : ValueBoxDef_Forward.Ref)
                        return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return ValueBoxDef.Impl.Object_Ptr
-        (ValueBoxDef.Object_Of
-         (ValueBoxDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (ValueBoxDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return ValueBoxDef.Impl.Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -73,11 +74,15 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
      (Self : access Object)
       return CORBA.TypeCode.Object
    is
-      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of (Self.Original_Type_Def))));
+      Obj : Portableserver.Servant;
+      Orig_TC : CORBA.TypeCode.Object;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Self.Original_Type_Def,
+                                               Obj);
+      Orig_TC := IDLType.Impl.Get_Type
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr (Obj)));
+
       return  CORBA.ORB.Typecode.Create_Value_Box_Tc (Get_Id (Self),
                                                       Get_Name (Self),
                                                       Orig_TC);

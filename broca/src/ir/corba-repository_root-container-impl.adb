@@ -3,6 +3,7 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with Ada.Tags;
 with Ada.Strings.Unbounded;
 with CORBA.AbstractBase;
 with CORBA.Impl;
@@ -74,14 +75,16 @@ package body CORBA.Repository_Root.Container.Impl is
    -----------------
    function To_Object (Fw_Ref : Container_Forward.Ref)
                        return Object_Ptr is
-      Result : IRObject.Impl.Object_Ptr
-        := IRObject.Impl.Object_Ptr
-        (Container.Object_Of
-         (Container.Convert_Forward.To_Ref
-          (Fw_Ref)));
+--      Result : IRObject.Impl.Object_Ptr;
+      The_Ref : Container.Ref;
+      Obj : Portableserver.Servant;
    begin
       pragma Debug (O2 ("to_object (container)"));
-      return To_Container (Result);
+      The_Ref := Container.Convert_Forward.To_Ref (Fw_Ref);
+      pragma Debug (O2 ("to_object, before object_of"));
+      Broca.Server_Tools.Reference_To_Servant (The_Ref,
+                                               Obj);
+      return To_Container (IROBject.Impl.Object_Ptr (Obj));
    end To_Object;
 
    ------------------
@@ -356,6 +359,7 @@ package body CORBA.Repository_Root.Container.Impl is
       Rep : Repository.Impl.Object_Ptr;
       use Contained.Impl;
    begin
+      pragma Debug (O2 ("Check_Id (container)"));
       if Get_Def_Kind (Self) = Dk_Repository then
          Rep := Repository.Impl.Object_Ptr (Object_Ptr (Self));
       else
@@ -373,7 +377,7 @@ package body CORBA.Repository_Root.Container.Impl is
    end Check_Id;
 
    ------------------
-   --  Check_Node  --
+   --  Check_Name  --
    ------------------
    function Check_Name (Self : access Object;
                         Name : Identifier) return Boolean
@@ -381,6 +385,7 @@ package body CORBA.Repository_Root.Container.Impl is
       package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
       use Contained_For_Seq;
    begin
+      pragma Debug (O2 ("Check_Name (container)"));
       if Contained_For_Seq.Sequence
         (Lookup_Name (Self, Name, -1, Dk_All, True)) /=
         Contained_For_Seq.Null_Sequence then
@@ -605,15 +610,16 @@ package body CORBA.Repository_Root.Container.Impl is
                end;
                --  check the base_value
                declare
-                  Val : ValueDef.Impl.Object_Ptr
-                    := ValueDef.Impl.Object_Ptr
-                    (ValueDef.Object_Of
-                     (ValueDef.Impl.Get_Base_Value
-                      (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)))));
+                  Obj : Portableserver.Servant;
                   Res : ContainedSeq;
                begin
+                  Broca.Server_Tools.Reference_To_Servant
+                    (ValueDef.Impl.Get_Base_Value
+                     (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self))),
+                     Obj);
+
                   --  we will get all the definition of the inherited Value
-                  Res := Contents (Object_Ptr (Val),
+                  Res := Contents (Object_Ptr (Obj),
                                    Limit_Type,
                                    Exclude_Inherited);
                   --  append the current result to the global one
@@ -743,15 +749,15 @@ package body CORBA.Repository_Root.Container.Impl is
                end;
                --  check the base_value
                declare
-                  Val : ValueDef.Impl.Object_Ptr
-                    := ValueDef.Impl.Object_Ptr
-                    (ValueDef.Object_Of
-                     (ValueDef.Impl.Get_Base_Value
-                      (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self)))));
+                  Obj : Portableserver.Servant;
                   Res : ContainedSeq;
                begin
+                  Broca.Server_Tools.Reference_To_Servant
+                    (ValueDef.Impl.Get_Base_Value
+                     (ValueDef.Impl.Object_Ptr (Get_Real_Object (Self))),
+                     Obj);
                   --  we will get all the definition of the inherited Value
-                  Res := Lookup_Name (Object_Ptr (Val),
+                  Res := Lookup_Name (Object_Ptr (Obj),
                                       Search_Name,
                                       -1,
                                       Limit_Type,
@@ -877,7 +883,9 @@ package body CORBA.Repository_Root.Container.Impl is
       begin
          pragma Debug (O2 ("Create_Module (container)"));
          --  is the new structure allowed?
-         if Check_Structure (Self, Dk_Module) then
+         if Check_Structure (Self, Dk_Module) and
+           Check_Id (Self, Id) and
+           Check_Name (Self, Name) then
             --  initialization of the object
             pragma Debug (O ("before_init (create_module)"));
             ModuleDef.Impl.Init (Obj,
@@ -916,8 +924,10 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
    begin
       --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Constant) then
-         --  initialization of the object
+      if Check_Structure (Self, Dk_Constant) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+          --  initialization of the object
          ConstantDef.Impl.Init (Obj,
                                 IRObject.Impl.Object_Ptr (Obj),
                                 Dk_Constant,
@@ -950,7 +960,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
       --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Struct) then
+      if Check_Structure (Self, Dk_Struct) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  initialization of the object
          StructDef.Impl.Init (Obj,
                               IRObject.Impl.Object_Ptr (Obj),
@@ -989,7 +1001,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
             --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Union) then
+      if Check_Structure (Self, Dk_Union) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  initialization of the object
          UnionDef.Impl.Init (Obj,
                              IRObject.Impl.Object_Ptr (Obj),
@@ -1026,7 +1040,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
             --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Enum) then
+      if Check_Structure (Self, Dk_Enum) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  initialization of the object
          EnumDef.Impl.Init (Obj,
                             IRObject.Impl.Object_Ptr (Obj),
@@ -1060,7 +1076,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
             --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Alias) then
+      if Check_Structure (Self, Dk_Alias) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  initialization of the object
          AliasDef.Impl.Init (Obj,
                              IRObject.Impl.Object_Ptr (Obj),
@@ -1091,12 +1109,17 @@ package body CORBA.Repository_Root.Container.Impl is
       is_abstract : in CORBA.Boolean)
      return CORBA.Repository_Root.InterfaceDef_Forward.Ref
    is
+      Res : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
       Obj : InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      pragma Debug (O2 ("Create_interface (container)"));
             --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Interface) then
+      if Check_Structure (Self, Dk_Interface) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+         pragma Debug (O ("Create_interface : before init"));
          --  initialization of the object
          InterfaceDef.Impl.Init (Obj,
                                  IRObject.Impl.Object_Ptr (Obj),
@@ -1110,13 +1133,17 @@ package body CORBA.Repository_Root.Container.Impl is
                                  IDLType_Obj,
                                  Base_Interfaces,
                                  Is_Abstract);
+      pragma Debug (O ("Create_interface : before append"));
          --  add it to the contents field of this container
          Append_To_Contents
            (Self,
             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
       end if;
 
-      return InterfaceDef.Impl.To_Forward (Obj);
+      pragma Debug (O ("Create_interface : before to_forward"));
+      Res := InterfaceDef.Impl.To_Forward (Obj);
+      pragma Debug (O ("Create_interface : end"));
+      return Res;
    end create_interface;
 
 
@@ -1139,7 +1166,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
       --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Value) then
+      if Check_Structure (Self, Dk_Value) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  there cannot be more then one "true" in those boolean!
          if (Is_Custom and Is_Abstract) or
            (Is_Custom and Is_Truncatable) or
@@ -1188,7 +1217,9 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
       --  is the new structure allowed?
-      if Check_Structure (Self, Dk_ValueBox) then
+      if Check_Structure (Self, Dk_ValueBox) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
          --  initialization of the object
          ValueBoxDef.Impl.Init (Obj,
                                 IRObject.Impl.Object_Ptr (Obj),
@@ -1223,8 +1254,10 @@ package body CORBA.Repository_Root.Container.Impl is
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
    begin
             --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Exception) then
-         --  initialization of the object
+      if Check_Structure (Self, Dk_Exception) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+        --  initialization of the object
          ExceptionDef.Impl.Init (Obj,
                                  IRObject.Impl.Object_Ptr (Obj),
                                  Dk_Exception,
@@ -1256,8 +1289,10 @@ package body CORBA.Repository_Root.Container.Impl is
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
       --  is the new structure allowed?
-      if Check_Structure (Self, Dk_Native) then
-         --  initialization of the object
+      if Check_Structure (Self, Dk_Native) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+        --  initialization of the object
          NativeDef.Impl.Init (Obj,
                               IRObject.Impl.Object_Ptr (Obj),
                               Dk_Native,

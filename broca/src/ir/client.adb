@@ -34,8 +34,14 @@ with CORBA.ORB;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Container;
+with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Contained;
---  with CORBA.Repository_Root.Moduledef;
+with CORBA.Repository_Root.Moduledef.Helper;
+with CORBA.Repository_Root.UnionDef.Helper;
+with CORBA.Repository_Root.StructDef.Helper;
+with CORBA.Repository_Root.InterfaceDef.Helper;
+with CORBA.Repository_Root.ExceptionDef.Helper;
+with CORBA.Repository_Root.ValueDef.Helper;
 
 procedure Client is
 
@@ -53,40 +59,89 @@ procedure Client is
          declare
             The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (I));
          begin
-            Put_Line ("Ok2");
-
-            Put_Line ("Node : " &
+            Put_Line (Inc & "Node     : " &
                       DefinitionKind'Image
                       (Get_Def_Kind (The_Ref)));
-
-            Put_Line ("Ok3");
-
-            Put_Line ("Name : " &
+            Put_Line (Inc & "Name     : " &
                       CORBA.To_Standard_String
                       (CORBA.String (Get_Name (The_Ref))));
-
-            Put_Line ("Ok4");
-
-            Put_Line ("Id : " &
+            Put_Line (Inc & "Id       : " &
                       CORBA.To_Standard_String
                       (CORBA.String (Get_Id (The_Ref))));
-
-            Put_Line ("Ok5");
-
-            Put_Line ("Vers : " &
+            Put_Line (Inc & "Vers     : " &
                       CORBA.To_Standard_String
                       (CORBA.String (Get_Version (The_Ref))));
-
-            Put_Line ("Ok6");
-
-            Put_Line ("Abs-Name : " &
+            Put_Line (Inc & "Abs-Name : " &
                       CORBA.To_Standard_String
                       (CORBA.String
                        (Get_Absolute_Name (The_Ref))));
+            Put_Line (" ");
 
-            Put_Line ("Ok7");
-
-            --  FIXME : make it recusrsive
+            --  recursivity
+            case Contained.Get_Def_Kind (The_Ref) is
+               when Dk_Module =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (ModuleDef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when Dk_Exception =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (Exceptiondef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when Dk_Interface =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (InterfaceDef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when Dk_Value =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (ValueDef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when Dk_Struct =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (StructDef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when Dk_Union =>
+                  declare
+                     R : Container.Ref := Container.Helper.To_Ref
+                       (UnionDef.Helper.To_Ref (The_Ref));
+                  begin
+                     Print_Content (Container.Contents (R,
+                                                        Dk_All,
+                                                        True),
+                                    Inc & "          ");
+                  end;
+               when others =>
+                  null;
+            end case;
          end;
       end loop;
 
@@ -117,10 +172,23 @@ begin
    --  creating a module
    declare
       Mod1 : ModuleDef_Forward.Ref;
+      Int1 : InterfaceDef_Forward.Ref;
+      Int2 : InterfaceDef_Forward.Ref;
       Id : RepositoryId;
       Name : Identifier;
       Version : VersionSpec;
+      package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+
    begin
+      Id := To_CORBA_String ("idl:tutu:1.0");
+      Name := To_CORBA_String ("tutu");
+      Version := To_CORBA_String ("1.0");
+      Int2 := Repository.Create_Interface (Myrep,
+                                           Id,
+                                           Name,
+                                           Version,
+                                           InterfaceDefSeq (IDS.Null_Sequence),
+                                           False);
       Id := To_CORBA_String ("idl:toto:1.1");
       Name := To_CORBA_String ("toto");
       Version := To_CORBA_String ("1.1");
@@ -128,23 +196,29 @@ begin
                                         Id,
                                         Name,
                                         Version);
+      Id := To_CORBA_String ("idl:titi:1.0");
+      Name := To_CORBA_String ("titi");
+      Version := To_CORBA_String ("1.0");
+      Int1 := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
+                                          Id,
+                                          Name,
+                                          Version,
+                                          InterfaceDefSeq (IDS.Null_Sequence),
+                                          False);
    end;
 
-   Put_Line ("Ok1");
    Print_Content (Repository.Contents (Myrep,
                                        Dk_All,
                                        True),
                   " ");
 
 exception
-   when E : CORBA.Transient =>
-      declare
-         Memb : System_Exception_Members;
-      begin
-         Get_Members (E, Memb);
-         Put ("received exception transient, minor");
-         Put (Unsigned_Long'Image (Memb.Minor));
-         Put (", completion status: ");
-         Put_Line (Completion_Status'Image (Memb.Completed));
-      end;
+      when E : CORBA.Bad_Param =>
+         declare
+            Memb : System_Exception_Members;
+         begin
+            Get_Members (E, Memb);
+            Put ("received Bad_Param exception, minor");
+            Put_Line (Unsigned_Long'Image (Memb.Minor));
+         end;
 end Client;

@@ -57,11 +57,12 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    -----------------
    function To_Object (Fw_Ref : ExceptionDef_Forward.Ref)
                        return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return ExceptionDef.Impl.Object_Ptr
-        (ExceptionDef.Object_Of
-         (ExceptionDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (ExceptionDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return ExceptionDef.Impl.Object_Ptr (Result);
    end To_Object;
 
    ------------------

@@ -24,11 +24,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
    -----------------
    function To_Object (Fw_Ref : UnionDef_Forward.Ref)
      return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return Object_Ptr
-        (UnionDef.Object_Of
-         (UnionDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (UnionDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -130,12 +131,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Discriminator : IDLType.Impl.Object_Ptr
-        := IDLType.Impl.To_IDLType
-        (IRObject.Impl.Object_Ptr
-         (IDLType.Object_Of (Self.Discriminator_Type_Def)));
+      Obj : Portableserver.Servant;
    begin
-      return IDLType.Impl.Get_Type (Discriminator);
+      Broca.Server_Tools.Reference_To_Servant (Self.Discriminator_Type_Def,
+                                               Obj);
+      return IDLType.Impl.Get_Type (IDLType.Impl.To_IDLType
+                                    (IRObject.Impl.Object_Ptr (Obj)));
    end get_discriminator_type;
 
 

@@ -22,11 +22,12 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
    -----------------
    function To_Object (Fw_Ref : ConstantDef_Forward.Ref)
      return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return Object_Ptr
-        (ConstantDef.Object_Of
-         (ConstantDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (ConstantDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -69,12 +70,15 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
+      Obj : Portableserver.Servant;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Self.Type_Def,
+                                               Obj);
       --  The type should be the type of the Type_def
       return IDLType.Impl.Get_Type
         (IDLType.Impl.To_IDLType
          (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of (Self.Type_Def))));
+          (Obj)));
    end get_type;
 
 

@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
+with Ada.Tags;
 with CORBA;
 with CORBA.Object;
 with CORBA.Repository_Root.IROBject.Impl;
@@ -42,12 +44,13 @@ with Ada.Text_IO;
 
 procedure Server is
    Ref : CORBA.Object.Ref;
+   Obj : PortableServer.Servant;
    Repo : Repository.Impl.Object_Ptr := new Repository.Impl.Object;
 begin
    Repository.Impl.Init (Repo,
-			 IRObject.Impl.Object_Ptr (Repo),
-			 Dk_Repository,
-			 Contained.Impl.Contained_Seq.Null_Sequence);  
+                         IRObject.Impl.Object_Ptr (Repo),
+                         Dk_Repository,
+                         Contained.Impl.Contained_Seq.Null_Sequence);
    Initiate_Servant (PortableServer.Servant (Repo), Ref);
    Ada.Text_IO.Put_Line
      ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &

@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with Ada.Tags;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ModuleDef.Skel;
@@ -33,12 +35,13 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
    -----------------
    function To_Object (Fw_Ref : ModuleDef_Forward.Ref)
                        return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
       pragma Debug (O2 ("to_object (moduledef)"));
-      return Object_Ptr
-        (ModuleDef.Object_Of
-         (ModuleDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (ModuleDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -51,7 +54,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
       pragma Debug (O2 ("to_forward (moduledef)"));
       Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
                                            Ref);
-      pragma Debug (O ("befor return (to_forward)"));
+      pragma Debug (O ("before return (to_forward)"));
       return ModuleDef.Convert_Forward.To_Forward (Ref);
    end To_Forward;
 
@@ -76,6 +79,8 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                            Real_Object,
                            Def_Kind,
                            Contents);
+      pragma Debug (O ("Type of the defined_in : " &
+                       Ada.Tags.External_Tag (Container.Impl.To_Object (Defined_In).all'Tag)));
       Contained.Impl.Init (Contained_View,
                            Real_Object,
                            Def_Kind,

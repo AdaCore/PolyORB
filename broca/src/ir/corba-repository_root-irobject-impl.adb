@@ -30,8 +30,10 @@ package body CORBA.Repository_Root.IRObject.Impl is
                    Real_Object : IRObject.Impl.Object_Ptr;
                    Def_Kind : Corba.Repository_Root.DefinitionKind) is
    begin
+      pragma Debug (O2 ("init enter"));
       Self.Def_Kind := Def_Kind;
       Self.Real_Object := Real_Object;
+      pragma Debug (O2 ("init  end"));
    end Init;
 
 

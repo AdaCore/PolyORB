@@ -15,11 +15,12 @@ package body CORBA.Repository_Root.NativeDef.Impl is
    -----------------
    function To_Object (Fw_Ref : NativeDef_Forward.Ref)
                        return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return NativeDef.Impl.Object_Ptr
-        (NativeDef.Object_Of
-         (NativeDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (NativeDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return NativeDef.Impl.Object_Ptr (Result);
    end To_Object;
 
    ------------------

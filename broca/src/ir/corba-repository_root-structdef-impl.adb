@@ -23,11 +23,12 @@ package body CORBA.Repository_Root.StructDef.Impl is
    -----------------
    function To_Object (Fw_Ref : StructDef_Forward.Ref)
      return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return Object_Ptr
-        (StructDef.Object_Of
-         (StructDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (StructDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------

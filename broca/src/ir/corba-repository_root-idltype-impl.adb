@@ -22,12 +22,25 @@ with CORBA.Repository_Root.NativeDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
 with CORBA.Repository_Root.TypedefDef.Impl;
 
+with Broca.Debug;
 with Broca.Exceptions;
 with Broca.Server_Tools;
 with PortableServer;
 
 package body CORBA.Repository_Root.IDLType.Impl is
 
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("idltype.impl");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("idltype.impl_method_trace");
+   procedure O2 is new Broca.Debug.Output (Flag2);
 
    ------------------
    --  To_IDLType  --
@@ -98,14 +111,16 @@ package body CORBA.Repository_Root.IDLType.Impl is
    ----------------------
    --  Procedure init  --
    ----------------------
-   procedure Init (Self : access Object;
-                   Real_Object : IRObject.Impl.Object_Ptr;
-                   Def_Kind : CORBA.Repository_Root.DefinitionKind) is
-   begin
-      IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self),
-                          Real_Object,
-                          Def_Kind);
-   end Init;
+--   procedure Init (Self : access Object;
+--                   Real_Object : IRObject.Impl.Object_Ptr;
+--                   Def_Kind : CORBA.Repository_Root.DefinitionKind) is
+--   begin
+--      pragma Debug (O2 ("init enter"));
+--      IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self),
+--                         Real_Object,
+--                          Def_Kind);
+--       pragma Debug (O2 ("init  end"));
+--   end Init;
 
 
    function get_type

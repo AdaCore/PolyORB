@@ -18,11 +18,12 @@ package body CORBA.Repository_Root.EnumDef.Impl is
    -----------------
    function To_Object (Fw_Ref : EnumDef_Forward.Ref)
      return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return Object_Ptr
-        (EnumDef.Object_Of
-         (EnumDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (EnumDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------

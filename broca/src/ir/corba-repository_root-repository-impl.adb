@@ -49,12 +49,13 @@ package body CORBA.Repository_Root.Repository.Impl is
    -----------------
    function To_Object (Fw_Ref : Repository_Forward.Ref)
      return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
       pragma Debug (O2 ("to_object (repository)"));
-      return Object_Ptr
-        (Repository.Object_Of
-         (Repository.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (Repository.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -242,12 +243,15 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.SequenceDef.Ref
    is
       Result : CORBA.Repository_Root.SequenceDef.Ref;
-      Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of (Element_Type))));
+      Elem_Obj : Portableserver.Servant;
+      Element : CORBA.TypeCode.Object;
       Obj : SequenceDef.Impl.Object_Ptr := new SequenceDef.Impl.Object;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Element_Type,
+                                               Elem_Obj);
+      Element := IDLType.Impl.Get_Type
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr (Elem_Obj)));
       --  initialization of the Sequence
       SequenceDef.Impl.Init (Obj,
                              IRObject.Impl.Object_Ptr (Obj),
@@ -270,12 +274,16 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.ArrayDef.Ref
    is
       Result : CORBA.Repository_Root.ArrayDef.Ref;
-      Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
-        (IDLType.Impl.To_IDLType
-         (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of (Element_Type))));
       Obj : ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
+      Elem_Obj : Portableserver.Servant;
+      Element : CORBA.TypeCode.Object;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Element_Type,
+                                               Elem_Obj);
+      Element := IDLType.Impl.Get_Type
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr (Elem_Obj)));
+
       --  initialization of the Array
       ArrayDef.Impl.Init (Obj,
                           IRObject.Impl.Object_Ptr (Obj),

@@ -62,7 +62,7 @@ first: all server client
 all: ${SOURCE} ${DEP}
 	for file in ${SOURCE}; do ${CC} ${FLAGS} ${LIB} $$file; done
 
-%.ad?: ir.idl
+%.adb: ir.idl
 	idlac ir.idl; typecode.sh
 
 impl:

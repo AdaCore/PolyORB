@@ -19,10 +19,10 @@ package CORBA.Repository_Root.IDLType.Impl is
       return Object_Ptr;
 
    --  method used to initialize recursively the object fields.
-   procedure Init (Self : access Object;
-                   Real_Object :
-                     CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
-                   Def_Kind : CORBA.Repository_Root.DefinitionKind);
+--   procedure Init (Self : access Object;
+--                   Real_Object :
+--                     CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
+--                   Def_Kind : CORBA.Repository_Root.DefinitionKind);
 
    function get_type
      (Self : access Object)

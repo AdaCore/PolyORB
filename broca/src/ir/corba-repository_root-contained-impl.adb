@@ -70,12 +70,13 @@ package body CORBA.Repository_Root.Contained.Impl is
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref) is
    begin
-      pragma Debug (O2 ("init (contained)"));
+      pragma Debug (O2 ("init (contained) enter"));
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_Kind);
       Self.Id := Id;
       Self.Name := Name;
       Self.Version := Version;
       Self.Defined_In := Defined_In;
+      pragma Debug (O2 ("init (contained) end"));
    end Init;
 
 
@@ -84,14 +85,16 @@ package body CORBA.Repository_Root.Contained.Impl is
    -----------------
    function To_Object (Fw_Ref : Contained_Forward.Ref)
                        return Object_Ptr is
-      Result : IRObject.Impl.Object_Ptr
-        := IRObject.Impl.Object_Ptr
-        (Contained.Object_Of
-         (Contained.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Result : Portableserver.Servant;
+      The_Ref : Contained.Ref;
    begin
       pragma Debug (O2 ("to_object (contained)"));
-      return To_Contained (Result);
+      The_Ref := Contained.Convert_Forward.To_Ref (Fw_Ref);
+      pragma Debug (O2 ("to_object, before object_of"));
+      Broca.Server_Tools.Reference_To_Servant (The_Ref,
+                                               Result);
+      pragma Debug (O ("to_object end;"));
+      return To_Contained (IROBject.Impl.Object_Ptr (Result));
    end To_Object;
 
    ------------------

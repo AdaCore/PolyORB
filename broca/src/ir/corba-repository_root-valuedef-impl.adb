@@ -81,11 +81,12 @@ package body CORBA.Repository_Root.ValueDef.Impl is
     -----------------
    function To_Object (Fw_Ref : ValueDef_Forward.Ref)
                        return Object_Ptr is
+      Result : Portableserver.Servant;
    begin
-      return ValueDef.Impl.Object_Ptr
-        (ValueDef.Object_Of
-         (ValueDef.Convert_Forward.To_Ref
-          (Fw_Ref)));
+      Broca.Server_Tools.Reference_To_Servant
+        (ValueDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return ValueDef.Impl.Object_Ptr (Result);
    end To_Object;
 
    ------------------
@@ -275,27 +276,30 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       Result : CORBA.Repository_Root.ValueMemberDef.Ref;
       Obj : ValueMemberDef.Impl.Object_Ptr := new ValueMemberDef.Impl.Object;
    begin
-      --  initialization of the object
-      ValueMemberDef.Impl.Init (Obj,
-                                IRObject.Impl.Object_Ptr (Obj),
-                                Dk_ValueMember,
-                                Id,
-                                Name,
-                                Version,
-                                Container.Impl.To_Forward
-                                (Container.Impl.Object_Ptr (Self)),
-                                IDL_type,
-                                IDL_access);
+      if Check_Structure (Self, Dk_ValueMember) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+         --  initialization of the object
+         ValueMemberDef.Impl.Init (Obj,
+                                   IRObject.Impl.Object_Ptr (Obj),
+                                   Dk_ValueMember,
+                                   Id,
+                                   Name,
+                                   Version,
+                                   Container.Impl.To_Forward
+                                   (Container.Impl.Object_Ptr (Self)),
+                                   IDL_type,
+                                   IDL_access);
 
-      --  add it to the contents field of this container
-      Container.Impl.Append_To_Contents
-        (Container.Impl.Object_Ptr (Self),
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Container.Impl.Append_To_Contents
+           (Container.Impl.Object_Ptr (Self),
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
+      end if;
       --  activate it
       Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
                                            Result);
-
       return Result;
    end create_value_member;
 
@@ -312,28 +316,31 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       Result : CORBA.Repository_Root.AttributeDef.Ref;
       Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
    begin
+       if Check_Structure (Self, Dk_Attribute) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
       --  initialization of the object
-      AttributeDef.Impl.Init (Obj,
-                              IRObject.Impl.Object_Ptr (Obj),
-                              Dk_Attribute,
-                              Id,
+          AttributeDef.Impl.Init (Obj,
+                                  IRObject.Impl.Object_Ptr (Obj),
+                                  Dk_Attribute,
+                                  Id,
                               Name,
-                              Version,
-                              Container.Impl.To_Forward
-                              (Container.Impl.Object_Ptr (Self)),
-                              IDL_Type_1,
-                              Mode);
+                                  Version,
+                                  Container.Impl.To_Forward
+                                  (Container.Impl.Object_Ptr (Self)),
+                                  IDL_Type_1,
+                                  Mode);
 
-      --  add it to the contents field of this container
-      Container.Impl.Append_To_Contents
-        (Container.Impl.Object_Ptr (Self),
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+          --  add it to the contents field of this container
+          Container.Impl.Append_To_Contents
+            (Container.Impl.Object_Ptr (Self),
+             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+       end if;
+       --  activate it
+       Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                            Result);
 
-      --  activate it
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
-                                           Result);
-
-      return Result;
+       return Result;
    end create_attribute;
 
 
@@ -352,26 +359,30 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       Result : CORBA.Repository_Root.OperationDef.Ref;
       Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
    begin
-      --  initialization of the object
-      OperationDef.Impl.Init (Obj,
-                              IRObject.Impl.Object_Ptr (Obj),
-                              Dk_Operation,
-                              Id,
-                              Name,
-                              Version,
-                              Container.Impl.To_Forward
-                              (Container.Impl.Object_Ptr (Self)),
-                              IDL_Result,
-                              Params,
-                              Mode,
-                              Contexts,
-                              Exceptions);
+      if Check_Structure (Self, Dk_Operation) and
+        Check_Id (Self, Id) and
+        Check_Name (Self, Name) then
+         --  initialization of the object
+         OperationDef.Impl.Init (Obj,
+                                 IRObject.Impl.Object_Ptr (Obj),
+                                 Dk_Operation,
+                                 Id,
+                                 Name,
+                                 Version,
+                                 Container.Impl.To_Forward
+                                 (Container.Impl.Object_Ptr (Self)),
+                                 IDL_Result,
+                                 Params,
+                                 Mode,
+                                 Contexts,
+                                 Exceptions);
 
-      --  add it to the contents field of this container
-      Container.Impl.Append_To_Contents
-        (Container.Impl.Object_Ptr (Self),
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Container.Impl.Append_To_Contents
+           (Container.Impl.Object_Ptr (Self),
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
+      end if;
       --  activate it
       Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
                                            Result);
@@ -465,7 +476,10 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    is
       Result : CORBA.Repository_Root.Contained.Description;
       Desc : CORBA.Repository_Root.ValueDescription;
+      Obj : Portableserver.Servant;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Self.Base_Value,
+                                               Obj);
       Desc := (Name => Get_Name (Self),
                Id => Get_Id (Self),
                Is_Abstract => Self.Is_Abstract,
@@ -479,7 +493,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
                (Self.Abstract_Base_Values),
                Is_Truncatable => Self.Is_Truncatable,
                Base_Value => Get_Id (ValueDef.Impl.Object_Ptr
-                                     (ValueDef.Object_Of (Self.Base_Value))));
+                                     (Obj)));
       Result := (Kind => Get_Def_Kind (Self),
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
@@ -511,9 +525,14 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       package VMS renames IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
    begin
       if not ValueDef.Is_Nil (Self.Base_Value) then
-         Base_TC := ValueDef.Impl.Get_Type
-           (ValueDef.Impl.Object_Ptr
-            (ValueDef.Object_Of (Self.Base_Value)));
+         declare
+            Obj : Portableserver.Servant;
+         begin
+            Broca.Server_Tools.Reference_To_Servant (Self.Base_Value,
+                                                     Obj);
+            Base_TC := ValueDef.Impl.Get_Type
+              (ValueDef.Impl.Object_Ptr (Obj));
+         end;
       else
          Base_TC := CORBA.TC_Void;
       end if;

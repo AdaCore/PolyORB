@@ -591,6 +591,8 @@ package body Ada_Be.Idl2Ada.Skel is
       node : in Node_Id) is
       NK : constant Node_Kind
         := Kind (Node);
+      It   : Node_Iterator;
+      P_Node : Node_Id;
    begin
       pragma Assert ((NK = K_Interface)
                      or (NK = K_ValueType));
@@ -599,6 +601,14 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "end GIOP_Dispatch;");
       Divert (CU, Elaboration);
+
+      Init (It, Parents (Node));
+      while not Is_End (It) loop
+         Get_Next_Node (It, P_Node);
+         Add_With (CU,
+                   Ada_Full_Name (P_Node) & ".Skel",
+                   Elab_Control => Elaborate);
+      end loop;
 
       PL (CU, "PortableServer.Register_Skeleton");
       Put (CU, "  (CORBA.To_CORBA_String (");

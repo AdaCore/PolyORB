@@ -11,6 +11,9 @@ with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.SequenceDef.Skel;
 
+with Broca.Server_Tools;
+with PortableServer;
+
 package body CORBA.Repository_Root.SequenceDef.Impl is
 
    ----------------------
@@ -65,12 +68,14 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
+      Obj : Portableserver.Servant;
    begin
+      Broca.Server_Tools.Reference_To_Servant (Self.Element_Type_Def,
+                                               Obj);
       return IDLType.Impl.Get_Type
         (IDLType.Impl.To_IDLType
          (IRObject.Impl.Object_Ptr
-          (IDLType.Object_Of
-           (Self.Element_Type_Def))));
+          (Obj)));
    end get_element_type;
 
 
