@@ -35,7 +35,6 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 
 with Broca.Debug;
-with Broca.Opaque; use Broca.Opaque;
 
 package body Broca.CDR is
 
@@ -346,7 +345,7 @@ package body Broca.CDR is
       Data : in CORBA.TypeCode.Object) is
       Complex_Buffer : aliased Buffer_Type;
    begin
-      case CORBA.Typecode.Kind (Data) is
+      case CORBA.TypeCode.Kind (Data) is
          when Tk_Null =>
             Marshall (Buffer, CORBA.Unsigned_Long'(0));
          when Tk_Void =>

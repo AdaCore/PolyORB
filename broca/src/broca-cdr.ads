@@ -32,8 +32,8 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with Broca.Buffers;
-use Broca.Buffers;
+with Broca.Opaque; use Broca.Opaque;
+with Broca.Buffers; use Broca.Buffers;
 
 package Broca.CDR is
 
