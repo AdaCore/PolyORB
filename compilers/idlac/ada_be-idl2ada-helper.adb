@@ -1623,7 +1623,7 @@ package body Ada_Be.Idl2Ada.Helper is
          II (CU);
          if Kind (Node) = K_Struct then
             PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object "
-                & "(PolyORB.any.TypeCode.TC_Struct);");
+                & "(PolyORB.Any.TypeCode.TC_Struct);");
          else
             PL (CU, "CORBA.TypeCode.Internals.To_CORBA_Object ("
                 & "PolyORB.Any.TypeCode.TC_Except);");
