@@ -1,34 +1,49 @@
+--  User Defined Libraries
 with Prime_2;
-with Alarm;
+with Results;
+with Common; use Common;
+
 package body Prime_1 is
 
-   package Next_Pool renames Prime_2;
+   --  Local Prime Table stuff
+   type Prime_Index is range 0 .. 10;
+   Local_Prime_Table   : array (Prime_Index) of Natural;
 
-   Last    : Natural  := 0;
-   Length  : constant := 10;
-   Table   : array (1 .. Length) of Natural;
+   Last_Prime_Index    : Prime_Index := 0;
+   Current_Prime_Index : Prime_Index := 1;
 
-   Current : Natural := 1;
-   Testing : Natural := 0;
+   Testing_Primarity_Number : Natural := 0;
 
-   procedure Test_Number (Number   : in  Natural) is
+   procedure Test_Primarity (Number : in  Natural) is
    begin
-      if Testing /= Number then
-         Testing := Number;
-         Current := 1;
+
+      if Testing_Primarity_Number /= Number then
+         Testing_Primarity_Number := Number;
+         Current_Prime_Index := 1;
       end if;
-      if Current <= Last then
-         if Number mod Table (Current) = 0 then
-            Alarm.Write (Table (Current), Prime_1'Partition_ID);
+
+      if Current_Prime_Index <= Last_Prime_Index then
+         if Number mod Local_Prime_Table (Current_Prime_Index) = 0 then
+
+            Results.Save
+              (Local_Prime_Table (Current_Prime_Index),
+               Prime_1'Partition_ID);
+
          else
-            Current := Current + 1;
-            Next_Pool.Test_Number (Number);
+
+            Current_Prime_Index := Current_Prime_Index + 1;
+            Prime_2.Test_Primarity (Number);
+
          end if;
       else
-         Last := Last + 1;
-         Table (Last) := Number;
-         Alarm.Write (Table (Current), Prime_1'Partition_ID);
+         Last_Prime_Index := Last_Prime_Index + 1;
+         Local_Prime_Table (Last_Prime_Index) := Number;
+
+         Results.Save
+           (Local_Prime_Table (Current_Prime_Index),
+            Prime_1'Partition_ID);
+
       end if;
-   end Test_Number;
-            
+   end Test_Primarity;
+
 end Prime_1;
