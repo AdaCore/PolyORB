@@ -10,7 +10,7 @@ alidir = $(includedir)/polyorb/corba/cos
 # 4. Compile the different executables
 #
 
-IMPL_SPEC_WITH_BODY= \
+IMPL_SPECS_WITH_BODY= \
   corba-repository_root-container-impl.ads \
   corba-repository_root-irobject-impl.ads \
   corba-repository_root-contained-impl.ads \
@@ -125,13 +125,12 @@ GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 
 GEN= \
 	$(GEN_SPECS_NO_BODY) \
-	$(GEN_SPECS_WITH_BODY) \
-	$(GEN_BODIES)
+	$(GEN_SPECS_WITH_BODY)
 
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl
 	@chmod +x $(srcdir)/typecode.sh
-	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN)
+	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
 
 DISTCLEANFILES += ${GEN}
 
@@ -140,7 +139,7 @@ DISTCLEANFILES += ${GEN}
 #
 
 ADA_SPECS_WITH_BODY = \
-	$(IMPL_SPEC_WITH_BODY) \
+	$(IMPL_SPECS_WITH_BODY) \
 	$(GEN_SPECS_WITH_BODY)
 
 ADA_SPECS_NO_BODY = \
