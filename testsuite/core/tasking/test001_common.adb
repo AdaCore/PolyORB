@@ -35,10 +35,6 @@
 
 with PolyORB.Utils.Report;
 
-with PolyORB.Setup.Tasking.Full_Tasking;
-pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
-pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
-
 with PolyORB.Tasking.Threads;
 
 with System;
@@ -113,8 +109,9 @@ package body Test001_Common is
    procedure Test_Task_Creation
      (Nb_Of_Tasks : Natural := 1000) is
    begin
-      New_Test ("Generate test with"
-                & Natural'Image (Nb_Of_Tasks) & " tasks");
+      New_Test ("Create "
+                & Natural'Image (Nb_Of_Tasks)
+                & " tasks");
 
       for J in 1 .. Nb_Of_Tasks loop
          declare
@@ -148,7 +145,11 @@ package body Test001_Common is
          R  => R2'Access,
          C  => C);
    begin
+      New_Test ("Task priority manipulation");
+
+      Output ("Wait a while", True);
       delay 1.0;
+
       --  It is required to wait some time before modifying the priority.
 
       Set_Priority (My_Thread_Factory, Get_Thread_Id (T), P_In);
