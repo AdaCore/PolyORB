@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---              S Y S T E M . G A R L I C . P A R T I T I O N S             --
+--             S Y S T E M . G A R L I C . P A R T I T I O N S              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
