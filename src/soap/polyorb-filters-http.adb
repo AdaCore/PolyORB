@@ -359,9 +359,10 @@ package body PolyORB.Filters.HTTP is
                   Expect_Data (F, F.In_Buf, Buffer_Size);
 
                when 0 =>
-                  --  All expected data was received, signal upper.
-                  --  XXX
-                  raise PolyORB.Not_Implemented;
+                  --  All expected data was received, upper layer
+                  --  has been notified (see calls to Message_Complete
+                  --  above).
+                  null;
 
                when others =>
                   Expect_Data
@@ -842,6 +843,11 @@ package body PolyORB.Filters.HTTP is
          PolyORB.Utils.Text_Buffers.Marshall_String
            (F.Message_Buf, S);
          Rewind (F.Message_Buf);
+         if F.Request_URI /= null then
+            Emit_No_Reply
+              (F.Upper, Set_Target_Object'
+               (Target => To_PolyORB_String (F.Request_URI.all)));
+         end if;
          Emit_No_Reply
            (F.Upper, Data_Indication'(Data_Amount => S'Length));
       end;

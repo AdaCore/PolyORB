@@ -32,14 +32,18 @@
 
 --  $Id$
 
---  with SOAP.Message;
+with SOAP.Message;
 with SOAP.Message.XML;
 with SOAP.Message.Payload;
 with SOAP.Message.Response;
 
+with PolyORB.Binding_Data;
+with PolyORB.Binding_Data.Local;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Objects;
+with PolyORB.References;
 with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Protocols.SOAP  is
@@ -100,15 +104,58 @@ package body PolyORB.Protocols.SOAP  is
       pragma Debug (O ("SOAP entity received: " & Entity));
       if S.Role = Server then
          declare
+            use Ada.Streams;
+            use PolyORB.Binding_Data.Local;
+            use PolyORB.Types;
+
             M : constant Standard.SOAP.Message.Payload.Object
               := Standard.SOAP.Message.XML.Load_Payload (Entity);
+            Req : Request_Access;
+
+            Result : Any.NamedValue;
+            --  Dummy NamedValue for Create_Request; the actual Result
+            --  is set by the called method.
+
+            ORB : constant ORB_Access := ORB_Access (S.Server);
+
+            Target_URI : constant String
+              := To_Standard_String (S.Target);
+            Target_Oid : Objects.Object_Id (1 .. Target_URI'Length);
+            --  XXX URLdecode?????
+
+            Target : PolyORB.References.Ref;
+            Target_Profile : Binding_Data.Profile_Access
+              := new Local_Profile_Type;
+            --  Should be free'd when Target is finalized.
+
          begin
-            pragma Warnings (Off, M);
-            --  XXX not referenced.
-            --  Queue_Request (To_Request (M));
-            pragma Debug (O ("SOAP entity parsed: "
-                             & Standard.SOAP.Message.XML.Image (M)));
-            raise Not_Implemented;
+            for I in Target_URI'Range loop
+               Target_Oid (Stream_Element_Offset (I))
+                 := Character'Pos (Target_URI (I));
+            end loop;
+
+            Create_Local_Profile
+              (Target_Oid, Local_Profile_Type (Target_Profile.all));
+            PolyORB.References.Create_Reference
+              ((1 => Target_Profile),
+               Type_Id => "", R => Target);
+            --  Create a temporary, typeless reference for this object.
+
+            Create_Request
+              (Target    => Target,
+               Operation => Standard.SOAP.Message.Payload.Procedure_Name (M),
+               Arg_List  => PolyORB.Any.NVList.Ref
+               (Standard.SOAP.Message.Parameters (M)),
+               Result    => Result,
+               Deferred_Arguments_Session => null,
+               Req       => Req);
+            S.Target := PolyORB.Types.To_PolyORB_String ("");
+
+            PolyORB.ORB.Queue_Request_To_Handler
+              (ORB.Tasking_Policy, ORB,
+               PolyORB.ORB.Interface.Queue_Request'
+               (Request => Req,
+                Requestor => PolyORB.Components.Component_Access (S)));
          end;
       else
          declare
@@ -144,5 +191,21 @@ package body PolyORB.Protocols.SOAP  is
    begin
       raise PolyORB.Not_Implemented;
    end Handle_Disconnect;
+
+   function Handle_Message
+     (Sess : access SOAP_Session;
+      S : Components.Message'Class)
+     return Components.Message'Class
+   is
+      Result : Components.Null_Message;
+   begin
+      if S in Set_Target_Object then
+         Sess.Target := Set_Target_Object (S).Target;
+         return Result;
+      else
+         return PolyORB.Protocols.Handle_Message
+           (PolyORB.Protocols.Session (Sess.all)'Access, S);
+      end if;
+   end Handle_Message;
 
 end PolyORB.Protocols.SOAP;

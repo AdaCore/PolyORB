@@ -34,6 +34,7 @@
 
 with PolyORB.Buffers;
 with PolyORB.ORB;
+with PolyORB.Types;
 
 package PolyORB.Protocols.SOAP is
 
@@ -75,7 +76,13 @@ private
 
    type SOAP_Session is new Session with record
       In_Buf : PolyORB.Buffers.Buffer_Access;
-      Role : PolyORB.ORB.Endpoint_Role;
+      Role   : PolyORB.ORB.Endpoint_Role;
+      Target : PolyORB.Types.String;
    end record;
+
+   function Handle_Message
+     (Sess : access SOAP_Session;
+      S : Components.Message'Class)
+     return Components.Message'Class;
 
 end PolyORB.Protocols.SOAP;

@@ -38,6 +38,7 @@ with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Types;
 
 package PolyORB.Filters.Interface is
 
@@ -66,6 +67,14 @@ package PolyORB.Filters.Interface is
    --  Direction: from lower to upper.
    --  Semantics: inform stacks participants of the ORB
    --  component they are working for.
+
+   type Set_Target_Object is new Root_Data_Unit with record
+      Target : PolyORB.Types.String;
+   end record;
+   --  Direction: from lower to upper.
+   --  Semantics: a lower layer has determined what application
+   --  object a specific message is destined to, and informs
+   --  the upper layer.
 
    type Set_Buffer is new Root_Data_Unit with record
       Buffer : Buffer_Access;

@@ -35,9 +35,7 @@ with PolyORB.Any.NVList;
 
 package SOAP.Parameters is
 
-   type List is private;
-
-   procedure Create (L : out List);
+   type List is new PolyORB.Any.NVList.Ref with private;
 
    function Argument_Count (P : in List) return Natural;
    --  Returns the number of parameters in P.
