@@ -314,13 +314,19 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
   body += "                 return Corba.Boolean is\n";
   body += "   begin\n";
   body += "      return (Repository_Id = Repo_Id";
-  for(int i = 0; i < n_inherits(); i++)
-    {
-      inher = adabe_interface::narrow_from_decl(inherits()[i]);
-      body += "\n              or ";
-      body += inher->get_ada_full_name();
-      body += ".Is_A(Repo_Id)";
-    }
+  if (n_inherits()==0) {
+    // if there is no specified inheritance,
+    // it means that we inherit from Corba.Object.Ref
+      body += "\n              or Corba.Object.Is_A(Repo_Id)";
+  } else {
+    for(int i = 0; i < n_inherits(); i++)
+      {
+	inher = adabe_interface::narrow_from_decl(inherits()[i]);
+	body += "\n              or ";
+	body += inher->get_ada_full_name();
+	body += ".Is_A(Repo_Id)";
+      }
+  }
   body += ");\n";
   body += "   end ;\n\n\n";    
   body += "   -- Get_Nil_Ref\n" ;
