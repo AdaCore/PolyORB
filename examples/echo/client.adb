@@ -17,14 +17,15 @@ with Echo ;
 
 
 procedure Client is
-
+   -- Initialisation of The ORB
    Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
+
+   -- Initialisation of the BOA
    Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
 
    myecho : Echo.Ref ;
-
 
 begin
 

@@ -2,7 +2,7 @@ with Echo.Skeleton ;
 with Corba ;
 
 
-package body Echo.Impl is 
+package body Echo.Impl is
 
 
    -----------------------
@@ -10,12 +10,9 @@ package body Echo.Impl is
    -----------------------
 
    function echoString(Self : access Object; mesg : in Corba.String) return Corba.String is
-   begin 
-return mesg ;
+   begin
+      return mesg ;
    end ;
-
-
-
 
 
    -----------------------------------------------------------
@@ -41,7 +38,7 @@ return mesg ;
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
 
    end Adjust ;
@@ -53,7 +50,7 @@ return mesg ;
    begin
 
       -- You can add things *BEFORE* this line
-   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
    end Finalize ;
 
 
