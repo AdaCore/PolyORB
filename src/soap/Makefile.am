@@ -10,6 +10,7 @@ GPERF_LIBADD = $(GPERF_C:.c=.lo)
 
 ADA_SPECS_WITH_BODY = \
 	$(GPERF_SPECS) \
+	polyorb-binding_data-soap.ads \
 	polyorb-filters-http.ads \
 	polyorb-protocols-soap_pr.ads \
 	aws-mime.ads \
@@ -42,7 +43,10 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 
-ADAFLAGS = $(GNATFLAGS) -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(XMLADA_INCLUDE)
+ADAFLAGS = $(GNATFLAGS) -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
+	-I$(srcdir)/../corba $(XMLADA_INCLUDE)
+# XXX CORBA included temporarily because of dep of P.Binding_Data.SOAP on
+# P.Representations.CDR.
 
 ADACOMPILER = ../../support/adacompiler
 
