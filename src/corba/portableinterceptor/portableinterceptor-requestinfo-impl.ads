@@ -38,6 +38,7 @@
 
 with CORBA.Local;
 with Dynamic;
+with Messaging;
 with PolyORB.Requests;
 
 package PortableInterceptor.RequestInfo.Impl is
@@ -78,9 +79,9 @@ package PortableInterceptor.RequestInfo.Impl is
      (Self : access Object)
       return CORBA.Boolean;
 
---   function Get_Sync_Scope
---     (Self : access Object)
---      return Messaging.SyncScope;
+   function Get_Sync_Scope
+     (Self : access Object)
+      return Messaging.SyncScope;
 
    function Get_Reply_Status
      (Self : access Object)

@@ -287,22 +287,22 @@ package body PortableInterceptor.RequestInfo is
       return Impl.Get_Slot (Impl.Object_Ptr (Entity_Of (Self)), Id);
    end Get_Slot;
 
---   --------------------
---   -- Get_Sync_Scope --
---   --------------------
---
---   function Get_Sync_Scope
---     (Self : in Local_Ref)
---      return Messaging.SyncScope
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return Impl.Get_Sync_Scope (Impl.Object_Ptr (Entity_Of (Self)));
---   end Get_Sync_Scope;
+   --------------------
+   -- Get_Sync_Scope --
+   --------------------
+
+   function Get_Sync_Scope
+     (Self : in Local_Ref)
+      return Messaging.SyncScope
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return Impl.Get_Sync_Scope (Impl.Object_Ptr (Entity_Of (Self)));
+   end Get_Sync_Scope;
 
 end PortableInterceptor.RequestInfo;

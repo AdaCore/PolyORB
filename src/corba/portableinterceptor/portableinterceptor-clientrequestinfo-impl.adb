@@ -259,6 +259,25 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
               (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Result;
 
+   --------------------
+   -- Get_Sync_Scope --
+   --------------------
+
+   function Get_Sync_Scope
+     (Self : access Object)
+      return Messaging.SyncScope
+   is
+   begin
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return RequestInfo.Impl.Get_Sync_Scope
+              (RequestInfo.Impl.Object (Self.all)'Access);
+   end Get_Sync_Scope;
+
    ----------------
    -- Get_Target --
    ----------------
@@ -329,10 +348,6 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
 --     (Self            : access Object;
 --      Service_Context : in     IOP.ServiceContext;
 --      Replace         : in     CORBA.Boolean);
---
---   function Get_Sync_Scope
---     (Self : access Object)
---      return Messaging.SyncScope;
 --
 --   function Get_Request_Service_Context
 --     (Self : access Object;

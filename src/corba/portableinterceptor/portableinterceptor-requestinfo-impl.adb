@@ -268,6 +268,22 @@ package body PortableInterceptor.RequestInfo.Impl is
       return Get_Slot (Note, Id);
    end Get_Slot;
 
+   --------------------
+   -- Get_Sync_Scope --
+   --------------------
+
+   function Get_Sync_Scope
+     (Self : access Object)
+      return Messaging.SyncScope
+   is
+      pragma Unreferenced (Self);
+
+      Result : Messaging.SyncScope;
+   begin
+      raise PolyORB.Not_Implemented;
+      return Result;
+   end Get_Sync_Scope;
+
    ----------
    -- Is_A --
    ----------
@@ -287,10 +303,6 @@ package body PortableInterceptor.RequestInfo.Impl is
            "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
 
---   function Get_Sync_Scope
---     (Self : access Object)
---      return Messaging.SyncScope;
---
 --   function Get_Request_Service_Context
 --     (Self : access Object;
 --      Id   : in     IOP.ServiceId)

@@ -38,6 +38,7 @@
 
 with CORBA.Object;
 with Dynamic;
+with Messaging;
 
 package PortableInterceptor.RequestInfo is
 
@@ -75,9 +76,9 @@ package PortableInterceptor.RequestInfo is
      (Self : in Local_Ref)
       return CORBA.Boolean;
 
---   function Get_Sync_Scope
---     (Self : in Local_Ref)
---      return Messaging.SyncScope;
+   function Get_Sync_Scope
+     (Self : in Local_Ref)
+      return Messaging.SyncScope;
 
    function Get_Reply_Status
      (Self : in Local_Ref)

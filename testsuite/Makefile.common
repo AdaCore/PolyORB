@@ -16,7 +16,7 @@ time_inc=-I$(top_srcdir)/cos/time -I$(top_builddir)/cos/time \
 event_inc=-I$(top_srcdir)/cos/event -I$(top_builddir)/cos/event \
            -I$(top_builddir)/idls/cos/event
 
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba $(naming_inc) $(time_inc) $(event_inc) -I$(top_srcdir)/src/corba/portableinterceptor -I$(top_builddir)/src/corba/portableinterceptor -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba $(naming_inc) $(time_inc) $(event_inc) -I$(top_srcdir)/src/corba/messaging -I$(top_builddir)/src/corba/messaging -I$(top_srcdir)/src/corba/portableinterceptor -I$(top_builddir)/src/corba/portableinterceptor -I$(top_srcdir)/src/corba/rtcorba -I$(top_builddir)/src/corba/rtcorba
 giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
 moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
 soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
