@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -199,7 +199,7 @@ package body CosNaming.NamingContext.Impl is
       BT  : in BindingType;
       Obj : in CORBA.Object.Ref)
    is
-      BO : Bound_Object_Ptr := new Bound_Object;
+      BO : constant Bound_Object_Ptr := new Bound_Object;
 
    begin
       Valid (NC, True);

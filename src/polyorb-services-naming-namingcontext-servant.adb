@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -853,7 +853,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       BT  : in BindingType;
       Obj : in PolyORB.References.Ref)
    is
-      BO : Bound_Object_Ptr := new Bound_Object;
+      BO : constant Bound_Object_Ptr := new Bound_Object;
 
    begin
       Valid (NC, True);

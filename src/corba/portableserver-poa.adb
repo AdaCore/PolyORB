@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#48 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#49 $
 
 with Ada.Exceptions;
 
@@ -472,7 +472,7 @@ package body PortableServer.POA is
       use PolyORB.CORBA_P.AdapterActivator;
       use PolyORB.POA_Types;
 
-      POA : PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
    begin
       if POA.Adapter_Activator /= null then
          Free (POA.Adapter_Activator);

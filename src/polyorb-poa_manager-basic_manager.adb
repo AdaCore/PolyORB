@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -530,7 +530,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
       use Requests_Queue_P;
 
-      S            : Hold_Servant_Access := Hold_Servant_Access (Obj);
+      S            : constant Hold_Servant_Access := Hold_Servant_Access (Obj);
       Null_Message : PolyORB.Components.Null_Message;
 
    begin

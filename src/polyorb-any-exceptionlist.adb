@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -86,7 +86,7 @@ package body PolyORB.Any.ExceptionList is
      (Self : in Ref;
       Exc  : in PolyORB.Any.TypeCode.Object)
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       Exception_Sequences.Append (Obj.List, Exc);
    end Add;
@@ -113,7 +113,7 @@ package body PolyORB.Any.ExceptionList is
      (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
    is
-      Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       Exception_Sequences.Delete (Obj.List, Positive (Index), 1);
    end Remove;

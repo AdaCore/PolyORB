@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,7 +43,7 @@ package body PolyORB.CORBA_P.AdapterActivator is
      (Self :    out PPT.AdapterActivator_Access;
       AA   : access PortableServer.AdapterActivator.Ref'Class)
    is
-      Activator : Object_Ptr := new Object;
+      Activator : constant Object_Ptr := new Object;
 
    begin
       Self := new CORBA_AdapterActivator;

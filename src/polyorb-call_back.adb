@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,7 +65,7 @@ package body PolyORB.Call_Back is
 
       if S in Executed_Request then
          declare
-            Req : Request_Access
+            Req : constant Request_Access
               := Executed_Request (S).Req;
          begin
             pragma Debug (O (Requests.Image (Req.all)));

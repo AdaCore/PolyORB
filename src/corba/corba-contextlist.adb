@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,7 +69,7 @@ package body CORBA.ContextList is
      (Self : in Ref;
       Exc : in CORBA.String)
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
       Context_Sequence.Append (Obj.List, Exc);
    end Add;
@@ -96,7 +96,7 @@ package body CORBA.ContextList is
      (Self : in Ref;
       Index : in CORBA.Unsigned_Long)
    is
-      Obj : Object_Ptr := Object_Ptr (Object_Of (Self));
+      Obj : constant Object_Ptr := Object_Ptr (Object_Of (Self));
    begin
       Context_Sequence.Delete (Obj.List, Positive (Index), 1);
    end Remove;

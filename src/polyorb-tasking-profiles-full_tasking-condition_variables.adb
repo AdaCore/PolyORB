@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -152,7 +152,8 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
       --  XXX The use of Name is not yet implemented
       pragma Warnings (On);
 
-      C : Full_Tasking_Condition_Access := new Full_Tasking_Condition_Type;
+      C : constant Full_Tasking_Condition_Access
+        := new Full_Tasking_Condition_Type;
 
    begin
       pragma Debug (O ("Create"));

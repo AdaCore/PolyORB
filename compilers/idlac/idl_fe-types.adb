@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#10 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-types.adb#11 $
 
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
@@ -149,7 +149,8 @@ package body Idl_Fe.Types is
 
    function Duplicate (C : in Constant_Value_Ptr)
                        return Constant_Value_Ptr is
-      Result : Constant_Value_Ptr := new Constant_Value (Kind => C.Kind);
+      Result : constant Constant_Value_Ptr
+        := new Constant_Value (Kind => C.Kind);
    begin
       case C.Kind is
          when C_Octet

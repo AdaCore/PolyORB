@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -65,7 +65,7 @@ package body PolyORB.Utils.Random is
    ------------
 
    function Random (G : in Generator) return PolyORB.Types.Unsigned_Long is
-      Gen_State : State_Access := G.Gen_State'Unrestricted_Access;
+      Gen_State : constant State_Access := G.Gen_State'Unrestricted_Access;
       S : Unsigned_Long;
 
    begin
@@ -126,7 +126,7 @@ package body PolyORB.Utils.Random is
    -----------
 
    procedure Reset (G : in Generator; Seed : in Seed_Type := Default_Seed) is
-      Gen_State : State_Access := G.Gen_State'Unrestricted_Access;
+      Gen_State : constant State_Access := G.Gen_State'Unrestricted_Access;
 
    begin
       Gen_State.Seed := Seed;

@@ -317,7 +317,7 @@ package body PolyORB.References.Binding is
 
                if Delete then
                   declare
-                     New_Array : Profile_Array_Access :=
+                     New_Array : constant Profile_Array_Access :=
                        new Profile_Array (Profiles'First .. Profiles'Last - 1);
                   begin
                      New_Array (New_Array'First .. New_Array'First + J - 1)
@@ -398,7 +398,7 @@ package body PolyORB.References.Binding is
                declare
                   Profiles : Profile_Array renames
                     Reference_Info (Entity_Of (R).all).Profiles.all;
-                  New_Array : Profile_Array_Access :=
+                  New_Array : constant Profile_Array_Access :=
                     new Profile_Array (Profiles'First .. Profiles'Last + 1);
                begin
                   New_Array (New_Array'First .. New_Array'Last - 1)

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -147,7 +147,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Unreferenced (TF);
       pragma Warnings (On);
 
-      T : Full_Tasking_Thread_Access
+      T : constant Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
       GT : Generic_Task_Access;
    begin
