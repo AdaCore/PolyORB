@@ -467,7 +467,6 @@ package body CORBA.Repository_Root.Container.Impl is
       return CORBA.Repository_Root.Contained.Ref
    is
       Result_Obj : Contained.Impl.Object_Ptr := null;
-      Result : CORBA.Repository_Root.Contained.Ref;
       use Contained.Impl;
       use Ada.Strings.Unbounded;
    begin
@@ -497,15 +496,12 @@ package body CORBA.Repository_Root.Container.Impl is
 
       --  return a nil_ref if not found
       if Result_Obj = null then
-         Contained.Set (Result,
-                        CORBA.Impl.Object_Ptr (Result_Obj));
-         return Result;
+         return (CORBA.Object.Nil_Ref with null record);
       end if;
 
-      --  create the ref
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Result_Obj),
-                                           Result);
-      return Result;
+      return Contained.Convert_Forward.To_Ref
+        (Contained.Impl.To_Forward (Result_Obj));
+
    end lookup;
 
 
@@ -849,10 +845,11 @@ package body CORBA.Repository_Root.Container.Impl is
       begin
          for I in Cont_Array'Range loop
             Des := Contained.Impl.Describe (Cont_Array (I));
+
             --  get a reference of the object
-            Broca.Server_Tools.Initiate_Servant
-              (PortableServer.Servant (Cont_Array (I)),
-               Ref);
+            Ref := Contained.Convert_Forward.To_Ref
+              (Contained.Impl.To_Forward (Cont_Array (I)));
+
             --  Create the container.description ...
             Res_Des := (Contained_Object => Ref,
                         Kind => Des.Kind,

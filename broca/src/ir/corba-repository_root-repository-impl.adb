@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.Object;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
@@ -78,7 +79,6 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.Contained.Ref
    is
       Result_Object : Contained.Impl.Object_Ptr;
-      Result_Ref : Contained.Ref;
       use Contained.Impl;
    begin
       Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
@@ -87,17 +87,12 @@ package body CORBA.Repository_Root.Repository.Impl is
 
       --  return a nil_ref if not found
       if Result_Object = null then
-         Contained.Set (Result_Ref,
-                        CORBA.Impl.Object_Ptr (Result_Object));
-         return Result_Ref;
-       end if;
+         return (CORBA.Object.Nil_Ref with null record);
+      end if;
 
-      --  create the ref
-      Broca.Server_Tools.Initiate_Servant
-        (PortableServer.Servant (Result_Object),
-         Result_Ref);
+      return Contained.Convert_Forward.To_Ref
+        (Contained.Impl.To_Forward (Result_Object));
 
-      return Result_Ref;
    end lookup_id;
 
 
