@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . G I O P _ P . T A G G E D _ C O M P O N E N T S     --
+--     P O L Y O R B . G I O P _ P . T A G G E D _ C O M P O N E N T S      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,9 +34,10 @@
 --  Implementation of CORBA IOR Tagged components
 
 with Ada.Streams;
-with PolyORB.Types;
-with PolyORB.Sequences.Unbounded;
+
 with PolyORB.Buffers;
+with PolyORB.Sequences.Unbounded;
+with PolyORB.Types;
 
 package PolyORB.GIOP_P.Tagged_Components is
 
@@ -51,6 +52,7 @@ package PolyORB.GIOP_P.Tagged_Components is
    type Tagged_Component is abstract tagged record
       Tag : Types.Unsigned_Long := Types.Unsigned_Long'Last;
    end record;
+
    type Tagged_Component_Access is access all Tagged_Component'Class;
 
    procedure Marshall
@@ -73,9 +75,9 @@ package PolyORB.GIOP_P.Tagged_Components is
       is abstract;
    --  free memory associate with component
 
-   ----------------------------
-   --  Tagged_Component_List --
-   ----------------------------
+   ---------------------------
+   -- Tagged_Component_List --
+   ---------------------------
 
    type Tagged_Component_List is private;
 
@@ -113,15 +115,15 @@ package PolyORB.GIOP_P.Tagged_Components is
       F   : New_Component_Func_Access);
 
    -----------------------
-   -- Unkowon Component --
+   -- Unknown Component --
    -----------------------
 
    type Octet_Access is access all Ada.Streams.Stream_Element_Array;
 
-   type Unknown_Component
-   is new Tagged_Component with record
+   type Unknown_Component is new Tagged_Component with record
       Data : Octet_Access;
    end record;
+
    type Unknown_Component_Access is access all Unknown_Component'Class;
 
    procedure Marshall
@@ -141,12 +143,12 @@ package PolyORB.GIOP_P.Tagged_Components is
 
 private
 
-   package Component_Seq
-   is new PolyORB.Sequences.Unbounded (Tagged_Component_Access);
+   package Component_Seq is new
+     PolyORB.Sequences.Unbounded (Tagged_Component_Access);
 
    type Tagged_Component_List is new Component_Seq.Sequence;
 
-   Null_Tagged_Component_List : constant Tagged_Component_List
-     := Tagged_Component_List (Component_Seq.Null_Sequence);
+   Null_Tagged_Component_List : constant Tagged_Component_List :=
+     Tagged_Component_List (Component_Seq.Null_Sequence);
 
 end PolyORB.GIOP_P.Tagged_Components;
