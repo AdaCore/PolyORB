@@ -45,6 +45,7 @@ with Sem_Ch8;     use Sem_Ch8;
 with Sem_Dist;    use Sem_Dist;
 with Sem_Util;    use Sem_Util;
 with Sinfo;       use Sinfo;
+with Sinput;      use Sinput;
 with Snames;      use Snames;
 with Stand;       use Stand;
 with Stringt;     use Stringt;
@@ -390,6 +391,14 @@ package body Exp_Dist is
    --           Raise_Exception (Program_Error'Identity,
    --                            Exception_Message (E));
    --    end R;
+
+   procedure Get_Subprogram_Name
+     (Def : Entity_Id);
+   --  Fill the name buffer with the non-qualified name
+   --  of subprogram Def. If Def is a defining identifier,
+   --  return the name as it appears in source code; if
+   --  Def is a defining operator name, return the same
+   --  result as Get_Name_String.
 
    ------------------------------------
    -- Local variables and structures --
@@ -1968,6 +1977,7 @@ package body Exp_Dist is
 --                          Actuals))));
 
             declare
+               Subp_Val : Node_Id;
                Case_Stmts : List_Id;
             begin
                Case_Stmts := New_List (
@@ -2003,6 +2013,8 @@ package body Exp_Dist is
                Get_Name_String (Chars (
                  Defining_Unit_Name (Specification (
                    Current_Declaration))));
+               Subp_Val := Make_String_Literal (Loc,
+                 Strval => String_From_Name_Buffer);
 
                Append_To (Pkg_RPC_Receiver_Cases,
                  Make_If_Statement (Loc,
@@ -2012,8 +2024,7 @@ package body Exp_Dist is
                          New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
                        Parameter_Associations => New_List (
                          New_Occurrence_Of (Subp_Id, Loc),
-                         Make_String_Literal (Loc,
-                           Strval => String_From_Name_Buffer))),
+                         Subp_Val)),
                    Then_Statements =>
                      Case_Stmts));
             end;
@@ -2312,6 +2323,9 @@ package body Exp_Dist is
       Request : Node_Id;
       --  The request object constructed by these stubs.
 
+      Subp_Id : Node_Id;
+      --  The subprogram identifier passed to Request_Create.
+
       Result : Node_Id;
       --  Name of the result named value (in non-APC cases) which get the
       --  result of the remote subprogram.
@@ -2584,8 +2598,22 @@ package body Exp_Dist is
       --  Append the formal statements list to the statements
 
       Append_List_To (Statements, Extra_Formal_Statements);
-      Start_String;
-      Get_Name_String (Chars (Defining_Unit_Name (Spec)));
+
+      Get_Subprogram_Name (Defining_Unit_Name (Spec));
+      Subp_Id := Make_String_Literal (Loc,
+        Strval => String_From_Name_Buffer);
+      --  This was previously
+      --    Get_Name_String (Chars (Defining_Unit_Name (Spec)));
+      --  but although the DSA receiving stubs will make a caseless
+      --  comparison when receiving a call, the calling stubs
+      --  will create requests with the exact casing of the
+      --  defining unit name of the called subprogram, so
+      --  as to allow calls to subprograms on distributed
+      --  nodes that do distinguish between casings.
+
+      --  An alternative design would be to allow a representation
+      --  clause on subprogram specs:
+      --  for Subp'Distribution_Subprogram_Identifier use "fooBar";
 
       Append_To (Statements,
         Make_Procedure_Call_Statement (Loc,
@@ -2593,9 +2621,7 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Request_Create), Loc),
           Parameter_Associations => New_List (
             New_Occurrence_Of (Target_Parameter, Loc),
-            Make_String_Literal (Loc,
-              Strval => Get_String_Id
-                (Get_Name_String (Chars (Defining_Unit_Name (Spec))))),
+            Subp_Id,
             New_Occurrence_Of (Arguments, Loc),
             New_Occurrence_Of (Result, Loc),
             New_Occurrence_Of (RTE (RE_Nil_Exc_List), Loc))));
@@ -3929,6 +3955,29 @@ package body Exp_Dist is
       Store_String_Chars (Val);
       return End_String;
    end Get_String_Id;
+
+   -------------------------
+   -- Get_Subprogram_Name --
+   -------------------------
+
+   procedure Get_Subprogram_Name
+     (Def : Entity_Id)
+   is
+      Sdef : Source_Ptr := Sloc (Def);
+      Tdef : Source_Buffer_Ptr;
+   begin
+      Get_Name_String (Chars (Def));
+      if (not Comes_From_Source (Def))
+        or else Name_Buffer (Name_Buffer'First) = 'O'
+      then
+         return;
+      end if;
+
+      Tdef := Source_Text (Get_Source_File_Index (Sdef));
+      for J in 1 .. Name_Len loop
+         Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
+      end loop;
+   end Get_Subprogram_Name;
 
    ----------
    -- Hash --
