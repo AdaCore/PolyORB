@@ -1,0 +1,50 @@
+typedef sequence<octet, 18> Sweetcorn;
+typedef sequence<octet, 18> Onion[13];
+typedef sequence<sequence<float>> Shallots;
+typedef sequence<sequence<float>> Plum[15];
+typedef sequence<sequence<float>, 11> KidneyBean;
+typedef sequence<sequence<float>, 7> Zucchini[10];
+typedef sequence<sequence<float, 19>> ButterBean;
+typedef sequence<sequence<float, 12>> Avocado[6];
+interface idlServer {
+ exception SweetcornExcpt {
+ Sweetcorn ex1;
+ };
+ attribute Sweetcorn SweetcornAttr;
+ Sweetcorn SweetcornOp(in Sweetcorn p1, out Sweetcorn p2, inout Sweetcorn p3) raises (idlServer::SweetcornExcpt);
+ exception OnionExcpt {
+ Onion ex1;
+ };
+ attribute Onion OnionAttr;
+ Onion OnionOp(in Onion p1, out Onion p2, inout Onion p3) raises (idlServer::OnionExcpt);
+ exception ShallotsExcpt {
+ Shallots ex1;
+ };
+ attribute Shallots ShallotsAttr;
+ Shallots ShallotsOp(in Shallots p1, out Shallots p2, inout Shallots p3) raises (idlServer::ShallotsExcpt);
+ exception PlumExcpt {
+ Plum ex1;
+ };
+ attribute Plum PlumAttr;
+ Plum PlumOp(in Plum p1, out Plum p2, inout Plum p3) raises (idlServer::PlumExcpt);
+ exception KidneyBeanExcpt {
+ KidneyBean ex1;
+ };
+ attribute KidneyBean KidneyBeanAttr;
+ KidneyBean KidneyBeanOp(in KidneyBean p1, out KidneyBean p2, inout KidneyBean p3) raises (idlServer::KidneyBeanExcpt);
+ exception ZucchiniExcpt {
+ Zucchini ex1;
+ };
+ attribute Zucchini ZucchiniAttr;
+ Zucchini ZucchiniOp(in Zucchini p1, out Zucchini p2, inout Zucchini p3) raises (idlServer::ZucchiniExcpt);
+ exception ButterBeanExcpt {
+ ButterBean ex1;
+ };
+ attribute ButterBean ButterBeanAttr;
+ ButterBean ButterBeanOp(in ButterBean p1, out ButterBean p2, inout ButterBean p3) raises (idlServer::ButterBeanExcpt);
+ exception AvocadoExcpt {
+ Avocado ex1;
+ };
+ attribute Avocado AvocadoAttr;
+ Avocado AvocadoOp(in Avocado p1, out Avocado p2, inout Avocado p3) raises (idlServer::AvocadoExcpt);
+};
