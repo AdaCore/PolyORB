@@ -50,18 +50,8 @@ package body Egg.Proxies is
                                        Giop_Client: in out Giop_C.Object) is
       Result : Chicken.Ref ;
    begin
-      Output(True,"Egg.Proxies.Unmarshal_Returned_Values : start") ;
       Corba.Object.Unmarshall(Result, Giop_Client) ;
-      Output(True, "***********INITOK unmarshall 1 : "
-             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Result.Omniobj.all.Init_Ok))) ;
-      Output(True,"Egg.Proxies.Unmarshal_Returned_Values : chicken unmarshalled") ;
       Self.Private_Result := new Chicken.Ref'(Result) ;
-      Output(True, "***********INITOK unmarshall2 : "
-             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
-      Chicken.Finalize(Result) ;
-      Output(True, "***********INITOK unmarshall5 : "
-             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
-      Output(True,"Egg.Proxies.Unmarshal_Returned_Values : Exiting procedure : OK") ;
    end ;
 
 
@@ -69,9 +59,6 @@ package body Egg.Proxies is
    ---------
    function Get_Result (Self : in Hatch_Proxy) return Chicken_Forward.Ref is
    begin
-      Output(True,"Egg.Proxies.Get_Result") ;
-      Output(True, "***********INITOK get_result : "
-             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
       return Chicken.Convert_Forward.To_Forward(Self.Private_Result.all) ;
    end ;
 
@@ -80,12 +67,12 @@ package body Egg.Proxies is
    -----------
    procedure Finalize(Self : in out Hatch_Proxy) is
    begin
-      Output(True,"Egg.Proxies.Finalize : start") ;
       Chicken.Free(Self.Private_Result) ;
-      Output(True,"Egg.Proxies.Finalize : done") ;
    end ;
 
 
 
 end Egg.Proxies ;
+
+
 

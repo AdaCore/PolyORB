@@ -13,8 +13,10 @@ Egg_i *static_egg ;
 class Chicken_i : public virtual _sk_Chicken {
 public:
   Chicken_i() {
+    cerr << "CCCtor of Chicken_i" << endl ;
   };
   virtual ~Chicken_i() {
+    cerr << "DDDtor of Chicken_i" << endl ;
   };
   virtual Egg_ptr lay();
 };
@@ -22,8 +24,10 @@ public:
 class Egg_i : public virtual _sk_Egg {
 public:
   Egg_i() {
+    cerr << "CCCtor of Egg_i" << endl ;
   };
   virtual ~Egg_i() {
+    cerr << "DDDtor of Egg_i" << endl ;
   };
   virtual Chicken_ptr hatch();
 };

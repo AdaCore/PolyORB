@@ -21,16 +21,11 @@ procedure server is
    Myecho : Echo.Impl.Object ;
    Ior : Corba.String ;
 begin
-   Put_Line("main: starting server") ;
-
    Object_Is_Ready(Boa, Myecho) ;
-   Put_Line("main: Object is ready !") ;
 
    Ior := Object_To_String(Myecho) ;
    Put_Line("'" & To_Standard_String(Ior) & "'") ;
 
    Implementation_Is_Ready(Boa) ;
-
-   Put_Line("I Should not print that !!!") ;
 
 end ;

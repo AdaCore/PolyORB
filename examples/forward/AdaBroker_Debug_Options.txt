@@ -6,13 +6,13 @@
 
 # for package Corba.Orb
 #corba.orb
-corba.object
-corba.object:finalization
+#corba.object
+#corba.object:finalization
 #echo
 #omniproxycallwrapper
 #giop_c
-echo.impl
-omniobject
-echo.skeleton
-echo.proxies
-corba.forward
+#echo.impl
+#omniobject
+#echo.skeleton
+#echo.proxies
+#corba.forward

@@ -45,13 +45,9 @@ package body Egg is
       Opcd : Egg.Proxies.Hatch_Proxy ;
       Result : Chicken_Forward.Ref ;
    begin
-      Output(True,"Egg.Hatch : start") ;
       Egg.Proxies.Init(Opcd) ;
-      Output(True,"Egg.Hatch : init OK") ;
       Omniproxycallwrapper.Invoke(Self, Opcd) ;
-      Output(True,"Egg.Hatch : invoked OK") ;
       Result :=  Egg.Proxies.Get_Result(Opcd) ;
-      Output(True,"Egg.Hatch : Got the result") ;
       return Result ;
    end ;
 

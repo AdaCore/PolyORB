@@ -28,9 +28,6 @@ procedure Client is
 
 begin
 
-   Put_Line("main : Starting client") ;
-
-
    if Ada.Command_Line.Argument_Count < 1 then
       Put_Line ("usage : client <IOR_string_from_server>") ;
       return ;
@@ -41,16 +38,12 @@ begin
 
    -- getting the Corba.Object
    Corba.Orb.String_To_Object(IOR, myecho) ;
-   Put_Line("main : Got the Corba.Object") ;
 
    -- checking if it worked
    if Echo.Is_Nil(myecho) then
       Put_Line("main : cannot invoke on a nil reference") ;
       return ;
    end if ;
-   Put_Line("main : Ok : Corba.Object is not nil") ;
-
-   Put_Line(Corba.To_Standard_String(Corba.Orb.Object_To_String(Myecho))) ;
 
    -- sending message
    Sent_Msg := Corba.To_Corba_String("Hello Ada !") ;
