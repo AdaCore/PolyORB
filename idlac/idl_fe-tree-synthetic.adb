@@ -100,7 +100,22 @@ package body Idl_Fe.Tree.Synthetic is
       end if;
    end Name;
 
+
    function Parent_Scope
+     (Node : in Node_Id)
+     return Node_Id
+   is
+      Override : constant Node_Id
+        := Parent_Scope_Override (Node);
+   begin
+      if Override /= No_Node then
+         return Override;
+      else
+         return Original_Parent_Scope (Node);
+      end if;
+   end Parent_Scope;
+
+   function Original_Parent_Scope
      (Node : in Node_Id)
      return Node_Id is
    begin
@@ -109,7 +124,14 @@ package body Idl_Fe.Tree.Synthetic is
       else
          return No_Node;
       end if;
-   end Parent_Scope;
+   end Original_Parent_Scope;
+
+   procedure Set_Parent_Scope
+     (Node : in Node_Id;
+      To : in Node_Id) is
+   begin
+      Set_Parent_Scope_Override (Node, To);
+   end Set_Parent_Scope;
 
    function Idl_Repository_Id
      (Node : in Node_Id)

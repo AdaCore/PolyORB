@@ -252,116 +252,127 @@ package Idl_Fe.Types is
    --  corresponding forward declaration from the list.
    procedure Add_Int_Val_Definition (Node : in Node_Id);
 
-   ----------------------------
-   --  identifiers handling  --
-   ----------------------------
+   --------------------------
+   -- Identifiers handling --
+   --------------------------
 
-   --  Check if the name is redefinable in the current scope
-   --  If result is false, means that find_identifier_definition
-   --  has a NOT NULL result!
    function Is_Redefinable (Name : String) return Boolean;
+   --  Check if the name is redefinable in the current scope.
+   --  If result is false, means that Find_Identifier_Definition
+   --  has a NOT NULL result!
 
+   function Check_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id;
    --  Check if the  uniq_id from an identifier is already defined
    --  return it or Nil_Uniq_Id
-   function Check_Identifier_Index (Identifier : String) return Uniq_Id;
 
+   function Create_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id;
    --  Create the uniq_id entry for an identifier if it doesn't exist
    --  return it
-   function Create_Identifier_Index (Identifier : String) return Uniq_Id;
 
+   function Find_Identifier_Definition
+     (Name : String)
+     return Identifier_Definition_Acc;
    --  Find the current identifier definition.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_Definition (Name : String)
-                                        return Identifier_Definition_Acc;
 
+   function Find_Identifier_Node (Name : String) return Node_Id;
    --  Find the node corresponding to the current identifier.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_Node (Name : String) return Node_Id;
 
 --   function Find_Identifier_Node (Scope : Node_Id; Name : String)
 --                                  return Node_Id;
 
 
-   --  Change the definition (associed node) of CELL.
-   --  only used in the case of a forward interface definition
    procedure Redefine_Identifier
      (A_Definition : Identifier_Definition_Acc;
       Node : Node_Id);
+   --  Change the definition (associed node) of CELL.
+   --  only used in the case of a forward interface definition
 
+   function Add_Identifier
+     (Node : Node_Id;
+      Name : String)
+     return Boolean;
    --  Creates an identifier definition for the current identifier
    --  and add it to the current scope.
    --  Node is the node where the identifier is defined.
-   --  Returns true if successfull, false if the identifier was
+   --  Returns true if successful, False if the identifier was
    --  already in this scope.
-   function Add_Identifier (Node : Node_Id;
-                            Name : String) return Boolean;
 
-
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the scope and return it or Nil_Uniq_Id
    function Check_Identifier_In_Storage
      (Scope : Node_Id;
       Identifier : String)
      return Uniq_Id;
+   --  Check if the  uniq_id from an identifier is already defined
+   --  in the scope and return it or Nil_Uniq_Id
 
-   --  Find the identifier definition in Scope.
-   --  If this identifier is not defined, returns a null pointer.
    function Find_Identifier_In_Storage
      (Scope : Node_Id; Name : String)
      return Identifier_Definition_Acc;
+   --  Find the identifier definition in Scope.
+   --  If this identifier is not defined, returns a null pointer.
 
-   --  Create the uniq_id entry for an identifier in the storage table
-   --  at the end of the scope parsing
-   --  return it
    function Create_Identifier_In_Storage
      (Identifier : String)
      return Uniq_Id;
+   --  Create the uniq_id entry for an identifier in the storage table
+   --  at the end of the scope parsing
+   --  return it
 
-   --  add the definition to the current scope storage table.
-   --  It is done at the end of the scope parsing (called by pop_scope)
    procedure Add_Definition_To_Storage
      (Definition : in Identifier_Definition_Acc);
+   --  Add the definition to the current scope storage table.
+   --  It is done at the end of the scope parsing (called by pop_scope)
 
+   function Check_Imported_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id;
    --  Check if the  uniq_id from an identifier is already defined
    --  in the imported table.
    --  return it or Nil_Uniq_Id
-   function Check_Imported_Identifier_Index (Identifier : String)
-                                             return Uniq_Id;
 
+   function Find_Imported_Identifier_Definition
+     (Name : String)
+     return Identifier_Definition_Acc;
    --  Find the identifier definition in the imported table.
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Imported_Identifier_Definition (Name : String)
-                                          return Identifier_Definition_Acc;
 
+   function Create_Identifier_In_Imported
+     (Identifier : String;
+      Scope : Node_Id)
+     return Uniq_Id;
    --  Create the uniq_id entry for an identifier in the imported table of
    --  the given scope
    --  return it
-   function Create_Identifier_In_Imported (Identifier : String;
-                                           Scope : Node_Id)
-                                           return Uniq_Id;
 
-
-   --  add the imported definition to the given scope imported table.
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc; Scope : in Node_Id);
+     (Definition : in Identifier_Definition_Acc;
+      Scope : in Node_Id);
+   --  Add the imported definition to the given scope imported table.
 
+   procedure Find_Identifier_In_Inheritance
+     (Name : in String;
+      Scope : in Node_Id;
+      List : in out Node_List);
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
    --  it is useful for looking in the inherited interfaces or value types
-   procedure Find_Identifier_In_Inheritance (Name : in String;
-                                             Scope : in Node_Id;
-                                             List : in out Node_List);
 
+   function Find_Inherited_Identifier_Definition
+     (Name : String)
+     return Identifier_Definition_Acc;
    --  Find the identifier definition in the inherited interface.
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Inherited_Identifier_Definition (Name : String)
-                                          return Identifier_Definition_Acc;
 
-   ----------------------------
-   --  identifiers handling  --
-   ----------------------------
+   -----------------------
+   -- Identifiers table --
+   -----------------------
 
    --  Each identifier is given a unique id number. This number is
    --  its location in the table of all the identifiers definitions :
