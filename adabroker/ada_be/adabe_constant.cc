@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -56,35 +56,35 @@ adabe_constant::produce_ads (dep_list& with, string &body, string &previous)
   switch (etype) 
     {
     case AST_Expression::EV_short:
-      body += "Short_Integer := ";
+      body += "CORBA.Short := ";
       sprintf (value,"%d", constant_value ()->ev ()->u.sval);
       break;
     case AST_Expression::EV_ushort:
-      body += "Unsigned_Short_Integer := ";
+      body += "CORBA.Unsigned_Short := ";
       sprintf (value,"%d", constant_value ()->ev ()->u.usval);
       break;
     case AST_Expression::EV_long:
-      body += "Short_Integer := ";
+      body += "CORBA.Long := ";
       sprintf (value,"%ld", constant_value ()->ev ()->u.lval);	
       break;
     case AST_Expression::EV_ulong:
-      body += "Unsigned_Long_Integer := ";
+      body += "CORBA.Unsigned_Long := ";
       sprintf (value,"%ld", constant_value ()->ev ()->u.ulval);	
       break;
     case AST_Expression::EV_float:
-      body += "Real := ";
+      body += "CORBA.Float := ";
       sprintf (value,"%f", constant_value ()->ev ()->u.fval);
       break;
     case AST_Expression::EV_double:
-      body += "Long_Real := ";
+      body += "CORBA.Double := ";
       sprintf (value,"%f", constant_value ()->ev ()->u.dval);	
       break;
     case AST_Expression::EV_char:
-      body += "Character := ";
-      sprintf (value,"%c", constant_value ()->ev ()->u.cval);	
+      body += "CORBA.Char := ";
+      sprintf (value,"'%c'", constant_value ()->ev ()->u.cval);	
       break;
     case AST_Expression::EV_octet:
-      body += "Byte := ";
+      body += "Octet := ";
       sprintf (value,"%d", constant_value ()->ev ()->u.oval);	
       break;
     case AST_Expression::EV_bool:
@@ -94,7 +94,7 @@ adabe_constant::produce_ads (dep_list& with, string &body, string &previous)
     case AST_Expression::EV_string: {
       string temp;
       temp = constant_value ()->ev ()->u.strval->get_string ();
-      body += "String := ";
+      body += "CORBA.String := ";
       with.add ("Ada.Characters.Latin_1");
       write_string_to_ada (temp, body);
       initialized = true;
