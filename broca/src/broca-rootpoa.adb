@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Task_Attributes;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -316,37 +315,6 @@ package body Broca.RootPOA is
    package PSSA renames PortableServer.ServantActivator;
    package PSSL renames PortableServer.ServantLocator;
 
-   type POA_Task_Attribute is record
-      Current_Object    : PortableServer.ObjectId;
-      Current_POA       : PortableServer.POA_Forward.Ref;
-   end record;
-
-   type POA_Task_Attribute_Handle is
-     access POA_Task_Attribute;
-
-   Nil_Attribute : POA_Task_Attribute_Handle := null;
-
-   package Attributes is new Ada.Task_Attributes
-     (Attribute => POA_Task_Attribute_Handle,
-      Initial_Value => Nil_Attribute);
-
-   procedure Set_Attributes_Value
-     (Current_Object    : PortableServer.ObjectId;
-      Current_POA       : PortableServer.POA_Forward.Ref);
-
-   procedure Set_Attributes_Value
-     (Current_Object    : PortableServer.ObjectId;
-      Current_POA       : PortableServer.POA_Forward.Ref) is
-   begin
-      if Attributes.Value = Nil_Attribute then
-         Attributes.Set_Value (new POA_Task_Attribute);
-      end if;
-
-      Attributes.Value.all :=
-        POA_Task_Attribute'(Current_Object,
-                            Current_POA);
-   end Set_Attributes_Value;
-
    type Object_Map_Entry_State is (Free, Reserved, Active, To_Be_Destroyed);
    type Rw_Lock_Ptr is access Broca.Locks.Rw_Lock_Type;
 
@@ -468,8 +436,9 @@ package body Broca.RootPOA is
    procedure Cleanup (Self : access Object);
 
    function Servant_To_Skeleton
-     (Self : access Object;
-      P_Servant : Servant)
+     (Self                             : access Object;
+      P_Servant                        : Servant;
+      Called_From_Servant_To_Reference : Boolean := False)
      return Broca.POA.Skeleton_Ptr;
 
    function Id_To_Skeleton
@@ -935,11 +904,13 @@ package body Broca.RootPOA is
    end Create_Reference_With_Id;
 
    function Servant_To_Skeleton
-     (Self : access Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Ptr
+     (Self                             : access Object;
+      P_Servant                        : Servant;
+      Called_From_Servant_To_Reference : Boolean := False)
+     return Broca.POA.Skeleton_Ptr
    is
       Slot : Slot_Index;
-      Obj : Broca.POA.Skeleton_Ptr;
+      Obj  : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Servant_Policy = RETAIN
         and then Self.Uniqueness_Policy = UNIQUE_ID
@@ -965,15 +936,17 @@ package body Broca.RootPOA is
          return Self.Object_Map (Slot).Skeleton;
       end if;
 
-      --  FIXME: If this is called in the context of executing
-      --    a request on the specified servant, the reference
-      --    associated with the current invocation must be
-      --    returned. To comply with the exact wording of
-      --    the standard, if Servant_To_Skeleton is called
-      --    from Servant_To_Id, a check that the POA has the
-      --    USE_DEFAULT_SERVANT policy must be made here
-      --    (no check is required if Servant_To_Skeleton
-      --    is called from Servant_To_Reference).
+      if Called_From_Servant_To_Reference
+        or else Self.Request_Policy = USE_DEFAULT_SERVANT
+      then
+         declare
+            Current_Object : PortableServer.ObjectId;
+            Current_POA    : PortableServer.POA_Forward.Ref;
+         begin
+            Get_Attributes_Value (Current_Object, Current_POA);
+            return Id_To_Skeleton (Self, Current_Object);
+         end;
+      end if;
 
       raise PortableServer.POA.ServantNotActive;
    end Servant_To_Skeleton;

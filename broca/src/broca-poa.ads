@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
+
 with CORBA;
 with CORBA.Impl;
 with CORBA.AbstractBase;
@@ -242,8 +244,9 @@ package Broca.POA is
       return CORBA.Object.Ref is abstract;
 
    function Servant_To_Skeleton
-     (Self      : access POA_Object;
-      P_Servant : Servant)
+     (Self                             : access POA_Object;
+      P_Servant                        : Servant;
+      Called_From_Servant_To_Reference : Boolean := False)
      return Skeleton_Ptr is abstract;
    --  Return a skeleton for the given servant.
    --  This is used to implement the Servant_To_Id and
@@ -322,6 +325,14 @@ package Broca.POA is
    --  Note: All_POAs_lock must not have been taken.
 
    procedure Cleanup (Self : access POA_Object) is abstract;
+
+   procedure Set_Attributes_Value
+     (Current_Object    : in PortableServer.ObjectId;
+      Current_POA       : in PortableServer.POA_Forward.Ref);
+
+   procedure Get_Attributes_Value
+     (Current_Object    : out PortableServer.ObjectId;
+      Current_POA       : out PortableServer.POA_Forward.Ref);
 
 private
 
