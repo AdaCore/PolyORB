@@ -1,5 +1,8 @@
 CLADS : Configuration Language for Ada Distributed System
 
+* Remove harcoded "/" and ".." since this may be nonportable onto other
+  systems (e.g. Mac)
+
 * Env. variable like GCC_PREFIX for GNATDIST.
 
 * Handle or not rule E.5 (21) (pragma ...).
