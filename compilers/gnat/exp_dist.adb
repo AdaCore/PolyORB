@@ -111,9 +111,7 @@ package body Exp_Dist is
    --  ACR_Expression is use as the initialization value for
    --  the All_Calls_Remote component.
 
-   function Get_Subprogram_Identifier
-     (Def : Entity_Id)
-     return String_Id;
+   function Get_Subprogram_Id (Def : Entity_Id) return String_Id;
    --  Given a subprogram defined in a RCI package, get its distribution
    --  subprogram identifier in the name buffer (the distribution id
    --  is the non-qualified subprogram name, in the casing used for
@@ -500,7 +498,7 @@ package body Exp_Dist is
    --  Determine the distribution subprogram identifier to
    --  be used for remote subprogram Def, return it in Id and
    --  store it in a hash table for later retrieval by
-   --  Get_Subprogram_Identifier.
+   --  Get_Subprogram_Id.
 
    procedure Reserve_NamingContext_Methods;
    --  Mark the method names for interface NamingContext as
@@ -2752,13 +2750,13 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
-      Pkg_RPC_Receiver             : Node_Id;
-      Pkg_RPC_Receiver_Object      : Node_Id;
+      Pkg_RPC_Receiver            : Node_Id;
+      Pkg_RPC_Receiver_Object     : Node_Id;
 
-      Pkg_RPC_Receiver_Body        : Node_Id;
-      Pkg_RPC_Receiver_Decls       : List_Id;
-      Pkg_RPC_Receiver_Statements  : List_Id;
-      Pkg_RPC_Receiver_Cases       : constant List_Id := New_List;
+      Pkg_RPC_Receiver_Body       : Node_Id;
+      Pkg_RPC_Receiver_Decls      : List_Id;
+      Pkg_RPC_Receiver_Statements : List_Id;
+      Pkg_RPC_Receiver_Cases      : constant List_Id := New_List;
       --  A Pkg_RPC_Receiver is built to decode the request
 
       Request                     : Node_Id;
@@ -3265,10 +3263,10 @@ package body Exp_Dist is
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
       Stubs_Table.Set (Designated_Type,
-        (Stub_Type            => Stub_Type,
-         Stub_Type_Access     => Stub_Type_Access,
-         Object_RPC_Receiver  => Object_RPC_Receiver,
-         RACW_Type            => RACW_Type));
+        (Stub_Type           => Stub_Type,
+         Stub_Type_Access    => Stub_Type_Access,
+         Object_RPC_Receiver => Object_RPC_Receiver,
+         RACW_Type           => RACW_Type));
 
       --  The stub type definition below must match exactly the one in
       --  s-parint.ads, since unchecked conversions will be used in
@@ -3319,7 +3317,7 @@ package body Exp_Dist is
           Defining_Identifier => Stub_Type_Access,
           Type_Definition     =>
             Make_Access_To_Object_Definition (Loc,
-              All_Present => True,
+              All_Present        => True,
               Subtype_Indication => New_Occurrence_Of (Stub_Type, Loc)));
 
       Append_To (Decls, Stub_Type_Access_Declaration);
@@ -4403,10 +4401,10 @@ package body Exp_Dist is
 
    function Build_Subprogram_Id
      (Loc : Source_Ptr;
-      E : Entity_Id) return Node_Id
+      E   : Entity_Id) return Node_Id
    is
    begin
-      return Make_String_Literal (Loc, Get_Subprogram_Identifier (E));
+      return Make_String_Literal (Loc, Get_Subprogram_Id (E));
    end Build_Subprogram_Id;
 
    --------------------------------------
@@ -4456,7 +4454,7 @@ package body Exp_Dist is
       Excep_Handlers : List_Id := No_List;
 
       Parameter_List : constant List_Id := New_List;
-      --  List of parameters to be passed to the subprogram.
+      --  List of parameters to be passed to the subprogram
 
       First_Controlling_Formal_Seen : Boolean := False;
 
@@ -4474,8 +4472,6 @@ package body Exp_Dist is
 
       Called_Subprogram : Node_Id;
       --  The subprogram to call
-
-      --  Null_Raise_Statement : Node_Id;
 
       Dynamic_Async : Entity_Id;
 
@@ -5228,7 +5224,7 @@ package body Exp_Dist is
          end if;
 
          Subp_Id := Make_String_Literal (Loc,
-           Get_Subprogram_Identifier (Called_Subprogram));
+           Get_Subprogram_Id (Called_Subprogram));
 
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
@@ -5306,11 +5302,11 @@ package body Exp_Dist is
       pragma Assert (Name_Buffer (Name_Len + 1) = ' ');
    end Get_Pkg_Name_String;
 
-   -------------------------------
-   -- Get_Subprogram_Identifier --
-   -------------------------------
+   -----------------------
+   -- Get_Subprogram_Id --
+   -----------------------
 
-   function Get_Subprogram_Identifier
+   function Get_Subprogram_Id
      (Def : Entity_Id)
       return String_Id
    is
@@ -5356,7 +5352,7 @@ package body Exp_Dist is
       end if;
       pragma Assert (Result /= No_String);
       return Result;
-   end Get_Subprogram_Identifier;
+   end Get_Subprogram_Id;
 
    ----------
    -- Hash --
