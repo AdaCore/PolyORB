@@ -961,6 +961,7 @@ package body System.Garlic.Partitions is
       end loop;
 
       pragma Assert (False);
+      return Null_PID;
    end Next_Boot_Mirror;
 
    -----------------------
