@@ -120,6 +120,7 @@ depend:
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 broca-buffers-io_operations.lo: broca.ads broca-buffers.ads broca-buffers-io_operations.ads broca-buffers-io_operations.adb broca-opaque.ads broca-opaque-chunk_pools.ads
 broca-buffers.lo: broca.ads broca-buffers.ads broca-buffers.adb broca-debug.ads broca-debug.adb broca-opaque.ads broca-opaque-chunk_pools.ads broca-opaque-chunk_pools.adb corba.ads sequences.ads sequences-unbounded.ads
+broca-cdr-fixed_point.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-cdr-fixed_point.ads broca-cdr-fixed_point.adb broca-debug.ads broca-exceptions.ads broca-opaque.ads broca-opaque-chunk_pools.ads corba.ads sequences.ads sequences-unbounded.ads
 broca-cdr-refs.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-cdr-refs.ads broca-cdr-refs.adb broca-exceptions.ads broca-iop.ads broca-object.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads broca-sequences.ads corba.ads corba-abstractbase.ads corba-impl.ads corba-object.ads corba-sequences.ads corba-sequences-unbounded.ads sequences.ads sequences-unbounded.ads
 broca-cdr.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-cdr.adb broca-debug.ads broca-debug.adb broca-opaque.ads broca-opaque-chunk_pools.ads corba.ads sequences.ads sequences-unbounded.ads
 broca-debug.lo: broca.ads broca-debug.ads broca-debug.adb

@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                            B R O C A . C D R                             --
+--                B R O C A . C D R . F I X E D _ P O I N T                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --

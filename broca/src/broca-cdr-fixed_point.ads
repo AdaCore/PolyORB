@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                            B R O C A . C D R                             --
+--                B R O C A . C D R . F I X E D _ P O I N T                 --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
