@@ -40,17 +40,16 @@ package MOMA.Connection_Factories.Queues is
 
    procedure Create (Self     : out Connection_Factory_Queue;
                      Remote   : PolyORB.References.Ref);
-   --  Create a new connection factory, with the provider Remote.
+   --  Implementation of 'Create' for the 'Queues' child.
 
    function Create_Connection (Self   : Connection_Factory_Queue)
                                return MOMA.Connections.Connection'Class;
-   --  Create a new connection using this connection factory.
+   --  Implementation of 'Create_Connection' for the 'Queues' child.
 
    function Create_Connection (Self      : Connection_Factory_Queue;
                                Username  : String;
                                Password  : String)
                                return MOMA.Connections.Connection'Class;
-   --  Create a new connection using this connection factory
-   --  and providing a username/password.
+   --  Implementation of 'Create_Connection' for the 'Queues' child.
 
 end MOMA.Connection_Factories.Queues;

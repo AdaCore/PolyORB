@@ -40,17 +40,16 @@ package MOMA.Connection_Factories.Topics is
 
    procedure Create (Self     : out Connection_Factory_Topic;
                      Remote   : PolyORB.References.Ref);
-   --  Create a new connection factory, with the provider Remote.
+   --  Implementation of 'Create' for the 'Topics' child.
 
    function Create_Connection (Self   : Connection_Factory_Topic)
                                return MOMA.Connections.Connection'Class;
-   --  Create a new connection using this connection factory.
+   --  Implementation of 'Create_Connection' for the 'Topics' child.
 
    function Create_Connection (Self      : Connection_Factory_Topic;
                                Username  : String;
                                Password  : String)
                                return MOMA.Connections.Connection'Class;
-   --  Create a new connection using this connection factory
-   --  and providing a username/password.
+   --  Implementation of 'Create_Connection' for the 'Topics' child.
 
 end MOMA.Connection_Factories.Topics;
