@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -60,41 +60,14 @@ package CORBA.ServerRequest is
 
    subtype Object_Ptr is PolyORB.Requests.Request_Access;
 
-   function Operation
-     (O : Object)
-     return Identifier;
+   function Operation (O : Object) return Identifier;
 
-   procedure Arguments
-     (O  : access Object;
-      NV : in out NVList.Ref);
+   procedure Arguments (O : access Object; NV : in out NVList.Ref);
 
    --  function Ctx return Context;
 
-   procedure Set_Result
-     (O   : access Object;
-      Val : in     Any);
+   procedure Set_Result (O : access Object; Val : in Any);
 
-   procedure Set_Exception
-     (Obj : access Object;
-      Val : in     Any);
-
-   --------------------------------------
-   -- The following is PolyORB-specific --
-   --------------------------------------
-
---    function To_PolyORB_Request
---      (O : access Object)
---      return PolyORB.Requests.Request_Access;
-
---    function To_CORBA_ServerRequest
---      (R : PolyORB.Requests.Request_Access)
---      return Object_Ptr;
-
---  private
-
---    type Object is new PolyORB.Requests.Request with null record;
-
---    pragma Inline (To_PolyORB_Request);
---    pragma Inline (To_CORBA_ServerRequest);
+   procedure Set_Exception (Obj : access Object; Val : in Any);
 
 end CORBA.ServerRequest;

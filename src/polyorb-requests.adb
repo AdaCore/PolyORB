@@ -37,13 +37,11 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Exceptions;
 with PolyORB.Log;
-with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
 with PolyORB.Setup;
---  with PolyORB.Dynamic_Dict;
-with PolyORB.Exceptions;
 
 package body PolyORB.Requests is
 
@@ -712,13 +710,15 @@ package body PolyORB.Requests is
       use Exceptions;
 
    begin
-      if Self.Arguments_Called then
+      if Self.Arguments_Called
+        or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
+      then
          declare
             Member : constant System_Exception_Members
-              := (Minor => 1, Completed => Completed_No);
+              := (Minor => 7, Completed => Completed_No);
          begin
             pragma Debug (O ("Arguments called twice"));
-            Throw (Error, Internal_E, Member);
+            Throw (Error, Bad_Inv_Order_E, Member);
             return;
          end;
       end if;
@@ -818,12 +818,26 @@ package body PolyORB.Requests is
    ----------------
 
    procedure Set_Result
-     (Self : Request_Access;
-      Val  : Any.Any)
+     (Self  : Request_Access;
+      Val   : Any.Any;
+      Error : in out Error_Container)
    is
       use PolyORB.Any;
 
    begin
+      if not Self.Arguments_Called
+        or else not PolyORB.Any.Is_Empty (Self.Result.Argument)
+        or else not PolyORB.Any.Is_Empty (Self.Exception_Info)
+      then
+         declare
+            Member : constant System_Exception_Members
+              := (Minor => 8, Completed => Completed_No);
+         begin
+            Throw (Error, Bad_Inv_Order_E, Member);
+            return;
+         end;
+      end if;
+
       if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
          Self.Result :=
            (Name      => PolyORB.Types.To_PolyORB_String ("result"),
@@ -832,6 +846,13 @@ package body PolyORB.Requests is
       else
          Copy_Any_Value (Self.Result.Argument, Val);
       end if;
+   end Set_Result;
+
+   procedure Set_Result (Self : Request_Access; Val : Any.Any) is
+      Error : Error_Container;
+   begin
+      Set_Result (Self, Val, Error);
+      pragma Assert (not Is_Error (Error));
    end Set_Result;
 
    ------------------
