@@ -13,12 +13,10 @@ with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
 with Droopi.ORB.Task_Policies;
+
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
-
 with Droopi.Protocols.GIOP;
-pragma Warnings (Off, Droopi.Protocols.GIOP);
---  XXX not referenced.
 
 with Droopi.References;
 with Droopi.Smart_Pointers;
@@ -208,7 +206,7 @@ begin
    Put_Line (" done.");
 
    declare
-      My_Id : constant Object_Id
+      My_Id : aliased Object_Id
         := Obj_Adapters.Export (Obj_Adapter, My_Servant);
       --  Register it with the SOA.
 
@@ -222,10 +220,11 @@ begin
          My_Id, Test_Object.If_Desc);
       --  Set object description.
 
-      --  Create_Reference (ORB, My_Id, My_Ref);
+      Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
       --  Obtain object reference.
 
       Put_Line ("Registered object: " & Image (My_Id));
+      Put_Line ("Reference is     : " & References.Image (My_Ref));
       Run (The_ORB, May_Poll => True);
       --  Execute the ORB.
    end;

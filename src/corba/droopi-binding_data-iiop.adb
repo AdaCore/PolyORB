@@ -88,14 +88,15 @@ package body Droopi.Binding_Data.IIOP is
 
       --  ORB := ORB_Access(Session(Ses.all).Server);
 
-      --  Register_Endpoint(ORB, TE, Slicer_Fact, Ses.Role);
-
       --  Connect Session to Slicer
       --  Sli_Filter := TE.Upper;
       --  Connect_Lower (Session, Component_Access (Sli_Filter));
       --  Connect (Sli_Filter.Upper,  Component_Access (Session));
 
-      Session := Components.Component_Access (Ses);
+      --  Session must be an access to the lowest filter in
+      --  the stack (=> the Slicer).
+
+      --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
 
 
