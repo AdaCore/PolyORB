@@ -171,7 +171,28 @@ package body XE_Reg is
       Result  : String_Access;
    begin
 
+      --  First check the GCC_ROOT environent variable
+
+      Result := Getenv ("GCC_ROOT");
+
+      if Result.all /= "" then
+         declare
+            GCC_ROOT : constant String := Result.all;
+         begin
+            if GCC_ROOT (GCC_ROOT'Last) = '\'
+              or else GCC_ROOT (GCC_ROOT'Last) = '/'
+            then
+               return new String'(Result.all & "lib\garlic");
+            else
+               return new String'(Result.all & "\lib\garlic");
+            end if;
+         end;
+      end if;
+
+      --  GCC_ROOT was not defined, look in the registry.
+
       --  open "HKEY_LOCAL_MACHINE\SOFTWARE\Free Software Foundation" key
+
       ACT_Key := Open_Key (HKEY_LOCAL_MACHINE,
                            "SOFTWARE\Ada Core Technologies");
 
@@ -179,6 +200,7 @@ package body XE_Reg is
       Result := new String'(Get_Key (ACT_Key, "GCC") & "\lib\garlic");
 
       --  close key
+
       declare
          Result : LONG;
       begin
