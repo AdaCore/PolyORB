@@ -188,8 +188,6 @@ package body CORBA.Request is
       Invoke_Flags : in     Flags  := 0)
    is
    begin
-      --  XXX for now we do everything synchronously; flags
-      --  are ignored by P.R.Invoke.
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
@@ -213,17 +211,6 @@ package body CORBA.Request is
    begin
       PolyORB.Requests.Destroy_Request (Self.The_Request);
    end Delete;
-
-   ------------------------
-   -- To_PolyORB_Request --
-   ------------------------
-
-   function To_PolyORB_Request
-     (Request : Object)
-     return PolyORB.Requests.Request_Access is
-   begin
-      return Request.The_Request;
-   end To_PolyORB_Request;
 
    --------------
    -- Finalize --

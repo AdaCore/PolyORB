@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -52,8 +52,6 @@ with PolyORB.Requests;
 
 package CORBA.Request is
 
-   --  pragma Elaborate_Body;
-
    type Object is limited private;
 
    procedure Create_Request
@@ -79,16 +77,16 @@ package CORBA.Request is
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0);
+   --  Implementation Note: the IDL-to-Ada mapping specifies a default
+   --  value for Invoke_Flags, but it does not define its
+   --  semantics. Moreover, the CORBA specifications define no value
+   --  for Invoke_Flags. Thus, we retain the following semantics: the
+   --  only possible value for Invoke_Flags is 0, all other values
+   --  will be ignored for now.
 
    procedure Delete (Self : in out Object);
 
    --  XXX incomplete!
-
-   --  The following is specific to PolyORB.
-
-   function To_PolyORB_Request
-     (Request : Object)
-     return PolyORB.Requests.Request_Access;
 
 private
 
@@ -101,7 +99,4 @@ private
 
    procedure Finalize (X : in out Object);
 
-   pragma Inline (To_PolyORB_Request);
-
 end CORBA.Request;
-
