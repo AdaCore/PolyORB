@@ -313,6 +313,7 @@ AC_OUTPUT([Makefile
 	   testsuite/core/initialization/Makefile
 	   testsuite/core/poa/Makefile
 	   testsuite/core/tasking/Makefile
+	   testsuite/core/fixed_point/Makefile
 	   testsuite/utils/Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])

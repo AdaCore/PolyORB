@@ -581,6 +581,8 @@ src/polyorb-filters-slicers.adb
 src/polyorb-filters-slicers.ads
 src/polyorb-filters.adb
 src/polyorb-filters.ads
+src/polyorb-fixed_point.ads
+src/polyorb-fixed_point.adb
 src/polyorb-if_descriptors.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads

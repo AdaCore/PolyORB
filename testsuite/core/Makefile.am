@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = initialization poa tasking
+SUBDIRS = initialization poa tasking fixed_point
 
 CLEANFILES = config-stamp
 
