@@ -696,6 +696,8 @@ src/polyorb-initialization.adb
 src/polyorb-initialization.ads
 src/polyorb-jobs.adb
 src/polyorb-jobs.ads
+src/polyorb-lanes.adb
+src/polyorb-lanes.ads
 src/polyorb-log.adb
 src/polyorb-log.ads
 src/polyorb-minimal_servant-tools.adb
