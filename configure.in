@@ -20,6 +20,8 @@ AC_EXEEXT
 AC_PROG_RANLIB
 AC_CHECK_PROGS(SED, [gnused gsed sed])
 AC_CHECK_PROGS(TAR, [gtar tar])
+AC_CHECK_PROG(AR, ar, ar)
+AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROG(UNZIP, gunzip, gunzip)
 AC_CHECK_PROG(GNATMAKE, gnatmake, gnatmake)
 #
