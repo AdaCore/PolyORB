@@ -33,10 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Options; use System.Garlic.Options;
+with System.Garlic.Options;
 with System.Garlic.Debug; use System.Garlic.Debug;
 
-@LAUNCHING_INCLUDED@with System.Garlic.Remote; use System.Garlic.Remote;
+@LAUNCHING_INCLUDED@with System.Garlic.Remote;
 
 package body System.Garlic.Services is
 
@@ -51,11 +51,11 @@ package body System.Garlic.Services is
    procedure Initialize is
    begin
 
-      if Get_Detach then
+      if Options.Detach then
          pragma Debug
             (D (D_Elaborate,
                 "Detaching, you won't see any more debug messages"));
-         @LAUNCHING_INCLUDED@Detach;
+         @LAUNCHING_INCLUDED@Remote.Detach;
          null;
       end if;
 
