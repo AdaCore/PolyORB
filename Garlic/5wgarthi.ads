@@ -51,6 +51,19 @@ package System.Garlic.Thin is
    Success : constant C.int :=  0;
    Failure : constant C.int := -1;
 
+   type Fd_Set is mod 2 ** 32;
+   type Fd_Set_Access is access all Fd_Set;
+
+   type Timeval is record
+      Tv_Sec  : C.int;
+      Tv_Usec : C.int;
+   end record;
+   type Timeval_Access is access all Timeval;
+
+   Immediat : constant Timeval := (0, 0);
+
+   Use_Poll : constant Boolean := True;
+
    type Int_Access is access all C.int;
    pragma Convention (C, Int_Access);
    --  Access to C integers
@@ -418,6 +431,7 @@ private
    pragma Import (Stdcall, C_Recv, "recv");
    pragma Import (C, C_Recvfrom, "recvfrom");
    pragma Import (C, C_Recvmsg, "recvmsg");
+   pragma Import (Stdcall, C_Select, "select");
    pragma Import (Stdcall, C_Send, "send");
    pragma Import (C, C_Sendmsg, "sendmsg");
    pragma Import (C, C_Sendto, "sendto");

@@ -42,6 +42,7 @@ with System.Garlic.Heart;       use System.Garlic.Heart;
 with System.Garlic.Priorities;
 with System.Garlic.TCP;
 pragma Elaborate (System.Garlic.TCP);
+with System.Garlic.Thin;        use System.Garlic.Thin;
 with System.Garlic.Termination;
 
 package body System.Garlic.Non_Blocking is
@@ -402,6 +403,9 @@ package body System.Garlic.Non_Blocking is
       Max          : aliased int;
       Dummy        : int;
       Pfd          : aliased Thin.Pollfd;
+      Rfds         : Fd_Set_Access := new Fd_Set;
+      Wfds         : Fd_Set_Access := new Fd_Set;
+      Timeout      : Timeval_Access := new Timeval;
       Continue     : Boolean := True;
    begin
       Termination.Add_Non_Terminating_Task;
@@ -417,23 +421,53 @@ package body System.Garlic.Non_Blocking is
 
                if RFD (I) or else WFD (I) then
 
-                  --  There is something to do on this file descriptor
+                  if Use_Poll then
 
-                  Pfd.Fd := I;
-                  Pfd.Events := 0;
+                     --  There is something to do on this file descriptor
 
-                  if RFD (I) then
-                     Pfd.Events := Pfd.Events + Pollin;
+                     Pfd.Fd := I;
+                     Pfd.Events := 0;
+
+                     if RFD (I) then
+                        Pfd.Events := Pfd.Events + Pollin;
+                     end if;
+
+                     if WFD (I) then
+                        Pfd.Events := Pfd.Events + Pollout;
+                     end if;
+
+                     Dummy := Thin.C_Poll (Pfd'Address, 1, 0);
+
+                     RFD (I) := (Pfd.Revents / Pollin) mod 2 = 1;
+                     WFD (I) := (Pfd.Revents / Pollout) mod 2 = 1;
+
+                  else
+
+                     Timeout.all  := Immediat;
+
+                     if RFD (I) then
+                        Rfds.all := 2 ** Integer (I);
+                        pragma Debug
+                          (D (D_Debug, "select read :" & I'Img));
+                     else
+                        Rfds.all := 0;
+                     end if;
+
+                     if WFD (I) then
+                        Wfds.all := 2 ** Integer (I);
+                        pragma Debug
+                          (D (D_Debug, "select write :" & I'Img));
+                     else
+                        Wfds.all := 0;
+                     end if;
+
+                     Dummy := C_Select (I + 1, Rfds, Wfds, null, Timeout);
+                     pragma Debug (D (D_Debug, "select value :" & Dummy'Img));
+
+                     RFD (I) := Rfds.all /= 0;
+                     WFD (I) := Wfds.all /= 0;
+
                   end if;
-
-                  if WFD (I) then
-                     Pfd.Events := Pfd.Events + Pollout;
-                  end if;
-
-                  Dummy := Thin.C_Poll (Pfd'Address, 1, 0);
-
-                  RFD (I) := (Pfd.Revents / Pollin) mod 2 = 1;
-                  WFD (I) := (Pfd.Revents / Pollout) mod 2 = 1;
 
                end if;
 

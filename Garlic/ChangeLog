@@ -1,3 +1,14 @@
+1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* 5lgarthi.ads, 5wgarthi.ads: Add Select sys call. Add a constant
+ 	Use_Poll which should be set to false if "select" is prefered to
+ 	"poll".
+
+	* s-ganobl.adb: Add implementation using "select". This
+        implementation is activated when Use_Poll is false.
+
+	* Makefile.am, Makefile.in: Update dependencies.
+	
 1998-04-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garopt.ads: Add Checksum variable.
