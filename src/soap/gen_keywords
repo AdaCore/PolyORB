@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /usr/bin/env python
 
 # Generate a perfect hash function and Ada body from a specially
 # formatted Ada spec that defines an enumerated type and a string
@@ -6,116 +6,104 @@
 
 # $Id$
 
-usage() {
-  echo "Usage: $0 [-c] <file.ads>"
-  echo "  -c: produce a case-sensitive matcher"
-  exit 1
-}
+import sys, os, re, getopt
 
-case_sensitive=0
+def usage():
+  print "Usage: $0 [-c] <file.ads>"
+  print "  -c: produce a case-sensitive matcher"
+  sys.exit (1)
 
-while getopts "c" opt
-do
-  case "$opt" in
-    c)
-      case_sensitive=1
-      ;;
-    *)
-      usage
-  esac
-done
+case_sensitive = 0
 
-shift `expr $OPTIND - 1`
+optlist,args = getopt.getopt (sys.argv[1:],'S:')
+for opt,optarg in optlist:
+  if opt == '-c':
+    case_sensitive = 1
+    
+if len (args) != 1:
+  usage ()
 
-if [ $# != 1 ]
-then
-  usage
-fi
+ads = args [0]
+prefix = os.path.basename (ads)[:-4]
+adb=prefix + ".adb"
+perf=prefix + ".perf"
+hperf = open (perf, "w")
+hadb = open (adb, "w")
+cfile=prefix + "_GPERF.c"
 
-ads=$1
-prefix=`basename "$ads" .ads`
-adb=$prefix.adb
-aux=$prefix.aux
-perf=$prefix.perf
-cfile=`echo $ads | sed 's/\.ads$/_GPERF.c/'`
+unit = prefix
+matchfun = unit.replace ("-", "__") + "__IN_WORD_SET"
 
-# trap "rm -f $aux $perf" 0
+i = 0
+st = 0
+gpa = ""
+values = []
+hperf.write ("%{\nenum kwids {\n")
+for ll in open (ads).readlines():
+  l = ll.rstrip ()
+  m = re.match ("^package ([^ ]*) is", l)
+  if m:
+    pkg = m.group (1)
+    continue
 
-unit=`echo $prefix | sed 's/-/__/g'`
-matchfun="$unit"__IN_WORD_SET
+  m = re.match ("\s*type (\w*) is", l)
+  if m:
+    ent = m.group (1)
+    continue
 
+  m = re.match ('.*<GPERF ARGS="([^"]*)"\/>', l)
+  if st == 0 and m:
+    gpa = m.group (1)
+    continue
 
-awk 'BEGIN { i = 0; st = 0; print "%{\nenum kwids {"; }
-     /^package / {
-        match ($0, /^package ([^ ]*) is/, m);
-        print "pkg=" m[1] > "'$aux'";
-     }
-     /^[ 	]*type .* is/ {
-        match ($0, /type ([^ ]*) is/, m);
-        print "ent=" m[1] >> "'$aux'";
-     }
-     st == 0 && /<GPERF/ {
-        match ($0, /<GPERF ARGS="([^"]*)"\/>/, m);
-        print "gpa=\"" m[1] "\"" >> "'$aux'";
-        next;
-     }
-     st == 0 && /<ENUM>/ { st = 1; next; }
-     st == 1 && /<\/ENUM>/ {
-        st = 0; print "};\n%}";
-        print "struct kwinfo { char *name; enum kwids id; };"
-        print "%%";
-        for (j = 0; j < i; j++) {
-          if ('$case_sensitive') {
-            print str_val[j] ", " enum_val[j];
-          } else {
-            print tolower (str_val[j]) ", " enum_val[j];
-          }
-        }
-        next; }
-     st == 1 {
-        if (match ($0,
-	  /^[ 	]*([^ 	,]*),?[ 	]*--  >> "([^"]*)"/,
-	  m) == 0) {
-          if (match ($0, /^[ 	]*([^ 	,-]+)([, 	-].*)?$/, m)) {
-	    print "  " m[1] ", /* no-match case */";
-            print "unk=" m[1] >> "'$aux'";
-          }
-        } else {
-          print "  " m[1] ", /* \"" m[2] "\" */";
-          print "key:" m[1] >> "'$aux'";
-          print "str:" m[2] >> "'$aux'";
-	  enum_val[i] = m[1];
-          str_val[i++] = m[2];
-        }
-     }' < $ads > $perf
+  if st == 0 and re.match (".*<ENUM>", l):
+    st = 1
+    continue
 
-eval `grep "^...=" $aux`
+  if st == 1 and re.match (".*</ENUM>", l):
+    st = 0
+    hperf.write ("};\n%}\n")
+  
+    hperf.write ("struct kwinfo { char *name; enum kwids id; };\n")
+    hperf.write ("%%\n")
 
-gperf -N $matchfun -t $perf $gpa > $cfile
+    for v in values:
+      if case_sensitive:
+        hperf.write (v [1] + ", " + v[0] + "\n")
+      else:
+        hperf.write (v[1].lower () + ", " + v[0] + "\n")
+    continue
 
-if [ "$unk" != "" ]
-then
-  unk_handler="return $unk;"
-else
+  if st == 1:
+    m = re.match ('[ 	]*([^ 	,]*),?[ 	]*--  >> "([^"]*)"', l)
+    if m:
+      hperf.write ("  " + m.group (1) + ", /* \"" + m.group (2) + "\" */\n")
+      values.append (m.groups ())
+      i = i + 1
+    else:
+      m = re.match ('[ 	]*([^ 	,-]+)([, 	-].*)?$', l)
+      if m:
+        hperf.write ("  " + m.group (1) + ", /* no-match case */\n")
+        unk=m.group (1)
+      
+hperf.close ()
+os.system ("gperf -N %s -t %s %s > %s" % (matchfun, gpa, perf, cfile))
+
+if unk != "":
+  unk_handler="return " + unk + ";"
+else:
   unk_handler="raise Constraint_Error;"
-fi
 
-exec > $adb
-
-echo "--  AUTOMATICALLY GENERATED on `date` by $0"
-echo "--  EDIT $1, NOT THIS FILE!"
-echo ""
-
-if [ "$case_sensitive" = 0 ]
-then
-  echo "with Ada.Characters.Handling; use Ada.Characters.Handling;"
-fi
-
-cat <<EOF
-with Interfaces.C; use Interfaces.C;
+if case_sensitive:
+  initval = "S"
+else:
+  hadb.write ("with Ada.Characters.Handling; use Ada.Characters.Handling;\n")
+  initval = "To_Lower (S)"
+  
+hadb.write ("""with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 
-package body $pkg is
+package body %s is
 
    type Keyword_Info is record
       Name : Interfaces.C.Strings.chars_ptr;
@@ -128,20 +116,11 @@ package body $pkg is
    function C_In_Word_Set
      (S : chars_ptr; Len : int)
      return Keyword_Info_Access;
-   pragma Import (C, C_In_Word_Set, "$matchfun");
+   pragma Import (C, C_In_Word_Set, "%s");
 
    function In_Word_Set (S : String) return $ent
    is
-EOF
-
-if [ "$case_sensitive" = 1 ]
-then
-  echo "      Chars : aliased char_array := To_C (S);"
-else
-  echo "      Chars : aliased char_array := To_C (To_Lower (S));"
-fi
-
-cat <<EOF
+      Chars : aliased char_array := To_C (%s);
       Info : constant Keyword_Info_Access
         := C_In_Word_Set
           (To_Chars_Ptr (Chars'Unchecked_Access), S'Length);
@@ -155,24 +134,19 @@ cat <<EOF
    function To_String (Id : $ent) return String is
    begin
       case Id is
-EOF
+""" % (pkg, matchfun, initval))
 
-sed -n -e '/^key:\(.*\)/s//         when \1 =>/p' \
-       -e '/^str:\(.*\)/s//            return "\1";/p' \
-       < $aux
+for v in values:
+  hadb.write ("         when " + v[0] + " =>\n")
+  hadb.write ('            return "' + v[1] + '";\n')
+  
+  
+if unk != "":
+  hadb.write ("         when others =>\n")
+  hadb.write ("            raise Constraint_Error;\n")
 
-if [ "$unk" != "" ]
-then
-  cat <<EOF
-         when others =>
-            raise Constraint_Error;
-EOF
-fi
-
-cat <<EOF
-      end case;
+hadb.write ("""      end case;
    end To_String;
 
-end $pkg;
-EOF
-exit 0
+end %s;\n"""% (pkg))
+hadb.close ()
