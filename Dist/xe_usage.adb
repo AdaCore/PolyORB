@@ -46,7 +46,7 @@ begin
    Write_Eol;
    Write_Eol;
 
-   Write_Str ("  -l   Output commands to build application manually");
+   Write_Str ("  -M   Output commands to build application manually");
    Write_Eol;
    Write_Str ("  -n   No file stamp consistency check");
    Write_Eol;
