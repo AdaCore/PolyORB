@@ -1,0 +1,11 @@
+#! /bin/sh
+PATH=/usr/ucb:${PATH}
+echo 'server host: '
+read server_HOST
+echo 'client host: '
+read client_HOST
+driver_HOST=`hostname`
+BOOT_SERVER=tcp://$driver_HOST:5555
+rsh -n $server_HOST "`pwd`/server --boot_server $BOOT_SERVER --detach --slave &"
+rsh -n $client_HOST "`pwd`/client --boot_server $BOOT_SERVER --detach --slave &"
+`pwd`/driver --boot_server $BOOT_SERVER
