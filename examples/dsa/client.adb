@@ -82,12 +82,15 @@ begin
      & ") replied: "
      & RCI.echoString (S));
    RAS := RCI.echoString'Access;
+   Put_Line ("Obtained RAS on client");
    Put_Line ("through RAS: " & RAS (S & " (RASI)"));
    Put_Line ("through RAS: " & RAS.all (S & " (RASE)"));
+   RCI.Check_Back_RAS (RAS, "RAS taken on client");
 
    RAS := RCI.getRAS;
    Put_Line ("Obtained RAS-from-server");
    Put_Line ("through RAS-from-server: " & RAS (S & " (RASS)"));
+   RCI.Check_Back_RAS (RAS, "RAS taken on server");
 
    Try_RACW ("");
    Try_RACW ("Elvis");
