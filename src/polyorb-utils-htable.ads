@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . U T I L S . H A S H T A B L E                   --
+--            P O L Y O R B . U T I L S . H A S H T A B L E                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,57 +30,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provide functionnalities to manipulate dynamic perfect     --
---  hash Tables                                                             --
+--  This package provides dynamic perfect hash tables.
 
+package PolyORB.Utils.HTables is
 
-
-
-
-package PolyORB.Utils.H_Table is
+   --  Je ne comprends pas pourquoi tous ces types se trouvent la.
+   --  Pour l'essentiel, ils ne sont utilisables que par Perfect.
+   --  Donc, Perfect devrait etre rapatrie dans ce paquetage.
 
 private
 
-   ----------------------------------
-   -- Private Types Specifications --
-   ----------------------------------
-
    type String_Access is access all String;
 
-   ------------------
-   -- Type Element --
-   ------------------
-   -- *_Hashcode have been added in order to avoid the use,
-   -- and the allocation of the lists used in FKS
-   ------------------
-   -- Key                Param for the hash function
-   -- Field              Item return by Look_Up
-   -- Deleted            Equal True when Element is unused
-   -- Table_Hashcode     Used by Insert
-   -- Sub_Table_Hashcode Idem
-   ------------------
    type Element is record
-      Key : String_Access;
-      Deleted : Boolean;
-      Table_Hashcode : Natural;
-      Sub_Table_Hashcode : Natural;
+      Key         : String_Access;
+      Deleted     : Boolean;
+      Table_Id    : Natural;
+      Subtable_Id : Natural;
    end record;
+   --  Key         Param for the hash function
+   --  XXXXX Commentaire peu clair (param ?)
 
-   --------------------
-   -- Type Sub_Table --
-   --------------------
-   -- Elements are stored in a unique table
-   -- ST_Begin and ST_End marked the limit of
-   -- the sub_tables in this table
-   --------------------
-   -- Size                Size of Sub_Table
-   -- K                   Param for hash function
-   -- Max_Elements        Maximal number of Element without resizing
-   -- Number_Of_Elements  Actual number of Element
-   -- First               Index of the beginning of Sub_Table
-   -- Last                Index of the end
-   --------------------
-   type Sub_Table is record
+   --  Deleted     True when Element is unused
+   --  XXXXX Donc Deleted => Unused
+
+   --  Table_Id    Used by Insert
+   --  Subtable_Id Idem
+   --  XXXXX Expliquer leur role
+
+   type Subtable is record
       Size  : Natural;
       K : Natural;
       Max_Elements : Natural;
@@ -88,17 +66,18 @@ private
       First : Natural;
       Last  : Natural;
    end record;
+   --  Size                Size of Subtable
+   --  Max_Elements        Maximal number of Element without resizing
+   --  Number_Of_Elements  Actual number of Element
+   --  XXXXX Expliquer les differences entre ces tailles
+   --  Donc donner des noms courts mais explicites
 
+   --  First               First subtable index
+   --  Last                Last subtable index
 
-   ---------------------
-   -- Type Table_Info --
-   ---------------------
-   -- Size  Number of Sub_Table
-   -- P     Prime number for hash function
-   -- K     Param for hash function
-   -- M     Max number of element in the table
-   -- Count Number of modification since Re_hash_All
-   ---------------------
+   --  K                   Param for hash function
+   --  XXXXX Expliquer K = key ?
+
    type Table_Info is record
       Size : Natural;
       Prime : Natural;
@@ -106,22 +85,28 @@ private
       Max_Elements : Natural;
       Count : Natural;
    end record;
+   --  P     Prime number for hash function
+   --  XXXXX Prime
 
-   -- Table of all Elements
-   type Elements is array (Natural range <>) of Element;
-   type Elements_Ptr is access all Elements;
+   --  K     Param for hash function
+   --  XXXXX ?????
 
-   -- Table of Sub_Tables information
-   type Sub_Tables is array (Natural range <>) of Sub_Table;
-   type Sub_Tables_Ptr is access all Sub_Tables;
+   --  Count Number of modification since Re_hash_All
+   --  Size  Number of Subtable
+   --  M     Max number of element in the table
+   --  XXXXX Max ? Expliquer les differences entre ces differentes
+   --  notions. Size = N_Subtables ?
 
-   -- Aggregation of Table_Info, Elements and Sub_Tables
-   type H_Table is record
-      T_I : Table_Info;
-      E   : Elements_Ptr;
-      S_T : Sub_Tables_Ptr;
+   type Element_Array is array (Natural range <>) of Element;
+   type Element_Array_Ptr is access all Element_Array;
+
+   type Subtable_Array is array (Natural range <>) of Subtable;
+   type Subtable_Array_Ptr is access all Subtable_Array;
+
+   type Hash_Table is record
+      Info      : Table_Info;
+      Elements  : Element_Array_Ptr;
+      Subtables : Subtable_Array_Ptr;
    end record;
 
-end PolyORB.Utils.H_Table;
-
-
+end PolyORB.Utils.HTables;

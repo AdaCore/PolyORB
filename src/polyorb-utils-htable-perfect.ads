@@ -1,39 +1,49 @@
 generic
    type Item is private;
-
-package PolyORB.Utils.H_Table.Perfect is
+package PolyORB.Utils.HTables.Perfect is
 
    type Table is private;
 
-   -- Function Initialize --
-   -- Prime : Prime Number for hash functions
-   -- Max_Elements : Max number of elements that can be stored
-   function Initialize_Table (Prime : Natural;
-                              Max_Elements : Natural)
-                              return Table;
+   procedure Initialize
+     (T      : out Table;
+      Prime  : Natural;
+      Length : Natural);
+   --  Prime is a prime number used by hash functions. Length is the
+   --  max number of elements that can be stored.
 
-   -- Deallocate
-   procedure Deallocate_Table (T : Table);
+   procedure Destroy
+     (T : in out Table);
 
-   -- Function Look_Up
-   function Look_Up (Key : String; T : Table) return Item;
+   function Lookup
+     (T   : Table;
+      Key : String)
+     return Item;
+   --  Key is ...
 
-   -- Insert
-   procedure Insert (Key : String;
-                     Field : Item;
-                     T : Table);
+   procedure Insert
+     (T     : Table;
+      Key   : String;
+      Value : Item);
+   --  Key is ... and Value ...
 
-   -- Delete
-   procedure Delete (Key : String; T : Table);
-
+   procedure Delete
+     (T   : Table;
+      Key : String);
+   --  Key is ...
 
 private
-   type Items is array (Natural range <>) of Sub_Table;
-   type Items_Ptr is access all Items;
+
+   --  type Item_Access is access Item;
+   --  type Item_Array is array (Natural range <>) of Item_Access;
+   --  Ne faut-il pas utiliser des pointeurs pour eviter les copies
+   --  d'objets trop larges ou avoir des tableaux trop larges.
+
+   type Item_Array is array (Natural range <>) of Subtable;
+   type Item_Array_Ptr is access all Item_Array;
 
    type Table is record
-      H_T : H_Table;
-      I : Items_Ptr;
+      HTable : Hash_Table;
+      Items  : Item_Array_Ptr;
    end record;
 
-end PolyORB.Utils.H_Table.Perfect;
+end PolyORB.Utils.HTables.Perfect;
