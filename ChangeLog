@@ -1,3 +1,10 @@
+2003-12-16  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* configure, aclocal.m4, support/ada.m4: Take into account "PRO"
+	and "ACADEMIC" in the output of GNATLS in order to compute
+	revision major number.
+	Fix probably CC15-007.
+
 2003-12-07  Laurent Pautet  <pautet@enst.fr>
 
 	* NEWS: Update NEWS as it has not been done for a very long time.
