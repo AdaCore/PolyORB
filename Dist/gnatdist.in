@@ -6,6 +6,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 libexecdir=@libexecdir@
+datadir=@datadir@
 SED=@SED@
 EXTRA_LIBS="@EXTRA_LIBS@"
 
@@ -17,6 +18,11 @@ export PATH
 
 if test $# = 0; then
   dist1
+  exit 1
+fi
+
+if test $# = 1 -a "$1" = "-V"; then
+  cat ${datadir}/glade_version.txt
   exit 0
 fi
 

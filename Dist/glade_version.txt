@@ -1,0 +1,14 @@
+This is GLADE @glade_version@ for GNAT @gnat_version@.
+
+GLADE is copyrighted by the Free Software Fundation and is maintained
+by Ada Core Technologies (http://www.gnat.com/) and ACT Europe
+(http://www.act-europe.fr/).
+
+When reporting a bug report (to glade-report@gnat.com), please enclose
+the following information at the beginning of your report unchanged
+(including the [...] lines), this will help us keep track of the exact
+files you got and ensure a prompt answer:
+
+[DEVELOPMENT VERSION]
+(do not add anything after the above line since it will be stripped by 
+the packaging tool)

@@ -1,3 +1,17 @@
+1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* gnatdist.in: Add special handling for -V.
+
+	* xe_usage.adb: Update copyright notice. Add documentation for -V.
+
+	* Makefile.am (data_DATA): Install glade_version.txt.
+
+	* glade_version.txt: New wording.
+
+1997-12-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* glade_version.txt: New file containing versioning information.
+
 1997-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Fix 4911-G01. Handle properly the case in which a

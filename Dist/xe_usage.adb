@@ -36,7 +36,7 @@ begin
 
    if Verbose_Mode then
       Write_Str ("GNATDIST @dsa_version@ / GNAT @gnat_version@");
-      Write_Str (" Copyright 1996 Free Software Foundation, Inc.");
+      Write_Str (" Copyright 1996,1997 Free Software Foundation, Inc.");
       Write_Eol;
    end if;
    Write_Str ("Usage: ");
@@ -53,6 +53,8 @@ begin
    Write_Str ("  -q   Be quiet, do not display partitioning operations");
    Write_Eol;
    Write_Str ("  -v   Motivate all executed commands");
+   Write_Eol;
+   Write_Str ("  -V   Output version information");
    Write_Eol;
    Write_Eol;
 
