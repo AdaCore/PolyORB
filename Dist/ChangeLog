@@ -1,5 +1,3 @@
-2004-10-12  Laurent Pautet  <pautet@dorine.enst.fr>
-
 2004-10-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* Makefile.am, Makefile.in: Build xe_back.adb depending on PCSNAME
