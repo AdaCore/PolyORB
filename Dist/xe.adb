@@ -638,10 +638,13 @@ package body XE is
       CL : Node_Id;
 
    begin
-      pragma Assert (Is_Type (TN));
-      CL := Nodes.Table (TN).Node_3;
-      pragma Assert (Is_List (CL));
-      Component_Node := Component_Id (Nodes.Table (CL).Node_1);
+      Component_Node := Null_Component;
+      if Is_Type (TN) then
+         CL := Nodes.Table (TN).Node_3;
+         if CL /= Null_Node and then Is_List (CL) then
+            Component_Node := Component_Id (Nodes.Table (CL).Node_1);
+         end if;
+      end if;
    end First_Type_Component;
 
    ------------------------------
@@ -656,10 +659,13 @@ package body XE is
       CL : Node_Id;
 
    begin
-      pragma Assert (Is_Variable (VN));
-      CL := Nodes.Table (VN).Node_3;
-      pragma Assert (Is_List (CL));
-      Component_Node := Component_Id (Nodes.Table (CL).Node_1);
+      Component_Node := Null_Component;
+      if Is_Variable (VN) then
+         CL := Nodes.Table (VN).Node_3;
+         if CL /= Null_Node and then Is_List (CL) then
+            Component_Node := Component_Id (Nodes.Table (CL).Node_1);
+         end if;
+      end if;
    end First_Variable_Component;
 
    ------------------------------

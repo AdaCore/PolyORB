@@ -1,3 +1,10 @@
+2002-04-02  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe.adb: In the GLADE configuration language, an Ada unit has no
+	attribute. But we should not raise an assertion failure when
+	accessing to a non-existing attribute. Fix
+	First_Variable_Component and First_Type_Component for 9916-002.
+
 2002-01-28  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* Makefile.am, Makefile.in: Add -bargs -static to fix 9728-002.
