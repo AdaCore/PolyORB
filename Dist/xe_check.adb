@@ -185,7 +185,7 @@ package body XE_Check is
          Message ("check non-dist. app. units");
       end if;
 
-      Push (Str_To_Id ("System.Parqtition_Interface"), True);
+      Push (Str_To_Id ("System.Partition_Interface"), True);
       Push (Str_To_Id ("System.RPC"), True);
 
       Main_Subprogram := Get_Main_Subprogram (Main_Partition);
