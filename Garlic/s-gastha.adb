@@ -39,7 +39,6 @@ package body System.Garlic.Storage_Handling is
 
    package IC  renames Interfaces.C;
    package SSE renames System.Storage_Elements;
-   package SSP renames System.Storage_Pools;
 
    use type SSE.Storage_Count;
    use type IC.int;
@@ -61,6 +60,7 @@ package body System.Garlic.Storage_Handling is
       Storage_Address          : out Address;
       Size_In_Storage_Elements : in SSE.Storage_Count;
       Alignment                : in SSE.Storage_Count) is
+      pragma Unreferenced (Alignment);
    begin
       pragma Assert (Initialized);
 
@@ -110,8 +110,8 @@ package body System.Garlic.Storage_Handling is
      (Pool                     : in out Garlic_Storage_Pool;
       Storage_Address          : in Address;
       Size_In_Storage_Elements : in SSE.Storage_Count;
-      Alignment                : in SSE.Storage_Count)
-   is
+      Alignment                : in SSE.Storage_Count) is
+      pragma Unreferenced (Alignment);
    begin
 
       --  Garlic_Storage_Pool is a controlled type. It is initialized
@@ -208,6 +208,7 @@ package body System.Garlic.Storage_Handling is
 
    function Storage_Size (Pool : Garlic_Storage_Pool)
      return SSE.Storage_Count is
+      pragma Unreferenced (Pool);
    begin
       return SSE.Storage_Count'Last;
    end Storage_Size;

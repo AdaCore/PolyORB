@@ -1,3 +1,12 @@
+2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* Makefile.am, Makefile.in: install s-gastha source and object
+	files. Updated by autoconf/automake.
+	Work for CA22-003.
+
+	* s-gastha.adb: Fix warnings.
+	Work for CA22-003.
+
 2004-05-16  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* s-gartas.adb, s-garter.adb: Replace Task_ID with Task_Id. Update
