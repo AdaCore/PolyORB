@@ -609,8 +609,10 @@ package body XE_IO is
       for J in Temp_Files'Range loop
          if Present (Temp_Files (J).Fname) then
             Close (Temp_Files (J).File, Success);
-            Get_Name_String (Temp_Files (J).Fname);
-            Delete_File (Name_Buffer (1 .. Name_Len), Success);
+            if not Keep_Tmp_Files then
+               Get_Name_String (Temp_Files (J).Fname);
+               Delete_File (Name_Buffer (1 .. Name_Len), Success);
+            end if;
             Temp_Files (J) := Null_Temp_File_Entry;
          end if;
       end loop;
@@ -627,8 +629,10 @@ package body XE_IO is
       for J in Temp_Files'Range loop
          if Temp_Files (J).Fname = Fname then
             Close (Temp_Files (J).File, Success);
-            Get_Name_String (Fname);
-            Delete_File (Name_Buffer (1 .. Name_Len), Success);
+            if not Keep_Tmp_Files then
+               Get_Name_String (Fname);
+               Delete_File (Name_Buffer (1 .. Name_Len), Success);
+            end if;
             Temp_Files (J) := Null_Temp_File_Entry;
             exit;
          end if;

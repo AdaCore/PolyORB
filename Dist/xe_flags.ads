@@ -34,6 +34,7 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package XE_Flags is
 
+   Keep_Tmp_Files     : Boolean;
    Verbose_Mode       : Boolean;
    Debug_Mode         : Boolean;
    Quiet_Mode         : Boolean;
