@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#9 $
-
-with Ada.Unchecked_Deallocation;
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#10 $
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Exceptions.Stack is
@@ -47,8 +46,7 @@ package body PolyORB.Exceptions.Stack is
    use PolyORB.Log;
    use PolyORB.Tasking.Mutexes;
 
-   package L is new PolyORB.Log.Facility_Log
-     ("polyorb.exceptions.stack");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.exceptions.stack");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -67,42 +65,29 @@ package body PolyORB.Exceptions.Stack is
 
    Magic : constant String := "PO_Exc_Occ";
 
-   type Exception_Members_Ptr is
-      access all PolyORB.Exceptions.Exception_Members'Class;
-
    type Exc_Occ_Id_Type is new Natural;
 
    Seed_Id : Exc_Occ_Id_Type := 1;
    Null_Id : constant Exc_Occ_Id_Type := 0;
 
-   type Exc_Occ_Node;
-   type Exc_Occ_List is access Exc_Occ_Node;
-   type Exc_Occ_Node is
-      record
-         Id   : Exc_Occ_Id_Type;
-         Mbr  : Exception_Members_Ptr;
-         Next : Exc_Occ_List;
-      end record;
+   type Exc_Occ_Node is record
+      Id   : Exc_Occ_Id_Type;
+      Mbr  : Exception_Members_Access;
+   end record;
 
-   Exc_Occ_Head : Exc_Occ_List;
-   Exc_Occ_Tail : Exc_Occ_List;
+   package Exc_Occ_Lists is new PolyORB.Utils.Chained_Lists
+     (Exc_Occ_Node, Doubly_Chained => True);
+   use Exc_Occ_Lists;
+
+   Exc_Occ_List : Exc_Occ_Lists.List;
 
    Exc_Occ_Lock : Mutex_Access;
-   --  Mutex used to safely access Exc_Occ list.
+   --  Mutex used to safely access Exc_Occ list
 
-   Exc_Occ_List_Size     : Natural := 0;
    Max_Exc_Occ_List_Size : constant Natural := 100;
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-        (Exc_Occ_Node, Exc_Occ_List);
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-        (Exception_Members'Class, Exception_Members_Ptr);
-
    function Image (V : Exc_Occ_Id_Type) return String;
-   --  Store the magic string and the exception occurrence id.
+   --  Store the magic string and the exception occurrence id
 
    function Value (M : String) return Exc_Occ_Id_Type;
    --  Extract the exception occurrence id from the exception
@@ -110,28 +95,26 @@ package body PolyORB.Exceptions.Stack is
    --  expected format.
 
    procedure Dump_All_Occurrences;
-   --  Dump the occurrence list (not protected).
+   --  Dump the occurrence list (not protected)
 
    --------------------------
    -- Dump_All_Occurrences --
    --------------------------
 
-   procedure Dump_All_Occurrences
-   is
-      Current : Exc_Occ_List := Exc_Occ_Head;
+   procedure Dump_All_Occurrences is
+      It : Iterator := First (Exc_Occ_List);
+
    begin
       O ("Dump_All_Occurrences:");
 
-      if Current = null then
+      if Exc_Occ_List = Empty then
          O ("No stored exceptions.");
          return;
       end if;
 
-      while Current /= null loop
-         --  O ("At " & System.Storage_Elements.To_Integer
-         --     (Current.all'Address)'Img & ":");
-         O ("  " & Image (Current.Id));
-         Current := Current.Next;
+      while not Last (It) loop
+         O ("  " & Image (Value (It).all.Id));
+         Next (It);
       end loop;
    end Dump_All_Occurrences;
 
@@ -154,8 +137,7 @@ package body PolyORB.Exceptions.Stack is
       Get_Members :     Boolean)
    is
       Exc_Occ_Id : Exc_Occ_Id_Type;
-      Current    : Exc_Occ_List;
-      Previous   : Exc_Occ_List;
+      It : Iterator;
 
    begin
       Enter (Exc_Occ_Lock);
@@ -165,7 +147,7 @@ package body PolyORB.Exceptions.Stack is
                        & Ada.Exceptions.Exception_Message (Exc_Occ)));
       pragma Debug (Dump_All_Occurrences);
 
-      --  If Exc_Occ_Id = Null_Id, the exception has no member.
+      --  If Exc_Occ_Id = Null_Id, the exception has no member
 
       Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
       if Exc_Occ_Id = Null_Id then
@@ -173,58 +155,48 @@ package body PolyORB.Exceptions.Stack is
          return;
       end if;
 
-      --  Scan the list using the exception occurrence id.
+      --  Scan the list using the exception occurrence id
 
-      Current := Exc_Occ_Head;
-      while Current /= null loop
-         exit when Current.Id = Exc_Occ_Id;
+      It := First (Exc_Occ_List);
+      while not Last (It) loop
+         exit when Value (It).all.Id = Exc_Occ_Id;
 
-         Previous := Current;
-         Current  := Current.Next;
+         Next (It);
       end loop;
 
-      if Current = null then
+      if Value (It).all.Id /= Exc_Occ_Id then
          Leave (Exc_Occ_Lock);
 
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
          --  PolyORB.Exceptions.Raise_Imp_Limit;
+         raise Program_Error;
       end if;
 
-      --  Remove member from list.
-
-      if Previous /= null then
-         Previous.Next := Current.Next;
-      else
-         Exc_Occ_Head := Current.Next;
-      end if;
-
-      if Exc_Occ_Tail = Current then
-         Exc_Occ_Tail := Previous;
-      end if;
-
-      --  Update out parameter. An exception can be raised here.
+      --  Update out parameter
 
       if Get_Members then
-         Exc_Mbr := Current.Mbr.all;
-         --  May raise Constraint_Error if the tags do not match.
+         Exc_Mbr := Value (It).all.Mbr.all;
+         --  May raise Constraint_Error if the tags do not match
+
       end if;
 
-      Free (Current.Mbr);
-      Free (Current);
-      Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
+      --  Remove member from list
+
+      Free (Value (It).all.Mbr);
+      Remove (Exc_Occ_List, It);
+
       Leave (Exc_Occ_Lock);
 
    exception
       when others =>
-         if Current /= null then
-            if Current.Mbr /= null then
-               Free (Current.Mbr);
-            end if;
-            Free (Current);
-         end if;
-         Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
+
+         --  Remove member from list
+
+         Free (Value (It).all.Mbr);
+         Remove (Exc_Occ_List, It);
+
          Leave (Exc_Occ_Lock);
          raise;
    end Get_Or_Purge_Members;
@@ -235,7 +207,8 @@ package body PolyORB.Exceptions.Stack is
 
    procedure Get_Members
      (Exc_Occ : in  Ada.Exceptions.Exception_Occurrence;
-      Exc_Mbr : out PolyORB.Exceptions.Exception_Members'Class) is
+      Exc_Mbr : out PolyORB.Exceptions.Exception_Members'Class)
+   is
    begin
       Get_Or_Purge_Members (Exc_Occ, Exc_Mbr, Get_Members => True);
    end Get_Members;
@@ -245,7 +218,8 @@ package body PolyORB.Exceptions.Stack is
    -------------------
 
    procedure Purge_Members
-     (Exc_Occ : in Ada.Exceptions.Exception_Occurrence) is
+     (Exc_Occ : in Ada.Exceptions.Exception_Occurrence)
+   is
    begin
       declare
          Dummy : System_Exception_Members;
@@ -274,8 +248,7 @@ package body PolyORB.Exceptions.Stack is
      (Exc_Id  : in Ada.Exceptions.Exception_Id;
       Exc_Mbr : in PolyORB.Exceptions.Exception_Members'Class)
    is
-      Current    : Exc_Occ_List;
-      Exc_Occ_Id : Exc_Occ_Id_Type;
+      New_Node : Exc_Occ_Node;
 
    begin
       Enter (Exc_Occ_Lock);
@@ -283,50 +256,36 @@ package body PolyORB.Exceptions.Stack is
       --  Keep the list size to a max size. Otherwise, remove the
       --  oldest member (first in the list).
 
-      if Exc_Occ_List_Size = Max_Exc_Occ_List_Size then
-         Current := Exc_Occ_Head;
-         Exc_Occ_Head := Exc_Occ_Head.Next;
-         if Current.Mbr /= null then
-            Free (Current.Mbr);
-         end if;
-
-      else
-         Exc_Occ_List_Size := Exc_Occ_List_Size + 1;
-         Current := new Exc_Occ_Node;
+      if Length (Exc_Occ_List) = Max_Exc_Occ_List_Size then
+         Extract_First (Exc_Occ_List, New_Node);
+         Free (New_Node.Mbr);
       end if;
 
       pragma Debug (O ("Assigning ID: " & Image (Seed_Id)));
       pragma Debug (Dump_All_Occurrences);
 
-      --  Generate a fresh exception occurrence id.
+      --  Generate a fresh exception occurrence id
 
-      Exc_Occ_Id   := Seed_Id;
-      Current.Id   := Seed_Id;
-      Current.Mbr  := new PolyORB.Exceptions.Exception_Members'Class'(Exc_Mbr);
-      Current.Next := null;
+      New_Node.Id := Seed_Id;
+      New_Node.Mbr
+        := new PolyORB.Exceptions.Exception_Members'Class'(Exc_Mbr);
 
       if Seed_Id = Exc_Occ_Id_Type'Last then
          Seed_Id := Null_Id;
       end if;
       Seed_Id := Seed_Id + 1;
 
-      --  Append to the list.
+      --  Append to the list
 
-      if Exc_Occ_Head = null then
-         Exc_Occ_Head := Current;
-      end if;
-      if Exc_Occ_Tail /= null then
-         Exc_Occ_Tail.Next := Current;
-      end if;
-      Exc_Occ_Tail := Current;
+      Append (Exc_Occ_List, New_Node);
 
       pragma Debug (O ("Raise ("
                        & Ada.Exceptions.Exception_Name (Exc_Id)
-                       & ", " & Image (Exc_Occ_Id) & ")."));
+                       & ", " & Image (New_Node.Id) & ")."));
       pragma Debug (Dump_All_Occurrences);
       Leave (Exc_Occ_Lock);
 
-      Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
+      Ada.Exceptions.Raise_Exception (Exc_Id, Image (New_Node.Id));
       raise Program_Error;
    end Raise_Exception;
 
@@ -343,10 +302,10 @@ package body PolyORB.Exceptions.Stack is
          return Null_Id;
       end if;
 
-      --  Look for the magic string.
+      --  Look for the magic string
 
-      for I in Magic'Range loop
-         if Magic (I) /= M (N) then
+      for J in Magic'Range loop
+         if Magic (J) /= M (N) then
             return Null_Id;
          end if;
          N := N + 1;
@@ -357,7 +316,7 @@ package body PolyORB.Exceptions.Stack is
       end if;
       N := N + 1;
 
-      --  Scan the exception occurrence id.
+      --  Scan the exception occurrence id
 
       while N <= M'Last loop
          if M (N) not in '0' .. '9' then
@@ -390,9 +349,9 @@ begin
    Register_Module
      (Module_Info'
       (Name      => +"exceptions.stack",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => +"tasking.mutexes",
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
        Init      => Initialize'Access));
 end PolyORB.Exceptions.Stack;
