@@ -312,6 +312,8 @@ package body Ada_Be.Source_Streams is
             Put_Line (File, "--  IDL to Ada compiler.");
          end if;
          Put_Line (File, "----------------------------------------------");
+         --  XXXXX To be removed later on
+         Put_Line (File, "pragma Warnings (Off);");
          New_Line (File);
       end Emit_Standard_Header;
 
