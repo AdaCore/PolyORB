@@ -46,5 +46,93 @@ package System.PolyORB_Interface is
       Deferred_Arguments_Session : in PolyORB.Components.Component_Access := null
      ) renames PolyORB.Requests.Create_Request;
 
+--       function FA_AD (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_AS (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_B (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_C (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_F (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_I (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LLF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LLI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LLU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_LU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_SF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_SI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_SSI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_SSU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_SU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_U (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+--       function FA_WC (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+
+--       function TA_AD (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_AS (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_B (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_C (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_F (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_I (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LLF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LLI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LLU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_LU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_SF (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_SI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_SSI (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_SSU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_SU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_U (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+--       function TA_WC (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
+
+--       function TC_AD return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
+--       function TC_AS return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
+
+   --  The typecodes below define the mapping of Ada elementary
+   --  types onto PolyORB types.
+
+   function TC_B return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Boolean;
+   function TC_C return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Char;
+   function TC_F return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Float;
+
+   --  Warning! Ada numeric types have platform dependant sizes,
+   --  PolyORB types are fixed size: this mapping may need to
+   --  be changed for other platforms (or the biggest PolyORB
+   --  type for each Ada type should be selected, if cross-platform
+   --  interoperability is desired.
+
+   function TC_I return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Long;
+   function TC_LF return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Double;
+   function TC_LI return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Long;
+   function TC_LLF return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Long_Double;
+   function TC_LLI return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Long_Long;
+   function TC_LLU return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Unsigned_Long_Long;
+   function TC_LU return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Unsigned_Long;
+   function TC_SF return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Float;
+
+   function TC_SI return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Short;
+   function TC_SSI return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Short;
+   function TC_SSU return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Octet;
+   function TC_SU return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Unsigned_Short;
+   function TC_U return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Unsigned_Long;
+   function TC_WC return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Wide_Char;
 
 end System.PolyORB_Interface;

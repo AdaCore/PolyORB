@@ -1025,12 +1025,12 @@ package Rtsfind is
      RE_RPC_Receiver,                    -- System.RPC
 
      RE_To_PolyORB_String,               -- System.PolyORB_Interface
+     RE_TypeCode,                        -- System.PolyORB_Interface
      RE_Any,                             -- System.PolyORB_Interface
      RE_Mode_In,                         -- System.PolyORB_Interface
      RE_Mode_Out,                        -- System.PolyORB_Interface
      RE_Mode_Inout,                      -- System.PolyORB_Interface
      RE_NamedValue,                      -- System.PolyORB_Interface
-     RE_TypeCode,                        -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
@@ -1038,6 +1038,66 @@ package Rtsfind is
      RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Access,                  -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
+
+     RE_FA_AD,                           -- System.PolyORB_Interface
+     RE_FA_AS,                           -- System.PolyORB_Interface
+     RE_FA_B,                            -- System.PolyORB_Interface
+     RE_FA_C,                            -- System.PolyORB_Interface
+     RE_FA_F,                            -- System.PolyORB_Interface
+     RE_FA_I,                            -- System.PolyORB_Interface
+     RE_FA_LF,                           -- System.PolyORB_Interface
+     RE_FA_LI,                           -- System.PolyORB_Interface
+     RE_FA_LLF,                          -- System.PolyORB_Interface
+     RE_FA_LLI,                          -- System.PolyORB_Interface
+     RE_FA_LLU,                          -- System.PolyORB_Interface
+     RE_FA_LU,                           -- System.PolyORB_Interface
+     RE_FA_SF,                           -- System.PolyORB_Interface
+     RE_FA_SI,                           -- System.PolyORB_Interface
+     RE_FA_SSI,                          -- System.PolyORB_Interface
+     RE_FA_SSU,                          -- System.PolyORB_Interface
+     RE_FA_SU,                           -- System.PolyORB_Interface
+     RE_FA_U,                            -- System.PolyORB_Interface
+     RE_FA_WC,                           -- System.PolyORB_Interface
+
+     RE_TA_AD,                           -- System.PolyORB_Interface
+     RE_TA_AS,                           -- System.PolyORB_Interface
+     RE_TA_B,                            -- System.PolyORB_Interface
+     RE_TA_C,                            -- System.PolyORB_Interface
+     RE_TA_F,                            -- System.PolyORB_Interface
+     RE_TA_I,                            -- System.PolyORB_Interface
+     RE_TA_LF,                           -- System.PolyORB_Interface
+     RE_TA_LI,                           -- System.PolyORB_Interface
+     RE_TA_LLF,                          -- System.PolyORB_Interface
+     RE_TA_LLI,                          -- System.PolyORB_Interface
+     RE_TA_LLU,                          -- System.PolyORB_Interface
+     RE_TA_LU,                           -- System.PolyORB_Interface
+     RE_TA_SF,                           -- System.PolyORB_Interface
+     RE_TA_SI,                           -- System.PolyORB_Interface
+     RE_TA_SSI,                          -- System.PolyORB_Interface
+     RE_TA_SSU,                          -- System.PolyORB_Interface
+     RE_TA_SU,                           -- System.PolyORB_Interface
+     RE_TA_U,                            -- System.PolyORB_Interface
+     RE_TA_WC,                           -- System.PolyORB_Interface
+
+     RE_TC_AD,                           -- System.PolyORB_Interface
+     RE_TC_AS,                           -- System.PolyORB_Interface
+     RE_TC_B,                            -- System.PolyORB_Interface
+     RE_TC_C,                            -- System.PolyORB_Interface
+     RE_TC_F,                            -- System.PolyORB_Interface
+     RE_TC_I,                            -- System.PolyORB_Interface
+     RE_TC_LF,                           -- System.PolyORB_Interface
+     RE_TC_LI,                           -- System.PolyORB_Interface
+     RE_TC_LLF,                          -- System.PolyORB_Interface
+     RE_TC_LLI,                          -- System.PolyORB_Interface
+     RE_TC_LLU,                          -- System.PolyORB_Interface
+     RE_TC_LU,                           -- System.PolyORB_Interface
+     RE_TC_SF,                           -- System.PolyORB_Interface
+     RE_TC_SI,                           -- System.PolyORB_Interface
+     RE_TC_SSI,                          -- System.PolyORB_Interface
+     RE_TC_SSU,                          -- System.PolyORB_Interface
+     RE_TC_SU,                           -- System.PolyORB_Interface
+     RE_TC_U,                            -- System.PolyORB_Interface
+     RE_TC_WC,                           -- System.PolyORB_Interface
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -1949,6 +2009,7 @@ package Rtsfind is
      RE_Subprogram_Id                    => System_Partition_Interface,
 
      RE_To_PolyORB_String                => System_PolyORB_Interface,
+     RE_TypeCode                         => System_PolyORB_Interface,
      RE_Any                              => System_PolyORB_Interface,
      RE_Mode_In                          => System_PolyORB_Interface,
      RE_Mode_Out                         => System_PolyORB_Interface,
@@ -1961,7 +2022,66 @@ package Rtsfind is
      RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Access                   => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
-     RE_TypeCode                         => System_PolyORB_Interface,
+
+     RE_FA_AD                            => System_PolyORB_Interface,
+     RE_FA_AS                            => System_PolyORB_Interface,
+     RE_FA_B                             => System_PolyORB_Interface,
+     RE_FA_C                             => System_PolyORB_Interface,
+     RE_FA_F                             => System_PolyORB_Interface,
+     RE_FA_I                             => System_PolyORB_Interface,
+     RE_FA_LF                            => System_PolyORB_Interface,
+     RE_FA_LI                            => System_PolyORB_Interface,
+     RE_FA_LLF                           => System_PolyORB_Interface,
+     RE_FA_LLI                           => System_PolyORB_Interface,
+     RE_FA_LLU                           => System_PolyORB_Interface,
+     RE_FA_LU                            => System_PolyORB_Interface,
+     RE_FA_SF                            => System_PolyORB_Interface,
+     RE_FA_SI                            => System_PolyORB_Interface,
+     RE_FA_SSI                           => System_PolyORB_Interface,
+     RE_FA_SSU                           => System_PolyORB_Interface,
+     RE_FA_SU                            => System_PolyORB_Interface,
+     RE_FA_U                             => System_PolyORB_Interface,
+     RE_FA_WC                            => System_PolyORB_Interface,
+
+     RE_TA_AD                            => System_PolyORB_Interface,
+     RE_TA_AS                            => System_PolyORB_Interface,
+     RE_TA_B                             => System_PolyORB_Interface,
+     RE_TA_C                             => System_PolyORB_Interface,
+     RE_TA_F                             => System_PolyORB_Interface,
+     RE_TA_I                             => System_PolyORB_Interface,
+     RE_TA_LF                            => System_PolyORB_Interface,
+     RE_TA_LI                            => System_PolyORB_Interface,
+     RE_TA_LLF                           => System_PolyORB_Interface,
+     RE_TA_LLI                           => System_PolyORB_Interface,
+     RE_TA_LLU                           => System_PolyORB_Interface,
+     RE_TA_LU                            => System_PolyORB_Interface,
+     RE_TA_SF                            => System_PolyORB_Interface,
+     RE_TA_SI                            => System_PolyORB_Interface,
+     RE_TA_SSI                           => System_PolyORB_Interface,
+     RE_TA_SSU                           => System_PolyORB_Interface,
+     RE_TA_SU                            => System_PolyORB_Interface,
+     RE_TA_U                             => System_PolyORB_Interface,
+     RE_TA_WC                            => System_PolyORB_Interface,
+
+     RE_TC_AD                            => System_PolyORB_Interface,
+     RE_TC_AS                            => System_PolyORB_Interface,
+     RE_TC_B                             => System_PolyORB_Interface,
+     RE_TC_C                             => System_PolyORB_Interface,
+     RE_TC_F                             => System_PolyORB_Interface,
+     RE_TC_I                             => System_PolyORB_Interface,
+     RE_TC_LF                            => System_PolyORB_Interface,
+     RE_TC_LI                            => System_PolyORB_Interface,
+     RE_TC_LLF                           => System_PolyORB_Interface,
+     RE_TC_LLI                           => System_PolyORB_Interface,
+     RE_TC_LLU                           => System_PolyORB_Interface,
+     RE_TC_LU                            => System_PolyORB_Interface,
+     RE_TC_SF                            => System_PolyORB_Interface,
+     RE_TC_SI                            => System_PolyORB_Interface,
+     RE_TC_SSI                           => System_PolyORB_Interface,
+     RE_TC_SSU                           => System_PolyORB_Interface,
+     RE_TC_SU                            => System_PolyORB_Interface,
+     RE_TC_U                             => System_PolyORB_Interface,
+     RE_TC_WC                            => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 
