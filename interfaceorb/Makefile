@@ -67,7 +67,7 @@ proxyObjectFactory_C2Ada.o
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) $<
 
 Ada_Corba_Exceptions.o : Ada_Corba_Exceptions.hh Ada_Corba_Exceptions.cc \
-Ada_exceptions.hh
+Ada_exceptions.hh Ada_OmniObject.hh
 
 Ada_Corba_Boa.o : Ada_Corba_Boa.hh Ada_Corba_Boa.cc Ada_exceptions.hh
 

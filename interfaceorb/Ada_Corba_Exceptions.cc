@@ -54,7 +54,7 @@
 
 
 CORBA::Boolean
-_omni_callTransientExceptionHandler(omniObject* omniobj,
+_omni_callTransientExceptionHandler(Ada_OmniObject* omniobj,
 				    CORBA::ULong retries,
 				    CORBA::ULong minor,
 				    CORBA::CompletionStatus status)
@@ -63,7 +63,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::TRANSIENT ex (minor, status);
   // throws it
-  return _omni_callTransientExceptionHandler (omniobj,
+  return _omni_callTransientExceptionHandler (omniobj->C_Object,
 					      retries,
 					      ex);
 ADABROKER_CATCH
@@ -71,7 +71,7 @@ ADABROKER_CATCH
 
 
 CORBA::Boolean
-_omni_callCommFailureExceptionHandler(omniObject* omniobj,
+_omni_callCommFailureExceptionHandler(Ada_OmniObject* omniobj,
 				      CORBA::ULong retries,
 				      CORBA::ULong minor,
 				      CORBA::CompletionStatus status)
@@ -80,7 +80,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::COMM_FAILURE ex (minor, status);
   // throws it
-  return _omni_callCommFailureExceptionHandler (omniobj,
+  return _omni_callCommFailureExceptionHandler (omniobj->C_Object,
 						retries,
 						ex);
 ADABROKER_CATCH
@@ -88,7 +88,7 @@ ADABROKER_CATCH
 
 
 CORBA::Boolean
-_omni_callSystemExceptionHandler(omniObject* omniobj,
+_omni_callSystemExceptionHandler(Ada_OmniObject* omniobj,
 				 CORBA::ULong retries,
 				 CORBA::ULong minor,
 				 CORBA::CompletionStatus status)
@@ -97,7 +97,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::SystemException ex (minor, status);
   // throws it
-  return _omni_callSystemExceptionHandler (omniobj,
+  return _omni_callSystemExceptionHandler (omniobj->C_Object,
 					   retries,
 					   ex);
 ADABROKER_CATCH

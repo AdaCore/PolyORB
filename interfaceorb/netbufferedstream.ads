@@ -243,7 +243,8 @@ package NetBufferedStream is
 
 
    function Align_Size (A : in Corba.String ;
-                        Initial_Offset : in Corba.Unsigned_Long)
+                        Initial_Offset : in Corba.Unsigned_Long ;
+                        N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long ;
    -- Compute the size needed to marshall A into S
 

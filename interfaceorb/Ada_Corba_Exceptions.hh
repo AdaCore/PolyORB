@@ -50,9 +50,10 @@
 
 
 #include <omniORB2/CORBA.h>
+#include "Ada_OmniObject.hh"
 
 CORBA::Boolean
-_omni_callTransientExceptionHandler(omniObject* omniobj,
+_omni_callTransientExceptionHandler(Ada_OmniObject* omniobj,
 				    CORBA::ULong retries,
 				    CORBA::ULong minor,
 				    CORBA::CompletionStatus status);
@@ -63,7 +64,7 @@ _omni_callTransientExceptionHandler(omniObject* omniobj,
 
 
 CORBA::Boolean
-_omni_callCommFailureExceptionHandler(omniObject*,
+_omni_callCommFailureExceptionHandler(Ada_OmniObject*,
 				      CORBA::ULong,
 				      CORBA::ULong minor,
 				      CORBA::CompletionStatus status);
@@ -74,7 +75,7 @@ _omni_callCommFailureExceptionHandler(omniObject*,
 
 
 CORBA::Boolean
-_omni_callSystemExceptionHandler(omniObject*,
+_omni_callSystemExceptionHandler(Ada_OmniObject*,
 				 CORBA::ULong,
 				 CORBA::ULong minor,
 				 CORBA::CompletionStatus status);

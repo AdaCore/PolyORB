@@ -136,8 +136,9 @@ ADABROKER_CATCH
 void
 Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
-  //ADABROKER_TRY
+ADABROKER_TRY
     if (Init_Ok) {
+      throw CORBA::MARSHAL(0,CORBA::COMPLETED_NO);
       // if Initialisation was made then call the corresponding
       // function on C_Object
       result = ((GIOP_C *) C_Object)->ReceiveReply();
@@ -147,7 +148,7 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 				  __LINE__,
 				  "Call of Ada_Giop_c::ReceiveReply without initialising object.") ;
     }
-//ADABROKER_CATCH
+ADABROKER_CATCH
 };
 
 
