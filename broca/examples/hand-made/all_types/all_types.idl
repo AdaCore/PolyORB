@@ -1,0 +1,68 @@
+interface all_types {
+
+  // simple types
+  //-------------
+  boolean echoBoolean(in boolean arg) ;
+  short echoShort(in short arg) ;
+  long echoLong(in long arg) ;
+  unsigned short echoUShort(in unsigned short arg) ;
+  unsigned long echoULong(in unsigned long arg) ;
+  float echoFloat(in float arg) ;
+  double echoDouble(in double arg) ;
+  char echoChar(in char arg) ;
+  octet echoOctet (in octet arg) ;
+  string echoString (in string arg) ;
+  all_types echoRef (in all_types arg);
+
+  // Enum
+  //-----
+  enum Color { Red, Green, Blue };
+  Color echoColor (in Color arg);
+
+  // Exceptions
+  //-----------
+  exception my_exception {long info;};
+
+  void testException (in long arg) raises (my_exception);
+
+
+  // Unions
+  //-------
+  union myUnion switch (long) {
+    case 1: long    Counter;
+    case 2: boolean Flag;
+    case 3: Color   Hue;
+    default: long Unknown;
+  };
+
+  myUnion echoUnion (in myUnion arg);
+
+  // Arrays
+  typedef long simple_array[5];
+  simple_array echoArray (in simple_array arg);
+
+  // Multi-dimensional arrays
+  typedef long matrix[3][3];
+  matrix echoMatrix (in matrix arg);
+
+  // Structs
+  //--------
+  struct simple_struct {
+      long a[10];
+      string s;
+  };
+
+  simple_struct echoStruct (in simple_struct arg);
+
+
+  // Sequences
+  //----------
+  typedef sequence<short> U_sequence;
+
+  U_sequence echoUsequence (in U_sequence arg);
+
+  // Attributes
+  //-----------
+  readonly attribute long Counter;
+  attribute Color myColor;
+};

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.1 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,14 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Echo.Impl;
+with all_types.Impl;
 with GenericServer; use GenericServer;
 
 procedure Server is
 begin
 
-   Repository_Id := new String'("IDL:Echo:1.0");
-   My_Obj := new Echo.Impl.Object;
+   Repository_Id := new String'("IDL:all_types:1.0");
+   My_Obj := new all_types.Impl.Object;
    GenericServer.Main (My_Obj);
 
 end Server;

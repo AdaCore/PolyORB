@@ -59,23 +59,23 @@ package body myexceptions is
       end if;
    end Is_A;
 
---     type myexceptions_Factory_Type is new Broca.Repository.Factory_Type
---        with null record;
---     function Create (Factory : access myexceptions_Factory_Type)
---                      return CORBA.Object.Ref'Class;
---
---     function Create (Factory : access myexceptions_Factory_Type)
---                      return CORBA.Object.Ref'Class is
---        Res : Ref;
---     begin
---        Broca.Refs.Set (Broca.Refs.Ref (Res),
---                        new Broca.Object.Object_Type);
---        return Res;
---     end Create;
---
---     myexceptions_Factory : constant Broca.Repository.Factory_Ptr :=
---        new myexceptions_Factory_Type'
---          (Next => null, Type_Id => CORBA.RepositoryId (Repository_Id));
---  begin
---     Broca.Repository.Register (myexceptions_Factory);
+   type myexceptions_Factory_Type is new Broca.Repository.Factory_Type
+      with null record;
+   function Create (Factory : access myexceptions_Factory_Type)
+                    return CORBA.Object.Ref'Class;
+
+   function Create (Factory : access myexceptions_Factory_Type)
+                    return CORBA.Object.Ref'Class is
+      Res : Ref;
+   begin
+      Broca.Refs.Set (Broca.Refs.Ref (Res),
+                      new Broca.Object.Object_Type);
+      return Res;
+   end Create;
+
+   myexceptions_Factory : constant Broca.Repository.Factory_Ptr :=
+      new myexceptions_Factory_Type'
+        (Next => null, Type_Id => CORBA.RepositoryId (Repository_Id));
+begin
+   Broca.Repository.Register (myexceptions_Factory);
 end myexceptions;

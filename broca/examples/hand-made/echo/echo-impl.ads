@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -42,8 +42,5 @@ package Echo.Impl is
 private
    function EchoString (Self : access Object; Mesg : in CORBA.String)
                         return CORBA.String;
-
-
-   procedure Foo(Self: access Object) ;
 
 end Echo.Impl;

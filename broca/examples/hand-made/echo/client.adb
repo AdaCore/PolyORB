@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -50,7 +50,7 @@ begin
    --  getting the CORBA.Object
    CORBA.ORB.String_To_Object (IOR, myecho);
 
-   -- checking if it worked
+   --  checking if it worked
    if Echo.Is_Nil (myecho) then
       Put_Line ("main : cannot invoke on a nil reference");
       return;
@@ -61,7 +61,6 @@ begin
    --  Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello!"));
    Rcvd_Msg := Echo.echoString (myecho, Sent_Msg);
 
-   Echo.foo (Myecho);
    --  printing result
    Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
    Put_Line ("The object answered : " & CORBA.To_Standard_String (Rcvd_Msg));
