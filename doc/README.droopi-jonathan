@@ -1,0 +1,79 @@
+DROOPI vs. Jonthan
+------------------
+
+1. What we cannot reuse from Jonathan
+-------------------------------------
+
+1.1. Target
+-----------
+
+The primary target of Jonathan is the JVM. The primary
+target of DROOPI is native code, with JVM as a secondary
+possible target thanks to JGNAT. We want to preserve
+the possibility to compile DROOPI to native code /and/
+have as much control as possible over the required
+runtime components.
+
+1.2. Runtime
+------------
+
+Jonathan makes extensive use of intrinsic parallelism control
+functionalities from the Java language (synchronised methods).
+DROOPI aims at reifying the parallelism management policy to
+allow execution in a single-threaded environment with no
+Ada tasking. This customisability dimension is not present
+in Jonathan's design.
+
+1.3. Interoperability requirement
+---------------------------------
+
+The design of Jonathan is focused on the requirements of
+end-to-end QoS for multimedia communication. The focus of
+DROOPI development is interoperability between distributed
+OO platforms, and more specifically between CORBA objects and
+the Ada 95 Distributed Systems Annex.
+
+The possibility to export the same object to different personalities
+in Jonathan is not demonstrated.
+
+1.4. Ada/Java integration
+-------------------------
+
+Integration of Java and Ada 95 may not be as smooth as expected
+(cf. Strub). Cross-language exception propagation is not working
+properly, and Jonathan does not provide a work-around for this.
+It may therefore be difficult to create a DSA personality on a
+Jonathan core.
+
+2. What we may reuse from Jonathan
+----------------------------------
+
+Some aspects of the design of Jonathan are fully relevant to
+DROOPI.
+
+2.1. Separation of functional aspects
+-------------------------------------
+
+Jonathan separates the abstractions of object referencing
+and object binding (cf. our own identification of separated,
+orthogonal Addressing and Protocol services).
+
+The Binding abstraction in Jonathan is related to that of
+RM-ODP; it is a relevant, valuable abstraction for the purposes
+of middleware construction.
+
+This separation will be of paramount importance in order to be
+able to provide interoperability.
+
+2.2. Leveraging fundamental invariants to provide interoperability
+------------------------------------------------------------------
+
+The idea of a chain of surrogates ultimately designating an
+object should be integrated with the gateways defined by the
+CORBA standards. This should allow DROOPI proxy objects to
+act as gateways between distribution platforms (à la CIAO).
+
+We will interpret this as a result of the similarity that exists
+between the functions performed by a CIAO proxy, and thos of
+an ORB. There is therefore no reason why a /generic/ middleware
+could not be made to perform these functions.
