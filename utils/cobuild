@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#18 $
+# $Id: //droopi/main/utils/cobuild#19 $
 
 PROJECT=DROOPI
 GNUMAKE=gmake
@@ -106,9 +106,6 @@ echo "---------- Syncing"
 #rm -fr $CLIENT_TOP/*
 p4 sync @$CHANGELIST
 
-CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
-export CHANGE
-
 /usr/local/bin/rungroup /bin/sh -c '(
   set -e
   sleep 10
@@ -130,11 +127,12 @@ export CHANGE
   exit $RC
 )' &
 
-# The build is now running in background. Save PID and
-# release mutex.
+# The build is now running in background. Save PID and changelist #,
+# and release mutex.
 
 THISPID=$!
 echo $THISPID > $PIDFILE
+echo $CHANGELIST > $CHGFILE
 
 trap '' 0
 rm -f $PIDFILE.lock
