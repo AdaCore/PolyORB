@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#10 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#11 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -420,11 +420,8 @@ package body CIAO.Translator is
                   (Ancestor_Subtype_Indication
                    (Type_Declaration_View (Element))));
             begin
-               Set_Parents
-                 (Node,
-                  Append_Node
-                  (Parents (Node), Get_Translation
-                   (Ancestor_Definition)));
+               Append_Node_To_Parents
+                 (Node, Get_Translation (Ancestor_Definition));
             end;
          else
             --  This is a root distributed object declaration.
@@ -664,20 +661,6 @@ package body CIAO.Translator is
                           (Element, State.Current_Node);
                         State.Current_Node := Node;
 
---                         declare
---                            Discriminant_Part : constant Asis.Definition
---                              := Declarations.Discriminant_Part
---                              (Element);
---                         begin
---                            if not Is_Nil (Discriminant_Part) then
---                               Translate_Discriminant_Part
---                                 (Discriminant_Part, State);
---                            end if;
---                         end;
-
---                         Translate_Type_Definition
---                           (Type_Definition, State);
-
                         --  Process children recursively
                         return;
 
@@ -740,11 +723,8 @@ package body CIAO.Translator is
                      Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Type_Dcl_Node);
 
-                     Set_Declarators
-                       (Type_Dcl_Node,
-                        Append_Node
-                        (Declarators (Type_Dcl_Node),
-                         Declarator_Node));
+                     Append_Node_To_Declarators
+                       (Type_Dcl_Node, Declarator_Node);
                      Set_Translation (Element, Declarator_Node);
 
                      Success := Add_Identifier
@@ -991,11 +971,7 @@ package body CIAO.Translator is
                   if State.Pass /= Self_Formal_Parameter
                     or else I /= Defining_Names'First then
                      Node := Make_Param (No_Location);
-                     Set_Parameters
-                       (State.Current_Node,
-                        Append_Node
-                        (Parameters
-                         (State.Current_Node), Node));
+                     Append_Node_To_Parameters (State.Current_Node, Node);
                      Declarator_Node := Make_Declarator (No_Location);
                      Set_Declarator (Node, Declarator_Node);
                      Set_Parent (Declarator_Node, Node);
@@ -1076,13 +1052,6 @@ package body CIAO.Translator is
                   pragma Assert (Success);
                end if;
 
---                Do_Visible_Part :
---                for I in Visible_Part'Range loop
---                   Translate_Tree (Visible_Part (I), Control, State);
---                   if Control = Abandon_Siblings then
---                      exit Do_Visible_Part;
---                   end if;
---                end loop Do_Visible_Part;
                Translate_List (Visible_Part, State);
 
                Pop_Scope;
@@ -1736,11 +1705,8 @@ package body CIAO.Translator is
                            pragma Assert (Success);
 
                            Size_Node := New_Integer_Literal (Dimensions);
-                           Set_Array_Bounds
-                             (Declarator_Node,
-                              Append_Node
-                              (Array_Bounds (Declarator_Node),
-                               Size_Node));
+                           Append_Node_To_Array_Bounds
+                             (Declarator_Node, Size_Node);
 
                         end;
                      end if;
