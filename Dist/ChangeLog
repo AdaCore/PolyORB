@@ -1,3 +1,11 @@
+2004-10-18  Laurent Pautet  <pautet@enst.fr>
+
+	* xe_back-polyorb.adb, xe_back-garlic.adb: Do not build partitions
+	in silent mode as link errors may occur. Such error are not
+	detected when the monolithic application is built as it is only a
+	compilation step.
+	Fix DA15-012.
+
 2004-10-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* Makefile.am, Makefile.in: Build xe_back.adb depending on PCSNAME
