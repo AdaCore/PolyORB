@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#8 $
+# $Id: //droopi/main/utils/cobuild#9 $
 
 PROJECT=DROOPI
 
@@ -102,7 +102,7 @@ echo "---------- Syncing"
 
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
-p4 sync @$CHANGELIST
+p4 sync -f @$CHANGELIST
 
 CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
 export CHANGE
