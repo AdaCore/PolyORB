@@ -517,6 +517,7 @@ AC_OUTPUT([
 	testsuite/corba/cos/time/Makefile
 	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
+	testsuite/corba/orb_init/Makefile
 	testsuite/corba/portableinterceptor/Makefile
 	testsuite/corba/portableinterceptor/test000/Makefile
 	testsuite/corba/portableinterceptor/test001/Makefile
