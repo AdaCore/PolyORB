@@ -75,7 +75,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   package PTM renames PolyORB.Tsking.Mutexes;
+   package PTM renames PolyORB.Tasking.Mutexes;
    Critical_Section : PTM.Mutex_Access;
 
    procedure Bind
