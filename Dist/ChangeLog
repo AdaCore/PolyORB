@@ -1,3 +1,10 @@
+2001-08-20  Pascal Obry  <obry@gnat.com>
+
+        * xe_utils.adb:
+       (Dir_Sep): renaming for GNAT.OS_Lib.Directory_Separator. 
+       Use Dir_Sep instead of Directory_Separator to avoid ambiguity.
+       Continued work for 8928-003.
+
 2001-07-11  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_stubs.adb: Split storage_dir string into substrings to fix
