@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.26 $
+//                            $Revision: 1.27 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -37,7 +37,7 @@
 // Ada_Giop_c::Ada_Giop_c //
 //------------------------//
 
-Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
+Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream ()
 {
   // everything is done in the parent constructor.
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -30,6 +30,8 @@
 //                     (email: broker@inf.enst.fr)                          //
 //                                                                          //
 //--------------------------------------------------------------------------//
+#include <stdlib.h>
+
 int main ()
 {
   if (sizeof(long) != 4)
