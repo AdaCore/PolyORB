@@ -41,7 +41,7 @@
 --   is stored and the Get_Members function created a new
 --   object from a derivation of Exception_Members
 
---  $Id: //droopi/main/src/polyorb-exceptions.ads#2 $
+--  $Id: //droopi/main/src/polyorb-exceptions.ads#3 $
 
 with Ada.Exceptions;
 
@@ -65,6 +65,12 @@ package PolyORB.Exceptions is
    --  by the CORBA specification.
 
    subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
+
+   PolyORB_Exc_NameSpace : constant String;
+   PolyORB_Root          : constant String;
+   PolyORB_Prefix        : constant String;
+   PolyORB_Exc_Version   : constant PolyORB.Types.String;
+   --  PolyORB exceptions namespace and version.
 
    -----------------------------------------
    --  Declarations for user exceptions.  --
@@ -430,5 +436,33 @@ package PolyORB.Exceptions is
      (For_Exception : PolyORB.Types.RepositoryId)
      return Exception_Info;
    --  Return Exception_Info associated to 'For_Exception'.
+
+   function Is_System_Exception (Name : String)
+                                 return Boolean;
+
+   procedure Get_ExcepId_By_RepositoryId
+     (RepoId        : in     Standard.String;
+      ExcpId        :    out Ada.Exceptions.Exception_Id;
+      Default       :        Ada.Exceptions.Exception_Id
+        := PolyORB.Unknown'Identity);
+   --  Return the corresponding Ada Exception_Id for
+   --  a repository id.
+
+   procedure Raise_User_Exception_From_Any
+     (Repository_Id : PolyORB.Types.RepositoryId;
+      Occurence     : PolyORB.Any.Any);
+
+   procedure Raise_System_Exception_From_Any
+     (System_Id  : Ada.Exceptions.Exception_Id;
+      Occurrence : PolyORB.Any.Any);
+
+private
+
+   PolyORB_Exc_NameSpace : constant String := "INTERNAL:";
+   PolyORB_Root          : constant String := "POLYORB/";
+   PolyORB_Prefix        : constant String
+     := PolyORB_Exc_NameSpace & PolyORB_Root;
+   PolyORB_Exc_Version   : constant PolyORB.Types.String
+     := PolyORB.Types.To_PolyORB_String (":1.0");
 
 end PolyORB.Exceptions;

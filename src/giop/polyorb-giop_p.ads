@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . E X C E P T I O N S            --
+--                       P O L Y O R B . G I O P _ P                        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,15 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management for the CORBA Applicative Personality
---  of PolyORB.
+--  The root of all PolyORB packages that are specific to the
+--  GIOP personality.
 
-with PolyORB.Any;
+--  $Id$
 
-package PolyORB.CORBA_P.Exceptions is
+package PolyORB.GIOP_P is
 
-   procedure Raise_From_Any (Occurrence : PolyORB.Any.Any);
-   pragma No_Return (Raise_From_Any);
-   --  Raise CORBA exception.
+   pragma Pure;
 
-end PolyORB.CORBA_P.Exceptions;
+end PolyORB.GIOP_P;

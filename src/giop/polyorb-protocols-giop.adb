@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with Ada.Streams;                use Ada.Streams;
+with Ada.Streams;
 
 with PolyORB.Any;
 with PolyORB.Annotations;
@@ -43,9 +43,11 @@ with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Initialization;
+with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
+with PolyORB.GIOP_P.Exceptions;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
@@ -66,11 +68,9 @@ with PolyORB.Soft_Links;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
-with PolyORB.Exceptions;
---  SOLELY for System_Exception_TypeCode and Completion_Status
---  From_Any/To_Any.
-
 package body PolyORB.Protocols.GIOP is
+
+   use Ada.Streams;
 
    use PolyORB.Any.NVList;
    use PolyORB.Binding_Data;
@@ -733,6 +733,8 @@ package body PolyORB.Protocols.GIOP is
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
+      CORBA_Occurence : PolyORB.Any.Any
+        := PolyORB.GIOP_P.Exceptions.To_CORBA_Exception (Occurence);
    begin
 
       Get_Note (Request.Notepad, N);
@@ -743,7 +745,7 @@ package body PolyORB.Protocols.GIOP is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_Exception
               (Ses.Buffer_Out, Request_Id,
-               Exception_Type, Occurence);
+               Exception_Type, CORBA_Occurence);
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
@@ -754,7 +756,7 @@ package body PolyORB.Protocols.GIOP is
               (Ses.Buffer_Out,
                Request_Id,
                Exception_Type,
-               Occurence);
+               CORBA_Occurence);
 
             if Length (Ses.Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
@@ -770,7 +772,7 @@ package body PolyORB.Protocols.GIOP is
               (Ses.Buffer_Out,
                Request_Id,
                Exception_Type,
-               Occurence);
+               CORBA_Occurence);
 
             if  Length (Ses.Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
@@ -1876,13 +1878,13 @@ package body PolyORB.Protocols.GIOP is
               := Get_Type (R.Exception_Info);
             EId : constant String
               := To_Standard_String (TypeCode.Id (TC));
-            CORBA_Prefix : constant String := "IDL:CORBA/";
             EType : Reply_Status_Type;
          begin
-            if EId'Length > CORBA_Prefix'Length
+            if EId'Length > PolyORB.Exceptions.PolyORB_Root'Length
               and then EId
-              (EId'First .. EId'First + CORBA_Prefix'Length - 1)
-              = CORBA_Prefix
+              (EId'First .. EId'First
+               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)
+              = PolyORB.Exceptions.PolyORB_Prefix
             then
                EType := System_Exception;
             else
@@ -1890,6 +1892,11 @@ package body PolyORB.Protocols.GIOP is
             end if;
             pragma Debug
               (O ("Send_Reply: " & Reply_Status_Type'Image (EType)));
+            pragma Debug (O (EId));
+            pragma Debug (O (EId
+              (EId'First .. EId'First
+               + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)));
+            pragma Debug (O (PolyORB.Exceptions.PolyORB_Prefix));
             Exception_Reply
               (S, R, EType, R.Exception_Info, Fragment_Next);
          end;

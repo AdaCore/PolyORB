@@ -53,6 +53,9 @@ package PolyORB.References is
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
+   Nil_Ref : constant Ref;
+   --  Nil reference.
+
    function Is_Same_Object (Left, Right : Ref) return Boolean;
    --  True iff it is determined that Left Right designate the
    --  same object.
@@ -100,6 +103,8 @@ package PolyORB.References is
      (Ref, Ref_Ptr);
 
 private
+
+   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
 
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
