@@ -1033,9 +1033,6 @@ package body PolyORB.POA.Basic_POA is
       --  an object. So, is the above correct? This is not a
       --  trivial question.
 
-      --  XXX here is a trivial answer => what is the point in using
-      --  this API, except to mimic the exact semantic of Obj_Adapter
-      --  in which case we can assume Root_POA policies are in use ...
    end Export;
 
    --------------
