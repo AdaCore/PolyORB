@@ -1,3 +1,30 @@
+2003-11-11  Laurent Pautet  <pautet@enst.fr>
+
+	* b_xe_defs.adb: Add -I arguments to both binder and compiler list
+	when no program is specified.
+	Part of work for CA22-003.
+	
+	* xe_back.adb, xe_back.ads: Add Is_RCI_Unit function.
+	Part of work for CA22-003.
+
+	* xe_check.adb: Fix bug that occurs when GNATDIST outputs storage
+	name with a default value set to null. This does not happen with
+	GNATDIST/GLADE since the default value is set to "dfs" but it can
+	occur with GNATDIST/PolyORB.
+	Part of work for CA22-003.
+
+	* xe_stubs-polyorb.adb: Remove most of the code dedicated to
+	GNATDIST/GLADE. As for a first step, generate only one
+	configuration file <partition_main_file>. Do not generate any code
+	for shared passive packages since this feature is not handled by
+	PolyORB but by GNAT. This is really a minimal version. Most of the
+	polyorb configuration code is hard-coded or static. The only
+	preserved configuration feature concerns the lightweight
+	communication subsystem which results in binding with the
+	no-tasking policy when the partition is a pure client with no
+	tasking dragged by user.
+	Part of work for CA22-003.
+
 2003-11-06  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_build.adb: Initialize XE_Stubs.
