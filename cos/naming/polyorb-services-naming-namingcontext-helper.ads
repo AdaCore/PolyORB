@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Any;
 
 package PolyORB.Services.Naming.NamingContext.Helper is

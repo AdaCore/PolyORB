@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.References;
 
 package PolyORB.Services.Naming.NamingContext.Client is

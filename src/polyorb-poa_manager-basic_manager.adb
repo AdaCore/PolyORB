@@ -91,7 +91,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
                                             (Self.Holded_Requests))));
             if Length (Self.Holded_Requests) > 0 then
                declare
-                  N : Natural := Length (Self.Holded_Requests);
+                  N : constant Natural := Length (Self.Holded_Requests);
                   All_Requests : Element_Array (1 .. N);
                begin
                   Lock_W (Self.Queue_Lock);
@@ -298,6 +298,10 @@ package body PolyORB.POA_Manager.Basic_Manager is
      return Servants.Servant_Access
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
+
       pragma Debug (O ("Get a Hold_Servant"));
       Lock_W (Self.State_Lock);
       if Self.PM_Hold_Servant = null then
