@@ -155,3 +155,4 @@ release: all
 	@echo $(GUIDE).html              >>MANIFEST
 	@echo $(GUIDE).ps                >>MANIFEST
 	@echo $(GUIDE).txt               >>MANIFEST
+	@echo $(GUIDE).texi              >>MANIFEST
