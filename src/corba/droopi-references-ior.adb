@@ -117,11 +117,11 @@ package body Droopi.References.IOR is
          Str (1 .. 4) := "IOR:";
          for I in Octets'Range loop
             Str (5 + 2 * Natural (I - Octets'First))
-                := Hexa_Digits (Integer(Octets (I)) / 16);
+                := Hexa_Digits (Integer (Octets (I)) / 16);
             Str (6 + 2 * Natural (I - Octets'First))
-                := Hexa_Digits (Integer(Octets (I)) mod 16);
+                := Hexa_Digits (Integer (Octets (I)) mod 16);
          end loop;
-      return To_CORBA_String (Str);
+         return To_CORBA_String (Str);
       end;
    end Object_To_String;
 
@@ -141,7 +141,8 @@ package body Droopi.References.IOR is
       IOR     : IOR_Type;
       S       : String := To_Standard_String (Str);
       Length  : Natural := S'Length;
-      Octets  : Zone_Access := new Encapsulation (1 .. Stream_Element_Offset((Length - 4) / 2));
+      Octets  : Zone_Access := new Encapsulation (1 ..
+                      Stream_Element_Offset ((Length - 4) / 2));
    begin
 
       if Length <= 4
@@ -156,26 +157,26 @@ package body Droopi.References.IOR is
       begin
 
          for I in S'First + 4 .. S'Last loop
-           if S (I) >= '0' and then S (I) <= '9' then
+            if S (I) >= '0' and then S (I) <= '9' then
                Oct := Character'Pos (S (I)) - Character'Pos ('0');
-           elsif S (I) >= 'A' and then S (I) <= 'F' then
+            elsif S (I) >= 'A' and then S (I) <= 'F' then
                Oct := 10 + Character'Pos (S (I)) - Character'Pos ('A');
-           elsif S (I) >= 'a' and then S (I) <= 'f' then
+            elsif S (I) >= 'a' and then S (I) <= 'f' then
                Oct := 10 + Character'Pos (S (I)) - Character'Pos ('a');
-           else
+            else
                CORBA_P.Exceptions.Raise_Bad_Param;
-         end if;
-         if I mod 2 = 1 then
-           Octets (Index) := Oct * 16;
-         else
-           Octets (Index) := Octets (Index) + Oct;
-           Index := Index + 1;
-         end if;
-      end loop;
+            end if;
+            if I mod 2 = 1 then
+               Octets (Index) := Oct * 16;
+            else
+               Octets (Index) := Octets (Index) + Oct;
+               Index := Index + 1;
+            end if;
+         end loop;
 
-      Decapsulate(Octets, Buf);
-      IOR := Unmarshall(Buf);
-      return IOR;
+         Decapsulate (Octets, Buf);
+         IOR := Unmarshall (Buf);
+         return IOR;
       end;
 
    end String_To_Object;
