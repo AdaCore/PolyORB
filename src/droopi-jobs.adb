@@ -8,6 +8,15 @@ package body Droopi.Jobs is
    procedure Free is new Ada.Unchecked_Deallocation
      (Queue_Element, Queue_Element_Access);
 
+
+   procedure Create (Q : out Job_Queue_Access) is
+   begin
+      Q := new Job_Queue;
+
+      Q.First := null;
+      Q.Last  := null;
+   end Create;
+
    procedure Queue_Job
      (Q : access Job_Queue;
       J : Job_Access)

@@ -27,6 +27,9 @@ package Droopi.Jobs is
    type Job_Queue_Access is access all Job_Queue;
    --  A queue of pending jobs.
 
+   procedure Create (Q : out Job_Queue_Access);
+   --  Create a new job queue.
+
    procedure Queue_Job
      (Q : access Job_Queue;
       J : Job_Access);
