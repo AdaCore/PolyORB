@@ -99,4 +99,25 @@ package Exp_Dist is
    --  Given a remote access-to-subprogram type or its equivalent
    --  record type, return the RACW type generated to implement it.
 
+   function Get_Subprogram_Identifier
+     (Def : Entity_Id)
+     return String_Id;
+   --  Given a subprogram defined in a RCI package, get its distribution
+   --  subprogram identifier in the name buffer (the distribution id
+   --  is the non-qualified subprogram name, in the casing used for
+   --  the subprogram declaration; if the name is overloaded, a double
+   --  underscore and a serial number are appended. This identifier is
+   --  used to perform remote calls on the subprogram.
+   --
+   --  Although the DSA receiving stubs will make a caseless
+   --  comparison when receiving a call, the calling stubs
+   --  will create requests with the exact casing of the
+   --  defining unit name of the called subprogram, so
+   --  as to allow calls to subprograms on distributed
+   --  nodes that do distinguish between casings.
+   --
+   --  Another design would be to allow a representation
+   --  clause on subprogram specs:
+   --  for Subp'Distribution_Identifier use "fooBar";
+
 end Exp_Dist;

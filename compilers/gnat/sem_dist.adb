@@ -41,7 +41,6 @@ with Sem;      use Sem;
 with Sem_Res;  use Sem_Res;
 with Sem_Util; use Sem_Util;
 with Sinfo;    use Sinfo;
-with Sinput;   use Sinput;
 with Snames;   use Snames;
 with Stand;    use Stand;
 with Stringt;  use Stringt;
@@ -153,105 +152,6 @@ package body Sem_Dist is
       Store_String_Chars (Name_Buffer (1 .. Name_Len));
       return End_String;
    end Full_Qualified_Name;
-
-   -----------------------
-   -- Get_Subprogram_Id --
-   -----------------------
-
-   function Get_Subprogram_Id (E : Entity_Id) return Int is
-      Current_Declaration : Node_Id;
-      Result              : Int := 0;
-
-   begin
-      pragma Assert
-        (Is_Remote_Call_Interface (Scope (E))
-           and then
-             (Nkind (Parent (E)) = N_Procedure_Specification
-                or else
-              Nkind (Parent (E)) = N_Function_Specification));
-
-      Current_Declaration :=
-        First (Visible_Declarations
-          (Package_Specification_Of_Scope (Scope (E))));
-
-      while Current_Declaration /= Empty loop
-         if Nkind (Current_Declaration) = N_Subprogram_Declaration
-           and then Comes_From_Source (Current_Declaration)
-         then
-            if Defining_Unit_Name
-                 (Specification (Current_Declaration)) = E
-            then
-               return Result;
-            end if;
-
-            Result := Result + 1;
-         end if;
-
-         Next (Current_Declaration);
-      end loop;
-
-      --  Error if we do not find it
-
-      raise Program_Error;
-   end Get_Subprogram_Id;
-
-   procedure Get_Subprogram_Identifier (Def : Entity_Id)
-   is
-      Sdef : Source_Ptr := Sloc (Def);
-      Tdef : Source_Buffer_Ptr;
-      N    : constant Name_Id := Chars (Def);
-   begin
-      Get_Name_String (N);
-
-      if False and then not Is_Operator_Symbol_Name (N) then
-
-         --  XXX THIS IS BORKEN because it gets called
-         --  with a def that does not come_from_source.
-
-         --  Not a defining_operator_name
-
-         Tdef := Source_Text (Get_Source_File_Index (Sdef));
-         for J in 1 .. Name_Len loop
-            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
-         end loop;
-
-         if Name_Buffer (1) = 'O' then
-            --  Do not risk a clash with a defining operator name.
-            --  XXX this is an approximation, actually this change
-            --  should be made /only/ if there is an actual clash.
-            Name_Buffer (1) := 'o';
-         end if;
-
-      end if;
-
-      --  Homonym handling: as in Exp_Dbug, but much simpler,
-      --  because the only entities for which we have to generate
-      --  names here need only to be disambiguated within their
-      --  own scope.
-
-      if Has_Homonym (Def) then
-         declare
-            H  : Entity_Id := Homonym (Def);
-            Nr : Nat := 1;
-
-         begin
-            while Present (H) loop
-               if (Scope (H) = Scope (Def)) then
-                  Nr := Nr + 1;
-               end if;
-
-               H := Homonym (H);
-            end loop;
-
-            if Nr > 1 then
-               Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "__";
-               Name_Len := Name_Len + 2;
-               Add_Nat_To_Name_Buffer (Nr);
-            end if;
-         end;
-      end if;
-
-   end Get_Subprogram_Identifier;
 
    ------------------------
    -- Is_All_Remote_Call --
@@ -448,8 +348,7 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
-      Get_Subprogram_Identifier (Remote_Subp);
-      Subp_Id := String_From_Name_Buffer;
+      Subp_Id := Get_Subprogram_Identifier (Remote_Subp);
 
       if Ekind (Remote_Subp) = E_Procedure
         and then Is_Asynchronous (Remote_Subp)

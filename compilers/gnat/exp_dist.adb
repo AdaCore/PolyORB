@@ -34,6 +34,7 @@ with Exp_Strm;    use Exp_Strm;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
+with Sinput;       use Sinput;
 with Lib;         use Lib;
 with Namet;       use Namet;
 with Nlists;      use Nlists;
@@ -293,8 +294,9 @@ package body Exp_Dist is
    Empty_Stub_Structure : constant Stub_Structure :=
      (Empty, Empty, Empty, Empty);
 
-   type Hash_Index is range 0 .. 50;
+   type Hash_Index is range 0 .. 46;
    function Hash (F : Entity_Id) return Hash_Index;
+   function Hash (F : Name_Id) return Hash_Index;
 
    package Stubs_Table is
       new Simple_HTable (Header_Num => Hash_Index,
@@ -333,6 +335,27 @@ package body Exp_Dist is
                          Hash       => Hash,
                          Equal      => "=");
    --  Mapping between a RCI subprogram and the corresponding calling stubs
+
+   package Subprogram_Identifier_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => String_Id,
+                         No_Element => No_String,
+                         Key        => Entity_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a remote subprogram and the corresponding
+   --  subprogram identifier.
+
+   package Overload_Counter_Table is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => Int,
+                         No_Element => 0,
+                         Key        => Name_Id,
+                         Hash       => Hash,
+                         Equal      => "=");
+   --  Mapping between a subprogram name and an integer that
+   --  counts the number of defining subprogram names with that
+   --  Name_Id encountered so far in a given context (an interface).
 
    procedure Add_Stub_Type
      (Designated_Type     : in Entity_Id;
@@ -413,6 +436,14 @@ package body Exp_Dist is
       Declarations    : in List_Id);
    --  Add the TypeCode TSS for this RAS type.
 
+   procedure Assign_Subprogram_Identifier
+     (Def :     Entity_Id;
+      Id  : out String_Id);
+   --  Determine the distribution subprogram identifier to
+   --  be used for remote subprogram Def, return it in Id and
+   --  store it in a hash table for later retrieval by
+   --  Get_Subprogram_Identifier.
+
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id)
@@ -446,6 +477,61 @@ package body Exp_Dist is
    --                            Exception_Message (E));
    --    end R;
 
+   ----------------------------------
+   -- Assign_Subprogram_Identifier --
+   ----------------------------------
+
+   procedure Assign_Subprogram_Identifier
+     (Def :     Entity_Id;
+      Id  : out String_Id)
+   is
+      Sdef : Source_Ptr := Sloc (Def);
+      Tdef : Source_Buffer_Ptr;
+      N    : constant Name_Id := Chars (Def);
+
+      Overload_Order : constant Int :=
+        Overload_Counter_Table.Get (N) + 1;
+   begin
+      Overload_Counter_Table.Set (N, Overload_Order);
+
+      Get_Name_String (N);
+
+      if False and then not Is_Operator_Symbol_Name (N) then
+
+         --  XXX THIS IS BORKEN because it gets called
+         --  with a def that does not come_from_source.
+
+         --  Not a defining_operator_name
+
+         Tdef := Source_Text (Get_Source_File_Index (Sdef));
+         for J in 1 .. Name_Len loop
+            Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
+         end loop;
+
+         if Name_Buffer (1) = 'O' then
+            --  Do not risk a clash with a defining operator name.
+            --  XXX this is an approximation, actually this change
+            --  should be made /only/ if there is an actual clash.
+            Name_Buffer (1) := 'o';
+         end if;
+
+      end if;
+
+      --  Homonym handling: as in Exp_Dbug, but much simpler,
+      --  because the only entities for which we have to generate
+      --  names here need only to be disambiguated within their
+      --  own scope.
+
+      if Overload_Order > 1 then
+         Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "__";
+         Name_Len := Name_Len + 2;
+         Add_Nat_To_Name_Buffer (Overload_Order);
+      end if;
+
+      Id := String_From_Name_Buffer;
+      Subprogram_Identifier_Table.Set (Def, Id);
+   end Assign_Subprogram_Identifier;
+
    ------------------------------------
    -- Local variables and structures --
    ------------------------------------
@@ -475,8 +561,7 @@ package body Exp_Dist is
       RCI_Instantiation         : Node_Id;
 
       Subp_Stubs                : Node_Id;
-      Subp_Id                   : Node_Id;
-
+      Subp_Str                  : String_Id;
    begin
       --  The first thing added is an instantiation of the generic package
       --  System.PolyORB_Interface.RCI_Locator with the name of the (current)
@@ -496,6 +581,8 @@ package body Exp_Dist is
       --  do use the same mechanism and will thus assign the same Id and
       --  do the correct dispatching.
 
+      Overload_Counter_Table.Reset;
+
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
       while Current_Declaration /= Empty loop
@@ -503,15 +590,15 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            Get_Subprogram_Identifier (
+            Assign_Subprogram_Identifier (
               Defining_Unit_Name (Specification (
-                Current_Declaration)));
-            Subp_Id := Make_String_Literal (Loc, String_From_Name_Buffer);
+                Current_Declaration)),
+              Subp_Str);
 
             Subp_Stubs :=
               Build_Subprogram_Calling_Stubs (
                 Vis_Decl     => Current_Declaration,
-                Subp_Id      => Subp_Id,
+                Subp_Id      => Make_String_Literal (Loc, Subp_Str),
                 Asynchronous =>
                   Nkind (Specification (Current_Declaration)) =
                     N_Procedure_Specification
@@ -985,6 +1072,8 @@ package body Exp_Dist is
 
       if Present (Primitive_Operations (Designated_Type)) then
 
+         Overload_Counter_Table.Reset;
+
          Current_Primitive_Elmt :=
            First_Elmt (Primitive_Operations (Designated_Type));
 
@@ -1031,9 +1120,9 @@ package body Exp_Dist is
                  Nkind (Current_Primitive_Spec) = N_Procedure_Specification
                  and then Could_Be_Asynchronous (Current_Primitive_Spec);
 
-               Get_Subprogram_Identifier (
-                 Defining_Unit_Name (Current_Primitive_Spec));
-               Subp_Str := String_From_Name_Buffer;
+               Assign_Subprogram_Identifier (
+                 Defining_Unit_Name (Current_Primitive_Spec),
+                 Subp_Str);
 
                Current_Primitive_Body :=
                  Build_Subprogram_Calling_Stubs
@@ -2713,6 +2802,8 @@ package body Exp_Dist is
       --  case statement will be made on the Subprogram_Id to dispatch
       --  to the right subprogram.
 
+      Overload_Counter_Table.Reset;
+
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
       while Current_Declaration /= Empty loop
@@ -2790,8 +2881,7 @@ package body Exp_Dist is
 
                --  Add subprogram to subprograms table for this receiver
 
-               Get_Subprogram_Identifier (Subp_Def);
-               Subp_Val := String_From_Name_Buffer;
+               Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
 
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
@@ -4951,8 +5041,8 @@ package body Exp_Dist is
             RCI_Locator := Parent (RCI_Cache);
          end if;
 
-         Get_Subprogram_Identifier (Called_Subprogram);
-         Subp_Id := Make_String_Literal (Loc, String_From_Name_Buffer);
+         Subp_Id := Make_String_Literal (Loc,
+           Get_Subprogram_Identifier (Called_Subprogram));
 
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
@@ -5043,11 +5133,31 @@ package body Exp_Dist is
       return End_String;
    end Get_String_Id;
 
+   -------------------------------
+   -- Get_Subprogram_Identifier --
+   -------------------------------
+
+   function Get_Subprogram_Identifier
+     (Def : Entity_Id)
+      return String_Id
+   is
+      Result : constant String_Id :=
+        Subprogram_Identifier_Table.Get (Def);
+      pragma Assert (Result /= No_String);
+   begin
+      return Result;
+   end Get_Subprogram_Identifier;
+
    ----------
    -- Hash --
    ----------
 
    function Hash (F : Entity_Id) return Hash_Index is
+   begin
+      return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
+   end Hash;
+
+   function Hash (F : Name_Id) return Hash_Index is
    begin
       return Hash_Index (Natural (F) mod Positive (Hash_Index'Last + 1));
    end Hash;

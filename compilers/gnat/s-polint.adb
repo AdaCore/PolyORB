@@ -4,7 +4,7 @@ with Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with System.Address_To_Access_Conversion;
+with System.Address_To_Access_Conversions;
 with System.RPC;
 
 with GNAT.HTable;
@@ -492,7 +492,7 @@ package body System.PolyORB_Interface is
               First (All_Receiving_Stubs);
 
             package Str_Addr_Conversion is
-               new System.Address_To_Access_Conversion (String);
+               new System.Address_To_Access_Conversions (String);
             use Str_Addr_Conversion;
 
             Addr : System.Address := System.Null_Address;
@@ -512,7 +512,7 @@ package body System.PolyORB_Interface is
                begin
                   if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
                      for J in S.Subp_Info'Range loop
-                        if To_Access (S.Subp_Info (J).Name).all
+                        if To_Pointer (S.Subp_Info (J).Name).all
                           = Subprogram_Name
                         then
                            Addr := S.Subp_Info (J).Addr;

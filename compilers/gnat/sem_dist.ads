@@ -85,30 +85,6 @@ package Sem_Dist is
    --  aggregate and will return True in this case. Otherwise, it will
    --  return False.
 
-   function Get_Subprogram_Id (E : Entity_Id) return Int;
-   --  Given a subprogram defined in a RCI package, get its subprogram id
-   --  which will be used for remote calls.
-   --  XXX obsolete -- not used anymore (see below).
-
-   procedure Get_Subprogram_Identifier (Def : Entity_Id);
-   --  Given a subprogram defined in a RCI package, get its distribution
-   --  subprogram identifier in the name buffer (the distribution id
-   --  is the non-qualified subprogram name, in the casing used for
-   --  the subprogram declaration; if the name is overloaded, a double
-   --  underscore and a serial number are appended. This identifier is
-   --  used to perform remote calls on the subprogram.
-   --
-   --  Although the DSA receiving stubs will make a caseless
-   --  comparison when receiving a call, the calling stubs
-   --  will create requests with the exact casing of the
-   --  defining unit name of the called subprogram, so
-   --  as to allow calls to subprograms on distributed
-   --  nodes that do distinguish between casings.
-   --
-   --  Another design would be to allow a representation
-   --  clause on subprogram specs:
-   --  for Subp'Distribution_Identifier use "fooBar";
-
    function Package_Specification_Of_Scope (E : Entity_Id) return Node_Id;
    --  Return the N_Package_Specification corresponding to a scope E
 
