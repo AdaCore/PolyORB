@@ -92,6 +92,9 @@ package body Values is
             Add_Char_To_Name_Buffer (''');
 
          when T_String_Literal =>
+            if V.SVal = No_Name then
+               return "<>";
+            end if;
             if V.Wide then
                Add_Char_To_Name_Buffer ('L');
                Add_Char_To_Name_Buffer ('"'); -- "

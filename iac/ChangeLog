@@ -1,0 +1,16 @@
+2004-05-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* lexer.adb, lexer.ads: Scan string literals but on minor errors
+	like having a string which appears to be a wide string, do not
+	produce token T_Error. Instead, produce token T_String with
+	Token_Name or String_Literal_Value set to Incorrect_String. Same
+	for characters.
+
+	* parser.adb: produce a null node when an incorrect string is
+	parsed in order not to analyze it later on.
+
+	* values.adb: do not crash when dumping an empty string value.
+
+	* analyze.adb: properly detect type mismatch for floats,
+	characters, strings.
+

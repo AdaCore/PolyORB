@@ -15,8 +15,6 @@ package body Lexer is
 
    use ASCII;
 
-   Display_Error : Boolean := True;
-
    Buffer : Text_Buffer_Ptr;
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
@@ -37,8 +35,9 @@ package body Lexer is
    --  Token_Location.
 
    procedure Scan_Chars_Literal_Value
-     (Literal   : Token_Type;
-      Adjacent  : Boolean   := True);
+     (Literal  : Token_Type;
+      Fatal    : Boolean;
+      Adjacent : Boolean   := True);
    --
    --  Char Literals : (3.2.5.2)
    --  A character literal is one or more characters enclosed in
@@ -122,6 +121,10 @@ package body Lexer is
    --  list. Names that collide with keywords (...) are
    --  illegal. For example, "boolean" is a valid keyword, "Boolean"
    --  and "BOOLEAN" are illegal identifiers.
+
+   procedure Scan_Token (Fatal : Boolean);
+   --  Scan token but do not report any error and do not fail on minor
+   --  errors like detecting a string which appears to be a wide string.
 
    procedure New_Token
      (Token : Token_Type;
@@ -241,9 +244,7 @@ package body Lexer is
       Current_Token_Name     := Token_Name;
       Current_Token          := Token;
       Current_Token_Location := Token_Location;
-      Display_Error          := False;
-      Scan_Token;
-      Display_Error          := True;
+      Scan_Token (Fatal => False);
       Next_Token_Value       := Token;
       Token_Name             := Current_Token_Name;
       Token                  := Current_Token;
@@ -515,14 +516,16 @@ package body Lexer is
    ------------------------------
 
    procedure Scan_Chars_Literal_Value
-     (Literal   : Token_Type;
-      Adjacent  : Boolean   := True)
+     (Literal  : Token_Type;
+      Fatal    : Boolean;
+      Adjacent : Boolean   := True)
    is
       C         : Character;
       Delimiter : Character := ''';
       Wideness  : Boolean := False;
       Length    : Natural := 0;
       State     : Location;
+      Errors    : Natural := 0;
    begin
       if Literal in T_String_Literal .. T_Wide_String_Literal then
          Delimiter := '"'; -- "
@@ -563,7 +566,8 @@ package body Lexer is
          --  more than one character.
 
          if Delimiter = ''' and then Length = 1 then
-            if Display_Error then
+            if Fatal then
+               Errors := Errors + 1;
                Error_Loc (1) := Token_Location;
                DE ("strings are delimited by double quote character");
             end if;
@@ -618,14 +622,14 @@ package body Lexer is
 
                   Scan_Integer_Literal_Value (8, 3);
                   if Token = T_Error then
-                     if Display_Error then
+                     if Fatal then
+                        Errors := Errors + 1;
                         Error_Loc (1) := Token_Location;
                         DE ("cannot parse octal digits");
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value :=
-                    Unsigned_Short (Integer_Literal_Value);
+                  Character_Literal_Value := Long (Integer_Literal_Value);
 
                --  Read 1 or 2 hexadecimal digits
 
@@ -633,20 +637,21 @@ package body Lexer is
                   Token_Location.Scan := Token_Location.Scan + 1;
                   Scan_Integer_Literal_Value (16, 2);
                   if Token = T_Error then
-                     if Display_Error then
+                     if Fatal then
+                        Errors := Errors + 1;
                         Error_Loc (1) := Token_Location;
                         DE ("cannot parse hexadecimal digits");
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value :=
-                    Unsigned_Short (Integer_Literal_Value);
+                  Character_Literal_Value := Long (Integer_Literal_Value);
 
                --  Read 1, 2, 3 or 4 hexadecimal digits
 
                when 'u'  =>
                   if not Wideness then
-                     if Display_Error then
+                     if Fatal then
+                        Errors := Errors + 1;
                         Error_Loc (1) := Token_Location;
                         DE ("\u may only be used in wide characters " &
                             "and strings");
@@ -656,17 +661,18 @@ package body Lexer is
                   Token_Location.Scan := Token_Location.Scan + 1;
                   Scan_Integer_Literal_Value (16, 4);
                   if Token = T_Error then
-                     if Display_Error then
+                     if Fatal then
+                        Errors := Errors + 1;
                         Error_Loc (1) := Token_Location;
                         DE ("cannot parse hexadecimal digits");
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value :=
-                    Unsigned_Short (Integer_Literal_Value);
+                  Character_Literal_Value := Long (Integer_Literal_Value);
 
                when others =>
-                  if Display_Error then
+                  if Fatal then
+                     Errors := Errors + 1;
                      Error_Loc (1) := Token_Location;
                      DE ("unexcepted escaped character");
                   end if;
@@ -687,11 +693,18 @@ package body Lexer is
          end if;
       end loop;
 
+      Token := Literal;
+
       if Literal in T_String_Literal .. T_Wide_String_Literal then
          Token_Name           := Name_Find;
          String_Literal_Value := Token_Name;
       end if;
-      Token := Literal;
+
+      if Errors > 0 then
+         Token_Name              := Incorrect_String;
+         String_Literal_Value    := Incorrect_String;
+         Character_Literal_Value := Incorrect_Character;
+      end if;
    end Scan_Chars_Literal_Value;
 
    ---------------------
@@ -991,7 +1004,7 @@ package body Lexer is
             if Buffer (Token_Location.Scan) = '"' then --  "
                Token_Location.Scan := Token_Location.Scan + 1;
                Token := T_String_Literal;
-               Scan_Chars_Literal_Value (T_String_Literal, False);
+               Scan_Chars_Literal_Value (T_String_Literal, True, False);
                Get_Name_String (String_Literal_Value);
 
                --  Remove CPP special info
@@ -1097,6 +1110,15 @@ package body Lexer is
    ----------------
 
    procedure Scan_Token is
+   begin
+      Scan_Token (Fatal => True);
+   end Scan_Token;
+
+   ----------------
+   -- Scan_Token --
+   ----------------
+
+   procedure Scan_Token (Fatal : Boolean) is
    begin
       if Token = T_EOF then
          return;
@@ -1246,11 +1268,11 @@ package body Lexer is
 
             when ''' =>
                Token_Location.Scan := Token_Location.Scan + 1;
-               Scan_Chars_Literal_Value (T_Character_Literal);
+               Scan_Chars_Literal_Value (T_Character_Literal, Fatal);
 
             when '"' => -- "
                Token_Location.Scan := Token_Location.Scan + 1;
-               Scan_Chars_Literal_Value (T_String_Literal, True);
+               Scan_Chars_Literal_Value (T_String_Literal, Fatal, True);
 
             when '#' =>
                Token_Location.Scan := Token_Location.Scan + 1;
@@ -1291,14 +1313,16 @@ package body Lexer is
 
                      if Buffer (Token_Location.Scan + 1) = ''' then
                         Token_Location.Scan := Token_Location.Scan + 2;
-                        Scan_Chars_Literal_Value (T_Wide_Character_Literal);
+                        Scan_Chars_Literal_Value
+                          (T_Wide_Character_Literal, Fatal);
                         return;
 
                      --  Read wide string literal
 
                      elsif Buffer (Token_Location.Scan + 1) = '"' then --  "
                         Token_Location.Scan := Token_Location.Scan + 2;
-                        Scan_Chars_Literal_Value (T_Wide_String_Literal, True);
+                        Scan_Chars_Literal_Value
+                          (T_Wide_String_Literal, Fatal, True);
                         return;
                      end if;
                   end if;
@@ -1323,7 +1347,7 @@ package body Lexer is
    begin
       loop
          Save_Lexer (State);
-         Scan_Token;
+         Scan_Token (False);
 
          exit when Token = T_EOF;
 

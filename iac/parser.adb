@@ -454,7 +454,7 @@ package body Parser is
       -----------------------
 
       function P_Expression_Part return Node_Id is
-         Expression     : Node_Id;
+         Expression     : Node_Id := No_Node;
          Right_Expr     : Node_Id;
          Previous_Token : Token_Type;
       begin
@@ -522,22 +522,27 @@ package body Parser is
             when T_Character_Literal
               |  T_Wide_Character_Literal =>
                Scan_Token;  --  past literal
-               Expression :=
-                 New_Node (K_Character_Literal, Token_Location);
-               Set_Value
-                 (Expression,
-                  New_Character_Value (Character_Literal_Value,
-                                       (Token /= T_Character_Literal)));
+               if Character_Literal_Value /= Incorrect_Character then
+                  Expression :=
+                    New_Node (K_Character_Literal, Token_Location);
+                  Set_Value
+                    (Expression,
+                     New_Character_Value
+                       (Unsigned_Short (Character_Literal_Value),
+                        (Token /= T_Character_Literal)));
+               end if;
 
             when T_String_Literal
               |  T_Wide_String_Literal =>
                Scan_Token;  --  past literal
-               Expression :=
-                 New_Node (K_String_Literal, Token_Location);
-               Set_Value
-                 (Expression,
-                  New_String_Value (String_Literal_Value,
-                                    (Token /= T_String_Literal)));
+               if String_Literal_Value /= Incorrect_String then
+                  Expression :=
+                    New_Node (K_String_Literal, Token_Location);
+                  Set_Value
+                    (Expression,
+                     New_String_Value (String_Literal_Value,
+                                       (Token /= T_String_Literal)));
+               end if;
 
             when T_Tilde .. T_Less_Less =>
 

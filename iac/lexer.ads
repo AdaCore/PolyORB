@@ -203,8 +203,11 @@ pragma Elaborate_Body (Lexer);
    Decimal_Point_Position  : Unsigned_Short_Short;
    Float_Literal_Value     : Long_Long_Float;
    String_Literal_Value    : Name_Id;
-   Character_Literal_Value : Unsigned_Short;
+   Character_Literal_Value : Long;
    Is_Wide_Literal_Value   : Boolean;
+
+   Incorrect_String    : constant Name_Id := No_Name;
+   Incorrect_Character : constant Long    := -1;
 
    procedure Preprocess
      (Source : Types.Name_Id;

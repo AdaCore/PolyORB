@@ -349,29 +349,20 @@ package body Analyzer is
                return False;
 
             when T_String_Literal =>
-               if K = K_String
+               if (V.Wide
+                   and then (K = K_Wide_String
+                             or else K = K_Wide_String_Type))
+                 or else K = K_String
                  or else K = K_String_Type
                then
                   return True;
                end if;
                return False;
 
-            when T_Wide_String_Literal =>
-               if K = K_Wide_String
-                 or else K = K_Wide_String_Type
-               then
-                  return True;
-               end if;
-               return False;
-
             when T_Character_Literal =>
-               if K = K_Char then
-                  return True;
-               end if;
-               return False;
-
-            when T_Wide_Character_Literal =>
-               if K = K_Wide_Char then
+               if (V.Wide and then K = K_Wide_Char)
+                 or else K = K_Char
+               then
                   return True;
                end if;
                return False;
@@ -382,11 +373,14 @@ package body Analyzer is
                end if;
                return False;
 
-               when T_Floating_Point_Literal =>
-                  if K = K_Fixed_Point_Type then
-                     return True;
-                  end if;
-                  return False;
+            when T_Floating_Point_Literal =>
+               if K = K_Float
+                 or else K = K_Double
+                 or else K = K_Long_Double
+               then
+                  return True;
+               end if;
+               return False;
 
             when T_Boolean_Literal =>
                if K = K_Boolean then
@@ -410,6 +404,10 @@ package body Analyzer is
          SE : Node_Id;
          SV : Value_Id;
       begin
+         if V = No_Value then
+            return;
+         end if;
+
          if not Is_Value_Of_Type (V, K) then
             if K = K_Unsigned_Long
               and then not Is_Value_Of_Type (V, K_Long)
