@@ -70,7 +70,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      return Ada.Task_Identification.Task_Id
    is
       function STID_To_ATID is new Ada.Unchecked_Conversion
-        (System.Tasking.Task_Id, Ada.Task_Identification.Task_Id);
+        (System.Tasking.Task_ID, Ada.Task_Identification.Task_Id);
    begin
       return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
@@ -79,12 +79,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
      return PTT.Thread_Id
    is
       function ATID_To_STID is new Ada.Unchecked_Conversion
-        (Ada.Task_Identification.Task_Id, System.Tasking.Task_Id);
+        (Ada.Task_Identification.Task_Id, System.Tasking.Task_ID);
    begin
-      return PTT.To_Thread_Id (System.Tasking.To_Address (ATID_To_STID (ATID)));
+      return PTT.To_Thread_Id
+        (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
 
-   task type Generic_Task_With_Runnable (P : System.Priority) is
+   task type Generic_Task (P : System.Priority) is
       --  type of the tasks created by this package;
       --  this one use a Runnable for its code.
 
@@ -98,10 +99,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
          C   : PTT.Runnable_Controller_Access);
       --  Start the task.
 
-      pragma Storage_Size (131072);
-   end Generic_Task_With_Runnable;
+      pragma Storage_Size (262144);
+   end Generic_Task;
 
-   type Generic_Task_With_Runnable_Access is access Generic_Task_With_Runnable;
+   type Generic_Task_Access is access Generic_Task;
 
    procedure Run (SR : access Simple_Runnable) is
       use type PTT.Parameterless_Procedure;
@@ -127,13 +128,13 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Warnings (On);
       T            : Full_Tasking_Thread_Access
         := new Full_Tasking_Thread_Type;
-      GT           : Generic_Task_With_Runnable_Access;
+      GT           : Generic_Task_Access;
    begin
       T.Priority := System.Priority
         (PolyORB.Configuration.Get_Conf
            ("tasking", "polyorb.tasking.threads." & Name & ".priority",
             Default_Priority));
-      GT := new Generic_Task_With_Runnable (T.Priority);
+      GT := new Generic_Task (T.Priority);
       GT.Initialize (PTT.Thread_Access (T));
       GT.Start (R, C);
       return PTT.Thread_Access (T);
@@ -146,9 +147,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (TF);
-      pragma Warnings (On);
       R : constant PTT.Runnable_Access := new Simple_Runnable;
    begin
       Simple_Runnable (R.all).Main_Subprogram := P;
@@ -157,10 +155,10 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
    end Run_In_Task;
 
    --------------------------------
-   -- Generic_Task_With_Runnable --
+   -- Generic_Task --
    --------------------------------
 
-   task body Generic_Task_With_Runnable is
+   task body Generic_Task is
       The_Thread     : Full_Tasking_Thread_Access;
       The_Runnable   : PTT.Runnable_Access;
       The_Controller : PTT.Runnable_Controller_Access;
@@ -183,7 +181,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       PTT.Free_Runnable (The_Controller.all, The_Runnable);
       Free (The_Controller);
       Free (The_Thread);
-   end Generic_Task_With_Runnable;
+   end Generic_Task;
 
    ---------------------------
    -- Get_Current_Thread_Id --
@@ -227,7 +225,11 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Thread_Id_Image
      (TF  : access Full_Tasking_Thread_Factory_Type;
-      TID : PTT.Thread_Id) return String is
+      TID : PTT.Thread_Id) return String
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
    begin
       return Ada.Task_Identification.Image (P_To_A_Task_Id (TID));
    end Thread_Id_Image;
@@ -244,9 +246,6 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       pragma Warnings (Off);
       pragma Unreferenced (TF);
       pragma Warnings (On);
-
-      function To_Ada_Task_Id is new Ada.Unchecked_Conversion
-        (System.Tasking.Task_Id, Ada.Task_Identification.Task_Id);
    begin
       Ada.Dynamic_Priorities.Set_Priority (P, P_To_A_Task_Id (T));
    end Set_Priority;

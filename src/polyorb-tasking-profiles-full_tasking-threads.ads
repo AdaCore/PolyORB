@@ -34,7 +34,6 @@
 --  This package provide a real implementation for base types for tasking
 --  using full Ada tasking. For all comments, see PolyORB.Tasking.Threads.
 
-with Ada.Task_Identification;
 with PolyORB.Tasking.Threads;
 with System;
 

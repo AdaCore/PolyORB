@@ -89,7 +89,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      return Ada.Task_Identification.Task_Id
    is
       function STID_To_ATID is new Ada.Unchecked_Conversion
-        (System.Tasking.Task_Id, Ada.Task_Identification.Task_Id);
+        (System.Tasking.Task_ID, Ada.Task_Identification.Task_Id);
    begin
       return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
    end P_To_A_Task_Id;
@@ -98,9 +98,10 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
      return PTT.Thread_Id
    is
       function ATID_To_STID is new Ada.Unchecked_Conversion
-        (Ada.Task_Identification.Task_Id, System.Tasking.Task_Id);
+        (Ada.Task_Identification.Task_Id, System.Tasking.Task_ID);
    begin
-      return PTT.To_Thread_Id (System.Tasking.To_Address (ATID_To_STID (ATID)));
+      return PTT.To_Thread_Id
+        (System.Tasking.To_Address (ATID_To_STID (ATID)));
    end A_To_P_Task_Id;
 
    -------------------
@@ -355,10 +356,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    ----------------------
 
    function Thread_Id_Image
-     (TF : access Ravenscar_Thread_Factory_Type;
+     (TF  : access Ravenscar_Thread_Factory_Type;
       TID : PTT.Thread_Id)
      return String
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (TF);
+      pragma Warnings (On);
       Index_Image : constant String := Integer'Image (Get_Thread_Index (TID));
    begin
       return Ada.Task_Identification.Image (P_To_A_Task_Id (TID))
@@ -677,7 +681,8 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
             My_PP_Arr (Index).all;
          end if;
          pragma Assert (My_Controller_Arr (Index) /= null);
-         Free_Runnable (My_Controller_Arr (Index).all, My_Runnable_Arr (Index));
+         Free_Runnable
+           (My_Controller_Arr (Index).all, My_Runnable_Arr (Index));
          --  Free (My_Controller_Arr (Index));
          My_Thread_Arr (Index).Sync_Id := Prepare_Suspend;
          Thread_Index_Manager.Release (Index);

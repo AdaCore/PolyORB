@@ -379,10 +379,6 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition
          (Exit_Condition.Condition = null));
 
-      procedure Set_Task_Id;
-      pragma Inline (Set_Task_Id);
-      --  Set this task's debugging identifier.
-
       function Exit_Now return Boolean;
       pragma Inline (Exit_Now);
       --  True if this instance of the ORB main loop must be terminated.
@@ -392,12 +388,6 @@ package body PolyORB.ORB is
       --  Remove all references to This_Task. Must be called
       --  before returning from Run (even when not debugging).
 
-      procedure Set_Task_Id is
-         use Tasking.Threads;
-      begin
-         Set_Id (This_Task, new String'(Image (Current_Task)));
-      end Set_Task_Id;
-
       function Exit_Now return Boolean is
       begin
          return (Exit_Condition.Condition /= null
@@ -406,17 +396,15 @@ package body PolyORB.ORB is
       end Exit_Now;
 
       procedure Cleanup is
-         Id : Utils.Strings.String_Ptr := Task_Info.Id (This_Task);
       begin
          if Exit_Condition.Task_Info /= null then
             Exit_Condition.Task_Info.all := null;
          end if;
-         pragma Debug (Utils.Strings.Free (Id));
       end Cleanup;
 
    begin
       Enter (ORB.ORB_Lock);
-      pragma Debug (Set_Task_Id);
+      Set_Id (This_Task);
       if Exit_Condition.Task_Info /= null then
          Exit_Condition.Task_Info.all
            := This_Task'Unchecked_Access;
@@ -892,7 +880,7 @@ package body PolyORB.ORB is
          if J.Request.Requesting_Task /= null then
             pragma Debug
               (O ("... requested by "
-                  & Task_Info.Id (J.Request.Requesting_Task.all).all));
+                  & Task_Info.Image (J.Request.Requesting_Task.all)));
             null;
          end if;
 

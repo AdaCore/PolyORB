@@ -38,14 +38,14 @@
 
 package body PolyORB.Task_Info is
 
-   --------
-   -- Id --
-   --------
+   -----------
+   -- Image --
+   -----------
 
-   function Id (TI : Task_Info) return Utils.Strings.String_Ptr is
+   function Image (TI : Task_Info) return String is
    begin
-      return TI.Id;
-   end Id;
+      return Tasking.Threads.Image (TI.Id);
+   end Image;
 
    --------------
    -- Selector --
@@ -102,9 +102,9 @@ package body PolyORB.Task_Info is
    -- Set_Id --
    ------------
 
-   procedure Set_Id (TI : in out Task_Info; Id : Utils.Strings.String_Ptr) is
+   procedure Set_Id (TI : in out Task_Info) is
    begin
-      TI.Id := Id;
+      TI.Id := Tasking.Threads.Current_Task;
    end Set_Id;
 
    ------------
@@ -122,7 +122,7 @@ package body PolyORB.Task_Info is
    -------------
 
    function Watcher (TI : Task_Info)
-     return PolyORB.Tasking.Watchers.Watcher_Access is
+     return Tasking.Watchers.Watcher_Access is
    begin
       pragma Assert (TI.Status = Idle);
       return TI.Watcher;

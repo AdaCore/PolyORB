@@ -54,9 +54,6 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
    procedure Create (M : out Adv_Mutex_Access) is
       use PolyORB.Tasking.Threads;
-
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
    begin
       pragma Debug (O ("Create"));
 
