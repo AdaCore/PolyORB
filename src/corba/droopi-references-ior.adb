@@ -6,6 +6,7 @@
 with CORBA;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
 
 
