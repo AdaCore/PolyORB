@@ -47,10 +47,6 @@ package System.Partition_Interface is
    --  Name of RCI unit. The access type should be access Unit_Name. Will
    --  be changed back for GNAT 3.10+ (XXXXX)
 
-   function Different (V1, V2 : String) return Boolean;
-   --  Compare two version_ids. If one of these version_ids is a string
-   --  of blank characters then they are identical.
-
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition.
 

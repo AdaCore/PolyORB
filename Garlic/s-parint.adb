@@ -62,9 +62,6 @@ package body System.Partition_Interface is
    procedure Free is
       new Ada.Unchecked_Deallocation (Unit_Name, Unit_Name_Access);
 
-   function Not_Null_Version (V : in String) return Boolean;
-   --  Returns true when V is not a string of blank characters.
-
    protected type Cache_Type is
 
       procedure Get_RCI_Data
@@ -263,17 +260,6 @@ package body System.Partition_Interface is
       return Cache;
    end Allocate;
 
-   ---------------
-   -- Different --
-   ---------------
-
-   function Different (V1, V2 : String) return Boolean is
-   begin
-      return     Not_Null_Version (V1)
-        and then Not_Null_Version (V2)
-        and then V1 /= V2;
-   end Different;
-
    ----------
    -- Find --
    ----------
@@ -451,20 +437,6 @@ package body System.Partition_Interface is
       return Unit.all;
 
    end Get_Unit_Info;
-
-   ----------------------
-   -- Not_Null_Version --
-   ----------------------
-
-   function Not_Null_Version (V : in String) return Boolean is
-   begin
-      for I in V'Range loop
-         if V (I) /= ' ' then
-            return True;
-         end if;
-      end loop;
-      return False;
-   end Not_Null_Version;
 
    ----------------------------
    -- Partition_RPC_Receiver --
