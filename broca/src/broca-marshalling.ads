@@ -1,5 +1,4 @@
 with CORBA;
-with CORBA.Object;
 with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Marshalling is
