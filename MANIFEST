@@ -614,6 +614,8 @@ src/corba/rtcorba/rtcorba-current.adb
 src/corba/rtcorba/rtcorba-current.ads
 src/corba/rtcorba/rtcorba-mutex.adb
 src/corba/rtcorba/rtcorba-mutex.ads
+src/corba/rtcorba/rtcorba-prioritymapping-direct.adb
+src/corba/rtcorba/rtcorba-prioritymapping-direct.ads
 src/corba/rtcorba/rtcorba-prioritymapping-linear.adb
 src/corba/rtcorba/rtcorba-prioritymapping-linear.ads
 src/corba/rtcorba/rtcorba-prioritymapping.adb
