@@ -37,6 +37,9 @@ package body System.Garlic.Streams is
 
    use Ada.Streams, System.Garlic.Debug;
 
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("S_GARSTR", "(s-garstr): ");
+
    subtype Output_Line is String (1 .. 48);
 
    Hex : constant String      := "0123456789ABCDEF";
@@ -114,11 +117,12 @@ package body System.Garlic.Streams is
 
    procedure Dump
      (Stream : access Ada.Streams.Stream_Element_Array;
-      Key    : in System.Garlic.Debug.Debug_Key) is
+      Key    : in System.Garlic.Debug.Debug_Key)
+   is
       Index   : Natural := 1;
       Output  : Output_Line;
    begin
-      if Debug_Mode (Key) then
+      if Debug_Mode (Key) and then Debug_Mode (Private_Debug_Key) then
          for I in Stream'Range loop
             Output (Index)     := ' ';
             Output (Index + 1) := Hex (Natural (Stream (I) / 16) + 1);

@@ -1,3 +1,26 @@
+1999-02-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* makedall: New script that updates the debugging scripts
+	automatically.
+
+	* DALL, UNDALL, DALL.el, UNDALL.el: Updated using makedall.
+
+	* s-garstr.adb: Dump streams only when a specific key *and*
+	S_GARSTR are set to avoid clobbering the output with large dumps.
+
+	* s-gartcp.adb: Do not try to connect with a peer that has no
+	location (light PCS for example).
+
+	* s-garuni.adb: Minor reformatting.
+	(Store_New_Unit): Change name New_Unit_Info to Current_Info as the 
+	former was misleading. Add more debugging info. A unit can be in
+	the Queried state after a failure if the client needs it anyway,
+	so this state must be considered when receiving new information
+	about the unit.
+	(Read_Units): Initialize List which was used uninitialized.
+	(Answer_Pending_Requests): Do not share the Params_Stream_Type
+	between different answers.
+
 1999-02-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Check that system.garlic.debug is

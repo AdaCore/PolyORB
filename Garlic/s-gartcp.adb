@@ -83,6 +83,8 @@ package body System.Garlic.TCP is
       Port : C.unsigned_short := 0;
    end record;
 
+   Null_Location : constant Host_Location := (In_Address_Any, 0);
+
    function Split_Data (Data : String) return Host_Location;
    --  Split a data given as <machine> or <machine>:<port>
 
@@ -764,6 +766,11 @@ package body System.Garlic.TCP is
          end if;
 
          Peer.Location := Split_Data (Get_Data (Location).all);
+
+         if Peer.Location = Null_Location then
+            Throw (Error, "Send: Cannot connect with peer without location");
+            return;
+         end if;
 
          if Partition = Boot_PID then
             Hits := Options.Connection_Hits;

@@ -56,8 +56,7 @@ package body System.Garlic.Units is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   procedure Answer_Pending_Requests
-     (List : Request_List);
+   procedure Answer_Pending_Requests (List : in Request_List);
    --  A boot server or mirror can receive a request on an unit for which
    --  it has no info on it yet. So, we keep track of this request in order
    --  to answer it later on. When info becomes available, answer to
@@ -113,15 +112,9 @@ package body System.Garlic.Units is
    --  marshal each unit of this partition. seq2 = (True, Name, Receiver,
    --  Partition, Status).
 
-
+   Units_Per_Partition : array (Valid_Partition_ID) of Unit_Id;
    --  Units on a same partition are chained together. This is the root of
    --  the list.
-
-   Units_Per_Partition : array (Valid_Partition_ID) of Unit_Id;
-
-
-   --  This is a list of receiver units to register when
-   --  Establish_RPC_Receiver is called.
 
    type Receiver_Node;
    type Receiver_List is access Receiver_Node;
@@ -133,26 +126,21 @@ package body System.Garlic.Units is
          Next     : Receiver_List;
       end record;
    Receivers : Receiver_List;
+   --  This is a list of receiver units to register when
+   --  Establish_RPC_Receiver is called.
 
    procedure Free is new Unchecked_Deallocation (Receiver_Node, Receiver_List);
-
-
-   --  Basic requests
 
    Define_Units : constant Request_Type := (Kind => Define_New_Units);
    Copy_Units   : constant Request_Type := (Kind => Copy_Units_Table);
    Push_Units   : constant Request_Type := (Kind => Push_Units_Table);
-
+   --  Basic requests
 
    -----------------------------
    -- Answer_Pending_Requests --
    -----------------------------
 
-   procedure Answer_Pending_Requests
-     (List : Request_List)
-   is
-      Reply : aliased Params_Stream_Type (0);
-      Error : Error_Type;
+   procedure Answer_Pending_Requests (List : in Request_List) is
    begin
       for PID in List'Range loop
          if List (PID) then
@@ -160,10 +148,18 @@ package body System.Garlic.Units is
             --  Send the whole table even if the request was on a specific
             --  unit.
 
-            Request_Type'Output (Reply'Access, Push_Units);
-            Write_Units         (Reply'Access);
-            Send (PID, Unit_Name_Service, Reply'Access, Error);
-            Catch (Error);
+            declare
+               Reply : aliased Params_Stream_Type (0);
+               Error : Error_Type;
+            begin
+               pragma Debug (D ("Handling pending request for partition " &
+                                Partition_ID'Image (PID)));
+               Request_Type'Output (Reply'Access, Push_Units);
+               Write_Units         (Reply'Access);
+               Send (PID, Unit_Name_Service, Reply'Access, Error);
+               Deallocate (Reply);
+               Catch (Error);
+            end;
          end if;
       end loop;
    end Answer_Pending_Requests;
@@ -506,6 +502,8 @@ package body System.Garlic.Units is
       Version   : String_Access;
       Status    : Unit_Status;
    begin
+      List := Null_List;
+
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, Partition);
          pragma Debug
@@ -522,6 +520,11 @@ package body System.Garlic.Units is
             Store_New_Unit (Unit, Partition, Receiver, Version, Status, List);
          end loop;
       end loop;
+   exception
+      when Error : others =>
+         pragma Debug (D ("Exception raised in Read_Units: " &
+                          Ada.Exceptions.Exception_Information (Error)));
+         raise;
    end Read_Units;
 
    -------------------
@@ -623,88 +626,124 @@ package body System.Garlic.Units is
       Status    : in Unit_Status;
       Pending   : in out Request_List)
    is
-      Previous_Unit : Unit_Id;
-      Previous_Info : Unit_Info;
-      New_Unit_Info : Unit_Info;
-      Reconnection  : Reconnection_Type;
-      Error         : Error_Type;
+      Current_Info      : Unit_Info := Units.Get_Component (Unit);
+      Current_Status    : Unit_Status renames Current_Info.Status;
+      Current_Partition : Partition_ID renames Current_Info.Partition;
+
+      In_Queue          : Boolean := True;
+      --  This variable is set to False if the current info does not belong
+      --  to a list of units for a partition (or has been removed from such
+      --  a list).
    begin
-      New_Unit_Info := Units.Get_Component (Unit);
+      if Current_Partition /= Null_PID then
+         pragma Debug (D ("Request to handle the already known unit " &
+                          Units.Get_Name (Unit)));
+         pragma Debug (D ("Already known info is:"));
+         pragma Debug (Dump_Unit_Info (Unit, Current_Info));
+         pragma Debug (D ("New info is:"));
+         declare
+            New_Info : Unit_Info := Null_Unit;
+         begin
+            New_Info.Partition := Partition;
+            New_Info.Receiver  := Receiver;
+            New_Info.Version   := Version;
+            New_Info.Status    := Status;
+            pragma Debug (Dump_Unit_Info (Unit, New_Info));
+         end;
+      end if;
 
       --  If a request is supposed to switch the status from Invalid to
       --  Defined, then this request should be ignored. The sender doesn't
       --  know yet that the partition has been invalidated with all its units.
 
-      if Status = Defined
-        and then New_Unit_Info.Status = Invalid
-      then
+      if Current_Status = Invalid and then Status = Defined then
+         pragma Debug (D ("Ignoring late request to define unit " &
+                          Units.Get_Name (Unit)));
          return;
       end if;
 
       --  If the status is Declared when it is already set to Defined on
       --  this partition, then a partition tries to register twice an unit.
 
-      if Status = Declared then
-         if New_Unit_Info.Status = Defined then
-            return;
-         elsif New_Unit_Info.Status = Invalid then
+      if Current_Status = Defined and then Status = Declared then
+         pragma Debug (D ("Ignoring double registration of unit " &
+                          Units.Get_Name (Unit)));
+         return;
+      end if;
+
+      if Current_Status = Invalid and then Status = Declared then
+
+         --  Check reconnection policy and exit when the unit must be
+         --  rejected on restart.
+
+         pragma Debug (D ("Checking renewed unit " & Units.Get_Name (Unit)));
+
+         declare
+            Reconnection : Reconnection_Type;
+            Error        : Error_Type;
+         begin
             Get_Reconnection_Policy
-              (New_Unit_Info.Partition, Reconnection, Error);
+              (Current_Info.Partition, Reconnection, Error);
             if Found (Error) then
                Catch (Error);
                return;
             end if;
             if Reconnection = Rejected_On_Restart then
+               pragma Debug (D ("Rejecting unit " & Units.Get_Name (Unit) &
+                                "on restart"));
                return;
             end if;
-         end if;
+         end;
       end if;
 
-      --  If the unit is already registered as a unit of a given partition,
-      --  then find the unit previous to the current unit in the partition
-      --  unit list. If this unit is the first one in the list, then
-      --  the previous unit is the unit itself.
+      if Current_Partition = Null_PID then
 
-      if New_Unit_Info.Partition = Null_PID then
-         Previous_Unit := Null_Unit_Id;
-         Previous_Info := Null_Unit;
+         --  The unit has not been enqueued into a partition list yet
 
-      else
-         Previous_Unit := Units_Per_Partition (New_Unit_Info.Partition);
-         if Previous_Unit /= Unit then
-            while Previous_Unit /= Null_Unit_Id loop
-               Previous_Info := Units.Get_Component (Previous_Unit);
-               exit when Previous_Info.Next_Unit = Unit;
-               Previous_Unit := Previous_Info.Next_Unit;
-            end loop;
-         end if;
+         In_Queue := False;
 
+      elsif (Current_Status = Undefined
+             or else Current_Status = Invalid
+             or else Current_Status = Queried)
+        and then Current_Partition /= Partition
+      then
          --  A unit may have an Undefined status once its partition has
          --  been invalidated. This comes from a partition reconnection
-         --  mode set to Blocked_Until_Restart. But, Status is supposed to
+         --  mode set to Blocked_Until_Restart. But Status is supposed to
          --  evolve as follow: Undefined -> Queried -> Defined ->
          --  Invalid. With the reconnection mode above, the status evolves
          --  from Defined to Undefined. To set its status back to Defined,
          --  the partition id has to be different. Note that we have to
          --  remove the current unit from the previous partition units
-         --  list. Therefore, Previous_Unit is set back to Null_Unit_Id.
+         --  list.
 
-         if (New_Unit_Info.Status = Undefined
-             or else New_Unit_Info.Status = Invalid)
-           and then New_Unit_Info.Partition /= Partition
-         then
+         declare
+            Previous_Unit : Unit_Id;
+            Previous_Info : Unit_Info;
+         begin
+            Previous_Unit := Units_Per_Partition (Current_Partition);
             if Previous_Unit = Unit then
-               Units_Per_Partition (New_Unit_Info.Partition)
-                 := New_Unit_Info.Next_Unit;
+               Units_Per_Partition (Current_Partition) :=
+                 Current_Info.Next_Unit;
             else
-               Previous_Info.Next_Unit := New_Unit_Info.Next_Unit;
+               loop
+                  Previous_Info := Units.Get_Component (Previous_Unit);
+                  exit when Previous_Info.Next_Unit = Unit;
+                  Previous_Unit := Previous_Info.Next_Unit;
+                  pragma Assert (Previous_Unit /= Null_Unit_Id);
+               end loop;
+               Previous_Info.Next_Unit := Current_Info.Next_Unit;
                Units.Set_Component (Previous_Unit, Previous_Info);
             end if;
-            Previous_Unit := Null_Unit_Id;
-         end if;
+
+            pragma Debug (D ("Dequeuing unit " & Units.Get_Name (Unit) &
+                             " from partition" &
+                             Partition_ID'Image (Current_Partition)));
+            In_Queue := False;
+         end;
       end if;
 
-      --  When Status and New_Unit_Info.Status are both set to Declared, we
+      --  When Current_Info.Status and Status are both set to Declared, we
       --  have to resolve a conflict.  We discard the unit declared by the
       --  partition of greater partition id. If the unit is declared by a
       --  partition whose boot partition is the current partition, then the
@@ -716,53 +755,58 @@ package body System.Garlic.Units is
       --  the current partition has the answer to its pending request that
       --  was whether or not the unit has been successfully defined.
 
-      if Status = Declared
-        and then New_Unit_Info.Status = Declared
-      then
-         if New_Unit_Info.Partition < Partition then
+      if Current_Status = Declared and then Status = Declared then
+         if Current_Partition < Partition then
+            pragma Debug (D ("Ignoring late conflict on unit " &
+                             Units.Get_Name (Unit)));
             return;
          elsif Boot_Partition (Partition) = Self_PID then
-            New_Unit_Info.Status := Defined;
+            pragma Debug (D ("Defining unit " & Units.Get_Name (Unit)));
+            Current_Status := Defined;
             Pending (Self_PID) := True;
          else
-            New_Unit_Info.Status := Declared;
+            pragma Debug (D ("Declaring unit " & Units.Get_Name (Unit)));
+            Current_Status := Declared;
          end if;
       else
-         New_Unit_Info.Status := Status;
+         Current_Status := Status;
       end if;
 
-      New_Unit_Info.Receiver  := Receiver;
-      New_Unit_Info.Version   := Version;
-      New_Unit_Info.Partition := Partition;
+      Current_Info.Receiver := Receiver;
+      Current_Info.Version  := Version;
+      Current_Partition     := Partition;
 
-      --  Add this unit in the partition unit list.
+      --  Add this unit in the partition unit list
 
-      if New_Unit_Info.Status in Declared .. Invalid then
-         if Previous_Unit = Null_Unit_Id then
+      if Current_Status in Declared .. Invalid then
+         if not In_Queue then
             pragma Debug
               (D ("Add new unit " & Units.Get_Name (Unit) &
                   " to partition" & Partition'Img));
 
-            New_Unit_Info.Next_Unit := Units_Per_Partition (Partition);
+            Current_Info.Next_Unit := Units_Per_Partition (Partition);
             Units_Per_Partition (Partition) := Unit;
+            In_Queue := True;
          end if;
       end if;
 
-      --  Dequeue pending requests
+      --  Add pending requests to Pending and mark them as handled
 
-      if New_Unit_Info.Status in Defined .. Invalid then
-         if New_Unit_Info.Pending then
-            for PID in New_Unit_Info.Requests'Range loop
-               if New_Unit_Info.Requests (PID) then
+      if Current_Status in Defined .. Invalid then
+         if Current_Info.Pending then
+            pragma Debug (D ("Dequeuing pending requests for unit " &
+                             Units.Get_Name (Unit)));
+            for PID in Current_Info.Requests'Range loop
+               if Current_Info.Requests (PID) then
                   Pending (PID) := True;
-                  New_Unit_Info.Requests (PID) := False;
+                  Current_Info.Requests (PID) := False;
                end if;
             end loop;
-            New_Unit_Info.Pending := False;
+            Current_Info.Pending := False;
          end if;
       end if;
 
-      Units.Set_Component (Unit, New_Unit_Info);
+      Units.Set_Component (Unit, Current_Info);
    end Store_New_Unit;
 
    -----------------

@@ -1,0 +1,18 @@
+#! /bin/sh
+#
+# $Id$
+#
+# This script makes various files containing scripts to set or clear GARLIC
+# debug variables.
+#
+
+list=`grep 'Debug_Initialize ("S_' *.adb | sed -e 's/^[^"]*"\([^"]*\).*/\1/'`
+rm -f DALL UNDALL DALL.el UNDALL.el
+for i in $list; do
+    echo "export $i=true" >> DALL
+    echo "unset $i" >> UNDALL
+    echo "(setenv \"$i\" \"true\")" >> DALL.el
+    echo "(setenv \"$i\")" >> UNDALL.el
+done
+
+
