@@ -53,7 +53,7 @@ procedure Run_Script is
    --  All backslashes are changed to slashes.
 
    function MinGW_Resolve (Filename : String) return String;
-   --  Strip name and resolve it, for MinGW
+   --  Resolve filename, for MinGW
 
    function Cygwin_Resolve (Filename : String) return String;
    --  Resolve a name relative to Cygwin mount points to the
@@ -169,19 +169,19 @@ begin
          Interp_Path := Locate_Exec_On_Path (Interp);
 
          if Interp_Path = null then
-            Interp_Path := Locate_Exec_On_Path (MinGW_Resolve (Interp));
+            Interp_Path := Locate_Exec_On_Path (Cygwin_Resolve (Interp));
          end if;
 
          if Interp_Path = null then
-            Interp_Path := Locate_Exec_On_Path (Cygwin_Resolve (Interp));
+            Interp_Path := Locate_Exec_On_Path (MinGW_Resolve (Interp));
          end if;
 
          if Interp_Path = null then
             Put_Line ("Interp = """ & Interp & """ not found ");
             Put_Line ("Tried:");
             Put_Line ("  normal resolv = " & Interp);
-            Put_Line ("  for MinGW     = " & MinGW_Resolve (Interp));
             Put_Line ("  for Cygwin    = " & Cygwin_Resolve (Interp));
+            Put_Line ("  for MinGW     = " & MinGW_Resolve (Interp));
             OS_Exit (-1);
          end if;
 
