@@ -59,17 +59,15 @@ package body Ada_Be.Mappings.CORBA is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-         when
-           K_Interface | K_ValueType =>
+         when K_Module | K_Interface | K_ValueType =>
             if Is_Well_Known_Node (Node) then
                return Fetch_Helper_Unit_Name (Node);
             else
                return Client_Stubs_Unit_Name (Mapping, Node) & Helper_Suffix;
             end if;
 
-         when
-           K_Forward_Interface | K_Forward_ValueType =>
-            return Parent_Scope_Name (Node) & Helper_Suffix;
+         when K_Forward_Interface | K_Forward_ValueType =>
+            return Ada_Helper_Unit_Name (Mapping, Forward (Node));
 
          when K_Declarator =>
             declare

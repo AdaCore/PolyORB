@@ -463,8 +463,8 @@ package body Ada_Be.Idl2Ada.Skel is
 
                         if not Is_Returns (P_Node) then
                            PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
-                               & " : constant CORBA.Identifier");
-                           PL (CU, "  := CORBA.To_CORBA_String ("""
+                               & " : constant CORBA.Identifier :=");
+                           PL (CU, "  CORBA.To_CORBA_String ("""
                                & Arg_Name & """);");
 
                            Add_With (CU, Helper_Name);
@@ -556,11 +556,8 @@ package body Ada_Be.Idl2Ada.Skel is
                            then
                               Add_With (CU, Helper_Name);
                               PL (CU, Arg_Name & " :=");
-                              Put (CU, "  ");
-                              Gen_Forward_Conversion
-                                (CU, PT_Node, "To_Forward",
-                                 Helper_Name & ".From_Any ("
-                                 & T_Argument & Arg_Name & ")");
+                              Put (CU, "  " & Helper_Name & ".From_Any ("
+                                & T_Argument & Arg_Name & ")");
                               PL (CU, ";");
                            end if;
                         end if;
@@ -690,13 +687,7 @@ package body Ada_Be.Idl2Ada.Skel is
                                  PL (CU, "  (" & T_Argument & Arg_Name & ",");
                                  II (CU);
                                  PL (CU, Helper_Name & ".To_Any");
-                                 Put (CU, "  (");
-                                 II (CU);
-                                 Gen_Forward_Conversion
-                                   (CU, Param_Type (P_Node),
-                                    "From_Forward", Arg_Name);
-                                 DI (CU);
-                                 PL (CU, "));");
+                                 Put (CU, "  (" & Arg_Name & "));");
                                  DI (CU);
                                  NL (CU);
                               end;
@@ -709,7 +700,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                   if Kind (Original_Operation_Type (Node)) /= K_Void then
                      NL (CU);
-                     PL (CU, "-- Set Result");
+                     PL (CU, "-- Set result");
                      NL (CU);
 
                      declare
@@ -724,21 +715,13 @@ package body Ada_Be.Idl2Ada.Skel is
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (");
-                           Gen_Forward_Conversion
-                             (CU, OT_Node,
-                              "From_Forward", T_Result);
-                           PL (CU, "));");
+                           PL (CU, Prefix & ".To_Any (" & T_Result & "));");
                            DI (CU);
                         else
                            PL (CU, "CORBA.ServerRequest.Set_Result");
                            PL (CU, "  (Request, ");
                            II (CU);
-                           PL (CU, Prefix & ".To_Any (");
-                           Gen_Forward_Conversion
-                             (CU, OT_Node,
-                              "From_Forward", "Returns");
-                           PL (CU, "));");
+                           PL (CU, Prefix & ".To_Any (Returns));");
                            DI (CU);
                         end if;
                      end;

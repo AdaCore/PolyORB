@@ -172,6 +172,7 @@ private
       T_Node    : in     Node_Id;
       Direction : in     String;
       What      : in     String);
+   pragma Unreferenced (Gen_Forward_Conversion);
    --  Generate a call to a forward <-> actual reference conversion,
    --  if necessary.
 

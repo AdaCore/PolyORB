@@ -483,10 +483,7 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
-      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
-
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
-      Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
 
       if Intf_Repo then
          IR_Info.Gen_Body_Postlude (S.IR_Info (Unit_Body));
@@ -1034,13 +1031,11 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
-      Add_Elaborate_Body (S.Helper (Unit_Spec), S.Helper (Unit_Body));
 
       --  Local objects do not have a skeleton
 
       if Skel_Required then
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
-         Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
       end if;
 
       if Intf_Repo then
@@ -2168,6 +2163,8 @@ package body Ada_Be.Idl2Ada is
                      Add_With (CU, "PolyORB.Requests");
                      Add_With (CU, "PolyORB.Types");
 
+                     PL (CU, "--  Prepare in arguments");
+                     NL (CU);
                      declare
                         It   : Node_Iterator;
                         P_Node : Node_Id;
@@ -2209,17 +2206,11 @@ package body Ada_Be.Idl2Ada is
                                            "  := " & Helper_Name & ".To_Any");
                                        Put (CU, "  (");
                                        Put (CU, -Typ);
-                                       Put (CU, " (");
-                                       Gen_Forward_Conversion
-                                         (CU, P_Typ, "From_Forward", Arg_Name);
-                                       PL (CU, "));");
+                                       Put (CU, " (" & Arg_Name & "));");
                                     else
                                        PL (CU,
                                            "  := " & Helper_Name & ".To_Any");
-                                       Put (CU, "  (");
-                                       Gen_Forward_Conversion
-                                         (CU, P_Typ, "From_Forward", Arg_Name);
-                                       PL (CU, ");");
+                                       Put (CU, "  (" & Arg_Name & ");");
                                     end if;
                                  else
                                     declare
@@ -2439,23 +2430,17 @@ package body Ada_Be.Idl2Ada is
                                      = Parent_Scope (Node)
                                  then
                                     Map_Type_Name (Mapping, O_Type, Unit, Typ);
-                                    Put (CU, (-Typ) & "'Class (");
-
-                                    Gen_Forward_Conversion
-                                         (CU, Org_O_Type,
-                                          "To_Forward",
-                                          Prefix & ".From_Any"
+                                    Put (CU, (-Typ) & "'Class ("
+                                          & Prefix & ".From_Any"
                                           & ASCII.LF
                                           & "  (CORBA.Internals.To_CORBA_Any ("
                                           & T_Result & ".Argument)))");
                                  else
-                                    Gen_Forward_Conversion
-                                      (CU, Org_O_Type,
-                                       "To_Forward",
-                                       Prefix & ".From_Any"
-                                       & ASCII.LF
-                                       & "  (CORBA.Internals.To_CORBA_Any ("
-                                       & T_Result & ".Argument))");
+                                    Put (CU,
+                                      Prefix & ".From_Any"
+                                        & ASCII.LF
+                                        & "  (CORBA.Internals.To_CORBA_Any ("
+                                        & T_Result & ".Argument))");
                                  end if;
 
                                  PL (CU, ";");
@@ -2474,8 +2459,7 @@ package body Ada_Be.Idl2Ada is
                                     if First then
                                        NL (CU);
                                        PL (CU,
-                                           "--  Retrieve 'out' argument "
-                                             & "values.");
+                                         "--  Retrieve out argument values.");
                                        NL (CU);
                                        First := False;
                                     end if;
@@ -2497,26 +2481,20 @@ package body Ada_Be.Idl2Ada is
                                           Map_Type_Name
                                             (Mapping, T_Node, Unit, Typ);
                                           Put (CU, -Typ);
-                                          Put (CU, "'Class (");
-
-                                          Gen_Forward_Conversion
-                                            (CU, Param_Type (P_Node),
-                                             "To_Forward",
-                                             Helper_Unit (Param_Type (P_Node))
-                                             & ".From_Any"
-                                             & ASCII.LF & "  ("
-                                             & T_Argument
-                                             & Arg_Name);
+                                          Put (CU, "'Class ("
+                                            & Helper_Unit (Param_Type (P_Node))
+                                            & ".From_Any"
+                                            & ASCII.LF & "  ("
+                                            & T_Argument
+                                            & Arg_Name);
                                           Put (CU, ")");
                                        else
-                                          Gen_Forward_Conversion
-                                            (CU, Param_Type (P_Node),
-                                             "To_Forward",
-                                             Helper_Unit (Param_Type (P_Node))
-                                             & ".From_Any"
-                                             & ASCII.LF & "  ("
-                                             & T_Argument
-                                             & Arg_Name);
+                                          Put (CU,
+                                            Helper_Unit (Param_Type (P_Node))
+                                              & ".From_Any"
+                                              & ASCII.LF & "  ("
+                                              & T_Argument
+                                              & Arg_Name);
                                        end if;
 
                                        PL (CU, ");");
@@ -3029,14 +3007,14 @@ package body Ada_Be.Idl2Ada is
                   --  From_Any and To_Any.
                   return Helper_Unit (P_T_Type);
                else
-                  return Ada_Helper_Unit_Name (Mapping, Node);
+                  return Helper_Unit (Parent_Scope (Node));
                end if;
             end;
 
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
-            return Helper_Unit (Forward (Node));
+            return Helper_Unit (Parent_Scope (Node));
             --  Different from Ada_Helper_Name (Node).
 
          when K_Scoped_Name =>
@@ -3294,10 +3272,7 @@ package body Ada_Be.Idl2Ada is
 
    function Ada_Full_TC_Name
      (Node : Node_Id)
-     return String is
-   begin
-      return Ada_Helper_Unit_Name (Mapping, Node) & "." & Ada_TC_Name (Node);
-   end Ada_Full_TC_Name;
+     return String renames TC_Name;
 
    -----------------------------
    -- Gen_Module_Init_Prelude --
