@@ -974,7 +974,7 @@ package body XE_Parse is
       if Comp_Node = Null_Component or else
          not Is_Component_An_Attribute (Comp_Node) then
          Write_Location (Get_Token_Location);
-         Write_Str  ("no such attribute """);
+         Write_Str  ("unrecognized attribute """);
          Write_Name (Attr_Name);
          Write_Str  ("""");
          Write_Eol;
