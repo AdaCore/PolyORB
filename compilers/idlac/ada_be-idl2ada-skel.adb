@@ -234,7 +234,8 @@ package body Ada_Be.Idl2Ada.Skel is
               Ada_Full_Name (Node)
               & Ada_Be.Idl2Ada.Value_Skel.Suffix);
       end if;
-      PL (CU, ".Is_A (To_Standard_String (Type_Id));");
+      PL (CU, ".Is_A");
+      PL (CU, "  (CORBA.To_Standard_String (Type_Id));");
       DI (CU);
 
       PL (CU, "end;");
