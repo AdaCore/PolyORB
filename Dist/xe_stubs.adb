@@ -586,8 +586,8 @@ package body XE_Stubs is
 
       end if;
 
-      Free (Include);
-      Free (Library);
+      Xe_Utils.Free (Include);
+      Xe_Utils.Free (Library);
 
    end Create_Executable_File;
 

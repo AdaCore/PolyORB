@@ -1,3 +1,8 @@
+1998-10-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Qualify Free procedure so that it doesn't clash
+	with GNAT 3.12w GNAT.OS_Lib.Free.
+
 1998-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_back.adb, xe_back.ads: New function Is_RCI_Or_SP_unit.
