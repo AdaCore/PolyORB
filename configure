@@ -1474,6 +1474,7 @@ fi
 #
 case ${PLATFORM_SPECIFIC} in
   w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
+  p) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
   *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
 esac
 
