@@ -23,7 +23,7 @@ CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 force: 
 
 dist1: ${dist1_DEPENDENCIES} force
-	${GNATMAKE} ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
+	${GNATMAKE} -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o dist1
 
 xe_defs.adb: 

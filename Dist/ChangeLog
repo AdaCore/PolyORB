@@ -1,3 +1,10 @@
+Wed Feb  5 17:32:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* make-ada-dir: New file used to track what's needed in dist1.
+
+	* Makefile.am: Added -a to gnatmake flags to allow the use of our
+	  own library.
+
 Wed Jan 22 16:18:13 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Get rid of debugging information.

@@ -1,0 +1,30 @@
+#!/usr/local/bin/zsh
+#
+# $Id$
+#
+# Upgrade needed files under ada for gnatdist
+#
+rm -rf ../newada
+mkdir ../newada
+rm sdefault.adb
+make dist1
+echo -n Analyzing dependencies... >& 2
+for i in `gnatmake -a -gnatpg -g -gnata -gnato -I../ada \
+   xe_build.adb -o dist1 -M | sed -e 's/^.*://' | sed -e 's/\\\\//'`; do
+cp $i ../newada/ 2> /dev/null
+echo -n . >& 2
+done
+echo
+rm ../newada/xe*
+rm ../newada/sdefault.adb
+echo Diffing directories
+for i in ../ada/*(.); do
+if [ ! -f ../newada/`basename $i` ]; then
+  echo `basename $i` is no longer needed
+fi
+done
+for i in ../newada/*(.); do
+if [ ! -f ../ada/`basename $i` ]; then
+  echo `basename $i` is needed
+fi
+done
