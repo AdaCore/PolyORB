@@ -41,6 +41,7 @@ with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
+with PolyORB.Request_QoS;
 with PolyORB.Setup;
 
 package body PolyORB.Requests is
@@ -107,7 +108,9 @@ package body PolyORB.Requests is
       Dependent_Binding_Object   : in     Smart_Pointers.Entity_Ptr
         := null)
    is
+      use PolyORB.Request_QoS;
       use type Smart_Pointers.Entity_Ptr;
+
    begin
       pragma Debug (O ("Creating request"));
 
@@ -126,6 +129,8 @@ package body PolyORB.Requests is
       else
          Req.Req_Flags := Req_Flags;
       end if;
+
+      Set_QoS (Req, Fetch_QoS (Req.Target));
 
       if Dependent_Binding_Object /= null then
          Smart_Pointers.Set
