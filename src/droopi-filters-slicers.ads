@@ -6,6 +6,7 @@
 with Ada.Streams;
 
 with Droopi.Buffers;
+with Droopi.Components;
 
 package Droopi.Filters.Slicers is
 
@@ -22,13 +23,16 @@ package Droopi.Filters.Slicers is
 
 private
 
+   type Slicer_Factory is new Factory with null record;
+
    type Slicer_Filter is new Filter with record
-      In_Buf : Buffer_Access;
-      Data_Expected : Stream_Element_Count;
+      In_Buf : Buffers.Buffer_Access;
+      Data_Expected : Ada.Streams.Stream_Element_Count;
    end record;
 
-   procedure Handle_Message
+   function Handle_Message
      (F : access Slicer_Filter;
-      S : Data_Unit);
+      S : Components.Message'Class)
+     return Components.Message'Class;
 
 end Droopi.Filters.Slicers;

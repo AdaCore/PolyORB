@@ -117,7 +117,7 @@ package Droopi.Protocols.GIOP is
       Loc_System_Exception,
       Loc_Needs_Addressing_Mode);
 
-  type Pending_Request is limited private;
+   type Pending_Request is limited private;
 
    --  type Response_Sync(Version :  range 0 .. 1) is
    --  record
@@ -164,35 +164,35 @@ package Droopi.Protocols.GIOP is
 
    AddressingDisposition_To_Unsigned_Long :
      constant array (Addressing_Disposition'Range) of CORBA.Unsigned_Long
-     := ( Key_Addr => 0,
-          Profile_Addr => 1,
-          Reference_Addr => 2);
+     := (Key_Addr => 0,
+         Profile_Addr => 1,
+         Reference_Addr => 2);
 
 
    Unsigned_Long_To_AddressingDisposition :
-     constant array (CORBA.Unsigned_Long range 0 ..2) of Addressing_Disposition
-     := (  0 => Key_Addr,
-           1 => Profile_Addr,
-           2 => Reference_Addr);
+     constant array (CORBA.Unsigned_Long range 0 .. 2)
+     of Addressing_Disposition
+     := (0 => Key_Addr,
+         1 => Profile_Addr,
+         2 => Reference_Addr);
 
 
    Version_To_Unsigned_Long :
      constant array (Version'Range) of CORBA.Unsigned_Long
-     := ( Ver0  => 0,
-          Ver1  => 1,
-          Ver2  => 2);
+     := (Ver0  => 0,
+         Ver1  => 1,
+         Ver2  => 2);
 
 
    Unsigned_Long_To_Version :
-     constant array (CORBA.Unsigned_Long range 0 ..2) of Version
-     := (  0 => Ver0,
-           1 => Ver1,
-           2 => Ver2);
+     constant array (CORBA.Unsigned_Long range 0 .. 2) of Version
+     := (0 => Ver0,
+         1 => Ver1,
+         2 => Ver2);
 
-
-   -----------------------------------------
-   -- Some utilities functions Marshalling
-   ----------------------------------------
+   -------------------------
+   -- Marshalling helpers --
+   -------------------------
 
    --  Specs
 
@@ -232,21 +232,21 @@ package Droopi.Protocols.GIOP is
 
 
 
-   -----------------------------------------------------------
-   --  Some common marshalling procedures for GIOP 1.0, 1.1, 1.2
-   ------------------------------------------------------------
+   ----------------------------------------------------------
+   -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
+   ----------------------------------------------------------
 
-  -- procedure Marshall_Exception
-  --  (Buffer           : access Buffers.Buffer_Type;
-  --    Request_Id       : in CORBA.Unsigned_Long;
-  --    Exception_Type   : in Reply_Status_Type;
-  --    Occurence        : in CORBA.Exception_Occurrence);
+   --  procedure Marshall_Exception
+   --   (Buffer           : access Buffers.Buffer_Type;
+   --    Request_Id       : in CORBA.Unsigned_Long;
+   --    Exception_Type   : in Reply_Status_Type;
+   --    Occurence        : in CORBA.Exception_Occurrence);
 
 
-  -- procedure Marshall_Location_Forward
-  --   (Buffer           : access Buffers.Buffer_Type;
-  --    Request_Id       : in  CORBA.Unsigned_Long;
-  --    Forward_Ref      : in  Droopi.References.Ref);
+   --  procedure Marshall_Location_Forward
+   --   (Buffer           : access Buffers.Buffer_Type;
+   --    Request_Id       : in  CORBA.Unsigned_Long;
+   --    Forward_Ref      : in  Droopi.References.Ref);
 
 
    procedure Marshall_Cancel_Request
@@ -296,12 +296,11 @@ package Droopi.Protocols.GIOP is
       Fragment_Next : out boolean);
 
 
-    procedure Exception_Reply
+   procedure Exception_Reply
      (Ses             : access GIOP_Session;
       Exception_Type  : in Reply_Status_Type;
       Occurence       : in CORBA.Exception_Occurrence;
       Fragment_Next   : out Boolean);
-
 
    procedure Location_Forward_Reply
      (Ses             : access GIOP_Session;
@@ -318,7 +317,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
-      Object_key      : in Objects.Object_Id_Access;
+      Object_Key      : in Objects.Object_Id_Access;
       Fragment_Next   : out Boolean);
 
 
