@@ -1,0 +1,32 @@
+This example describe how to define passive partitions and how to use 
+multi data storage feature.
+
+sp1 is configured on part1. We use dfs://storage1 as a data storage
+support for part1. part1 is an active partition.
+
+sp2 is configured on part2. We use dfs://storage2 as a data storage
+support for part2. part2 is an active partition.
+
+sp3 is configured on part3. We use dfs://storage3 as a data storage
+support for part3. part3 is a passive partition.
+
+Create four directories storage1, storage2, storage3 and storage4.
+
+Run in two separate sessions:
+
+part1
+
+and
+
+part2 --data_location dfs://storage4
+
+
+Look at the files created in storage1, storage2, storage3 and storage4.
+
+part1 has updated all the variables sp[123].x_p1.
+part2 has updated all the variables sp[123].x_p2.
+
+Note that variables from sp1 are stored in storage1, variables from sp3
+are stored in storage3. variables from sp2 are stored in storage4 because
+of the command line argument passed to part2.
+
