@@ -1,5 +1,7 @@
 SHELL=/bin/sh
 
+ADABROKER_BASE=../..
+
 GENERATED_FILES=calculators-calculator_plus-helper.adb \
 calculators-calculator_plus-helper.ads\
 calculators-calculator_plus-skel.adb\
@@ -23,8 +25,11 @@ demo_idl_file.ads
 
 CC = gnatmake
 FLAGS = -g -gnata -gnatf 
-LIB = -I. -I/home/niebel/adabroker/example/generic -I/home/niebel/adabroker/src \
-	-I/home/niebel/adabroker/adasockets/src -I/home/niebel/adabroker/src/ir
+LIB = -I. \
+      -I${ADABROKER_BASE}/example/generic \
+      -I${ADABROKER_BASE}/src \
+      -I${ADABROKER_BASE}/adasockets/src \
+      -I${ADABROKER_BASE}/src/ir
 
 first: simple_server server_plus client 
 
