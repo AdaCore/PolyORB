@@ -72,12 +72,14 @@ package System.Garlic.Storages.Dfs is
    procedure Initialize;
 
    procedure Initiate_Request
-     (Var_Data : in out DFS_Data_Type;
+     (Var_Data : access DFS_Data_Type;
       Request  : in     Request_Type;
       Success  : out    Boolean);
 
    procedure Complete_Request
-     (Var_Data : in out DFS_Data_Type);
+     (Var_Data : access DFS_Data_Type);
+
+   procedure Shutdown (Storage : DFS_Data_Type);
 
    procedure Read
      (Data : in out DFS_Data_Type;

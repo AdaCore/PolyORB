@@ -50,7 +50,6 @@ use  System.Garlic.Physical_Location;
 
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
-with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Storages.Dfs is
 
@@ -103,7 +102,7 @@ package body System.Garlic.Storages.Dfs is
    ----------------------
 
    procedure Complete_Request
-     (Var_Data : in out DFS_Data_Type) is
+     (Var_Data : access DFS_Data_Type) is
    begin
       if Var_Data.Count > 0 then
          Var_Data.Count := Var_Data.Count - 1;
@@ -231,7 +230,7 @@ package body System.Garlic.Storages.Dfs is
    ----------------------
 
    procedure Initiate_Request
-     (Var_Data : in out DFS_Data_Type;
+     (Var_Data : access DFS_Data_Type;
       Request  : in Request_Type;
       Success  : out Boolean)
    is
@@ -320,7 +319,7 @@ package body System.Garlic.Storages.Dfs is
          when Lock =>
             Var_Data.Count := Var_Data.Count + 1;
             if Var_Data.Lock = SGL.Null_Lock then
-               SGL.Create_Lock (Var_Data.Lock, Lock_Name (Var_Data));
+               SGL.Create_Lock (Var_Data.Lock, Lock_Name (Var_Data.all));
             end if;
             if Var_Data.Count = 1 then
                SGL.Acquire_Lock (Var_Data.Lock);
@@ -356,6 +355,16 @@ package body System.Garlic.Storages.Dfs is
    exception when others =>
       Last := Item'Last;
    end Read;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown (Storage : DFS_Data_Type) is
+      pragma Unreferenced (Storage);
+   begin
+      null;
+   end Shutdown;
 
    -----------
    -- Write --
