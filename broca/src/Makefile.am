@@ -6,6 +6,7 @@ ADA_FULL = \
 	   broca-buffers.ads \
 	   broca-buffers-io_operations.ads \
            broca-exceptions.ads \
+           broca-exceptions-stack.ads \
            broca-flags.ads \
            broca-giop.ads \
            broca-iiop.ads \
@@ -36,13 +37,6 @@ ADA_FULL = \
            portableserver-servantlocator.ads \
            portableserver-servantmanager-impl.ads \
            portableserver.ads
-
-#           broca-policy.ads \
-#           corba-boa.ads \
-#           corba-policy.ads \
-#           corba-sequences-bounded.ads \
-#           portableserver-servantretentionpolicy.ads \
-#           portableserver-threadpolicy.ads
 
 ADA_SPECS = $(ADA_FULL) \
            broca.ads \
