@@ -421,6 +421,9 @@ package System.PolyORB_Interface is
    function TC_Array return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Array;
    --  Empty Tk_Array typecode.
+   function TC_Sequence return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Sequence;
+   --  Empty Tk_Sequence typecode.
    function TC_Struct return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Struct;
    --  Empty Tk_Struct typecode.

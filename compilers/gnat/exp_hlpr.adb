@@ -150,10 +150,10 @@ package body Exp_Hlpr is
          --  XXX Variant Part not implemented yet.
 
 --          Process_Union (VP);
---          while Present (Variant) loop
---             Process_Struct (Variant);
-
---             Recurse (Add_Component_List);
+--          --> while Present (Variant) loop
+--          -->    Process_Struct (Variant);
+--          -->    Add_Component_List (Component_List_Of (Variant));
+--          --> end;
 --          end loop;
       end if;
    end Add_Component_List;
@@ -1364,33 +1364,60 @@ package body Exp_Hlpr is
             end;
          end if;
 
-      elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
+      elsif Is_Array_Type (Typ) then
 
          declare
             Ndim : constant Pos := Number_Dimensions (Typ);
             Inner_TypeCode : Node_Id;
+            Constrained : constant Boolean := Is_Constrained (Typ);
+            Indx : Node_Id := First_Index (Typ);
          begin
             Inner_TypeCode := Build_TypeCode_Call (Loc,
               Component_Type (Typ),
               Decls);
 
             for J in 1 .. Ndim loop
-               Inner_TypeCode := Make_Constructed_TypeCode
-                 (RTE (RE_TC_Array), New_List (
-                   Build_To_Any_Call (
-                     OK_Convert_To (RTE (RE_Long_Unsigned),
-                       Make_Attribute_Reference (Loc,
-                         Prefix =>
-                           New_Occurrence_Of (Typ, Loc),
-                         Attribute_Name =>
-                           Name_Length,
-                         Expressions => New_List (
-                           Make_Integer_Literal (Loc, Ndim - J + 1)))),
-                     Decls),
-                   Build_To_Any_Call (Inner_TypeCode, Decls)));
+               if Constrained then
+                  Inner_TypeCode := Make_Constructed_TypeCode
+                    (RTE (RE_TC_Array), New_List (
+                      Build_To_Any_Call (
+                        OK_Convert_To (RTE (RE_Long_Unsigned),
+                          Make_Attribute_Reference (Loc,
+                            Prefix =>
+                              New_Occurrence_Of (Typ, Loc),
+                            Attribute_Name =>
+                              Name_Length,
+                            Expressions => New_List (
+                              Make_Integer_Literal (Loc, Ndim - J + 1)))),
+                        Decls),
+                      Build_To_Any_Call (Inner_TypeCode, Decls)));
+               else
+                  Get_Name_String (New_External_Name ('L', J));
+                  Add_String_Parameter (String_From_Name_Buffer);
+                  Add_TypeCode_Parameter
+                    (Build_TypeCode_Call (Loc, Etype (Indx), Decls));
+                  Next_Index (Indx);
+                  Inner_TypeCode := Make_Constructed_TypeCode
+                    (RTE (RE_TC_Sequence), New_List (
+                      Build_To_Any_Call (
+                        OK_Convert_To (RTE (RE_Long_Unsigned),
+                          Make_Integer_Literal (Loc, 0)),
+                        Decls),
+                      Build_To_Any_Call (Inner_TypeCode, Decls)));
+               end if;
             end loop;
-            Return_Alias_TypeCode (Inner_TypeCode);
+
+            if Constrained then
+               Return_Alias_TypeCode (Inner_TypeCode);
+            else
+               Start_String;
+               Store_String_Char ('V');
+               Add_String_Parameter (End_String);
+               Add_TypeCode_Parameter (Inner_TypeCode);
+               Return_Constructed_TypeCode (RTE (RE_TC_Struct));
+            end if;
          end;
+
       else
          declare
             TypeCode_Parameter : constant Entity_Id
