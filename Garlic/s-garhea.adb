@@ -425,6 +425,10 @@ package body System.Garlic.Heart is
                Ans   : aliased Params_Stream_Type (0);
             begin
                Partition_ID'Read (Params, Asked);
+               if not Asked'Valid then
+                  D (D_Debug, "Received invalid partition ID");
+                  raise Constraint_Error;
+               end if;
                D (D_Server,
                   "Partition" & Partition_ID'Image (Partition) &
                   " asked me for location of partition" &
@@ -445,6 +449,10 @@ package body System.Garlic.Heart is
                Data  : Partition_Data;
             begin
                Partition_ID'Read (Params, Asked);
+               if not Asked'Valid then
+                  D (D_Debug, "Received invalid partition ID");
+                  raise Constraint_Error;
+               end if;
                D (D_Garlic,
                   "I received the answer for location of partition" &
                   Partition_ID'Image (Asked));
@@ -500,11 +508,18 @@ package body System.Garlic.Heart is
    begin
       To_Params_Stream_Type (Data, Params'Access);
       Opcode'Read (Params'Access, Operation);
+      if not Operation'Valid then
+         D (D_Debug, "Received unknown opcode");
+         raise Constraint_Error;
+      end if;
       D (D_Debug, "Received request with opcode " & Opcode'Image (Operation));
       if Operation in Internal_Opcode then
          Handle_Internal (Partition, Operation, Params'Access);
-      else
+      elsif Operation in Public_Opcode then
          Handle_Public (Partition, Operation, Params'Access);
+      else
+         D (D_Debug, "Aborting due to invalid opcode");
+         raise Constraint_Error;
       end if;
    end Has_Arrived;
 
@@ -748,10 +763,19 @@ package body System.Garlic.Heart is
          raise Communication_Error;
       end if;
       Opcode'Write (Op_Params'Access, Operation);
-      Protocols.Send (Protocol,
-                      Partition,
-                      To_Stream_Element_Array (Op_Params'Access) &
-                      To_Stream_Element_Array (Params));
+      declare
+         use type Ada.Streams.Stream_Element_Offset;
+         Header : constant Ada.Streams.Stream_Element_Array :=
+           To_Stream_Element_Array (Op_Params'Access);
+         Packet : aliased Ada.Streams.Stream_Element_Array :=
+           To_Stream_Element_Array (Params,
+                                    Protocols.Unused_Space + Header'Length);
+      begin
+         Packet (Packet'First + Protocols.Unused_Space ..
+                 Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
+           Header;
+         Protocols.Send (Protocol, Partition, Packet'Access);
+      end;
    end Send;
 
    -----------------------

@@ -239,6 +239,10 @@ package body System.Garlic.TCP is
       Physical_Receive (FD, Result_P);
       To_Params_Stream_Type (Result_P, Result'Access);
       Partition_ID'Read (Result'Access, Partition);
+      if not Partition'Valid then
+         D (D_Garlic, "Invalid partition ID");
+         raise Constraint_Error;
+      end if;
       D (D_Garlic, "My Partition_ID is" & Partition_ID'Image (Partition));
       return Partition;
    end Ask_For_Partition_ID;
@@ -392,6 +396,10 @@ package body System.Garlic.TCP is
                Physical_Receive (FD, Stream_P);
                To_Params_Stream_Type (Stream_P, Stream'Access);
                Partition_ID'Read (Stream'Access, Partition);
+               if not Partition'Valid then
+                  D (D_Debug, "Invalid partition ID");
+                  raise Constraint_Error;
+               end if;
                if Partition = Null_Partition_ID then
                   declare
                      Result : aliased Params_Stream_Type (Partition_ID_Length);
@@ -452,6 +460,14 @@ package body System.Garlic.TCP is
                Sub_Non_Terminating_Task;
                To_Params_Stream_Type (Header_P, Header'Access);
                Stream_Element_Count'Read (Header'Access, Length);
+               if not Length'Valid then
+                  D (D_Debug, "Invalid Length");
+                  raise Constraint_Error;
+               end if;
+               D (D_Debug,
+                  "Will receive a packet of length" &
+                  Stream_Element_Count'Image (Length));
+
                declare
                   Request_P : Stream_Element_Array (1 .. Length);
                begin
@@ -478,7 +494,7 @@ package body System.Garlic.TCP is
          Partition_Map.Set_Locked (Partition, Data);
          Partition_Map.Unlock (Partition);
          declare
-            Dummy : C.Int;
+            Dummy : C.int;
          begin
             Dummy := C_Close (FD);
          end;
@@ -496,6 +512,11 @@ package body System.Garlic.TCP is
 
       when others =>
          D (D_Garlic, "Fatal error in connection handler");
+         declare
+            Dummy : C.int;
+         begin
+            Dummy := C_Close (FD);
+         end;
 
    end Incoming_Connection_Handler;
 
@@ -636,9 +657,11 @@ package body System.Garlic.TCP is
    procedure Send
      (Protocol  : access TCP_Protocol;
       Partition : in Partition_ID;
-      Data      : in Stream_Element_Array) is
+      Data      : access Stream_Element_Array) is
       Remote_Data : Host_Data;
-      Header      : aliased Params_Stream_Type (Stream_Element_Count_Length);
+      Header_Length : constant Stream_Element_Count :=
+        Stream_Element_Count_Length;
+      Header        : aliased Params_Stream_Type (Header_Length);
    begin
       select
          Shutdown_Keeper.Wait;
@@ -718,13 +741,26 @@ package body System.Garlic.TCP is
                end;
 
             end if;
-            Stream_Element_Count'Write (Header'Access, Data'Length);
-            Physical_Send
-              (Remote_Data.FD, To_Stream_Element_Array (Header'Access));
-            Physical_Send (Remote_Data.FD, Data);
+            declare
+               Offset : constant Stream_Element_Offset :=
+                 Data'First + Unused_Space - Header_Length;
+            begin
+               Stream_Element_Count'Write (Header'Access,
+                                           Data'Length - Unused_Space);
+               Data (Offset .. Offset + Header_Length - 1) :=
+                 To_Stream_Element_Array (Header'Access);
+               D (D_Debug,
+                  "Sending packet of length" &
+                  Stream_Element_Count'Image (Data'Last - Offset + 1) &
+                  " (content of" &
+                  Stream_Element_Count'Image (Data'Length - Unused_Space) &
+                  ")");
+               Physical_Send (Remote_Data.FD, Data (Offset .. Data'Last));
+            end;
             Partition_Map.Unlock (Partition);
          exception
             when Communication_Error =>
+               D (D_Debug, "Error detected in Send");
                Partition_Map.Unlock (Partition);
                raise Communication_Error;
          end;
@@ -812,6 +848,7 @@ package body System.Garlic.TCP is
             Stream_Element_Count'Write (Stream'Access, 0);
             Stream_Element_Count_Length_Cache :=
               To_Stream_Element_Array (Stream'Access) 'Length;
+            pragma Assert (Stream_Element_Count_Length_Cache <= Unused_Space);
          end;
       end if;
       return Stream_Element_Count_Length_Cache;

@@ -22,11 +22,13 @@ private package System.Garlic.Utils is
    --  be awakened as well.
 
    function To_Stream_Element_Array
-     (Params : access System.RPC.Params_Stream_Type)
+     (Params : access System.RPC.Params_Stream_Type;
+      Unused : Ada.Streams.Stream_Element_Count := 0)
       return Ada.Streams.Stream_Element_Array;
    pragma Inline (To_Stream_Element_Array);
    --  This routine "looks" into the Params structure to extract the
-   --  Stream_Element_Array which will be sent accross the network.
+   --  Stream_Element_Array which will be sent accross the network. It
+   --  also let Unused places to store extra information.
 
    procedure To_Params_Stream_Type
      (Content : Ada.Streams.Stream_Element_Array;

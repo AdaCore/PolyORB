@@ -68,11 +68,17 @@ package System.Garlic.Protocols is
    --  Return a string which holds enough information to be usable by
    --  another partition to contact us. Default is an empty string.
 
+   Unused_Space : constant Ada.Streams.Stream_Element_Count := 32;
+   --  The number of unused slots that are stored whenever Send is called.
+   --  This is used to add the extra arguments that may be needed by a
+   --  protocol for its private use.
+
    procedure Send
      (Protocol  : access Protocol_Type;
       Partition : in System.RPC.Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array) is abstract;
-   --  Send data to a remote partition.
+      Data      : access Ada.Streams.Stream_Element_Array) is abstract;
+   --  Send data to a remote partition. See comment about Unused_Space
+   --  above.
 
    procedure Shutdown (Protocol : access Protocol_Type) is abstract;
    --  When this procedure gets called, the protocol must terminate

@@ -56,7 +56,7 @@ package System.Garlic.TCP is
    procedure Send
      (Protocol  : access TCP_Protocol;
       Partition : in System.RPC.Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array);
+      Data      : access Ada.Streams.Stream_Element_Array);
 
    procedure Shutdown (Protocol : access TCP_Protocol);
 

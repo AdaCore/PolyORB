@@ -128,7 +128,8 @@ package System.Garlic.Heart is
      return System.Garlic.Physical_Location.Location;
    --  Return a partition's location.
 
-   type Opcode is (No_Operation,
+   type Opcode is (Invalid_Operation,
+                   No_Operation,
                    Set_Location,
                    Query_Location,
                    Query_Location_Answer,
@@ -140,7 +141,9 @@ package System.Garlic.Heart is
      range No_Operation .. Shutdown;
    subtype Public_Opcode is Opcode
      range Remote_Call .. Name_Service;
-   --  Type of the current operation.
+   --  Type of the current operation. Note that Invalid_Operation is here
+   --  to catch the trivial case where zeros are sent instead of a real
+   --  request.
 
    type Public_Receiver is
       access procedure (Partition : in System.RPC.Partition_ID;

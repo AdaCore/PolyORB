@@ -438,6 +438,11 @@ package body System.Partition_Interface is
          "Got something from partition" & Partition_ID'Image (Partition));
 
       Name_Opcode'Read (Params, Code);
+      if not Code'Valid then
+         D (D_Debug, "Invalid name code received");
+         raise Constraint_Error;
+      end if;
+
       case Code is
 
          when Get_Unit_Info =>
@@ -485,6 +490,10 @@ package body System.Partition_Interface is
    is
    begin
       Partition_ID'Read (Params, Info.Id);
+      if not Info.Id'Valid then
+         D (D_Debug, "Invalid partition ID received");
+         raise Constraint_Error;
+      end if;
       Info.Version := new String'(String'Input (Params));
       RPC_Receiver'Read (Params, Info.Receiver);
    end Read_Unit_Info;

@@ -43,7 +43,7 @@ with System.Tasking;
 package body System.Garlic.Termination is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("TERMINATION", "(s-garhea): ");
+     Debug_Initialize ("TERMINATION", "(s-garter): ");
    procedure D
      (Level   : in Debug_Levels;
       Message : in String;
@@ -192,6 +192,9 @@ package body System.Garlic.Termination is
          declare
             Params : aliased Params_Stream_Type (0);
          begin
+            D (D_Debug,
+               "Sending shutdown query to partition" &
+               Partition_ID'Image (Partition));
             Termination_Code'Write (Params'Access, Set_Stamp);
             Stamp'Write (Params'Access, Id);
             Send (Partition, Shutdown_Synchronization, Params'Access);
@@ -240,7 +243,17 @@ package body System.Garlic.Termination is
       Id                    : Stamp;
    begin
       Termination_Code'Read (Params, Termination_Operation);
+
+      if not Termination_Operation'Valid then
+         D (D_Debug, "Received invalid termination operation");
+         raise Constraint_Error;
+      end if;
+
       Stamp'Read (Params, Id);
+      if not Id'Valid then
+         D (D_Debug, "Received invalid stamp");
+         raise Constraint_Error;
+      end if;
 
       D (D_Debug,
          "Received operation of " &

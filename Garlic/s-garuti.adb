@@ -84,7 +84,8 @@ package body System.Garlic.Utils is
    -----------------------------
 
    function To_Stream_Element_Array
-     (Params : access System.RPC.Params_Stream_Type)
+     (Params : access System.RPC.Params_Stream_Type;
+      Unused : Ada.Streams.Stream_Element_Count := 0)
       return Stream_Element_Array
    is
       First   : Node_Ptr := new Node;
@@ -99,8 +100,8 @@ package body System.Garlic.Utils is
          Current := Current.Next;
       end loop;
       declare
-         Result : Stream_Element_Array (1 .. Total);
-         Index  : Stream_Element_Offset := 1;
+         Result : Stream_Element_Array (1 .. Total + Unused);
+         Index  : Stream_Element_Offset := 1 + Unused;
       begin
          Current := First;
          while Current /= null loop

@@ -249,7 +249,7 @@ s-garpro.o: s-garpro.adb s-garpro.ads s-garlic.ads s-rpc.adb
 s-garrem.o: s-garrem.adb s-garlic.ads s-garcon.ads s-garthi.ads s-rpc.adb s-garrem.ads s-garlic.ads
 s-garsta.o: s-garsta.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garopt.adb s-gaphlo.adb s-garpro.adb s-garrem.adb s-gartcp.adb s-garter.adb s-rpc.adb s-garsta.ads s-garlic.ads
 s-gartcp.o: s-gartcp.adb s-garlic.ads s-garcon.ads s-gardeb.adb s-garhea.adb s-garnam.adb s-garopt.adb s-gaphlo.adb s-garpri.ads s-gartcp.adb s-gtplsp.ads s-garter.adb s-garthi.ads s-garuti.adb s-gartcp.ads s-garlic.ads s-garpro.adb s-rpc.adb
-s-garter.o: s-garter.adb s-garlic.ads s-garhea.adb s-garpri.ads s-garuti.adb s-rpc.adb s-garter.ads s-garlic.ads s-rpc.adb
+s-garter.o: s-garter.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garpri.ads s-garuti.adb s-rpc.adb s-garter.ads s-garlic.ads s-rpc.adb
 s-garthi.o: s-garthi.ads s-garlic.ads s-garcon.ads
 s-garuti.o: s-garuti.adb s-garuti.ads s-garlic.ads s-rpc.adb
 s-gtplsp.o: s-gtplsp.ads s-garlic.ads s-gartcp.adb s-garthi.ads

@@ -243,12 +243,22 @@ package body System.RPC is
       Receiver  : RPC_Receiver;
       Result    : Params_Stream_Access := new Params_Stream_Type (0);
       Cancelled : Boolean := False;
+      Prio      : Any_Priority;
    begin
       D (D_Debug, "Anonymous task starting");
       Task_Pool.Get_One;
       Task_Pool.Unabort_One (Partition, Id);
       Partition_ID'Read (Params, Dest);
-      Ada.Dynamic_Priorities.Set_Priority (Any_Priority'Input (Params));
+      if not Dest'Valid then
+         D (D_Debug, "Invalid destination received");
+         raise Constraint_Error;
+      end if;
+      Any_Priority'Read (Params, Prio);
+      if not Prio'Valid then
+         D (D_Debug, "Invalid priority received");
+         raise Constraint_Error;
+      end if;
+      Ada.Dynamic_Priorities.Set_Priority (Prio);
       Receiver := Receiver_Map.Get (Dest);
       if Receiver = null then
 
@@ -395,7 +405,7 @@ package body System.RPC is
          Header.Id := Id;
          Insert_Request (Params, Header);
          Partition_ID'Write (Params, Partition);
-         Any_Priority'Output (Params, Ada.Dynamic_Priorities.Get_Priority);
+         Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
          Send (Partition, Remote_Call, Params);
          Keeper.Id        := Id;
          Keeper.Partition := Partition;
