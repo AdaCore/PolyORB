@@ -1,3 +1,15 @@
+Changes since GLADE 3.11b
+=========================
+
+Bug Fixes
+---------
+
+*   Fix a bug in partition death/revival that caused other partitions
+    to fail in some cases.
+
+*   Local launching of partitions (with starter Ada) now works on
+    Windows NT.
+
 Changes since GLADE 1.03
 ========================
 
@@ -76,7 +88,7 @@ New Functionnalities
     are selected, gnatdist defaults to -O2 to get smaller and more
     efficient executables.
 
-Bug fixes
+Bug Fixes
 ---------
 
   * Filtering facilities have been re-written to fix problems
@@ -198,7 +210,7 @@ Examples
      A more sophisticated example on the same theme. It demonstrates 
      distributed objects and filtering.
 
-Bug fixes
+Bug Fixes
 ---------
 
    * Float transmissions between different architectures with

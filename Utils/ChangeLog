@@ -1,12 +1,16 @@
+1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* normalize.pl: Bug fixes.
+
+1998-09-30  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO (glade_version): Now defaults to gnat_version to
+	keep them synchronized.
+
 1998-09-09  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* VERSION.INFO (glade_version): Change syntax that causes trouble
 	with braindead shell.
-
-1998-09-06  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* VERSION.INFO (glade_version): Now defaults to gnat_version to
-	keep them synchronized.
 
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 

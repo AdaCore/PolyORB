@@ -65,6 +65,9 @@ package body System.Partition_Interface is
 
    package Units renames System.Garlic.Units.Units;
 
+   Passive_Prefix : constant String := "SP__";
+   --  Prefix to use for Shared_Passive packages
+
    function Convert is
      new Ada.Unchecked_Conversion
      (RPC_Receiver, RPC.RPC_Receiver);
@@ -264,8 +267,17 @@ package body System.Partition_Interface is
      (Name : Unit_Name)
       return RPC.Partition_ID is
    begin
-      return RPC.Partition_ID (Null_PID);
+      return Get_Active_Partition_ID (Passive_Prefix & Name);
    end Get_Passive_Partition_ID;
+
+   -------------------------
+   -- Get_Passive_Version --
+   -------------------------
+
+   function Get_Passive_Version (Name : Unit_Name) return String is
+   begin
+      return Get_Active_Version (Passive_Prefix & Name);
+   end Get_Passive_Version;
 
    ------------------------------
    -- Get_RCI_Package_Receiver --
@@ -350,6 +362,18 @@ package body System.Partition_Interface is
       Ada.Exceptions.Raise_Exception (Program_Error'Identity,
         "Illegal usage of remote access to class-wide type. See RM E.4(18)");
    end Raise_Program_Error_For_E_4_18;
+
+   ------------------------------
+   -- Register_Passive_Package --
+   ------------------------------
+
+   procedure Register_Passive_Package
+     (Name    : in Unit_Name;
+      Version : in String := "")
+   is
+   begin
+      Register_Receiving_Stub (Passive_Prefix & Name, null, Version);
+   end Register_Passive_Package;
 
    -----------------------------
    -- Register_Receiving_Stub --

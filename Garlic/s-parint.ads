@@ -86,6 +86,9 @@ package System.Partition_Interface is
      return System.RPC.Partition_ID;
    --  Return the Partition_ID of the given shared passive partition
 
+   function Get_Passive_Version (Name : Unit_Name) return String;
+   --  Return the version corresponding to a shared passive unit
+
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
       return Interfaces.Unsigned_64;
@@ -97,6 +100,11 @@ package System.Partition_Interface is
       Version  : in String := "");
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
+
+   procedure Register_Passive_Package
+     (Name    : in Unit_Name;
+      Version : in String := "");
+   --  Register a passive package
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);

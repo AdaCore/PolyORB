@@ -1,5 +1,9 @@
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-parint.ads, s-parint.adb: New subprograms
+ 	Register_Passive_Package and Get_Passive_Version necessary to pass
+ 	Shared_Passive LXE ACVC tests.
+
 	* s-garrem.adb: Rewrite launcher so that it strips "`pwd`" for local 
 	launch and replaces it by "." (to make it work on NT). Use
 	GNAT.OS_Lib.Non_Blocking_Spawn to spawn processes in background.

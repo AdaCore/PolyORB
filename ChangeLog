@@ -1,3 +1,7 @@
+1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Mention Windows NT visible changes and bug fixes.
+
 1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Substitute PSNAME so that it can be used by the

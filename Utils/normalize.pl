@@ -3,19 +3,10 @@
 # $Id$
 #
 # This package adjusts correctly any file given on the command
-# line. If a line looks like: -- (blanks) $,Revision: NNN, $ (blanks) --
+# line. If a line looks like: -- (blanks) $, Revision: NNN, $ (blanks) --
 # then it will be centered again with the same number of column than
 # the first line containing only dashes.
 #
-
-sub blank {
-  local ($i);
-  $result = "";
-  for ($i = 0; $i < $_[0]; $i++) {
-    $result .= " ";
-  }
-  return $result;
-}
 
 $temp = "/tmp/norm$$";
 
@@ -43,7 +34,7 @@ foreach $i (@ARGV) {
       $rev = $1;
       $free = ($fl - 4) - length($rev);
       $left = $free / 2;
-      $str = "--" . &blank($left) . $rev . &blank($free-$left) . "--\n";
+      $str = "--" . (" " x $left) . $rev . (" " x ($free-$left)) . "--\n";
       print temp $str;
       if (!($str eq $save)) {
 	$modified++;
