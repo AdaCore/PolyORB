@@ -82,6 +82,27 @@ package body Exp_Dist is
    -- Local subprograms --
    -----------------------
 
+   procedure Add_RAS_Proxy_And_Analyze
+     (Decls              :     List_Id;
+      Vis_Decl           :     Node_Id;
+      All_Calls_Remote_E :     Entity_Id;
+      Proxy_Object_Addr  : out Entity_Id);
+   --  Add the proxy type necessary to call the subprogram declared
+   --  by Vis_Decl through a remote access to subprogram type.
+   --  All_Calls_Remote_E must be Standard_True if a pragma All_Calls_Remote
+   --  applies, Standard_False otherwise. The new proxy type is appended
+   --  to Decls. Proxy_Object_Addr is a constant of type System.Address that
+   --  designates an instance of the proxy object.
+
+   function Build_Remote_Subprogram_Proxy_Type
+     (Loc            : Source_Ptr;
+      ACR_Expression : Node_Id)
+     return Node_Id;
+   --  Build and return a tagged record type definition for an RCI
+   --  subprogram proxy type.
+   --  ACR_Expression is use as the initialization value for
+   --  the All_Calls_Remote component.
+
    function Get_Subprogram_Identifier
      (Def : Entity_Id)
      return String_Id;
@@ -103,17 +124,15 @@ package body Exp_Dist is
    --  clause on subprogram specs:
    --  for Subp'Distribution_Identifier use "fooBar";
 
-   procedure Add_RAS_Proxy_And_Analyze
-     (Decls              :     List_Id;
-      Vis_Decl           :     Node_Id;
-      All_Calls_Remote_E :     Entity_Id;
-      Proxy_Object_Addr  : out Entity_Id);
-   --  Add the proxy type necessary to call the subprogram declared
-   --  by Vis_Decl through a remote access to subprogram type.
-   --  All_Calls_Remote_E must be Standard_True if a pragma All_Calls_Remote
-   --  applies, Standard_False otherwise. The new proxy type is appended
-   --  to Decls. Proxy_Object_Addr is a constant of type System.Address that
-   --  designates an instance of the proxy object.
+   function Build_Get_Unique_RP_Call
+     (Loc       : Source_Ptr;
+      Pointer   : Entity_Id;
+      Stub_Type : Entity_Id)
+      return List_Id;
+   --  Build a call to Get_Unique_Remote_Pointer (Pointer),
+   --  followed by a tag fixup (Get_Unique_Remote_Pointer may have
+   --  changed Pointer'Tag to RACW_Stub_Type'Tag, while the desired
+   --  tag is that of Stub_Type).
 
    procedure Build_General_Calling_Stubs
      (Decls                     : in List_Id;
@@ -145,16 +164,6 @@ package body Exp_Dist is
    --                        address of this object (the addr field) rather
    --                        than using the 'Write on the object itself
    --    Nod               : used to provide sloc for generated code
-
-   function Build_Get_Unique_RP_Call
-     (Loc       : Source_Ptr;
-      Pointer   : Entity_Id;
-      Stub_Type : Entity_Id)
-      return List_Id;
-   --  Build a call to Get_Unique_Remote_Pointer (Pointer),
-   --  followed by a tag fixup (Get_Unique_Remote_Pointer may have
-   --  changed Pointer'Tag to RACW_Stub_Type'Tag, while the desired
-   --  tag is that of Stub_Type).
 
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
@@ -217,15 +226,6 @@ package body Exp_Dist is
    --  Return an ordered parameter list: unconstrained parameters are put
    --  at the beginning of the list and constrained ones are put after. If
    --  there are no parameters, an empty list is returned.
-
-   function Build_Remote_Subprogram_Proxy_Type
-     (Loc            : Source_Ptr;
-      ACR_Expression : Node_Id)
-     return Node_Id;
-   --  Build and return a tagged record type definition for an RCI
-   --  subprogram proxy type.
-   --  ACR_Expression is use as the initialization value for
-   --  the All_Calls_Remote component.
 
    procedure Add_Calling_Stubs_To_Declarations
      (Pkg_Spec : in Node_Id;
@@ -3188,6 +3188,7 @@ package body Exp_Dist is
                        New_Occurrence_Of (Subp_Index, Loc),
                        Make_Integer_Literal (Loc,
                           Current_Subprogram_Number)))));
+
                Append_To (Dispatch_On_Address,
                  Make_Elsif_Part (Loc,
                    Condition =>
@@ -3201,17 +3202,7 @@ package body Exp_Dist is
                        New_Occurrence_Of (Subp_Index, Loc),
                        Make_Integer_Literal (Loc,
                           Current_Subprogram_Number)))));
---             Append_To (Pkg_RPC_Receiver_Cases,
---                   Make_Implicit_If_Statement (Pkg_Spec,
---                     Condition =>
---                       Make_Function_Call (Loc,
---                         Name =>
---                 New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
---                         Parameter_Associations => New_List (
---                           New_Occurrence_Of (Subp_Id, Loc),
---                           New_Occurrence_Of (Subp_Dist_Name, Loc))),
---                     Then_Statements =>
---                       Case_Stmts));
+
                Append_To (Pkg_RPC_Receiver_Cases,
                  Make_Case_Statement_Alternative (Loc,
                    Discrete_Choices =>
