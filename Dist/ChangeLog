@@ -2,28 +2,36 @@
 
 	* xe_back.adb: Generate internal files to take into account
 	project files (internal project files to build stubs and skels).
+	Part of the work needed for CA22-003.
 
 	* xe_flags.ads: Add flags related to project files and to very
 	verbose gnatls output.
+	Part of the work needed for CA22-003.
 
 	* xe_front.adb: Make Get_ALI_Id, Get_Unit_Id and Get_Channel_Id
 	more restrictive.
+	Part of the work needed for CA22-003.
 
 	* xe_io.adb: Strip directory in function To_Afile.
+	Part of the work needed for CA22-003.
 
 	* xe_list.adb: Parse new gnatls output (very verbose mode). Load
 	several ali files in once.
+	Part of the work needed for CA22-003.
 
 	* xe_sem.adb: Use With info from new gnatls output which is more
 	accurate than those provided by dependencies.
+	Part of the work needed for CA22-003.
 
 	* xe_units.ads: Add Withs table and all the related types.
+	Part of the work needed for CA22-003.
 	
 	* xe_utils.adb, xe_utils.ads: Add few internal filenames. Allow to
 	list several ali files in once. Take into account the use of user
 	project files (in List, Build and Compile). Parse new flags from
 	the command line (mostly related to project files). Introduce a
 	machinery to deal with temporary files.
+	Part of the work needed for CA22-003.
 
 2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
