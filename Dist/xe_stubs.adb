@@ -1138,7 +1138,7 @@ package body XE_Stubs is
          return True;
       end if;
       return False;
-  end Rebuild_Partition;
+   end Rebuild_Partition;
 
    -------------------
    -- Update_Switch --
