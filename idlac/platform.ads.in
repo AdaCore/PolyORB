@@ -1,0 +1,11 @@
+package Platform is
+
+   pragma Pure;
+
+   Ada_Compiler : constant String := "@ADA@";
+
+end Platform;
+
+--  Local Variables:
+--  mode: ada
+--  End.

@@ -1,15 +1,16 @@
 #!/bin/sh
 #
-# $Id: //depot/adabroker/main/broca/Utils/make_distrib#2 $
+# $Id: //depot/adabroker/main/broca/Utils/make_distrib#4 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-s] [-k?|-prcs|-n] tag dir
+# Usage: make_distrib [-s] [-k?|-prcs|-n|-c] tag dir
 #
 #   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -k?   : override CVS keywords expansion
 #   -prcs : use prcs to extract files
 #   -n    : assume a checkout has already been done in dir
+#   -c    : assume current directory can be used as source
 #   tag   : CVS or prcs tag or branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
@@ -22,7 +23,7 @@
 #
 
 if [ $# = 0 ]; then
-   echo "Usage: $0 [-k|-prcs|-n] tag dir";
+   echo "Usage: $0 [-k|-prcs|-n|-c] tag dir";
    exit 0;
 fi;
 
@@ -40,6 +41,7 @@ case $1 in
   -k*)   kk=$1; shift;;
   -prcs) prcs=true; shift;;
   -n)    nocheckout=true; shift;;
+  -c)    nocheckout=true; use_current=true; shift;;
   *)     ;;
 esac
 tag=$1
@@ -54,6 +56,10 @@ if $prcs; then
   mkdir ${dir}
   cd ${dir}
   prcs checkout -r${tag} ${name}
+elif $usercurrent; then
+  mkdir $tmp/$dir
+  tar cf - . | (cd $tmp/$dir && tar xpBf -)
+  cd $tmp/$dir
 elif $nocheckout; then
   cd ${dir}
 else
@@ -94,6 +100,8 @@ fi
 #    echo Recentering keywords
 #    ${prev}/Utils/normalize.pl `cat MANIFEST`
 #fi
+echo Generating auto-generated files
+make autoconf
 echo Doing the necessary date modifications
 find . -name configure.in -exec touch {} \;
 sleep 1

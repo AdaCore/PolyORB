@@ -9,6 +9,7 @@ with GNAT.Case_Util;
 with GNAT.OS_Lib;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
+with Platform;
 
 package body Idl_Fe.Lexer is
 
@@ -825,6 +826,9 @@ package body Idl_Fe.Lexer is
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
          return Scan_Identifier;
+
+         --  FIXME: unreachable code below
+         pragma Warnings (Off);
          if Current_Token = T_Identifier then
             Idl_Fe.Errors.Lexer_Error
               ("Invalid identifier name. An identifier cannot begin" &
@@ -835,6 +839,8 @@ package body Idl_Fe.Lexer is
          else
             return T_Identifier;
          end if;
+         pragma Warnings (On);
+
       else
          Idl_Fe.Errors.Lexer_Error ("Invalid character '_'",
                                     Idl_Fe.Errors.Error,
@@ -1102,7 +1108,7 @@ package body Idl_Fe.Lexer is
             Add_Argument ("-o");
             Add_Argument (Tmp_File_Name);
             Args (Arg_Count) := new String'(Filename);
-            Spawn (Locate_Exec_On_Path ("gnatgcc").all,
+            Spawn (Locate_Exec_On_Path (Platform.Ada_Compiler).all,
                    Args (1 .. Arg_Count),
                    Spawn_Result);
             pragma Debug (O ("Initialize : preprocessing done"));

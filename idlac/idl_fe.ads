@@ -11,4 +11,6 @@ package Idl_Fe is
    --      - idl_fe.display_tree which defines methods to display
    --  the output of the parser
 
+   pragma Pure;
+
 end Idl_Fe;

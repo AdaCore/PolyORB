@@ -1,4 +1,3 @@
-with GNAT.Table;
 with Idl_Fe.Errors;
 with Ada.Unchecked_Deallocation;
 

@@ -1,6 +1,6 @@
 package Ada_Be is
 
-   pragma Preelaborate (Ada_Be);
+   pragma Pure;
 
 end Ada_Be;
 

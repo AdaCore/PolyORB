@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
-with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 
 package body Idl_Fe.Display_Tree is
    Blanks : constant String (1 .. 80) := (others => ' ');
@@ -115,7 +115,7 @@ package body Idl_Fe.Display_Tree is
             if Abst (N) then
                Put ("abstract ");
             end if;
-            if Forward (N) /= no_node then
+            if Forward (N) /= No_Node then
                Put_Line ("forward interface "
                          & Name (Forward (N))
                          );
@@ -158,7 +158,7 @@ package body Idl_Fe.Display_Tree is
             if Abst (N) then
                Put ("abstract ");
             end if;
-            if Forward (N) /= no_node then
+            if Forward (N) /= No_Node then
                Put_Line ("forward valuetype "
                          & Name (Forward (N))
                          );
@@ -281,7 +281,7 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("any");
 
          when K_String =>
-            if Bound (N) = no_node then
+            if Bound (N) = No_Node then
                Put_Line ("string (unbounded)");
             else
                Put_Line ("string bounds :");
@@ -289,7 +289,7 @@ package body Idl_Fe.Display_Tree is
             end if;
 
          when K_Wide_String =>
-            if Bound (N) = no_node then
+            if Bound (N) = No_Node then
                Put_Line ("wide string (unbounded)");
             else
                Put_Line ("wide string bounds :");
@@ -483,7 +483,7 @@ package body Idl_Fe.Display_Tree is
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (Sequence_Type (N),
                        N_Indent + Offset, Full);
-            if Bound (N) /= no_node then
+            if Bound (N) /= No_Node then
                Disp_Indent (N_Indent, "bound:");
                Disp_Tree (Bound (N),
                          N_Indent + Offset, Full);

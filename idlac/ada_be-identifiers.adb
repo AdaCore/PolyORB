@@ -12,7 +12,7 @@ package body Ada_Be.Identifiers is
          when K_Scoped_Name =>
             return Ada_Full_Name (Value (Node));
 
-         when K_Ben_IDL_File =>
+         when K_Ben_Idl_File =>
             return Name (Node);
 
          when K_Repository =>
@@ -28,7 +28,7 @@ package body Ada_Be.Identifiers is
                   return "NO_PARENT." & Name (Node);
                end if;
 
-               if Kind (P_Node) = K_Ben_IDL_File
+               if Kind (P_Node) = K_Ben_Idl_File
                  and then Is_Gen_Scope (Node) then
                   return Name (Node);
                else
