@@ -253,15 +253,6 @@ X.ref: ${SOURCES}
 %.xrb: %.ads
 	gnatf -x5 $<
 
-# Special dependencies
-
-s-ganobl.o: s-garcon.ads
-s-garnam.o: s-garcon.ads
-s-garrem.o: s-garcon.ads
-s-garsta.o: s-garcon.ads s-gtplsp.ads
-s-gartcp.o: s-garcon.ads s-gtplsp.ads
-s-garthi.o: s-garcon.ads
-
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 s-ganobl.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganobl.ads s-ganobl.adb s-gaphlo.ads s-garpoi.ads s-garpri.ads s-garpro.ads s-garter.ads s-garthi.ads s-rpc.ads
 s-gaosli.o: s-garlic.ads s-gaosli.ads s-gaosli.adb s-garpoi.ads s-garthi.ads

@@ -1,5 +1,9 @@
 Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am: No need for special
+	  dependencies with the new mkdep in fact, provided that the
+	  Makefile.in that is distributed contains these dependencies !
+
 	* s-garthi.ads: Removed dependency on System.Garlic.Constants.
 
 	* Makefile.am: Added s-gaosli.*.
