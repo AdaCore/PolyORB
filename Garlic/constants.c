@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * This program must be called with the constant name as the CONSTANT_NAME
  * define. If this is not the case, then a generic version which takes a
  * symbol to undefine as the first argument will be built.

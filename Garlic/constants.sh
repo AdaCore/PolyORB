@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# $Id$
-#
 # This file generates any necessary constant for a given platform
 #
 # Usage: constants.sh {pkgname srcdir | filename srcdir platform headerfile}
