@@ -1,4 +1,7 @@
 #!/bin/sh
+
+make
+
 n=0
 for i in `cat testsuite/MANIFEST | grep -v '^#'`; do
   testsuite/run-test testsuite/$i
