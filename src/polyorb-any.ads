@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#25 $
+--  $Id: //droopi/main/src/polyorb-any.ads#26 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -108,14 +108,14 @@ package PolyORB.Any is
        Tk_Abstract_Interface);
 
    type ValueModifier is new Types.Short;
-   VTM_NONE : constant ValueModifier;
-   VTM_CUSTOM : constant ValueModifier;
-   VTM_ABSTRACT : constant ValueModifier;
+   VTM_NONE        : constant ValueModifier;
+   VTM_CUSTOM      : constant ValueModifier;
+   VTM_ABSTRACT    : constant ValueModifier;
    VTM_TRUNCATABLE : constant ValueModifier;
 
    type Visibility is new Types.Short;
    PRIVATE_MEMBER : constant Visibility;
-   PUBLIC_MEMBER : constant Visibility;
+   PUBLIC_MEMBER  : constant Visibility;
 
    package TypeCode is
 
@@ -126,13 +126,12 @@ package PolyORB.Any is
       type Object is private;
       type Object_Ptr is access all Object;
 
-      Bounds : exception;
-      BadKind : exception;
+      Bounds       : exception;
+      BadKind      : exception;
       Bad_TypeCode : exception;
-      --  Note: this unit raises 'pure' Ada exceptions.
-      --  A CORBA personality built upon these subprograms
-      --  must wrap them to raise proper CORBA expcetions
-      --  (with members).
+      --  Note: this unit raises 'pure' Ada exceptions.  An application or
+      --  protocol personality built upon these subprograms must wrap them
+      --  to raise proper exceptions or messages.
 
       function "=" (Left, Right : in Object) return Boolean;
       --  TypeCode equality.
@@ -140,156 +139,163 @@ package PolyORB.Any is
       function Equal (Left, Right : in Object) return Boolean
         renames "=";
 
-      --  equivalence between two typecodes
-      --  the equivalence is defined in section 10.7.1 of the
-      --  CORBA V2.3 spec : the Typecode interface
       function Equivalent (Left, Right : in Object)
                            return Boolean;
+      --  Equivalence between two typecodes as defined in
+      --  section 10.7.1 of the CORBA V2.3.
 
-      --  FIXME : to be defined
       function Get_Compact_TypeCode (Self : in Object)
                                      return Object;
+      --  XXX not implemented, to be defined.
 
-      --  returns the kind of a typecode
       function Kind (Self : in Object) return TCKind;
+      --  Return the kind of a typecode.
 
-      --  returns the Id associated with a typecode in case its kind is
-      --  objref, struct, union, enum, alias, value, valueBox, native,
-      --  abstract_interface or except. Raises badKind else.
       function Id (Self : in Object)
         return Types.RepositoryId;
-
-      --  returns the name associated with a typecode in case its kind is
+      --  Return the Id associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
-      --  abstract_interface or except. Raises badKind else.
+      --  abstract_interface or except. Raise 'BadKind' else.
+
       function Name (Self : in Object)
         return Types.Identifier;
+      --  Return the name associated with a typecode in case its kind is
+      --  objref, struct, union, enum, alias, value, valueBox, native,
+      --  abstract_interface or except. Raise 'BadKind' else.
 
-      --  returns the number of members associated with a typecode in
-      --  case its kind is struct, union, enum, value or except.
-      --  Raises badKind else.
       function Member_Count (Self : in Object)
                              return Types.Unsigned_Long;
+      --  Return the number of members associated with a typecode in
+      --  case its kind is struct, union, enum, value or except.
+      --  Raise 'BadKind' else.
 
-      --  returns the name of a given member associated with a typecode
-      --  in case its kind is struct, union, enum, value or except.
-      --  Raises badKind else.
-      --  If there is not enough members, raises bounds.
       function Member_Name (Self  : in Object;
                             Index : in Types.Unsigned_Long)
                             return Types.Identifier;
+      --  Return the name of a given member associated with a typecode
+      --  in case its kind is struct, union, enum, value or except.
+      --  Raise 'BadKind' else.
+      --  If there is not enough members, Raise 'Bounds'.
 
-      --  returns the type of a given member associated with a typecode
-      --  in case its kind is struct, union, value or except.
-      --  Raises badKind else.
-      --  If there is not enough members, raises bounds.
       function Member_Type
         (Self  : in Object;
          Index : in Types.Unsigned_Long) return Object;
+      --  Return the type of a given member associated with a typecode
+      --  in case its kind is struct, union, value or except.
+      --  Raise 'BadKind' else.
+      --  If there is not enough members, Raise 'Bounds'.
 
-      --  returns the label of a given member associated with a typecode
-      --  in case its kind is union.
-      --  Raises badKind else.
-      --  If there is not enough members, raises bounds.
       function Member_Label
           (Self  : in Object;
            Index : in Types.Unsigned_Long) return Any;
-
-      --  returns the discriminator type associated with a typecode
+      --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
-      --  Raises badKind else.
+      --  Raise 'BadKind' else.
+      --  If there is not enough members, Raise 'Bounds'.
+
       function Discriminator_Type (Self : in Object)
                                    return Object;
+      --  Return the discriminator type associated with a typecode
+      --  in case its kind is union.
+      --  Raise 'BadKind' else.
 
-      --  returns the position of the default index in the parameters
-      --  of a typecode in case its kind is union.
-      --  Raises badKind else.
-      --  If there is no default index, return -1
       function Default_Index (Self : in Object)
                               return Types.Long;
+      --  Return the position of the default index in the parameters
+      --  of a typecode in case its kind is union.
+      --  Raise 'BadKind' else.
+      --  If there is no default index, return -1
 
-      --  returns the length associated with a typecode
-      --  in case its kind is string, wide_string, sequence or array.
-      --  Raises badKind else.
       function Length (Self : in Object)
                        return Types.Unsigned_Long;
+      --  Return the length associated with a typecode
+      --  in case its kind is string, wide_string, sequence or array.
+      --  Raise 'BadKind' else.
 
-      --  returns the content type associated with a typecode
-      --  in case its kind is sequence, array, valueBox or alias.
-      --  Raises badKind else.
       function Content_Type (Self : in Object) return Object;
+      --  Return the content type associated with a typecode
+      --  in case its kind is sequence, array, valueBox or alias.
+      --  Raise 'BadKind' else.
 
-      --  returns the number of digits associated with a typecode
-      --  in case its kind is fixed.
-      --  Raises badKind else.
       function Fixed_Digits (Self : in Object)
                              return Types.Unsigned_Short;
-
-      --  returns the scale associated with a typecode
+      --  Return the number of digits associated with a typecode
       --  in case its kind is fixed.
-      --  Raises badKind else.
+      --  Raise 'BadKind' else.
+
       function Fixed_Scale (Self : in Object)
                             return Types.Short;
+      --  Return the scale associated with a typecode
+      --  in case its kind is fixed.
+      --  Raise 'BadKind' else.
 
-      --  returns the visibility associated with a member of a typecode
-      --  in case its kind is value.
-      --  Raises badKind else.
-      --  If there is not enough members, raises bounds.
       function Member_Visibility
         (Self  : in Object;
          Index : in Types.Unsigned_Long) return Visibility;
-
-      --  returns the type modifier associated with a typecode
+      --  Return the visibility associated with a member of a typecode
       --  in case its kind is value.
-      --  Raises badKind else.
+      --  Raise 'BadKind' else.
+      --  If there is not enough members, Raise 'Bounds'.
+
       function Type_Modifier (Self : in Object)
                               return ValueModifier;
-
-      --  returns the concrete base type associated with a typecode
+      --  Return the type modifier associated with a typecode
       --  in case its kind is value.
-      --  Raises badKind else.
+      --  Raise 'BadKind' else.
+
       function Concrete_Base_Type (Self : in Object)
                                    return Object;
+      --  Return the concrete base type associated with a typecode
+      --  in case its kind is value.
+      --  Raise 'BadKind' else.
 
       -----------------
       -- Not in spec --
       -----------------
 
-      --  returns the type of a given member associated with an
-      --  union typecode for a given label. The index is the index
-      --  of the member among the members associated with Label. The
-      --  other members are not taken into account
-      --  Raises badKind if Self is not an union typecode.
-      --  If there is not enough members, raises bounds.
       function Member_Type_With_Label
         (Self  : in Object;
          Label : in Any;
          Index : in Types.Unsigned_Long) return Object;
+      --  Return the type of a given member associated with an
+      --  union typecode for a given label. The index is the index
+      --  of the member among the members associated with Label. The
+      --  other members are not taken into account
+      --  Raise 'BadKind' if Self is not an union typecode.
+      --  If there is not enough members, Raise 'Bounds'.
 
-      --  returns the number of members associated with a typecode of
-      --  kind union for a given label.
-      --  Raises badKind if Self is not an union typecode.
       function Member_Count_With_Label
         (Self : in Object;
          Label : in Any)
          return Types.Unsigned_Long;
+      --  Return the number of members associated with a typecode of
+      --  kind union for a given label.
+      --  Raise 'BadKind' if Self is not an union typecode.
 
-      --  returns the parameter nb index in the list of Self's
-      --  parameters. Raises Out_Of_Bounds_Index exception if
-      --  this parameter does not exist
       function Get_Parameter (Self : in Object;
                               Index : in Types.Unsigned_Long)
                               return Any;
+      --  Return the parameter nb index in the list of Self's
+      --  parameters. Raise Out_Of_Bounds_Index exception if
+      --  this parameter does not exist
 
-      --  adds the parameter Param in the list of Self's
-      --  parameters.
       procedure Add_Parameter (Self  : in out Object;
                                Param : in Any);
+      --  Add the parameter Param in the list of Self's
+      --  parameters.
 
-      --  Sets the kind of a typecode
-      --  By the way, erases all parameters
+      procedure Set_Volatile (Self        : in out Object;
+                              Is_Volatile : in Boolean);
+      --  Set to 'True' if TypeCode is volatile, i.e. can be destroyed.
+      --  'False' otherwise.
+
+      procedure Destroy_TypeCode (Self : in out Object);
+      --  Free all elements contained in 'Self' iff 'Self' has been marked
+      --  volatile.
+
       procedure Set_Kind (Self : out Object;
                           Kind : in TCKind);
+      --  Return a typecode of kind 'Kind', with an empty parameter list.
 
       --  Simple typecodes
       function TC_Null               return TypeCode.Object;
@@ -309,6 +315,10 @@ package PolyORB.Any is
       function TC_Octet              return TypeCode.Object;
       function TC_Any                return TypeCode.Object;
       function TC_TypeCode           return TypeCode.Object;
+
+      --  Complex typecodes. These functions create non-empty typecodes;
+      --  they are initialized for unbounded strings.
+      --  XXX to define
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
@@ -331,7 +341,7 @@ package PolyORB.Any is
 
       function Parameter_Count
         (Self : in Object) return Types.Unsigned_Long;
-      --  Returns the number of parameters in typecode Self.
+      --  Return the number of parameters in typecode Self.
 
    private
 
@@ -339,20 +349,21 @@ package PolyORB.Any is
       -- A list of typecode parameters (which are Any's) --
       -----------------------------------------------------
 
-      --  NOTE: Cannot be easily converted to an instance of
-      --  PolyORB.Utils.Lists, because at this point, Any is
+      --  NOTE: TypeCode internal chained list cannot be easily converted to
+      --  an instance of PolyORB.Utils.Lists : at this point, Any is
       --  still the public view of a private type.
 
       type Cell;
       type Cell_Ptr is access all Cell;
       type Cell is record
          Parameter : Any;
-         Next : Cell_Ptr;
+         Next      : Cell_Ptr;
       end record;
 
       type Object is record
-         Kind : TCKind := Tk_Void;
-         Parameters : Cell_Ptr := null;
+         Kind        : TCKind   := Tk_Void;
+         Parameters  : Cell_Ptr := null;
+         Is_Volatile : Boolean  := False;
       end record;
 
       ---------------------------
@@ -411,46 +422,46 @@ package PolyORB.Any is
       --      number and the second the scale.
 
       --  The most current typecodes
-      PTC_Null               : constant Object := (Tk_Null, null);
-      PTC_Void               : constant Object := (Tk_Void, null);
-      PTC_Short              : constant Object := (Tk_Short, null);
-      PTC_Long               : constant Object := (Tk_Long, null);
-      PTC_Long_Long          : constant Object := (Tk_Longlong, null);
-      PTC_Unsigned_Short     : constant Object := (Tk_Ushort, null);
-      PTC_Unsigned_Long      : constant Object := (Tk_Ulong, null);
-      PTC_Unsigned_Long_Long : constant Object := (Tk_Ulonglong, null);
-      PTC_Float              : constant Object := (Tk_Float, null);
-      PTC_Double             : constant Object := (Tk_Double, null);
-      PTC_Long_Double        : constant Object := (Tk_Longdouble, null);
-      PTC_Boolean            : constant Object := (Tk_Boolean, null);
-      PTC_Char               : constant Object := (Tk_Char, null);
-      PTC_Wchar              : constant Object := (Tk_Widechar, null);
-      PTC_Octet              : constant Object := (Tk_Octet, null);
-      PTC_Any                : constant Object := (Tk_Any, null);
-      PTC_TypeCode           : constant Object := (Tk_TypeCode, null);
+      PTC_Null               : constant Object := (Tk_Null, null, False);
+      PTC_Void               : constant Object := (Tk_Void, null, False);
+      PTC_Short              : constant Object := (Tk_Short, null, False);
+      PTC_Long               : constant Object := (Tk_Long, null, False);
+      PTC_Long_Long          : constant Object := (Tk_Longlong, null, False);
+      PTC_Unsigned_Short     : constant Object := (Tk_Ushort, null, False);
+      PTC_Unsigned_Long      : constant Object := (Tk_Ulong, null, False);
+      PTC_Unsigned_Long_Long : constant Object := (Tk_Ulonglong, null, False);
+      PTC_Float              : constant Object := (Tk_Float, null, False);
+      PTC_Double             : constant Object := (Tk_Double, null, False);
+      PTC_Long_Double        : constant Object := (Tk_Longdouble, null, False);
+      PTC_Boolean            : constant Object := (Tk_Boolean, null, False);
+      PTC_Char               : constant Object := (Tk_Char, null, False);
+      PTC_Wchar              : constant Object := (Tk_Widechar, null, False);
+      PTC_Octet              : constant Object := (Tk_Octet, null, False);
+      PTC_Any                : constant Object := (Tk_Any, null, False);
+      PTC_TypeCode           : constant Object := (Tk_TypeCode, null, False);
 
-      PTC_String             : constant Object := (Tk_String, null);
-      PTC_Wide_String        : constant Object := (Tk_Wstring, null);
+      PTC_String             : constant Object := (Tk_String, null, False);
+      PTC_Wide_String        : constant Object := (Tk_Wstring, null, False);
 
-      PTC_Principal          : constant Object := (Tk_Principal, null);
-      PTC_Struct             : constant Object := (Tk_Struct, null);
-      PTC_Union              : constant Object := (Tk_Union, null);
-      PTC_Enum               : constant Object := (Tk_Enum, null);
-      PTC_Alias              : constant Object := (Tk_Alias, null);
-      PTC_Except             : constant Object := (Tk_Except, null);
-      PTC_Object             : constant Object := (Tk_Objref, null);
-      PTC_Fixed              : constant Object := (Tk_Fixed, null);
-      PTC_Sequence           : constant Object := (Tk_Sequence, null);
-      PTC_Array              : constant Object := (Tk_Array, null);
-      PTC_Value              : constant Object := (Tk_Value, null);
-      PTC_Valuebox           : constant Object := (Tk_Valuebox, null);
-      PTC_Native             : constant Object := (Tk_Native, null);
+      PTC_Principal          : constant Object := (Tk_Principal, null, False);
+      PTC_Struct             : constant Object := (Tk_Struct, null, False);
+      PTC_Union              : constant Object := (Tk_Union, null, False);
+      PTC_Enum               : constant Object := (Tk_Enum, null, False);
+      PTC_Alias              : constant Object := (Tk_Alias, null, False);
+      PTC_Except             : constant Object := (Tk_Except, null, False);
+      PTC_Object             : constant Object := (Tk_Objref, null, False);
+      PTC_Fixed              : constant Object := (Tk_Fixed, null, False);
+      PTC_Sequence           : constant Object := (Tk_Sequence, null, False);
+      PTC_Array              : constant Object := (Tk_Array, null, False);
+      PTC_Value              : constant Object := (Tk_Value, null, False);
+      PTC_Valuebox           : constant Object := (Tk_Valuebox, null, False);
+      PTC_Native             : constant Object := (Tk_Native, null, False);
       PTC_Abstract_Interface : constant Object
-        := (Tk_Abstract_Interface, null);
+        := (Tk_Abstract_Interface, null, False);
 
    end TypeCode;
 
-   --  pre-defined TypeCode "constants"
+   --  Pre-defined TypeCode "constants".
    function TC_Null               return TypeCode.Object
      renames TypeCode.TC_Null;
    function TC_Void               return TypeCode.Object
@@ -511,17 +522,17 @@ package PolyORB.Any is
    function To_Any (Item : in Types.Unsigned_Short)     return Any;
    function To_Any (Item : in Types.Unsigned_Long)      return Any;
    function To_Any (Item : in Types.Unsigned_Long_Long) return Any;
-   function To_Any (Item : in Types.Float)        return Any;
+   function To_Any (Item : in Types.Float)              return Any;
    function To_Any (Item : in Types.Double)             return Any;
    function To_Any (Item : in Types.Long_Double)        return Any;
    function To_Any (Item : in Types.Boolean)            return Any;
    function To_Any (Item : in Types.Char)               return Any;
    function To_Any (Item : in Types.Wchar)              return Any;
    function To_Any (Item : in Types.Octet)              return Any;
-   function To_Any (Item : in Any)                return Any;
-   function To_Any (Item : in TypeCode.Object)    return Any;
-   function To_Any (Item : in Types.String)       return Any;
-   function To_Any (Item : in Types.Wide_String)  return Any;
+   function To_Any (Item : in Any)                      return Any;
+   function To_Any (Item : in TypeCode.Object)          return Any;
+   function To_Any (Item : in Types.String)             return Any;
+   function To_Any (Item : in Types.Wide_String)        return Any;
 
    function From_Any (Item : in Any) return Types.Short;
    function From_Any (Item : in Any) return Types.Long;
@@ -555,20 +566,25 @@ package PolyORB.Any is
    procedure Set_Type
      (The_Any : in out Any;
       The_Type : in TypeCode.Object);
-   --  not in spec : change the type of an any without changing its
+   --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
+
+   procedure Set_Volatile (Obj : in out Any; Is_Volatile : in Boolean);
+   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see Set_Volatile
+   --  in package PolyORB.Any.TypeCode for more details.
 
    generic
       with procedure Process (The_Any : in Any;
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
+   --  XXX Not implemented.
 
-   --  returns  an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
+   --  Return  an empty Any (with no value but a type).
 
-   --  Not in spec : return true if the Any has a value, false
-   --  if it is an empty one
    function Is_Empty (Any_Value : in Any) return Boolean;
+   --  Not in spec : return true if the Any is empty, false
+   --  if it has a value.
 
    --  These functions allows the user to set the value of an any
    --  directly if he knows its kind. It a function is called on a
@@ -621,7 +637,7 @@ package PolyORB.Any is
    --  unions, enums, arrays, sequences, objref, values...
 
    function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
-   --  Returns the number of elements in an any aggregate
+   --  Return the number of elements in an any aggregate
 
    procedure Add_Aggregate_Element
      (Value   : in out Any;
@@ -636,14 +652,14 @@ package PolyORB.Any is
       Index : Types.Unsigned_Long)
       return Any;
    --  Gets an element in an any agregate
-   --  returns an any made of the typecode Tc and the value read in
+   --  Return an any made of the typecode Tc and the value read in
    --  the aggregate.
 
-   --  returns an empty any aggregate
-   --  puts its type to Tc
    function Get_Empty_Any_Aggregate
      (Tc : TypeCode.Object)
      return Any;
+   --  Return an empty any aggregate
+   --  puts its type to Tc
 
    procedure Copy_Any_Value (Dest : Any; Src : Any);
    --  Set the value of Dest from the value of Src (as
@@ -660,9 +676,9 @@ package PolyORB.Any is
 
    type Flags is new Types.Unsigned_Long;
 
-   ARG_IN :        constant Flags;
-   ARG_OUT :       constant Flags;
-   ARG_INOUT :     constant Flags;
+   ARG_IN        : constant Flags;
+   ARG_OUT       : constant Flags;
+   ARG_INOUT     : constant Flags;
    IN_COPY_VALUE : constant Flags;
 
    type NamedValue is record
@@ -671,6 +687,7 @@ package PolyORB.Any is
       Arg_Modes : Flags;
    end record;
 
+   function Image (TC : TypeCode.Object) return Standard.String;
    function Image (NV : NamedValue) return Standard.String;
    --  For debugging purposes.
 
@@ -679,21 +696,21 @@ private
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
-   VTM_NONE : constant ValueModifier := 0;
-   VTM_CUSTOM : constant ValueModifier := 1;
-   VTM_ABSTRACT : constant ValueModifier := 2;
+   VTM_NONE        : constant ValueModifier := 0;
+   VTM_CUSTOM      : constant ValueModifier := 1;
+   VTM_ABSTRACT    : constant ValueModifier := 2;
    VTM_TRUNCATABLE : constant ValueModifier := 3;
 
    PRIVATE_MEMBER : constant Visibility := 0;
-   PUBLIC_MEMBER : constant Visibility := 1;
+   PUBLIC_MEMBER  : constant Visibility := 1;
 
    -----------
    --  Any  --
    -----------
 
-   --  any is implemented this way :
-   --   one field for the typecode (TypeCode.Object)
-   --   one field for the value
+   --  Any is implemented this way :
+   --   - one field for the typecode (TypeCode.Object)
+   --   - one field for the value
    --
    --  To be able to carry values of different types, the second
    --  field is an Any_Content_Ptr_Ptr which is an access to an access to any
@@ -712,11 +729,11 @@ private
    --  Frees an Any_Content_Ptr
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
      (Content'Class, Any_Content_Ptr);
-   --  Frees an Any_Content_Ptr_Ptr
+   --  Free an Any_Content_Ptr_Ptr
    procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
      (Any_Content_Ptr, Any_Content_Ptr_Ptr);
 
-   --  the content_TypeCode type is defined inside the TypeCode package
+   --  The content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here
    --  This is due to the fact that the TypeCode.Object type is private
    --  in package TypeCode which implies that Deallocate sould be private
@@ -760,25 +777,25 @@ private
    function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr;
    function Get_Counter (Obj : Any) return Natural;
 
-   --  The control procedures to the Any type
+   --  The control procedures to the Any type.
    procedure Initialize (Object : in out Any);
    procedure Adjust     (Object : in out Any);
    procedure Finalize   (Object : in out Any);
 
-   --  And the management of the counter
+   --  Management of the counter associated to an Any.
    procedure Inc_Usage (Obj : in Any);
    procedure Dec_Usage (Obj : in out Any);
 
-   --  deallocation of Any pointers
+   --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
 
    ------------------
    --  Named_Value --
    ------------------
 
-   ARG_IN :        constant Flags := 0;
-   ARG_OUT :       constant Flags := 1;
-   ARG_INOUT :     constant Flags := 2;
+   ARG_IN        : constant Flags := 0;
+   ARG_OUT       : constant Flags := 1;
+   ARG_INOUT     : constant Flags := 2;
    IN_COPY_VALUE : constant Flags := 3;
 
 end PolyORB.Any;

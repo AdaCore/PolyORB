@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#45 $
+--  $Id: //droopi/main/src/polyorb-any.adb#46 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -241,9 +241,10 @@ package body PolyORB.Any is
    function Get_Content_List_Length (List : in Content_List)
      return Types.Unsigned_Long;
 
-   --  for complex types that could be defined in Idl
-   --  content_aggregate will be used.
-   --  complex types include Struct, Union, Enum, Sequence,
+   --  For complex types that could be defined in Idl a content_aggregate
+   --  will be used.
+   --
+   --  Complex types include Struct, Union, Enum, Sequence,
    --  Array, Except, Fixed, Value, Valuebox, Abstract_Interface.
    --  Here is the way the content_list is used in each case
    --  (See CORBA V2.3 - 15.3) :
@@ -493,7 +494,6 @@ package body PolyORB.Any is
          return True;
       end Equivalent;
 
-
       --------------------------
       -- Get_Compact_TypeCode --
       --------------------------
@@ -501,6 +501,7 @@ package body PolyORB.Any is
       function Get_Compact_TypeCode (Self : in Object)
                                      return Object is
       begin
+         raise Not_Implemented;
          return Self;
       end Get_Compact_TypeCode;
 
@@ -582,7 +583,7 @@ package body PolyORB.Any is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers returned here.
          case Kind (Self) is
             when Tk_Struct
@@ -613,7 +614,7 @@ package body PolyORB.Any is
          Res      : PolyORB.Types.String;
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Struct
@@ -661,7 +662,7 @@ package body PolyORB.Any is
          pragma Debug (O ("member_type: enter, Kind is "
                           & TCKind'Image (K)));
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case K is
             when Tk_Struct
@@ -697,7 +698,7 @@ package body PolyORB.Any is
          Param_Nb : constant Unsigned_Long := Parameter_Count (Self);
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
@@ -719,7 +720,7 @@ package body PolyORB.Any is
         return Object is
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
@@ -738,7 +739,7 @@ package body PolyORB.Any is
         return Types.Long is
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
@@ -828,7 +829,7 @@ package body PolyORB.Any is
         return Visibility is
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of corba.typecode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Value =>
@@ -909,7 +910,7 @@ package body PolyORB.Any is
                           & Unsigned_Long'Image (Index)));
 
          --  See the big explanation after the declaration of
-         --  TypeCode.Object in the private part of TypeCode
+         --  TypeCode.Object in the private part of CORBA.TypeCode
          --  to understand the magic numbers used here.
 
          if Kind (Self) = Tk_Union then
@@ -976,7 +977,7 @@ package body PolyORB.Any is
          Default_Nb : Unsigned_Long := 0;
       begin
          --  See the big explanation after the declaration of
-         --  typecode.object in the private part of PolyORB.Any
+         --  TypeCode.Object in the private part of PolyORB.Any
          --  to understand the magic numbers used here.
          pragma Debug (O ("Member_Count_With_Label : enter"));
          if TypeCode.Kind (Self) = Tk_Union then
@@ -1050,6 +1051,55 @@ package body PolyORB.Any is
          end if;
          pragma Debug (O ("Add_Parameter: end"));
       end Add_Parameter;
+
+      ------------------
+      -- Set_Volatile --
+      ------------------
+
+      procedure Set_Volatile (Self       : in out Object;
+                              Is_Volatile : in Boolean) is
+      begin
+         Self.Is_Volatile := Is_Volatile;
+      end Set_Volatile;
+
+      ----------------------
+      -- Destroy_TypeCode --
+      ----------------------
+
+      procedure Destroy_TypeCode (Self : in out Object) is
+
+         procedure Free is new Ada.Unchecked_Deallocation
+           (Cell, Cell_Ptr);
+
+         C_Ptr : Cell_Ptr := Self.Parameters;
+
+         procedure Deallocate_Cells (Self : in out Cell_Ptr);
+
+         procedure Deallocate_Cells (Self : in out Cell_Ptr) is
+         begin
+            if Self = null then
+               pragma Debug (O2 ("Deallocate_Cells: leave"));
+               return;
+            else
+               pragma Debug (O2 ("Deallocate_Cells: iterate"));
+               Deallocate_Cells (Self.Next);
+               Free (Self);
+            end if;
+         end Deallocate_Cells;
+
+      begin
+         pragma Debug (O2 ("Destroy_TypeCode: enter"));
+
+         if Self.Is_Volatile then
+            Deallocate_Cells (C_Ptr);
+         else
+            pragma Debug (O2 ("Destroy_TypeCode:"
+                              & " no deallocating required"));
+            null;
+         end if;
+         pragma Debug (O2 ("Destroy_TypeCode: leave"));
+
+      end Destroy_TypeCode;
 
       --------------
       -- Set_Kind --
@@ -1386,8 +1436,6 @@ package body PolyORB.Any is
    -----------
    -- Image --
    -----------
-
-   function Image (TC : TypeCode.Object) return Standard.String;
 
    function Image (TC : TypeCode.Object) return Standard.String is
       use TypeCode;
@@ -1939,7 +1987,9 @@ package body PolyORB.Any is
       pragma Debug (O ("To_Any (String) : enter"));
       TypeCode.Set_Kind (Tco, Tk_String);
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
+      TypeCode.Set_Volatile (Tco, True);
       --  the string is supposed to be unbounded
+
       Set_Value (Result, new Content_String'
                  (Value => new PolyORB.Types.String'(Item)));
       Set_Type (Result, Tco);
@@ -1953,6 +2003,7 @@ package body PolyORB.Any is
    begin
       TypeCode.Set_Kind (Tco, Tk_Wstring);
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
+      TypeCode.Set_Volatile (Tco, True);
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_Wide_String'
                  (Value => new Types.Wide_String'(Item)));
@@ -2166,6 +2217,7 @@ package body PolyORB.Any is
                        The_Type : in TypeCode.Object) is
    begin
       pragma Debug (O ("Set_Type: enter"));
+      TypeCode.Destroy_TypeCode (The_Any.The_Type);
       The_Any.The_Type := The_Type;
       pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
@@ -2176,7 +2228,7 @@ package body PolyORB.Any is
 
    procedure Iterate_Over_Any_Elements (In_Any : in Any) is
    begin
-      null;
+      raise Not_Implemented;
    end Iterate_Over_Any_Elements;
 
    -------------------
@@ -3037,7 +3089,7 @@ package body PolyORB.Any is
       Object.Ref_Counter := new Natural'(1);
       Create (Object.Any_Lock);
       pragma Debug
-        (O2 ("  Lck = "
+        (O2 ("INITIALIZING Lck = "
              & System.Address_Image (Object.Any_Lock.all'Address)));
       Object.The_Value := new Any_Content_Ptr'(null);
       pragma Debug (O2 ("Initialize: end"));
@@ -3073,7 +3125,7 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Finalize: end"));
    exception
       when E : others =>
-         pragma Debug (O2 ("Finalize: KABOOM!"));
+         pragma Debug (O2 ("Finalize: got exception."));
          pragma Debug (O2 (Ada.Exceptions.Exception_Information (E)));
          raise;
    end Finalize;
@@ -3091,6 +3143,17 @@ package body PolyORB.Any is
       Obj.The_Value.all := The_Value;
       Unlock_W (Obj.Any_Lock);
    end Set_Value;
+
+   ------------------
+   -- Set_Volatile --
+   ------------------
+
+   procedure Set_Volatile (Obj : in out Any; Is_Volatile : in Boolean) is
+   begin
+      Lock_W (Obj.Any_Lock);
+      TypeCode.Set_Volatile (Obj.The_Type, Is_Volatile);
+      Unlock_W (Obj.Any_Lock);
+   end Set_Volatile;
 
    -------------------
    -- Get_Value_Ptr --
@@ -3159,10 +3222,15 @@ package body PolyORB.Any is
       if Obj.Ref_Counter.all > 1 then
          Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
          pragma Debug (O2 ("Dec_Usage: counter decremented"));
+
          Unlock_W (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released"));
       else
          pragma Debug (O2 ("Dec_Usage: about to release the any"));
+
+         TypeCode.Destroy_TypeCode (Obj.The_Type);
+         pragma Debug (O2 ("Dec_Usage: typecode deallocated"));
+
          if Obj.The_Value.all /= null then
             pragma Debug (O2 ("Dec_Usage: deallocation of a "
                               & Ada.Tags.External_Tag
@@ -3170,6 +3238,7 @@ package body PolyORB.Any is
             Deallocate (Obj.The_Value.all);
          end if;
          pragma Debug (O2 ("Dec_Usage: content released"));
+
          Deallocate_Any_Content_Ptr (Obj.The_Value);
          pragma Debug (O2 ("Dec_Usage: content_ptr released"));
 

@@ -46,6 +46,8 @@ package body CORBA.Object.Helper is
       A : Any := PolyORB.Any.ObjRef.To_Any (To_PolyORB_Ref (Item));
    begin
       Set_Type (A, CORBA.Object.TC_Object);
+      PolyORB.Any.Set_Volatile (A, True);
+
       return A;
    end To_Any;
 
