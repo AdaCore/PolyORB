@@ -19,8 +19,8 @@ package body Backend.Config is
         (BE_Ada.Generate'Access,
          BE_Ada.Configure'Access,
          BE_Ada.Usage'Access,
-           "ada",
-           "Produce Ada files");
+         "ada",
+         "Produce Ada files");
    end Initialize;
 
 end Backend.Config;
