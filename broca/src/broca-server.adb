@@ -773,7 +773,6 @@ package body Broca.Server is
       POA : Broca.POA.POA_Object_Ptr;
       POA_State : Broca.POA.Processing_State_Type;
 
-      Header_Buffer : aliased Buffer_Type;
       Reply_Buffer : aliased Buffer_Type;
 
    begin
@@ -844,12 +843,8 @@ package body Broca.Server is
                         Request_Id, Response_Expected, Buffer,
                         Reply_Buffer'Access);
 
-                     --  FIXME: This behaviour (prepend GIOP header)
-                     --  should be encapsulated.
-                     Broca.GIOP.Marshall_GIOP_Header
-                       (Header_Buffer'Access, Broca.GIOP.Reply,
-                        Length (Reply_Buffer'Access));
-                     Prepend (Header_Buffer, Reply_Buffer'Access);
+                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
+                                                     Broca.GIOP.Reply);
                   end;
 
                exception
@@ -859,12 +854,8 @@ package body Broca.Server is
                         Broca.GIOP.Marshall
                           (Reply_Buffer'Access, Request_Id, E);
 
-                        --  FIXME: This behaviour (prepend GIOP header)
-                        --  should be encapsulated.
-                        Broca.GIOP.Marshall_GIOP_Header
-                          (Header_Buffer'Access, Broca.GIOP.Reply,
-                           Length (Reply_Buffer'Access));
-                        Prepend (Header_Buffer, Reply_Buffer'Access);
+                        Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
+                                                        Broca.GIOP.Reply);
                      end;
 
                   when E : PortableServer.ForwardRequest =>
@@ -876,19 +867,30 @@ package body Broca.Server is
                           (Reply_Buffer'Access,
                            Request_Id, FRM.Forward_Reference);
 
-                        --  FIXME: This behaviour (prepend GIOP header)
-                        --  should be encapsulated.
-                        Broca.GIOP.Marshall_GIOP_Header
-                          (Header_Buffer'Access, Broca.GIOP.Reply,
-                           Length (Reply_Buffer'Access));
-                        Prepend (Header_Buffer, Reply_Buffer'Access);
+                        Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
+                                                        Broca.GIOP.Reply);
                      end;
                end;
 
                pragma Debug (O ("Handle_Request : locking before send"));
                Lock_Send (Stream);
                pragma Debug (O ("Handle_Request : sending"));
-               Send (Stream, Reply_Buffer'Access);
+
+               begin
+                  if Response_Expected then
+                     Send (Stream, Reply_Buffer'Access);
+                  else
+                     pragma Debug
+                       (O ("Handle_Request: not sending unexpected response"));
+                     Release (Reply_Buffer);
+                  end if;
+               exception
+                  when Connection_Closed =>
+                     --  We could not send the answer
+                     pragma Debug (O ("Handle_Request: cannot send reply"));
+                     null;
+               end;
+
                Unlock_Send (Stream);
 
             when Discarding =>
@@ -904,12 +906,8 @@ package body Broca.Server is
                   when E : CORBA.Transient =>
                      Broca.GIOP.Marshall (Reply_Buffer'Access, Request_Id, E);
 
-                     --  FIXME: This behaviour (prepend GIOP header)
-                     --  should be encapsulated.
-                     Broca.GIOP.Marshall_GIOP_Header
-                       (Header_Buffer'Access, Broca.GIOP.Reply,
-                        Length (Reply_Buffer'Access));
-                     Prepend (Header_Buffer, Reply_Buffer'Access);
+                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
+                                                     Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
@@ -938,12 +936,8 @@ package body Broca.Server is
                      Broca.GIOP.Marshall
                        (Reply_Buffer'Access, Request_Id, E);
 
-                     --  FIXME: This behaviour (prepend GIOP header)
-                     --  should be encapsulated.
-                     Broca.GIOP.Marshall_GIOP_Header
-                       (Header_Buffer'Access, Broca.GIOP.Reply,
-                        Length (Reply_Buffer'Access));
-                     Prepend (Header_Buffer, Reply_Buffer'Access);
+                     Broca.GIOP.Prepend_GIOP_Header (Reply_Buffer'Access,
+                                                     Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);

@@ -161,6 +161,21 @@ package body Broca.GIOP is
       Marshall (Buffer, CORBA.Unsigned_Long (Message_Size));
    end Marshall_GIOP_Header;
 
+   -------------------------
+   -- Prepend_GIOP_Header --
+   -------------------------
+
+   procedure Prepend_GIOP_Header
+     (Buffer       : access Buffers.Buffer_Type;
+      Message_Type : in MsgType)
+   is
+      Header_Buffer : aliased Buffer_Type;
+   begin
+      Marshall_GIOP_Header (Header_Buffer'Access, Message_Type,
+                            Length (Buffer));
+      Prepend (Header_Buffer, Buffer);
+   end Prepend_GIOP_Header;
+
    ----------------------------
    -- Unmarshall_GIOP_Header --
    ----------------------------

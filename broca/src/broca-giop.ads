@@ -80,6 +80,10 @@ package Broca.GIOP is
       Message_Type : in MsgType;
       Message_Size : in Opaque.Index_Type);
 
+   procedure Prepend_GIOP_Header
+     (Buffer       : access Buffers.Buffer_Type;
+      Message_Type : in MsgType);
+
    procedure Marshall
      (Buffer : access Buffers.Buffer_Type;
       Value  : in MsgType);
