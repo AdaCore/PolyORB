@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -66,14 +66,13 @@ package MOMA.Message_Handlers is
 
    type Message_Handler_Acc is access Message_Handler;
 
-   type Handler is access procedure (
-      Self : access Message_Handler;
+   type Handler is access procedure
+     (Self : access Message_Handler;
       Message : MOMA.Messages.Message'Class);
    --  The procedure to be called when a message is received, if the behavior
    --  is Handle.
 
-   type Notifier is access procedure (
-      Self : access Message_Handler);
+   type Notifier is access procedure (Self : access Message_Handler);
    --  The procedure to be called when a message is received, if the behavior
    --  is Notify.
 
@@ -103,8 +102,8 @@ package MOMA.Message_Handlers is
       return Notifier;
    --  Get the Notifier procedure.
 
-   procedure Set_Behavior (
-      Self           : access Message_Handler;
+   procedure Set_Behavior
+     (Self           : access Message_Handler;
       New_Behavior   : in MOMA.Types.Call_Back_Behavior);
    --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
@@ -113,26 +112,27 @@ package MOMA.Message_Handlers is
                                  Data : PolyORB.Annotations.Note'Class);
    --  Set Call_Back Data for use in Handler or Notifier procedure.
 
-   procedure Set_Handler (
-      Self                    : access Message_Handler;
+   procedure Set_Handler
+     (Self                    : access Message_Handler;
       New_Handler_Procedure   : in Handler;
       Handle_Behavior         : Boolean := False);
    --  Associate a Handler procedure to the Message Handler.
    --  Replace the current Handler procedure.
    --  The behavior is set to Handle if Handle_Behavior is true.
 
-   procedure Set_Notifier (
-      Self                    : access Message_Handler;
+   procedure Set_Notifier
+     (Self                    : access Message_Handler;
       New_Notifier_Procedure  : in Notifier;
       Notify_Behavior         : Boolean := False);
-   --  Symmetric of Set_Handler.
+   --  Associate a Notifier procedure to the Message Handler.
+   --  Replace the current Handler procedure.
+   --  The behavior is set to Handle if Notify_Behavior is true.
 
-   procedure Template_Handler (
-      Self     : access Message_Handler;
+   procedure Template_Handler
+     (Self     : access Message_Handler;
       Message  : MOMA.Messages.Message'Class);
 
-   procedure Template_Notifier (
-      Self : access Message_Handler);
+   procedure Template_Notifier (Self : access Message_Handler);
    --  Templates for handler and notifier procedures.
 
 private
@@ -145,9 +145,5 @@ private
       Behavior             : MOMA.Types.Call_Back_Behavior := None;
       Call_Back_Data       : aliased PolyORB.Annotations.Notepad;
    end record;
-
-   procedure Register_To_Servant (Self : access Message_Handler);
-   --  Register the Message_Handler or change the Behavior,
-   --  via a Request to the actual servant.
 
 end MOMA.Message_Handlers;

@@ -65,6 +65,10 @@ package body MOMA.Message_Handlers is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   procedure Register_To_Servant (Self : access Message_Handler);
+   --  Register the Message_Handler or change the Behavior,
+   --  via a Request to the actual servant.
+
    --------------------
    -- Create_Handler --
    --------------------
@@ -77,18 +81,19 @@ package body MOMA.Message_Handlers is
       Behavior            : MOMA.Types.Call_Back_Behavior := None)
      return MOMA.Message_Handlers.Message_Handler_Acc
    is
-      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
-        new MOMA.Message_Handlers.Message_Handler;
-      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
-        new MOMA.Provider.Message_Handler.Object;
-      Servant_Ref : PolyORB.References.Ref;
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Session);
       pragma Warnings (On);
       --  XXX Session is to be used to 'place' the receiver
       --  using session position in the POA.
 
+      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
+        new MOMA.Message_Handlers.Message_Handler;
+      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
+        new MOMA.Provider.Message_Handler.Object;
+      Servant_Ref : PolyORB.References.Ref;
+
+   begin
       Initiate_Servant (Servant,
                         MOMA.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
@@ -273,9 +278,11 @@ package body MOMA.Message_Handlers is
 
    begin
       pragma Debug (O ("Message_Handler is handling message"));
+
       if Id = "Stop handling messages" then
          Set_Behavior (Self, None);
       end if;
+      --  XXX Why is this in the Message_Id ?????
    end Template_Handler;
 
    -----------------------
