@@ -281,7 +281,7 @@ package body XE_Utils is
    ------------
 
    procedure Create
-     (File : in out File_Descriptor;
+     (File : out File_Descriptor;
       Name : in File_Name_Type;
       Exec : in Boolean := False)
    is

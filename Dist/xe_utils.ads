@@ -125,7 +125,7 @@ package XE_Utils is
    --  Copy source into target and preserves file stamps.
 
    procedure Create
-     (File  : in out GNAT.OS_Lib.File_Descriptor;
+     (File  : out GNAT.OS_Lib.File_Descriptor;
       Name  : in Types.File_Name_Type;
       Exec  : in Boolean := False);
 
