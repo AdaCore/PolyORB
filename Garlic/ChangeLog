@@ -1,5 +1,8 @@
 1999-05-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-garopt.adb: Fix use of Default_Boot_Server for Ada starter
+	(fix for 6510-008).
+
 	* s-gardeb.ads: Increase debug flag table (there are more than 25
 	debug keys).
 

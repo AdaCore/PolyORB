@@ -222,7 +222,7 @@ package body System.Garlic.Options is
       end loop;
 
       if Boot_Location = null then
-         if (Is_Boot_Server and then Nolaunch)
+         if (Is_Boot_Server and then not Nolaunch)
            or else Default_Boot_Server = ""
          then
             Set_Boot_Server ("tcp");
