@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#7 $
+;;; $Id: //droopi/main/utils/update-headers.el#8 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -216,25 +216,24 @@ YYYYY
 	 (result (split-string (shell-command-to-string  command-line)))
 	 )
 
-    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
+    (if (string-equal "file(s)" (car (cddr result)))
 
+	;; Return "" if file is not in repository
+	""
+
+      ;; Otherwise, return revision date
+      (substring (car (cdr (cddr (cddr (cddr result))))) 0 4))
     )
   )
 
 ;;
-;; last-rev-date: return year of the last file revision
+;; last-rev-date: return current year
 ;;
 
 (defun last-rev-date ()
-  (let* (
-	 (command-line (concat "p4 filelog " (buffer-name)))
-	 (result (split-string (shell-command-to-string  command-line)))
-	 )
-
-    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
-
-    )
-  )
+  (let ((current-time-string (current-time-string)))
+    (substring current-time-string
+	       (string-match "[0-9]+$" current-time-string))))
 
 ;;
 ;; copyright-date: format Copyright year line
@@ -247,9 +246,15 @@ YYYYY
 	 (first (first-rev-date))
 	 (last  (last-rev-date))
 	 )
-    (if (string-equal first last)
+
+    ;;  If first revision date is null, assume copyright year is current yeat
+    (if (string-equal first "") 
 	(concat copyright-logo last fsf-logo)
-      (concat copyright-logo first  "-" last fsf-logo)
+
+      ;; else, build copyright year, taking into account first and last begin equal
+      (if (string-equal first last)
+	  (concat copyright-logo last fsf-logo)
+	(concat copyright-logo first  "-" last fsf-logo))
       )
     )
   )
