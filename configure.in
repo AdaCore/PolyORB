@@ -292,41 +292,70 @@ AC_SUBST_FILE(PROTO_SERVER_WITHS)
 # Output generated files
 ##########################################
 
-AC_OUTPUT([Makefile
-	   compilers/Makefile compilers/gnatprfh/Makefile
-	   compilers/ciao/Makefile compilers/idlac/Makefile
-	   compilers/idlac/testsuite/Makefile
-	   compilers/idlac/platform.ads
-	   src/Makefile src/corba/Makefile src/giop/Makefile 
-           src/moma/Makefile src/soap/Makefile src/srp/Makefile
-           src/polyorb-setup-client.adb src/polyorb-setup-server.adb
-	   idls/Makefile idls/cos/Makefile idls/cos/event/Makefile
-	   idls/cos/naming/Makefile idls/cos/time/Makefile
-	   cos/Makefile cos/event/Makefile cos/naming/Makefile
-	   cos/time/Makefile cos/ir/Makefile
-	   examples/Makefile 
-	   examples/corba/Makefile examples/corba/all_types/Makefile 
-	   examples/corba/all_functions/Makefile examples/corba/echo/Makefile
-	   examples/corba/random/Makefile
-	   examples/dsa/Makefile examples/bbs/Makefile
-           examples/moma/Makefile examples/polyorb/Makefile
-	   testsuite/Makefile 
-	   testsuite/corba/Makefile
-	   testsuite/corba/portableserver/Makefile
-	   testsuite/core/Makefile
-	   testsuite/core/dynamic_dict/Makefile
-	   testsuite/core/fixed_point/Makefile
-	   testsuite/core/initialization/Makefile
-	   testsuite/core/obj_adapters-simple/Makefile
-	   testsuite/core/poa/Makefile
-	   testsuite/core/tasking/Makefile
-	   testsuite/acats/Makefile testsuite/acats/CXE1001/Makefile
-	   testsuite/acats/CXE2001/Makefile
-	   testsuite/acats/CXE4001/Makefile testsuite/acats/CXE4002/Makefile
-	   testsuite/acats/CXE4005/Makefile testsuite/acats/CXE4006/Makefile
-	   testsuite/utils/Makefile
-	   support/adacompiler support/native-adacompiler
-           support/linker polyorb-config])
+dnl Important! One file per line, nothing before
+dnl or after except whitespace! This section
+dnl is edited automatically by make_distrib.
+
+AC_CONFIG_FILES([
+	Makefile
+	compilers/Makefile
+	compilers/gnatprfh/Makefile
+	compilers/ciao/Makefile
+	compilers/idlac/Makefile
+	compilers/idlac/testsuite/Makefile
+	compilers/idlac/platform.ads
+	src/Makefile
+	src/corba/Makefile
+	src/giop/Makefile
+	src/moma/Makefile
+	src/soap/Makefile
+	src/srp/Makefile
+	src/polyorb-setup-client.adb
+	src/polyorb-setup-server.adb
+	idls/Makefile
+	idls/cos/Makefile
+	idls/cos/event/Makefile
+	idls/cos/naming/Makefile
+	idls/cos/time/Makefile
+	cos/Makefile
+	cos/event/Makefile
+	cos/naming/Makefile
+	cos/time/Makefile
+	cos/ir/Makefile
+	examples/Makefile
+	examples/corba/Makefile
+	examples/corba/all_types/Makefile
+	examples/corba/all_functions/Makefile
+	examples/corba/echo/Makefile
+	examples/corba/random/Makefile
+	examples/dsa/Makefile
+	examples/bbs/Makefile
+	examples/moma/Makefile
+	examples/polyorb/Makefile
+	testsuite/Makefile
+	testsuite/corba/Makefile
+	testsuite/corba/portableserver/Makefile
+	testsuite/core/Makefile
+	testsuite/core/dynamic_dict/Makefile
+	testsuite/core/fixed_point/Makefile
+	testsuite/core/initialization/Makefile
+	testsuite/core/obj_adapters-simple/Makefile
+	testsuite/core/poa/Makefile
+	testsuite/core/tasking/Makefile
+	testsuite/acats/Makefile
+	testsuite/acats/CXE1001/Makefile
+	testsuite/acats/CXE2001/Makefile
+	testsuite/acats/CXE4001/Makefile
+	testsuite/acats/CXE4002/Makefile
+	testsuite/acats/CXE4005/Makefile
+	testsuite/acats/CXE4006/Makefile
+	testsuite/utils/Makefile
+	support/adacompiler
+	support/native-adacompiler
+	support/linker
+	polyorb-config
+])
+AC_OUTPUT
 
 ##########################################
 # Clean up

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#5 $
+# $Id: //droopi/main/utils/make_distrib#6 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -124,6 +124,34 @@ fi
 #    echo Recentering keywords
 #    ${prev}/utils/normalize.pl `cat MANIFEST`
 #fi
+echo Editing configure.in
+mv configure.in configure.in.orig
+awk '
+  BEGIN { st = 0; nf = 0; }
+  FILENAME == "MANIFEST" {
+    manifest[nf++] = $0;
+    next;
+  }
+  /^AC_CONFIG_FILES/ {
+    st = 1; print; next;
+  }
+  st == 1 && /^\]/ {
+    st = 0;
+  }
+  st == 1 {
+    fn = $0;
+    gsub (/[ 	]/,"", fn);
+    for (j = 0; j < nf; j++) {
+      if (manifest[j] == fn ".in") {
+        print;
+        break;
+      }
+    }
+    next;
+  }
+  { print; }' MANIFEST configure.in.orig > configure.in
+rm -f configure.in.orig
+
 echo Generating auto-generated files
 if [ -f support/reconfig ];then sh -e -x support/reconfig;fi
 echo Doing the necessary date modifications
