@@ -255,7 +255,8 @@ package body System.Garlic.Naming is
    function Name_Of (Something : String)
      return String
    is
-      Hostent : constant Host_Entry := Info_Of_Name_Or_IP (Something);
+      Hostent : constant Host_Entry :=
+        Info_Of_Name_Or_IP (Image (Address_Of (Something)));
    begin
       if Hostent.Name = null then
          Ada.Exceptions.Raise_Exception (Naming_Error'Identity,
