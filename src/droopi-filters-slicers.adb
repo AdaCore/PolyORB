@@ -17,7 +17,7 @@ package body Droopi.Filters.Slicers is
       Upper := Res;
    end Create;
 
-   procedure Handle_Data_Unit
+   procedure Handle_Message
      (F : access Slicer_Filter;
       S : Data_Unit) is
    begin
@@ -47,16 +47,16 @@ package body Droopi.Filters.Slicers is
 
                if F.Data_Expected = 0 then
                   F.In_Buf := null;
-                  Handle_Data_Unit (F.Upper, Data_Unit'(Kind => Data_Indication));
+                  Handle_Message (F.Upper, Data_Unit'(Kind => Data_Indication));
                end if;
             end;
 
          when Disconnect_Indication =>
-            Handle_Data_Unit (F.Upper, Data_Unit'(Kind => Disconnect_Indication));
+            Handle_Message (F.Upper, Data_Unit'(Kind => Disconnect_Indication));
 
          when Data_Out =>
-         Handle_Data_Unit (F.Lower, S);
+         Handle_Message (F.Lower, S);
       end case;
-   end Handle_Data_Unit;
+   end Handle_Message;
 
 end Droopi.Filters.Slicers;

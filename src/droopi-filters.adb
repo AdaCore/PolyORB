@@ -4,7 +4,7 @@
 
 package body Droopi.Filters is
 
-   function Lower (F : access Filter) return Filter_Access is
+   function Lower (F : access Filter) return Component_Access is
    begin
       return F.Lower;
    end Lower;
@@ -14,21 +14,26 @@ package body Droopi.Filters is
       return F.Server;
    end Server_Of;
 
-   procedure Create_Filter_Chain
-     (Lower  : Filter_Access;
-      FChain : Factory_Chain_Access) is
+   function Create_Filter_Chain (FChain : Factory_Chain_Access)
+     return Filter_Access
+   is
+      F : Filter_Access;
    begin
       pragma Assert (FChain /= null);
 
-      Create (Fact => FChain.This,
-              Filt => Lower.Upper);
-      Lower.Upper.Lower := Lower;
-      --  Instanciate the upper layer and link.
+      Create (Fact => FChain.This, Filt => F);
+      --  Create new filter.
 
       if FChain.Upper /= null then
-         Create_Filter_Chain (Lower.Upper, FChain.Upper);
-         --  Continue chaining for upper layers.
+         declare
+            Upper : constant Filter_Access
+              := Create_Filter_Chain (FChain.Upper);
+         begin
+            Connect (F.Upper, Component_Access (Upper));
+            Connect (Upper.Lower, Component_Access (F));
+         end;
       end if;
+      return F;
    end Create_Filter_Chain;
 
 end Droopi.Filters;

@@ -2,11 +2,12 @@
 
 --  $Id$
 
-with Droopi.Log; use Droopi.Log;
+with Droopi.Log;
 with Droopi.Sockets;
 
 package body Droopi.Filters.Sockets is
 
+   use Droopi.Log;
    use Droopi.Sockets;
 
    package L is new Droopi.Log.Facility_Log ("droopi.filters.sockets");
@@ -23,16 +24,17 @@ package body Droopi.Filters.Sockets is
       Socket_Filter (Sock.Channel.all).Sock := Sock;
    end Create;
 
-   procedure Handle_Data_Unit
+   function Handle_Message
      (SF : access Socket_Filter;
-      S  :  Data_Unit)
+      S  : Components.Message'Class)
+     return Boolean
    is
       use Filters.Data_Units;
    begin
       pragma Assert (SF.Upper /= null);
 
       if S in Connect_Indication then
-         Handle_Data_Unit (SF.Upper, S);
+         Handle_Message (SF.Upper, S);
       elsif S in Data_Expected then
          declare
             DE : Data_Expected renames Data_Expected (S);
@@ -64,7 +66,7 @@ package body Droopi.Filters.Sockets is
                --  Notify the ORB that the socket was disconnected.
             end if;
 
-            Handle_Data_Unit (SF.Upper, S);
+            Handle_Message (SF.Upper, S);
          end;
       elsif S in Data_Out then
          Droopi.Buffers.Send_Buffer (Data_Out (S).Out_Buf, SF.Sock.Socket);
@@ -73,6 +75,7 @@ package body Droopi.Filters.Sockets is
          pragma Assert (False);
          null;
       end if;
-   end Handle_Data_Unit;
+      return True;
+   end Handle_Message;
 
 end Droopi.Filters.Sockets;

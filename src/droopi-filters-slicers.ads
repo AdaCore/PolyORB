@@ -27,7 +27,7 @@ private
       Data_Expected : Stream_Element_Count;
    end record;
 
-   procedure Handle_Data_Unit
+   procedure Handle_Message
      (F : access Slicer_Filter;
       S : Data_Unit);
 

@@ -5,6 +5,7 @@
 with Ada.Streams;
 
 with Droopi.Buffers;
+with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
 with Droopi.Requests; use Droopi.Requests;
 
@@ -75,7 +76,10 @@ package Droopi.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
-   procedure Handle_Data_Unit (Sess : access Session; S : Data_Unit);
+   function Handle_Message
+     (Sess : access Session;
+      S : Components.Message'Class)
+     return Boolean;
    --  Demultiplex Data_Units to specialized operations.
 
    procedure Handle_Connect (S : access Session) is abstract;

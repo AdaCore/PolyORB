@@ -6,6 +6,7 @@ with Ada.Unchecked_Deallocation;
 
 package body Droopi.Protocols is
 
+   use Droopi.Components;
    use Droopi.Filters.Data_Units;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -16,7 +17,10 @@ package body Droopi.Protocols is
       Free (S);
    end Destroy_Session;
 
-   procedure Handle_Data_Unit (Sess : access Session; S : Data_Unit) is
+   function Handle_Message
+     (Sess : access Session;
+      S : Components.Message'Class)
+     return Boolean is
    begin
       if S in Connect_Indication then
          Handle_Connect (Session_Access (Sess));
@@ -28,16 +32,16 @@ package body Droopi.Protocols is
          pragma Assert (False);
          null;
       end if;
-   end Handle_Data_Unit;
+      return True;
+   end Handle_Message;
 
    procedure Expect_Data
      (S      : access Session;
       In_Buf : Buffers.Buffer_Access;
       Max    : Ada.Streams.Stream_Element_Count) is
    begin
-      Filters.Handle_Data_Unit
-        (Lower (S), Data_Expected'(In_Buf => In_Buf, Max => 1024));
+      Emit (Signal => Lower (S),
+            Msg    => Data_Expected'(In_Buf => In_Buf, Max => 1024));
    end Expect_Data;
-
 
 end Droopi.Protocols;

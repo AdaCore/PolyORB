@@ -1,5 +1,8 @@
 --  $Id$
 
+--  XXX This must go away!
+with Droopi.Sockets;
+
 package body Droopi.ORB.Task_Policies is
 
    use Droopi.Filters;
@@ -9,11 +12,14 @@ package body Droopi.ORB.Task_Policies is
    procedure Handle_New_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      AS  : Active_Socket) is
+      AS  : Active_Socket)
+   is
+      Dummy : Boolean;
    begin
       Insert_Socket (ORB, AS);
-      Filters.Handle_Data_Unit
+      Dummy := Filters.Handle_Message
         (AS.Channel, Connect_Indication'(null record));
+      pragma Assert (Dummy);
       --  The newly-created channel will be monitored
       --  by general-purpose ORB tasks.
    end Handle_New_Connection;

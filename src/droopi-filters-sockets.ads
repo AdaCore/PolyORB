@@ -2,6 +2,7 @@
 
 --  $Id$
 
+with Droopi.Components;
 with Droopi.ORB; use Droopi.ORB;
 
 package Droopi.Filters.Sockets is
@@ -14,7 +15,7 @@ package Droopi.Filters.Sockets is
    --  filter.
 
    Connection_Closed : exception;
-   --  Raised by Handle_Data_Unit when a disconnect is detected.
+   --  Raised by Handle_Message when a disconnect is detected.
 
 private
 
@@ -25,9 +26,10 @@ private
       Max : Stream_Element_Count;
    end record;
 
-   procedure Handle_Data_Unit
+   function Handle_Message
      (SF : access Socket_Filter;
-      S  :  Data_Unit);
+      S  : Components.Message'Class)
+     return Boolean;
 
 end Droopi.Filters.Sockets;
 
