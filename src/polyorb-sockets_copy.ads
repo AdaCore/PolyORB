@@ -35,5 +35,5 @@
 with PolyORB.Sockets;
 
 procedure PolyORB.Sockets_Copy
-  (Source : Socket_Set_Type;
-   Target : in out Socket_Set_Type);
+  (Source : PolyORB.Sockets.Socket_Set_Type;
+   Target : in out PolyORB.Sockets.Socket_Set_Type);
