@@ -58,6 +58,7 @@ with Echo.Helper;
 with Echo.Impl;
 
 with Test_AdapterActivator;
+with Test_ServantActivator;
 with Test_Job;
 
 procedure Test000 is
@@ -765,9 +766,9 @@ procedure Test000 is
       if (Up = UNIQUE_ID and then Sp = NON_RETAIN)
         or else (Sp = NON_RETAIN
                  and then not (Rp = USE_DEFAULT_SERVANT
-                               or Rp = USE_SERVANT_MANAGER))
+                               or else Rp = USE_SERVANT_MANAGER))
         or else (Ip = IMPLICIT_ACTIVATION
-                 and then not (Ap = SYSTEM_ID and Sp = RETAIN))
+                 and then not (Ap = SYSTEM_ID and then Sp = RETAIN))
         or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
         or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
       then
@@ -1158,8 +1159,8 @@ procedure Test000 is
          --  Test Servant to Id integrity.
 
          declare
-            Oid2 : constant ObjectId
-              := PortableServer.POA.Servant_To_Id (POA, Servant);
+            Oid2 : constant ObjectId :=
+              PortableServer.POA.Servant_To_Id (POA, Servant);
          begin
             if Oid /= Oid2 then
                Result.Fatal := True;
@@ -1687,6 +1688,7 @@ procedure Test000 is
    end Test_POA_Hierarchy;
 
    use Test_AdapterActivator;
+   use Test_ServantActivator;
 
 begin
    Init_Test;
@@ -1697,8 +1699,10 @@ begin
    Test_Conversion (Get_Root_POA);
    Test_POA_Creation;
    Test_POA_API;
-   Run_Test_AdapterActivator;
    Test_POA_Hierarchy;
+   Run_Test_AdapterActivator;
+   Run_Test_ServantActivator;
+
    End_Report;
 
    CORBA.ORB.Shutdown (False);
