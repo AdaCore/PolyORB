@@ -270,4 +270,9 @@ package Prj is
    --  from the Prj hierarchy.
    --  Assumption: Namet.Initialize have already been called.
 
+private
+
+   procedure Scan;
+   --  Calls Scn.Scan and change any Operator_Symbol to String_Literal
+
 end Prj;

@@ -5680,7 +5680,7 @@ package body Einfo is
       W ("Is_Packed_Array_Type",          Flag138 (Id));
       W ("Is_Potentially_Use_Visible",    Flag9   (Id));
       W ("Is_Preelaborated",              Flag59  (Id));
-      W ("Is_Private_Composite",          Flag106 (Id));
+      W ("Is_Private_Composite",          Flag107 (Id));
       W ("Is_Private_Descendant",         Flag53  (Id));
       W ("Is_Psected",                    Flag153 (Id));
       W ("Is_Public",                     Flag10  (Id));

@@ -33,6 +33,8 @@ with Namet;       use Namet;
 with Osint;       use Osint;
 with Prj.Env;
 with Scans;       use Scans;
+with Scn;
+with Sinfo.CN;
 with Snames;      use Snames;
 
 package body Prj is
@@ -159,6 +161,20 @@ package body Prj is
       Initialize;
       return Std_Naming_Data;
    end Standard_Naming_Data;
+
+   ----------
+   -- Scan --
+   ----------
+
+   procedure Scan is
+   begin
+      Scn.Scan;
+      if Token = Tok_Operator_Symbol then
+         --  Ada Operator Symbol are just Literal String in project files
+         Sinfo.CN.Change_Operator_Symbol_To_String_Literal (Token_Node);
+         Token := Tok_String_Literal;
+      end if;
+   end Scan;
 
    -----------
    -- Value --

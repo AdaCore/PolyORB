@@ -33,7 +33,6 @@ with Prj.Com;   use Prj.Com;
 with Prj.Ext;   use Prj.Ext;
 with Prj.Util;  use Prj.Util;
 with Scans;     use Scans;
-with Scn;       use Scn;
 with Sinfo;     use Sinfo;
 with Stringt;   use Stringt;
 

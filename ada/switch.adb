@@ -721,13 +721,13 @@ package body Switch is
 
             if Program = Compiler then
                case Switch_Chars (Ptr) is
-                  when 'n' =>
+                  when 'n' | '0' =>
                      Validity_Checking := None;
 
-                  when 'd' =>
+                  when 'd' | '1' =>
                      Validity_Checking := Default;
 
-                  when 'f' =>
+                  when 'f' | '2' =>
                      Validity_Checking := Full;
 
                   when others =>

@@ -3618,7 +3618,9 @@ package body Make is
       if New_Ada_Include_Path /= Current_Ada_Include_Path then
          Current_Ada_Include_Path := New_Ada_Include_Path;
 
-         if Original_Ada_Include_Path'Length = 0 then
+         if Original_Ada_Include_Path'Length = 0
+           or else Hostparm.OpenVMS
+         then
             Setenv ("ADA_INCLUDE_PATH",
                     New_Ada_Include_Path.all);
 
@@ -3646,7 +3648,9 @@ package body Make is
       if New_Ada_Objects_Path /= Current_Ada_Objects_Path then
          Current_Ada_Objects_Path := New_Ada_Objects_Path;
 
-         if Original_Ada_Objects_Path'Length = 0 then
+         if Original_Ada_Objects_Path'Length = 0
+           or else Hostparm.OpenVMS
+         then
             Setenv ("ADA_OBJECTS_PATH",
                     New_Ada_Objects_Path.all);
 

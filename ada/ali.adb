@@ -1219,7 +1219,7 @@ package body ALI is
             --  Keeps track of the current file number (changed by nn|)
 
          begin
-            XS.File_Num     := Sdep_Id (Get_Nat) + (First_Sdep_Entry - 1);
+            XS.File_Num     := Sdep_Id (Get_Nat + Nat (First_Sdep_Entry) - 1);
             XS.File_Name    := Get_Name;
             XS.First_Entity := Xref_Entity.Last + 1;
 
@@ -1253,9 +1253,8 @@ package body ALI is
                      N := Get_Nat;
 
                      if Nextc = '|' then
-                        XE.Ptype_File_Num := Sdep_Id (N) +
-                                               (First_Sdep_Entry - 1);
-
+                        XE.Ptype_File_Num :=
+                          Sdep_Id (N + Nat (First_Sdep_Entry) - 1);
                         Current_File_Num := XE.Ptype_File_Num;
                         P := P + 1;
                         N := Get_Nat;
@@ -1299,8 +1298,8 @@ package body ALI is
                         N := Get_Nat;
 
                         if Nextc = '|' then
-                           XR.File_Num := Sdep_Id (N) +
-                                            (First_Sdep_Entry - 1);
+                           XR.File_Num :=
+                             Sdep_Id (N + Nat (First_Sdep_Entry) - 1);
                            Current_File_Num := XR.File_Num;
                            P := P + 1;
                            N := Get_Nat;

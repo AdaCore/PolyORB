@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -64,23 +64,6 @@ package body Table is
       function Tree_Get_Table_Address return Address;
       --  Return Null_Address if the table length is zero,
       --  Table (First)'Address if not.
-
-      --------------
-      -- Allocate --
-      --------------
-
-      function Allocate (Num : Int := 1) return Table_Index_Type is
-         Old_Last : constant Int := Last_Val;
-
-      begin
-         Last_Val := Last_Val + Num;
-
-         if Last_Val > Max then
-            Reallocate;
-         end if;
-
-         return Table_Index_Type (Old_Last + 1);
-      end Allocate;
 
       ------------
       -- Append --

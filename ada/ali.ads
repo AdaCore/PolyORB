@@ -350,7 +350,7 @@ package ALI is
 
    No_Run_Time_Specified : Boolean := False;
    --  Set to False by Initialize_ALI, Set to True if an ali file indicates
-   --  tha the file was compiled in No_Run_Time mode.
+   --  that the file was compiled in No_Run_Time mode.
 
    Queuing_Policy_Specified : Character := ' ';
    --  Set to blank by Initialize_ALI. Set to the appropriate queuing policy

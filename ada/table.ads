@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -153,10 +153,6 @@ pragma Elaborate_Body (Table);
       procedure Decrement_Last;
       pragma Inline (Decrement_Last);
       --  Subtracts 1 from Last (same as Set_Last (Last - 1).
-
-      function Allocate (Num : Int := 1) return Table_Index_Type;
-      pragma Inline (Allocate);
-      --  Adds Num to Last, and returns the old value of Last + 1.
 
       procedure Append (New_Val : Table_Component_Type);
       --  Equivalent to:

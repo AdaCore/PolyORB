@@ -283,7 +283,7 @@ begin
    --  Line for -gnatV switch
 
    Write_Switch_Char ("V?");
-   Write_Line ("Validity checking (?=n/d/f for None/Default/Full)");
+   Write_Line ("Validity checking (?=n/d/f or 0/1/2 for None/Default/Full)");
 
    --  Lines for -gnatw switch
 

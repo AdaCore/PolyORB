@@ -32,7 +32,6 @@ with Output;   use Output;
 with Prj.Com;  use Prj.Com;
 with Prj.Str;
 with Scans;    use Scans;
-with Scn;      use Scn;
 with Snames;   use Snames;
 with Stringt;  use Stringt;
 with Types;    use Types;
