@@ -1,3 +1,14 @@
+2004-07-10  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-nutils.adb, backend-be_ada.adb: Minor
+	restructuration : All routines, that transform an IDL entity to
+	an Ada node, were moved to the IDL_To_Ada package. These routines
+	were renamed by replacing the prefixe "Make_" by the prefixe "Map_".   
+
+	* backend-be_ada-idl_to_ada.adb: New file. This package contain routines
+	that maps an IDL entity to an Ada node according to the IDL to ADA
+	mapping.   
+
 2004-07-09  souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nutils.adb: Add Make_Designator and

@@ -170,6 +170,9 @@ package Backend.BE_Ada.Nutils is
 
    TN : array (Type_Id) of Name_Id;
 
+   procedure Add_With_Package
+     (P : Node_Id);
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
    procedure Push_Entity (E : Node_Id);
@@ -201,22 +204,10 @@ package Backend.BE_Ada.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
-   function Is_Base_Type
-     (N : Node_Id)
-     return Boolean;
-
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
 
-
-   procedure Set_Impl_Body (N : Node_Id := No_Node);
-   procedure Set_Impl_Spec (N : Node_Id := No_Node);
-
-   procedure Set_Main_Body (N : Node_Id := No_Node);
-   procedure Set_Main_Spec (N : Node_Id := No_Node);
-
-   function To_Ada_Name (N : Name_Id) return Name_Id;
 
    function Copy_Designator
      (Designator : Node_Id)
@@ -249,10 +240,6 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_Defining_Identifier
-     (Entity : Node_Id)
-      return Node_Id;
-
-   function Make_Defining_Identifier
      (Name : Name_Id)
      return  Node_Id;
 
@@ -260,10 +247,6 @@ package Backend.BE_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id;
       Is_Abstract_Type      : Boolean := False)
-     return Node_Id;
-
-   function Make_Designator
-     (Entity : Node_Id)
      return Node_Id;
 
    function Make_Designator
@@ -284,10 +267,6 @@ package Backend.BE_Ada.Nutils is
       Type_Definition     : Node_Id;
       Discriminant_Spec   : Node_Id := No_Node)
      return Node_Id;
-
-   function Make_Fully_Qualified_Identifier
-     (Entity : Node_Id)
-      return Node_Id;
 
    function Make_If_Statement
      (Condition : Node_Id;
@@ -311,15 +290,15 @@ package Backend.BE_Ada.Nutils is
       Expression          : Node_Id)
       return                Node_Id;
 
+   function Make_Package_Declaration
+     (Identifier : Node_Id)
+     return Node_Id;
+
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;
       Parameter_Mode      : Mode_Id := Mode_In)
       return                Node_Id;
-
-   function Make_Range_Constraints
-     (Array_Sizes : List_Id)
-     return List_Id;
 
    function Make_Record_Aggregate
      (L : List_Id)
@@ -361,5 +340,13 @@ package Backend.BE_Ada.Nutils is
    function Qualified_Designator
      (P : Node_Id)
      return Node_Id;
+
+   procedure Set_Impl_Body (N : Node_Id := No_Node);
+   procedure Set_Impl_Spec (N : Node_Id := No_Node);
+
+   procedure Set_Main_Body (N : Node_Id := No_Node);
+   procedure Set_Main_Spec (N : Node_Id := No_Node);
+
+   function To_Ada_Name (N : Name_Id) return Name_Id;
 
 end Backend.BE_Ada.Nutils;

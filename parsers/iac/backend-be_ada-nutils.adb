@@ -1,13 +1,11 @@
 with GNAT.Table;
 
-with Charset; use Charset;
+with Charset;   use Charset;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Utils;     use Utils;
-with Values;    use Values;
 
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 with Frontend.Nodes;
 
 package body Backend.BE_Ada.Nutils is
@@ -26,8 +24,6 @@ package body Backend.BE_Ada.Nutils is
 
    use Entity_Stack;
 
-   procedure Add_With_Package (P : Node_Id);
-   function Convert (K : FEN.Node_Kind) return RE_Id;
 
    ----------------------
    -- Add_With_Package --
@@ -49,7 +45,7 @@ package body Backend.BE_Ada.Nutils is
             Get_Defining_Identifier_Name (P);
             Add_Char_To_Name_Buffer ('.');
          end if;
-         Get_Name_String_And_Append (Name (N));
+         Get_Name_String_And_Append (BEN.Name (N));
       end Get_Defining_Identifier_Name;
 
       W : Node_Id;
@@ -115,31 +111,6 @@ package body Backend.BE_Ada.Nutils is
       end loop;
    end Append_Node_To_List;
 
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (K : FEN.Node_Kind) return RE_Id is
-   begin
-      case K is
-         when FEN.K_Float               => return RE_Float;
-         when FEN.K_Double              => return RE_Double;
-         when FEN.K_Long_Double         => return RE_Long_Double;
-         when FEN.K_Short               => return RE_Short;
-         when FEN.K_Long                => return RE_Long;
-         when FEN.K_Long_Long           => return RE_Long_Long;
-         when FEN.K_Unsigned_Short      => return RE_Unsigned_Short;
-         when FEN.K_Unsigned_Long       => return RE_Unsigned_Long;
-         when FEN.K_Unsigned_Long_Long  => return RE_Unsigned_Long_Long;
-         when FEN.K_Char                => return RE_Char;
-         when FEN.K_Wide_Char           => return RE_WChar;
-         when FEN.K_String              => return RE_String_1;
-         when FEN.K_Wide_String         => return RE_Wide_String;
-         when FEN.K_Boolean             => return RE_Boolean;
-         when others                    =>
-            raise Program_Error;
-      end case;
-   end Convert;
 
    ---------------------
    -- Copy_Designator --
@@ -311,21 +282,6 @@ package body Backend.BE_Ada.Nutils is
 
    end Initialize;
 
-   ------------------
-   -- Is_Base_Type --
-   ------------------
-
-   function Is_Base_Type
-     (N : Node_Id)
-     return Boolean
-   is
-   begin
-      if FEN.Kind (N) in  FEN.K_Float .. FEN.K_Value_Base then
-         return True;
-      else
-         return False;
-      end if;
-   end Is_Base_Type;
 
    --------------
    -- Is_Empty --
@@ -433,22 +389,6 @@ package body Backend.BE_Ada.Nutils is
    -- Make_Defining_Identifier --
    ------------------------------
 
-   function Make_Defining_Identifier (Entity : Node_Id) return Node_Id is
-      use FEN;
-
-      I : Node_Id := Entity;
-
-   begin
-      if FEN.Kind (Entity) /= FEN.K_Identifier then
-         I := FEN.Identifier (Entity);
-      end if;
-      return Make_Defining_Identifier (IDL_Name (I));
-   end Make_Defining_Identifier;
-
-   ------------------------------
-   -- Make_Defining_Identifier --
-   ------------------------------
-
    function Make_Defining_Identifier (Name : Name_Id) return Node_Id is
       N : Node_Id;
 
@@ -477,47 +417,6 @@ package body Backend.BE_Ada.Nutils is
       Set_Record_Extension_Part (N, Record_Extension_Part);
       return N;
    end Make_Derived_Type_Definition;
-
-   ---------------------
-   -- Make_Designator --
-   ---------------------
-
-   function Make_Designator (Entity : Node_Id) return Node_Id is
-      use FEN;
-      P : Node_Id;
-      N : Node_Id;
-      K : FEN.Node_Kind;
-      R : Node_Id;
-
-   begin
-      K := FEN.Kind (Entity);
-      if K = FEN.K_Scoped_Name then
-         R := Reference (Entity);
-         if Kind (R) = K_Specification then
-            return No_Node;
-         end if;
-         N := New_Node (K_Designator);
-         Set_Defining_Identifier (N, Make_Defining_Identifier (R));
-         P := Scope_Entity (Identifier (R));
-         if Present (P) then
-            Set_Parent_Unit_Name (N, Make_Designator (P));
-         end if;
-
-      elsif K in FEN.K_Float .. FEN.K_Value_Base then
-         N := RE (Convert (K));
-
-      else
-         N := New_Node (K_Designator);
-         Set_Defining_Identifier (N, Make_Defining_Identifier (Entity));
-      end if;
-
-      P := Parent_Unit_Name (N);
-      if Present (P) then
-         Add_With_Package (P);
-      end if;
-
-      return N;
-   end Make_Designator;
 
    ---------------------
    -- Make_Designator --
@@ -593,38 +492,6 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Full_Type_Declaration;
 
-   -------------------------------------
-   -- Make_Fully_Qualified_Identifier --
-   -------------------------------------
-
-   function Make_Fully_Qualified_Identifier
-     (Entity : Node_Id)
-     return Node_Id is
-      use FEN;
-
-      N : Node_Id;
-      P : Node_Id;
-      I : Node_Id;
-
-   begin
-      I := FEN.Identifier (Entity);
-      Get_Name_String (IDL_Name (I));
-      if Kind (Entity) = K_Specification then
-         Add_Str_To_Name_Buffer ("_IDL_File");
-      end if;
-      N := Make_Defining_Identifier (Name_Find);
-      P := FEN.Scope_Entity (I);
-      if Present (P)
-        and then FEN.Kind (P) /= FEN.K_Specification
-      then
-         if FEN.Kind (P) = FEN.K_Operation_Declaration then
-            I := FEN.Identifier (P);
-            P := FEN.Scope_Entity (I);
-         end if;
-         Set_Parent_Unit_Name (N, Make_Fully_Qualified_Identifier (P));
-      end if;
-      return N;
-   end Make_Fully_Qualified_Identifier;
 
    -----------------------
    -- Make_If_Statement --
@@ -701,6 +568,35 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Object_Declaration;
 
+   ------------------------------
+   -- Make_Package_Declaration --
+   ------------------------------
+
+   function Make_Package_Declaration (Identifier : Node_Id) return Node_Id is
+      Pkg  : Node_Id;
+      Unit : Node_Id;
+
+   begin
+      Unit := New_Node (K_Package_Declaration);
+      Set_Defining_Identifier (Unit, Identifier);
+      if Present (Current_Entity) then
+         Set_Parent (Unit, Main_Package (Current_Entity));
+      end if;
+      Pkg := New_Node (K_Package_Specification);
+      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Visible_Part (Pkg, New_List (K_Declaration_List));
+      Set_Private_Part (Pkg, New_List (K_Declaration_List));
+      Set_Package_Declaration (Pkg, Unit);
+      Set_Package_Specification (Unit, Pkg);
+      Pkg := New_Node (K_Package_Implementation);
+      Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
+      Set_Declarations (Pkg, New_List (K_Declaration_List));
+      Set_Statements (Pkg, New_List (K_Statement_List));
+      Set_Package_Declaration (Pkg, Unit);
+      Set_Package_Implementation (Unit, Pkg);
+      return Unit;
+   end Make_Package_Declaration;
+
    ----------------------------------
    -- Make_Parameter_Specification --
    ----------------------------------
@@ -720,34 +616,6 @@ package body Backend.BE_Ada.Nutils is
       Set_Parameter_Mode (P, Parameter_Mode);
       return P;
    end Make_Parameter_Specification;
-
-   ----------------------------
-   -- Make_Range_Constraints --
-   ----------------------------
-
-   function Make_Range_Constraints
-     (Array_Sizes : List_Id)
-     return List_Id
-   is
-      L : List_Id;
-      S : Node_Id;
-      R : Node_Id;
-      V : Value_Type;
-
-   begin
-      L := New_List (K_Range_Constraints);
-      S := FEN.First_Entity (Array_Sizes);
-      while Present (S) loop
-         R := New_Node (K_Range_Constraint);
-         Set_First (R, Int0_Val);
-         V := Value (FEN.Value (S));
-         V.IVal := V.IVal - 1;
-         Set_Last (R, New_Value (V));
-         Append_Node_To_List (R, L);
-         S := FEN.Next_Entity (S);
-      end loop;
-      return L;
-   end Make_Range_Constraints;
 
    ---------------------------
    -- Make_Record_Aggregate --
