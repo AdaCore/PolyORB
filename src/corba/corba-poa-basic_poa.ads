@@ -2,6 +2,8 @@ with Ada.Unchecked_Deallocation;
 
 with Droopi.Objects;
 with Droopi.Obj_Adapters;
+with Droopi.Any;
+with Droopi.Any.NVList;
 
 with CORBA.POA_Types;
 with CORBA.Policy;
@@ -114,7 +116,7 @@ package CORBA.POA.Basic_POA is
      (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
-     return CORBA.NVList.Ref;
+     return Droopi.Any.NVList.Ref;
    --  Return the paramter profile of the given method, so the
    --  protocol layer can unmarshall the message into a Request object.
 
@@ -122,7 +124,7 @@ package CORBA.POA.Basic_POA is
      (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
-     return CORBA.Any;
+     return Droopi.Any.Any;
    --  Return the result profile of the given method.
 
    function Find_Servant

@@ -599,7 +599,7 @@ package body CORBA.POA.Basic_POA is
      (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
-     return CORBA.NVList.Ref
+     return Droopi.Any.NVList.Ref
    is
    begin
       return Get_Empty_Arg_List (OA, Oid, Method);
@@ -613,7 +613,7 @@ package body CORBA.POA.Basic_POA is
      (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
-     return CORBA.Any
+     return Droopi.Any.Any
    is
    begin
       return Get_Empty_Result (OA, Oid, Method);
