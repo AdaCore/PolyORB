@@ -42,8 +42,8 @@ with System.Garlic.Debug;      use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Soft_Links;
 with System.Garlic.Utils;      use System.Garlic.Utils;
-with Unchecked_Conversion;
-with Unchecked_Deallocation;
+with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 package body System.Garlic.Naming is
 
@@ -51,6 +51,7 @@ package body System.Garlic.Naming is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARNAM", "(s-garnam): ");
+
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
@@ -58,8 +59,32 @@ package body System.Garlic.Naming is
 
    Default_Buffer_Size : constant := 16384;
 
+   type Host_Entry (Length : Natural) is
+      record
+         Name : String (1 .. Length);
+         Addr : Address;
+      end record;
+   --  A complete host structure. A host may have several IP addresses as
+   --  well as several aliases.
+
+   function Info_Of (Name : String)
+     return Host_Entry;
+   --  Host entry of an IP name
+
+   function Info_Of (Addr : Address)
+     return Host_Entry;
+   --  Host entry of an IP address
+
+   function Info_Of_Name_Or_IP (Something : String)
+     return Host_Entry;
+   --  Host entry of an IP name or a dotted form
+
+   function Is_IP_Address (Something : String)
+     return Boolean;
+   --  Return True if the name looks like an IP address, False otherwise
+
    procedure Free is
-      new Unchecked_Deallocation (char_array, char_array_access);
+      new Ada.Unchecked_Deallocation (char_array, char_array_access);
 
    function Parse_Entry (Host : Hostent)
      return Host_Entry;
@@ -70,6 +95,12 @@ package body System.Garlic.Naming is
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
 
+   function To_Address (Addr : Thin.In_Addr) return Address;
+   --  Convert a In_Addr structure to an IP address
+
+   function Value (Add : String) return Address;
+   --  The IP address corresponding to a dotted form
+
    ----------------
    -- Address_Of --
    ----------------
@@ -79,23 +110,9 @@ package body System.Garlic.Naming is
       if Is_IP_Address (Something) then
          return Value (Something);
       else
-         return Info_Of (Something) .Addresses (1);
+         return Info_Of (Something).Addr;
       end if;
    end Address_Of;
-
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust (Object : in out Host_Entry)
-   is
-      Aliases : String_Array renames Object.Aliases;
-   begin
-      Object.Name := new String'(Object.Name.all);
-      for I in Aliases'Range loop
-         Aliases (I) := new String'(Aliases (I) .all);
-      end loop;
-   end Adjust;
 
    -----------------
    -- Any_Address --
@@ -105,20 +122,6 @@ package body System.Garlic.Naming is
    begin
       return To_Address (Inaddr_Any);
    end Any_Address;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Object : in out Host_Entry)
-   is
-      Aliases : String_Array renames Object.Aliases;
-   begin
-      Destroy (Object.Name);
-      for I in Aliases'Range loop
-         Destroy (Aliases (I));
-      end loop;
-   end Finalize;
 
    ---------------
    -- Host_Name --
@@ -158,9 +161,13 @@ package body System.Garlic.Naming is
          return Im (Im'First + 1 .. Im'Last);
       end Image;
 
+      I1  : constant String  := Image (Add.H1);
+      I2  : constant String  := I1 & '.' & Image (Add.H2);
+      I3  : constant String  := I2 & '.' & Image (Add.H3);
+      I4  : constant String  := I3 & '.' & Image (Add.H4);
+
    begin
-      return Image (Add.H1) & "." & Image (Add.H2) & "." &
-        Image (Add.H3) & "." & Image (Add.H4);
+      return I4;
    end Image;
 
    -------------
@@ -257,15 +264,15 @@ package body System.Garlic.Naming is
    function Name_Of (Something : String)
      return String
    is
-      Hostent : constant Host_Entry :=
-        Info_Of_Name_Or_IP (Image (Address_Of (Something)));
+      Hostent : Host_Entry
+        := Info_Of_Name_Or_IP (Image (Address_Of (Something)));
    begin
-      if Hostent.Name = null then
-         Ada.Exceptions.Raise_Exception (Naming_Error'Identity,
-                                         "No name for " & Something);
+      if Hostent.Length = 0 then
+         Ada.Exceptions.Raise_Exception
+           (Naming_Error'Identity, "No name for " & Something);
       end if;
-      To_Lower (Hostent.Name.all);
-      return Hostent.Name.all;
+      To_Lower (Hostent.Name);
+      return Hostent.Name;
    end Name_Of;
 
    -----------------
@@ -275,31 +282,14 @@ package body System.Garlic.Naming is
    function Parse_Entry (Host : Hostent)
      return Host_Entry
    is
-      C_Aliases : constant Thin.Chars_Ptr_Array    :=
-        Chars_Ptr_Pointers.Value (Host.H_Aliases);
-      C_Addr    : constant In_Addr_Access_Array :=
-                                    In_Addr_Access_Pointers.Value
-                                      (Host.H_Addr_List);
-      Result    : Host_Entry (N_Aliases     => C_Aliases'Length - 1,
-                              N_Addresses => C_Addr'Length - 1);
+      C_Addr : constant In_Addr_Access_Array
+        := In_Addr_Access_Pointers.Value (Host.H_Addr_List);
+
+      Name   : constant String := Value (Host.H_Name);
+      Result : Host_Entry (Name'Length);
    begin
-      Result.Name := new String'(Value (Host.H_Name));
-      for I in 1 .. Result.Aliases'Last loop
-         declare
-            Index   : Natural := I - 1 + Natural (C_Aliases'First);
-            Current : chars_ptr renames C_Aliases (size_t (Index));
-         begin
-            Result.Aliases (I) := new String'(Value (Current));
-         end;
-      end loop;
-      for I in Result.Addresses'Range loop
-         declare
-            Index   : Natural := I - 1 + Natural (C_Addr'First);
-            Current : In_Addr_Access renames C_Addr (Index);
-         begin
-            Result.Addresses (I) := To_Address (Current.all);
-         end;
-      end loop;
+      Result.Name := Name;
+      Result.Addr := To_Address (C_Addr (C_Addr'First).all);
       return Result;
    end Parse_Entry;
 
@@ -332,8 +322,8 @@ package body System.Garlic.Naming is
       end Error_Message;
 
    begin
-      Ada.Exceptions.Raise_Exception (Naming_Error'Identity,
-                                      Error_Message & ": " & Message);
+      Ada.Exceptions.Raise_Exception
+        (Naming_Error'Identity, Error_Message & ": " & Message);
    end Raise_Naming_Error;
 
    ----------------
@@ -367,8 +357,8 @@ package body System.Garlic.Naming is
    function Value (Add : String) return Address
    is
       function Convert is
-         new Unchecked_Conversion (Source => Interfaces.Unsigned_32,
-                                   Target => In_Addr);
+         new Ada.Unchecked_Conversion (Source => Interfaces.Unsigned_32,
+                                       Target => In_Addr);
       Converted : constant In_Addr := Convert (C_Inet_Addr (To_C (Add)));
    begin
       return (H1 => Address_Component (Converted.S_B1),
