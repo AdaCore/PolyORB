@@ -77,7 +77,6 @@ package body PolyORB.Utils.Dynamic_Tables is
    procedure Deallocate (T : in out Instance) is
    begin
       Free_Table (T.Table);
-      T.Table := null;
       T.P.Length := 0;
    end Deallocate;
 
@@ -129,7 +128,6 @@ package body PolyORB.Utils.Dynamic_Tables is
       T.P.Last_Val := Table_First - 1;
       T.P.Max      := Table_First + Table_Initial - 1;
       T.P.Length   := T.P.Max - Table_First + 1;
-
 
       if Old_Length = T.P.Length then
 
@@ -194,11 +192,6 @@ package body PolyORB.Utils.Dynamic_Tables is
          T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
          Free_Table (Old_Table);
       end if;
-
-      if T.P.Length /= 0 and then T.Table = null then
-         raise Storage_Error;
-      end if;
-
    end Reallocate;
 
    -------------
