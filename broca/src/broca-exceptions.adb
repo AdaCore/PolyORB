@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -280,26 +280,6 @@ package body Broca.Exceptions is
          raise Program_Error;
       end if;
    end Occurrence_To_Name;
-
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
-
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Excpt  : in CORBA.Exception_Occurrence)
---     is
---        use Broca.CDR;
---     begin
---        --  Exception id
---        Compute_New_Size (Buffer, CORBA.String (Occurrence_To_Name (Excpt)));
---
---        --  Minor
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Completion status
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---     end Compute_New_Size;
 
    --------------
    -- Marshall --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.13 $
+--                            $Revision: 1.14 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -133,17 +133,6 @@ package body Broca.Refs is
       end if;
    end Finalize;
 
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
-
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Value  : in Ref_Type) is
---     begin
---        Broca.Exceptions.Raise_Marshal;
---     end Compute_New_Size;
-
    --------------
    -- Marshall --
    --------------
@@ -165,20 +154,6 @@ package body Broca.Refs is
    begin
       raise Program_Error;
    end Unmarshall;
-
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
-
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Value  : in Ref) is
---     begin
---        if Value.A_Ref = null then
---           Broca.Exceptions.Raise_Marshal;
---        end if;
---        Compute_New_Size (Buffer, Value.A_Ref.all);
---     end Compute_New_Size;
 
    --------------
    -- Marshall --

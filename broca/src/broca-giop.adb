@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -116,17 +116,6 @@ package body Broca.GIOP is
          1 => Object_Here,
          2 => Object_Forward);
 
-   ------------------------------
-   -- Compute_GIOP_Header_Size --
-   ------------------------------
-
---     procedure Compute_GIOP_Header_Size
---       (Buffer : access Buffer_Type) is
---     begin
---        Allocate_Buffer_And_Clear_Pos (Buffer, 0);
---        Compute_New_Size (Buffer, O_Size, Message_Header_Size);
---     end Compute_GIOP_Header_Size;
-
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
@@ -138,12 +127,12 @@ package body Broca.GIOP is
       use Broca.CDR;
       Message_Size : Index_Type;
    begin
-      --  XXX THIS IS NOT CORRECT!!!!!!!!!!
-      raise Program_Error;
+      --  FIXME
+      --  This is a place-holder for an old syntax
+      --  of Marshall_GIOP_Header that must not be used
+      --  anymore.
 
-      Marshall_GIOP_Header (Buffer,
-                            Message_Type,
-                            Length (Buffer));
+      raise Program_Error;
    end Marshall_GIOP_Header;
 
    procedure Marshall_GIOP_Header
@@ -203,8 +192,11 @@ package body Broca.GIOP is
          return;
       end if;
 
-      --  XXX Check that. FIXME
+      --  FIXME
       --  2000-02-14 Thomas.
+      --  Check that we adopt the correct behaviour when
+      --  the GIOP version in the message is different
+      --  from our own.
       Message_Major_Version := Unmarshall (Buffer);
       Message_Minor_Version := Unmarshall (Buffer);
       if not (Message_Major_Version =  Major_Version)
@@ -227,30 +219,6 @@ package body Broca.GIOP is
 
       Success := True;
    end Unmarshall_GIOP_Header;
-
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
-
---     procedure Compute_New_Size
---       (Buffer     : access Buffer_Type;
---        Request_Id : in CORBA.Unsigned_Long;
---        Occurence  : in CORBA.Exception_Occurrence)
---     is
---        use Broca.CDR;
---     begin
---        --  Service context
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Request id
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Reply status
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Exception
---        Broca.Exceptions.Compute_New_Size (Buffer, Occurence);
---     end Compute_New_Size;
 
    --------------
    -- Marshall --
@@ -276,31 +244,6 @@ package body Broca.GIOP is
       Broca.Exceptions.Marshall (Buffer, Occurence);
    end Marshall;
 
-   ----------------------
-   -- Compute_New_Size --
-   ----------------------
-
---     procedure Compute_New_Size
---       (Buffer     : access Buffer_Type;
---        Request_Id : in CORBA.Unsigned_Long;
---        Reference  : in CORBA.Object.Ref)
---     is
---        use Broca.CDR;
---     begin
---        --  Service context
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Request id
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  Reply status
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---
---        --  IOR
---        Broca.Refs.Compute_New_Size
---          (Buffer, Broca.Refs.Ref (Reference));
---     end Compute_New_Size;
-
    --------------
    -- Marshall --
    --------------
@@ -325,52 +268,6 @@ package body Broca.GIOP is
       Broca.Refs.Marshall
         (Buffer, Broca.Refs.Ref (Reference));
    end Marshall;
-
-   -----------------------
-   -- Send_Request_Size --
-   -----------------------
-
---     procedure Send_Request_Size
---       (Handler   : in out Request_Handler;
---        Target    : in Object.Object_Ptr;
---        Operation : in CORBA.Identifier)
---     is
---        use Broca.CDR;
---     begin
---        if Handler.Nbr_Tries > Broca.Flags.Max_Tries then
---           Broca.Exceptions.Raise_Inv_Objref;
---        else
---           Handler.Nbr_Tries := Handler.Nbr_Tries + 1;
---        end if;
---
---        --  1. Send a GIOP message.
---        Handler.Profile := Object.Find_Profile (Target);
---        Handler.Connection := IOP.Find_Connection (Handler.Profile);
---
---        Compute_GIOP_Header_Size (Handler.Buffer'Access);
---
---        --  Service context
---        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
---
---        --  Request id
---        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
---
---        --  Response expected + Reserved
---        Compute_New_Size (Handler.Buffer'Access, UL_Size, UL_Size);
---
---        Compute_New_Size
---          (Buffer       => Handler.Buffer'Access,
---           Length_Size  => UL_Size,
---           Element_Size => 1,
---           Array_Length => Broca.Sequences.Octet_Sequences.Length
---           (IOP.Get_Object_Key (Handler.Profile.all)));
---
---        --  Operation
---        Compute_New_Size (Handler.Buffer'Access, CORBA.String (Operation));
---
---        --  Principal - See 13.3.4: encoded as sequence <octet>
---        Compute_New_Size (Handler.Buffer'Access, Nobody_Principal);
---     end Send_Request_Size;
 
    ---------------------------
    -- Send_Request_Marshall --
@@ -513,9 +410,6 @@ package body Broca.GIOP is
          IOP.Release_Connection (Handler.Connection);
 
          --  Service context
-         --  XXX remove
-         --  XXX Read (Handler.Buffer'Access, Nothing);
-         --  XXX Skip_Bytes (Handler.Buffer'Access, Message_Header_Size);
          Service_Context := Unmarshall (Message_Body_Buffer'Access);
          if Service_Context /= No_Context then
             pragma Debug (O ("Send_Request_Send : incorrect context"
@@ -574,27 +468,6 @@ package body Broca.GIOP is
       end;
 
    end Send_Request_Send;
-
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Value  : in MsgType) is
---     begin
---        Compute_New_Size (Buffer, O_Size, O_Size);
---     end Compute_New_Size;
---
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Value  : in ReplyStatusType) is
---     begin
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---     end Compute_New_Size;
---
---     procedure Compute_New_Size
---       (Buffer : access Buffer_Type;
---        Value  : in LocateStatusType) is
---     begin
---        Compute_New_Size (Buffer, UL_Size, UL_Size);
---     end Compute_New_Size;
 
    procedure Marshall
      (Buffer : access Buffer_Type;

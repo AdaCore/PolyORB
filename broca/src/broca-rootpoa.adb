@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.21 $
+--                            $Revision: 1.22 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -617,13 +617,6 @@ package body Broca.Rootpoa is
       Broca.Sequences.Marshall (Buf, Broca.Sequences.Octet_Sequence (Oid));
    end Marshall_Objectid;
 
-   --     procedure Marshall_Size_Objectid
-   --       (Buf : access Buffer_Type; Oid : ObjectId) is
-   --     begin
-   --        Broca.Sequences.Compute_New_Size
-   --          (Buf, Broca.Sequences.Octet_Sequence (Oid));
-   --     end Marshall_Size_Objectid;
-
    procedure Unmarshall_Objectid (Buf : access Buffer_Type;
                                   Oid : out ObjectId)
    is
@@ -641,15 +634,6 @@ package body Broca.Rootpoa is
       use Broca.CDR;
 
    begin
-      --        if Self.Lifespan_Policy = PERSISTENT then
-      --           Allocate_Buffer_And_Clear_Pos
-      --             (Res, 4 + 4 + 4 +
-      --              Buffer_Index_Type
-      --              (Length (Self.Object_Map (Slot).Skeleton.Object_Id)));
-      --        else
-      --           Allocate_Buffer_And_Clear_Pos  (Res, 4 + 4);
-      --        end if;
-
       if Self.Lifespan_Policy = PERSISTENT then
          Marshall (Buffer, Broca.Flags.Boot_Time);
       end if;
@@ -705,9 +689,6 @@ package body Broca.Rootpoa is
       use Broca.CDR;
 
    begin
-      --  Marshall_Size_Objectid (Res, Oid);
-      --  Allocate_Buffer (Res);
-
       Marshall_Objectid (Buffer, Oid);
    end Build_Key_For_ObjectId;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -51,11 +51,6 @@ package Broca.Refs is
    --  Must be called just after creation, when Counter is -1
    --  (otherwise, CORBA.internal is raised).
 
-   --  XXX
-   --  procedure Compute_New_Size
-   --    (Buffer : access Broca.Buffers.Buffer_Type;
-   --     Value  : in Ref_Type);
-
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Ref_Type);
@@ -82,11 +77,6 @@ package Broca.Refs is
    procedure Set (Self : in out Ref; Referenced : Ref_Ptr);
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
-
-   --  XXX
-   --  procedure Compute_New_Size
-   --    (Buffer : access Broca.Buffers.Buffer_Type;
-   --     Value  : in Ref);
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;

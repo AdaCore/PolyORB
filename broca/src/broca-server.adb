@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.28 $
+--                            $Revision: 1.29 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -206,12 +206,6 @@ package body Broca.Server is
       else
          Marshall_POA_Lineage (Buffer, POA.Parent, Num + 1);
          Marshall (Buffer, POA.Name);
-
-         --  ????
-         --  if Num = 0 then
-         --     Align_Size (Buffer, 4);
-         --  end if;
-         --  XXX ???
       end if;
    end Marshall_POA_Lineage;
 
@@ -219,7 +213,6 @@ package body Broca.Server is
      (Buffer : access Buffer_Type;
       POA : Broca.POA.POA_Object_Ptr)
    is
-      --  use Broca.Marshalling;
       use Broca.CDR;
       use PortableServer;
    begin
@@ -318,9 +311,6 @@ package body Broca.Server is
          if Path_Size = 0 then
             --  Its was an objectId for a transient POA.
             POA := null;
-            --  XXX ???
-            --  Thomas 2000-02-14
-            --  Skip_Bytes (Buffer, Length - (Size - Size_Left (Buffer)));
             Broca.POA.All_POAs_Lock.Unlock_R;
 
             return;
@@ -336,9 +326,6 @@ package body Broca.Server is
             if Tmp_POA_State /= Active then
                POA := Current_POA;
                POA_State := Tmp_POA_State;
-               --  XXX ???
-               --  Thomas 2000-02-14
-               --  Allocate_Buffer_And_Clear_Pos (Buffer, 0);
                return;
             end if;
             Dec_Usage (Get_The_POAManager (Current_POA).all);
@@ -347,9 +334,9 @@ package body Broca.Server is
             Current_POA := Broca.POA.Find_POA (Current_POA, POA_Name, True);
             if Current_POA = null then
                Old_POA.Link_Lock.Unlock_R;
-               --  XXX Set_Endianess (Buffer, Endianess);
                Broca.Exceptions.Raise_Object_Not_Exist;
-               --  Dummy return, because never reached.
+
+               --  Dummy return, never reached.
                return;
             end if;
             Current_POA.Link_Lock.Lock_R;
@@ -365,15 +352,18 @@ package body Broca.Server is
 
    end Unmarshall_POA;
 
-   --  XXX OLD CODE THAT WAS AT END OF UNMARSHALL_ONBJECT_KEY:
+   --  FIXME
+   --  OLD CODE THAT WAS AT END OF UNMARSHALL_ONBJECT_KE
 
-      --  Length of the key:
-      --   declare
-      --    Result_Key : constant Encapsulation
-      --    := Unmarshall (Buffer);
-      --   begin
-      --    Key := Result_Key;
-      --   end;
+   --  Length of the key:
+   --   declare
+   --    Result_Key : constant Encapsulation
+   --    := Unmarshall (Buffer);
+   --   begin
+   --    Key := Result_Key;
+   --   end;
+
+   --  (for documentation purpose.)
 
    --------------------------------------------------------------------------
 
@@ -634,13 +624,7 @@ package body Broca.Server is
       type Wait_Server_Type is new Server_Type with null record;
 
       procedure Perform_Work
-        (Server : access Wait_Server_Type;
-         Buffer_NOT_USED : access Buffer_Type);
-
-      --  procedure Marshall_Size_Profile
-      --    (Server : access Wait_Server_Type;
-      --     IOR    : access Buffer_Type;
-      --     Object_Key : access Buffer_Type);
+        (Server : access Wait_Server_Type);
 
       function Can_Create_Profile
         (Server : access Wait_Server_Type)
@@ -652,8 +636,7 @@ package body Broca.Server is
          Object_Key : Encapsulation);
 
       procedure Perform_Work
-        (Server : access Wait_Server_Type;
-         Buffer_NOT_USED : access Buffer_Type)
+        (Server : access Wait_Server_Type)
       is
          use Broca.POA;
          Stream : Broca.Stream.Stream_Ptr;
@@ -671,14 +654,6 @@ package body Broca.Server is
             Release (Buffer);
          end if;
       end Perform_Work;
-
---        procedure Marshall_Size_Profile
---          (Server : access Wait_Server_Type;
---           IOR    : access Buffer_Type;
---           Object_Key : access Buffer_Type) is
---        begin
---           return;
---        end Marshall_Size_Profile;
 
       function Can_Create_Profile
         (Server : access Wait_Server_Type)
@@ -779,7 +754,6 @@ package body Broca.Server is
    procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
                              Buffer : access Buffer_Type) is
       use Broca.POA;
-      --  use Broca.Marshalling;
       use Broca.CDR;
       use Broca.Stream;
       Context    : CORBA.Unsigned_Long;
@@ -871,8 +845,6 @@ package body Broca.Server is
 
                exception
                   when E : CORBA.Object_Not_Exist =>
-                     --  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
-                     --  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
 
                      begin
                         Broca.GIOP.Marshall
@@ -891,16 +863,16 @@ package body Broca.Server is
                         FRM : PortableServer.ForwardRequest_Members;
                      begin
                         PortableServer.Get_Members (E, FRM);
-                        --  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
-                        --  Broca.GIOP.Compute_New_Size
-                        --    (Buffer, Request_Id, FRM.Forward_Reference);
                         Broca.GIOP.Marshall
                           (Reply_Buffer'Access,
                            Request_Id, FRM.Forward_Reference);
 
+                        --  XXX This behaviour (prepend GIOP header)
+                        --  should be encapsulated.
                         Broca.GIOP.Marshall_GIOP_Header
                           (Header_Buffer'Access, Broca.GIOP.Reply,
                            Length (Reply_Buffer'Access));
+                        Prepend (Header_Buffer, Reply_Buffer'Access);
                      end;
                end;
 
@@ -911,8 +883,6 @@ package body Broca.Server is
                Unlock_Send (Stream);
 
             when Discarding =>
-               --  XXX
-               --  Key := Unmarshall (Buffer);
 
                POA.Link_Lock.Unlock_R;
                Log ("discard request");
@@ -923,24 +893,20 @@ package body Broca.Server is
                   Broca.Exceptions.Raise_Transient;
                exception
                   when E : CORBA.Transient =>
-                     --  XXX This is incorrect, see correct version
-                     --  above (prepend GIOP header stuff).
+                     Broca.GIOP.Marshall (Reply_Buffer'Access, Request_Id, E);
 
-                     raise Program_Error;
-
-                     --  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
-                     --  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
+                     --  XXX This behaviour (prepend GIOP header)
+                     --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
-                       (Buffer, Broca.GIOP.Reply);
-                     Broca.GIOP.Marshall (Buffer, Request_Id, E);
+                       (Header_Buffer'Access, Broca.GIOP.Reply,
+                        Length (Reply_Buffer'Access));
+                     Prepend (Header_Buffer, Reply_Buffer'Access);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
                Unlock_Send (Stream);
 
             when Holding =>
-               --  XXX
-               --  Key := Unmarshall (Buffer);
 
                POA.Link_Lock.Unlock_R;
                Log ("queue request");
@@ -949,8 +915,6 @@ package body Broca.Server is
                Queues.Hold_Queue.Append (Stream, Copy (Buffer), POA);
 
             when Inactive =>
-               --  XXX
-               --  Key := Unmarshall (Buffer);
 
                POA.Link_Lock.Unlock_R;
                Log ("rejected request");
@@ -961,15 +925,16 @@ package body Broca.Server is
                   Broca.Exceptions.Raise_Obj_Adapter;
                exception
                   when E : CORBA.Obj_Adapter =>
-                     --  XXX This is incorrect. See correct version
-                     --  above.
-                     raise Program_Error;
-                     --  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
-                     --  Broca.GIOP.Compute_New_Size (Buffer, Request_Id, E);
-                     Broca.GIOP.Marshall_GIOP_Header
-                       (Buffer, Broca.GIOP.Reply);
+
                      Broca.GIOP.Marshall
-                       (Buffer, Request_Id, E);
+                       (Reply_Buffer'Access, Request_Id, E);
+
+                     --  XXX This behaviour (prepend GIOP header)
+                     --  should be encapsulated.
+                     Broca.GIOP.Marshall_GIOP_Header
+                       (Header_Buffer'Access, Broca.GIOP.Reply,
+                        Length (Reply_Buffer'Access));
+                     Prepend (Header_Buffer, Reply_Buffer'Access);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
@@ -991,7 +956,6 @@ package body Broca.Server is
       Buffer : access Buffer_Type)
    is
       use Broca.POA;
-      --  use Broca.Marshalling;
       use Broca.CDR;
       use Broca.GIOP;
       use Broca.Stream;
@@ -1000,8 +964,6 @@ package body Broca.Server is
       Message_Endianness : Endianness_Type;
       Request_Id : CORBA.Unsigned_Long;
       POA : Broca.POA.POA_Object_Ptr;
-      --  POA_State : Broca.POA.Processing_State_Type;
-      --  Key : Encapsulation;
       Header_Correct : Boolean;
 
    begin
@@ -1057,29 +1019,16 @@ package body Broca.Server is
             when Broca.GIOP.Locate_Request =>
                Log ("handle locate_request message");
 
-               --  request id
+               --  Request Id
                Request_Id := Unmarshall
                  (Message_Body_Buffer'Access);
 
                --  Object key
-               --  XXX Purpose of these lines ?????
-               --  2000-02-14 Thomas
---                 declare
---                    Object_Key : aliased Buffer_Type
---                      := Decapsulate
---                        (Unmarshall (Message_Body_Buffer'Access));
---                 begin
---                    Unmarshall_POA (Object_Key'Access, POA, POA_State);
---                    Key := Unmarshall (Object_Key'Access);
---                    Release (Object_Key);
---                 end;
-
                POA.Link_Lock.Unlock_R;
 
-               --  FIXME.
-               --  Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
-               --  Compute_New_Size (Buffer, Request_Id);
-               --  Compute_New_Size (Buffer, Broca.GIOP.Object_Here);
+               --  FIXME
+               --  There may be a problem here, ask Tristan.
+               --    -- Thomas, 2000-02-22.
                Broca.GIOP.Marshall_GIOP_Header
                  (Buffer, Broca.GIOP.Locate_Reply);
 
@@ -1125,19 +1074,11 @@ package body Broca.Server is
    begin
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
-      --  FIXME: catch exceptions.
+
+      --  FIXME: Catch exceptions.
       POA.Link_Lock.Lock_R;
 
       --  Create Object_Key.
-      --  XXX  Compute_New_Size (Object_Key, UL_Size, UL_Size);
-      --  XXX  Compute_New_Size (Object_Key, POA);
-      --  XXX  Compute_New_Size (Object_Key, Key);
-
-      --  Length := CORBA.Unsigned_Long
-      --    (Full_Size (Object_Key) - UL_Size);
-
-      --  Allocate_Buffer (Object_Key);
-      --  Marshall (Object_Key, Length);
 
       --  In Broca, an object_key is an Encapsulation
       --  that contains a POA reference and an object

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.18 $
+--                            $Revision: 1.19 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -81,7 +81,7 @@ package body Broca.Inet_Server is
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
-   procedure Wait_Fd_Request (Buffer_NOT_USED : access Buffer_Type);
+   procedure Wait_Fd_Request;
 
    --  Convert an IN_ADDR to the decimal string representation.
    function In_Addr_To_Str (Addr : Sockets.Thin.In_Addr) return String;
@@ -463,8 +463,7 @@ package body Broca.Inet_Server is
 
    --  Calling this function will cause the BOA to start accepting requests
    --  from other address spaces.
-   procedure Wait_Fd_Request (Buffer_NOT_USED : access Buffer_Type)
-   is
+   procedure Wait_Fd_Request is
       use Interfaces.C;
       use Sockets.Constants;
 
@@ -608,8 +607,7 @@ package body Broca.Inet_Server is
      new Broca.Server.Server_Type with null record;
 
    procedure Perform_Work
-     (Server : access Fd_Server_Type;
-      Buffer : access Buffer_Type);
+     (Server : access Fd_Server_Type);
 
    function Can_Create_Profile
      (Server : access Fd_Server_Type)
@@ -620,10 +618,9 @@ package body Broca.Inet_Server is
       IOR        : access Buffer_Type;
       Object_Key : Encapsulation);
 
-   procedure Perform_Work (Server : access Fd_Server_Type;
-                           Buffer : access Buffer_Type) is
+   procedure Perform_Work (Server : access Fd_Server_Type) is
    begin
-      Wait_Fd_Request (Buffer);
+      Wait_Fd_Request;
    end Perform_Work;
 
    --------------------------------

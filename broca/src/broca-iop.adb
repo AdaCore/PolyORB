@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -75,13 +75,7 @@ package body Broca.IOP is
          declare
             Profile    : constant Profile_Tag
               := Unmarshall (Buffer);
-            --  Profile_Length : constant CORBA.Unsigned_Long
-            --    := Unmarshall (Buffer);
          begin
-            --  XXX Check that Decapsulate expects
-            --  to find the length of the profile body
-            --  as first thing in Buffer (ie right
-            --  after the just-unmarshalled Tag).
             Callbacks (Profile).Decapsulate
               (Buffer, Profiles (N));
          end;
@@ -94,57 +88,17 @@ package body Broca.IOP is
 
    procedure Encapsulate_IOR
      (Buffer   : access Buffer_Type;
-      --  From     : in Buffers.Buffer_Index_Type;
       Type_Id  : in CORBA.String;
-      Profiles : in Profile_Ptr_Array_Ptr)
-   is
-      --  Buffers  : array (Profiles'Range) of Buffer_Descriptor;
-      --  Offsets  : array (Profiles'Range) of Buffer_Index_Type;
-      --  Profile_Lengths : array (Profiles'Range) of CORBA.Long;
+      Profiles : in Profile_Ptr_Array_Ptr) is
    begin
---        Rewind              (Buffer);
---        Skip_Bytes          (Buffer, From);
---        Compute_New_Size    (Buffer, Type_Id);
---
---        --  Number of profiles
---        Compute_New_Size    (Buffer, UL_Size, UL_Size);
---
---        for N in Profiles'Range loop
---           --  Tag of profile
---           Compute_New_Size    (Buffer, UL_Size, UL_Size);
---
---           --  Length of profile
---           Compute_New_Size    (Buffer, UL_Size, UL_Size);
---
---           Offsets (N) := Size_Used (Buffer);
---
---           --  Skip space for profile
---           Profile_Lengths (N) :=
---             CORBA.Long (Full_Size (Buffers (N)) - Offsets (N));
---
---           Skip_Bytes (Buffer, Buffer_Index_Type (Profile_Lengths (N)));
---        end loop;
---
---        Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
---
---        Skip_Bytes          (Buffer, From);
 
       Marshall (Buffer, Type_Id);
       Marshall (Buffer, CORBA.Unsigned_Long (Profiles'Length));
 
       for N in Profiles'Range loop
---           Rewind        (Buffers (N));
---           Skip_Bytes    (Buffers (N), Offsets (N));
---           pragma Debug (O ("Dump Buffers (N)"));
---           pragma Debug (Show (Buffers (N)));
-
          Marshall (Buffer, Get_Profile_Tag (Profiles (N).all));
          Callbacks (Get_Profile_Tag (Profiles (N).all)).Encapsulate
            (Buffer, Profiles (N));
-
---           Skip_Bytes    (Buffer, Offsets (N) - Size_Used (Buffer));
---           Append_Buffer (Buffer, Buffers (N));
---           Destroy       (Buffers (N));
       end loop;
    end Encapsulate_IOR;
 

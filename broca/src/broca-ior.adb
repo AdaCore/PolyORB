@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -98,8 +98,6 @@ package body Broca.IOR is
                Index := Index + 1;
             end if;
          end loop;
-         --  Allocate_Buffer_And_Clear_Pos (Buffer, Bytes'Last + 1);
-         --  Write (Buffer, Bytes);
       end;
       return Bytes;
    end IOR_String_To_Octets;

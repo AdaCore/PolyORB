@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.13 $
+--                            $Revision: 1.14 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -46,10 +46,6 @@ package Broca.Object is
          Profiles : IOP.Profile_Ptr_Array_Ptr;
       end record;
 
-   --  procedure Compute_New_Size
-   --  (Buffer : access Broca.Buffers.Buffer_Type;
-   --    Value  : in Broca.Object.Object_Type);
-
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Broca.Object.Object_Type);
@@ -67,7 +63,6 @@ package Broca.Object is
 
    procedure Encapsulate_IOR
      (Buffer : access Broca.Buffers.Buffer_Type;
-      --  From   : in Opaque.Index_Type;
       Object : in Object_Type'Class);
 
    procedure Decapsulate_IOR

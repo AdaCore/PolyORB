@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.11 $
+--                            $Revision: 1.12 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -71,31 +71,6 @@ package Broca.GIOP is
    Message_Header_Size : constant := 12;
 
    No_Context : constant CORBA.Unsigned_Long := 0;
-
---     procedure Compute_GIOP_Header_Size
---       (Buffer : access Buffers.Buffer_Type);
---
---     procedure Compute_New_Size
---       (Buffer : access Buffers.Buffer_Type;
---        Value  : in MsgType);
---
---     procedure Compute_New_Size
---       (Buffer : access Buffers.Buffer_Type;
---        Value  : in ReplyStatusType);
---
---     procedure Compute_New_Size
---       (Buffer : access Buffers.Buffer_Type;
---        Value  : in LocateStatusType);
---
---     procedure Compute_New_Size
---       (Buffer     : access Buffers.Buffer_Type;
---        Request_Id : in CORBA.Unsigned_Long;
---        Occurence  : in CORBA.Exception_Occurrence);
---
---     procedure Compute_New_Size
---       (Buffer     : access Buffers.Buffer_Type;
---        Request_Id : in CORBA.Unsigned_Long;
---        Reference  : in CORBA.Object.Ref);
 
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffers.Buffer_Type;

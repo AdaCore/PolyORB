@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -118,7 +118,7 @@ package Broca.POA is
 
    type Internal_Skeleton_Ptr is access all Internal_Skeleton;
 
-   --  Can raise bad_param.
+   --  Can raise Bad_Param.
    function To_Internal_Skeleton (Ref : CORBA.Object.Ref'Class)
                                   return Internal_Skeleton_Ptr;
 
@@ -147,17 +147,13 @@ package Broca.POA is
            PortableServer.ObjectId (Broca.Sequences.Null_Sequence);
       end record;
 
-   --  procedure Compute_New_Size
-   --    (Buffer : access Broca.Buffers.Buffer_Type;
-   --     Value  : in Skeleton);
-
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Skeleton);
 
    type Skeleton_Ptr is access all Skeleton;
 
-   --  Can raise bad_param.
+   --  Can raise Bad_Param.
    function To_Skeleton (Ref : CORBA.Object.Ref'Class)
                          return Skeleton_Ptr;
 

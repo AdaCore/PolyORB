@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -55,8 +55,7 @@ package Broca.Server is
    --  BUFFER can already have been allocated, as a result it can be reused,
    --  or freed and replaced.
    procedure Perform_Work
-     (Server : access Server_Type;
-      Buffer : access Broca.Buffers.Buffer_Type)
+     (Server : access Server_Type)
       is abstract;
 
    --  During the building of an IOR, this procedure is called to know the
