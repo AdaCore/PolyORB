@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -527,12 +527,14 @@ package body MOMA.Types is
            ("MOMA:types/destination_type:1.0");
          Unknown_Name   : String := To_PolyORB_String ("Unknown");
          Pool_Name      : String := To_PolyORB_String ("Pool");
+         Router_Name    : String := To_PolyORB_String ("Router");
          Topic_Name     : String := To_PolyORB_String ("Topic");
       begin
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Name));
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Id));
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Unknown_Name));
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Pool_Name));
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Router_Name));
          TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Topic_Name));
       end;
 
