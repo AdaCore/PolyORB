@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#11 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#12 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -112,6 +112,8 @@ entitled ``GNU Free Documentation License''.
 * Overview of PolyORB personalities::
 * Building an application with PolyORB::
 * CORBA::
+* GIOP::
+* SOAP::
 * References::
 * GNU Free Documentation License::
 * Index::
@@ -1244,6 +1246,295 @@ in CORBA IDL specification.
 
 
 @end itemize
+@c -------------------------------------------------------------------
+@node GIOP
+@chapter GIOP
+@cindex GIOP
+@c -------------------------------------------------------------------
+
+@menu
+* Installing GIOP protocol personality::
+* GIOP Instances::
+* Configuring the GIOP personality::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Installing GIOP protocol personality
+@section Installing GIOP protocol personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with GIOP
+protocol personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To enable the configuration of the GIOP protocol personality,
+@pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node GIOP Instances
+@section GIOP Instances
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP is a generic protocol that can be instantiated for multiple
+transport stacks. PolyORB proposes three different instances.
+
+@menu
+* IIOP::
+* DIOP::
+* MIOP::
+@end menu
+
+@c -------------------------------------------------------------------
+@node IIOP
+@subsection IIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Internet Inter-ORB Protocol (IIOP) is the default protocol defined by
+the CORBA specifications. It is a TCP/IP, IPv4, based protocol that
+supports the full semantics of CORBA requests.
+
+@c -------------------------------------------------------------------
+@node DIOP
+@subsection DIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Datagram Inter-ORB Protocol (DIOP) is a specialization of GIOP for the
+UDP/IP protocol stack. It supports only asynchronous (@code{oneway})
+requests.
+
+
+@c -------------------------------------------------------------------
+@node MIOP
+@subsection MIOP
+@c -------------------------------------------------------------------
+
+@noindent
+Unreliable Multicast Inter-ORB Protocol (MIOP) @cite{[OMG02b]} is a
+specialization of GIOP for IP/multicast protocol stack. It supports
+only asynchronous (@code{oneway}) requests.
+
+@c -------------------------------------------------------------------
+@node Configuring the GIOP personality
+@section Configuring the GIOP personality
+@cindex Configuration, GIOP
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP personality is configured using a configuration
+file. See @ref{Using a configuration file} for more details.
+
+Here is a summary of available parameters for each instance of GIOP.
+
+@menu
+* IIOP Configuration Parameters::
+* DIOP Configuration Parameters::
+* MIOP Configuration Parameters::
+@end menu
+
+@i{parameter to set up endianess to be used for CDR ?}
+
+@c -------------------------------------------------------------------
+@node IIOP Configuration Parameters
+@subsection IIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+
+###############################################################################
+# IIOP parameters
+#
+
+[iiop]
+
+###############################################################
+# IIOP Global Settings
+
+# Preference level for IIOP
+#polyorb.binding_data.iiop.preference=0
+
+# IIOP's default port
+#polyorb.protocols.iiop.default_port=2809
+
+# Default GIOP/IIOP Version
+#polyorb.protocols.iiop.giop.default_version.major=1
+#polyorb.protocols.iiop.giop.default_version.minor=2
+
+###############################################################
+# IIOP 1.2 specific parameters
+
+# Set to True to enable IIOP 1.2
+#polyorb.protocols.iiop.giop.1.2.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.2.locate_then_request=true
+
+# Maximum message size before fragmenting request
+#polyorb.protocols.iiop.giop.1.2.max_message_size=1000
+
+###############################################################
+# IIOP 1.1 specific parameters
+
+# Set to True to enable IIOP 1.1
+#polyorb.protocols.iiop.giop.1.1.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.1.locate_then_request=true
+
+# Maximum message size before fragmenting request
+#polyorb.protocols.iiop.giop.1.1.max_message_size=1000
+
+###############################################################
+# IIOP 1.0 specific parameters
+
+# Set to True to enable IIOP 1.0
+#polyorb.protocols.iiop.giop.1.0.enable=true
+
+# Set to True to send a locate message prior to the request
+#polyorb.protocols.iiop.giop.1.0.locate_then_request=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node DIOP Configuration Parameters
+@subsection DIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+###############################################################
+# DIOP Global Settings
+
+# Preference level for DIOP
+#polyorb.binding_data.diop.preference=0
+
+# DIOP's default port
+#polyorb.protocols.diop.default_port=12345
+
+# Default GIOP/DIOP Version
+#polyorb.protocols.diop.giop.default_version.major=1
+#polyorb.protocols.diop.giop.default_version.minor=2
+
+###############################################################
+# DIOP 1.2 specific parameters
+
+# Set to True to enable DIOP 1.2
+#polyorb.protocols.diop.giop.1.2.enable=true
+
+# Maximum message size
+#polyorb.protocols.diop.giop.1.2.max_message_size=1000
+
+###############################################################
+# DIOP 1.1 specific parameters
+
+# Set to True to enable DIOP 1.1
+#polyorb.protocols.diop.giop.1.1.enable=true
+
+# Maximum message size
+#polyorb.protocols.diop.giop.1.1.max_message_size=1000
+
+###############################################################
+# DIOP 1.0 specific parameters
+
+# Set to True to enable DIOP 1.0
+#polyorb.protocols.diop.giop.1.0.enable=true
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node MIOP Configuration Parameters
+@subsection MIOP Configuration Parameters
+@c -------------------------------------------------------------------
+
+@c check consistency with polyorb.conf
+
+@smallexample
+###############################################################################
+# MIOP parameters
+#
+
+[miop]
+
+###############################################################
+# MIOP Global Settings
+
+# Preference level for MIOP
+#polyorb.binding_data.uipmc.preference=0
+
+# Maximum message size
+#polyorb.miop.max_message_size=6000
+
+# Time To Leave parameter
+#polyorb.miop.ttl=15
+
+# Multicast address to use
+#polyorb.miop.multicast_addr=239.239.239.18
+
+# Multicast port to use
+#polyorb.miop.multicast_port=5678
+
+# Set to True to enable MIOP
+#polyorb.protocols.miop.giop.1.2.enable=false
+
+# Maximum message size
+#polyorb.protocols.miop.giop.1.2.max_message_size=1000
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node SOAP
+@chapter SOAP
+@cindex SOAP
+@c -------------------------------------------------------------------
+
+@menu
+* Installing SOAP protocol personality::
+* Configuring the SOAP personality::
+@end menu
+
+@c -------------------------------------------------------------------
+@node Installing SOAP protocol personality
+@section Installing SOAP protocol personality
+@c -------------------------------------------------------------------
+
+@noindent
+Ensure PolyORB has been configured and then compiled with SOAP
+protocol personality. See @ref{Building an application with PolyORB}
+for more details on how to check installed personalities.
+
+To enable the configuration of the SOAP application personality,
+@pxref{Installation}.
+
+@c -------------------------------------------------------------------
+@node Configuring the SOAP personality
+@section Configuring the SOAP personality
+@c -------------------------------------------------------------------
+
+@noindent
+SOAP personality is configured using a configuration
+file. See @ref{Using a configuration file} for more details.
+
+Here is a summary of available parameters for each instance of SOAP.
+
+@smallexample
+###############################################################################
+# SOAP parameters
+#
+
+[soap]
+
+###############################################################
+# SOAP Global Settings
+
+# Preference level for SOAP
+#polyorb.binding_data.soap.preference=0
+
+# SOAP's default port
+#polyorb.protocols.soap.default_port=8080
+@end smallexample
 
 @c -------------------------------------------------------------------
 @node References
