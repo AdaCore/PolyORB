@@ -78,9 +78,6 @@ package body XE_Utils is
    Special_File_Flag     : constant String_Access := new String' ("-x");
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
-   Object_Suffix         : String_Access;
-   Executable_Suffix     : String_Access;
-
    Garlic           : constant String_Access := Get_GARLIC_Dir;
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
@@ -592,6 +589,10 @@ package body XE_Utils is
       Csets.Initialize;
       Namet.Initialize;
 
+      GNATLib_Compile_Flag := new String'("-gnatg");
+      Obj_Suffix           := Str_To_Id (Get_Object_Suffix.all);
+      Exe_Suffix           := Str_To_Id (Get_Executable_Suffix.all);
+
       Gcc             := Locate ("gcc");
       Mkdir           := Locate ("mkdir");
       Copy            := Locate ("cp");
@@ -601,13 +602,6 @@ package body XE_Utils is
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
-
-      GNATLib_Compile_Flag := new String'("-gnatg");
-      Object_Suffix        := Get_Object_Suffix;
-      Executable_Suffix    := Get_Executable_Suffix;
-
-      Obj_Suffix     := Str_To_Id (Object_Suffix.all);
-      Exe_Suffix     := Str_To_Id (Executable_Suffix.all);
 
       ALI_Suffix     := Str_To_Id (".ali");
       ADS_Suffix     := Str_To_Id (".ads");
@@ -796,14 +790,23 @@ package body XE_Utils is
      (Exec_Name  : String;
       Show_Error : Boolean := True)
      return String_Access is
-      Prog : String_Access;
+      Loc : String_Access;
    begin
-      Prog := Locate_Regular_File (Exec_Name, Path.all);
-      if Prog = null and then Show_Error then
-         Message ("", No_Name, Exec_Name, No_Name, " is not in your path");
-         raise Fatal_Error;
+      Name_Len := Exec_Name'Length;
+      Name_Buffer (1 .. Name_Len) := Exec_Name;
+      if Exe_Suffix /= No_Name then
+         Get_Name_String_And_Append (Exe_Suffix);
       end if;
-      return Prog;
+      declare
+         Exe : constant String := Name_Buffer (1 .. Name_Len);
+      begin
+         Loc := Locate_Regular_File (Exe, Path.all);
+         if Loc = null and then Show_Error then
+            Message (Exe, No_Name, " is not in your path");
+            raise Fatal_Error;
+         end if;
+      end;
+      return Loc;
    end Locate;
 
    -------------
