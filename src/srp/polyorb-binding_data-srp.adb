@@ -88,6 +88,8 @@ package body PolyORB.Binding_Data.SRP is
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
       Create (Socket_Endpoint (TE.all), S);
+      Set_Allocation_Class (TE.all, Dynamic);
+
       --  Create (P'Access, Filters.Filter_Access (Session));
 
       Binding_Objects.Setup_Binding_Object
