@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#28 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#29 $
 
 with Ada.Exceptions;
 
@@ -358,8 +358,8 @@ package body PortableServer.POA is
         := To_POA (Self);
 
       POA_Ref : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Find_POA (POA,
-                                 PolyORB.Types.String (Adapter_Name));
+        := PolyORB.POA.Find_POA
+        (POA, CORBA.To_Standard_String (Adapter_Name));
 
       Res : Ref
         := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (POA_Ref));

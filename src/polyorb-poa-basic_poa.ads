@@ -67,7 +67,7 @@ package PolyORB.POA.Basic_POA is
 
    function Find_POA
      (Self : access Basic_Obj_Adapter;
-      Name :        Types.String)
+      Name :        String)
      return Obj_Adapter_Access;
 
    procedure Destroy

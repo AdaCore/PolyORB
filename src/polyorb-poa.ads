@@ -139,7 +139,7 @@ package PolyORB.POA is
 
    function Find_POA
      (Self : access Obj_Adapter;
-      Name :        Types.String)
+      Name :        String)
      return Obj_Adapter_Access
       is abstract;
    --  Starting from given POA, looks for the POA in all the descendancy whose

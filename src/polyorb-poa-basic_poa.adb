@@ -49,6 +49,7 @@ with PolyORB.POA_Types;
 with PolyORB.References.IOR;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils;
 
 package body PolyORB.POA.Basic_POA is
 
@@ -64,7 +65,7 @@ package body PolyORB.POA.Basic_POA is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   POA_Path_Separator : constant String := "/";
+   POA_Path_Separator : constant Character := '/';
 
    --------------------------------------------------------
    -- Declaration of additional procedures and functions --
@@ -482,7 +483,7 @@ package body PolyORB.POA.Basic_POA is
 
       --  Validity checks on Adapter_Name
       if Adapter_Name = ""
-        or else Index (Adapter_Name, POA_Path_Separator) /= 0
+        or else Index (Adapter_Name, (1 => POA_Path_Separator)) /= 0
       then
          raise POA.Invalid_Name;
       end if;
@@ -546,7 +547,7 @@ package body PolyORB.POA.Basic_POA is
       --  Construct POA Absolute name.
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_PolyORB_String (POA_Path_Separator) & Adapter_Name;
+           & To_PolyORB_String ((1 => POA_Path_Separator)) & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
@@ -789,40 +790,31 @@ package body PolyORB.POA.Basic_POA is
 
    function Find_POA
      (Self : access Basic_Obj_Adapter;
-      Name : Types.String)
+      Name : String)
      return Obj_Adapter_Access
    is
       use PolyORB.POA_Types.POA_HTables;
 
-      Split_Point      : constant Natural := Index (Name, POA_Path_Separator);
+      Split_Point      : constant Integer
+        := PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
 
-      Remaining_Name   : Types.String;
-      A_Child_Name     : Types.String;
       A_Child          : Obj_Adapter_Access;
    begin
-      pragma Debug (O ("Find_POA: enter, Name = "
-                       & To_Standard_String (Name)));
+      pragma Debug (O ("Find_POA: enter, Name = " & Name));
 
-      if Name = "" then
+      if Name'Length = 0 then
          return Obj_Adapter_Access (Self);
       end if;
 
-      pragma Assert (Split_Point /= 1);
-      if Split_Point = 0 then
-         A_Child_Name := Name;
-      else
-         A_Child_Name := Head (Name, Split_Point - 1);
-         Remaining_Name := Tail (Name, Length (Name) - Split_Point);
-      end if;
-
+      pragma Assert (Split_Point /= Name'First);
       A_Child := PolyORB.POA.Obj_Adapter_Access
-        (Lookup (Self.Children.all, To_Standard_String (Name), null));
+        (Lookup (Self.Children.all,
+                 Name (Name'First .. Split_Point - 1), null));
 
-      if A_Child /= null
-        and then A_Child.Name = A_Child_Name then
+      if A_Child /= null then
          return Find_POA
            (Basic_Obj_Adapter (A_Child.all)'Access,
-            Remaining_Name);
+            Name (Split_Point + 1 .. Name'Last));
       end if;
 
       return null;
@@ -1085,7 +1077,8 @@ package body PolyORB.POA.Basic_POA is
    is
       U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
       The_OA : constant Basic_Obj_Adapter_Access
-        := Basic_Obj_Adapter_Access (Find_POA (OA, U_Oid.Creator));
+        := Basic_Obj_Adapter_Access
+        (Find_POA (OA, To_Standard_String (U_Oid.Creator)));
 
       S      : Servants.Servant_Access;
    begin
@@ -1187,7 +1180,8 @@ package body PolyORB.POA.Basic_POA is
       U_Oid : constant Unmarshalled_Oid
         := Oid_To_U_Oid (Oid);
       Id_OA : constant Basic_Obj_Adapter_Access
-        := Basic_Obj_Adapter_Access (Find_POA (OA, U_Oid.Creator));
+        := Basic_Obj_Adapter_Access
+        (Find_POA (OA, To_Standard_String (U_Oid.Creator)));
    begin
       return OA.Proxies_OA /= null
         and then Id_OA = OA.Proxies_OA;
