@@ -5,11 +5,9 @@ PROG=gnatprfh
 all-local: $(PROG)
 
 $(PROG): $(GNATFILES)
-	$(GNATMAKE) -I. -I$(srcdir) g-pehama.adb -o $@ \
-		-cargs $(GNATFLAGS) -bargs $(BARGS) 
-
-# WAG:3.15 we use minimal recompilation flag '-m' to avoid recompiling
-# GNAT runtime components.
+	$(GNATMAKE) -a -m -I. -I$(srcdir) g-pehama.adb -o $@
+#          -cargs $(GNATFLAGS) -bargs $(BARGS) 
+# WAG:3.15 we must compile this executable using specific flags.
 
 GNATFILES=\
 $(srcdir)/g-pehage.adb\
