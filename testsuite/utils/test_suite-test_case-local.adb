@@ -64,18 +64,22 @@ package body Test_Suite.Test_Case.Local is
       Log (Output, "Launching test: " & To_String (Test_To_Run.Id));
       Separator (Output);
 
-      --  Launch Test.
+      --  Launch Test
+
       Log (Output, "Running: " & Command);
       Separator (Output);
 
-      --  Spawn Executable.
+      --  Spawn Executable
+
       Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
 
-      --  Redirect Output.
+      --  Redirect Output
+
       Initialize_Filter (Output);
       Add_Filter (Fd, Output_Filter'Access, GNAT.Expect.Output);
 
-      --  Parse output.
+      --  Parse output
+
       Expect (Fd, Result, Item_To_Match, Test_To_Run.Timeout);
       case Result is
          when 1 =>
@@ -87,7 +91,7 @@ package body Test_Suite.Test_Case.Local is
             Test_Result := True;
 
          when Expect_Timeout =>
-            Log (Output, "==> Time Out ! <==");
+            Log (Output, "==> Time out ! <==");
             Test_Result := False;
 
          when others =>
