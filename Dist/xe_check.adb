@@ -94,46 +94,46 @@ package body XE_Check is
       begin
          File_Name := Find_Source (Unit);
 
-         --  This file has to be explicitly loaded. If the library
-         --  is a readonly library, it won't be loaded by gnatmake
-         --  but we need to load this library in the ALI table.
+         Compile_Sources
+           (Main_Source           => File_Name,
+            Args                  => Args,
+            First_Compiled_File   => Compiled,
+            Most_Recent_Obj_File  => Object,
+            Most_Recent_Obj_Stamp => Stamp,
+            Main_Unit             => Main,
+            Missing_Alis          => Missing_Alis,
+            Check_Readonly_Files  => Opt.Check_Readonly_Files,
+            Dont_Execute          => No_Recompilation,
+            Force_Compilations    => Opt.Force_Compilations,
+            In_Place_Mode         => Opt.In_Place_Mode,
+            Initialize_Ali_Data   => False,
+            Max_Process           => Opt.Maximum_Processes);
 
-         Lib_File := Lib_File_Name (File_Name);
-         Full_Lib_File := Full_Lib_File_Name (Lib_File);
-         if Full_Lib_File /= No_File and then
-           not Opt.Check_Readonly_Files and then
-           Is_Readonly_Library (Full_Lib_File) then
-            Text := Read_Library_Info (Lib_File);
-            ALI := Scan_ALI (Lib_File, Text);
-            Most_Recent := No_File;
+         if Compiled /= No_File then
+            Most_Recent := Object_File_Name (Compiled);
+
+         elsif Object /= No_File then
+            Most_Recent := Object;
 
          else
-            Compile_Sources
-              (Main_Source           => File_Name,
-               Args                  => Args,
-               First_Compiled_File   => Compiled,
-               Most_Recent_Obj_File  => Object,
-               Most_Recent_Obj_Stamp => Stamp,
-               Main_Unit             => Main,
-               Missing_Alis          => Missing_Alis,
-               Check_Readonly_Files  => Opt.Check_Readonly_Files,
-               Dont_Execute          => No_Recompilation,
-               Force_Compilations    => Opt.Force_Compilations,
-               In_Place_Mode         => Opt.In_Place_Mode,
-               Initialize_Ali_Data   => False,
-               Max_Process           => Opt.Maximum_Processes);
+            --  This file has to be explicitly loaded. If the library is a
+            --  readonly or internal library, it won't be loaded by gnatmake
+            --  but we need to load this library in the ALI table. We
+            --  assume that this unit has been correctly compiled, and
+            --  that its ALI file is up to date (most recent).
 
-            if Compiled = No_File then
-               Most_Recent := Object;
-            else
-               Most_Recent := Object_File_Name (Compiled);
-            end if;
-
-            if Building_Script then
-               Write_Compile_Command (File_Name);
+            Lib_File := Lib_File_Name (File_Name);
+            Full_Lib_File := Full_Lib_File_Name (Lib_File);
+            if Full_Lib_File /= No_File then
+               Text := Read_Library_Info (Lib_File);
+               ALI := Scan_ALI (Lib_File, Text);
+               Most_Recent := Full_Lib_File;
             end if;
          end if;
 
+         if Building_Script then
+            Write_Compile_Command (File_Name);
+         end if;
       end Recompile;
 
    begin

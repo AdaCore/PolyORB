@@ -1,3 +1,7 @@
+1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Improve recompilation mode (Ada lib).
+
 Sat Mar 21 22:38:35 1998  Laurent Pautet  <pautet@paris.act-europe.fr>
 
 	* xe_utils.adb: Don't include GARLIC as Ada library.
