@@ -106,6 +106,7 @@ package Corba is
     Data_Conversion : exception;  -- data conversion error
 
 
+
     type Unknown_Members is new System_Exception_Members with null record;
     type Bad_Param_Members is new System_Exception_Members with null record;
     type No_Memory_Members is new System_Exception_Members with null record;
