@@ -128,12 +128,14 @@ package System.Partition_Interface is
    --  an command line argument for Rsh_Command.
 
    procedure Raise_Program_Error_For_E_4_18;
+   pragma No_Return (Raise_Program_Error_For_E_4_18);
    --  Raise Program_Error with an error message explaining why it has been
    --  raised. The rule in E.4 (18) is tricky and misleading for most users
    --  of the distributed systems annex.
 
    procedure Raise_Program_Error_Unknown_Tag
      (E : in Ada.Exceptions.Exception_Occurrence);
+   pragma No_Return (Raise_Program_Error_Unknown_Tag);
    --  Raise Program_Error with the same message as E one
 
    generic
