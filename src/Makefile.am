@@ -91,6 +91,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-scheduler.ads \
 		polyorb-sequences-bounded.ads \
 		polyorb-sequences-unbounded.ads \
+		polyorb-sequences-unbounded-helper.ads \
 		polyorb-sequences-unbounded-search.ads \
 		polyorb-servants.ads \
 		polyorb-servants-group_servants.ads \

@@ -824,6 +824,8 @@ src/polyorb-scheduler.adb
 src/polyorb-scheduler.ads
 src/polyorb-sequences-bounded.adb
 src/polyorb-sequences-bounded.ads
+src/polyorb-sequences-unbounded-helper.adb
+src/polyorb-sequences-unbounded-helper.ads
 src/polyorb-sequences-unbounded-search.adb
 src/polyorb-sequences-unbounded-search.ads
 src/polyorb-sequences-unbounded.adb
