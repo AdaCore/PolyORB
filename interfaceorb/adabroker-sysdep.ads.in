@@ -1,3 +1,5 @@
+--  Yo, Emacs, this is -*- ada -*-
+
 with Interfaces;
 
 package AdaBroker.Sysdep is
@@ -13,11 +15,9 @@ package AdaBroker.Sysdep is
    @SOCKET@pragma Linker_Options ("-lnsl");
    pragma Linker_Options ("-ltcpwrapGK");
 
-
-   type Bool is new @BOOL@;
-
-   False : constant Bool := Bool'First;
-   True  : constant Bool := Bool'Succ (False);
+   type Bool is private;
+   False : constant Bool;
+   True  : constant Bool;
    --  Definition of Bool, the Ada equivalent of the C++ bool
    --  type. Needed to interface C functions in Ada It is supposed here
    --  that the C internal representation of type boolean need one
@@ -25,7 +25,20 @@ package AdaBroker.Sysdep is
    --  executing Ada_sys_Dep.cc and you will never come to this file.
 
    function To_Boolean (B : Bool)    return Boolean;
+   pragma Inline (To_Boolean);
+
    function To_Bool    (B : Boolean) return Bool;
+   pragma Inline (To_Bool);
    --  Conversion of Bool into Boolean and vice versa
+
+   function Image (B : Bool) return String;
+   pragma Inline (Image);
+
+private
+
+   type Bool is new @BOOL@;
+
+   False : constant Bool := Bool'First;
+   True  : constant Bool := Bool'Succ (False);
 
 end AdaBroker.Sysdep;

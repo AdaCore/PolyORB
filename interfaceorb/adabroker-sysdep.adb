@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -34,6 +34,11 @@
 ------------------------------------------------------------------------------
 
 package body AdaBroker.Sysdep is
+
+   function Image (B : Bool) return String is
+   begin
+      return Boolean'Image (To_Boolean (B));
+   end Image;
 
    function To_Bool (B : Boolean) return Bool is
    begin
