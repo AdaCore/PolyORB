@@ -1,8 +1,6 @@
 CP = /bin/cp
 SED = /bin/sed
-
-VERSION=3.12
-RELEASE=glade-$(VERSION)-doc
+SHELL=/bin/sh
 
 CFGFILES=\
 myconfig.cfg
@@ -129,21 +127,30 @@ $(ADAFILES): all-srcs.ada
 	./gensedfile $< $@
 
 myconfig.cfg.texi: myconfig.cfg cfg.sed
-	awk '{printf "@b{%02d} %s\n", NR, $$0}' <myconfig.cfg >myconfig.tmp.cfg
+	@awk '{printf "@b{%02d} %s\n", NR, $$0}' <myconfig.cfg >myconfig.tmp.cfg
 	./gentexifile myconfig.tmp.cfg $@
-	$(RM) myconfig.tmp.cfg
+	@$(RM) myconfig.tmp.cfg
 
 clean:
-	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
-	rm -f *.jpg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~
-	rm -f *.*.texi *.info-* $(GUIDE).txt *.tmp
-	rm -fr glade-doc
+	@rm -f *.aux *.log *.ads *.adb *.dvi *.eps  *.tmp
+	@rm -f *.cp *.pg *.toc *.vr *.fn *.ky *.tp *~ *.*.texi
+
+veryclean: clean
+	@rm -f $(GUIDE).info* $(GUIDE).txt $(GUIDE).html *.jpg $(GUIDE).ps
+	@rm -f ada.sed idl.sed cfg.sed
 
 release: all
-	rm -fr $(RELEASE)
-	mkdir $(RELEASE)
-	mkdir $(RELEASE)/src
-	cp $(TXTFILES) $(TEXIFILES) $(FIGFILES) $(RELEASE)/src
-	cp $(GUIDE).ps $(GUIDE).info* $(GUIDE).html $(GUIDE).txt $(RELEASE)
-	tar cf $(RELEASE).tar $(RELEASE)
-	gzip $(RELEASE).tar
+	@rm -f MANIFEST
+	@echo ada.kw idl.kw cfg.kw       >>MANIFEST
+	@echo all-srcs.ada               >>MANIFEST
+	@echo gentexifile gensedfile     >>MANIFEST
+	@echo texinfo.tex  Makefile      >>MANIFEST
+	@echo $(TXTFILES)                >>MANIFEST
+	@echo $(FIGFILES)                >>MANIFEST
+	@echo $(JPGFILES)                >>MANIFEST
+	@echo $(CFGFILES)                >>MANIFEST
+	@echo $(IDLFILES)                >>MANIFEST
+	@echo $(GUIDE).info*             >>MANIFEST
+	@echo $(GUIDE).html              >>MANIFEST
+	@echo $(GUIDE).ps                >>MANIFEST
+	@echo $(GUIDE).txt               >>MANIFEST
