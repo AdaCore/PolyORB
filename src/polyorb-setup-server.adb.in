@@ -6,9 +6,7 @@ with PolyORB.Smart_Pointers;
 --  Transport subsystem: TCP sockets
 with PolyORB.Setup.TCP_Access_Points;
 pragma Elaborate_All (PolyORB.Setup.TCP_Access_Points);
-pragma Warnings (Off, PolyORB.Setup.TCP_Access_Points);
-
-@PROTO_WITHS@
+@PROTO_SERVER_WITHS@
 
 package body PolyORB.Setup.Server is
 begin

@@ -59,23 +59,37 @@ AC_ARG_WITH(proto-perso,
 AC_MSG_RESULT(${PROTO_LIST})
 
 PROTO_DIRS=""
-PROTO_WITHS=${srcdir}/proto_withs.adb
-${RM} ${PROTO_WITHS}
+PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
+${RM} ${PROTO_CLIENT_WITHS}
+PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
+${RM} ${PROTO_SERVER_WITHS}
+
 for P in ${PROTO_LIST}
 do
    PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
 
    U=`${AWK} '/^package/{print $2}' src/${P}/polyorb-binding_data-*.ads`
-   cat >>${PROTO_WITHS} <<EOF
+   cat >>${PROTO_CLIENT_WITHS} <<EOF
 -- ${P} --
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
+
+EOF
+
+   U=`${AWK} '/^package/{print $2}' src/${P}/polyorb-setup-tcp_access_points-*.ads`
+   cat >>${PROTO_SERVER_WITHS} <<EOF
+-- ${P} --
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+
 EOF
 done
 
 AC_SUBST(PROTO_DIRS)
-AC_SUBST_FILE(PROTO_WITHS)
+AC_SUBST_FILE(PROTO_CLIENT_WITHS)
+AC_SUBST_FILE(PROTO_SERVER_WITHS)
 
 #
 # Application personality list
@@ -253,7 +267,7 @@ AC_OUTPUT([Makefile
 # Some files need to be copied verbatim from the source tree to the
 # build directory (only necessary when source dir != build dir).
 #
-# Should we add src/soap/gnat.adc ?
+# XXX Should we add src/soap/gnat.adc ?
 
 for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc
 do

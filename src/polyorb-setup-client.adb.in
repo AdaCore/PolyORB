@@ -10,8 +10,7 @@ pragma Warnings (Off, PolyORB.ORB);
 with PolyORB.ORB.No_Tasking;
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-
-@PROTO_WITHS@
+@PROTO_CLIENT_WITHS@
 
 package body PolyORB.Setup.Client is
 begin
