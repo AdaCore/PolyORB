@@ -142,7 +142,7 @@ package body MOMA.Provider.Message_Handler is
 
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Handle" or Method = "Notify" then
+      if Method = "Handle" or else Method = "Notify" then
          return Get_Empty_Any (TypeCode.TC_Void);
       else
          raise Program_Error;

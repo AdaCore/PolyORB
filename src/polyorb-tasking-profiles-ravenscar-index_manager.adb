@@ -64,7 +64,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       procedure Release (Id : in Index_Type);
       --  Release Id.
 
-      procedure Init (Error_On_Initialise : Boolean := True);
+      procedure Init (Error_On_Initialize : Boolean := True);
       --  Initialize the Index_Manager.
 
    private
@@ -111,9 +111,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       -- Index_Manager.Init --
       ------------------------
 
-      procedure Init (Error_On_Initialise : Boolean := True) is
+      procedure Init (Error_On_Initialize : Boolean := True) is
       begin
-         pragma Assert (not Initialized or not Error_On_Initialise);
+         pragma Assert (not (Initialized and then Error_On_Initialize));
          if not Initialized then
             for J in Free_Stack'Range loop
                Free_Stack (J) := J;
@@ -148,9 +148,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
    -- Initialize --
    ----------------
 
-   procedure Initialize  (Error_On_Initialise : Boolean := True) is
+   procedure Initialize  (Error_On_Initialize : Boolean := True) is
    begin
-      Index_Manager.Init (Error_On_Initialise);
+      Index_Manager.Init (Error_On_Initialize);
    end Initialize;
 
    -------------

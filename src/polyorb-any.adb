@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#49 $
+--  $Id: //droopi/main/src/polyorb-any.adb#50 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -434,7 +434,9 @@ package body PolyORB.Any is
          end if;
          --    * The results of the default_index operation are compared.
          if Kind (Left) = Tk_Union then
-            if Default_Index (Left) > -1 and Default_Index (Right) > -1 then
+            if Default_Index (Left) > -1
+              and then Default_Index (Right) > -1
+            then
                if Default_Index (Left) /= Default_Index (Right) then
                   return False;
                end if;

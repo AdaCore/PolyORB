@@ -134,9 +134,12 @@ package body PolyORB.Utils.HTables is
       Temp_Str_Ptr : String_Access := null;
    begin
       for I in T.Subtables.Table.all (ST_Index).First ..
-        T.Subtables.Table.all (ST_Index).Last loop
+        T.Subtables.Table.all (ST_Index).Last
+      loop
          Temp_Str_Ptr := T.Elements.Table.all (I).Key;
-         if Temp_Str_Ptr /= null and T.Elements.Table.all (I).Used = True then
+         if Temp_Str_Ptr /= null
+           and then T.Elements.Table.all (I).Used
+         then
             T.Elements.Table.all (I).ST_Offset :=
               Hashcode (Temp_Str_Ptr.all,
                         T.Subtables.Table.all (ST_Index).K,
@@ -160,7 +163,7 @@ package body PolyORB.Utils.HTables is
       for I in T.Subtables.Table.all (ST_Index).First ..
         T.Subtables.Table.all (ST_Index).Last - 1 loop
          for J in I + 1 .. T.Subtables.Table.all (ST_Index).Last loop
-            if T.Elements.Table.all (I).Used = True then
+            if T.Elements.Table.all (I).Used then
                if T.Elements.Table.all (I).ST_Offset =
                  T.Elements.Table.all (J).ST_Offset
                then
@@ -184,9 +187,7 @@ package body PolyORB.Utils.HTables is
       for K in 1 .. T.Info.Prime - 1 loop
          T.Subtables.Table.all (ST_Index).K := K;
          Process_Subtable_Hashcode (ST_Index, T);
-         if Is_Injective (ST_Index, T) = True then
-            exit;
-         end if;
+         exit when Is_Injective (ST_Index, T);
       end loop;
    end Find_K;
 
@@ -200,13 +201,13 @@ package body PolyORB.Utils.HTables is
       T        : in out Hash_Table) is
    begin
       for I in T.Subtables.Table.all (ST_Index).First ..
-        T.Subtables.Table.all (ST_Index).Last - 1 loop
-
+        T.Subtables.Table.all (ST_Index).Last - 1
+      loop
          if T.Elements.Table.all (I).Key = null then
             T.Elements.Table.all (I).Key := new String'(Key);
             T.Elements.Table.all (I).Used := True;
             exit;
-         elsif T.Elements.Table.all (I).Used = False then
+         elsif not T.Elements.Table.all (I).Used then
             Free_String (T.Elements.Table.all (I).Key);
             T.Elements.Table.all (I).Key := new String'(Key);
             T.Elements.Table.all (I).Used := True;
@@ -233,9 +234,7 @@ package body PolyORB.Utils.HTables is
       J       : Natural  := 0;
       Swap_Index1 : Natural := 0;
       Swap_Index2 : Natural := Last (T.Elements);
-      --     Mon_Count : Natural := 0;
-      --     boo : Boolean := False;
-      --  XXX what's that?
+
    begin
       --  Add the new element at the end of the table of elements
       --  and deallocate unused element if necessary
@@ -251,14 +250,14 @@ package body PolyORB.Utils.HTables is
 
       while Swap_Index1 < Swap_Index2 loop
 
-         if T.Elements.Table.all (Swap_Index1).Used = False then
-            if T.Elements.Table.all (Swap_Index2).Used = True then
+         if not T.Elements.Table.all (Swap_Index1).Used then
+            if T.Elements.Table.all (Swap_Index2).Used then
                Swap := T.Elements.Table.all (Swap_Index1);
                T.Elements.Table.all (Swap_Index1) :=
                  T.Elements.Table.all (Swap_Index2);
                T.Elements.Table.all (Swap_Index2) := Swap;
             else
-               while T.Elements.Table.all (Swap_Index2).Used = False loop
+               while not T.Elements.Table.all (Swap_Index2).Used loop
                   Swap_Index2 := Swap_Index2 - 1;
                end loop;
                if Swap_Index1 < Swap_Index2 then
@@ -271,8 +270,6 @@ package body PolyORB.Utils.HTables is
          end if;
          Swap_Index1 := Swap_Index1 + 1;
       end loop;
-
-
 
       --  Find the K that satisfies the condition for the subtable
 
@@ -319,9 +316,8 @@ package body PolyORB.Utils.HTables is
          end loop;
 
          --  Test if condition is satisfied
-         if Max_Sum <= 44 * T.Info.High / 3 then
-            exit;
-         end if;
+         exit when Max_Sum <= 44 * T.Info.High / 3;
+
       end loop;
 
 
@@ -378,22 +374,23 @@ package body PolyORB.Utils.HTables is
          T.Elements.Table.all (I).ST_Offset := ST_Offset;
          E_Index := ST_Offset + T.Subtables.Table.all (ST_Index).First;
 
-         if ((I /= E_Index) and (T.Subtables.Table.all (ST_Index).Count = 1))
-           or I < T.Subtables.Table.all (ST_Index).First
-           or I > T.Subtables.Table.all (ST_Index).Last
+         if ((I /= E_Index)
+             and then (T.Subtables.Table.all (ST_Index).Count = 1))
+           or else I < T.Subtables.Table.all (ST_Index).First
+           or else I > T.Subtables.Table.all (ST_Index).Last
          then
-            while (((I /= E_Index) and
-                    (T.Subtables.Table.all (ST_Index).Count = 1))
-                   or I < T.Subtables.Table.all (ST_Index).First
-                   or I > T.Subtables.Table.all (ST_Index).Last)
-              and T.Elements.Table.all (I).Used = True
+            while (((I /= E_Index)
+                    and then (T.Subtables.Table.all (ST_Index).Count = 1))
+                   or else I < T.Subtables.Table.all (ST_Index).First
+                   or else I > T.Subtables.Table.all (ST_Index).Last)
+              and then T.Elements.Table.all (I).Used
             loop
                if T.Subtables.Table.all (ST_Index).Count = 1 then
                   Swap := T.Elements.Table.all (I);
                   T.Elements.Table.all (I) := T.Elements.Table.all (E_Index);
                   T.Elements.Table.all (E_Index) := Swap;
                   ST_Index := T.Elements.Table.all (I).ST_Index;
-                  if T.Elements.Table.all (I).Used = True then
+                  if T.Elements.Table.all (I).Used then
                      ST_Offset := Hashcode
                        (T.Elements.Table.all (I).Key.all,
                         T.Subtables.Table.all (ST_Index).K,
@@ -405,18 +402,17 @@ package body PolyORB.Utils.HTables is
                     T.Subtables.Table.all (ST_Index).First;
                else
                   J := T.Subtables.Table.all (ST_Index).First;
-                  while (T.Elements.Table.all (J).Used = True)
-                    and (ST_Index = T.Elements.Table.all (J).ST_Index)
+                  while (T.Elements.Table.all (J).Used)
+                    and then  (ST_Index = T.Elements.Table.all (J).ST_Index)
                   loop
                      J := J + 1;
-
                   end loop;
 
                   Swap := T.Elements.Table.all (I);
                   T.Elements.Table.all (I) := T.Elements.Table.all (J);
                   T.Elements.Table.all (J) := Swap;
                   ST_Index := T.Elements.Table.all (I).ST_Index;
-                  if T.Elements.Table.all (I).Used = True then
+                  if T.Elements.Table.all (I).Used then
                      ST_Offset := Hashcode
                        (T.Elements.Table.all (I).Key.all,
                         T.Subtables.Table.all (ST_Index).K,
@@ -461,7 +457,7 @@ package body PolyORB.Utils.HTables is
          First := T.Subtables.Table.all (ST_Index).First;
          for I in First .. T.Subtables.Table.all (ST_Index).Last
          loop
-            if T.Elements.Table.all (I).Used = True then
+            if T.Elements.Table.all (I).Used then
                J := Hashcode (T.Elements.Table.all (I).Key.all,
                               1,
                               T.Subtables.Table.all (ST_Index).Max,
@@ -477,11 +473,11 @@ package body PolyORB.Utils.HTables is
          First := T.Subtables.Table.all (ST_Index).First;
          for I in  First .. T.Subtables.Table.all (ST_Index).Last
          loop
-            if  T.Elements.Table.all (I).Used = True then
+            if  T.Elements.Table.all (I).Used then
                if I /= First + T.Elements.Table.all (I).ST_Offset then
                   J := First + T.Elements.Table.all (I).ST_Offset;
-                  while T.Elements.Table.all (I).Used = True and
-                    J /= I
+                  while T.Elements.Table.all (I).Used
+                    and then J /= I
                   loop
                      Swap := T.Elements.Table.all (J);
                      T.Elements.Table.all (J) := T.Elements.Table.all (I);
@@ -508,10 +504,10 @@ package body PolyORB.Utils.HTables is
    is
       ST_Index  : Natural := 0;
       ST_Offset : Natural := 0;
-      Found : Boolean := False;
+      Found : Boolean;
    begin
       Lookup (T, Key, ST_Index, ST_Offset, Found);
-      if Found = True then
+      if Found then
          T.Subtables.Table.all (ST_Index).Count :=
            T.Subtables.Table.all (ST_Index).Count - 1;
          T.Info.Count :=  T.Info.Count - 1;
@@ -541,8 +537,8 @@ package body PolyORB.Utils.HTables is
                              T.Info.Prime);
       I := T.Subtables.Table.all (ST_Index).First + ST_Offset;
       if T.Elements.Table.all (I).Key /= null then
-         if T.Elements.Table.all (I).Key.all = Key and
-           T.Elements.Table.all (I).Used = True
+         if T.Elements.Table.all (I).Key.all = Key
+           and then T.Elements.Table.all (I).Used
          then
             Found := True;
          end if;
@@ -666,7 +662,8 @@ package body PolyORB.Utils.HTables is
          --  ...else search if the key is already in the table
 
          Lookup (T, Key, ST_Index, ST_Offset, Found);
-         if Found = True then
+         if Found then
+
             --  If key in table and is used, don't insert
 
             To_Do := Do_Nothing;
@@ -711,7 +708,7 @@ package body PolyORB.Utils.HTables is
                T.Elements.Table.all (Temp_Index).Used := True;
                To_Do := Insert_Item;
 
-            elsif T.Elements.Table.all (Temp_Index).Used = False then
+            elsif not T.Elements.Table.all (Temp_Index).Used then
 
                --  If the position contains a key that is unused,
                --  deallocate the string and insert the new key

@@ -244,7 +244,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
             Current := Waiters (Synchro_Index_Type (Current)).Next;
          end loop;
 
-         return Is_Taken or Next = Null_Synchro_Index;
+         return Is_Taken or else Next = Null_Synchro_Index;
          --  The queue is not empty only if the mutex is not taken.
 
       end Check_Queue_Consistency;
@@ -279,7 +279,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
          if Former_Next /= Null_Synchro_Index then
             Next := Waiters (Synchro_Index_Type (Former_Next)).Next;
             pragma Assert
-              (Waiters (Synchro_Index_Type (Former_Next)).Is_Waiting = True);
+              (Waiters (Synchro_Index_Type (Former_Next)).Is_Waiting);
             Is_Taken := True;
             To_Free := Waiters (Synchro_Index_Type (Former_Next)).Sync;
             Waiters (Synchro_Index_Type (Former_Next)).Is_Waiting := False;

@@ -284,7 +284,7 @@ package body MOMA.Provider.Message_Pool is
       use PolyORB.References;
       use MOMA.Types;
    begin
-      if Self.Behavior = Handle and Self.Message_Handler /= Nil_Ref then
+      if Self.Behavior = Handle and then Self.Message_Handler /= Nil_Ref then
          --  Send the message to the Message Call_Back Handler.
          --  Do not store the message locally.
          pragma Debug (O ("Got new message " & Image (Message)
@@ -325,7 +325,9 @@ package body MOMA.Provider.Message_Pool is
             MOMA.Provider.Warehouse.Register (Self.W, Id, Message);
          end if;
 
-         if Self.Behavior = Notify and Self.Message_Handler /= Nil_Ref then
+         if Self.Behavior = Notify
+           and then Self.Message_Handler /= Nil_Ref
+         then
             pragma Debug (O ("Forwarding to Message_Handler"
                              & " with Notify request"));
             --  Notify call_back Handler.
