@@ -122,7 +122,7 @@ while true; do
      break
   fi
 
-  if egrep 'STORAGE|ASSERT' $cliouts > /dev/null; then
+  if egrep -i 'Raised|STORAGE|ASSERT' $cliouts > /dev/null; then
     echo "666 Exception."
     echo FAIL > $output/99STATUS
     break

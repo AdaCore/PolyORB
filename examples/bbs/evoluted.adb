@@ -141,6 +141,12 @@ begin
                        & ":" & Payload.all);
                end;
             end loop;
+         exception
+            when E : others =>
+               Put_Line ("Raised exception in iteration"
+                 & Integer'Image (K) & ": "
+                 & Ada.Exceptions.Exception_Information (E));
+               GNAT.OS_Lib.OS_Exit (1);
          end;
       end loop;
 
