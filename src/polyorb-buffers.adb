@@ -498,6 +498,17 @@ package body PolyORB.Buffers is
       return Buffer.CDR_Position;
    end CDR_Position;
 
+   ----------------------
+   -- Set_CDR_Position --
+   ----------------------
+
+   procedure Set_CDR_Position
+     (Buffer   : access Buffer_Type;
+      Position :        Stream_Element_Offset) is
+   begin
+      Buffer.CDR_Position := Position;
+   end Set_CDR_Position;
+
    ------------
    -- Rewind --
    ------------
