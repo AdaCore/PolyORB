@@ -188,14 +188,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
-      if RJ.all in Request_Job then
-         S := Session_Access (Request_Job (RJ.all).Requestor);
-         Add_Request
-           (S,
-            Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
-      else
-         Jobs.Run (RJ);
-      end if;
+      pragma Assert (RJ.all in Request_Job);
+
+      S := Session_Access (Request_Job (RJ.all).Requestor);
+      Add_Request
+        (S, Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
    end Handle_Request_Execution;
 
    ----------

@@ -61,9 +61,10 @@ package body PolyORB.ORB.Thread_Per_Request is
      renames L.Output;
 
    A_Job : Jobs.Job_Access := null;
-   A_N   : Natural         := 0;
    --  This variables are used to initialized the threads local variables.
    --  They are used to replaced the accept statement
+   --  XXX There is nothing to prevent inconsistent interleaving
+   --      of writes and reads to this variable!!!
 
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
@@ -79,20 +80,18 @@ package body PolyORB.ORB.Thread_Per_Request is
 
    procedure Main_Request_Thread
    is
-      Id  : Natural;
       Job : Jobs.Job_Access;
    begin
-      Id := A_N;
       Job := A_Job;
       Update (Thread_Init_Watcher);
-      pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                       & " is executing Job"));
+      pragma Debug (O ("Thread "
+        & Soft_Links.Image (Soft_Links.Current_Task)
+        & " is executing a job"));
       Jobs.Run (Job);
       Jobs.Free (Job);
-      pragma Debug (O ("Thread number"
-                       & Integer'Image (Id)
-                       & " has executed Job"));
+      pragma Debug (O ("Thread "
+        & Soft_Links.Image (Soft_Links.Current_Task)
+        & " has executed and destroyed a job"));
    end Main_Request_Thread;
 
    ----------------------------------
@@ -135,9 +134,6 @@ package body PolyORB.ORB.Thread_Per_Request is
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
-   N : Natural := 0;
-   --  for debugging purposes
-
    ------------------------------
    -- Handle_Request_Execution --
    ------------------------------
@@ -153,16 +149,12 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
-      if RJ.all in Request_Job then
-         N := N + 1;
-         A_N := N;
-         A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
-         Create_Task (Main_Request_Thread'Access);
-         Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-         Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-      else
-         Jobs.Run (RJ);
-      end if;
+      pragma Assert (RJ.all in Request_Job);
+
+      A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
+      Create_Task (Main_Request_Thread'Access);
+      Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
    end Handle_Request_Execution;
 
    ----------

@@ -106,6 +106,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: request execution"));
 
+      pragma Assert (RJ.all in Request_Job);
       Jobs.Run (RJ);
       --  No tasking: execute the request in the current task.
    end Handle_Request_Execution;

@@ -144,7 +144,8 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (On);
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
-                       & " handles request execution"));
+                         & " handles request execution"));
+      pragma Assert (RJ.all in Request_Job);
       Jobs.Run (RJ);
    end Handle_Request_Execution;
 
