@@ -18,6 +18,8 @@ ADA_SPECS_WITH_BODY = \
 	corba-object.ads \
 	corba-orb.ads \
 	corba-policy.ads \
+	corba-policycurrent.ads \
+	corba-policymanager.ads \
 	corba-request.ads \
 	corba-serverrequest.ads \
 	corba.ads \

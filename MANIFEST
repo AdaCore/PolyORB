@@ -464,6 +464,10 @@ src/corba/corba-orb.adb
 src/corba/corba-orb.ads
 src/corba/corba-policy.adb
 src/corba/corba-policy.ads
+src/corba/corba-policycurrent.adb
+src/corba/corba-policycurrent.ads
+src/corba/corba-policymanager.adb
+src/corba/corba-policymanager.ads
 src/corba/corba-repository_root.ads
 src/corba/corba-request.adb
 src/corba/corba-request.ads
