@@ -169,61 +169,64 @@ package body PolyORB.GIOP_P.Service_Contexts is
               (O ("Got context id #"
                   & PolyORB.Types.Unsigned_Long'Image (Context_Id)));
 
-            if Context_Id = CodeSets then
+            case Context_Id is
+               when CodeSets =>
 
-               --  Unmarshalling a CodeSets service context
+                  --  Unmarshalling a CodeSets service context
 
-               Decapsulate (Context_Data'Access, Context_Buffer'Access);
-
-               CS := new Code_Set_Context;
-
-               CS.Char_Data :=
-                 Code_Sets.Code_Set_Id
-                  (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
-               CS.Wchar_Data :=
-                 Code_Sets.Code_Set_Id
-                  (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
-
-               pragma Debug (O ("Processing CodeSets service context"));
-
-               pragma Debug
-                 (O ("TCS-C:" & Code_Sets.Code_Set_Id'Image (CS.Char_Data)));
-               pragma Debug
-                 (O ("TCS-W:" & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
-
-            elsif Context_Id = RTCorbaPriority then
-
-               --  Unmarshalling a RTCorbaPriority service context
-
-               declare
-                  EP : PolyORB.Types.Short;
-
-                  OP : PTP.ORB_Priority;
-                  Ok : Boolean;
-
-               begin
                   Decapsulate (Context_Data'Access, Context_Buffer'Access);
 
-                  EP := Unmarshall (Context_Buffer'Access);
+                  CS := new Code_Set_Context;
 
-                  PolyORB.Tasking.Priorities.To_ORB_Priority
-                    (PolyORB.Tasking.Priorities.External_Priority (EP),
-                     OP,
-                     Ok);
+                  CS.Char_Data :=
+                    Code_Sets.Code_Set_Id
+                     (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
+                  CS.Wchar_Data :=
+                    Code_Sets.Code_Set_Id
+                     (Unsigned_Long'(Unmarshall (Context_Buffer'Access)));
 
-                  pragma Debug
-                    (O ("Processing RTCorbaPriority service context"));
-                  pragma Debug
-                    (O ("Priority:" & PolyORB.Types.Short'Image (EP)));
+                  pragma Debug (O ("Processing CodeSets service context"));
 
-                  Append (QoS,
-                          new QoS_Parameter'
-                          (Static_Priority,
-                           OP => OP,
-                           EP => PolyORB.Tasking.Priorities.External_Priority
-                           (EP)));
-               end;
-            end if;
+                  pragma Debug (O ("TCS-C:"
+                    & Code_Sets.Code_Set_Id'Image (CS.Char_Data)));
+                  pragma Debug (O ("TCS-W:"
+                    & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
+
+               when RTCorbaPriority =>
+
+                  --  Unmarshalling a RTCorbaPriority service context
+
+                  declare
+                     package PTP renames PolyORB.Tasking.Priorities;
+
+                     EP : PolyORB.Types.Short;
+                     OP : PTP.ORB_Priority;
+                     --  XXX these variables need documentation
+                     Ok : Boolean;
+
+                  begin
+                     Decapsulate (Context_Data'Access, Context_Buffer'Access);
+
+                     EP := Unmarshall (Context_Buffer'Access);
+
+                     PolyORB.Tasking.Priorities.To_ORB_Priority
+                       (PTP.External_Priority (EP), OP, Ok);
+
+                     pragma Debug
+                       (O ("Processing RTCorbaPriority service context"));
+                     pragma Debug
+                       (O ("Priority:" & Types.Short'Image (EP)));
+
+                     Append (QoS, new QoS_Parameter'(
+                       Kind => Static_Priority,
+                       OP   => OP,
+                       EP   => PTP.External_Priority (EP)));
+                  end;
+
+               when others =>
+                  null;
+
+            end case;
          end;
       end loop;
 

@@ -63,6 +63,8 @@ package PolyORB.Request_QoS is
          when Static_Priority =>
             OP : PTP.ORB_Priority;
             EP : PTP.External_Priority;
+            --  XXX these components need to have explicit names
+            --  and documentation.
       end case;
 
    end record;
