@@ -1124,75 +1124,16 @@ package body Idl_Fe.Types is
             return Get_Definition (N_Named_Acc (Node));
          end;
       else
-         --  there is multiple definition
-         pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
-                          "Many definitions found in inheritance"));
-         Free (Result_List);
-         return null;
-      end if;
-   end Find_Inherited_Identifier_Definition;
+         declare
+            It : Node_Iterator;
+            Node : N_Root_Acc;
+         begin
+            --  there is multiple definition
+            pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+                             "Many definitions found in inheritance"));
 
 
-
---  INUTILE ???
---    procedure Set_Back_End (N : in out N_Root'Class;
---                            Be : access N_Back_End'Class) is
---    begin
---       if N.Back_End /= null then
---          raise Idl_Fe.Errors.Internal_Error;
---       end if;
---       N.Back_End := N_Back_End_Acc (Be);
---    end Set_Back_End;
-
---    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc is
---    begin
---       return N.Back_End;
---    end Get_Back_End;
---
---
---    function Is_Identifier_Imported (Cell : Identifier_Definition_Acc)
---                                     return Boolean is
---    begin
---       return Cell.Parent = Current_Scope.Scope;
---    end Is_Identifier_Imported;
---
---
---    procedure Disp_Id_Table is
---       use Ada.Text_IO;
---    begin
---       for I in Id_Table.First .. Id_Table.Last loop
---          Put_Line (Uniq_Id'Image (I) & "str: `" & Id_Table.Table (I).Str.all
---                    & "', next: " & Uniq_Id'Image (Id_Table.Table (I).Next));
---       end loop;
---    end Disp_Id_Table;
---
---
---    procedure Import_Identifier (Node : N_Named_Acc) is
---    begin
---       raise Idl_Fe.Errors.Internal_Error;
---    end Import_Identifier;
---
---
---    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean is
---    begin
---       return Add_Node_To_Id_Table (Node.Cell.Identifier, Node) /= null;
---    end Import_Uniq_Identifier;
-
---   function Find_Identifier_Node (Scope : N_Scope_Acc; Name : String)
---                                  return N_Named_Acc is
---      Definition : Identifier_Definition_Acc;
---   begin
---      Definition := Find_Identifier_Definition (Name);
---      loop
---         if Definition = null then
---            return null;
---         end if;
---         if Definition.Parent_Scope = Scope then
---            return Definition.Node;
---         else
---            Definition := Definition.Previous_Definition;
---         end if;
---      end loop;
---   end Find_Identifier_Node;
-
-end Idl_Fe.Types;
+            Idl_Fe.Errors.Parser_Error ("Multiple definitions found" &
+                                        " in inheritance.",
+                                        Idl_Fe.Errors.Error,
+                                        Idl_Fe.Lexer.Get_Lexer
