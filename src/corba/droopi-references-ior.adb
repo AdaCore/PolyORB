@@ -75,8 +75,8 @@ package body Droopi.References.IOR is
                      Temp_Tag : CORBA.Unsigned_Long := Unmarshall (Buffer);
                      Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
                begin
-                     Callbacks (Tag).Unmarshall_Profile_Body
-                                      (Buffer, Profs (N));
+                     Profs (N) :=
+                       Callbacks (Tag).Unmarshall_Profile_Body (Buffer);
                end;
             end loop;
 
