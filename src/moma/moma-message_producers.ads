@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with Ada.Calendar; use Ada.Calendar;
+with Ada.Real_Time; use Ada.Real_Time;
 with MOMA.Types;
 with MOMA.Destinations;
 with PolyORB.References;
@@ -51,7 +51,6 @@ package MOMA.Message_Producers is
       Ref            : PolyORB.References.Ref;
       CBH            : PolyORB.Components.Component_Access;
    end record;
-
 
    procedure Close;
 

@@ -112,7 +112,7 @@ package body MOMA.Messages is
    --------------------
 
    function Get_Expiration (Self : Message)
-                            return Ada.Calendar.Time is
+                            return Ada.Real_Time.Time is
    begin
       return Self.Expiration;
    end Get_Expiration;
@@ -172,7 +172,7 @@ package body MOMA.Messages is
    -------------------
 
    function Get_Timestamp (Self : Message)
-                           return Ada.Calendar.Time is
+                           return Ada.Real_Time.Time is
    begin
       return Self.Timestamp;
    end Get_Timestamp;
@@ -258,7 +258,7 @@ package body MOMA.Messages is
    --------------------
 
    procedure Set_Expiration (Self : in out Message;
-                             Expiration : Ada.Calendar.Time) is
+                             Expiration : Ada.Real_Time.Time) is
    begin
       Self.Expiration := Expiration;
    end Set_Expiration;
@@ -318,7 +318,7 @@ package body MOMA.Messages is
    -------------------
 
    procedure Set_Timestamp (Self : in out Message;
-                            Timestamp : Ada.Calendar.Time) is
+                            Timestamp : Ada.Real_Time.Time) is
    begin
       Self.Timestamp := Timestamp;
    end Set_Timestamp;
