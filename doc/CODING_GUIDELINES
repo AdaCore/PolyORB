@@ -72,9 +72,10 @@ tree is modified.
 
 Always update (or create if necessary) README file for each example.
 
-Rebuild dependences every time package dependences are modified.
+Recompute build dependencies every time the semantic dependencies
+of a unit are modified.
 
-To rebuild dependences, run 'make depend' from PolyORB's root directory.
+To do so, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
 
 - Build is made _without_ debug
