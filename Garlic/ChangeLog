@@ -1,3 +1,11 @@
+Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.adb: Handle task non-abortion (which is quite frequent :-)
+	more elegantly than before. It also corrects a strange
+	segmentation fault in GNAT runtime which appeared only when
+	debugging was off (that is a fast succession of events, probably a
+	race condition in protected objects and entry family handling).
+	
 Wed Nov 27 18:42:47 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-stratt.adb: Added pragma Suppress for range and overflow

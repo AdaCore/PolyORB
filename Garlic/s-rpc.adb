@@ -220,11 +220,13 @@ package body System.RPC is
       Cancel_Map  : Cancel_Array;
       In_Progress : Boolean := False;
       Count       : Natural := 0;
+      Count_Abort : Natural := 0;
    end Task_Pool_Type;
    --  This protected object requeues on Is_Aborted_Waiting; this may look
    --  inefficient, but we hope that remote abortion won't occur too much
    --  (or at least that remote abortion won't occur too often when there is
-   --  a lot of other remote calls in progress).
+   --  a lot of other remote calls in progress). Count_Abort contains the
+   --  number of abortion in progress.
 
    type Task_Pool_Access is access Task_Pool_Type;
    procedure Free is
@@ -808,8 +810,10 @@ package body System.RPC is
                Cancel_Map (I) := (Partition => Partition,
                                   Id        => Id,
                                   Valid     => True);
+               Count_Abort := Count_Abort + 1;
                if Is_Aborted_Waiting'Count > 0 then
                   In_Progress := True;
+                  pragma Debug (D (D_Debug, "Will signal abortion"));
                end if;
                return;
             end if;
@@ -839,7 +843,7 @@ package body System.RPC is
       ----------------
 
       entry Is_Aborted (Partition : in Partition_ID; Id : in Request_Id)
-      when not In_Progress is
+      when Count_Abort > 0 and then not In_Progress is
       begin
          for I in Cancel_Map'Range loop
             declare
@@ -847,6 +851,8 @@ package body System.RPC is
             begin
                if Ent.Valid and then Ent.Id = Id and then
                  Ent.Partition = Partition then
+                  Count_Abort := Count_Abort - 1;
+                  Ent.Valid := False;
                   return;
                end if;
             end;
@@ -884,6 +890,7 @@ package body System.RPC is
                if Ent.Valid and then Ent.Id = Id and then
                  Ent.Partition = Partition then
                   Ent.Valid := False;
+                  Count_Abort := Count_Abort - 1;
                end if;
             end;
          end loop;
