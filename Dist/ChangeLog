@@ -1,4 +1,6 @@
-1997-10-20  Laurent Pautet  <pautet@dorine.enst.fr>
+Thu Oct 23 09:58:06 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_stubs.adb: Bad command order. Fix a problem with 0003-G00.
 
 	* xe_back.adb, xe_back.ads: Add new procedure Get_Parent
 	which extracts the root parent from a unit name.

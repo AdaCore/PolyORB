@@ -274,10 +274,10 @@ package body XE_Stubs is
             Message ("", Stamp_File, " doesn't exist");
          end if;
 
-      elsif Partitions.Table (Partition).Most_Recent > Stamp_File then
+      elsif Partitions.Table (Partition).Most_Recent > Executable then
          if Verbose_Mode then
             Write_Stamp_Comparison
-              (Partitions.Table (Partition).Most_Recent, Stamp_File);
+              (Partitions.Table (Partition).Most_Recent, Executable);
          end if;
 
       elsif Executable > Stamp_File then
