@@ -91,8 +91,9 @@ package body PolyORB.POA is
       while S (Last_Slash) /= '/' and then Last_Slash >= S'First loop
          Last_Slash := Last_Slash - 1;
       end loop;
-      pragma Assert (Last_Slash >= S'First);
-      U_Oid.Creator := To_PolyORB_String (S (S'First .. Last_Slash - 1));
+      pragma Assert (S (S'First) = '/' and then Last_Slash >= S'First);
+      U_Oid.Creator := To_PolyORB_String (S (S'First + 1 .. Last_Slash - 1));
+
       U_Oid.Id := To_PolyORB_String
         (URI_Decode (S (Last_Slash + 1 .. Colon - 1)));
       if Colon + 3 <= S'Last

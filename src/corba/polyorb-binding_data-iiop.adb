@@ -41,6 +41,8 @@ with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Representations.CDR;
@@ -52,11 +54,16 @@ with Sequences.Unbounded;
 
 package body PolyORB.Binding_Data.IIOP is
 
-   use PolyORB.Representations.CDR;
+   use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.References.IOR;
+   use PolyORB.Representations.CDR;
    use PolyORB.Transport.Sockets;
    use PolyORB.Types;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.iiop");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Marshall_Socket
         (Buffer   : access Buffer_Type;
@@ -126,6 +133,7 @@ package body PolyORB.Binding_Data.IIOP is
         renames IIOP_Profile_Type (Prof.all);
 
    begin
+      pragma Debug (O ("Bind IIOP profile: enter"));
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
@@ -141,9 +149,11 @@ package body PolyORB.Binding_Data.IIOP is
       --  The call to CFC is qualified to work around a bug in
       --  the APEX compiler.
 
+      pragma Debug (O ("Preparing local copy of profile"));
       TProf.Address := Profile.Address;
       TProf.Object_Id := Profile.Object_Id;
       Adjust (TProf);
+      pragma Debug (O ("Adjusted local copy of profile"));
 
       declare
          S : GIOP_Session
@@ -158,6 +168,8 @@ package body PolyORB.Binding_Data.IIOP is
       end;
 
       --  The caller will invoke Register_Endpoint on TE.
+
+      pragma Debug (O ("Bind IIOP profile: leave"));
    end Bind_Non_Local_Profile;
 
    function Get_Profile_Tag
@@ -234,7 +246,6 @@ package body PolyORB.Binding_Data.IIOP is
    -- Marshall_IIOP_Profile_Body --
    --------------------------------
 
-
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;
       Profile : Profile_Access)
@@ -269,7 +280,6 @@ package body PolyORB.Binding_Data.IIOP is
 
    end Marshall_IIOP_Profile_Body;
 
-
    ----------------------------------
    -- Unmarshall_IIOP_Profile_Body --
    ----------------------------------
@@ -287,13 +297,17 @@ package body PolyORB.Binding_Data.IIOP is
 
 
    begin
+      pragma Debug (O ("Unmarshall_IIOP_Profile_body: enter"));
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
       TResult.Major_Version  := Unmarshall (Profile_Buffer);
       TResult.Minor_Version  := Unmarshall (Profile_Buffer);
+      pragma Debug
+        (O ("  Version = " & TResult.Major_Version'Img & "."
+            & TResult.Minor_Version'Img));
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
-
+      pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
       declare
          Str  : aliased Stream_Element_Array :=
            Unmarshall (Profile_Buffer);
@@ -305,6 +319,7 @@ package body PolyORB.Binding_Data.IIOP is
          end if;
       end;
       Release (Profile_Buffer);
+      pragma Debug (O ("Unmarshall_IIOP_Profile_body: leave"));
       return Result;
 
    end Unmarshall_IIOP_Profile_Body;

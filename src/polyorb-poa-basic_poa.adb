@@ -36,6 +36,7 @@
 
 with Ada.Real_Time;
 with Ada.Streams;
+with Ada.Unchecked_Conversion;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -57,15 +58,15 @@ package body PolyORB.POA.Basic_POA is
    use PolyORB.POA_Types;
    use PolyORB.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("corba.poa.basic_poa");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    POA_Path_Separator : constant String := "/";
 
-   ----------------------------------------------------------
-   --  Declaration of additional procedures and functions  --
-   ----------------------------------------------------------
+   --------------------------------------------------------
+   -- Declaration of additional procedures and functions --
+   --------------------------------------------------------
 
    function Get_Boot_Time return Time_Stamp;
 
@@ -776,15 +777,19 @@ package body PolyORB.POA.Basic_POA is
       A_Child_Name     : Types.String;
       A_Child          : Obj_Adapter_Access;
    begin
+      pragma Debug (O ("Find_POA_Recursively: enter, Name = "
+                       & To_Standard_String (Name)));
+
       if Name = "" then
          return Basic_Obj_Adapter_Access (Self);
       end if;
 
-      if Split_Point /= 0 then
+      pragma Assert (Split_Point /= 1);
+      if Split_Point = 0 then
+         A_Child_Name := Name;
+      else
          A_Child_Name := Head (Name, Split_Point - 1);
          Remaining_Name := Tail (Name, Length (Name) - Split_Point);
-      else
-         A_Child_Name := Name;
       end if;
 
       for I in 1 .. Length (Sequence (Self.Children.all)) loop
@@ -1112,7 +1117,10 @@ package body PolyORB.POA.Basic_POA is
      return Object_Id_Access
    is
    begin
+      pragma Debug (O ("To_Proxy_Oid: enter"));
+
       if OA.Proxies_OA = null then
+         pragma Debug (O ("No Proxies_OA."));
          return null;
       end if;
 
@@ -1123,6 +1131,9 @@ package body PolyORB.POA.Basic_POA is
            := Create_Object_Identification
            (OA.Proxies_OA, Oid_Data'Unchecked_Access);
       begin
+         pragma Debug (O ("TPO: Oid data length:"
+                          & Oid_Data'Length'Img));
+         pragma Debug (O ("To_Proxy_Oid: leave"));
          return U_Oid_To_Oid (U_Oid);
       end;
    end To_Proxy_Oid;
@@ -1132,26 +1143,17 @@ package body PolyORB.POA.Basic_POA is
       Oid : access Objects.Object_Id)
      return References.Ref
    is
-      Nil_Ref : References.Ref;
-   begin
-      if OA.Proxies_OA = null then
-         return Nil_Ref;
-      end if;
+      Oid_Data : aliased Object_Id := Objects.To_Oid
+        (To_Standard_String (Oid_To_U_Oid (Oid).Id));
+      type SEA_Access is access all Ada.Streams.Stream_Element_Array;
+      function As_SEA_Access is new Ada.Unchecked_Conversion
+        (Object_Id_Access, SEA_Access);
 
-      declare
-         U_Oid : constant Unmarshalled_Oid
-           := Oid_To_U_Oid (Oid);
-         Id : constant String := To_Standard_String (U_Oid.Id);
-         IOR : Stream_Element_Array
-           (Stream_Element_Offset (Id'First)
-            .. Stream_Element_Offset (Id'Last));
-      begin
-         for I in IOR'Range loop
-            IOR (I) := Stream_Element
-              (Character'Pos (Id (Integer (I))));
-         end loop;
-         return References.IOR.Opaque_To_Object (IOR);
-      end;
+   begin
+      pragma Debug (O ("PTR: Oid data length:"
+                       & Oid_Data'Length'Img));
+      return References.IOR.Opaque_To_Object
+        (As_SEA_Access (Oid_Data'Unchecked_Access));
    end Proxy_To_Ref;
 
 end PolyORB.POA.Basic_POA;

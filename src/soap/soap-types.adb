@@ -696,8 +696,14 @@ package body SOAP.Types is
       --  in SOAP_Profile.
 
       if SOAP_Profile /= null then
-         Append
-           (Result, To_URI (SOAP_Profile_Type (SOAP_Profile.all)));
+         declare
+            URI : constant String
+              := To_URI (SOAP_Profile_Type (SOAP_Profile.all));
+         begin
+            pragma Debug
+              (SOAP.Types.O ("Exporting object with URI: " & URI));
+            Append (Result, URI);
+         end;
       else
          Append (Result, "#IOR:");
 

@@ -189,9 +189,9 @@ package body PolyORB.Utils is
    is
       I : Integer := Start;
    begin
-      while I < S'Last loop
-         I := I + 1;
+      loop
          exit when I > S'Last or else (S (I) = What xor Skip);
+         I := I + 1;
       end loop;
 
       return I;

@@ -226,17 +226,14 @@ package body PolyORB.References.IOR is
       end;
    end Object_To_Opaque;
 
-   function Opaque_To_Object (Opaque : Stream_Element_Array)
+   function Opaque_To_Object
+     (Opaque : access Ada.Streams.Stream_Element_Array)
      return IOR_Type
    is
-      Buf     : Buffer_Access := new Buffer_Type;
+      Buf : Buffer_Access := new Buffer_Type;
    begin
-      declare
-         Octets : aliased Encapsulation := Opaque;
-      begin
-         Decapsulate (Octets'Access, Buf);
-         return Unmarshall (Buf);
-      end;
+      Decapsulate (Opaque, Buf);
+      return Unmarshall (Buf);
    end Opaque_To_Object;
 
    function Object_To_String (IOR : IOR_Type)
@@ -253,7 +250,6 @@ package body PolyORB.References.IOR is
       S       : constant String
         := Types.To_Standard_String (Str);
       Length  : constant Natural := S'Length;
-
    begin
       if Length <= 4
         or else Length mod 2 /= 0
@@ -261,8 +257,13 @@ package body PolyORB.References.IOR is
       then
          raise Constraint_Error;
       end if;
-      return Opaque_To_Object
-        (To_Stream_Element_Array (S (S'First + 4 .. S'Last)));
+
+      declare
+         Octets : aliased Stream_Element_Array
+           := To_Stream_Element_Array (S (S'First + 4 .. S'Last));
+      begin
+         return Opaque_To_Object (Octets'Access);
+      end;
    end String_To_Object;
 
    --------------

@@ -30,19 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with PolyORB.Object_Maps;
---  with PolyORB.Object_Maps.Seq;
+with PolyORB.Objects;
 with PolyORB.POA;
---  with PolyORB.POA_Policies.Lifespan_Policy;
---  with PolyORB.Locks;
---  with PolyORB.Types; use PolyORB.Types;
---  with PolyORB.Utils;
+with PolyORB.POA_Policies.Lifespan_Policy;
+with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
-
---    use PolyORB.Locks;
---    use PolyORB.Object_Maps;
---    use PolyORB.Object_Maps.Seq;
 
    ------------
    -- Create --
@@ -66,7 +59,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Warnings (On);
-      raise Not_Implemented;
+
+      null;
+      --  XXX TODO check compat for USER_ID
+
    end Check_Compatibility;
 
    ---------------
@@ -93,25 +89,21 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       Hint   : Object_Id_Access)
      return Unmarshalled_Oid
    is
-      Object_Id_Info : Unmarshalled_Oid;
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+
    begin
       if Hint = null then
          raise PolyORB.POA.Bad_Param;
       end if;
 
-      Object_Id_Info := Oid_To_U_Oid (Hint);
-      if Object_Id_Info.System_Generated then
-         raise PolyORB.POA.Invalid_Policy;
-      end if;
-
-      --  XXX this seems wrong; the Hint should be used
-      --  for the (sub) Id field un Object_Id_Info, *not*
-      --  as initialization for Object_Id_Info as a whole.
-      --  ... *but* this requires that all callers of
-      --  Assign_Object_Identifier (independent of the id_ass_pol)
-      --  agree on that.
-
-      return Object_Id_Info;
+      return Unmarshalled_Oid'
+        (Id => Types.To_PolyORB_String (Objects.To_String (Hint.all)),
+         System_Generated => False,
+         Persistency_Flag =>
+           PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
+            (POA.Lifespan_Policy.all, OA),
+         Creator => POA.Absolute_Address);
    end Assign_Object_Identifier;
 
    ---------------

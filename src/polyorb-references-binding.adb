@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Binding_Data.Local;
@@ -44,6 +45,7 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
+with PolyORB.Setup;
 with PolyORB.Transport;
 with PolyORB.Types;
 
@@ -137,26 +139,38 @@ package body PolyORB.References.Binding is
             Object_Id := Get_Object_Key (Selected_Profile.all);
 
             if Is_Proxy_Oid (OA, Object_Id) then
-               declare
-                  Continuation : constant PolyORB.References.Ref
-                    := Proxy_To_Ref (OA, Object_Id);
                begin
-                  if Is_Nil (Continuation) then
-                     --  Fail.
-                     Servant := null;
-                     Pro := null;
-                  else
-                     Binding_Data.Set_Continuation
-                       (Selected_Profile,
-                        Smart_Pointers.Ref (Continuation));
-                     --  This is necessary in order to prevent the
-                     --  profiles in Continuation (a ref to the
-                     --  actual object) from being finalised before
-                     --  Selected_Profile (a local profile with a
-                     --  proxy oid) is finalized itself.
-                     Bind (Continuation, Local_ORB, Servant, Pro);
-                     Set_Binding_Info (R, Servant, Pro);
-                  end if;
+                  declare
+                     Continuation : constant PolyORB.References.Ref
+                       := Proxy_To_Ref (OA, Object_Id);
+                  begin
+                     if Is_Nil (Continuation) then
+                        --  Fail.
+                        Servant := null;
+                        Pro := null;
+                     else
+                        Binding_Data.Set_Continuation
+                          (Selected_Profile,
+                           Smart_Pointers.Ref (Continuation));
+                        --  This is necessary in order to prevent the
+                        --  profiles in Continuation (a ref to the
+                        --  actual object) from being finalised before
+                        --  Selected_Profile (a local profile with a
+                        --  proxy oid) is finalized itself.
+                        pragma Debug (O ("Bind: recursing on proxy ref"));
+                        Bind (Continuation, Local_ORB, Servant, Pro);
+                        pragma Debug (O ("Recursed."));
+                        Set_Binding_Info (R, Servant, Pro);
+                        pragma Debug (O ("Cached binding data."));
+                     end if;
+                     pragma Debug (O ("About to finalize Continuation"));
+                  end;
+               exception
+                  when E : others =>
+                     pragma Debug (O ("Argh! Got exception:"));
+                     pragma Debug
+                       (O (Ada.Exceptions.Exception_Information (E)));
+                     null;
                end;
             else
                --  Real local object
@@ -196,18 +210,22 @@ package body PolyORB.References.Binding is
               (Selected_Profile.all, New_TE,
                Component_Access (New_Filter));
 
+            pragma Debug (O ("Registering endpoint"));
             ORB.Register_Endpoint
               (Local_ORB, New_TE, New_Filter, Client);
+            pragma Debug (O ("... done"));
 
             loop
                FU := Filter_Access (Upper (New_Filter));
                exit when FU = null;
-                  New_Filter := FU;
+               New_Filter := FU;
             end loop;
 
+            pragma Debug (O ("Cacheing binding info"));
             Servant := Components.Component_Access (New_Filter);
             Pro := Selected_Profile;
             Set_Binding_Info (R, Servant, Selected_Profile);
+            pragma Debug (O ("... done"));
 
             --  The Session itself acts as a remote surrogate
             --  of the designated object.
@@ -263,7 +281,10 @@ package body PolyORB.References.Binding is
       Tag       :     Binding_Data.Profile_Tag;
       Pro       : out Binding_Data.Profile_Access)
    is
+      use PolyORB.ORB;
       use type PolyORB.Types.Unsigned_Long;
+
+      Local_ORB : ORB_Access renames Setup.The_ORB;
 
       Result : Binding_Data.Profile_Access
         := Find_Tagged_Profile (R, Tag, Delete => False);
@@ -272,27 +293,39 @@ package body PolyORB.References.Binding is
          --  This ref has no profile with that tag:
          --  try to create one.
 
-         pragma Debug (O ("Get_Tagged_Profile: need proxy"));
+         pragma Debug (O ("Get_Tagged_Profile: creating proxy"));
 
          declare
-            --  Proxy_Ref : constant PolyORB.References.Ref
-            --     := Create_Proxy_Ref (Local_ORB, Ref);
-            --  XXX Create_Proxy_Ref is not implemented yet.
-            Proxy_Ref : PolyORB.References.Ref;
-
+            use PolyORB.Obj_Adapters;
+            use PolyORB.Objects;
+            Proxy_Oid : constant Object_Id_Access
+              := To_Proxy_Oid (Object_Adapter (Local_ORB), R);
+            Proxy_Ref : References.Ref;
          begin
 
-            --  If Create_Proxy_Ref has returned a ref containing
-            --  a profile with the desired tag, move that profile
-            --  into R so it won't be destroyed while R is in use.
+            if Proxy_Oid /= null then
+               Create_Reference
+                 (Local_ORB, Proxy_Oid, Type_Id_Of (R), Proxy_Ref);
 
-            Result := Find_Tagged_Profile
-              (Proxy_Ref, Tag, Delete => True);
+               --  If Create_Reference has created a ref containing
+               --  a profile with the desired tag, move that profile
+               --  into R so it won't be destroyed while R is in use.
+
+               Result := Find_Tagged_Profile
+                 (Proxy_Ref, Tag, Delete => True);
+               pragma Debug (O ("Created a proxy profile."));
+            else
+               pragma Debug (O ("Could not create proxy oid."));
+               null;
+            end if;
 
             if Result /= null then
                Profile_Seqs.Append
                  (Reference_Info (Entity_Of (R).all).Profiles,
                   Result);
+            else
+               pragma Debug (O ("Could not create proxy."));
+               null;
             end if;
          end;
       end if;

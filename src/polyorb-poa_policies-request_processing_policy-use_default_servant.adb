@@ -57,8 +57,8 @@ is
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
+      null;
       --  XXX TODO check compat for USE_DEFAULT_SERVANT
-      raise PolyORB.Not_Implemented;
 
    end Check_Compatibility;
 

@@ -30,12 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Conversion;
+
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Locks;
 with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Utils;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
@@ -106,11 +109,14 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
    is
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      Object_Id_Info : Unmarshalled_Oid;
+      --  Object_Id_Info : Unmarshalled_Oid;
       The_Entry : Object_Map_Entry_Access;
       Index : Integer;
 
       use PolyORB.Object_Maps;
+
+      function As_String_Ptr is new Ada.Unchecked_Conversion
+        (Object_Id_Access, Utils.Strings.String_Ptr);
 
    begin
       Lock_W (POA.Map_Lock);
@@ -120,18 +126,23 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Assert (POA.Active_Object_Map /= null);
 
       if Hint /= null then
-         Object_Id_Info := Oid_To_U_Oid (Hint);
-         if not Object_Id_Info.System_Generated then
-            raise PolyORB.POA.Invalid_Policy;
-         end if;
+         begin
+            Index := Integer'Value (As_String_Ptr (Hint).all);
+         exception
+            when others =>
+               raise PolyORB.POA.Invalid_Policy;
+         end;
+
          The_Entry := Get_By_Index
-           (POA.Active_Object_Map.all,
-            Integer'Value (Types.To_Standard_String
-                           (Object_Id_Info.Id)));
+           (POA.Active_Object_Map.all, Index);
+
          if The_Entry = null then
-            raise Not_Implemented;
-            --  Actually should bring the proper index
-            --  in the active object map into existence.
+            raise PolyORB.POA.Invalid_Policy;
+            --  Could not determine the slot associated with
+            --  this index.
+            --  XXX if this is a POA with the PERSISTENT lifespan
+            --  policy, then dummy slots should be allocated to
+            --  bring this index back into existence.
          end if;
       else
 

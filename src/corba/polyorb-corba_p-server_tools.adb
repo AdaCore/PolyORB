@@ -82,6 +82,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    Root_POA_Object : POA.Obj_Adapter_Access;
 
    procedure Initiate_RootPOA;
+   procedure Initiate_Proxies_POA;
 
    ----------------------
    -- Initiate_RootPOA --
@@ -105,13 +106,14 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       PortableServer.POA.Set
         (Root_POA, Smart_Pointers.Entity_Ptr (Root_POA_Object));
+
+      Initiate_Proxies_POA;
+
    end Initiate_RootPOA;
 
    --------------------------
    -- Initiate_Proxies_POA --
    --------------------------
-
-   procedure Initiate_Proxies_POA;
 
    Proxies_POA_Configuration :
      PolyORB.POA_Config.Proxies.Proxies_Configuration;

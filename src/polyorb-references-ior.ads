@@ -89,7 +89,8 @@ package PolyORB.References.IOR is
    function Object_To_Opaque (IOR : IOR_Type)
      return Ada.Streams.Stream_Element_Array;
 
-   function Opaque_To_Object (Opaque : Ada.Streams.Stream_Element_Array)
+   function Opaque_To_Object
+     (Opaque : access Ada.Streams.Stream_Element_Array)
      return IOR_Type;
 
    ------------------------------------------
