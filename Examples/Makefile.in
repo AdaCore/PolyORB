@@ -63,12 +63,16 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
+ADA = @ADA@
+ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATFLAGS = @GNATFLAGS@
+GNATLS = @GNATLS@
+GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
@@ -94,7 +98,8 @@ SUBDIRS = Eratho Bank LightBank Messages
 
 CLEANFILES = check-stamp
 DISTCLEANFILES = check-config
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+CONFIG_HEADER = ../[Garlic/config.h]
 CONFIG_CLEAN_FILES =  check-config
 DIST_COMMON =  ChangeLog Makefile.am Makefile.in check-config.in
 
