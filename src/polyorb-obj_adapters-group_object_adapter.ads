@@ -53,10 +53,8 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    type Group_Object_Adapter_Access is access all Group_Object_Adapter'Class;
 
    procedure Create (GOA : access Group_Object_Adapter);
-   --  Initialize.
 
    procedure Destroy (GOA : access Group_Object_Adapter);
-   --  Finalize.
 
    --------------------------------------
    -- Interface to application objects --
@@ -87,13 +85,13 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
    function Get_Empty_Arg_List
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.NVList.Ref;
 
    function Get_Empty_Result
      (GOA    : access Group_Object_Adapter;
       Oid    : access Objects.Object_Id;
-      Method : String)
+      Method :        String)
       return Any.Any;
 
    procedure Find_Servant
@@ -107,16 +105,16 @@ package PolyORB.Obj_Adapters.Group_Object_Adapter is
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);
 
-   -----------------
-   -- Group tools --
-   -----------------
+   ------------------------------
+   -- Group Servant Management --
+   ------------------------------
 
    function Get_Group
      (The_Ref              : PolyORB.References.Ref;
       Allow_Group_Creation : Boolean := False)
      return PolyORB.Servants.Servant_Access;
-   --  Search for a group
-   --  Can create and register the group if not found
+   --  Search for a group. If Allow_Group_Creation is true and the
+   --  group is not found, create and register the group.
 
 private
 
@@ -127,14 +125,14 @@ private
       PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Hash,
       PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
-
    use Perfect_Htable;
 
    type Group_Object_Adapter is new Obj_Adapter with record
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
       --  Mutex
-      Lock       : PolyORB.Tasking.Mutexes.Mutex_Access;
+
+      Registered_Groups : Table_Instance;
       --  List of regsitered groups
-      Group_List : Table_Instance;
    end record;
 
 end PolyORB.Obj_Adapters.Group_Object_Adapter;
