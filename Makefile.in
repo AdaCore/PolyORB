@@ -76,6 +76,10 @@ DEFPROTOCOLDATA = @DEFPROTOCOLDATA@
 DEFPROTOCOLNAME = @DEFPROTOCOLNAME@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
+FILTERSEXTRALIBS = @FILTERSEXTRALIBS@
+FILTERSINSTALL = @FILTERSINSTALL@
+FILTERSOBJECTS = @FILTERSOBJECTS@
+FILTERSSOURCES = @FILTERSSOURCES@
 GNATFLAGS = @GNATFLAGS@
 GNATLS = @GNATLS@
 GNATMAKE = @GNATMAKE@
@@ -103,8 +107,6 @@ TCP_INCLUDED = @TCP_INCLUDED@
 TCP_PLATFORM_SOURCES = @TCP_PLATFORM_SOURCES@
 UNZIP = @UNZIP@
 VERSION = @VERSION@
-ZIPLIBINSTALLNEEDED = @ZIPLIBINSTALLNEEDED@
-ZIPLIBOBJSNEEDED = @ZIPLIBOBJSNEEDED@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
@@ -298,7 +300,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
