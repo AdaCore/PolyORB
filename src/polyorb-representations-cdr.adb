@@ -806,6 +806,7 @@ package body PolyORB.Representations.CDR is
          when Tk_Struct =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(15));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             pragma Debug (O ("Marshall (TypeCode) : marshalling the id"));
             Marshall (Complex_Buffer,
@@ -846,6 +847,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Union =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(16));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall
               (Complex_Buffer,
@@ -882,6 +884,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Enum =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(17));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -912,6 +915,7 @@ package body PolyORB.Representations.CDR is
             pragma Debug (O ("marshall (typecode) : length marshalled"));
          when Tk_Sequence =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(19));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Content_Type (Data));
@@ -921,6 +925,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Array =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(20));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Content_Type (Data));
@@ -930,6 +935,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Alias =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(21));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -941,6 +947,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Except =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(22));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -979,6 +986,7 @@ package body PolyORB.Representations.CDR is
             Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Scale (Data));
          when Tk_Value =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(29));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall
               (Complex_Buffer,
@@ -1015,6 +1023,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Valuebox =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(30));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -1026,6 +1035,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Native =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(31));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -1035,6 +1045,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
          when Tk_Abstract_Interface =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(32));
+            Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
                       PolyORB.Any.TypeCode.Id (Data));
@@ -1962,25 +1973,25 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
                Member_Type : PolyORB.Any.TypeCode.Object;
             begin
                pragma Debug (O ("unmarshall (TypeCode) : dealing "
                                 & "with a struct"));
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id   := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Nb   := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id   := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Nb   := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer);
-                     Member_Type := Unmarshall (Complex_Buffer);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
                      PolyORB.Any.TypeCode.Add_Parameter
@@ -1993,18 +2004,18 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb, Default_Index : PolyORB.Types.Unsigned_Long;
                Discriminator_Type, Member_Type : PolyORB.Any.TypeCode.Object;
                Member_Label : PolyORB.Any.Any;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Discriminator_Type := Unmarshall (Complex_Buffer);
-               Default_Index := Unmarshall (Complex_Buffer);
-               Nb := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Discriminator_Type := Unmarshall (Complex_Buffer'Access);
+               Default_Index := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2016,9 +2027,9 @@ package body PolyORB.Representations.CDR is
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
                      Member_Label := Get_Empty_Any (Discriminator_Type);
-                     Unmarshall_To_Any (Complex_Buffer, Member_Label);
-                     Member_Name := Unmarshall (Complex_Buffer);
-                     Member_Type := Unmarshall (Complex_Buffer);
+                     Unmarshall_To_Any (Complex_Buffer'Access, Member_Label);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, Member_Label);
                      PolyORB.Any.TypeCode.Add_Parameter
@@ -2033,21 +2044,21 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer :  Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Nb := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Name));
                   end loop;
@@ -2067,13 +2078,13 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Length : PolyORB.Types.Unsigned_Long;
                Content_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Content_Type := Unmarshall (Complex_Buffer);
-               Length := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Content_Type := Unmarshall (Complex_Buffer'Access);
+               Length := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2084,13 +2095,13 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Length : PolyORB.Types.Unsigned_Long;
                Content_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Content_Type := Unmarshall (Complex_Buffer);
-               Length := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Content_Type := Unmarshall (Complex_Buffer'Access);
+               Length := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2101,14 +2112,14 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name : PolyORB.Types.String;
                Content_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Content_Type := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Content_Type := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2121,23 +2132,23 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name, Member_Name : PolyORB.Types.String;
                Nb : PolyORB.Types.Unsigned_Long;
                Member_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Nb := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer);
-                     Member_Type := Unmarshall (Complex_Buffer);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Member_Type));
                      PolyORB.Any.TypeCode.Add_Parameter
@@ -2180,18 +2191,18 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap : aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name, Member_Name : PolyORB.Types.String;
                Type_Modifier, Visibility : PolyORB.Types.Short;
                Nb : PolyORB.Types.Unsigned_Long;
                Concrete_Base_Type, Member_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Type_Modifier := Unmarshall (Complex_Buffer);
-               Concrete_Base_Type := Unmarshall (Complex_Buffer);
-               Nb := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Type_Modifier := Unmarshall (Complex_Buffer'Access);
+               Concrete_Base_Type := Unmarshall (Complex_Buffer'Access);
+               Nb := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2202,9 +2213,9 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Concrete_Base_Type));
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Member_Name := Unmarshall (Complex_Buffer);
-                     Member_Type := Unmarshall (Complex_Buffer);
-                     Visibility := Unmarshall (Complex_Buffer);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     Visibility := Unmarshall (Complex_Buffer'Access);
                      PolyORB.Any.TypeCode.Add_Parameter
                        (Result, To_Any (Visibility));
                      PolyORB.Any.TypeCode.Add_Parameter
@@ -2219,14 +2230,14 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name : PolyORB.Types.String;
                Content_Type : PolyORB.Any.TypeCode.Object;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
-               Content_Type := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
+               Content_Type := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2239,12 +2250,12 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer :  Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name : PolyORB.Types.String;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
@@ -2255,12 +2266,12 @@ package body PolyORB.Representations.CDR is
             declare
                Complex_Encap :  aliased Encapsulation
                  := Unmarshall (Buffer);
-               Complex_Buffer : Buffer_Access := null;
+               Complex_Buffer : aliased Buffer_Type;
                Id, Name : PolyORB.Types.String;
             begin
-               Decapsulate (Complex_Encap'Access, Complex_Buffer);
-               Id := Unmarshall (Complex_Buffer);
-               Name := Unmarshall (Complex_Buffer);
+               Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
+               Id := Unmarshall (Complex_Buffer'Access);
+               Name := Unmarshall (Complex_Buffer'Access);
                PolyORB.Any.TypeCode.Add_Parameter
                  (Result, To_Any (Name));
                PolyORB.Any.TypeCode.Add_Parameter
