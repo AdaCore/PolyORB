@@ -1,3 +1,10 @@
+1999-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb: Remove occurences of -gnaty when compiling
+	GLADE generated files. Fix 7001-009.
+
+	* xe_utils.ads, xe_utils.adb: Add new procedure Remove_GNAT_Flag.
+
 1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe.adb, xe.ads: Change reconnection terminology.

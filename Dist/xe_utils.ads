@@ -197,6 +197,9 @@ package XE_Utils is
    --  concatenation of S1 to S5. Parameters with default values are not
    --  displayed.
 
+   procedure Remove_GNAT_Flag (Flag : in String);
+   --  Remove Flag from command line flags.
+
    procedure Source_File_Error (Uname : Types.Unit_Name_Type);
    --  Write standard error message when we cannot find a source file
    --  for a given unit.

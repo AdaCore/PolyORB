@@ -978,6 +978,29 @@ package body XE_Utils is
       Write_Eol;
    end Message;
 
+   ----------------------
+   -- Remove_GNAT_Flag --
+   ----------------------
+
+   procedure Remove_GNAT_Flag (Flag : in String) is
+      O : Natural := 0;
+      --  Occurrences of Flag in Gcc_Switches.
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("-gnat");
+      Add_Str_To_Name_Buffer (Flag);
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         if Gcc_Switches.Table (I).all = Name_Buffer (1 .. Name_Len) then
+            O := O + 1;
+         else
+            Gcc_Switches.Table (I - O) := Gcc_Switches.Table (I);
+         end if;
+      end loop;
+      for I in 1 .. O loop
+         Gcc_Switches.Decrement_Last;
+      end loop;
+   end Remove_GNAT_Flag;
+
    -----------------------
    -- Source_File_Error --
    -----------------------
