@@ -33,9 +33,11 @@ adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 void
 adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
 {
+  body += "   -- Get_" + get_ada_local_name() + "\n" ;
+  body += "   ------------------------------\n" ;
   string space = "";
   for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
-  body += "   function get_" + get_ada_local_name() +"(Self : in Ref)\n";
+  body += "   function Get_" + get_ada_local_name() +"(Self : in Ref)\n";
   body += "                 " + space + "return "; 
   AST_Decl *d = field_type();  
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
@@ -44,16 +46,17 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
   body += "      Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_local_name() + "_Proxy ;\n";
   body += "      Result : " + name +" ;\n";
   body += "   begin \n";
-  body += "      Assert_Ref_Not_Nil(Self) ;\n";
-  body += "      Opcd := " + name_of_the_package + ".Proxies.Create() ;\n";
+  body += "      Opcd := " + name_of_the_package + ".Proxies.Create ;\n";
   body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
   body += "      Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
   body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
   body += "      return Result ;\n";
-  body += "   end ;\n\n";
+  body += "   end ;\n\n\n";
   if (!readonly())
     {
-      body += "   procedure set_";
+      body += "   -- Set_" + get_ada_local_name() + "\n" ;
+      body += "   ------------------------------\n" ;
+      body += "   procedure Set_";
       body += get_ada_local_name();
       body += "(Self : in Ref,\n";
       body += "                  " + space + "To : in ";
@@ -65,45 +68,49 @@ adabe_attribute::produce_adb(dep_list& with, string &body, string &previous)
       body += get_ada_local_name();
       body += "_Proxy ;\n";
       body += "   begin \n";
-      body += "      Assert_Ref_Not_Nil(Self) ;\n";
       body += "      Opcd := " + name_of_the_package + ".Proxies.Create(To) ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      body += "   end ;\n\n";    
+      body += "   end ;\n\n\n";    
     }
 }
 
 void
 adabe_attribute::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
-  body += "   function get_" + get_ada_local_name() +"(Self : access Object) return "; 
+  body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + ";\n";
+  body += name + " ;\n\n";
   if (!readonly())
     {
-      body += "   procedure set_" + name +"(Self : access Object, To : in ";
+      body += "   procedure Set_" + get_ada_local_name() +"(Self : access Object ; To : in ";
       body += name;
-      body += ");\n";
+      body += " ) ;\n\n";
     }
+  
 }
 
 void
 adabe_attribute::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
-  body += "   function get_" + get_ada_local_name() +"(Self : access Object) return ";
+  body += "   -- Get_" + get_ada_local_name() + "\n" ;
+  body += "   --------------------------\n" ;
+  body += "   function Get_" + get_ada_local_name() +"(Self : access Object) return ";
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   body += name + ";\n";
-  body += "   begin\n\n";
-  body += "   end; \n"; 
+  body += "   begin\n";
+  body += "   end;\n\n\n"; 
   if (!readonly())
     {
-      body += "   procedure set_" + name +"(Self : access Object, To : in ";
+      body += "   -- Set_" + get_ada_local_name() + "\n" ;
+      body += "   --------------------------\n" ;
+      body += "   procedure Set_" + name +"(Self : access Object, To : in ";
       body += name;
       body += ") is\n";
-      body += "   begin\n\n";
-      body += "   end; \n"; 
+      body += "   begin\n";
+      body += "   end;\n\n\n"; 
     } 
 }
 

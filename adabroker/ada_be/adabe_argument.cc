@@ -12,7 +12,7 @@ void
 adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
-  body += get_ada_local_name() + " :";
+  body += get_ada_local_name() + " : ";
   switch (direction())
     {
     case dir_IN :
@@ -22,7 +22,7 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
       body += " out ";
       break;
     case dir_INOUT :
-      body += " inout ";
+      body += " in out ";
       break;
     }
   AST_Decl *d = field_type();
@@ -58,13 +58,16 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
 {
   string body, previous = "";
   AST_Decl *d = field_type();
-  string name = (dynamic_cast<adabe_name *>(d))->dump_name(with, previous);
+  adabe_name *type_adabe_name = dynamic_cast<adabe_name *>(d) ;
+  string type_name = type_adabe_name->dump_name(with, previous);
+  string full_type_name = type_adabe_name->get_ada_full_name() ;
+
   if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
     in_decls += " : in ";
-    in_decls += name;
+    in_decls += type_name;
   }
   if ((direction() == dir_OUT) | (direction() == dir_INOUT)) {
     no_out = false;
@@ -72,7 +75,7 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
   fields += "      ";
   fields += get_ada_local_name ();
   fields += " : ";
-  fields += name;
+  fields += type_name;
   fields += "_Ptr := null ;\n";
 }
 
@@ -82,18 +85,20 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
 {
   string body, previous = "";
   AST_Decl *d = field_type();
-  string name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
+  string type_name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
+  string full_type_name = dynamic_cast<adabe_name *>(d)->get_ada_full_name() ;
+  
   if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
     in_decls += " : in ";
-    in_decls += name;
+    in_decls += type_name;
 
     init += "      Self.";
     init += get_ada_local_name ();
     init += " := new ";
-    init += name;
+    init += type_name;
     init += "'(";
     init += get_ada_local_name ();
     init += ") ;\n";
@@ -111,7 +116,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     unmarshall_decls += "      ";
     unmarshall_decls += get_ada_local_name ();
     unmarshall_decls += " : ";
-    unmarshall_decls += name;
+    unmarshall_decls += type_name;
     unmarshall_decls += " ;\n";
 
     if (direction() == dir_INOUT) {
@@ -124,8 +129,8 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     unmarshall += ",Giop_Client) ;\n";
     unmarshall += "      Self.";
     unmarshall += get_ada_local_name ();
-    unmarshall += " := new";
-    unmarshall += name;
+    unmarshall += " := new ";
+    unmarshall += type_name;
     unmarshall += "'(";
     unmarshall += get_ada_local_name ();
     unmarshall += ") ;\n";
@@ -145,12 +150,12 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   string previous = "";
   AST_Decl *d = field_type();
   adabe_name *e = dynamic_cast<adabe_name *>(d);
-  string full_type_name = e->dump_name(with, previous);
+  string type_name = e->dump_name(with, previous);
 
   in_decls += "            ";
   in_decls += get_ada_local_name ();
   in_decls += " : ";
-  in_decls += full_type_name;
+  in_decls += type_name;
   in_decls += " ;\n";
     
   if ((direction() == dir_IN) | (direction() == dir_INOUT))

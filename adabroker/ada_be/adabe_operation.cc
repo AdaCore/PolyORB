@@ -20,7 +20,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
     case OP_idempotent :
       break;
     case OP_oneway :
-      body += "   oneway ";
+      body += "   ---   oneway   ---\n";
       break;
     }
   if (is_function())
@@ -57,22 +57,28 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      body += "; Result : out ";
-      AST_Decl *b = return_type();
-      body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
+      // if it was an IDL function, add the Result parameter
+      if (!return_is_void()) {
+	body += "; Result : out ";
+	AST_Decl *b = return_type();
+	body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
+	}
+      body += " ) ;\n";
     }
 }
 
 void
 adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
 {
+  body += "   -- " + get_ada_local_name() + "\n" ;
+  body += "   ----------------------------\n" ;
   switch (flags())
     {
     case OP_noflags :
     case OP_idempotent :
       break;
     case OP_oneway :
-    body += "   --- oneway ---\n";
+    body += "   ---   oneway   ---\n";
     break;
     }
   if (is_function())
@@ -122,11 +128,11 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += "   procedure get_" + get_ada_local_name() + "(Self : in Ref ";
+      body += "   procedure " + get_ada_local_name() + "(Self : in Ref";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	    dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
@@ -136,15 +142,17 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       string name =   dynamic_cast<adabe_name *>(return_type())->dump_name(with, previous);
       if (!return_is_void())
 	{	
-	  body += ", Result : out " + name + ") is\n";
+	  body += "; Result : out " + name + ") is\n";
 	}
       else   body += ") is \n";
       adabe_name  *b =  dynamic_cast<adabe_name *>(ScopeAsDecl(defined_in()));
       string name_of_the_package = b->get_ada_local_name();
       body += "   Opcd : " + name_of_the_package + ".Proxies." + get_ada_local_name() + "_Proxy ;\n";
-      body += "   Result : " + name + ";\n";
+      if (!return_is_void())
+	{	
+	  body += "   Result : " + name + ";\n";
+	}
       body += "   begin \n";
-      body += "      Assert_Ref_Not_Nil(Self);";
       body += "      Opcd := " + name_of_the_package + ".Proxies.Create(";
       UTL_ScopeActiveIterator j(this,UTL_Scope::IK_decls);
       while (!j.is_done())
@@ -159,8 +167,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       body += ") ;\n";
       body += "      OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
       body += "      " + name_of_the_package + ".Proxies.Free(Opcd) ;\n";
-      body += "      return ;";
-      body += "   end;";
+      body += "   end;\n\n\n";
     }
 }
 
@@ -172,16 +179,16 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
   case OP_idempotent :
     break;
   case OP_oneway :
-    body += "   oneway ";
+    body += "   ----   oneway   ----\n";
     break;
   }
   if (is_function())
     {
-      body += "   function" + get_ada_local_name() + "(Self : access Object ";
+      body += "   function " + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
@@ -194,41 +201,44 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += " procedure" + get_ada_local_name() + "(Self : access Object ";
+      body += "   procedure " + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
-      body += ", Result : out ";
+      body += "; Result : out ";
       AST_Decl *b = return_type();
       body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ");\n";
     }
+  body += "\n" ;
 }
 
 void
 adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 {
+  body += "   -- " + get_ada_local_name() + "\n" ;
+  body += "   -----------------------------\n" ;
   switch (flags()) {
   case OP_noflags :
   case OP_idempotent :
     break;
   case OP_oneway :
-    body += "   oneway ";
+    body += "   ---    oneway    ---\n";
     break;
   }
   if (is_function())
     {
-      body += "   function" + get_ada_local_name() + "(Self : access Object ";
+      body += "   function" + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
@@ -237,17 +247,17 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + ";\n";
-      body += "   begin \n\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " is\n";
+      body += "   begin \n";
       body += "   end;";
     }
   else
     {
-      body += "    procedure get_" + get_ada_local_name() + "(Self : access Object ";
+      body += "    procedure " + get_ada_local_name() + "(Self : access Object";
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
       while (!i.is_done())
 	{
-	  body += ",";
+	  body += "; ";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
 	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
@@ -257,12 +267,13 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
       if (!return_is_void()) {
 	   AST_Decl *b = return_type();
            string name =   dynamic_cast<adabe_name *>(b)->dump_name(with, previous);
-	   body += ", Result : out " + name + ") is\n";
+	   body += "; Result : out " + name + ") is\n";
       }
       else   body += ") is \n";
-      body += "   begin \n\n";
+      body += "   begin \n";
       body += "   end;\n";      
     }
+  body += "\n\n" ;
 }
 
 void
@@ -329,7 +340,8 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
 }
 
 void
-adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &private_definition)
+adabe_operation::produce_proxies_adb(dep_list& with,string &body,
+				     string &private_definition)
 {
   string name = get_ada_full_name();
   string in_decls = "";
@@ -341,6 +353,7 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   string finalize = "";
   bool no_in = true;
   bool no_out = true;
+
   // First process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -353,6 +366,10 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
     }
   in_decls += ") is\n";
 
+  // See if this subprogram can raise exceptions
+  UTL_ExceptlistActiveIterator except_iterator(exceptions()) ;
+  bool user_exceptions = (! except_iterator.is_done()) ;
+
   // produce functions
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               " + get_ada_local_name() + "\n" ; 
@@ -362,7 +379,13 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body, string &privat
   body += "   procedure Init(Self : in out " + get_ada_local_name() + "_Proxy" ;
   body += in_decls;
   body += "   begin\n";
-  body += "      Set_User_Exceptions(Self, False) ;\n";
+  body += "      Set_User_Exceptions(Self, " ;
+  if (user_exceptions) {
+    body += "True" ;
+  } else {
+    body += "False" ;
+  } ;
+  body += " ) ;\n";
   body += init;
   body += "   end ;\n\n\n";
   body += "   -- Operation\n" ;

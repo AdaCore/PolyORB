@@ -338,9 +338,9 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   string prev = "";
   string tmp = "";
   adabe_interface * inher;
-  with.add("Corba.Object");
-  body += "package " + get_ada_full_name() + "_impl is \n";
-  if (n_inherits() == 0) body += "   type Object is new Corba.Object.Object ";
+  with.add("Omniobject");
+  body += "package " + get_ada_full_name() + ".Impl is\n\n";
+  if (n_inherits() == 0) body += "   type Object is new Omniobject.Implemented_Object ";
 
  // forward declarated
 
@@ -451,7 +451,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
     with.add("Ada.Proxies");
     with.add("Ada.Object");
   */
-  body += "package body" + get_ada_full_name() + " is \n";
+  body += "package body " + get_ada_full_name() + ".Impl is \n";
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
@@ -471,7 +471,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 	}
       i.next();
     }
-  body += "\n end; " + get_ada_full_name() + "\n";
+  body += "end " + get_ada_full_name() + ".Impl ;\n";
 }
 
 void
