@@ -876,6 +876,7 @@ support/ltmain.sh
 support/missing
 support/mkdep
 support/mkinstalldirs
+support/native-adacompiler.in
 support/reconfig
 testsuite/common/polyorb-report.adb
 testsuite/common/polyorb-report.ads
