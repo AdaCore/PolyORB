@@ -2660,6 +2660,7 @@ package body Exp_Dist is
 
       RPC_Receiver_Spec  : Node_Id;
       RPC_Receiver_Decls : List_Id;
+
    begin
       Request := Make_Defining_Identifier (Loc, Name_R);
 
@@ -2744,44 +2745,32 @@ package body Exp_Dist is
       ----------------------------
 
       procedure Insert_Partition_Check (Parameter : Node_Id) is
-         Condition : Node_Id;
-         pragma Unreferenced (Parameter);
+         Parameter_Entity : constant Entity_Id :=
+                              Defining_Identifier (Parameter);
       begin
          --  The expression that will be built is of the form:
-         --    if not (Parameter in Stub_Type and then
-         --            Parameter.Origin = Controlling.Origin)
-         --    then
+         --    if not Same_Partition (Parameter, Controlling_Parameter) then
          --      raise Constraint_Error;
          --    end if;
 
-         --  Condition contains the reversed condition. We do not check that
-         --  Parameter is in Stub_Type since such a check has been inserted
-         --  at the point of call already (a tag check since we have multiple
-         --  controlling operands).
-
-         Condition := New_Occurrence_Of (Standard_False, Loc);
-         --  XXX rewrite to co-location check between Parameter_Entity
-         --  and Controlling_Parameter_Entity.
-
---            Make_Op_Eq (Loc,
---              Left_Opnd  =>
---                Make_Selected_Component (Loc,
---                  Prefix        =>
---                    New_Occurrence_Of (Parameter_Entity, Loc),
---                Selector_Name =>
---                  Make_Identifier (Loc, Name_Origin)),
-
---              Right_Opnd =>
---                Make_Selected_Component (Loc,
---                  Prefix        =>
---                    New_Occurrence_Of (Controlling_Parameter, Loc),
---                Selector_Name =>
---                  Make_Identifier (Loc, Name_Origin)));
+         --  We do not check that Parameter is in Stub_Type since such a check
+         --  has been inserted at the point of call already (a tag check since
+         --  we have multiple controlling operands).
 
          Append_To (Decls,
            Make_Raise_Constraint_Error (Loc,
              Condition       =>
-               Make_Op_Not (Loc, Right_Opnd => Condition),
+               Make_Op_Not (Loc,
+                 Right_Opnd =>
+                   Make_Function_Call (Loc,
+                     Name =>
+                       New_Occurrence_Of (RTE (RE_Same_Partition), Loc),
+                     Parameter_Associations =>
+                       New_List (
+                         Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
+                           New_Occurrence_Of (Parameter_Entity, Loc)),
+                         Unchecked_Convert_To (RTE (RE_RACW_Stub_Type_Access),
+                           New_Occurrence_Of (Controlling_Parameter, Loc))))),
              Reason => CE_Partition_Check_Failed));
       end Insert_Partition_Check;
 
@@ -4546,7 +4535,7 @@ package body Exp_Dist is
                  Make_Subprogram_Declaration (Loc,
                    Build_RPC_Receiver_Specification (
                      RPC_Receiver     => Make_Defining_Identifier (Loc,
-                                      New_Internal_Name ('R')),
+                                           New_Internal_Name ('R')),
                      Stream_Parameter => RPC_Receiver_Stream,
                      Result_Parameter => RPC_Receiver_Result));
             end;
@@ -6387,7 +6376,7 @@ package body Exp_Dist is
              Aliased_Present     => True,
              Object_Definition   =>
                New_Occurrence_Of (RTE (RE_Servant), Loc));
-      end  Build_Stub_Type;
+      end Build_Stub_Type;
 
       --------------------------------------
       -- Build_RPC_Receiver_Specification --
