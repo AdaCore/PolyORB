@@ -22,14 +22,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 This is the README file for PolyORB version @polyorb_version@.
 
-The home page of the project is located at http://libre.act-europe.fr/polyorb/
+The home page of the project is located at http://libre.adacore.com/polyorb/
 This is where you can find news about the project, new releases, and
 pointers to several documents and papers related to PolyORB.
 
@@ -114,14 +114,12 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 Unsupported users may directly send their patches and bug report via
 e-mail at the address
 
-	polyorb-bugs@lists.act-europe.fr
+	polyorb-bugs@lists.adacore.com
 
-
-Please, use the Problem Report Form in doc/PROBLEM-REPORT-FORM
+Please use the Problem Report Form in doc/PROBLEM-REPORT-FORM.
 
 If you are interested in becoming a supported PolyORB user, you should
-send an email to sales@gnat.com or to sales@act-europe.fr, depending
-on your geographic location.
+send an email to sales@adacore.com.
 
 Mailing-lists
 -------------
@@ -131,7 +129,7 @@ technical discussions about PolyORB among users.
 
 You can subscribe to this list and browse the archive at the URL:
 
-http://lists.act-europe.fr/mailman/listinfo/polyorb-users
+http://lists.adacore.com/mailman/listinfo/polyorb-users
 
 Contributors:
 -------------
