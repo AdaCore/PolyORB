@@ -1,3 +1,7 @@
+	Changed help message "--with-launching" into "--without-launching".
+
+Mon Oct 21 18:16:54 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
 	* configure.in, Garlic/Makefile.am: Several new variables :
 	[PROTOCOLS|NON_EMBEDDED]_[SOURCES|OBJECTS]
 	PROTOCOLS    :  list of protocols
