@@ -23,9 +23,6 @@ ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
 POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
 	     $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
-GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
-# suppress -gnatwae because of a bug in GNAT.Expect in 3.14p
-
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
 	$(XMLADA_INCS) \

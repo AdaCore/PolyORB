@@ -1210,9 +1210,10 @@ procedure Test000 is
                 Oid,
                 To_CORBA_String (Echo.Repository_Id)));
 
-            Temp_Oid : PortableServer.ObjectId
+            Temp_Oid : constant PortableServer.ObjectId
               := PortableServer.POA.Activate_Object
               (POA, Reference_To_Servant (POA, Obj_Ref2));
+            pragma Unreferenced (Temp_Oid);
 
          begin
             --  Repository Id sanity check
