@@ -26,8 +26,13 @@ pragma Elaborate_All (Broca.Refs);
 pragma Elaborate_All (CORBA.Object);
 pragma Elaborate_All (Broca.Server);
 
-package body Broca.Rootpoa is
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
 
+package body Broca.Rootpoa is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.rootpoa");
+   procedure O is new Broca.Debug.Output (Flag);
+   
    ---------------------------------------
    -- An implementation of a POAManager --
    ---------------------------------------
@@ -981,6 +986,7 @@ package body Broca.Rootpoa is
       Oid : ObjectId;
       The_Cookie : PortableServer.ServantLocator.Cookie;
    begin
+      pragma Debug (O ("Giop_invoke : enter"));
       --  See 9.3.7
       Self.Requests_Lock.Lock_R;
 
@@ -997,8 +1003,10 @@ package body Broca.Rootpoa is
       end if;
 
       if A_Servant = null then
+	 pragma Debug (O ("Giop_invoke : A_Servant is null"));
          case Self.Request_Policy is
             when USE_ACTIVE_OBJECT_MAP_ONLY =>
+	       pragma Debug (O ("Giop_invoke : USE_ACTIVE_OBJECT_MAP_ONLY policy"));
                if Slot /= Bad_Slot_Index then
                   A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
                else
@@ -1006,6 +1014,7 @@ package body Broca.Rootpoa is
                end if;
 
             when USE_DEFAULT_SERVANT =>
+	       pragma Debug (O ("Giop_invoke : USE_DEFAULT_SERVANT policy"));
                if Self.Default_Servant = null then
                   Broca.Exceptions.Raise_Obj_Adapter;
                else
@@ -1019,6 +1028,7 @@ package body Broca.Rootpoa is
                end if;
 
             when USE_SERVANT_MANAGER =>
+	       pragma Debug (O ("Giop_invoke : USE_SERVANT_MANAGER policy"));
                if Broca.Refs."="
                  (PortableServer.ServantManager.Get (Self.Servant_Manager),
                   null)
@@ -1074,11 +1084,14 @@ package body Broca.Rootpoa is
       end if;
       begin
          if Self.Servant_Policy = RETAIN then
-            Self.Object_Map (Slot).Requests_Lock.Lock_R;
+	    pragma Debug (O ("Giop_Invoke : RETAIN policy"));
+	    Self.Object_Map (Slot).Requests_Lock.Lock_R;
          end if;
+	 pragma Debug (O ("Giop_Invoke : call giop_dispatch"));
          Giop_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);
+	 pragma Debug (O ("Giop_Invoke : giop_dispatch returned"));
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;

@@ -1,6 +1,12 @@
 with Broca.Exceptions;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Poa is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
+   procedure O is new Broca.Debug.Output (Flag);
+   
    function Get_The_POAManager (Self : access POA_Object)
                                 return POAManager_Object_Access is
    begin

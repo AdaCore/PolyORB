@@ -8,7 +8,7 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Refs is
-   Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
    procedure O is new Broca.Debug.Output (Flag);
 
    procedure Disable_Usage (Obj : in out Ref_Type) is
@@ -41,8 +41,8 @@ package body Broca.Refs is
          Obj.Counter := Obj.Counter - 1;
          Counter_Global_Lock.Unlock;
          if Obj.Counter = 0 then
-            Ada.Text_IO.Put ("dec_usage: deallocate ");
-            Ada.Text_IO.Put_Line (Ada.Tags.External_Tag (Obj.all'Tag));
+            pragma Debug (O ("dec_usage: deallocate " &
+			     Ada.Tags.External_Tag (Obj.all'Tag)));
             Unchecked_Deallocation (Obj);
          end if;
       end if;

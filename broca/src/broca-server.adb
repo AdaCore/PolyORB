@@ -15,7 +15,13 @@ with Broca.Flags;
 with Broca.Locks;
 pragma Elaborate_All (Broca.Orb);
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Server is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.server");
+   procedure O is new Broca.Debug.Output (Flag);
+   
    --  Just disp a string as a log message.
    --  FIXME: should go somewhere else.
    procedure Log (S : String) is
@@ -241,6 +247,7 @@ package body Broca.Server is
       Name : CORBA.String;
       Tmp_Poa_State : Broca.Poa.Processing_State_Type;
    begin
+      pragma Debug (O ("Unmarshall_Object_Key : Enter"));
       --  Length of the sequence.
       Unmarshall (Buffer, A_Long);
       Length := Buffer_Index_Type (A_Long);
@@ -603,6 +610,7 @@ package body Broca.Server is
          Stream : Broca.Stream.Stream_Acc;
          Poa : Broca.Poa.POA_Object_Access;
       begin
+      pragma Debug (O ("Perform_Work : enter"));
          --  Simply get an entry...
          Queues.Wait_Queue.Fetch (Stream, Buffer, Poa);
          --  ... and handles (processes) it.
@@ -721,6 +729,7 @@ package body Broca.Server is
       Pos : Buffer_Index_Type;
       Key : Buffer_Descriptor;
    begin
+      pragma Debug (O ("Handle_Request : enter"));
       Pos := Buffer.Pos;
       --  service_context
       Unmarshall (Buffer, A_Long);
@@ -729,26 +738,33 @@ package body Broca.Server is
       end if;
 
       --  request id
+      pragma Debug (O ("Handle_Request : unmarshalling request_id"));
       Unmarshall (Buffer, Request_Id);
-
+      
       --  reponse expected
+      pragma Debug (O ("Handle_Request : unmarshalling reponse_expected"));
       Unmarshall (Buffer, Reponse_Expected);
-
+      
       --  Object key
+      pragma Debug (O ("Handle_Request : unmarshalling key"));
       Unmarshall_Object_Key (Buffer, Poa, Poa_State, Key);
-
+      
       case Poa_State is
          when Active =>
+	    pragma Debug (O ("Handle_Request : Poa is active"));
             Log ("invoke method");
 
-            --  Operation
+	    --  Operation
+	    pragma Debug (O ("Handle_Request : unmarshalling operation"));
             Unmarshall (Buffer, Operation);
 
             --  principal
+	    pragma Debug (O ("Handle_Request : unmarshalling principal"));
             Unmarshall (Buffer, Principal);
 
             begin
                --  This unlock_R the POA.
+	       pragma Debug (O ("Handle_Request : invoking"));
                Broca.Poa.Giop_Invoke
                  (Poa, Key, CORBA.Identifier (Operation),
                   Request_Id, Reponse_Expected, Buffer);
@@ -764,10 +780,12 @@ package body Broca.Server is
                      Broca.Giop.Create_Reply_Location_Forward
                        (Buffer, Request_Id, Fr_M.Forward_Reference);
                   end;
-            end;
-
-            Lock_Send (Stream);
-            Send (Stream, Buffer);
+	    end;
+   
+            pragma Debug (O ("Handle_Request : locking before send"));
+	    Lock_Send (Stream);
+	    pragma Debug (O ("Handle_Request : sending"));
+	    Send (Stream, Buffer);
             Unlock_Send (Stream);
 
          when Discarding =>
@@ -813,6 +831,7 @@ package body Broca.Server is
 
       end case;
       Unchecked_Deallocation (Key.Buffer);
+      pragma Debug (O ("Handle_Request : leave"));
    exception
       when Broca.Stream.Connection_Closed =>
          null;
