@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -34,17 +34,20 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.Garlic.Protocols;
+
+with Interfaces.C;
+
+with System.Garlic.Exceptions;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
-package System.Garlic.Xyz is
+package System.Garlic.Protocols.Xyz is
 
    --  This package needs documentation ???
 
-   type XYZ_Protocol is new System.Garlic.Protocols.Protocol_Type with private;
+   type XYZ_Protocol is new Protocol_Type with private;
 
-   function Create return System.Garlic.Protocols.Protocol_Access;
+   function Create return Protocol_Access;
 
    function Get_Data
      (Protocol  : access XYZ_Protocol)
@@ -54,31 +57,53 @@ package System.Garlic.Xyz is
      (Protocol : access XYZ_Protocol)
      return String;
 
+   function Receive
+     (Protocol : access XYZ_Protocol;
+      Timeout  : Milliseconds)
+     return Boolean;
+
    procedure Initialize
      (Protocol  : access XYZ_Protocol;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
 
    procedure Send
      (Protocol  : access XYZ_Protocol;
       Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
 
    procedure Set_Boot_Data
      (Protocol  : access XYZ_Protocol;
-      Boot_Data : in Utils.String_Access;
-      Error     : in out Utils.Error_Type);
+      Boot_Data : in String;
+      Error     : in out Exceptions.Error_Type);
 
    procedure Shutdown (Protocol : access XYZ_Protocol);
 
    Shutdown_Completed : Boolean := False;
 
+   procedure Accept_Until_Closed
+     (Incoming : in Natural);
+
+   procedure Receive_Until_Closed
+     (Peer : in Interfaces.C.int;
+      PID  : in out Types.Partition_ID);
+
+   type Allocate_Acceptor_Procedure is access procedure
+     (Incoming : in Natural);
+
+   type Allocate_Connector_Procedure is access procedure
+     (Peer : in Interfaces.C.int;
+      PID  : in Types.Partition_ID);
+
+   procedure Register_Task_Pool
+     (Allocate_Acceptor  : in Allocate_Acceptor_Procedure;
+      Allocate_Connector : in Allocate_Connector_Procedure);
+
 private
 
-   type XYZ_Protocol is new System.Garlic.Protocols.Protocol_Type
-     with null record;
+   type XYZ_Protocol is new Protocol_Type with null record;
 
-end System.Garlic.Xyz;
+end System.Garlic.Protocols.Xyz;

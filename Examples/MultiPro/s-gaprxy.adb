@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -35,11 +35,11 @@
 
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Ada.Exceptions;                  use Ada.Exceptions;
-pragma Warnings (Off, Ada.Exceptions);
 with Interfaces.C.Strings;
 pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
+with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
 with System.Garlic.Heart;                 use System.Garlic.Heart;
 with System.Garlic.Naming;                use System.Garlic.Naming;
 with System.Garlic.TCP_Operations;
@@ -47,7 +47,6 @@ with System.Garlic.Network_Utilities;     use System.Garlic.Network_Utilities;
 with System.Garlic.Options;
 with System.Garlic.Partitions;            use System.Garlic.Partitions;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
-with System.Garlic.Priorities;
 with System.Garlic.Protocols;             use System.Garlic.Protocols;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
@@ -59,10 +58,10 @@ with System.Garlic.TCP_Platform_Specific;
 pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
 with System.Storage_Elements;             use System.Storage_Elements;
 
-package body System.Garlic.Xyz is
+package body System.Garlic.Protocols.Xyz is
 
    Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GARXYZ", "(s-garxyz): ");
+     Debug_Initialize ("S_GAPRTC", "(s-gaprtc): ");
 
    procedure D
      (Message : in String;
@@ -104,8 +103,8 @@ package body System.Garlic.Xyz is
       Closed   : Boolean;
       Locked   : Boolean;
    end record;
-   Null_Socket : constant Socket_Info
-     := (Null_Location, Failure, True, False);
+
+   Null_Socket : constant Socket_Info := (Null_Location, Failure, True, False);
 
    --  We need a table to maintain all the outgoing connections. In case
    --  of Shutdown and concurrent connections, we may have concurrent
@@ -121,7 +120,7 @@ package body System.Garlic.Xyz is
          Socket_Info,
          Null_Socket);
 
-   --  There should not any concurrent access on this table.
+   --  There should not be any concurrent access on this table.
 
    Max_Incoming   : constant := 5;
    Null_Incoming  : constant := 0;
@@ -129,6 +128,8 @@ package body System.Garlic.Xyz is
    Incomings      : array (First_Incoming .. Max_Incoming) of Socket_Info;
    Last_Incoming  : Natural := Null_Incoming;
 
+   Allocate_Acceptor_Task  : Allocate_Acceptor_Procedure;
+   Allocate_Connector_Task : Allocate_Connector_Procedure;
 
    type Banner_Kind is (Junk_Banner, Data_Banner, Quit_Banner);
    --  Various headers that can be performed on a communication link
@@ -192,80 +193,56 @@ package body System.Garlic.Xyz is
    --  sent. These two procedures are exported so that they can be used in
    --  profiling programs without being in the spec.
 
+   procedure Receive_One_Stream
+     (Peer  : in C.int;
+      PID   : in out Partition_ID;
+      Error : in out Error_Type);
+
    Data_Stream : aliased Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Data_Banner));
 
    Quit_Stream : aliased Stream_Element_Array
      := (1 .. Banner_Size => Banner_Kind'Pos (Quit_Banner));
 
-   task type Accept_Handler is
-      pragma Priority (Priorities.RPC_Priority);
-      entry Initialize (My_Index : in Natural);
-   end Accept_Handler;
-   type Accept_Handler_Access is access Accept_Handler;
-   --  Accept new connections. Initialize indicates the index of
-   --  incoming connection in Incomings table. Remember that this
-   --  protocol may support several self locations or connections.
-
-   type Connect_Record;
-   type Connect_Access is access Connect_Record;
-   task type Connect_Handler is
-      pragma Priority (Priorities.RPC_Priority);
-      entry Initialize
-        (My_Peer : C.int;
-         My_PID  : Partition_ID;
-         My_Self : Connect_Access);
-   end Connect_Handler;
-   type Connect_Handler_Access is access Connect_Handler;
-   type Connect_Record is record
-      Next : Connect_Access;
-      Self : Connect_Handler_Access;
-   end record;
-   --  Handle incoming connection
-
-   procedure Dequeue_Connector (Connector : in out Connect_Access);
-   procedure Enqueue_Connector (Connector : in out Connect_Access);
-   Connect_List : Connect_Access;
-
    Self_Reference   : Protocol_Access;
 
-   --------------------
-   -- Accept_Handler --
-   --------------------
+   ------------
+   -- Create --
+   ------------
 
-   task body Accept_Handler is
-      N : Natural;
+   function Create return Protocol_Access is
    begin
-      select
-         accept Initialize (My_Index : in Natural) do
-            N := My_Index;
-         end Initialize;
-      or
-         terminate;
-      end select;
-      pragma Debug (D ("Task Accept Handler is running"));
+      if Self_Reference /= null then
+         return null;
+      end if;
+      Self_Reference := new XYZ_Protocol;
+      return Self_Reference;
+   end Create;
 
-      --  Infinite loop on C_Accept
+   -------------------------
+   -- Accept_Until_Closed --
+   -------------------------
 
-      Accept_Loop :
+   procedure Accept_Until_Closed
+     (Incoming : in Natural) is
+   begin
       loop
          declare
             Sin       : aliased Sockaddr_In;
             Length    : aliased C.int := Sin'Size / 8;
             Peer      : C.int;
-            Connector : Connect_Access;
             Banner    : Banner_Kind;
             Result    : C.int;
          begin
             Sin.Sin_Family := Constants.Af_Inet;
             Soft_Links.Add_Non_Terminating_Task;
             Peer := Net.C_Accept
-              (Incomings (N).Socket,
+              (Incomings (Incoming).Socket,
                Sin'Address,
                Length'Access);
             Soft_Links.Sub_Non_Terminating_Task;
             if Peer = Failure then
-               exit Accept_Loop;
+               exit;
             end if;
             pragma Debug (D ("Accept Handler: have new peer" & Peer'Img));
 
@@ -285,8 +262,7 @@ package body System.Garlic.Xyz is
                   --  Get a new task to handle this new connection
 
                   pragma Debug (D ("Accept Handler: receive data banner"));
-                  Dequeue_Connector (Connector);
-                  Connector.Self.Initialize (Peer, Null_PID, Connector);
+                  Allocate_Connector_Task (Peer, Null_PID);
 
                when Quit_Banner =>
                   --  Acceptor can safely close this peer because it
@@ -294,13 +270,13 @@ package body System.Garlic.Xyz is
 
                   pragma Debug (D ("Accept Handler: receive quit banner"));
                   Result := Net.C_Close (Peer);
-                  exit Accept_Loop;
+                  exit;
             end case;
          end;
-      end loop Accept_Loop;
+      end loop;
 
       --  Protect against multiple attempts to close socket and
-      --  prevent any other task from using Incomings (N).Socket
+      --  prevent any other task from using Incomings (Incoming).Socket
       --  value. The issue is that a task may keep a copy of this file
       --  descriptor. In the meantime, if this file descriptor is
       --  closed and then reallocated for a connection with another
@@ -311,237 +287,15 @@ package body System.Garlic.Xyz is
          Result : C.int;
       begin
          Outgoings.Enter;
-         if not Incomings (N).Closed then
-            Result := Net.C_Close (Incomings (N).Socket);
-            Incomings (N).Closed := True;
+         if not Incomings (Incoming).Closed then
+            Result := Net.C_Close (Incomings (Incoming).Socket);
+            Incomings (Incoming).Closed := True;
          end if;
-         Incomings (N).Socket := Failure;
+         Incomings (Incoming).Socket := Failure;
+         Outgoings.Update;
          Outgoings.Leave;
       end;
-   exception
-      when E : others =>
-         pragma Warnings (Off, E);
-         pragma Debug (D ("Accept Handler: " & Exception_Name (E)));
-         pragma Debug (D ("Accept Handler: " & Exception_Information (E)));
-         null;
-   end Accept_Handler;
-
-   ------------------------
-   -- Connect_Handler --
-   ------------------------
-
-   task body Connect_Handler is
-      Old_PID    : Partition_ID;
-      New_PID    : Partition_ID;
-      Length     : Stream_Element_Count;
-      Filtered   : Stream_Element_Access;
-      Unfiltered : Stream_Element_Access;
-      Opcode     : Any_Opcode;
-      Banner     : Banner_Kind;
-      Error      : Error_Type;
-      Peer       : C.int;
-      Self       : Connect_Access;
-   begin
-      loop
-         select
-            accept Initialize
-              (My_Peer : C.int;
-               My_PID  : Partition_ID;
-               My_Self : Connect_Access)
-            do
-               Peer    := My_Peer;
-               Old_PID := My_PID;
-               New_PID := My_PID;
-               Self    := My_Self;
-            end Initialize;
-         or
-            terminate;
-         end select;
-
-         pragma Debug (D ("Task Connector Handler is running"));
-
-         loop
-            if New_PID /= Null_PID then
-               Soft_Links.Add_Non_Terminating_Task;
-               Read_Banner (Peer, Banner);
-               Soft_Links.Sub_Non_Terminating_Task;
-
-               case Banner is
-                  when Junk_Banner =>
-                     Throw (Error, "Connect_Handler: junk banner");
-                     exit;
-
-                  when Data_Banner =>
-                     null;
-
-                  when Quit_Banner =>
-                     Throw (Error, "Connect_Handler: quit banner");
-                     exit;
-
-               end case;
-            end if;
-
-            Read_SEC (Peer, Length, Error);
-            exit when Found (Error);
-
-            pragma Debug (D ("Recv" & Length'Img & " bytes from peer" &
-                             Peer'Img & " (pid =" & New_PID'Img & ")"));
-
-            Filtered := new Stream_Element_Array (1 .. Length);
-            Physical_Receive (Peer, Filtered, Error);
-            exit when Found (Error);
-
-            Old_PID := New_PID;
-            Analyze_Stream
-              (New_PID,
-               Self_Reference,
-               Opcode,
-               Unfiltered,
-               Filtered,
-               0, Error);
-            exit when Found (Error);
-
-            if Old_PID /= New_PID then
-               Soft_Links.Activity_Detected;
-
-               if Old_PID = Null_PID then
-                  pragma Debug (D ("Task handling partition" & New_PID'Img));
-
-                  Enter (New_PID);
-                  declare
-                     New_Info : Socket_Info;
-                  begin
-                     New_Info := Outgoings.Get_Component (New_PID);
-                     New_Info.Socket := Peer;
-                     New_Info.Closed := False;
-                     Outgoings.Set_Component (New_PID, New_Info);
-                     Set_Online (New_PID, True);
-                  end;
-                  Leave (New_PID);
-               else
-                  pragma Debug
-                    (D ("Task handling partition" & New_PID'Img &
-                        " and no longer handling partition" & Old_PID'Img));
-
-                  Enter (Old_PID);
-                  Enter (New_PID);
-                  declare
-                     Old_Info : Socket_Info;
-                  begin
-                     Old_Info := Outgoings.Get_Component (Old_PID);
-                     Outgoings.Set_Component (New_PID, Old_Info);
-                     Old_Info.Socket := Failure;
-                     Old_Info.Closed := True;
-                     Outgoings.Set_Component (Old_PID, Old_Info);
-                     Set_Online (Old_PID, False);
-                     Set_Online (New_PID, True);
-                  end;
-                  Leave (New_PID);
-                  Leave (Old_PID);
-               end if;
-
-               Catch (Error);
-            end if;
-
-            Process_Stream (New_PID, Opcode, Unfiltered, Error);
-            exit when Found (Error);
-
-            Free (Filtered);
-            Free (Unfiltered);
-         end loop;
-
-         --  We always exit with an error. Catch it to print the error
-         --  message and to deallocate it.
-         Catch (Error);
-
-         --  If this connection is broken before partition
-         --  identification, then try to rescue New_PID especially for
-         --  the boot server. ???: When does this happen?
-
-         if New_PID = Null_PID then
-            New_PID := Boot_PID;
-         end if;
-
-         --  Protect against multiple attempts to close socket and
-         --  prevent any other task from using Incomings (N).Socket
-         --  value. The issue is that a task may keep a copy of this file
-         --  descriptor. In the meantime, if this file descriptor is
-         --  closed and then reallocated for a connection with another
-         --  connection, the task will use its copy to communicate with
-         --  the wrong partition.
-
-         Outgoings.Enter;
-         declare
-            Info  : Socket_Info;
-            Dummy : C.int;
-         begin
-            Info := Outgoings.Get_Component (New_PID);
-            if not Info.Closed then
-               Dummy := Net.C_Close (Info.Socket);
-               Info.Closed := True;
-            end if;
-            Info.Socket := Failure;
-            Outgoings.Set_Component (New_PID, Info);
-            Set_Online (New_PID, False);
-         end;
-         Outgoings.Leave;
-
-         --  Signal to the heart that we got an error on this partition
-
-         if New_PID = Null_PID then
-            pragma Debug
-              (D ("Task dying without pid"));
-            null;
-         else
-            pragma Debug
-              (D ("Notify error on pid" & New_PID'Img));
-
-            Notify_Partition_Error (New_PID);
-         end if;
-
-         Enqueue_Connector (Self);
-      end loop;
-
-   exception
-      when E : others =>
-         pragma Warnings (Off, E);
-         pragma Debug (D ("Connector Handler: " & Exception_Name (E)));
-         pragma Debug (D ("Connector Handler: " & Exception_Information (E)));
-         null;
-   end Connect_Handler;
-
-   ------------
-   -- Create --
-   ------------
-
-   function Create return Protocol_Access is
-   begin
-      if Self_Reference /= null then
-         return null;
-      end if;
-      Self_Reference := new XYZ_Protocol;
-      return Self_Reference;
-   end Create;
-
-   ------------------------
-   -- Dequeue_Connector --
-   ------------------------
-
-   procedure Dequeue_Connector
-     (Connector : in out Connect_Access) is
-   begin
-      Outgoings.Enter;
-      if Connect_List = null then
-         pragma Debug (D ("Create a new connection handler"));
-         Connector      := new Connect_Record;
-         Connector.Self := new Connect_Handler;
-      else
-         pragma Debug (D ("Reuse an old connection handler"));
-         Connector      := Connect_List;
-         Connect_List := Connector.Next;
-      end if;
-      Outgoings.Leave;
-   end Dequeue_Connector;
+   end Accept_Until_Closed;
 
    ----------------
    -- Do_Connect --
@@ -586,9 +340,11 @@ package body System.Garlic.Xyz is
       Size  : aliased C.int := Check'Size / 8;
       Code  : C.int;
       One   : aliased C.int := 1;
+
    begin
       Self.Socket := Net.C_Socket (Af_Inet, Sock_Stream, 0);
       if Self.Socket = Failure then
+         Outgoings.Update;
          Throw (Error, "Do_Listen: xyz socket error");
          return;
       end if;
@@ -624,20 +380,254 @@ package body System.Garlic.Xyz is
       pragma Debug (D ("Listen on port" & Port'Img));
    end Do_Listen;
 
+   -------------
+   -- Receive --
+   -------------
+
+   function Receive
+     (Protocol  : access XYZ_Protocol;
+      Timeout   : Milliseconds)
+     return Boolean
+   is
+      Dummy   : C.int;
+      Rfds    : aliased Fd_Set := 0;
+      Sfds    : aliased Fd_Set := 0;
+      Last    : C.int := 0;
+      TVal    : aliased Timeval := (0, C.int (Timeout * 1000));
+      TPtr    : Timeval_Access;
+      Info    : Socket_Info;
+      Done    : Boolean := False;
+      Error   : Error_Type;
+      PID     : Partition_ID;
+
+   begin
+      if Timeout = 0 then
+         TPtr := null;
+      else
+         TPtr := TVal'Unchecked_Access;
+      end if;
+      Outgoings.Enter;
+      for O in First_PID .. Outgoings.Last loop
+         Info := Outgoings.Get_Component (O);
+         if Info.Socket /= Failure then
+            if Info.Closed then
+               Info.Socket := Failure;
+               Outgoings.Set_Component (O, Info);
+
+            else
+               pragma Debug (D ("include socket" & Info.Socket'Img));
+
+               if Last < Info.Socket then
+                  Last := Info.Socket;
+               end if;
+               Rfds := Rfds + 2 ** Integer (Info.Socket);
+            end if;
+         end if;
+      end loop;
+      Outgoings.Leave;
+
+      if Last = 0 then
+         return True;
+      end if;
+
+      Dummy := C_Select (Last + 1,
+                         Rfds'Unchecked_Access,
+                         Sfds'Unchecked_Access,
+                         null,
+                         TPtr);
+      pragma Debug (D ("select returned error code" & Dummy'Img));
+
+      if Dummy = Failure then
+         return False;
+      end if;
+
+      for O in First_PID .. Outgoings.Last loop
+         Info := Outgoings.Get_Component (O);
+         if Info.Socket /= Failure
+           and then (Rfds / 2 ** Natural (Info.Socket)) mod 2 = 1
+         then
+            pragma Debug (D ("something available from partition" & O'Img));
+
+            Done := True;
+            PID := O;
+            Receive_One_Stream (Info.Socket, PID, Error);
+            Catch (Error);
+         end if;
+      end loop;
+      return Done;
+   end Receive;
+
    ------------------------
-   -- Enqueue_Connector --
+   -- Receive_One_Stream --
    ------------------------
 
-   procedure Enqueue_Connector
-     (Connector : in out Connect_Access)
-   is
+   procedure Receive_One_Stream
+     (Peer  : in C.int;
+      PID   : in out Partition_ID;
+      Error : in out Error_Type)
+  is
+      Old_PID    : Partition_ID;
+      Length     : Stream_Element_Count;
+      Filtered   : Stream_Element_Access;
+      Unfiltered : Stream_Element_Access;
+      Opcode     : Any_Opcode;
+      Banner     : Banner_Kind;
+
    begin
-      pragma Debug (D ("Queue an old connection handler"));
+      if PID /= Null_PID then
+         Soft_Links.Add_Non_Terminating_Task;
+         Read_Banner (Peer, Banner);
+         Soft_Links.Sub_Non_Terminating_Task;
+
+         case Banner is
+            when Junk_Banner =>
+               Throw (Error, "Connect_Handler: junk banner");
+
+            when Data_Banner =>
+               null;
+
+            when Quit_Banner =>
+               Throw (Error, "Connect_Handler: quit banner");
+
+         end case;
+      end if;
+      if Found (Error) then
+         return;
+      end if;
+
+      Read_SEC (Peer, Length, Error);
+      if Found (Error) then
+         return;
+      end if;
+
+      pragma Debug (D ("Recv" & Length'Img & " bytes from peer" &
+                       Peer'Img & " (pid =" & PID'Img & ")"));
+
+      Filtered := new Stream_Element_Array (1 .. Length);
+      Physical_Receive (Peer, Filtered, Error);
+      if Found (Error) then
+         return;
+      end if;
+
+      Old_PID := PID;
+      Analyze_Stream
+        (PID,
+         Self_Reference,
+         Opcode,
+         Unfiltered,
+         Filtered,
+         0, Error);
+      if Found (Error) then
+         return;
+      end if;
+
+      if Old_PID /= PID then
+         Soft_Links.Activity_Detected;
+
+         if Old_PID = Null_PID then
+            pragma Debug (D ("Task handling partition" & PID'Img));
+
+            Enter (PID);
+            declare
+               New_Info : Socket_Info;
+            begin
+               New_Info := Outgoings.Get_Component (PID);
+               New_Info.Socket := Peer;
+               New_Info.Closed := False;
+               Outgoings.Set_Component (PID, New_Info);
+               Set_Online (PID, True);
+            end;
+            Leave (PID);
+         else
+            pragma Debug
+              (D ("Task handling partition" & PID'Img &
+                  " and no longer handling partition" & Old_PID'Img));
+
+            Enter (Old_PID);
+            Enter (PID);
+            declare
+               Old_Info : Socket_Info;
+            begin
+               Old_Info := Outgoings.Get_Component (Old_PID);
+               Outgoings.Set_Component (PID, Old_Info);
+               Old_Info.Socket := Failure;
+               Old_Info.Closed := True;
+               Outgoings.Set_Component (Old_PID, Old_Info);
+               Set_Online (Old_PID, False);
+               Set_Online (PID, True);
+            end;
+            Outgoings.Update;
+            Leave (PID);
+            Leave (Old_PID);
+         end if;
+      end if;
+
+      Process_Stream (PID, Opcode, Unfiltered, Error);
+
+      if Filtered /= null then
+         Free (Filtered);
+      end if;
+      if Unfiltered /= null then
+         Free (Unfiltered);
+      end if;
+   end Receive_One_Stream;
+
+   --------------------------
+   -- Receive_Until_Closed --
+   --------------------------
+
+   procedure Receive_Until_Closed
+     (Peer : in C.int;
+      PID  : in out Partition_ID)
+   is
+      Error      : Error_Type;
+
+   begin
+      while not Found (Error) loop
+         Receive_One_Stream (Peer, PID, Error);
+      end loop;
+      Catch (Error);
+
+      --  If this connection is broken before partition
+      --  identification, then try to rescue PID especially for the
+      --  boot server. ???: When does this happen?
+
+      if PID = Null_PID then
+         PID := Boot_PID;
+      end if;
+
+      --  Protect against multiple attempts to close socket and
+      --  prevent any other task from using Incomings (N).Socket
+      --  value. The issue is that a task may keep a copy of this file
+      --  descriptor. In the meantime, if this file descriptor is
+      --  closed and then reallocated for a connection with another
+      --  connection, the task will use its copy to communicate with
+      --  the wrong partition.
+
       Outgoings.Enter;
-      Connector.Next := Connect_List;
-      Connect_List := Connector;
+      declare
+         Info  : Socket_Info;
+         Dummy : C.int;
+      begin
+         Info := Outgoings.Get_Component (PID);
+         if not Info.Closed then
+            Dummy := Net.C_Close (Info.Socket);
+            Info.Closed := True;
+         end if;
+         Info.Socket := Failure;
+         Outgoings.Set_Component (PID, Info);
+         Outgoings.Update;
+         Set_Online (PID, False);
+      end;
       Outgoings.Leave;
-   end Enqueue_Connector;
+
+      --  Signal to the heart that we got an error on this partition
+
+      pragma Debug
+        (D ("Notify error on pid" & PID'Img));
+
+      Notify_Partition_Error (PID);
+   end Receive_Until_Closed;
 
    -----------
    -- Enter --
@@ -674,7 +664,7 @@ package body System.Garlic.Xyz is
    is
       Result : String_Array_Access;
    begin
-      if Can_Have_A_Light_Runtime
+      if Options.Is_Pure_Client
         or else Last_Incoming = Null_Incoming
       then
          return null;
@@ -709,13 +699,12 @@ package body System.Garlic.Xyz is
 
    procedure Initialize
      (Protocol  : access XYZ_Protocol;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
       Error     : in out Error_Type)
    is
       Host     : constant Host_Location := Split_Data (Host_Name);
-      Acceptor : Accept_Handler_Access;
       Self     : Socket_Info := Null_Socket;
    begin
       if not Required and then Last_Incoming /= Null_Incoming then
@@ -725,14 +714,12 @@ package body System.Garlic.Xyz is
 
       Performed := False;
 
-      if Self_Data /= null
-        and then Self_Data'Length /= 0
-      then
+      if Self_Data'Length /= 0 then
          --  When there is a self location to bind on, check that this
          --  location concerns the current host. Otherwise, there is a
          --  real problem.
 
-         Self.Location := Split_Data (Self_Data.all);
+         Self.Location := Split_Data (Self_Data);
          declare
             N1 : String := Name_Of (Image (Self.Location.Addr));
             N2 : String := Name_Of ("localhost");
@@ -746,7 +733,7 @@ package body System.Garlic.Xyz is
                pragma Debug (D (" - " & N3));
                Ada.Exceptions.Raise_Exception
                  (Program_Error'Identity,
-                  "Incorrect xyz self location: " & Self_Data.all);
+                  "Incorrect xyz self location: " & Self_Data);
             end if;
          end;
       else
@@ -760,7 +747,7 @@ package body System.Garlic.Xyz is
          Initialized := True;
       end if;
 
-      if not Can_Have_A_Light_Runtime then
+      if not Options.Is_Pure_Client then
 
          pragma Debug (D ("Start acceptor task"));
 
@@ -780,8 +767,7 @@ package body System.Garlic.Xyz is
             return;
          end if;
 
-         Acceptor := new Accept_Handler;
-         Acceptor.Initialize (Last_Incoming);
+         Allocate_Acceptor_Task (Last_Incoming);
          Performed := True;
       else
          pragma Debug (D ("No acceptor task, light runtime"));
@@ -918,6 +904,18 @@ package body System.Garlic.Xyz is
       end if;
    end Read_SEC;
 
+   ------------------------
+   -- Register_Task_Pool --
+   ------------------------
+
+   procedure Register_Task_Pool
+     (Allocate_Acceptor  : in Allocate_Acceptor_Procedure;
+      Allocate_Connector : in Allocate_Connector_Procedure) is
+   begin
+      Allocate_Acceptor_Task  := Allocate_Acceptor;
+      Allocate_Connector_Task := Allocate_Connector;
+   end Register_Task_Pool;
+
    ----------
    -- Send --
    ----------
@@ -943,7 +941,7 @@ package body System.Garlic.Xyz is
             return;
          end if;
 
-         Info.Location := Split_Data (Get_Data (Location).all);
+         Info.Location := Split_Data (Get_Data (Location));
 
          if Info.Location = Null_Location then
             Outgoings.Set_Component (Partition, Info);
@@ -967,7 +965,12 @@ package body System.Garlic.Xyz is
 
          if Info.Socket = Failure then
             Leave (Partition);
-            Throw (Error, "Send: Cannot connect to" & Partition'Img);
+            if Options.Partition_Name /= null then
+               Throw (Error, "Send: Cannot connect to" & Partition'Img &
+                      " " & Options.Partition_Name.all);
+            else
+               Throw (Error, "Send: Cannot connect to" & Partition'Img);
+            end if;
             return;
          end if;
 
@@ -977,14 +980,11 @@ package body System.Garlic.Xyz is
          Set_Online (Partition, True);
          Outgoings.Leave;
 
-         --  Now create a task to get data on this connection
+         if Allocate_Connector_Task /= null then
+            --  Now create a task to get data on this connection
 
-         declare
-            Connector : Connect_Access;
-         begin
-            Dequeue_Connector (Connector);
-            Connector.Self.Initialize (Info.Socket, Partition, Connector);
-         end;
+            Allocate_Connector_Task (Info.Socket, Partition);
+         end if;
       end if;
 
       --  Write length at the beginning of the data, then the header.
@@ -1038,7 +1038,7 @@ package body System.Garlic.Xyz is
 
    procedure Set_Boot_Data
      (Protocol  : access XYZ_Protocol;
-      Boot_Data : in Utils.String_Access;
+      Boot_Data : in String;
       Error     : in out Error_Type) is
    begin
       if not Initialized then
@@ -1060,10 +1060,8 @@ package body System.Garlic.Xyz is
       declare
          Boot_Info : Socket_Info := Outgoings.Get_Component (Boot_PID);
       begin
-         if Boot_Data /= null
-           and then Boot_Data'Length /= 0
-         then
-            Boot_Info.Location := Split_Data (Boot_Data.all);
+         if Boot_Data'Length /= 0 then
+            Boot_Info.Location := Split_Data (Boot_Data);
          end if;
          Outgoings.Set_Component (Boot_PID, Boot_Info);
       end;
@@ -1078,10 +1076,12 @@ package body System.Garlic.Xyz is
    procedure Shutdown
      (Protocol : access XYZ_Protocol)
    is
-      Count : Natural;
-      FD    : C.int;
-      Info  : Socket_Info;
-      Error : Error_Type;
+      Count   : Natural;
+      FD      : C.int;
+      Info    : Socket_Info;
+      Error   : Error_Type;
+      Version : Version_Id;
+
    begin
       if not Initialized then
          return;
@@ -1116,7 +1116,7 @@ package body System.Garlic.Xyz is
             Count := Count + 1;
          end if;
       end loop;
-      Outgoings.Leave;
+      Outgoings.Leave (Version);
 
       --  We cannot have a rendez-vous with the acceptors to
       --  check that it has terminated because we do not
@@ -1124,9 +1124,8 @@ package body System.Garlic.Xyz is
       --  charge of setting field Socket to Failure. This way it
       --  signals its termination.
 
-      while Count /= 0 loop
+      loop
          pragma Debug (D ("There are" & Count'Img & " acceptors alive"));
-         delay 0.2;
          Count := 0;
          Outgoings.Enter;
          for I in First_Incoming .. Last_Incoming loop
@@ -1134,7 +1133,9 @@ package body System.Garlic.Xyz is
                Count := Count + 1;
             end if;
          end loop;
-         Outgoings.Leave;
+         Outgoings.Leave (Version);
+         exit when Count = 0;
+         Outgoings.Differ (Version);
       end loop;
 
       pragma Debug (D ("Shutdown connectors"));
@@ -1164,11 +1165,10 @@ package body System.Garlic.Xyz is
             Count := Count + 1;
          end if;
       end loop;
-      Outgoings.Leave;
+      Outgoings.Leave (Version);
 
-      while Count /= 0 loop
+      loop
          pragma Debug (D ("There are " & Count'Img & " connectors alive"));
-         delay 0.2;
          Count := 0;
          Outgoings.Enter;
          for P in First_PID .. Outgoings.Last loop
@@ -1177,7 +1177,9 @@ package body System.Garlic.Xyz is
                Count := Count + 1;
             end if;
          end loop;
-         Outgoings.Leave;
+         Outgoings.Leave (Version);
+         exit when Count = 0;
+         Outgoings.Differ (Version);
       end loop;
 
       pragma Debug (D ("Shutdown TCP acceptors"));
@@ -1225,4 +1227,4 @@ package body System.Garlic.Xyz is
               4 => Stream_Element (Count mod 256));
    end To_Stream_Element_Array;
 
-end System.Garlic.Xyz;
+end System.Garlic.Protocols.Xyz;

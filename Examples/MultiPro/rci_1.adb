@@ -9,7 +9,7 @@ package body RCI_1 is
          Done := True;
          RCI_2.Dump_Partition_Table;
          delay 0.2;
-         System.Garlic.Partitions.Dump_Partition_Table (True);
+         System.Garlic.Partitions.Dump_Partition_Table;
       end if;
    end Dump_Partition_Table;
 end RCI_1;
