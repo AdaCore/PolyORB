@@ -12,7 +12,7 @@
 #
 # Current version
 #
-glade_version='0.90'
+glade_version='0.91'
 gnat_version='3.07'
 
 #

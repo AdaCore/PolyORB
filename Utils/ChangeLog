@@ -1,3 +1,7 @@
+Thu Nov 28 17:13:49 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO: Version goes to 0.91.
+
 Sat Nov 23 13:31:14 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* VERSION.INFO: Updated for dsa 1.04 (gnat 3.07).
