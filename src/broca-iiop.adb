@@ -103,9 +103,9 @@ package body Broca.IIOP is
       Profile :=  Profile_Ptr (IIOP_Profile);
    end Unmarshall_IIOP_Profile_Body;
 
-   -------------------------
+   --------------------------------
    -- Marshall_IIOP_Profile_Body --
-   -------------------------
+   --------------------------------
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;

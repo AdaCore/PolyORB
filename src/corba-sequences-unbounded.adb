@@ -1290,7 +1290,10 @@ package body CORBA.Sequences.Unbounded is
       Temp : Element_Array_Access;
    begin
       Temp := new Element_Array (1 .. Object.Length);
-      Temp (1 .. Object.Length) := Object.Content (1 .. Object.Length);
+      if Object.Length /= 0 then
+         pragma Assert (Object.Content /= null);
+         Temp (1 .. Object.Length) := Object.Content (1 .. Object.Length);
+      end if;
       Object.Content := Temp;
    end Adjust;
 

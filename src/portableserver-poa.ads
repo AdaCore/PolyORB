@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with CORBA.Object;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
