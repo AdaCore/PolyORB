@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,6 +45,10 @@ package body PolyORB.Annotations is
    use Ada.Tags;
    use Note_Lists;
 
+   --------------
+   -- Set_Note --
+   --------------
+
    procedure Set_Note (NP : in out Notepad; N : Note'Class)
    is
       It : Iterator := First (NP);
@@ -65,7 +69,12 @@ package body PolyORB.Annotations is
       Append (NP, new Note'Class'(N));
    end Set_Note;
 
-   procedure Get_Note (NP : Notepad; N : out Note'Class)
+   --------------
+   -- Get_Note --
+   --------------
+
+   procedure Get_Note (NP : Notepad;
+                       N : out Note'Class)
    is
       It : Iterator := First (NP);
    begin
@@ -76,13 +85,36 @@ package body PolyORB.Annotations is
          end if;
          Next (It);
       end loop;
+
    end Get_Note;
+
+   procedure Get_Note (NP : Notepad;
+                       N : out Note'Class;
+                       Default : Note'Class)
+   is
+      It : Iterator := First (NP);
+   begin
+      while not Last (It) loop
+         if Value (It).all'Tag = N'Tag then
+            N := Value (It).all.all;
+            return;
+         end if;
+         Next (It);
+      end loop;
+
+      N := Default;
+   end Get_Note;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (NP : in out Notepad)
    is
-      It : Iterator := First (NP);
       procedure Free is new Ada.Unchecked_Deallocation
         (Note'Class, Note_Access);
+
+      It : Iterator := First (NP);
    begin
       while not Last (It) loop
          Free (Value (It).all);

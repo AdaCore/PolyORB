@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,8 +56,15 @@ package PolyORB.Annotations is
    --  Add note N to notepad NP. If a note with the same tag as N
    --  exists, it is replaced by N.
 
-   procedure Get_Note (NP : Notepad; N : out Note'Class);
+   procedure Get_Note (NP : Notepad;
+                       N : out Note'Class);
    --  Retrieve a note of N's type from NP.
+
+   procedure Get_Note (NP : Notepad;
+                       N : out Note'Class;
+                       Default : Note'Class);
+   --  Retrieve a note of N's type from NP.
+   --  Return 'Default' if the note cannot be found.
 
    procedure Destroy (NP : in out Notepad);
    --  Removes all notes in NP and return any associated
