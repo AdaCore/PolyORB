@@ -105,6 +105,7 @@ package body Echo is
 
 begin
 
+   pragma Debug(Output(Debug,"Starting elaboration of package Echo")) ;
    Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;
    Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;
 

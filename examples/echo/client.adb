@@ -44,7 +44,7 @@ begin
    Put_Line("main : Got the Corba.Object") ;
 
    -- checking if it worked
-   if Corba.Object.Is_Nil(myecho) then
+   if Echo.Is_Nil(myecho) then
       Put_Line("main : cannot invoke on a nil reference") ;
       return ;
    end if ;

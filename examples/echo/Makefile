@@ -19,8 +19,9 @@ COMMAND_LINE = -I$(ADABROKER_PATH) \
 -L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
 -lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
 
-main:
+main: .
 	make -C ../../InterfaceORB main
+	gnatmake -gnatf -gnata -m -i toto.adb $(COMMAND_LINE)
 	gnatmake -gnatf -gnata -m -i client $(COMMAND_LINE)
 	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE)
 
