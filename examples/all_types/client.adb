@@ -90,10 +90,13 @@ begin
          X : all_types.Ref;
       begin
          X := echoRef (Myall_types, Myall_types);
+         Output ("test self reference", True);
+
          for I in 1 .. 15 loop
             X := echoRef (X, X);
          end loop;
-         Output ("test self reference", echoLong (X, 31337) = 31337);
+         Output ("test self reference consistency",
+                 echoLong (X, 31337) = 31337);
 
          X := Echootheralltypes (X, X);
 

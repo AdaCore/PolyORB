@@ -49,12 +49,12 @@ package body PolyORB.Any.ObjRef is
    function To_Any (Item : in PolyORB.References.Ref) return Any
    is
       Result : Any;
-      Content : Content_ObjRef_Ptr;
+      Content : constant Any_Content_Ptr := new Content_ObjRef;
    begin
-      Content := new Content_ObjRef;
-      Content.Value := new PolyORB.References.Ref'(Item);
+      Content_ObjRef (Content.all).Value
+        := new PolyORB.References.Ref'(Item);
 
-      Set_Value (Result, Any_Content_Ptr (Content));
+      Set_Value (Result, Content);
       Set_Type (Result, TypeCode.TC_Object);
       --  Inc_Usage (Result);
 
@@ -68,7 +68,7 @@ package body PolyORB.Any.ObjRef is
    function From_Any (Item : in Any) return PolyORB.References.Ref
    is
    begin
-      if (TypeCode.Kind (Get_Type (Item)) /= Tk_Objref) then
+      if (TypeCode.Kind (Get_Precise_Type (Item)) /= Tk_Objref) then
          raise TypeCode.Bad_TypeCode;
       end if;
 

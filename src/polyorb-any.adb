@@ -30,8 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#17 $
+--  $Id: //droopi/main/src/polyorb-any.adb#18 $
 
+with Ada.Exceptions;
 with Ada.Tags;
 
 with PolyORB.Locks;
@@ -2235,7 +2236,7 @@ package body PolyORB.Any is
    procedure Set_Any_Aggregate_Value (Any_Value : in out Any) is
       use TypeCode;
    begin
-      pragma Debug (O ("Set_Any_Aggregate_Value : enter"));
+      pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
       if TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Struct
         and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Union
         and then TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Enum
@@ -2245,7 +2246,7 @@ package body PolyORB.Any is
       then
          raise TypeCode.Bad_TypeCode;
       end if;
-      pragma Debug (O ("Set_Any_Aggregate_Value : no exception raised"));
+      pragma Debug (O ("Set_Any_Aggregate_Value: typecode is correct"));
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all = Null_Content_Ptr then
          Any_Value.The_Value.all :=
@@ -2917,18 +2918,20 @@ package body PolyORB.Any is
    --  Adjust  --
    --------------
    procedure Adjust (Object : in out Any) is
+      Value : Any_Content_Ptr;
    begin
       pragma Debug (O2 ("Adjust : enter"));
       if Object.As_Reference then
          Inc_Usage (Object);
       else
          pragma Assert (Object.Any_Lock /= null);
-         if Get_Value (Object) /= Null_Content_Ptr then
+         Value := Get_Value (Object);
+         if Value /= Null_Content_Ptr then
             pragma Debug (O2 ("Adjust : object type is "
                               & Ada.Tags.External_Tag
-                              (Get_Value (Object).all'Tag)));
+                              (Value.all'Tag)));
             Object.The_Value :=
-             new Any_Content_Ptr'(Duplicate (Get_Value (Object)));
+             new Any_Content_Ptr'(Duplicate (Value));
          else
             Object.The_Value := new Any_Content_Ptr'(Null_Content_Ptr);
          end if;
@@ -2944,9 +2947,14 @@ package body PolyORB.Any is
    ----------------
    procedure Finalize (Object : in out Any) is
    begin
-      pragma Debug (O2 ("Finalize : enter"));
+      pragma Debug (O2 ("Finalize: enter"));
       Dec_Usage (Object);
-      pragma Debug (O2 ("Finalize : end"));
+      pragma Debug (O2 ("Finalize: end"));
+   exception
+      when E : others =>
+         pragma Debug (O2 ("Finalize: KABOOM!"));
+         pragma Debug (O2 (Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Finalize;
 
    -----------------
