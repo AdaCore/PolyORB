@@ -41,6 +41,7 @@ with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Constants;
+with PolyORB.Exceptions;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Initialization;
@@ -117,7 +118,8 @@ package body PolyORB.ORB is
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB. AES is destroyed.
 
-   procedure Run (AEH : access AES_Event_Handler) is
+   procedure Run
+     (AEH : access AES_Event_Handler) is
    begin
       Handle_Event
         (AES_Event_Handler'Class (AEH.all)'Access,
@@ -132,6 +134,10 @@ package body PolyORB.ORB is
          end;
       end if;
    end Run;
+
+   --------------------------------------
+   -- Spec of 'Event_Handlers' package --
+   --------------------------------------
 
    package Event_Handlers is
 
@@ -203,6 +209,7 @@ package body PolyORB.ORB is
       ORB.Polling  := False;
       Create (ORB.Polling_Completed);
       ORB.Idle_Counter := 0;
+
       Leave (ORB.ORB_Lock);
    end Create;
 
@@ -232,15 +239,19 @@ package body PolyORB.ORB is
       Job : constant Job_Access := Fetch_Job (Q);
    begin
       pragma Debug (O (Prefix & "enter"));
+
       if Job /= null then
          Leave (ORB.ORB_Lock);
 
          pragma Debug (O (Prefix & "working"));
          pragma Assert (Job /= null);
+
          Run (Job);
+
          return True;
       else
          pragma Debug (O (Prefix & "nothing to do."));
+
          return False;
       end if;
    end Try_Perform_Work;
@@ -268,6 +279,10 @@ package body PolyORB.ORB is
       Queue_Job (ORB.Job_Queue, Job_Access (Note.Handler));
    end Queue_Event;
 
+   --------------------------------------
+   -- Body of 'Event_Handlers' package --
+   --------------------------------------
+
    package body Event_Handlers is
 
       ------------------
@@ -277,10 +292,10 @@ package body PolyORB.ORB is
       procedure Handle_Event
         (H   : access TAP_AES_Event_Handler;
          ORB :        ORB_Access;
-         AES : in out Asynch_Ev_Source_Access)
-      is
+         AES : in out Asynch_Ev_Source_Access) is
       begin
          pragma Debug (O ("Handle_Event: TAP AES"));
+
          declare
             New_TE     : Transport_Endpoint_Access;
             New_Filter : Filter_Access;
@@ -299,7 +314,6 @@ package body PolyORB.ORB is
 
             Leave (ORB.ORB_Lock);
          end;
-
       end Handle_Event;
 
       ------------------
@@ -377,14 +391,13 @@ package body PolyORB.ORB is
         (Task_Kind_For_Exit_Condition
          (Exit_Condition.Condition = null));
 
+      --------------
+      -- Exit_Now --
+      --------------
+
       function Exit_Now return Boolean;
       pragma Inline (Exit_Now);
       --  True if this instance of the ORB main loop must be terminated.
-
-      procedure Cleanup;
-      pragma Inline (Cleanup);
-      --  Remove all references to This_Task. Must be called
-      --  before returning from Run (even when not debugging).
 
       function Exit_Now return Boolean is
       begin
@@ -392,6 +405,15 @@ package body PolyORB.ORB is
                  and then Exit_Condition.Condition.all)
            or else ORB.Shutdown;
       end Exit_Now;
+
+      -------------
+      -- Cleanup --
+      -------------
+
+      procedure Cleanup;
+      pragma Inline (Cleanup);
+      --  Remove all references to This_Task. Must be called
+      --  before returning from Run (even when not debugging).
 
       procedure Cleanup is
       begin
@@ -522,6 +544,7 @@ package body PolyORB.ORB is
          --  Condition at end of loop: ORB_Lock is held.
 
       end loop Main_Loop;
+
       pragma Debug (O ("Run: leave."));
       Cleanup;
 
@@ -538,7 +561,7 @@ package body PolyORB.ORB is
          --  XXX at this point it is assumed that ORB_Lock is
          --  not being held by this task.
 
-         O ("ORB main loop got exception:", Error);
+         O ("ORB.Run got exception:", Error);
          O (Ada.Exceptions.Exception_Information (E), Error);
 
          Cleanup;
@@ -876,8 +899,26 @@ package body PolyORB.ORB is
             null;
          end if;
 
-         References.Binding.Bind
-           (J.Request.Target, J.ORB, Surrogate, Pro);
+         begin
+            References.Binding.Bind
+              (J.Request.Target, J.ORB, Surrogate, Pro);
+
+         exception
+            when E : others =>
+               pragma Debug (O ("Run_Request: Got an exception when binding"
+                                & Ada.Exceptions.Exception_Information (E)));
+
+               --  Any exception caught at this level implies a
+               --  problem within the object adapter. We bounce the
+               --  exception to the user for further processing.
+
+               J.Request.Exception_Info
+                 := PolyORB.Exceptions.System_Exception_To_Any (E);
+
+               Emit_No_Reply (J.Requestor,
+                              Objects.Interface.Executed_Request'
+                              (Req => J.Request));
+         end;
 
          --  XXX May be a point to synchronize on With_Server ...
          --  At this point, the server has been contacted, a binding
@@ -942,12 +983,12 @@ package body PolyORB.ORB is
             --  XXX Who frees the Request object?
 
          end;
-         pragma Debug (O ("Run Request_Job: executed request"));
+         pragma Debug (O ("Run_Request: executed request"));
       end;
 
    exception
       when E : others =>
-         pragma Debug (O ("Run Request_Job: Got exception "
+         pragma Debug (O ("Run_Request: Got exception "
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
 
