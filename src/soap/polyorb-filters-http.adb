@@ -898,6 +898,9 @@ package body PolyORB.Filters.HTTP is
       --    * no Message_Buf, send a Data_Indication containing
       --      he Entity unbounded-string (for efficiency's sake,
       --      check that unbounded strings are copy-on-write.)
+
+      Clear_Message_State (F.all);
+      F.State := Start_Line;
    end Message_Complete;
 
    function To_HTTP_Status_Code
