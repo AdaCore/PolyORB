@@ -803,6 +803,7 @@ char *lower (const char *str)
 string spaces (int n, char d)
 {
   string tmp = "";
+  int i ;
   for (i=0;i<n;i++) tmp+=d;
   return tmp;
 }

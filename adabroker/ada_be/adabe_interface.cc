@@ -169,8 +169,8 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	      inher = adabe_interface::narrow_from_decl(inherits()[i]);
 
 	      // compute its name
-	      string corps2 := inher->get_ada_full_name();
-	      int len := length(corps2);
+	      string corps2 = inher->get_ada_full_name();
+	      int len = corps2.length();
 	      
 	      // add it to the with list
 	      with.add(corps2);
