@@ -34,29 +34,26 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with Ada.Task_Identification;    use Ada.Task_Identification;
 with Interfaces.C;               use Interfaces.C;
 with System.Garlic.OS_Lib;       use System.Garlic.OS_Lib;
 with System.RPC;                 use System.RPC;
 
 package body System.Garlic.Utils is
 
-   Upper_To_Lower : constant := Character'Pos ('a') - Character'Pos ('A');
+   use Ada.Exceptions, Ada.Task_Identification;
 
-   use Ada.Exceptions;
+   --------------
+   -- Allocate --
+   --------------
 
-   function Not_Null_Version (V : in String) return Boolean;
-   --  Returns true when V is not a string of blank characters.
+   function Allocate return Adv_Mutex_Access is
+      Item : Adv_Mutex_Access := new Adv_Mutex_Type;
 
-   protected Section is
-      entry     Lock    (Self : Task_Id);
-      procedure Unlock;
-   private
-      entry Wait (Self : Task_Id);
-      Current   : Task_Id;
-      Level     : Natural := 0;
-      Requeuing : Boolean := False;
-   end Section;
+   begin
+      Item.Mutex   := new Mutex_Type;
+      Item.Current := Null_Task_Id;
+      return Item;
+   end Allocate;
 
    ------------------
    -- Barrier_Type --
@@ -108,6 +105,20 @@ package body System.Garlic.Utils is
    ---------------
 
    function Different (V1, V2 : String) return Boolean is
+
+      function Not_Null_Version (V : in String) return Boolean;
+      --  Return true when V is not a string of blank characters
+
+      ----------------------
+      -- Not_Null_Version --
+      ----------------------
+
+      function Not_Null_Version (V : in String) return Boolean is
+         Null_String : constant String (V'Range) := (others => ' ');
+      begin
+         return V /= Null_String;
+      end Not_Null_Version;
+
    begin
       return     Not_Null_Version (V1)
         and then Not_Null_Version (V2)
@@ -118,35 +129,90 @@ package body System.Garlic.Utils is
    -- Enter --
    -----------
 
-   procedure Enter is
+   procedure Enter (M : Adv_Mutex_Access) is
       Self : Task_Id := Current_Task;
 
    begin
-      Section.Lock (Self);
+      if M.Current /= Self then
+         M.Mutex.Enter;
+         M.Current := Self;
+      end if;
+      M.Level := M.Level + 1;
    end Enter;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (M : in out Adv_Mutex_Access) is
+      procedure Local_Free is
+        new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
+   begin
+      Free (M.Mutex);
+      Local_Free (M);
+   end Free;
 
    -----------
    -- Leave --
    -----------
 
-   procedure Leave is
+   procedure Leave (M : Adv_Mutex_Access; S : Status_Type := Unmodified) is
    begin
-      Section.Unlock;
+      M.Level := M.Level - 1;
+      if M.Level = 0 then
+         M.Current := Null_Task_Id;
+         M.Mutex.Leave (S);
+      end if;
    end Leave;
 
-   ----------------------
-   -- Not_Null_Version --
-   ----------------------
+   ----------------
+   -- Mutex_Type --
+   ----------------
 
-   function Not_Null_Version (V : in String) return Boolean is
-   begin
-      for I in V'Range loop
-         if V (I) /= ' ' then
-            return True;
+   protected body Mutex_Type is
+
+      -----------
+      -- Enter --
+      -----------
+
+      entry Enter when not Locked is
+      begin
+         Locked := True;
+      end Enter;
+
+      ------------
+      -- Leave --
+      ------------
+
+      entry Leave (S : Status_Type := Unmodified)
+      when Status /= Modified is
+      begin
+         Locked := False;
+         case S is
+            when Modified =>
+               if Wait'Count > 0 then
+                  Status := Modified;
+               end if;
+            when Postponed =>
+               requeue Wait with abort;
+            when Unmodified =>
+               null;
+         end case;
+      end Leave;
+
+      ----------
+      -- Wait --
+      ----------
+
+      entry Wait (S : Status_Type)
+      when Status = Modified is
+      begin
+         if Wait'Count = 0 then
+            Status := Unmodified;
          end if;
-      end loop;
-      return False;
-   end Not_Null_Version;
+      end Wait;
+
+   end Mutex_Type;
 
    -------------------------------
    -- Raise_Communication_Error --
@@ -170,100 +236,6 @@ package body System.Garlic.Utils is
       Raise_Exception (Id, "Error" & int'Image (C_Errno));
    end Raise_With_Errno;
 
-   -------------
-   -- Section --
-   -------------
-
-   protected body Section is
-
-      -----------
-      -- Lock --
-      -----------
-
-      entry Lock (Self : Task_Id) when not Requeuing is
-      begin
-         if Level /= 0 and then Current /= Self then
-            requeue Wait with abort;
-         end if;
-         Current := Self;
-         Level   := Level + 1;
-      end Lock;
-
-      ------------
-      -- Unlock --
-      ------------
-
-      procedure Unlock is
-      begin
-         Level := Level - 1;
-         if Level = 0 and then Wait'Count > 0 then
-            Requeuing := True;
-         end if;
-      end Unlock;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait (Self : Task_Id) when Requeuing is
-      begin
-         if Wait'Count = 0 then
-            Requeuing := False;
-         end if;
-         requeue Lock with abort;
-      end Wait;
-
-   end Section;
-
-   --------------------
-   -- Semaphore_Type --
-   --------------------
-
-   protected body Semaphore_Type is
-
-      ----------
-      -- Lock --
-      ----------
-
-      entry Lock when not Locked is
-      begin
-         Locked := True;
-      end Lock;
-
-      ------------
-      -- Unlock --
-      ------------
-
-      entry Unlock (Result : Status_Type := Unmodified)
-      when Status /= Modified is
-      begin
-         Locked := False;
-         case Result is
-            when Modified =>
-               if Wait'Count > 0 then
-                  Status := Modified;
-               end if;
-            when Postponed =>
-               requeue Wait with abort;
-            when Unmodified =>
-               null;
-         end case;
-      end Unlock;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait (Result : Status_Type := Unmodified)
-      when Status = Modified is
-      begin
-         if Wait'Count = 0 then
-            Status := Unmodified;
-         end if;
-      end Wait;
-
-   end Semaphore_Type;
-
    --------------
    -- To_Lower --
    --------------
@@ -273,9 +245,13 @@ package body System.Garlic.Utils is
       for I in Item'Range loop
          if Item (I) in 'A' .. 'Z' then
             Item (I) :=
-               Character'Val (Character'Pos (Item (I)) + Upper_To_Lower);
+               Character'Val (Character'Pos (Item (I)) -
+                              Character'Pos ('A') +
+                              Character'Pos ('a'));
          end if;
       end loop;
    end To_Lower;
 
+begin
+   Global_Mutex := Allocate;
 end System.Garlic.Utils;
