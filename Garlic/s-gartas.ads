@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Task_Identification;
+pragma Elaborate_All (Ada.Task_Identification);
 with Ada.Unchecked_Deallocation;
 
 with System.Garlic.Soft_Links;
@@ -75,11 +77,11 @@ package System.Garlic.Tasking is
    procedure Destroy (W : in out Protected_Watcher_Type);
 
    procedure Differ
-     (W : in Protected_Watcher_Type;
+     (W : in out Protected_Watcher_Type;
       V : in Types.Version_Id);
 
    procedure Lookup
-     (W : in Protected_Watcher_Type;
+     (W : in out Protected_Watcher_Type;
       V : out Types.Version_Id);
 
    procedure Update (W : in out Protected_Watcher_Type);
@@ -92,11 +94,11 @@ package System.Garlic.Tasking is
 
    function Create return Soft_Links.Adv_Mutex_Access;
 
-   procedure Enter (M : in Protected_Adv_Mutex_Type);
+   procedure Enter (M : in out Protected_Adv_Mutex_Type);
 
    procedure Destroy (M : in out Protected_Adv_Mutex_Type);
 
-   procedure Leave (M : in Protected_Adv_Mutex_Type);
+   procedure Leave (M : in out Protected_Adv_Mutex_Type);
 
    function Is_Environment_Task return Boolean;
 
@@ -133,24 +135,27 @@ private
         X : Mutex_PO_Access;
      end record;
 
+   type Protected_Watcher_Type is new Soft_Links.Watcher_Type with record
+      Queue   : Mutex_PO;
+      Protect : Mutex_PO;
+      Count   : Natural := 0;
+      Value   : Types.Version_Id;
+   end record;
 
-   type Watcher_PO;
-
-   type Watcher_PO_Access is access Watcher_PO;
-
-   type Protected_Watcher_Type is new Soft_Links.Watcher_Type
-     with record
-        X : Watcher_PO_Access;
-     end record;
-
-
-   type Adv_Mutex_PO;
-
-   type Adv_Mutex_PO_Access is access Adv_Mutex_PO;
+   protected type Clever_Lock is
+      entry Lock;
+      entry Unlock;
+      --  This entry could be a procedure, but we want the Task_Id of the
+      --  caller for debugging purpose.
+   private
+      entry Contention;
+      Count : Natural := 0;
+      Owner : Ada.Task_Identification.Task_Id;
+   end Clever_Lock;
 
    type Protected_Adv_Mutex_Type is new Soft_Links.Adv_Mutex_Type
      with record
-        X : Adv_Mutex_PO_Access;
+        X : Clever_Lock;
      end record;
 
 end System.Garlic.Tasking;

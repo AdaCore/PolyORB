@@ -35,8 +35,6 @@
 
 with Ada.Task_Attributes;
 with Ada.Dynamic_Priorities;
-with Ada.Task_Identification;    use Ada.Task_Identification;
-pragma Elaborate_All (Ada.Task_Identification);
 
 with System;                     use System;
 with System.Garlic.Debug;        use System.Garlic.Debug;
@@ -58,6 +56,7 @@ package body System.Garlic.Tasking is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info_Nolock;
 
+   use Ada.Task_Identification;
    use type System.Tasking.Task_ID;
 
    package LLTA is new Ada.Task_Attributes (Natural, 0);
@@ -67,11 +66,9 @@ package body System.Garlic.Tasking is
    Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
    --  The environment task. Self will be set to it at elaboration time.
 
-   type Watcher_PO is limited record
-      Queue : Mutex_PO_Access;
-      Count : Natural;
-      Value : Version_Id;
-   end record;
+   type Protected_Mutex_Access is access all Protected_Mutex_Type;
+   type Protected_Adv_Mutex_Access is access all Protected_Adv_Mutex_Type;
+   type Protected_Watcher_Access is access all Protected_Watcher_Type;
 
    type Adv_Mutex_PO is limited null record;
    --  This is a classical critical section except that when a task try to
@@ -79,39 +76,69 @@ package body System.Garlic.Tasking is
    --  is not blocked and can continue. Leave keeps track of the number of
    --  times Enter has been successful.
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Adv_Mutex_PO, Adv_Mutex_PO_Access);
-   procedure Free is
-     new Ada.Unchecked_Deallocation (Watcher_PO, Watcher_PO_Access);
+   Critical_Section : Clever_Lock;
 
-   protected Global_Lock is
-      entry Lock;
-      entry Unlock;
-      --  This entry could be a procedure, but we want the Task_Id of the
-      --  caller for debugging purpose.
-   private
-      entry Contention;
-      Count : Natural := 0;
-      Owner : Task_Id;
-   end Global_Lock;
+   -----------------
+   -- Clever_Lock --
+   -----------------
 
-   procedure Lock;
-   pragma Inline (Lock);
-   procedure Unlock;
-   pragma Inline (Unlock);
+   protected body Clever_Lock is
+
+      ----------------
+      -- Contention --
+      ----------------
+
+      entry Contention when Count = 0 is
+      begin
+         Owner := Contention'Caller;
+         Count := 1;
+         pragma Debug (D (Image (Contention'Caller) &
+                          " is out from contention"));
+      end Contention;
+
+      ----------
+      -- Lock --
+      ----------
+
+      entry Lock when True is
+      begin
+         if Count = 0 or else Lock'Caller = Owner then
+            Count := Count + 1;
+            Owner := Lock'Caller;
+            pragma Debug (D ("Locked by " & Image (Owner) & ", count is now " &
+                             Count'Img));
+         else
+            pragma Debug (D ("Contention in lock, locker is " &
+                             Image (Owner) & ", waiting is " &
+                             Image (Lock'Caller) & ", count is" & Count'Img));
+            requeue Contention with abort;
+         end if;
+      end Lock;
+
+      ------------
+      -- Unlock --
+      ------------
+
+      entry Unlock when True is
+      begin
+         pragma Assert (Unlock'Caller = Owner);
+         pragma Assert (Count > 0);
+         Count := Count - 1;
+         pragma Debug (D ("Unlocked by " & Image (Owner) & ", count is now " &
+                          Count'Img));
+      end Unlock;
+
+   end Clever_Lock;
 
    ------------
    -- Create --
    ------------
 
    function Create (V : in Version_Id) return Watcher_Access is
-      W : Protected_Watcher_Type;
+      W : constant Protected_Watcher_Access := new Protected_Watcher_Type;
    begin
-      W.X := new Watcher_PO;
-      W.X.Value := V;
-      W.X.Count := 0;
-      W.X.Queue := new Mutex_PO;
-      return new Protected_Watcher_Type'(W);
+      W.Value := V;
+      return Watcher_Access (W);
    end Create;
 
    ------------
@@ -128,8 +155,10 @@ package body System.Garlic.Tasking is
    ------------
 
    function Create return Mutex_Access is
+      M : constant Protected_Mutex_Access := new Protected_Mutex_Type;
    begin
-      return new Protected_Mutex_Type;
+      M.X := new Mutex_PO;
+      return Mutex_Access (M);
    end Create;
 
    -------------
@@ -138,9 +167,7 @@ package body System.Garlic.Tasking is
 
    procedure Destroy (W : in out Protected_Watcher_Type) is
    begin
-      if W.X /= null then
-         Free (W.X);
-      end if;
+      null;
    end Destroy;
 
    -------------
@@ -149,9 +176,7 @@ package body System.Garlic.Tasking is
 
    procedure Destroy (M : in out Protected_Adv_Mutex_Type) is
    begin
-      if M.X /= null then
-         Free (M.X);
-      end if;
+      null;
    end Destroy;
 
    -------------
@@ -169,32 +194,31 @@ package body System.Garlic.Tasking is
    -- Differ --
    ------------
 
-   procedure Differ (W : in Protected_Watcher_Type; V : in Version_Id)
+   procedure Differ (W : in out Protected_Watcher_Type; V : in Version_Id)
    is
       Updated : Boolean;
 
    begin
-      pragma Assert (W.X /= null);
       pragma Assert (Value = 0);
 
       loop
-         Lock;
-         Updated := (W.X.Value /= V);
+         W.Protect.Enter;
+         Updated := (W.Value /= V);
          if not Updated then
 
             --  Check that the queue is correctly initialized as busy to
             --  block this task.
 
-            if W.X.Count = 0
-              and then W.X.Queue.Is_Busy
+            if W.Count = 0
+              and then W.Queue.Is_Busy
             then
-               W.X.Queue.Enter;
+               W.Queue.Enter;
             end if;
-            W.X.Count := W.X.Count + 1;
+            W.Count := W.Count + 1;
          end if;
-         Unlock;
+         W.Protect.Leave;
          exit when Updated;
-         W.X.Queue.Enter;
+         W.Queue.Enter;
       end loop;
    end Differ;
 
@@ -204,16 +228,17 @@ package body System.Garlic.Tasking is
 
    procedure Enter (M : in Protected_Mutex_Type) is
    begin
-      Lock;
+      pragma Assert (M.X /= null);
+      M.X.Enter;
    end Enter;
 
    -----------
    -- Enter --
    -----------
 
-   procedure Enter (M : in Protected_Adv_Mutex_Type) is
+   procedure Enter (M : in out Protected_Adv_Mutex_Type) is
    begin
-      Lock;
+      M.X.Lock;
    end Enter;
 
    ----------------------------
@@ -222,7 +247,7 @@ package body System.Garlic.Tasking is
 
    procedure Enter_Critical_Section is
    begin
-      Lock;
+      Critical_Section.Lock;
    end Enter_Critical_Section;
 
    --------------------------
@@ -242,50 +267,6 @@ package body System.Garlic.Tasking is
    begin
       return Natural (Ada.Dynamic_Priorities.Get_Priority);
    end Get_Priority;
-
-   -----------------
-   -- Global_Lock --
-   -----------------
-
-   protected body Global_Lock is
-
-      ----------------
-      -- Contention --
-      ----------------
-
-      entry Contention when Count = 0 is
-      begin
-         Owner := Contention'Caller;
-         Count := 1;
-      end Contention;
-
-      ----------
-      -- Lock --
-      ----------
-
-      entry Lock when True is
-      begin
-         if Count = 0 or else Lock'Caller = Owner then
-            Count := Count + 1;
-            Owner := Lock'Caller;
-         else
-            pragma Debug (D ("Contention in lock, count is" & Count'Img));
-            requeue Contention with abort;
-         end if;
-      end Lock;
-
-      ------------
-      -- Unlock --
-      ------------
-
-      entry Unlock when True is
-      begin
-         pragma Assert (Unlock'Caller = Owner);
-         pragma Assert (Count > 0);
-         Count := Count - 1;
-      end Unlock;
-
-   end Global_Lock;
 
    ----------------------------
    -- Independent_Task_Count --
@@ -331,9 +312,9 @@ package body System.Garlic.Tasking is
    -- Leave --
    -----------
 
-   procedure Leave (M : in Protected_Adv_Mutex_Type) is
+   procedure Leave (M : in out Protected_Adv_Mutex_Type) is
    begin
-      Unlock;
+      M.X.Unlock;
    end Leave;
 
    -----------
@@ -342,7 +323,7 @@ package body System.Garlic.Tasking is
 
    procedure Leave (M : in Protected_Mutex_Type) is
    begin
-      Unlock;
+      M.X.Leave;
    end Leave;
 
    ----------------------------
@@ -351,7 +332,7 @@ package body System.Garlic.Tasking is
 
    procedure Leave_Critical_Section is
    begin
-      Unlock;
+      Critical_Section.Unlock;
    end Leave_Critical_Section;
 
    ----------------
@@ -363,25 +344,15 @@ package body System.Garlic.Tasking is
       System.Tasking.Debug.List_Tasks;
    end List_Tasks;
 
-   ----------
-   -- Lock --
-   ----------
-
-   procedure Lock is
-   begin
-      Global_Lock.Lock;
-   end Lock;
-
    ------------
    -- Lookup --
    ------------
 
-   procedure Lookup (W : in Protected_Watcher_Type; V : out Version_Id) is
+   procedure Lookup (W : in out Protected_Watcher_Type; V : out Version_Id) is
    begin
-      pragma Assert (W.X /= null);
-      Lock;
-      V := W.X.Value;
-      Unlock;
+      W.Protect.Enter;
+      V := W.Value;
+      W.Protect.Leave;
    end Lookup;
 
    --------------
@@ -429,32 +400,22 @@ package body System.Garlic.Tasking is
    end Set_Priority;
 
    ------------
-   -- Unlock --
-   ------------
-
-   procedure Unlock is
-   begin
-      Global_Lock.Unlock;
-   end Unlock;
-
-   ------------
    -- Update --
    ------------
 
    procedure Update (W : in out Protected_Watcher_Type) is
    begin
-      pragma Assert (W.X /= null);
-      Lock;
-      W.X.Value := W.X.Value + 1;
+      W.Protect.Enter;
+      W.Value := W.Value + 1;
 
-      --  Resume at least W.X.Count but maybe less than W.X.Count if
+      --  Resume at least W.Count but maybe less than W.Count if
       --  we take into account aborted Differ operations.
 
-      for I in 1 .. W.X.Count loop
-         W.X.Queue.Leave;
+      for I in 1 .. W.Count loop
+         W.Queue.Leave;
       end loop;
-      W.X.Count := 0;
-      Unlock;
+      W.Count := 0;
+      W.Protect.Leave;
    end Update;
 
 end System.Garlic.Tasking;
