@@ -103,7 +103,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    procedure Marshall_Request_Message
      (Buffer             : access Buffers.Buffer_Type;
       Request_Id         : in CORBA.Unsigned_Long;
-      Target_Profile     : in Binding_Data.IIOP.IIOP_Profile_Type;
+      Target_Profile     : in Binding_Data.Profile_Access;
       Response_Expected  : in Boolean;
       Operation          : in Requests.Operation_Id)
 
@@ -129,9 +129,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
        Marshall(Buffer, Reserved);
       end loop;
 
-       --  Object key
-      Marshall
-        (Buffer, Binding_Data.IIOP.Get_Object_Key(Target_Profile));
+      --  Object key
+      Marshall (Buffer, Stream_Element_Array(
+         Binding_Data.IIOP.Get_Object_Key(IIOP.IIOP_Profile_Type(Target_Profile.all))));
+
 
       --  Operation
       Marshall (Buffer, Operation);
@@ -257,20 +258,18 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
      ( Buffer            : access Buffer_Type;
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
-       Object_Key        : out Objects.Object_Id;
-       Operation         : out Requests.Operation_Id)
+       Object_Key        : out CORBA.String;
+       Operation         : out CORBA.String)
    is
-       Service_Context1  : CORBA.Unsigned_Long;
-       Service_Context2  : CORBA.Unsigned_Long;
+       Service_Context1  : CORBA.Unsigned_Long := Unmarshall (Buffer);
+       Service_Context2  : CORBA.Unsigned_Long := Unmarshall (Buffer);
        Reserved          : CORBA.Octet;
        Principal         : CORBA.String;
    begin
 
       --  Service context
-      Service_Context1 := Unmarshall (Buffer);
-      Service_Context2 := Unmarshall (Buffer);
 
-      if Service_Context1 /= ServiceId'Pos(Service_Context_List_1_1(0)) or
+     if Service_Context1 /= ServiceId'Pos(Service_Context_List_1_1(0)) or
           Service_Context2 /= ServiceId'Pos(Service_Context_List_1_1(1))
       then
          pragma Debug (O (" Request_Message_Unmarshall : incorrect context"));
@@ -310,15 +309,15 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
        Reply_Status : out Reply_Status_Type)
 
    is
-      Service_Context1  : CORBA.Unsigned_Long;
-      Service_Context2  : CORBA.Unsigned_Long;
+      Service_Context1  : CORBA.Unsigned_Long := Unmarshall (Buffer);
+      Service_Context2  : CORBA.Unsigned_Long := Unmarshall (Buffer);
    begin
 
       --  Service context
       if Service_Context1 /= ServiceId'Pos( Service_Context_List_1_1(0)) or
           Service_Context1 /= ServiceId'Pos( Service_Context_List_1_1(1)) then
 
-         pragma Debug (O (" Request_Message_Unmarshall : incorrect context");
+         pragma Debug (O (" Request_Message_Unmarshall : incorrect context"));
          raise GIOP_Error;
       end if;
 
@@ -327,7 +326,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       -- Reply Status
 
-      Unmarshall(Reply_Status);
+      Reply_Status := Unmarshall(Buffer);
 
    end Unmarshall_Reply_Message;
 

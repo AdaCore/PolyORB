@@ -97,12 +97,17 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Target_Ref        : out Target_Address;
-       Operation         : out Requests.Operation_Id);
+       Operation         : out CORBA.String);
 
     procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
+
+    procedure Unmarshall_Locate_Request
+     (Buffer        : access Buffers.Buffer_Type;
+      Request_Id    : out CORBA.Unsigned_Long;
+      Target_Ref    : out Target_Address);
 
 private
 

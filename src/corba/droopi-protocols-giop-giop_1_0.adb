@@ -20,6 +20,7 @@ with CORBA.Exceptions.Stack;
 with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
+with Droopi.Binding_Data.IIOP;
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.References;          use Droopi.References;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
@@ -96,7 +97,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
    procedure Marshall_Request_Message
      (Buffer            : access Buffer_Type;
       Request_Id        : in CORBA.Unsigned_Long;
-      Target_Profile    : in Binding_Data.IIOP.IIOP_Profile_Type;
+      Target_Profile    : in Binding_Data.Profile_Access;
       Response_Expected : in Boolean;
       Operation         : in Requests.Operation_Id)
    is
@@ -115,7 +116,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
       --  Object key
       Marshall (Buffer, Stream_Element_Array(
-            Binding_Data.IIOP.Get_Object_Key(Target_Profile)));
+         Binding_Data.IIOP.Get_Object_Key(IIOP.IIOP_Profile_Type(Target_Profile.all))));
 
       --  Operation
       Marshall (Buffer, Operation);
@@ -207,8 +208,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
      (Buffer            : access Buffer_Type;
       Request_Id        : out CORBA.Unsigned_Long;
       Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id;
-      Operation         : out CORBA.String)
+      Object_Key        : out Objects.Object_id;
+      Operation         : out String)
    is
       use CORBA;
       Service_Context : CORBA.Unsigned_Long := Unmarshall (Buffer);
@@ -228,6 +229,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Response_Expected := Unmarshall (Buffer);
 
       --  Object Key
+
       Object_Key := Unmarshall(Buffer);
 
       --  Operation

@@ -38,7 +38,6 @@ pragma Elaborate_All (Droopi.Log);
 package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
-
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
@@ -67,7 +66,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       --  Flags
       if Endianness(Buffer.all) = Little_Endian then
-         Flags := Flags or 2**Endianess_bit;
+         Flags := Flags or 2**Endianness_bit;
       end if;
 
       if(Fragment_Next=True) then
@@ -351,7 +350,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Target_Ref        : out Target_Address;
-       Operation         : out Requests.Operation_Id)
+       Operation         : out CORBA.String)
    is
        use  Representations.CDR;
        Service_Context      : array (0 ..9) of CORBA.Unsigned_Long;
@@ -458,6 +457,46 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
    end Unmarshall_Reply_Message;
+
+
+   procedure Unmarshall_Locate_Request
+     (Buffer        : access Buffer_Type;
+      Request_Id    : out CORBA.Unsigned_Long;
+      Target_Ref    : out Target_Address)
+
+   is
+      Temp_Octet           : CORBA.Octet;
+   begin
+
+      --  Request Id
+      Request_Id := Unmarshall (Buffer);
+
+
+        -- Target Ref
+      Temp_Octet := Unmarshall(Buffer);
+
+      case  Temp_Octet  is
+         when 0  =>
+            Target_Ref := Target_Address'(Address_Type => Key_Addr, Object_Key => Unmarshall(Buffer));
+         when 1  =>
+            Target_Ref := Target_Address'(Address_Type => Profile_Addr,
+                   Profile  => Binding_Data.IIOP. Unmarshall_IIOP_Profile_Body(Buffer));
+         when 2  =>
+            declare
+              Temp_Ref :  IOR_Addressing_Info_Access := new IOR_Addressing_Info;
+            begin
+                Temp_Ref.Selected_Profile_Index := Unmarshall(Buffer);
+                Temp_Ref.IOR := Unmarshall(Buffer);
+                Target_Ref := Target_Address'(Address_Type => Reference_Addr,
+                              Ref  => Temp_Ref);
+            end;
+
+         when others =>
+           raise GIOP_Error;
+
+      end case;
+
+   end Unmarshall_Locate_Request;
 
 
 

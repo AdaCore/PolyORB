@@ -33,7 +33,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0 is
    procedure Marshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : in CORBA.Unsigned_Long;
-      Target_Profile    : in Binding_Data.IIOP.IIOP_Profile_Type;
+      Target_Profile    : in Binding_Data.Profile_Access;
       Response_Expected : in Boolean;
       Operation         : in Requests.Operation_Id);
 

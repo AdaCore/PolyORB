@@ -40,7 +40,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
    procedure Marshall_Request_Message
      (Buffer                : access Buffers.Buffer_Type;
       Request_Id            : in CORBA.Unsigned_Long;
-      Target_Profile        : in Binding_Data.IIOP.IIOP_Profile_Type;
+      Target_Profile        : in Binding_Data.Profile_Access;
       Response_Expected     : in Boolean;
       Operation             : in Requests.Operation_Id);
 
@@ -73,8 +73,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
-       Operation         : out CORBA.String;
-       Principal         : out Stream_Element_Array);
+       Operation         : out CORBA.String);
 
     procedure Unmarshall_Reply_Message
       (Buffer       : access Buffers.Buffer_Type;
