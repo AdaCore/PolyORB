@@ -1,3 +1,7 @@
+Thu Aug 14 12:58:40 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartra.adb: Added a constant.
+
 Wed Aug 13 16:11:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartra.adb: Remove the length of each entry from the trace

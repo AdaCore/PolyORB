@@ -138,7 +138,7 @@ package body System.Garlic.Trace is
         Get_Current_Execution_Mode = Replay_Mode then
          Last_Trace_Time := Clock;
          declare
-            Trace_File_Name : String := Get_Trace_File_Name;
+            Trace_File_Name : constant String := Get_Trace_File_Name;
          begin
             pragma Debug (D (D_Debug, "Using trace file " & Trace_File_Name));
             case Get_Current_Execution_Mode is
