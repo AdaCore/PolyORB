@@ -520,11 +520,16 @@ package body Idl_Fe.Parser is
                   end if;
 
                when T_ValueType  =>
-                  Parse_Value (Result, Success);
-                  if not Success then
-                     pragma Debug (O2 ("Parse_Definition : end"));
-                     return;
-                  end if;
+                  --  As of release 1.0, valuetypes support is disabled.
+                  Errors.Error
+                    ("ValueTypes not currently supported.",
+                     Errors.Fatal,
+                     Get_Token_Location);
+                  --  Parse_Value (Result, Success);
+                  --  if not Success then
+                  --     pragma Debug (O2 ("Parse_Definition : end"));
+                  --     return;
+                  --  end if;
 
                when others =>
                   declare
