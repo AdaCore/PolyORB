@@ -26,10 +26,11 @@ ZIPLIBINSTALL   = install-zlib
 FILTERSINSTALL += ${ZIPLIBINSTALLNEEDED}
 
 libz.a: $(ZIPLIBOBJS)
+	$(AR) cq libz.a $(ZIPLIBOBJS)
 
 install-zlib: libz.a
-	${AR} cq ${GARLIC}/libz.a
-	${RANLIB} ${GARLIC}/libz.a
+	$(INSTALL_DATA) libz.a $(GARLIC)
+	$(RANLIB) $(GARLIC)/libz.a
 
 # Dependency
 

@@ -1,5 +1,8 @@
 1999-05-03  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.zip (install-zlib): Build libz.a prior to installation
+	time.
+
 	* Makefile.am (install-extra-libs): Install directory before
 	installing the libraries, fixes 0004-G08 failure on systems
 	without zlib.
