@@ -41,7 +41,7 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
    subtype Implicit_Activation_Policy_Access is
      ImplicitActivationPolicy_Access;
 
-   function Activate_Servant
+   function Implicit_Activate_Servant
      (Self      : ImplicitActivationPolicy;
       A        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)

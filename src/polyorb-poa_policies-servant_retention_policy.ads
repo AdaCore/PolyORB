@@ -55,18 +55,19 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
       is abstract;
    --  Remove a previously-retained servant/oid association.
 
-   function Servant_To_Id (Self      : ServantRetentionPolicy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access
+   function Retained_Servant_To_Id
+     (Self      : ServantRetentionPolicy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     return Object_Id_Access
      is abstract;
    --  Case RETAIN:
-   --    Asks the Id_Uniqueness_Policy to return the Object_Id of the
-   --    specified servant.
-   --    If not found, raises an ServantNotActive exception.
+   --    Look up the active object map for an oid associated with
+   --    P_Servant.
    --  Case NON_RETAIN:
    --    Returns null
 
-   function Id_To_Servant
+   function Retained_Id_To_Servant
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid     : Unmarshalled_Oid)

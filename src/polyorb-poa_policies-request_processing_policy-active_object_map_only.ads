@@ -51,17 +51,10 @@ package
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
 
-   function Servant_To_Id
-     (Self  : Active_Map_Only_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access;
-
-
    function Id_To_Servant
-     (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Object_Id)
+     (Self :        Active_Map_Only_Policy;
+      OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid  : access Object_Id)
      return Servant_Access;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

@@ -75,7 +75,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Activate_Servant --
    ----------------------
 
-   function Activate_Servant
+   function Implicit_Activate_Servant
      (Self      : No_Activation_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
@@ -88,6 +88,6 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       pragma Unreferenced (P_Servant);
       pragma Warnings (On);
       return null;
-   end Activate_Servant;
+   end Implicit_Activate_Servant;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

@@ -33,11 +33,13 @@
 with PolyORB.Locks;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
+with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    use PolyORB.Locks;
    use PolyORB.Object_Maps;
+   use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    ------------
    -- Create --
@@ -86,47 +88,49 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
    is
-      P_OA : PolyORB.POA.Obj_Adapter_Access
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      if P_OA.Active_Object_Map /= null then
-         Lock_R (P_OA.Map_Lock);
-         if Is_Servant_In (P_OA.Active_Object_Map.all, P_Servant) then
+      if POA.Active_Object_Map /= null then
+         Lock_R (POA.Map_Lock);
+         if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
             raise PolyORB.POA.Servant_Already_Active;
          end if;
-         Unlock_R (P_OA.Map_Lock);
+         Unlock_R (POA.Map_Lock);
       end if;
    end Ensure_Servant_Uniqueness;
 
-   -------------------
-   -- Servant_To_Id --
-   -------------------
+   --------------------
+   -- Activate_Again --
+   --------------------
 
-   function Servant_To_Id
+   function Activate_Again
      (Self      : Unique_Id_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
+      P_Servant : Servant_Access;
+      Oid       : Object_Id_Access)
      return Object_Id_Access
    is
-      P_OA        : PolyORB.POA.Obj_Adapter_Access
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      An_Entry    : Object_Map_Entry_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      if P_OA.Active_Object_Map /= null then
-         Lock_R (P_OA.Map_Lock);
-         An_Entry := Get_By_Servant (P_OA.Active_Object_Map.all, P_Servant);
-         if An_Entry /= null then
-            return U_Oid_To_Oid (An_Entry.Oid.all);
-         end if;
-         Unlock_R (P_OA.Map_Lock);
+
+      if Oid /= null then
+         --  UNIQUE policy: if already active, return the
+         --  previous value.
+         return Oid;
+      else
+         --  If this servant is not activated yet, try to do
+         --  implicit activation now.
+         return Implicit_Activate_Servant
+           (POA.Implicit_Activation_Policy.all, OA, P_Servant);
       end if;
-      return null;
-   end Servant_To_Id;
+   end Activate_Again;
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

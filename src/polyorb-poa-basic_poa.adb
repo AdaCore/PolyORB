@@ -687,19 +687,27 @@ package body PolyORB.POA.Basic_POA is
      return Object_Id
    is
       Oid : Object_Id_Access
-        := Servant_To_Id (Self.Request_Processing_Policy.all,
-                          POA_Types.Obj_Adapter_Access (Self),
-                          P_Servant);
+        := Retained_Servant_To_Id
+        (Self.Servant_Retention_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         P_Servant);
    begin
+      Oid := Activate_Again
+        (Self.Id_Uniqueness_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         P_Servant,
+         Oid);
+
       if Oid = null then
+
+         --  XXX here should also check whether we are in the
+         --  context of executing a dispatched operation on
+         --  Servant, and if it is the case return the 'current'
+         --  oid (for USE_DEFAULT_SERVANT policy).
          raise PolyORB.POA.Servant_Not_Active;
       end if;
       return Oid.all;
    end Servant_To_Id;
-
-   ---------------------------------------------------------------
-   --  Procedures and functions neither in Corba nor in PolyORB  --
-   ---------------------------------------------------------------
 
    -------------------
    -- Id_To_Servant --
@@ -711,10 +719,12 @@ package body PolyORB.POA.Basic_POA is
      return Servant_Access
    is
       Servant : Servant_Access;
+      A_Oid : aliased Object_Id := Oid;
    begin
-      Servant := Id_To_Servant (Self.Request_Processing_Policy.all,
-                                POA_Types.Obj_Adapter_Access (Self),
-                                Oid);
+      Servant := Id_To_Servant
+        (Self.Request_Processing_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         A_Oid'Access);
       return Servant;
    end Id_To_Servant;
 

@@ -52,15 +52,17 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    --  Case MULTIPLE_ID:
    --  Does nothing
 
-   function Servant_To_Id (Self      : IdUniquenessPolicy;
-                           OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                           P_Servant : Servant_Access) return Object_Id_Access
+   function Activate_Again
+     (Self      : IdUniquenessPolicy;
+      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access;
+      Oid : Object_Id_Access)
+     return Object_Id_Access
       is abstract;
    --  Case UNIQUE_ID:
-   --    Looks for the specified servant in the Active Object Map.
-   --    If found, returns its Object_Id.
-   --    Otherwise, returns null.
-   --  Case MULTIPLE_ID:
-   --    Returns null.
+   --    if Oid is not null, return Oid, else try implicit
+   --    activation and return the created Oid.
+   --  Case MULTIPLE_ID: try implicit activation and return
+   --    the created oid ((regardless of the Oid argument).
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy;

@@ -37,9 +37,11 @@ with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Assignment_Policy;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
-with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
+
+   use PolyORB.Locks;
+   use PolyORB.Object_Maps;
 
    ------------
    -- Create --
@@ -148,38 +150,39 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    -- Servant_To_Id --
    -------------------
 
-   function Servant_To_Id
+   function Retained_Servant_To_Id
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access
    is
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
-      use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      Oid : Object_Id_Access;
+      An_Entry : Object_Map_Entry_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      Oid := Servant_To_Id
-        (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
 
-      if Oid = null then
-         Oid := Activate_Servant
-           (POA.Implicit_Activation_Policy.all, OA, P_Servant);
+      if POA.Active_Object_Map /= null then
+         Lock_R (POA.Map_Lock);
+         An_Entry := Get_By_Servant (POA.Active_Object_Map.all, P_Servant);
+         if An_Entry /= null then
+            return U_Oid_To_Oid (An_Entry.Oid.all);
+         end if;
+         Unlock_R (POA.Map_Lock);
       end if;
 
-      return Oid;
-   end Servant_To_Id;
+      return null;
+   end Retained_Servant_To_Id;
 
    -------------------
    -- Id_To_Servant --
    -------------------
 
-   function Id_To_Servant
+   function Retained_Id_To_Servant
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
@@ -197,7 +200,7 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       return Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Id_Assignment_Policy.all,
          OA, U_Oid);
-   end Id_To_Servant;
+   end Retained_Id_To_Servant;
 
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 

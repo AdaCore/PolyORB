@@ -48,25 +48,10 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
 
-   function Servant_To_Id
-     (Self      : RequestProcessingPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access
-     is abstract;
-   --  Case USE_ACTIVE_OBJECT_MAP_ONLY:
-   --    Look for the given servant and returns its Id
-   --    Requires the RETAIN policy
-   --  Case USE_DEFAULT_SERVANT:
-   --    In case the given servant is not found in the object map,
-   --    returns the Id of the default servant.
-   --  Case USE_SERVANT_MANAGER:
-   --    Same than USE_ACTIVE_OBJECT_MAP_ONLY
-
    function Id_To_Servant
-     (Self : RequestProcessingPolicy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid  : Object_Id)
+     (Self :        RequestProcessingPolicy;
+      OA   :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid  : access Object_Id)
      return Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
