@@ -176,10 +176,6 @@ distclean-compile:
 
 maintainer-clean-compile:
 
-gnatdist$(EXEEXT): $(gnatdist_OBJECTS) $(gnatdist_DEPENDENCIES)
-	@rm -f gnatdist$(EXEEXT)
-	$(LINK) $(gnatdist_LDFLAGS) $(gnatdist_OBJECTS) $(gnatdist_LDADD) $(LIBS)
-
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
@@ -280,7 +276,7 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 force: 
 
-gnatdist: ${gnatdist_DEPENDENCIES} force
+gnatdist$(EXEEXT): ${gnatdist_DEPENDENCIES} force
 	${GNATMAKE} -m -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o gnatdist$(EXEEXT)
 
