@@ -10,10 +10,12 @@ soap_dir  =
 srp_dir   =
 
 if DEBUG
-SUBDIRS = support compilers idls src cos examples testsuite @APPLI_DIRS@ @PROTO_DIRS@
+TESTSUITE=testsuite
 else
-SUBDIRS = support compilers idls src cos examples @APPLI_DIRS@ @PROTO_DIRS@
+TESTSUITE=
 endif
+
+SUBDIRS = support compilers idls src cos examples @DOC_DIR@ $(TESTSUITE) @APPLI_DIRS@ @PROTO_DIRS@
 
 CLEANFILES = config-stamp
 DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
