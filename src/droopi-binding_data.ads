@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#1 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#2 $
 
 with Ada.Finalization;
 with Ada.Streams;
@@ -36,8 +36,8 @@ package Droopi.Binding_Data is
    Tag_Internet_IOP        : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
 
-   type Profile_Priority is new Integer range 0 .. Integer'Last;
-   --  Profile_Priority'First means "unsupported profile type"
+   type Profile_Preference is new Integer range 0 .. Integer'Last;
+   --  Profile_Preference'First means "unsupported profile type"
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -57,10 +57,10 @@ package Droopi.Binding_Data is
    pragma Inline (Get_Profile_Tag);
    --  Return the profile tag associated with this profile type.
 
-   function Get_Profile_Priority
+   function Get_Profile_Preference
      (Profile : Profile_Type)
-     return Profile_Priority is abstract;
-   pragma Inline (Get_Profile_Priority);
+     return Profile_Preference is abstract;
+   pragma Inline (Get_Profile_Preference);
    --  Return the profile priority associated with this profile type.
 
 private
