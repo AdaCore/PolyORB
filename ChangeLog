@@ -1,7 +1,7 @@
 Fri Apr 25 18:11:16 1997  Laurent Pautet <pautet@inf.enst.fr>
 
 	* configure.in : get rid of RACW. Mostly useless because
-     of Eratho examples (especially Eratho/dynamic).
+     of Eratho examples (especially Eratho/dynamic and Eratho/absolute).
 
 Thu Apr 24 16:55:02 1997  Laurent Pautet <pautet@inf.enst.fr>
 

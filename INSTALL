@@ -39,7 +39,7 @@ in Doc/install_guide.txt.
      with your local make tool, switch to GNU make.
    - verify that you will be able to run distributed applications
       (on Unix, your .rhosts file must contain the machine from which
-       you will start the distributed application)
+       you will start the distributed application).
 
 2. Configure GLADE
    GLADE use standard the GNU configuration method. Run 
@@ -59,7 +59,7 @@ in Doc/install_guide.txt.
       this can be achieved simply by doing 
          make install
       in the main GLADE directory. Be careful, you usually need root
-      privileges to install software in /usr/local
+      privileges to install software in /usr/local.
 
 4. Test your installation by running the Examples
    Go in the Example directory and run simply 'make'. Then, go in each
