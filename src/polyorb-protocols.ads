@@ -140,6 +140,10 @@ package PolyORB.Protocols is
    --  for a request. Must be implemented by protocols that
    --  allow deferred arguments unmarshalling.
 
+   procedure Handle_Flush (S : access Session) is abstract;
+   --  Flush all pending received data in S, and make S read to
+   --  receive a new incoming message.
+
    ---------------------
    -- Message demuxer --
    ---------------------

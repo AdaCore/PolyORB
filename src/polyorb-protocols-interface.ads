@@ -48,6 +48,8 @@ package PolyORB.Protocols.Interface is
       Args : Any.NVList.Ref;
    end record;
 
+   type Flush is new Components.Message with null record;
+
    --  When a Session receives a method invocation request,
    --  it is not always possible to determine the signature
    --  for the called method immediately; it may be necessary

@@ -51,6 +51,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.ORB.Interface;
+with PolyORB.Protocols.Interface;
 with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Servants.Interface;
@@ -881,6 +882,14 @@ package body PolyORB.ORB is
                  := PolyORB.Exceptions.Error_To_Any (Error);
 
                Catch (Error);
+
+               --  The request has been aborted before being fully
+               --  processed. Flush the session's data and restore the
+               --  session to its initial state, waiting for requests.
+
+               Emit_No_Reply
+                 (J.Requestor,
+                  Protocols.Interface.Flush'(Message with null record));
 
                Emit_No_Reply (J.Requestor,
                               Servants.Interface.Executed_Request'

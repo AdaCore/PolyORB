@@ -92,6 +92,8 @@ package PolyORB.Protocols.GIOP is
      (Sess : access GIOP_Session;
       Args : in out Any.NVList.Ref);
 
+   procedure Handle_Flush (Sess : access GIOP_Session);
+
    ----------------
    -- GIOP State --
    ----------------

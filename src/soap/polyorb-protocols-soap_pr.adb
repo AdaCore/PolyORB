@@ -429,6 +429,11 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
    end Handle_Disconnect;
 
+   procedure Handle_Flush (S : access SOAP_Session) is
+   begin
+      raise PolyORB.Not_Implemented;
+   end Handle_Flush;
+
    function Handle_Message
      (Sess : access SOAP_Session;
       S : Components.Message'Class)

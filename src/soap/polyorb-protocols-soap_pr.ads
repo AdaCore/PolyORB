@@ -80,6 +80,8 @@ package PolyORB.Protocols.SOAP_Pr is
 
    procedure Handle_Disconnect (S : access SOAP_Session);
 
+   procedure Handle_Flush (S : access SOAP_Session);
+
 private
 
    type SOAP_Protocol is new Protocol with null record;

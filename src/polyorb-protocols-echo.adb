@@ -300,5 +300,10 @@ package body PolyORB.Protocols.Echo is
 
    end Handle_Disconnect;
 
+   procedure Handle_Flush (S : access Echo_Session) is
+   begin
+      raise PolyORB.Not_Implemented;
+   end Handle_Flush;
+
 end PolyORB.Protocols.Echo;
 

@@ -111,6 +111,9 @@ package body PolyORB.Protocols is
             return Unmarshalled_Arguments'(Args => Args);
          end;
 
+      elsif S in Flush then
+         Handle_Flush (Session_Access (Sess));
+
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
          Sess.Dependent_Binding_Object

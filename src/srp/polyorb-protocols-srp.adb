@@ -142,6 +142,17 @@ package body PolyORB.Protocols.SRP is
       null;
    end Abort_Request;
 
+   ------------------
+   -- Handle_Flush --
+   ------------------
+
+   procedure Handle_Flush (S : access SRP_Session) is
+      pragma Unreferenced (S);
+
+   begin
+      raise PolyORB.Not_Implemented;
+   end Handle_Flush;
+
    ----------------------
    -- Request_Received --
    ----------------------

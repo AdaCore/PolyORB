@@ -273,6 +273,13 @@ package body PolyORB.Protocols.GIOP is
       Expect_GIOP_Header (Sess);
    end Handle_Unmarshall_Arguments;
 
+   ------------------
+   -- Handle_Flush --
+   ------------------
+
+   procedure Handle_Flush (Sess : access GIOP_Session)
+     renames Expect_GIOP_Header;
+
    -------------------------------
    -- Handle_Connect_Indication --
    -------------------------------
