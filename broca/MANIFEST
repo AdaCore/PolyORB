@@ -1,8 +1,5 @@
-
 GNUmakefile
 COPYING
-adabroker/
-adabroker/ada_be/
 adabroker/ada_be/GNUmakefile
 adabroker/ada_be/adabe.h
 adabroker/ada_be/adabe_argument.cc
@@ -34,7 +31,6 @@ adabroker/ada_be/debug.h
 adabroker/ada_be/dir.mk
 adabroker/GNUmakefile
 adabroker/dir.mk
-adabroker/ast/
 adabroker/ast/GNUmakefile
 adabroker/ast/ast_argument.cc
 adabroker/ast/ast_array.cc
@@ -66,13 +62,10 @@ adabroker/ast/ast_union.cc
 adabroker/ast/ast_union_branch.cc
 adabroker/ast/ast_union_label.cc
 adabroker/ast/dir.mk
-adabroker/common_be/
 adabroker/common_be/GNUmakefile
 adabroker/common_be/cfe_interface.cc
 adabroker/common_be/dir.mk
-adabroker/config/
 adabroker/config/config.mk
-adabroker/driver/
 adabroker/driver/GNUmakefile
 adabroker/driver/dir.mk
 adabroker/driver/drv_args.cc
@@ -82,7 +75,6 @@ adabroker/driver/drv_link.cc
 adabroker/driver/drv_main.cc
 adabroker/driver/drv_preproc.cc
 adabroker/driver/drv_private.cc
-adabroker/fe/
 adabroker/fe/GNUmakefile
 adabroker/fe/dir.mk
 adabroker/fe/fe_declarator.cc
@@ -95,10 +87,8 @@ adabroker/fe/idl.yy
 adabroker/fe/lex.yy.cc
 adabroker/fe/y.tab.cc
 adabroker/fe/y.tab.h
-adabroker/include/
 adabroker/include/ast_array.hh
 adabroker/include/ast.hh
-adabroker/include/utl_tmpl/
 adabroker/include/utl_tmpl/utl_decllist.hh
 adabroker/include/utl_tmpl/utl_exceptlist.hh
 adabroker/include/utl_tmpl/utl_exprlist.hh
@@ -167,9 +157,6 @@ adabroker/include/utl_scoped_name.hh
 adabroker/include/utl_stack.hh
 adabroker/include/utl_string.hh
 adabroker/include/utl_strlist.hh
-adabroker/mk/
-adabroker/mk/platforms/
-adabroker/mk/platforms/arm_atmos_4.0/
 adabroker/mk/platforms/arm_atmos_4.0/arm_atmos_4.0.new
 adabroker/mk/platforms/arm_atmos_4.0/atb.mk
 adabroker/mk/platforms/arm_atmos_4.0/atb25.mk
@@ -203,12 +190,9 @@ adabroker/mk/atmos.mk
 adabroker/mk/beforedir.mk
 adabroker/mk/unix.mk
 adabroker/mk/win32.mk
-adabroker/narrow/
 adabroker/narrow/GNUmakefile
 adabroker/narrow/dir.mk
 adabroker/narrow/nr_narrow.cc
-adabroker/util/
-adabroker/util/utl_tmpl/
 adabroker/util/utl_tmpl/utl_decllist.cc
 adabroker/util/utl_tmpl/utl_exceptlist.cc
 adabroker/util/utl_tmpl/utl_exprlist.cc
@@ -237,12 +221,10 @@ adabroker/util/utl_strlist.cc
 README
 VERSION
 dir.mk
-adasockets/
 adasockets/Makefile.am
 adasockets/AUTHORS
 adasockets/COPYING
 adasockets/INSTALL
-adasockets/examples/
 adasockets/examples/Makefile.am
 adasockets/examples/Makefile.in
 adasockets/examples/listener.adb
@@ -254,7 +236,6 @@ adasockets/README
 adasockets/aclocal.m4
 adasockets/configure
 adasockets/configure.in
-adasockets/src/
 adasockets/src/Makefile.am
 adasockets/src/Makefile.in
 adasockets/src/config.h.in
@@ -271,7 +252,6 @@ adasockets/src/sockets-utils.ads
 adasockets/src/sockets.adb
 adasockets/src/sockets.ads
 adasockets/src/split.adb
-adasockets/support/
 adasockets/support/acconfig.h
 adasockets/support/ada.m4
 adasockets/support/config.guess
@@ -279,12 +259,8 @@ adasockets/support/config.sub
 adasockets/support/install-sh
 adasockets/support/missing
 adasockets/support/mkinstalldirs
-config/
 config/config.mk
 MANIFEST
-examples/
-examples/all_types/
-examples/all_types/interop/
 examples/all_types/interop/GNUmakefile
 examples/all_types/interop/client.cc
 examples/all_types/interop/dir.mk
@@ -303,7 +279,6 @@ examples/GNUmakefile
 examples/dir.mk
 examples/report.adb
 examples/report.ads
-examples/echo/
 examples/echo/GNUmakefile
 examples/echo/broca.opt
 examples/echo/client.adb
@@ -312,11 +287,9 @@ examples/echo/echo-impl.adb
 examples/echo/echo-impl.ads
 examples/echo/echo.idl
 examples/echo/server.adb
-examples/generic/
 examples/generic/dir.mk
 examples/generic/genericserver.adb
 examples/generic/genericserver.ads
-examples/module/
 examples/module/GNUmakefile
 examples/module/broca.opt
 examples/module/client.adb
@@ -327,9 +300,7 @@ examples/module/m1-stream.adb
 examples/module/m1.ads
 examples/module/module.idl
 examples/module/server.adb
-mk/
 mk/beforedir.mk
-src/
 src/ChangeLog
 src/GNUmakefile
 src/allsrc.adb
