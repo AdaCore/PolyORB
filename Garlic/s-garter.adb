@@ -116,7 +116,7 @@ package body System.Garlic.Termination is
    type Termination_Service_Access is access Termination_Service;
 
    Time_Between_Checks : constant Duration := 2.0;
-   Time_To_Synchronize : constant Duration := 10.0;
+   Time_To_Synchronize : constant Duration := 20.0;
    --  Constants which change the behaviour of this package.
 
    Environment_Task : System.Tasking.Task_ID;
@@ -207,6 +207,8 @@ package body System.Garlic.Termination is
             when Communication_Error => null;
          end;
       end loop;
+      D (D_Debug,
+         Natural'Image (Count) & " messages sent");
       Termination_Watcher.Messages_Sent (Count);
       for Partition in Get_Boot_Server + 1 .. Latest loop
          declare

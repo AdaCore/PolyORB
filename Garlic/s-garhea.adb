@@ -88,6 +88,9 @@ package body System.Garlic.Heart is
       Known    : Boolean := False;
       Queried  : Boolean := False;
    end record;
+   --  Location holds the location, Known the fact that we already have
+   --  information on this partition, and Queried the fact that the caller
+   --  has to obtain the information using another way.
 
    type Partition_Data_Array is array (Valid_Partition_ID) of Partition_Data;
 
@@ -129,11 +132,19 @@ package body System.Garlic.Heart is
    My_Location : Physical_Location.Location;
    --  My own location.
 
+   type Allocated_Map is array (Partition_ID range <>) of Boolean;
+   --  Type of allocated partitions.
+
    protected type Partition_ID_Allocation_Type is
       procedure Allocate (Partition : out Partition_ID);
+      procedure Free (Partition : in Partition_ID);
       function Latest return Partition_ID;
    private
-      Next : Valid_Partition_ID := Server_Partition_ID + 1;
+      Latest_Partition : Valid_Partition_ID :=
+        Server_Partition_ID;
+      Allocated        : Allocated_Map (Valid_Partition_ID) :=
+        (Server_Partition_ID => True,
+         others              => False);
    end Partition_ID_Allocation_Type;
 
    type Partition_ID_Allocation_Access is
@@ -605,9 +616,41 @@ package body System.Garlic.Heart is
 
       procedure Allocate (Partition : out Partition_ID) is
       begin
-         Partition := Next;
-         Next := Next + 1;
+         for I in Allocated'Range loop
+            if not Allocated (I) then
+               Partition := I;
+               Allocated (I) := True;
+               if I > Latest_Partition then
+                  Latest_Partition := I;
+               end if;
+               return;
+            end if;
+         end loop;
+         raise Constraint_Error;
       end Allocate;
+
+      ----------
+      -- Free --
+      ----------
+
+      procedure Free (Partition : in Partition_ID) is
+      begin
+         Allocated (Partition) := False;
+         if Partition = Latest_Partition then
+            for I in reverse Allocated'First .. Partition - 1 loop
+               if Allocated (I) then
+                  Latest_Partition := I;
+                  return;
+               end if;
+            end loop;
+
+            --  We should not be here, since the server partition id
+            --  has to stay allocated.
+
+            pragma Assert (False);
+
+         end if;
+      end Free;
 
       ------------
       -- Latest --
@@ -615,7 +658,7 @@ package body System.Garlic.Heart is
 
       function Latest return Partition_ID is
       begin
-         return Next - 1;
+         return Latest_Partition;
       end Latest;
 
    end Partition_ID_Allocation_Type;

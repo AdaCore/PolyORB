@@ -1,3 +1,11 @@
+Wed Sep 11 19:43:48 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Increased the synchronization time to have more
+	  chance of stopping.
+
+	* s-garhea.adb: Added the framework needed to free an unused
+	  Partition_ID.
+
 Tue Sep 10 10:21:53 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Added s-stratt.adb and s-stratt.o to the list of
