@@ -223,11 +223,11 @@ fi
 ##########################################
 
 define(DEBUG_OPTIONS, [dnl
-  GNATFLAGS="-pipe -g -O2 -gnatfy -gnatwae -Wall -gnatoa -fstack-check"
+  GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatoa -fstack-check"
   BARGS=-E
   debug=true])
 define(NODEBUG_OPTIONS, [dnl
-  GNATFLAGS="-pipe -g -O2 -gnatfy -gnatwae -Wall -gnatpn"
+  GNATFLAGS="-g -O2 -gnatfy -gnatwae -gnatpn"
   BARGS=
   debug=false])
 
