@@ -6,6 +6,8 @@ with Droopi.Sockets;
 
 package Droopi.Binding_Data.Test is
 
+   pragma Elaborate_Body;
+
    type Test_Profile_Type is new Profile_Type with private;
 
    procedure Initialize (P : in out Test_Profile_Type);

@@ -10,6 +10,8 @@ pragma Elaborate_All (Sequences.Unbounded);
 
 package Droopi.Annotations is
 
+   pragma Elaborate_Body;
+
    type Note is abstract tagged private;
    --  A note that can be attached to an object.
 

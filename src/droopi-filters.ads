@@ -22,6 +22,9 @@ with Droopi.Components; use Droopi.Components;
 
 package Droopi.Filters is
 
+   --  Body requires child unit Droopi.Filters.Interface:
+   --  no elab control pragma.
+
    ----------------------------------------------------
    -- A Filter is a component that forwards messages --
    -- across a stack.                                --

@@ -81,7 +81,8 @@ is
 
       Create_Socket (DAP.Socket);
 
-      DAP.Address.Addr := Addresses (Get_Host_By_Name ("localhost"), 1);
+      DAP.Address.Addr := Addresses
+        (Get_Host_By_Name ("localhost"), 1);
       DAP.Address.Port := Port;
 
       --  Allow reuse of local addresses.
@@ -91,8 +92,9 @@ is
          Socket_Level,
          (Reuse_Address, True));
 
-      Put (" Bind" & DAP.Address.Port'Img & "...");
+      Put (" bind " & Image (DAP.Address) & "...");
       Bind_Socket (DAP.Socket, DAP.Address);
+      Put (" check " & Image (Get_Socket_Name (DAP.Socket)));
       Listen_Socket (DAP.Socket);
 
       Create (Socket_Access_Point (DAP.SAP.all), DAP.Socket);
@@ -152,10 +154,19 @@ begin
    Put (" smart-pointers");
    --  Depends on Soft_Links.
 
+   -------------------------------------------
+   -- Initialize personality-specific stuff --
+   -------------------------------------------
+   Droopi.Binding_Data.IIOP.Initialize;
+   Put (" binding-iiop");
+
+   --------------------------
+   -- Create ORB singleton --
+   --------------------------
+
    Setup.The_ORB := new ORB.ORB_Type
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
    Droopi.ORB.Create (Setup.The_ORB.all);
-   --  Create ORB singleton.
 
    Put (" ORB");
 
@@ -245,7 +256,7 @@ begin
                    (References.IOR.Object_To_String
                     ((Ref => My_Ref,
                       Type_Id => CORBA.To_CORBA_String
-                      ("IDL:Echo_Type")))));
+                      ("IDL:Echo_Type:1.0")))));
       exception
          when E : others =>
             Put_Line ("Warning: Object_To_String raised:");

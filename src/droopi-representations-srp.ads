@@ -1,13 +1,16 @@
+--  A representation for our own Simple Request Protocol (SRP).
+
+--  $Id$
+
 with Droopi.Buffers; use Droopi.Buffers;
 
 package Droopi.Representations.SRP is
 
+   pragma Elaborate_Body;
+
    type Rep_SRP is new Representation with private;
    type Rep_SRP_Access is access all Rep_SRP;
    type String_Ptr is access all String;
-
-
-   -----------------------------------
 
    ------------------------------------------
    -- Part taken from AWS (Ada Web Server) --

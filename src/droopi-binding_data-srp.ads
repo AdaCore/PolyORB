@@ -6,6 +6,8 @@ with Droopi.Sockets;
 
 package Droopi.Binding_Data.SRP is
 
+   pragma Elaborate_Body;
+
    type SRP_Profile_Type is new Profile_Type with private;
 
    procedure Initialize (P : in out SRP_Profile_Type);

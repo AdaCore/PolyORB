@@ -1,14 +1,8 @@
-------------------------------------------------------------------------------
---                                                                          --
---                          DROOPI COMPONENTS                               --
---                                                                          --
---                            CORBA . C D R                                 --
---                                                                          --
---                                 S p e c                                  --
---                                                                          --
---                                   --
---                                                                          --
-------------------------------------------------------------------------------
+--  A data representation implementing the CORBA Common Data Representation.
+--  For reference on CDR see:
+--    The Common Object Request Broker: Architecture and Specification,
+--    revision 2.2", Open Management Group
+--    (http://www.omg.org/).
 
 --  $Id$
 
@@ -18,8 +12,9 @@ with CORBA;
 
 with Droopi.Buffers; use Droopi.Buffers;
 
-
 package Droopi.Representations.CDR is
+
+   pragma Elaborate_Body;
 
    ----------------------------------------
    -- The Encapsulation view of a buffer --

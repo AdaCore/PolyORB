@@ -9,6 +9,8 @@ with Droopi.Soft_Links;
 
 package Droopi.Obj_Adapters.Simple is
 
+   pragma Elaborate_Body;
+
    type Simple_Obj_Adapter is new Obj_Adapter with private;
 
    procedure Create (OA : out Simple_Obj_Adapter);

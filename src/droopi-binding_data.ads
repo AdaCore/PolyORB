@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#11 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#12 $
 
 with Ada.Finalization;
 
@@ -11,6 +11,8 @@ with Droopi.Transport;
 with Droopi.Types;
 
 package Droopi.Binding_Data is
+
+   pragma Elaborate_Body;
 
    ----------------------------------------------
    -- Abstract inter-ORB protocol profile type --

@@ -1,10 +1,14 @@
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/droopi-locks.ads#2 $
+--  $Id: //droopi/main/src/droopi-locks.ads#3 $
 
 with Droopi.Soft_Links;
 
 package Droopi.Locks is
+
+   pragma Elaborate_Body;
+   --  Body depends on Droopi.Log. Removing that dep
+   --  would allow promoting this unit to Preelaborate.
 
    ----------------------------
    -- A readers/writers lock --

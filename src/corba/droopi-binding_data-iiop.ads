@@ -10,8 +10,9 @@ with Droopi.Sockets;
 
 package Droopi.Binding_Data.IIOP is
 
-   type IIOP_Profile_Type is new Profile_Type with private;
+   pragma Elaborate_Body;
 
+   type IIOP_Profile_Type is new Profile_Type with private;
 
    procedure Initialize;
 

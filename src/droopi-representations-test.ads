@@ -6,6 +6,8 @@ with Droopi.Buffers; use Droopi.Buffers;
 
 package Droopi.Representations.Test is
 
+   pragma Elaborate_Body;
+
    type Rep_Test is new Representation with private;
    type Rep_Test_Access is access all Rep_Test;
 

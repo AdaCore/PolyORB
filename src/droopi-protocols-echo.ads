@@ -6,6 +6,8 @@ with Droopi.Buffers;
 
 package Droopi.Protocols.Echo is
 
+   pragma Elaborate_Body;
+
    --  Echo_Protocol:
    --  A very simple protocol that echoes text lines received
    --  from the user.

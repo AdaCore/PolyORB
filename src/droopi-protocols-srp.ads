@@ -8,6 +8,8 @@ with Droopi.Objects; use Droopi.Objects;
 
 package Droopi.Protocols.SRP is
 
+   pragma Elaborate_Body;
+
    type SRP_Protocol is new Protocol with private;
    --   type String_Ptr is access all String;
 

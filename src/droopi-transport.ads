@@ -12,6 +12,8 @@ with Droopi.Components; use Droopi.Components;
 
 package Droopi.Transport is
 
+   pragma Elaborate_Body;
+
    -------------------------------------------------------------
    -- A transport service access point:                       --
    --                                                         --

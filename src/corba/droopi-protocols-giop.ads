@@ -26,6 +26,8 @@ with Sequences.Unbounded;
 
 package Droopi.Protocols.GIOP is
 
+   --  Body requires child units GIOP_<version>:
+   --  no elab control pragmas.
 
    use Droopi.Log;
    use Droopi.Binding_Data;

@@ -1,8 +1,16 @@
+--  A data representation used for implementing the HTTP protocol.
+--  HTTP is standardised by IETF RFC2616:
+--  Hypertext Transfer Protocol -- HTTP/1.1.
+--  R. Fielding, J. Gettys, J. Mogul, H. Frystyk, L. Masinter,
+--  P. Leach, T. Berners-Lee. June 1999.
 
+--  $Id$
 
 with Ada.Streams;
 
 package  DROOPI.Representations.HTTP is
+
+   pragma Elaborate_Body;
 
    function Decode_URL (Str : in String) return String;
    --  The translations are:

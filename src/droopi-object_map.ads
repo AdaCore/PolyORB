@@ -32,6 +32,8 @@ generic
 
 package Droopi.Object_Map is
 
+   pragma Elaborate_Body;
+
    type Object_Map is private;
    type Object_Map_Access is access all Object_Map;
 
