@@ -116,6 +116,8 @@ examples/dynclient.adb
 examples/echo-impl.adb
 examples/echo-impl.ads
 examples/echo.ads
+examples/polyorb-setup-test_corba.ads
+examples/polyorb-setup-test_corba.adb
 examples/polyorb-setup-test.adb
 examples/polyorb-setup-test.ads
 examples/polyorb-test-no_tasking.adb

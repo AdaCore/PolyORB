@@ -7,8 +7,7 @@ TESTS=  polyorb-test-no_tasking \
 
 all: $(TESTS)
 
-$(TESTS):
-	(cd ../src && $(MAKE) all)
+$(TESTS): force
 	$(GNATMAKE) -c \
 	-I../src -I../src/corba -I../src/soap $(XMLADA_INCLUDE) echo-impl.adb \
 	-cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS) \
@@ -20,3 +19,6 @@ $(TESTS):
 	-L../src/corba/.libs -lpolyorb-corba \
 	-L../src/soap/.libs -lpolyorb-soap \
 	-bargs $(BARGS) -largs $(XMLADA_LIBS)
+
+force:
+	(cd ../src && $(MAKE) all)
