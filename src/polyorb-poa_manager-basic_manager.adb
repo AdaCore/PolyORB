@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.ORB.Interface;
+with PolyORB.Requests;
 with PolyORB.Setup;
 
 package body PolyORB.POA_Manager.Basic_Manager is
@@ -277,7 +278,6 @@ package body PolyORB.POA_Manager.Basic_Manager is
       M.Managed_POAs := new POAList;
 
       M.Current_State := HOLDING;
-
    end Create;
 
    ------------------
@@ -442,12 +442,16 @@ package body PolyORB.POA_Manager.Basic_Manager is
    procedure Destroy_If_Unused
      (Self : in out Basic_POA_Manager)
    is
+      use PolyORB.Requests;
+      use Requests_Queue_P;
+
       procedure Free is new Ada.Unchecked_Deallocation
         (Hold_Servant, Hold_Servant_Access);
 
       procedure Free is new Ada.Unchecked_Deallocation
         (POAList, POAList_Access);
 
+      R : Execute_Request;
    begin
       Enter (Self.Count_Lock);
 
@@ -466,12 +470,18 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
          Free (Self.Managed_POAs);
 
+         while Self.Held_Requests /= Empty loop
+            Extract_First (Self.Held_Requests, R);
+            Destroy_Request (R.Req);
+         end loop;
+
+         Deallocate (Self.Held_Requests);
+
          Finalize (Self);
          pragma Debug (O ("POAManager destroyed."));
       else
          Leave (Self.Count_Lock);
       end if;
-
    end Destroy_If_Unused;
 
    ----------------------------------
@@ -491,25 +501,22 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use Requests_Queue_P;
 
       R : Execute_Request;
-      N : constant Natural := Length (Self.Held_Requests);
 
-      All_Requests : Element_Array (1 .. N);
    begin
       pragma Debug (O ("Number of requests to reemit"
                        & Integer'Image (Length (Self.Held_Requests))));
 
       Enter (Self.Queue_Lock);
-      All_Requests := To_Element_Array (Self.Held_Requests);
-      Delete (Self.Held_Requests, 1, N);
-      Leave (Self.Queue_Lock);
 
-      for J in 1 .. N loop
-         R := All_Requests (J);
+      while Self.Held_Requests /= Empty loop
+         Extract_First (Self.Held_Requests, R);
          Emit_No_Reply (Component_Access (PolyORB.Setup.The_ORB),
                         Queue_Request'
                         (Request   => R.Req,
                          Requestor => R.Req.Requesting_Component));
       end loop;
+
+      Leave (Self.Queue_Lock);
    end Reemit_Requests;
 
    ---------------------

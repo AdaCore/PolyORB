@@ -38,9 +38,9 @@
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.POA_Types;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants.Interface;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
@@ -124,9 +124,9 @@ package PolyORB.POA_Manager.Basic_Manager is
 
 private
 
-   package Requests_Queue_P is new PolyORB.Sequences.Unbounded
-     (Execute_Request);
-   subtype Requests_Queue is Requests_Queue_P.Sequence;
+   package Requests_Queue_P is
+      new PolyORB.Utils.Chained_Lists (Execute_Request);
+   subtype Requests_Queue is Requests_Queue_P.List;
 
    type Basic_POA_Manager is new POAManager with record
       Usage_Count     : Integer := 0;
