@@ -1,3 +1,8 @@
+1998-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Add pragma Warnings (Off) to compile s-garela.adb
+ 	safely.
+
 1998-07-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_stubs.adb: Check for RACW even on non-RCI units.

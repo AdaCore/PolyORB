@@ -289,10 +289,12 @@ package body XE_Stubs is
 
       --  Header
 
+      Dwrite_Line (FD, 0, "pragma Warnings (Off);");
       Dwrite_With_Clause (FD, "System.Garlic.Filters");
       Dwrite_With_Clause (FD, "System.Garlic.Heart");
       Dwrite_With_Clause (FD, "System.Garlic.Options");
       Dwrite_With_Clause (FD, "System.Garlic.Types");
+      Dwrite_Line (FD, 0, "pragma Warnings (On);");
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_With_Clause
