@@ -81,7 +81,7 @@ SOCKETNEEDED = @SOCKETNEEDED@
 VERSION = @VERSION@
 
 CLEANFILES = *.o *.ali sockets-constants.ads
-DISTCLEANFILES = b_split.c split constants_nodef
+DISTCLEANFILES = b_split.c b~split.ad? split constants_nodef
 mkinstalldirs = $(SHELL) $(top_srcdir)/../support/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  sockets-link.ads adasockets-config

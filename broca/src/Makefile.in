@@ -72,11 +72,9 @@ EXEEXT = @EXEEXT@
 GNATCHOP = @GNATCHOP@
 GNATLS = @GNATLS@
 GNATMAKE = @GNATMAKE@
-LD = @LD@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 MAKEINFO = @MAKEINFO@
-NM = @NM@
 OBJDUMP = @OBJDUMP@
 PACKAGE = @PACKAGE@
 PYTHON = @PYTHON@
@@ -106,6 +104,7 @@ ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 ADASOCKET_OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-multicast.o 	sockets-naming.o 	sockets-thin.o 	sockets-utils.o 	sockets.o
 
 
+bin_SCRIPTS = adabroker-config
 lib_LTLIBRARIES = libbroca.la
 libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
 libbroca_la_LIBADD = $(ADA_LIBADD)
@@ -118,7 +117,7 @@ LINK = libtool $(ADA) -o libbroca.la
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src 	-g -O2 $(CFLAGS)
 
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_CLEAN_FILES = 
+CONFIG_CLEAN_FILES =  adabroker-config
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
@@ -144,7 +143,9 @@ portableserver-servantlocator-impl.lo portableserver-servantmanager.lo \
 sockets-constants.lo sockets-link.lo sockets-multicast.lo \
 sockets-naming.lo sockets-thin.lo sockets-utils.lo sockets.lo
 libbroca_la_OBJECTS = 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in
+SCRIPTS =  $(bin_SCRIPTS)
+
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -164,6 +165,8 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+adabroker-config: $(top_builddir)/config.status adabroker-config.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-libLTLIBRARIES:
 
@@ -224,6 +227,25 @@ maintainer-clean-libtool:
 
 libbroca.la: $(libbroca_la_OBJECTS) $(libbroca_la_DEPENDENCIES)
 	$(LINK) -rpath $(libdir) $(libbroca_la_LDFLAGS) $(libbroca_la_OBJECTS) $(libbroca_la_LIBADD) $(LIBS)
+
+install-binSCRIPTS: $(bin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else if test -f $(srcdir)/$$p; then \
+	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
+	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	  else :; fi; fi; \
+	done
+
+uninstall-binSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	list='$(bin_SCRIPTS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
+	done
 tags: TAGS
 TAGS:
 
@@ -256,7 +278,7 @@ check-am: all-am
 check: check-am
 installcheck-am:
 installcheck: installcheck-am
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES install-binSCRIPTS
 install-exec: install-exec-am
 
 install-data-am: install-data-local
@@ -265,14 +287,15 @@ install-data: install-data-am
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-libLTLIBRARIES uninstall-local
+uninstall-am: uninstall-libLTLIBRARIES uninstall-binSCRIPTS \
+		uninstall-local
 uninstall: uninstall-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(libdir)
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)
 
 
 mostlyclean-generic:
@@ -314,11 +337,12 @@ clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
 uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
 mostlyclean-libtool distclean-libtool clean-libtool \
-maintainer-clean-libtool tags distdir info-am info dvi-am dvi check \
-check-am installcheck-am installcheck install-exec-am install-exec \
-install-data-local install-data-am install-data install-am install \
-uninstall-local uninstall-am uninstall all-redirect all-am all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS tags \
+distdir info-am info dvi-am dvi check check-am installcheck-am \
+installcheck install-exec-am install-exec install-data-local \
+install-data-am install-data install-am install uninstall-local \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
