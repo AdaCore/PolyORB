@@ -68,7 +68,8 @@ package body PolyORB.Utils is
          others => -1);
 
    Need_Escape : constant array (Character) of Boolean
-     := (';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
+     := (Character'Val (0) .. Character'Val (16#1f#) |
+         ';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
          '<' | '>' | '#' | '%' | '"' |
          '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
          others => False);
