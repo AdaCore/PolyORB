@@ -1,10 +1,5 @@
 BROCA_FLAGS += -I../generic
 
-GENERATED_FILES = $(IDL_INTERFACE).ads
-GENERATED_FILES += $(IDL_INTERFACE)-stream.ads
-GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ads
-GENERATED_FILES += $(IDL_INTERFACE).adb
-
 all:: client server
 
 client:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES) client.adb
