@@ -372,6 +372,7 @@ public:
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
   virtual void produce_skel_adb(dep_list &with, string &body);
+  virtual void produce_proxies_adb(dep_list &with, string &body);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 

@@ -283,6 +283,11 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   bool no_in = true;
   bool no_out = true;
   string out_args = "";
+
+  // See if this subprogram can raise exceptions
+  UTL_ExceptlistActiveIterator except_iterator(exceptions()) ;
+  bool user_exceptions = (! except_iterator.is_done()) ;
+
   // first process each argument
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -318,6 +323,7 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
   body += in_decls;  
   body += "   function Operation(Self : in " + get_ada_local_name() + "_Proxy )\n";
   body += "                      return Corba.String ;\n\n" ;
+
   if (!no_in) {
       body += "   function Align_Size(Self : in " + get_ada_local_name() + "_Proxy ;\n";
       body += "                       Size_In : in Corba.Unsigned_Long)\n";
@@ -325,11 +331,13 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
       body += "   procedure Marshal_Arguments(Self : in " + get_ada_local_name() + "_Proxy ;\n";
       body += "                               Giop_Client : in out Giop_C.Object) ;\n\n";
   }
+
   if ((!no_out) || (is_function())) {
   body += "   procedure Unmarshal_Returned_Values(Self : in out " ;
   body +=  get_ada_local_name() + "_Proxy ;\n";
   body += "                                       Giop_Client : in out Giop_C.Object) ;\n\n";
   }
+
   if (is_function()) {
     body += "   function Get_Result (Self : in " + get_ada_local_name() + "_Proxy)\n";
     body += "                        return " +  result_name + "; \n\n\n";
@@ -341,6 +349,12 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
     }
   }
 
+  if (user_exceptions) {
+    body += "   procedure User_Exception (Self : in " + get_ada_local_name() + "_Proxy ;\n";
+    body += "                             Giop_Client : in out Giop_C.Object ;\n";
+    body += "                             RepoId : in CORBA.String) ;\n\n\n";
+  }
+  
   private_definition += "   type " + get_ada_local_name() + "_Proxy is new OmniProxyCallDesc.Object with record \n";
   if ((fields == "")&&(!is_function())) {
     private_definition += "      null ;\n" ;
@@ -501,6 +515,29 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     }
   }
 
+  if (user_exceptions) {
+    body += "   -- User_Exception\n" ;
+    body += "   -----------------\n" ;
+    body += "   procedure User_Exception (Self : in " + get_ada_local_name() + "_Proxy ;\n";
+    body += "                             Giop_Client : in out Giop_C.Object ;\n";
+    body += "                             RepoId : in CORBA.String) is\n";
+    body += "   begin\n";
+    
+    while (!except_iterator.is_done())
+      {
+	string tmp = "";
+	AST_Decl *d = except_iterator.item();
+	dynamic_cast<adabe_exception *>(d)->produce_proxies_adb(with,tmp);
+	body += tmp;
+	except_iterator.next();
+      }
+
+    body += "      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,\n";
+    body += "                                     \"In ";
+    body += get_ada_local_name();
+    body += "_Proxy.User_Exception, unknown exception.\") ;\n";
+    body += "   end ;\n";
+  }
 
   if ( (!no_in) || (!no_out) || (is_function())) {
     body += "   -- Finalize\n" ;

@@ -150,6 +150,42 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
 }
 
 void
+adabe_exception::produce_proxies_adb (dep_list &with, string &body)
+{
+  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  bool has_member = !activator.is_done();
+
+  string full_name = get_ada_full_name ();
+  string pack = full_name.substr (0,full_name.find_last_of('.'));
+
+  with.add (pack);
+  body += "      if RepoId = \"";
+  body += repositoryID ();
+  body += "\" then \n";
+  body += "         declare\n";
+  body += "            member : ";
+  body += get_ada_local_name ();
+  body += "_Members ;\n";
+  body += "         begin\n";
+  if (has_member)
+    {
+      body += "            UnMarshall(member,Giop_Client) ;\n";
+      body += "            Corba.Raise_Corba_Exception(";
+      body += get_ada_local_name ();
+      body += "'Identity,\n";
+      body += "                                        member) ;\n";
+    }
+  else
+    {
+      body += "            raise ";
+      body += get_ada_local_name ();
+      body += " ;\n";
+    }
+  body += "         end ;\n";
+  body += "      end if ;\n\n";
+}
+
+void
 adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previous)
 {
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
