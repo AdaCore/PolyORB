@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -118,6 +118,16 @@ package body Ada_Be.Mappings.CORBA is
    begin
       return Client_Stubs_Unit_Name (Self, Node) & Skel_Suffix;
    end Server_Skel_Unit_Name;
+
+   function Self_For_Operation
+     (Self : access CORBA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String is
+   begin
+      return "Self";
+      --  In CORBA stubs, the target objet is always passed
+      --  as a formal parameter named Self.
+   end Self_For_Operation;
 
    procedure Map_Type_Name
      (Self : access CORBA_Mapping_Type;

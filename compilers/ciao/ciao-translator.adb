@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#18 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#19 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -105,43 +105,6 @@ package body CIAO.Translator is
       Ada.Exceptions.Raise_Exception
         (Translation_Error'Identity, Message);
    end Raise_Translation_Error;
-
-   function Unit_Category (LU : in Compilation_Unit)
-     return Unit_Categories;
-   --  Returns the category (Pure, RT, RCI or Other)
-   --  of a library unit.
-
-   function Unit_Category (LU : in Compilation_Unit)
-     return Unit_Categories is
-      D : constant Declaration := Unit_Declaration (LU);
-      K : constant Declaration_Kinds := Declaration_Kind (D);
-   begin
-      --  Check that LU is a package specification
-      if K /= A_Package_Declaration then
-         Raise_Translation_Error
-           (Nil_Element, "Unexpected unit declaration kind.");
-      end if;
-
-      --  Find the category of LU.
-      declare
-         Unit_Pragmas : constant Pragma_Element_List := Pragmas (D);
-      begin
-         for I in Unit_Pragmas'Range loop
-            case Pragma_Kind (Unit_Pragmas (I)) is
-               when A_Pure_Pragma =>
-                  return Pure;
-               when A_Remote_Types_Pragma =>
-                  return Remote_Types;
-               when A_Remote_Call_Interface_Pragma =>
-                  return Remote_Call_Interface;
-               when others =>
-                  null;
-            end case;
-         end loop;
-
-         return Other;
-      end;
-   end Unit_Category;
 
    --------------------------------------
    -- {Pre,Post}_Translate_Element     --
@@ -949,9 +912,9 @@ package body CIAO.Translator is
                         Op_Node => Op_Node);
                   end if;
 
-                  if State.Unit_Category /= Remote_Call_Interface then
-                     Set_Is_Explicit_Self (Op_Node, True);
-                  end if;
+                  --  if State.Unit_Category /= Remote_Call_Interface then
+                  Set_Is_Explicit_Self (Op_Node, True);
+                  --  end if;
 
                   Set_Translation (Element, Op_Node);
                   --  The translation of a subprogram declaration is

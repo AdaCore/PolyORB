@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2002 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -61,7 +61,7 @@ package Ada_Be.Mappings is
      (Self : access Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String
-     is abstract;
+      is abstract;
    --  Return the name of the library unit that contains the
    --  client stubs for interface or valuetype Node.
 
@@ -69,9 +69,17 @@ package Ada_Be.Mappings is
      (Self : access Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String
-     is abstract;
+      is abstract;
    --  Return the name of the library unit that contains the
    --  server skeleton for interface or valuetype Node.
+
+   function Self_For_Operation
+     (Self : access Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+      is abstract;
+   --  Return an expression that resolves to denote the target
+   --  object reference in a calling stub unit.
 
    procedure Map_Type_Name
      (Self : access Mapping_Type;

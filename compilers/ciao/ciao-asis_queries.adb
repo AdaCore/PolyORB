@@ -11,13 +11,13 @@
 --  Ada'95 distributed systems annex  --
 --  Objects                           --
 ----------------------------------------
---  Copyright (c) 1999                --
+--  Copyright (c) 1999-2002           --
 --  École nationale supérieure des    --
 --  télécommunications                --
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#7 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#8 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
@@ -990,5 +990,36 @@ package body CIAO.ASIS_Queries is
       end loop;
       return False;
    end Is_Asynchronous;
+
+   function Unit_Category (LU : in Compilation_Unit)
+     return Unit_Categories
+   is
+      D : constant Declaration := Unit_Declaration (LU);
+      K : constant Declaration_Kinds := Declaration_Kind (D);
+   begin
+
+      if K /= A_Package_Declaration then
+         raise ASIS_Inappropriate_Element;
+      end if;
+
+      declare
+         Unit_Pragmas : constant Pragma_Element_List := Pragmas (D);
+      begin
+         for I in Unit_Pragmas'Range loop
+            case Pragma_Kind (Unit_Pragmas (I)) is
+               when A_Pure_Pragma =>
+                  return Pure;
+               when A_Remote_Types_Pragma =>
+                  return Remote_Types;
+               when A_Remote_Call_Interface_Pragma =>
+                  return Remote_Call_Interface;
+               when others =>
+                  null;
+            end case;
+         end loop;
+
+         return Other;
+      end;
+   end Unit_Category;
 
 end CIAO.ASIS_Queries;

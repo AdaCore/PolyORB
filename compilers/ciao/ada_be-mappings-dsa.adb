@@ -28,10 +28,11 @@
 
 --  $Id$
 
-with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Characters.Handling; --  use Ada.Characters.Handling;
 
-with Asis.Elements; use Asis.Elements;
 with Asis.Compilation_Units; use Asis.Compilation_Units;
+with Asis.Elements; use Asis.Elements;
+with Asis.Declarations;
 
 with Errors; use Errors;
 
@@ -40,6 +41,7 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Idl2Ada; use Ada_Be.Idl2Ada;
 
+with CIAO.ASIS_Queries;
 with CIAO.Translator.State; use CIAO.Translator.State;
 
 package body Ada_Be.Mappings.DSA is
@@ -63,7 +65,7 @@ package body Ada_Be.Mappings.DSA is
                E : constant Asis.Element := Get_Origin (Node);
             begin
                if not Is_Nil (E) then
-                  return To_String
+                  return Ada.Characters.Handling.To_String
                     (Unit_Full_Name
                      (Enclosing_Compilation_Unit (E)));
                else
@@ -242,6 +244,44 @@ package body Ada_Be.Mappings.DSA is
 
       end case;
    end Map_Type_Name;
+
+   ------------------------
+   -- Self_For_Operation --
+   ------------------------
+
+   function Self_For_Operation
+     (Self : access DSA_Mapping_Type;
+      Node : Idl_Fe.Types.Node_Id)
+     return String
+   is
+      use CIAO.ASIS_Queries;
+
+      E : constant Asis.Element := Get_Origin (Node);
+      PS_Node : constant Node_Id := Parent_Scope (Node);
+   begin
+      if Unit_Category (Enclosing_Compilation_Unit (E))
+         = Remote_Call_Interface
+      then
+         --  This is an RPC operation from an RCI package:
+         --  the Self object is determined internally by
+         --  the calling stubs.
+         return Client_Stubs_Unit_Name (Self, PS_Node)
+           & ".Get_Target_Ref";
+      else
+         declare
+            Controlling_Formals :
+              constant Asis.Parameter_Specification_List
+              := Controlling_Formal_Parameters (E);
+            CFN : constant Asis.Defining_Name_List
+              := Asis.Declarations.Names
+              (Controlling_Formals (Controlling_Formals'First));
+         begin
+            return Ada.Characters.Handling.To_String
+              (Asis.Declarations.Defining_Name_Image
+               (CFN (CFN'First)));
+         end;
+      end if;
+   end Self_For_Operation;
 
    ---------------------------
    -- Server_Skel_Unit_Name --

@@ -11,17 +11,20 @@
 --  Ada'95 distributed systems annex  --
 --  Objects                           --
 ----------------------------------------
---  Copyright (c) 1999                --
+--  Copyright (c) 1999-2002           --
 --  École nationale supérieure des    --
 --  télécommunications                --
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#8 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#9 $
 
 with Asis;
+with CIAO.ASIS_Queries;
 
 package CIAO.Translator.State is
+
+   use CIAO.ASIS_Queries;
 
    ---------------------------------------------------
    -- Translator_State                              --

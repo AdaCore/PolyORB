@@ -193,8 +193,7 @@ package body Ada_Be.Idl2Ada is
    begin
       pragma Assert (Is_Repository (Node));
 
-      Mapping := new Mappings.Mapping_Type'Class'
-        (Use_Mapping);
+      Mapping := new Mappings.Mapping_Type'Class'(Use_Mapping);
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
@@ -437,6 +436,8 @@ package body Ada_Be.Idl2Ada is
                Original_VT_Name : constant String
                  := Ada_Full_Name
                  (Oldest_Supporting_ValueType (Node));
+               Self_Expr : constant String
+                 := Self_For_Operation (Mapping, Node);
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
@@ -463,12 +464,15 @@ package body Ada_Be.Idl2Ada is
                   PL (CU,
                       Ada_Be.Temporaries.T_Impl_Object_Ptr
                       & " : constant CORBA.Impl.Object_Ptr");
-                  PL (CU, "  := CORBA.Impl.Object_Ptr (Object_Of (Self));");
+                  PL (CU, "  := CORBA.Impl.Object_Ptr (Object_Of");
+                  II (CU);
+                  PL (CU, "(" & Self_Expr & "));");
+                  DI (CU);
                   DI (CU);
                   PL (CU, "begin");
                   II (CU);
                   PL (CU, "--  Sanity check");
-                  PL (CU, "if Is_Nil (Self) then");
+                  PL (CU, "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
                   Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                   PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Inv_Objref;");
@@ -1859,7 +1863,6 @@ package body Ada_Be.Idl2Ada is
                Add_With (CU, "CORBA.Request");
                Add_With (CU, "CORBA.NVList");
                Add_With (CU, "CORBA.ORB");
-               --  Add_With (CU, "Broca.Naming_Tools", Use_It    => True);
 
                Gen_Operation_Profile
                  (CU, Ada_Type_Defining_Name (Parent_Scope (Node)), Node);
@@ -1892,7 +1895,8 @@ package body Ada_Be.Idl2Ada is
                        & Idl_Operation_Id (Node) & """);");
 
                PL (CU, Justify (T_Self_Ref, Max_Len) & " : CORBA.Object.Ref");
-               PL (CU, "  := CORBA.Object.Ref (Self);");
+               PL (CU, "  := CORBA.Object.Ref ("
+                   & Self_For_Operation (Mapping, Node) & ");");
                NL (CU);
 
                declare
@@ -2258,9 +2262,8 @@ package body Ada_Be.Idl2Ada is
 
             --  Formals
 
-            NL (CU);
             if not Is_Explicit_Self (Node) then
-               Put (CU, "  (Self : " & Object_Type);
+               Put (CU, ASCII.LF & "  (Self : " & Object_Type);
                II (CU);
                First := False;
             end if;
@@ -2274,7 +2277,7 @@ package body Ada_Be.Idl2Ada is
                   Get_Next_Node (It, P_Node);
 
                   if First then
-                     Put (CU, "  (");
+                     Put (CU, ASCII.LF & "  (");
                      II (CU);
                      First := False;
                   else
