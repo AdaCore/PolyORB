@@ -65,43 +65,6 @@ AC_ARG_WITH(proto-perso,
 ])
 AC_MSG_RESULT(${PROTO_LIST})
 
-PROTO_DIRS=""
-PROTO_LIBS=""
-
-PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
-echo "" > ${PROTO_CLIENT_WITHS}
-PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
-echo "" > ${PROTO_SERVER_WITHS}
-
-for P in ${PROTO_LIST}
-do
-   PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
-   PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
-
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
-   cat >>${PROTO_CLIENT_WITHS} <<EOF
--- ${P} --
-with ${U};
-pragma Elaborate_All (${U});
-pragma Warnings (Off, ${U});
-
-EOF
-
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
-   cat >>${PROTO_SERVER_WITHS} <<EOF
--- ${P} --
-with ${U};
-pragma Elaborate_All (${U});
-pragma Warnings (Off, ${U});
-
-EOF
-done
-
-AC_SUBST(PROTO_DIRS)
-AC_SUBST(PROTO_LIBS)
-AC_SUBST_FILE(PROTO_CLIENT_WITHS)
-AC_SUBST_FILE(PROTO_SERVER_WITHS)
-
 ##########################################
 # Application personality list
 ##########################################
@@ -126,16 +89,62 @@ AC_ARG_WITH(appli-perso,
 ])
 AC_MSG_RESULT(${APPLI_LIST})
 
+##########################################
+# Services list.
+##########################################
+
+AC_MSG_CHECKING([default services])
+AC_ARG_WITH(services,
+[  --with-services=x       Enumerate protocol personalities],
+[
+  SERVICE_LIST=""
+  for S in ${withval}
+  do
+     if test -f ${srcdir}/cos/${S}/Makefile.am
+     then
+        PROTO_LIST="${PROTO_LIST} $S "
+     else
+        AC_MSG_ERROR([unknown protocol personality ${S}])
+     fi
+  done
+],
+[
+  SERVICE_LIST=" "
+])
+AC_MSG_RESULT(${SERVICE_LIST})
+
+##########################################
+# Update Makefiles' subdirectory lists
+##########################################
+
 APPLI_DIRS=""
 APPLI_LIBS=""
+APPLI_INCS=""
 
 for P in ${APPLI_LIST}
 do
    APPLI_DIRS="${APPLI_DIRS} "'$'"(${P}_dir)"
    APPLI_LIBS="${APPLI_LIBS} "'$'"(${P}_lib)"
+   APPLI_INCS="${APPLI_INCS} "'$'"(${P}_inc)"
 done
 AC_SUBST(APPLI_DIRS)
 AC_SUBST(APPLI_LIBS)
+AC_SUBST(APPLI_INCS)
+
+
+PROTO_DIRS=""
+PROTO_LIBS=""
+PROTO_INCS=""
+
+for P in ${PROTO_LIST}
+do
+   PROTO_DIRS="${PROTO_DIRS} "'$'"(${P}_dir)"
+   PROTO_LIBS="${PROTO_LIBS} "'$'"(${P}_lib)"
+   PROTO_INCS="${PROTO_INCS} "'$'"(${P}_inc)"
+done
+AC_SUBST(PROTO_DIRS)
+AC_SUBST(PROTO_LIBS)
+AC_SUBST(PROTO_INCS)
 
 ##########################################
 # Check XmlAda,
@@ -228,6 +237,39 @@ AM_PROG_LIBTOOL
 host=$host_tmp
 
 ##########################################
+# Build polyorb-setup-* files
+##########################################
+
+PROTO_CLIENT_WITHS=${srcdir}/proto_client_withs.adb
+echo "" > ${PROTO_CLIENT_WITHS}
+PROTO_SERVER_WITHS=${srcdir}/proto_server_withs.adb
+echo "" > ${PROTO_SERVER_WITHS}
+
+for P in ${PROTO_LIST}
+do
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
+   cat >>${PROTO_CLIENT_WITHS} <<EOF
+-- ${P} --
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+
+EOF
+
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
+   cat >>${PROTO_SERVER_WITHS} <<EOF
+-- ${P} --
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+
+EOF
+done
+
+AC_SUBST_FILE(PROTO_CLIENT_WITHS)
+AC_SUBST_FILE(PROTO_SERVER_WITHS)
+
+##########################################
 # Switches required to build relevant
 # examples only.
 ##########################################
@@ -249,7 +291,6 @@ AM_CONDITIONAL(ENABLE_SOAP, test x$soap_enabled = xyes)
 
 srp_enabled=`echo "${PROTO_LIST}" | ${AWK} '/ srp /{print "yes"}'`
 AM_CONDITIONAL(ENABLE_SRP, test x$srp_enabled = xyes)
-
 
 ##########################################
 # Output generated files

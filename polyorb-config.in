@@ -2,12 +2,12 @@
 # @configure_input@
 
 prefix=@prefix@
-is_corba=@IS_CORBA@
-is_dsa=@IS_DSA@
-is_moma=@IS_MOMA@
-is_giop=@IS_GIOP@
-is_soap=@IS_SOAP@
-is_srp=@IS_SRP@
+is_corba=@ENABLE_CORBA@
+is_dsa=@ENABLE_DSA@
+is_moma=@ENABLE_MOMA@
+is_giop=@ENABLE_GIOP@
+is_soap=@ENABLE_SOAP@
+is_srp=@ENABLE_SRP@
 
 if test x"$is_corba" = xyes 
 then

@@ -459,6 +459,9 @@ src/giop/Makefile.am
 src/giop/Makefile.in
 src/giop/polyorb-binding_data-iiop.adb
 src/giop/polyorb-binding_data-iiop.ads
+src/giop/polyorb-giop_p.ads
+src/giop/polyorb-giop_p-exceptions.adb
+src/giop/polyorb-giop_p-exceptions.ads
 src/giop/polyorb-protocols-giop-giop_1_0.adb
 src/giop/polyorb-protocols-giop-giop_1_0.ads
 src/giop/polyorb-protocols-giop-giop_1_1.adb
