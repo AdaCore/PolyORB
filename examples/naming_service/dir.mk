@@ -23,7 +23,7 @@ GENERATED_FILES += cosnaming-namingcontext_forward.ads
 GENERATED_FILES += naming_idl_file.ads
 GENERATED_FILES += echo_idl_file.ads
 GENERATED_FILES += cosnaming.ads
-
+GENERATED_FILES += b_client.c
 
 ada:: echo.ads cosnaming.ads
 

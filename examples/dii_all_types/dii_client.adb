@@ -13,6 +13,12 @@ with Invoker;
 
 with Report;    use Report;
 
+--  This client is intended to be used with the server of all_types
+--  It reproduces most of the tests of all_types/client.adb with some dynamic
+--  invocations.
+--
+--  Have a look to the Helper files too.
+
 
 procedure Dii_Client is
    Repository_Id : CORBA.String;

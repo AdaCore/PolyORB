@@ -1,8 +1,20 @@
 with CORBA; use CORBA;
 
 
-package Helper is
+--  The functions in this package are responsible for generation of constant
+--  typecodes, form and to any conversions, for the complex user defined types.
+--
+--  It probably looks very like what the adabroker IDL to Ada compiler should
+--  be able to produce, as a 'helper file' for the dynamic client.
+--
+--  The use of an IR would probably also allow the genewration of suc TypeCode
+--  constants.
+--
+--  You may want to look at the implementation of the TC_XXX functions to
+--  convince yourself of how useful it would be ...
 
+
+package Helper is
 
    function TC_String return TypeCode.Object;
    --  returns a type code for an unbounded string

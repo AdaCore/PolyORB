@@ -3,6 +3,9 @@ with CORBA; use CORBA;
 
 with Report;    use Report;
 
+--
+--  See comments in helper.ads
+--
 --  To understand better the To_Any and From_Any functions, the reader
 --  might want to read the CORBA spec 2.2 chapter 8.7.1 which explains
 --  how TypeCode are specified.

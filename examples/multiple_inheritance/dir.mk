@@ -12,7 +12,7 @@ GENERATED_FILES += *_idl_file-stream.ad*
 GENERATED_FILES += weapon.ad*
 GENERATED_FILES += tank.ad*
 GENERATED_FILES += vehicle.ad*
-
+GENERATED_FILES += b_*.c
 
 clean::
 	-rm -f *.o *.ali *~ client server $(GENERATED_FILES)

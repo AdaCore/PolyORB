@@ -5,7 +5,7 @@ all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -g -I.. -gnatf -gnata -m -i server.adb $(FLAGS)
 
 clean::
-	-rm -f *.o *.ali *~ server client \
+	-rm -f *.o *.ali *~ server client b_*.c\
 	*-skel* *-stream* *-proxy* chicken.ad* egg.ad* *_forward* \
 	chicken_idl_file.ads egg_idl_file.ads
 

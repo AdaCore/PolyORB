@@ -15,6 +15,8 @@ with Report;    use Report;
 --  This client is intended to work with the server of all_functions
 --  It reproduces part of the tests of the static all_functions client with
 --  some dynamic invocations
+--  Exceptions are not handled properly (unlike in static invocation) since
+--  they are not supported yet in DII
 
 procedure Dii_Client is
    Repository_Id : CORBA.String;

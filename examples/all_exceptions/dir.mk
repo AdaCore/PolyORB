@@ -12,6 +12,7 @@ GENERATED_FILES += $(IDL_INTERFACE)-stream.ad*
 GENERATED_FILES += $(IDL_INTERFACE)-skel.ad*
 GENERATED_FILES += $(IDL_INTERFACE)_idl_file.ad*
 GENERATED_FILES += $(IDL_INTERFACE)_idl_file-stream.ad*
+GENERATED_FILES += b_*.c
 
 clean::
 	-rm -f *.o *.ali *~ server client server $(GENERATED_FILES)
