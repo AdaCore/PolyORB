@@ -1,3 +1,8 @@
+1998-09-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO (glade_version): Now defaults to gnat_version to
+	keep them synchronized.
+
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make_distrib: Correct bug in remote distribution build.

@@ -12,8 +12,8 @@
 #
 # Current version
 #
-glade_version='3.11b-beta'
 gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
+glade_version="${gnat_version}"
 
 #
 # files hold the list of files in which substitutions will occur
