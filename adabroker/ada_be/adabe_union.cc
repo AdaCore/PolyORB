@@ -31,7 +31,7 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 	adabe_union_branch::narrow_from_decl(d)->produce_ads(with, body, previous, disc_type());
       //dynamic_cast<adabe_union_branch *>(d)->produce_ads(with, body, previous, disc_type()); 
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
-      i.next();
+      i.next ();
     }
   body += "      end case; \n";
   body += "   end record; \n";
@@ -80,6 +80,7 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
 
+  set_already_defined ();
 }
 
 void
@@ -147,6 +148,8 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += marshall;
   body += unmarshall;
   body += align_size;
+
+  set_already_defined();
 }
 
 string

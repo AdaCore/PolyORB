@@ -172,10 +172,3 @@ IMPL_NARROW_FROM_SCOPE(adabe_structure)
 
 
 
-
-
-
-
-
-
-

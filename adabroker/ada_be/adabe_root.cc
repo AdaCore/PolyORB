@@ -111,7 +111,7 @@ adabe_root::produce() {
 		
 		break;
 	      default:
-		//    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+		throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 		break;
 	      }
 	    }
@@ -188,8 +188,6 @@ adabe_root::produce() {
     
     // Preparing for a second scan
     
-    set_undefined();
-
     // ************************************
     // CREATION OF THE IMPLEMENTATION FILES
     // ************************************
@@ -510,6 +508,8 @@ adabe_root::produce() {
 	}
     }
     
+    set_undefined();
+
     // ******************************
     // CREATION OF THE MARSHALL FILES
     // ******************************
@@ -600,6 +600,8 @@ adabe_root::produce() {
       marshal_header << marshal_header_body;
       marshal_header.close();
     }
+
+    set_undefined();
 
     // marshal body file
     

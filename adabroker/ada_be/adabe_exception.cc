@@ -26,12 +26,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
       activator.next();
       switch(d->node_type())
 	{
-	case AST_Decl::NT_sequence:
-	case AST_Decl::NT_enum_val:
 	case AST_Decl::NT_field:
-	case AST_Decl::NT_union:
-	case AST_Decl::NT_struct:
-	case AST_Decl::NT_enum:
 	  {
 	    adabe_name *adabe_field =  dynamic_cast<adabe_name *> (d);
 	    //	    adabe_name *adabe_type  =  dynamic_cast<adabe_name *> (adabe_field->base_type);
@@ -42,10 +37,14 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 		  }
 	    body += "\t\t";
 	    adabe_field->produce_ads (with, body, previous);
+	    break;
 	  }
 	default:
+#ifdef DEBUG_EXCEPTION
+	  cerr << "node type is : " << d->node_type() << endl;
+#endif
 	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
-	    }
+	}
       if (first)
 	{
 	  body += "       null records;\n";
@@ -57,8 +56,20 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
     }
   // Problem in the mapping  ????
   body += "\tprocedure Get_Members(From: in Ada.Exceptions.\n";
-  body += "\t\tException_Occurence;\n";
-  body += "\t\t\tTo:\t out  " + get_ada_local_name() + "_Members);\n";
+  body += "\t\tException_Occurence ;\n";
+  body += "\t\t\tTo:\t out  " + get_ada_local_name() + "_Members) ;\n";
+  set_already_defined();
+}
+
+void
+adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
+{
+  body += "\tprocedure Get_Members(From: in Ada.Exceptions.\n";
+  body += "\t\tException_Occurence ;\n";
+  body += "\t\t\tTo:\t out  " + get_ada_local_name() + "_Members) is\n";
+  body += "   begin\n";
+  body += "      Corba.Exceptions.Get_Members (From,To) ;\n";
+  body += "   end ;\n\n\n";
 }
 
 void
@@ -80,6 +91,8 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
   body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
+
+  set_already_defined ();
 }
 
 void
@@ -119,27 +132,13 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       AST_Decl *d = activator.item();
       switch(d->node_type())
 	{
-	case AST_Decl::NT_sequence:
-	case AST_Decl::NT_enum_val:
 	case AST_Decl::NT_field:
-	case AST_Decl::NT_union:
-	case AST_Decl::NT_struct:
-	case AST_Decl::NT_enum:
 	  {
-	    string name = (dynamic_cast<adabe_name *> (d))->marshal_name(with,body);
-	    marshall += "      Marshall (A.";
-	    marshall += name;
-	    marshall += ",S) ;\n";
-
-	    unmarshall += "      UnMarshall (Tmp.";
-	    unmarshall += name;
-	    unmarshall += ",S) ;\n";
-
-	    align_size += "      Tmp := Align_size (A.";
-	    align_size += name;
-	    align_size += ",Tmp) ;\n";
-  }
+	    (dynamic_cast<adabe_field *>(d))->produce_marshal_adb(with, body, marshall, unmarshall, align_size);
+	    break;
+	  }
 	default:
+	  cerr << d->node_type() << endl;
 	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
 	}      
       activator.next();
@@ -153,6 +152,8 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
   body += marshall;
   body += unmarshall;
   body += align_size;
+
+  set_already_defined();
 }
 
 string

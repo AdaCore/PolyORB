@@ -162,8 +162,10 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	//	adabe_operation *f = (adabe_operation *) e;
 	//	cout << "interface instruction node type:" << f->node_type() << endl;
 #endif
-	e->produce_ads(with, tmp1, tmp2);
-	body += tmp2 + tmp1;
+	if (e->node_type() != AST_Decl::NT_enum_val) {
+	  e->produce_ads(with, tmp1, tmp2);
+	  body += tmp2 + tmp1;
+	}
 	i.next();
       }
   }
@@ -258,6 +260,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 	  {
 	  case AST_Decl::NT_attr:
 	  case AST_Decl::NT_op:
+	  case AST_Decl::NT_except:
 	    {
 	      string tmp1 = "";
 	      string tmp2 = "";
@@ -328,8 +331,10 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   if (n_inherits() > 0)
     {
       inher = adabe_interface::narrow_from_decl(inherits()[0]);      
-      body += "   type Object is access " + inher->get_ada_full_name() + ".Object ";
-      UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
+      body += "   type Object is access " + inher->get_ada_full_name() +
+	".Object ;\n";
+/*
+  UTL_ScopeActiveIterator j(inher,UTL_Scope::IK_decls);
       while (!j.is_done())
 	{
 	  AST_Decl *d = j.item();
@@ -385,21 +390,30 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 		}
 	    }
 	  body += "   end record; \n";
-	}
-    }
+	  } */
+    } 
   body += tmp;
-
+  
   // instructions
   
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
-      string tmp1 = "";
-      string tmp2 = "";
-      dynamic_cast<adabe_name *>(d)->produce_ads(with, tmp1, tmp2);
-      body += tmp2 + tmp1;
-      i.next();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_attr:
+	case AST_Decl::NT_op:
+	  {
+	    string tmp1 = "";
+	    string tmp2 = "";
+	    dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, tmp1, tmp2);
+	    body += tmp2 + tmp1;
+	  }
+	  break;
+	default:break;
+	}
+       i.next();
     }
   body += "end " + get_ada_full_name() + "\n";    
 
@@ -428,7 +442,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 	  {
 	    string tmp1 = "";
 	    string tmp2 = "";
-	    dynamic_cast<adabe_name *>(d)->produce_adb(with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_impl_adb(with, tmp1, tmp2);
 	    body += tmp2 + tmp1;
 	  }
 	  break;

@@ -336,6 +336,7 @@ public:
   DEF_NARROW_FROM_SCOPE(adabe_exception);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);

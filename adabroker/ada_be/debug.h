@@ -4,4 +4,11 @@
 #define DEBUG_NAME
 #define DEBUG_OPERATION
 #define DEBUG_STRING
+#define DEBUG_EXCEPTION
 #define DEBUG_UNION_BRANCH
+
+
+
+
+
+

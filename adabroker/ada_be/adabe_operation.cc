@@ -176,7 +176,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
-	     dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
+	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
@@ -193,7 +193,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
-	     dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
+	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
@@ -223,7 +223,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
-	     dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
+	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
@@ -242,7 +242,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
 	  body += ",";
 	  AST_Decl *d = i.item();
 	  if (d->node_type() == AST_Decl::NT_argument)
-	     dynamic_cast<adabe_name *>(d)->produce_impl_ads(with, body, previous);
+	     dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
 	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
 	  i.next();
 	}
@@ -421,7 +421,7 @@ adabe_operation::is_function()
   bool ret = !(return_is_void());
 #ifdef DEBUG_OPERATION
   bool test2 = true;
-  cerr << "ret vaut pour la methode " << ret << endl;
+  cerr << "ret value for this method is " << ret << endl;
   cerr << "true is " << test2 << endl;
 #endif
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);

@@ -37,73 +37,85 @@ adabe_name::set_ada_full_name(string s)
 void 
 adabe_name::produce_ads(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_ads called in adabe_name");
 }
 
 void 
 adabe_name::produce_adb(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_adb called in adabe_name");
 }
 
 void 
 adabe_name::produce_impl_ads(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_impl_ads called in adabe_name");
 }
 
 void 
 adabe_name::produce_impl_adb(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_impl_adb called in adabe_name");
 }
 
 void 
 adabe_name::produce_proxies_ads(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_proxies_ads called in adabe_name");
 }
 
 void 
 adabe_name::produce_proxies_adb(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_proxies_adb called in adabe_name");
 }
 
 void 
 adabe_name::produce_skel_ads(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_skel_ads called in adabe_name");
 }
 
 void 
 adabe_name::produce_skel_adb(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_skel_adb called in adabe_name");
 }
 
 void 
 adabe_name::produce_marshal_ads(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_marshal_ads called in adabe_name");
 }
 
 void 
 adabe_name::produce_marshal_adb(dep_list&, string&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"produce_marshal_adb called in adabe_name");
 }
 
 string 
 adabe_name::dump_name(dep_list&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"dump_name called in adabe_name");
 }
 
 string 
 adabe_name::marshal_name(dep_list&, string&)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Produce called in adabe_name");
+  cerr << "node type is : " << (dynamic_cast<AST_Decl *>(this))->node_type () << endl;
+  throw adabe_internal_error(__FILE__,__LINE__,"marshal_name called in adabe_name");
 }
 
 void
@@ -136,6 +148,7 @@ adabe_name::compute_ada_name()
 	  case AST_Decl::NT_op:
 	  case AST_Decl::NT_interface:
 	  case AST_Decl::NT_module:
+	  case AST_Decl::NT_enum:
 	  case AST_Decl::NT_root:
 	  case AST_Decl::NT_except:
 	  case AST_Decl::NT_struct:
@@ -154,7 +167,6 @@ adabe_name::compute_ada_name()
 	  {
 	    if (loop>999)
 	      throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
-	    cout << "Je suis passe ici\n";
 	    char extension[4];
 	    sprintf (extension, "_%d",loop++);
 	    pd_ada_local_name = temp_name + extension;
