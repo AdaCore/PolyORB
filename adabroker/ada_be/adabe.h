@@ -420,9 +420,14 @@ public:
   DEF_NARROW_FROM_DECL(adabe_argument);
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
-  void produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields);
-  void produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
-			   string &align_size, string &marshall, string &unmarshall_decls, string &unmarshall, string &finalize);
+  void produce_adb(dep_list &with, bool &no_out, string space, string &in_decls, string &in_args, string &out_args);
+  void produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args);
+  void produce_proxies_adb(dep_list &with, string &in_decls,
+			   bool &no_in, bool &no_out, string &init,
+			   string &align_size, string &marshall,
+			   string &unmarshall_decls,
+			   string &unmarshall, string &finalize,
+			   string &out_args, string &result_decls);
   void produce_skel_adb(dep_list &with, string &in_decls , bool &no_in, bool no_out, string &unmarshall, string &call_args, string &marshall);
 };
 
