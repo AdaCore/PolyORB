@@ -98,7 +98,7 @@ ${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb
 COMMON_SOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-garthi.ads \
-$(srcdir)/s-gaosli.ads ${srcdir}/s-gaosli.adb \
+        ./s-gaosli.ads ${srcdir}/s-gaosli.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
 ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
         ./s-garcon.ads                        \
