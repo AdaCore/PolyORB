@@ -1,3 +1,14 @@
+2000-09-21  Laurent Pautet  <pautet@arlequin>
+
+	* xe_stubs.adb: register shared passive units even when they are
+	configured on active partitions (bug found by reading). Do not
+	load any storage support when no passive units are present. Load a
+	default storage support when a shared passive unit is present or
+	visible on a partition with no data storage location. Otherwise,
+	load the storage support when configured.
+
+	* xe_utils.adb: add print_flags procedure. Fix 8111-007.
+
 2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* xe_stubs.adb, xe_utils.ads, xe_utils.adb: Move storage supports

@@ -95,6 +95,8 @@ package body XE_Utils is
    --  Add the default optimization flag if Optimization_Mode is True. Turns
    --  if off afterwise.
 
+   procedure Print_Flags;
+
    ---------
    -- "&" --
    ---------
@@ -816,7 +818,6 @@ package body XE_Utils is
    ----------------
 
    procedure Initialize is
-      GARLIC_Included : Boolean := False;
    begin
       --  Default initialization of the flags affecting gnatdist
 
@@ -889,15 +890,6 @@ package body XE_Utils is
          GARLIC := Get_GARLIC_Dir;
       end if;
 
-      Name_Len := 2;
-      Name_Buffer (1) := '-';
-      Name_Buffer (2) := 'I';
-      Add_Str_To_Name_Buffer (GARLIC.all);
-      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name_Buffer (2) := 'L';
-      L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
       I_Current_Dir := new String'("-I.");
       L_Current_Dir := new String'("-L.");
 
@@ -910,18 +902,23 @@ package body XE_Utils is
       Name_Buffer (2) := 'L';
       L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
+      --  gnatmake has its own set of flags. gnatdist parses them
+      --  first and then passes them to gnatmake. gnatmake keeps also
+      --  a global variable Program_Args indicating the kind of flags
+      --  it is currently parsing (compiler, binder, linker,
+      --  none). Once a flag -[cbl]args is parsed, this global
+      --  variable is not set to none any more. To add garlic dir in
+      --  the include flags for the compiler and the binder we have to
+      --  force the parsing of -[cb]args because the user may have
+      --  pass those flags in the command line changing Program_Args
+      --  to something different from none.
+
       Optimization_Mode := True;
       for I in 1 .. Argument_Count loop
          if Argument (I)(1) = Switch_Character
            or else Argument (I)(1) = '-'
          then
-            if Argument (I)(2 .. Argument (I)'Last) = "bargs"
-              or else Argument (I)(2 .. Argument (I)'Last) = "largs"
-            then
-               Add_Default_Optimization;
-               Scan_Make_Arg (I_GARLIC_Dir.all);
-               GARLIC_Included := True;
-            elsif Argument (I)'Length >= 2
+            if Argument (I)'Length >= 2
               and then Argument (I)(2) = 'g'
               and then (Argument (I)'Length < 5
                         or else Argument (I)(2 .. 5) /= "gnat")
@@ -938,9 +935,18 @@ package body XE_Utils is
 
       Add_Default_Optimization;
 
-      if not GARLIC_Included then
+      Name_Len := 2;
+      Name_Buffer (1) := '-';
+      Name_Buffer (2) := 'I';
+      Add_Str_To_Name_Buffer (GARLIC.all);
+      I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      if Number_Of_Files > 0 then
+         Scan_Make_Arg ("-cargs");
          Scan_Make_Arg (I_GARLIC_Dir.all);
+         Scan_Make_Arg ("-bargs");
       end if;
+      Scan_Make_Arg (I_GARLIC_Dir.all);
 
       Osint.Add_Default_Search_Dirs;
 
@@ -980,27 +986,7 @@ package body XE_Utils is
       end if;
 
       if Debug_Mode then
-         for I in Gcc_Switches.First .. Gcc_Switches.Last loop
-            Write_Str ("compiler [");
-            Write_Int (Int (I));
-            Write_Str ("] = ");
-            Write_Str (Gcc_Switches.Table (I).all);
-            Write_Eol;
-         end loop;
-         for I in Binder_Switches.First .. Binder_Switches.Last loop
-            Write_Str ("binder [");
-            Write_Int (Int (I));
-            Write_Str ("] = ");
-            Write_Str (Binder_Switches.Table (I).all);
-            Write_Eol;
-         end loop;
-         for I in Linker_Switches.First .. Linker_Switches.Last loop
-            Write_Str ("linker [");
-            Write_Int (Int (I));
-            Write_Str ("] = ");
-            Write_Str (Linker_Switches.Table (I).all);
-            Write_Eol;
-         end loop;
+         Print_Flags;
       end if;
    end Initialize;
 
@@ -1120,6 +1106,35 @@ package body XE_Utils is
       end if;
       Write_Eol;
    end Message;
+
+   -----------------
+   -- Print_Flags --
+   -----------------
+
+   procedure Print_Flags is
+   begin
+      for I in Gcc_Switches.First .. Gcc_Switches.Last loop
+         Write_Str ("compiler [");
+         Write_Int (Int (I));
+         Write_Str ("] = ");
+         Write_Str (Gcc_Switches.Table (I).all);
+         Write_Eol;
+      end loop;
+      for I in Binder_Switches.First .. Binder_Switches.Last loop
+         Write_Str ("binder [");
+         Write_Int (Int (I));
+         Write_Str ("] = ");
+         Write_Str (Binder_Switches.Table (I).all);
+         Write_Eol;
+      end loop;
+      for I in Linker_Switches.First .. Linker_Switches.Last loop
+         Write_Str ("linker [");
+         Write_Int (Int (I));
+         Write_Str ("] = ");
+         Write_Str (Linker_Switches.Table (I).all);
+         Write_Eol;
+      end loop;
+   end Print_Flags;
 
    -----------
    -- Quote --

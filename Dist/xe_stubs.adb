@@ -108,13 +108,13 @@ package body XE_Stubs is
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
 
-   function SG_Initialize (N : Name_Id) return String;
+   function SG_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.<N>.Initialize
 
-   function SGP_Initialize (N : Name_Id) return String;
+   function SGP_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.Protocols.<N>.Initialize
 
-   function SGS_Initialize (N : Name_Id) return String;
+   function SGS_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.Storage.<N>.Initialize
 
    Strip_Flag : constant String_Access := new String'("-s");
@@ -798,6 +798,17 @@ package body XE_Stubs is
          end if;
       end loop;
 
+      --  First pass to map RCI or SP receivers on the partition.
+      CU := Partitions.Table (PID).First_Unit;
+      while CU /= Null_CUID loop
+         if Units.Table (CUnits.Table (CU).My_Unit).Shared_Passive then
+            Dwrite_Call (File, 1, "Register_Passive_Package",
+                         Quote (CUnits.Table (CU).CUname), No_Str,
+                         Name (CUnits.Table (CU).My_Unit) & "'Version");
+         end if;
+         CU := CUnits.Table (CU).Next;
+      end loop;
+
       if PID = Main_Partition then
          if Default_Starter = Ada_Import and
             Partitions.First + 1 /= Partitions.Last then
@@ -992,11 +1003,12 @@ package body XE_Stubs is
    procedure Create_Storage_Config_File
      (PID : in PID_Type)
    is
-      Filename  : File_Name_Type;
-      File      : File_Descriptor;
-      Empty     : Boolean := True;
-      CUID      : CUID_Type;
-      Directory : File_Name_Type
+      Filename   : File_Name_Type;
+      File       : File_Descriptor;
+      Empty_File : Boolean := True;
+      No_Default : Boolean := True;
+      CUID       : CUID_Type;
+      Directory  : File_Name_Type
         renames Partitions.Table (PID).Partition_Dir;
 
    begin
@@ -1008,10 +1020,13 @@ package body XE_Stubs is
 
       Filename := Filename & ADB_Suffix;
 
+      --  Add the storage support package needed for shared passive
+      --  units configured on other partitions.
+
       for Caller in Callers.First .. Callers.Last loop
          if Units.Table (Callers.Table (Caller)).Shared_Passive then
-            if Empty then
-               Empty := False;
+            if Empty_File then
+               Empty_File := False;
                Create_File (File, Filename);
             end if;
 
@@ -1021,12 +1036,13 @@ package body XE_Stubs is
                M : Name_Id;
             begin
                L := Get_Storage (P);
-               if L = Null_LID then
-                  L := Def_Data_Location;
+               if L /= Null_LID then
+                  M := SGS (C (Locations.Table (L).Major));
+                  Dwrite_With_Clause (File, False, M);
+                  Dwrite_Call (File, 0, "pragma Elaborate_All", M);
+               else
+                  No_Default := False;
                end if;
-               M := SGS (C (Locations.Table (L).Major));
-               Dwrite_With_Clause (File, False, M);
-               Dwrite_Call (File, 0, "pragma Elaborate_All", M);
             end;
          end if;
       end loop;
@@ -1034,31 +1050,45 @@ package body XE_Stubs is
       CUID := Partitions.Table (PID).First_Unit;
       while CUID /= Null_CUID loop
          if Units.Table (CUnits.Table (CUID).My_Unit).Shared_Passive then
-            if Empty then
-               Empty := False;
+            if Empty_File then
+               Empty_File := False;
                Create_File (File, Filename);
+            end if;
 
-               declare
-                  M : Name_Id;
-               begin
-                  M := SGS (C (Locations.Table (Def_Data_Location).Major));
+            declare
+               L : LID_Type;
+               M : Name_Id;
+            begin
+               L := Get_Storage (PID);
+               if L /= Null_LID then
+                  M := SGS (C (Locations.Table (L).Major));
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
-               end;
-            end if;
+               else
+                  No_Default := False;
+               end if;
+            end;
          end if;
 
          CUID := CUnits.Table (CUID).Next;
       end loop;
 
-      if Empty then
+      if not No_Default then
+         declare
+            M : Name_Id;
+         begin
+            M := SGS (C (Locations.Table (Def_Data_Location).Major));
+            Dwrite_With_Clause (File, False, M);
+            Dwrite_Call (File, 0, "pragma Elaborate_All", M);
+         end;
+      end if;
+
+      if Empty_File then
          return;
       end if;
 
       --  Withed storage support units and initialize them (maybe
       --  several times).
-
-      Empty := True;
 
       Dwrite_Line (File, 0, "package body ", Storage_Config_Name, " is");
       Dwrite_Line (File, 1, "procedure Initialize is");
@@ -1066,27 +1096,36 @@ package body XE_Stubs is
       for Caller in Callers.First .. Callers.Last loop
          if Units.Table (Callers.Table (Caller)).Shared_Passive then
             declare
-               Partition : PID_Type := Get_PID (Name (Callers.Table (Caller)));
-               Location  : LID_Type;
-               Major     : Name_Id;
+               P : PID_Type := Get_PID (Name (Callers.Table (Caller)));
+               L : LID_Type;
+               M : Name_Id;
             begin
-               Empty := False;
-               Location := Get_Storage (Partition);
-               if Location = Null_LID then
-                  Location := Def_Data_Location;
+               L := Get_Storage (P);
+               if L /= Null_LID then
+                  M := C (Locations.Table (L).Major);
+                  Dwrite_Call (File, 2, SGS_Initialize (M));
                end if;
-               Major := C (Locations.Table (Location).Major);
-               Dwrite_Call (File, 2, SGS_Initialize (Major));
             end;
          end if;
       end loop;
 
-      if Empty then
+      declare
+         L : LID_Type;
+         M : Name_Id;
+      begin
+         L := Get_Storage (PID);
+         if L /= Null_LID then
+            M := C (Locations.Table (L).Major);
+            Dwrite_Call (File, 2, SGS_Initialize (M));
+         end if;
+      end;
+
+      if not No_Default then
          declare
-            Major : Name_Id;
+            M : Name_Id;
          begin
-            Major := C (Locations.Table (Def_Data_Location).Major);
-            Dwrite_Call (File, 2, SGS_Initialize (Major));
+            M := C (Locations.Table (Def_Data_Location).Major);
+            Dwrite_Call (File, 2, SGS_Initialize (M));
          end;
       end if;
 
