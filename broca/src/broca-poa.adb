@@ -74,16 +74,21 @@ package body Broca.POA is
    -- To_Skeleton --
    -----------------
 
+   --  XXX Rename to Skeleton_Of and make it
+   --  consistent with Object_Of.
+
    function To_Skeleton
      (Ref : CORBA.Object.Ref'Class)
      return Skeleton_Ptr
    is
-      use Broca.Refs;
+      use CORBA.Impl;
 
-      Res : Broca.Refs.Ref_Ptr;
+      Res : constant Object_Ptr
+        := CORBA.Object.Object_Of (Ref);
 
    begin
-      Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
+      --  FIXME: Creating uncontrolled reference to
+      --    a reference-counted object.
       if Res = null or else Res.all not in Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
@@ -95,16 +100,21 @@ package body Broca.POA is
    -- To_Internal_Skeleton --
    --------------------------
 
+   --  XXX Rename to Internal_Skeleton_Of
+   --  and make it consistent with Object_Of.
+
    function To_Internal_Skeleton
      (Ref : CORBA.Object.Ref'Class)
      return Internal_Skeleton_Ptr
    is
-      use Broca.Refs;
+      use CORBA.Impl;
 
-      Res : Broca.Refs.Ref_Ptr;
+      Res : constant Object_Ptr
+        := CORBA.Object.Object_Of (Ref);
 
    begin
-      Res := Broca.Refs.Ref_Ptr (Ref.Ptr);
+      --  FIXME: Creating uncontrolled reference to
+      --    a reference-counted object.
       if Res = null or else Res.all not in Internal_Skeleton'Class then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
@@ -154,5 +164,27 @@ package body Broca.POA is
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
       return Res;
    end Create_Internal_Skeleton;
+
+   -------------------
+   -- POA_Object_Of --
+   -------------------
+
+   function POA_Object_Of (The_Ref : Ref) return POA_Object_Ptr is
+   begin
+      return POA_Object_Ptr (Object_Of (The_Ref));
+   end POA_Object_Of;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Object : POA_Object_Ptr) is
+   begin
+      Broca.Refs.Set
+        (Broca.Refs.Ref (The_Ref),
+         Broca.Refs.Ref_Ptr (The_Object));
+   end Set;
 
 end Broca.POA;

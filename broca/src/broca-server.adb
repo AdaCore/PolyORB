@@ -69,6 +69,8 @@ package body Broca.Server is
       end if;
    end Log;
 
+   use Broca.POA;
+
    --  Table of POAs.
    --
    --  The table contains all POAs created in this server.
@@ -98,7 +100,7 @@ package body Broca.Server is
 
    type POA_Entry_Type is
       record
-         POA : Broca.POA.POA_Object_Ptr := null;
+         POA : Broca.POA.Ref;
          --  The date is incremented during unregister.
          --  FIXME: Overflow is not handled
          Date : Natural := 0;
@@ -115,31 +117,33 @@ package body Broca.Server is
    All_POAs : POA_Entry_Array_Ptr := null;
 
    --  Find a free entry in the table of objects or expand it.
-   procedure Register_POA (POA : Broca.POA.POA_Object_Ptr) is
-      use type Broca.POA.POA_Object_Ptr;
+   procedure Register_POA (POA : Broca.POA.Ref)
+   is
+      The_POA : constant POA_Object_Ptr
+        := POA_Object_Of (POA);
    begin
-      Log ("register_poa: " & CORBA.To_Standard_String (POA.Name));
+      Log ("Register_Poa: "
+           & CORBA.To_Standard_String (The_POA.Name));
+
       if All_POAs = null then
          --  The table was never built.
          All_POAs := new POA_Entry_Array (1 .. 16);
          All_POAs (1) := (POA => POA, Date => 1);
-         POA.Index := 1;
-         return;
+         The_POA.Index := 1;
       else
          --  Try to find a free entry.
          --  FIXME: optimize here.
          for I in All_POAs.all'Range loop
-            if All_POAs (I).POA = null then
+            if Is_Nil (All_POAs (I).POA) then
                --  An entry was found.
                All_POAs (I).POA := POA;
-               POA.Index := I;
+               The_POA.Index := I;
                return;
             end if;
          end loop;
 
          --  Expand the table.
          declare
-            use Broca.POA;
             N_Ao : POA_Entry_Array_Ptr;
             O_Ao : POA_Entry_Array_Ptr;
             Slot : POA_Index_Type;
@@ -151,16 +155,18 @@ package body Broca.Server is
             O_Ao := All_POAs;
             All_POAs := N_Ao;
             Free (O_Ao);
-            POA.Index := Slot;
-            return;
+            The_POA.Index := Slot;
          end;
       end if;
    end Register_POA;
 
-   procedure Unregister_POA (POA : Broca.POA.POA_Object_Ptr) is
+   procedure Unregister_POA (POA : Broca.POA.Ref)
+   is
+      Index : constant POA_Index_Type
+        := POA_Object_Of (POA).Index;
    begin
-      All_POAs (POA.Index) := (POA => null,
-                               Date => All_POAs (POA.Index).Date + 1);
+      All_POAs (Index)
+        := (POA => Nil_Ref, Date => All_POAs (Index).Date + 1);
    end Unregister_POA;
 
    --  Coding of object key:
@@ -182,7 +188,7 @@ package body Broca.Server is
 
    procedure Marshall_POA
      (Buffer : access Buffer_Type;
-      POA : Broca.POA.POA_Object_Ptr);
+      POA : Broca.POA.Ref);
 
    --  Decode (unmarshall) an object_key.
    --  POA is the last POA that was reached.  It can be different from the
@@ -194,46 +200,60 @@ package body Broca.Server is
    --  POA_STATE is the state of the POA.
    procedure Unmarshall_POA
      (Buffer    : access Buffer_Type;
-      POA       : out Broca.POA.POA_Object_Ptr;
+      POA       : out Broca.POA.Ref;
       POA_State : out Broca.POA.Processing_State_Type);
 
    --  Create an object_key.
    procedure Marshall_POA_Lineage
      (Buffer : access Buffer_Type;
-      POA    : Broca.POA.POA_Object_Ptr;
+      POA    : Broca.POA.Ref;
       Num    : Natural := 0);
 
    procedure Marshall_POA_Lineage
      (Buffer : access Buffer_Type;
-      POA : Broca.POA.POA_Object_Ptr;
+      POA : Broca.POA.Ref;
       Num : Natural := 0)
    is
-      use Broca.POA;
+      The_POA : constant POA_Object_Ptr
+        := POA_Object_Of (POA);
    begin
-      if POA.Parent = null then
+      if The_POA.Parent = null then
          --  The RootPOA was reached.
          Marshall (Buffer, CORBA.Unsigned_Long (Num));
       else
-         Marshall_POA_Lineage (Buffer, POA.Parent, Num + 1);
-         Marshall (Buffer, POA.Name);
+         declare
+            Parent_Ref : Broca.POA.Ref;
+         begin
+            Set (Parent_Ref, The_POA.Parent);
+            Marshall_POA_Lineage (Buffer, Parent_Ref, Num + 1);
+         end;
+         Marshall (Buffer, The_POA.Name);
       end if;
    end Marshall_POA_Lineage;
 
    procedure Marshall_POA
      (Buffer : access Buffer_Type;
-      POA : Broca.POA.POA_Object_Ptr)
+      POA : Broca.POA.Ref)
    is
       use PortableServer;
+
+      The_POA : constant POA_Object_Ptr
+        := POA_Object_Of (POA);
    begin
       pragma Debug (O ("Marshall : enter"));
-      if POA.Lifespan_Policy = PortableServer.TRANSIENT then
+      if The_POA.Lifespan_Policy = PortableServer.TRANSIENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
       else
          Marshall (Buffer, Broca.Flags.Boot_Time);
       end if;
-      Marshall (Buffer, CORBA.Unsigned_Long (POA.Index));
-      Marshall (Buffer, CORBA.Unsigned_Long (All_POAs (POA.Index).Date));
-      if POA.Lifespan_Policy = PortableServer.TRANSIENT then
+
+      Marshall (Buffer, CORBA.Unsigned_Long
+                (The_POA.Index));
+
+      Marshall (Buffer, CORBA.Unsigned_Long
+                (All_POAs (The_POA.Index).Date));
+
+      if The_POA.Lifespan_Policy = PortableServer.TRANSIENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
       else
          Marshall_POA_Lineage (Buffer, POA);
@@ -242,13 +262,11 @@ package body Broca.Server is
 
    procedure Unmarshall_POA
      (Buffer    : access Buffer_Type;
-      POA       : out Broca.POA.POA_Object_Ptr;
+      POA       : out Broca.POA.Ref;
       POA_State : out Broca.POA.Processing_State_Type)
    is
-      use Broca.POA;
-
-      Current_POA : Broca.POA.POA_Object_Ptr;
-      Old_POA   : Broca.POA.POA_Object_Ptr;
+      Current_POA   : Broca.POA.Ref;
+      Old_POA       : Broca.POA.Ref;
       Tmp_POA_State : Broca.POA.Processing_State_Type;
 
       POA_Name  : CORBA.String;
@@ -291,7 +309,7 @@ package body Broca.Server is
          POA := All_POAs (POA_Index).POA;
 
          --  Neither the POA won't be destroyed, nor its children.
-         POA.Link_Lock.Lock_R;
+         POA_Object_Of (POA).Link_Lock.Lock_R;
          Broca.POA.All_POAs_Lock.Unlock_R;
 
          --  Just skip the path name.
@@ -311,44 +329,50 @@ package body Broca.Server is
             end;
          end loop;
 
-         Inc_Usage_If_Active (Get_The_POAManager (POA).all, POA_State);
+         Inc_Usage_If_Active
+           (Get_The_POAManager (POA_Object_Of (POA)).all,
+            POA_State);
       else
          --  Not up to date.
          --  Unmarshall number of POAs in path name.
          Path_Size := Unmarshall (Buffer);
          if Path_Size = 0 then
             --  Its was an objectId for a transient POA.
-            POA := null;
+            POA := Nil_Ref;
             Broca.POA.All_POAs_Lock.Unlock_R;
-            return;
          end if;
 
          Current_POA := All_POAs (Broca.POA.Root_POA_Index).POA;
          --  Neither the POA won't be destroyed, nor its children.
-         Current_POA.Link_Lock.Lock_R;
+         POA_Object_Of (Current_POA).Link_Lock.Lock_R;
          Broca.POA.All_POAs_Lock.Unlock_R;
          for I in 1 .. Path_Size loop
-            Inc_Usage_If_Active (Get_The_POAManager (Current_POA).all,
-                                 Tmp_POA_State);
+            Inc_Usage_If_Active
+              (Get_The_POAManager (POA_Object_Of (Current_POA)).all,
+               Tmp_POA_State);
             if Tmp_POA_State /= Active then
                POA := Current_POA;
                POA_State := Tmp_POA_State;
                return;
             end if;
-            Dec_Usage (Get_The_POAManager (Current_POA).all);
+            Dec_Usage (Get_The_POAManager (POA_Object_Of (Current_POA)).all);
             POA_Name := Unmarshall (Buffer);
             Old_POA := Current_POA;
-            Current_POA := Broca.POA.Find_POA (Current_POA, POA_Name, True);
-            if Current_POA = null then
-               Old_POA.Link_Lock.Unlock_R;
+            Current_POA := Broca.POA.Ref (Broca.POA.Find_POA
+              (POA_Object_Of (Current_POA), POA_Name, True));
+
+            if Is_Nil (Current_POA) then
+               POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
                Broca.Exceptions.Raise_Object_Not_Exist;
             end if;
-            Current_POA.Link_Lock.Lock_R;
-            Old_POA.Link_Lock.Unlock_R;
+
+            POA_Object_Of (Current_POA).Link_Lock.Lock_R;
+            POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
          end loop;
          POA := Current_POA;
-         Inc_Usage_If_Active (Get_The_POAManager (Current_POA).all,
-                              POA_State);
+         Inc_Usage_If_Active
+           (Get_The_POAManager (POA_Object_Of (Current_POA)).all,
+            POA_State);
          --  FIXME:
          --  should set the new index, the new date and raise location
          --  forward.
@@ -356,26 +380,12 @@ package body Broca.Server is
 
    end Unmarshall_POA;
 
-   --  FIXME
-   --  OLD CODE THAT WAS AT END OF UNMARSHALL_ONBJECT_KE
+   procedure Handle_Request
+     (Stream : Broca.Stream.Stream_Ptr;
+      Buffer : access Buffer_Type;
+      Asynchronous : Boolean := False);
 
-   --  Length of the key:
-   --   declare
-   --    Result_Key : constant Encapsulation
-   --    := Unmarshall (Buffer);
-   --   begin
-   --    Key := Result_Key;
-   --   end;
-
-   --  (for documentation purpose.)
-
-   --------------------------------------------------------------------------
-
-   procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
-                             Buffer : access Buffer_Type;
-                             Asynchronous : Boolean := False);
-
-   --  Internal type for server_table.
+   --  Internal type for Server_Table.
    --  It defines the server for an identifier.
    type Cell is
       record
@@ -434,7 +444,7 @@ package body Broca.Server is
          --  Append (put) a request to the queue.
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Access;
-                           POA : Broca.POA.POA_Object_Ptr);
+                           POA : Broca.POA.Ref);
 
          --  Prepend a request in front of the queue
          procedure Prepend
@@ -448,7 +458,7 @@ package body Broca.Server is
          --  Fetch the first request, and remove it from the queue.
          entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : out Buffer_Access;
-                      POA : out Broca.POA.POA_Object_Ptr);
+                      POA : out Broca.POA.Ref);
 
       private
          --  The queue is a single linked list, with an head and a tail.
@@ -476,11 +486,11 @@ package body Broca.Server is
          --  Append a request. Make a copy of buffer.
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Access;
-                           POA    : Broca.POA.POA_Object_Ptr);
+                           POA    : Broca.POA.Ref);
 
          --  Move all requests that use POA to the Wait_Queue.
          procedure Unqueue_By_POA
-           (POA : Broca.POA.POA_Object_Ptr);
+           (POA : Broca.POA.Ref);
       private
          --  The queue is a single linked list, with an head and a tail.
          Head : Request_Cell_Ptr := null;
@@ -491,7 +501,7 @@ package body Broca.Server is
       --  Element of a queue.
       type Request_Cell_Type is
          record
-            POA    : Broca.POA.POA_Object_Ptr;
+            POA    : Broca.POA.Ref;
             Stream : Broca.Stream.Stream_Ptr;
             Bd     : Buffer_Access;
             Next   : Request_Cell_Ptr;
@@ -548,7 +558,7 @@ package body Broca.Server is
 
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Access;
-                           POA : Broca.POA.POA_Object_Ptr) is
+                           POA : Broca.POA.Ref) is
          begin
             Append (new Request_Cell_Type'(POA    => POA,
                                            Stream => Stream,
@@ -572,11 +582,10 @@ package body Broca.Server is
 
          procedure Prepend
            (Stream : Broca.Stream.Stream_Ptr;
-            Buffer : Buffer_Access)
-         is
+            Buffer : Buffer_Access) is
          begin
             pragma Assert (not (Head = null xor Tail = null));
-            Head := new Request_Cell_Type'(POA    => null,
+            Head := new Request_Cell_Type'(POA    => Nil_Ref,
                                            Stream => Stream,
                                            BD     => Buffer,
                                            Next   => Head);
@@ -589,7 +598,7 @@ package body Broca.Server is
          entry Fetch
            (Stream : out Broca.Stream.Stream_Ptr;
             Buffer : out Buffer_Access;
-            POA    : out Broca.POA.POA_Object_Ptr)
+            POA    : out Broca.POA.Ref)
          when Head /= null
          is
             Old : Request_Cell_Ptr := Head;
@@ -628,7 +637,7 @@ package body Broca.Server is
       is
          use Broca.POA;
          Stream : Broca.Stream.Stream_Ptr;
-         POA : Broca.POA.POA_Object_Ptr;
+         POA : Broca.POA.Ref;
          Buffer : Buffer_Access;
       begin
          pragma Debug (O ("Perform_Work: enter"));
@@ -636,8 +645,8 @@ package body Broca.Server is
          Queues.Wait_Queue.Fetch (Stream, Buffer, POA);
          pragma Debug (O ("Perform_Work: got a new dequeued job"));
          --  ... and handles (processes) it.
-         if POA /= null then
-            Broca.POA.Cleanup (POA);
+         if not Is_Nil (POA) then
+            Broca.POA.Cleanup (POA_Object_Of (POA));
          else
             pragma Debug (O ("Perform_Work: executing an asynchronous job"));
             Handle_Request (Stream, Buffer, Asynchronous => True);
@@ -667,7 +676,7 @@ package body Broca.Server is
       protected body Hold_Queue is
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Access;
-                           POA : Broca.POA.POA_Object_Ptr)
+                           POA : Broca.POA.Ref)
          is
             Cell  : Request_Cell_Ptr;
          begin
@@ -689,7 +698,7 @@ package body Broca.Server is
             end if;
          end Append;
 
-         procedure Unqueue_By_POA (POA : Broca.POA.POA_Object_Ptr)
+         procedure Unqueue_By_POA (POA : Broca.POA.Ref)
          is
             use Broca.POA;
             Cell, Prev_Cell : Request_Cell_Ptr;
@@ -751,7 +760,7 @@ package body Broca.Server is
       Response_Expected : CORBA.Boolean;
       Operation : CORBA.String;
       Principal : CORBA.String;
-      POA : Broca.POA.POA_Object_Ptr;
+      POA : Broca.POA.Ref;
       POA_State : Broca.POA.Processing_State_Type;
 
       Reply_Buffer : aliased Buffer_Type;
@@ -803,7 +812,7 @@ package body Broca.Server is
                if not Response_Expected and then not Asynchronous then
                   pragma Debug
                     (O ("Handle_Request: requeuing asynchronous request"));
-                  POA.Link_Lock.Unlock_R;
+                  POA_Object_Of (POA).Link_Lock.Unlock_R;
                   Queues.Wait_Queue.Prepend (Stream, Copy (Buffer));
                   Release (Reply_Buffer);
                   return;
@@ -827,7 +836,7 @@ package body Broca.Server is
                        := Unmarshall (Key_Buffer'Access);
                   begin
                      Broca.POA.GIOP_Invoke
-                       (POA,
+                       (POA_Object_Of (POA),
                         Object_Id'Access,
                         CORBA.Identifier (Operation),
                         Request_Id, Response_Expected,
@@ -887,7 +896,7 @@ package body Broca.Server is
 
             when Discarding =>
 
-               POA.Link_Lock.Unlock_R;
+               POA_Object_Of (POA).Link_Lock.Unlock_R;
                Log ("discard request");
 
                --  Not very efficient!
@@ -908,7 +917,7 @@ package body Broca.Server is
 
             when Holding =>
 
-               POA.Link_Lock.Unlock_R;
+               POA_Object_Of (POA).Link_Lock.Unlock_R;
                Log ("queue request");
 
                --  Queue this request
@@ -916,11 +925,10 @@ package body Broca.Server is
 
             when Inactive =>
 
-               POA.Link_Lock.Unlock_R;
+               POA_Object_Of (POA).Link_Lock.Unlock_R;
                Log ("rejected request");
 
                --  Not very efficient!
-               declare
                begin
                   Broca.Exceptions.Raise_Obj_Adapter;
                exception
@@ -1067,28 +1075,31 @@ package body Broca.Server is
 
    function Build_IOR
      (Type_Id : CORBA.RepositoryId;
-      POA : Broca.POA.POA_Object_Ptr;
+      POA : Broca.POA.Ref;
       Key : Broca.Buffers.Encapsulation)
      return Encapsulation
    is
       Object_Key_Buffer : aliased Buffer_Type;
       Server            : Server_Ptr;
    begin
+      POA_Object_Of (POA).Link_Lock.Lock_R;
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
-
-      --  FIXME: Catch exceptions.
-      POA.Link_Lock.Lock_R;
 
       --  Create Object_Key.
 
       --  In Broca, an object_key is an Encapsulation
       --  that contains a POA reference and an object
       --  identifier.
-
-      Start_Encapsulation (Object_Key_Buffer'Access);
-      Marshall_POA (Object_Key_Buffer'Access, POA);
-      Marshall (Object_Key_Buffer'Access, Key);
+      begin
+         Start_Encapsulation (Object_Key_Buffer'Access);
+         Marshall_POA (Object_Key_Buffer'Access, POA);
+         Marshall (Object_Key_Buffer'Access, Key);
+      exception
+         when others =>
+            POA_Object_Of (POA).Link_Lock.Unlock_R;
+            raise;
+      end;
 
       declare
          Object_Key   : constant Encapsulation
@@ -1099,7 +1110,10 @@ package body Broca.Server is
 
       begin
          Release (Object_Key_Buffer);
-         POA.Link_Lock.Unlock_R;
+         POA_Object_Of (POA).Link_Lock.Unlock_R;
+         --  The POA should not be unlocked before Encapsulate,
+         --  to allow future use of marshall-by-reference
+         --  for the construction of Object_Key.
 
          Nbr_Profiles := 0;
          for N in Server_Id_Type loop
@@ -1137,7 +1151,7 @@ package body Broca.Server is
    type This_ORB_Type is new Broca.ORB.ORB_Type with null record;
    procedure Run (ORB : in out This_ORB_Type);
    procedure POA_State_Changed
-     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Ptr);
+     (ORB : in out This_ORB_Type; POA : Broca.POA.Ref);
 
    procedure Serv;
 
@@ -1176,7 +1190,7 @@ package body Broca.Server is
    end Run;
 
    procedure POA_State_Changed
-     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Ptr)
+     (ORB : in out This_ORB_Type; POA : Broca.POA.Ref)
    is
    begin
       Log ("unqueue requests");
@@ -1185,7 +1199,7 @@ package body Broca.Server is
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
-   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Ptr) is
+   procedure Request_Cleanup (POA : Broca.POA.Ref) is
    begin
       Queues.Wait_Queue.Append (null, null, POA);
    end Request_Cleanup;

@@ -28,7 +28,6 @@ package body Broca.Basic_Startup is
 
    procedure Initiate_RootPOA is
       RootPOAStr  : CORBA.String;
-
    begin
       RootPOAStr := CORBA.To_CORBA_String ("RootPOA");
       Root_POA   := PortableServer.POA.To_Ref
@@ -44,7 +43,7 @@ package body Broca.Basic_Startup is
       ORBMainLoop : ORBTaskPtr;
 
    begin
-      if CORBA.Object.Is_Null (CORBA.Object.Ref (Root_POA)) then
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
 
@@ -61,7 +60,7 @@ package body Broca.Basic_Startup is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref) is
    begin
-      if CORBA.Object.Is_Null (CORBA.Object.Ref (Root_POA)) then
+      if CORBA.Object.Is_Nil (CORBA.Object.Ref (Root_POA)) then
          Initiate_RootPOA;
       end if;
 

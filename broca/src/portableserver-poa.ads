@@ -60,7 +60,7 @@ package PortableServer.POA is
    procedure Get_Members (From : in CORBA.Exception_Occurrence;
                           To   : out AdapterNonExistent_Members);
 
-   function To_Ref (Self : CORBA.Object.Ref) return Ref;
+   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
 
    AdapterInactive      : exception;
    ObjectAlreadyActive  : exception;

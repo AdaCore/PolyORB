@@ -32,8 +32,9 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with CORBA.Object;
 with CORBA.Impl;
+with CORBA.AbstractBase;
+with CORBA.Object;
 
 with PortableServer; use PortableServer;
 with PortableServer.AdapterActivator;
@@ -46,6 +47,12 @@ package Broca.POA is
 
    type POA_Object;
    type POA_Object_Ptr is access all POA_Object'Class;
+
+   type Ref is new CORBA.AbstractBase.Ref with private;
+   function POA_Object_Of (The_Ref : Ref) return POA_Object_Ptr;
+   procedure Set (The_Ref : in out Ref; The_Object : POA_Object_Ptr);
+
+   Nil_Ref : constant Ref;
 
    ------------------
    --  POAManager  --
@@ -75,9 +82,9 @@ package Broca.POA is
    --  Add (register) or remove (unregister) a POA to be controled by the
    --  POAManager.
    procedure Register (Self : in out POAManager_Object;
-                       A_POA : POA_Object_Ptr) is abstract;
+                       A_POA : Ref'Class) is abstract;
    procedure Unregister (Self : in out POAManager_Object;
-                         A_POA : POA_Object_Ptr) is abstract;
+                         A_POA : Ref'Class) is abstract;
 
    --  9.3.2
    --  A POA Manager encapsulates the processing state of the POAs it is
@@ -88,8 +95,9 @@ package Broca.POA is
    --  through these subprograms.
    --
    --  Get state and increment usage counter is the state is active.
-   procedure Inc_Usage_If_Active (Self : in out POAManager_Object;
-                                  State : out Processing_State_Type)
+   procedure Inc_Usage_If_Active
+     (Self : in out POAManager_Object;
+      State : out Processing_State_Type)
       is abstract;
 
    --  Increment usage counter.
@@ -141,9 +149,11 @@ package Broca.POA is
          Type_Id    : CORBA.RepositoryId;
          Object_Key : Object_Key_Ptr;
 
-         P_Servant : PortableServer.Servant;
+         P_Servant  : PortableServer.Servant;
 
-         POA : Broca.POA.POA_Object_Ptr;
+         --  XXX remove
+         --  POA : Broca.POA.POA_Object_Ptr;
+         POA        : Broca.POA.Ref;
 
          --  ObjectId.
          Object_Id : PortableServer.ObjectId
@@ -214,6 +224,9 @@ package Broca.POA is
          --
          --  Any access to the single linked list of children is protected by
          --  all_poa_lock.
+
+         --  XXX These must be changed to Broca.POA.Ref.
+
          --  CHILDREN is protected by LINK_LOCK.
          Children : POA_Object_Ptr := null;
          --  BROTHER is under the control of the parent.
@@ -275,8 +288,9 @@ package Broca.POA is
       Reply      : access Broca.Buffers.Buffer_Type)
       is abstract;
 
-   function Get_The_POAManager (Self : access POA_Object)
-                                return POAManager_Object_Ptr;
+   function Get_The_POAManager
+     (Self : access POA_Object)
+     return POAManager_Object_Ptr;
 
    --  Before calling CREATE_POA,  All_POAs_lock must have been lock_W, so that
    --  links can be safely.  After the call, it is still locked.
@@ -302,7 +316,7 @@ package Broca.POA is
      (Self         : access POA_Object;
       Adapter_Name : CORBA.String;
       Activate_It  : CORBA.Boolean)
-      return POA_Object_Ptr is abstract;
+      return Ref'Class is abstract;
 
    --  Note: All_POAs_lock must not have been taken.
    procedure Destroy_POA (Self : access POA_Object;
@@ -310,5 +324,11 @@ package Broca.POA is
                           Wait_For_Completion : CORBA.Boolean) is abstract;
 
    procedure Cleanup (Self : access POA_Object) is abstract;
+
+private
+
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Nil_Ref with null record);
 
 end Broca.POA;

@@ -36,7 +36,6 @@ with System.Address_To_Access_Conversions;
 with Interfaces;
 with Broca.Debug;
 with Broca.Exceptions;
-with Broca.Refs;
 with Broca.Object;
 
 with CORBA.Impl;
@@ -2103,39 +2102,52 @@ package body Broca.CDR is
                 (Endianness (Buffer.all) = Little_Endian));
    end Start_Encapsulation;
 
-   ----------------
-   --  Marshall  --
-   ----------------
+   --------------
+   -- Marshall --
+   --------------
+
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Object.Ref'Class) is
+      Data : in CORBA.AbstractBase.Ref'Class) is
    begin
-      if CORBA.Object.Is_Nil (Data) then
+      if CORBA.AbstractBase.Is_Nil (Data) then
          Broca.Exceptions.Raise_Marshal;
       end if;
-      Broca.Refs.Marshall
-        (Buffer,
-         Broca.Refs.Entity'Class (Data.Ptr.all));
+
+      --  Make a redispatching call on the designated
+      --  object.
+      declare
+         P : constant CORBA.Impl.Object_Ptr
+           := CORBA.AbstractBase.Object_Of (Data);
+      begin
+         CORBA.Impl.Marshall
+           (Buffer,
+            CORBA.Impl.Object'Class (P.all));
+      end;
    end Marshall;
 
-   -----------------
-   --  Unmarshall --
-   -----------------
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         Data : in out CORBA.Object.Ref'Class) is
-      Obj : constant CORBA.Impl.Object_Ptr
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Data : in out CORBA.AbstractBase.Ref'Class) is
+      Obj : constant Broca.Object.Object_Ptr
         := new Broca.Object.Object_Type;
    begin
       Broca.Object.Unmarshall
         (Buffer, Broca.Object.Object_Type (Obj.all));
-      CORBA.Object.Set (Data, Obj);
+      CORBA.AbstractBase.Set (Data, CORBA.Impl.Object_Ptr (Obj));
    end Unmarshall;
 
-   -----------------
-   --  Unmarshall --
-   -----------------
-   function Unmarshall (Buffer : access Buffer_Type)
-                        return CORBA.Object.Ref is
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Object.Ref is
       New_Ref : CORBA.Object.Ref;
    begin
       Unmarshall (Buffer, New_Ref);
@@ -2143,9 +2155,10 @@ package body Broca.CDR is
    end Unmarshall;
 
 
-   ------------------
-   --  Fixed_Point --
-   ------------------
+   -----------------
+   -- Fixed_Point --
+   -----------------
+
    package body Fixed_Point is
 
       subtype BO_Octet is Broca.Opaque.Octet;

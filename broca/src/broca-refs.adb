@@ -49,15 +49,30 @@ package body Broca.Refs is
 
    procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Ref_Ptr);
 
+   function Img (I : Integer) return String;
+   function Img (I : Integer) return String
+   is
+      S : constant String
+        := Integer'Image (I);
+   begin
+      return S (S'First + 1 .. S'Last);
+   end Img;
+
    ---------------
    -- Inc_Usage --
    ---------------
 
-   procedure Inc_Usage (Obj : in Ref_Ptr) is
+   procedure Inc_Usage (Obj : Ref_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
+      pragma Debug (O ("Inc_Usage: Obj is a "
+                       & Ada.Tags.External_Tag (Obj.all'Tag)));
 
       Counter_Global_Lock.Lock;
+      pragma Debug (O ("Inc_Usage: Counter"
+                       & Obj.Counter'Img
+                       & " -> "
+                       & Img (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
       Counter_Global_Lock.Unlock;
 
@@ -70,37 +85,58 @@ package body Broca.Refs is
    procedure Dec_Usage (Obj : in out Ref_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
+      pragma Debug (O ("Dec_Usage: Obj is a "
+                       & Ada.Tags.External_Tag (Obj.all'Tag)));
 
       Counter_Global_Lock.Lock;
+      pragma Debug (O ("Dec_Usage: Counter"
+                       & Obj.Counter'Img
+                       & " -> "
+                       & Img (Obj.Counter - 1)));
       Obj.Counter := Obj.Counter - 1;
       Counter_Global_Lock.Unlock;
 
       if Obj.Counter = 0 then
          pragma Debug
-           (O ("dec_usage: deallocate " &
-               Ada.Tags.External_Tag (Obj.all'Tag)));
+           (O ("Dec_Usage: deallocating."));
          Free (Obj);
       end if;
 
    end Dec_Usage;
 
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Entity : Ref_Ptr) is
+   begin
+      pragma Debug (O ("Set: enter."));
+
+      Finalize (The_Ref);
+      The_Ref.A_Ref := The_Entity;
+      Adjust (The_Ref);
+
+      pragma Debug (O ("Set: leave."));
+   end Set;
+
    ----------------
    -- Initialize --
    ----------------
 
-   procedure Initialize (Object : in out Ref) is
+   procedure Initialize (The_Ref : in out Ref) is
    begin
-      null;
+      if The_Ref.A_Ref /= null then
+         pragma Debug (O ("Initialize: Stray pointer."));
+         raise Program_Error;
+      end if;
    end Initialize;
 
    ------------
    -- Adjust --
    ------------
 
-   procedure Adjust (Object : in out Ref) is
+   procedure Adjust (The_Ref : in out Ref) is
    begin
-      if Object.A_Ref /= null then
-         Inc_Usage (Object.A_Ref);
+      if The_Ref.A_Ref /= null then
+         Inc_Usage (The_Ref.A_Ref);
       end if;
    end Adjust;
 
@@ -108,12 +144,23 @@ package body Broca.Refs is
    -- Finalize --
    --------------
 
-   procedure Finalize (Object : in out Ref) is
+   procedure Finalize (The_Ref : in out Ref) is
    begin
-      if Object.A_Ref /= null then
-         Dec_Usage (Object.A_Ref);
+      if The_Ref.A_Ref /= null then
+         Dec_Usage (The_Ref.A_Ref);
       end if;
+      The_Ref.A_Ref := null;
+
    end Finalize;
+
+   ------------
+   -- Is_Nil --
+   ------------
+
+   function Is_Nil (The_Ref : Ref) return Boolean is
+   begin
+      return The_Ref.A_Ref = null;
+   end Is_Nil;
 
    --------------
    -- Marshall --
@@ -137,28 +184,22 @@ package body Broca.Refs is
       raise Program_Error;
    end Unmarshall;
 
-   ---------
-   -- Get --
-   ---------
+   -------------
+   -- Release --
+   -------------
 
-   function Get (Self : Ref) return Ref_Ptr is
+   procedure Release (The_Ref : in out Ref) is
    begin
-      return Self.A_Ref;
-   end Get;
+      The_Ref := Nil_Ref;
+   end Release;
 
-   ---------
-   -- Set --
-   ---------
+   ----------------
+   -- Object_Ptr --
+   ----------------
 
-   procedure Set (Self : in out Ref; Referenced : Ref_Ptr) is
+   function Entity_Of (The_Ref : Ref) return Ref_Ptr is
    begin
-      if Self.A_Ref /= null then
-         Dec_Usage (Self.A_Ref);
-      end if;
-      Self.A_Ref := Referenced;
-      if Referenced /= null then
-         Inc_Usage (Referenced);
-      end if;
-   end Set;
+      return The_Ref.A_Ref;
+   end Entity_Of;
 
 end Broca.Refs;

@@ -64,11 +64,11 @@ package body Broca.Repository is
      return CORBA.Object.Ref'Class
    is
       Factory   : Factory_Ptr;
-      Reference : CORBA.Object.Ref;
+      The_Ref : CORBA.Object.Ref;
    begin
       pragma Debug (O ("Create new object of type " &
                        CORBA.To_Standard_String (CORBA.String (Type_Id))));
-
+      pragma Assert (CORBA.Object.Is_Nil (The_Ref));
       Factory := Factories;
       while Factory /= null loop
          if Factory.Type_Id = Type_Id then
@@ -79,8 +79,8 @@ package body Broca.Repository is
 
       --  Return a null object.
       pragma Debug (O ("No factory for this type."));
-      CORBA.Object.Set (Reference, null);
-      return Reference;
+
+      return The_Ref;
 
    end Create;
 

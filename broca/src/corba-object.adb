@@ -37,16 +37,6 @@ with Broca.CDR;     use Broca.CDR;
 
 package body CORBA.Object is
 
-   ------------
-   -- Is_Nil --
-   ------------
-
-   --  function Is_Nil (Self : Ref) return CORBA.Boolean is
-   --   use Broca.Refs;
-   --  begin
-   --   return Get (Self) = null;
-   --  end Is_Nil;
-
    ----------------------
    -- Object_To_String --
    ----------------------
@@ -73,9 +63,10 @@ package body CORBA.Object is
       end;
    end Object_To_String;
 
-   ----------------------
-   --  Create_Request  --
-   ----------------------
+   --------------------
+   -- Create_Request --
+   --------------------
+
    procedure Create_Request
      (Self      : in     Ref;
       Ctx       : in     CORBA.Context.Ref;

@@ -38,7 +38,7 @@ with Broca.ORB;
 with CORBA.Object;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+pragma Elaborate (Broca.Debug);
 
 package body CORBA.ORB is
 
@@ -75,11 +75,10 @@ package body CORBA.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref
+     return CORBA.Object.Ref'Class
      renames Broca.ORB.Resolve_Initial_References;
 
    procedure Run renames Broca.ORB.Run;
-
 
 --    ----------------------------------
 --    --  Dynamic Invocation Related  --

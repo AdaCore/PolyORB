@@ -31,43 +31,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Refs;
 with CORBA.Impl;
-with Ada.Finalization;
 
 package CORBA.AbstractBase is
 
    pragma Elaborate_Body;
 
-   type Ref is new Ada.Finalization.Controlled with
-      record
-         Ptr : CORBA.Impl.Object_Ptr := null;
-      end record;
+   type Ref is new Broca.Refs.Ref with private;
 
-   procedure Initialize (The_Ref : in out Ref);
-   procedure Adjust (The_Ref : in out Ref);
-   procedure Finalize (The_Ref : in out Ref);
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Object : CORBA.Impl.Object_Ptr);
 
-   procedure Unref (The_Ref : in out Ref)
-     renames Finalize;
+   function Object_Of (The_Ref : Ref) return CORBA.Impl.Object_Ptr;
 
-   function Is_Nil  (Self : in Ref) return CORBA.Boolean;
-   function Is_Null (Self : in Ref) return CORBA.Boolean
-     renames Is_Nil;
+   function Get (The_Ref : Ref) return CORBA.Impl.Object_Ptr
+     renames Object_Of;
 
-   procedure Duplicate (Self : in out Ref)
-     renames Adjust;
+   Nil_Ref : constant Ref;
+private
 
-   procedure Release (Self : in out Ref);
-
-   function Object_Of (Self : Ref) return CORBA.Impl.Object_Ptr;
-
-
-   --  Adabroker specific, temporarily to switch to spec
-   --  2.3 and still provide coherent reference counting
-
-   procedure Set (Self : in out Ref;
-                  Referenced : in CORBA.Impl.Object_Ptr);
-
-   function Get (Self : in Ref) return CORBA.Impl.Object_Ptr;
+   type Ref is new Broca.Refs.Ref with null record;
+   Nil_Ref : constant Ref
+     := (Broca.Refs.Nil_Ref with null record);
 
 end CORBA.AbstractBase;

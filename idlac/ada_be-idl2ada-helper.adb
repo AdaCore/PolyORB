@@ -131,9 +131,10 @@ package body Ada_Be.Idl2Ada.Helper is
    -- End of internal subprograms declarations --
    ----------------------------------------------
 
-   ---------------------
-   --  Gen_Scope_Spec --
-   ---------------------
+   --------------------
+   -- Gen_Scope_Spec --
+   --------------------
+
    procedure Gen_Node_Spec
      (CU        : in out Compilation_Unit;
       Node      :        Node_Id) is
@@ -434,7 +435,7 @@ package body Ada_Be.Idl2Ada.Helper is
          II (CU);
          PL (CU, "Set (Result,");
          PL (CU,
-             "     CORBA.Object.Get (The_Ref));");
+             "     CORBA.Object.Object_Of (The_Ref));");
          PL (CU, "return Result;");
          DI (CU);
          PL (CU, "end Unchecked_To_" & Short_Type_Name & ";");

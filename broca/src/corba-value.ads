@@ -39,9 +39,19 @@ package CORBA.Value is
    type Base is abstract new CORBA.AbstractBase.Ref with null record;
 
    type Impl_Base is abstract new CORBA.Impl.Object with null record;
-   --  ambiguous spec, does it inherit from nothing or from
-   --  CORBA.Impl.Object ? CORBA.Impl.Object seems better, to provide
-   --  reference counting.
-   --  See mapping p1.27, that confirms this feeling
+
+   --  FIXME:
+   --  The standard definition of package CORBA.Value is ambiguous.
+   --  It is unclear whether Impl_Base should be an
+   --  "abstract tagged null record" or an
+   --  "abstract new CORBA.Impl.Object with null record".
+   --
+   --  Inheriting from CORBA.Impl.Object seems to be the intended
+   --  architecture, as CORBA.Impl.Object is defined to be used
+   --  as "the root for all implementations, both of interfaces
+   --  and value types. Value type implementations thus benefit
+   --  of the reference-counting semantics of CORBA.Impl.OBject.
+   --
+   --  An issue against ptc/00-05-04 has been raised with OMG.
 
 end CORBA.Value;

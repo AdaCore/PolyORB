@@ -31,12 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with Ada.Unchecked_Deallocation;
-
---  with Broca.Refs;
-
---  with CORBA.ImplementationDef;
---  with CORBA.InterfaceDef;
 with CORBA.Context;
 with CORBA.NVList;
 with CORBA.Request;
@@ -119,7 +113,6 @@ package CORBA.Object is
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
-
 
    -----------
    --  Any  --

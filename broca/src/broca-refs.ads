@@ -38,6 +38,10 @@ package Broca.Refs is
 
    pragma Elaborate_Body;
 
+   ------------
+   -- Entity --
+   ------------
+
    type Entity is abstract tagged limited private;
    --  Entity is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
@@ -53,23 +57,45 @@ package Broca.Refs is
       Value  : out Entity);
 
    type Ref_Ptr is access all Entity'Class;
+   --  FIXME: Rename Ref_Ptr to Entity_Ptr
+
+   procedure Inc_Usage (Obj : Ref_Ptr);
+   procedure Dec_Usage (Obj : in out Ref_Ptr);
+   --  FIXME: Do not expose.
+
+   ---------
+   -- Ref --
+   ---------
 
    type Ref is new Ada.Finalization.Controlled with private;
    --  The base type of all references. Inside CORBA (and Broca), this
    --  type is often derived but never extended. It contains one
    --  field, which designate the referenced object.
 
-   function Get (Self : Ref) return Ref_Ptr;
-   --  Get inner Entity object
+   procedure Initialize (The_Ref : in out Ref);
+   procedure Adjust     (The_Ref : in out Ref);
+   procedure Finalize   (The_Ref : in out Ref);
 
-   procedure Set (Self : in out Ref; Referenced : Ref_Ptr);
-   --  Set the object (can destroyed the previous one, if it was the only
-   --  reference).
+   --  procedure Set (The_Ref : in out Ref; The_Entity : Ref_Ptr);
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Entity : Ref_Ptr);
 
-   --  Handle the usage counter, unless Obj is null or the counter is
-   --  disabled.
-   procedure Inc_Usage (Obj : in Ref_Ptr);
-   procedure Dec_Usage (Obj : in out Ref_Ptr);
+   procedure Unref (The_Ref : in out Ref)
+     renames Finalize;
+
+   function Is_Nil (The_Ref : Ref) return Boolean;
+   function Is_Null (The_Ref : Ref) return Boolean
+     renames Is_Nil;
+
+   procedure Duplicate (The_Ref : in out Ref)
+     renames Adjust;
+
+   procedure Release (The_Ref : in out Ref);
+
+   function Entity_Of (The_Ref : Ref) return Ref_Ptr;
+
+   Nil_Ref : constant Ref;
 
 private
 
@@ -83,8 +109,7 @@ private
          A_Ref : Ref_Ptr := null;
       end record;
 
-   procedure Initialize (Object : in out Ref);
-   procedure Adjust (Object : in out Ref);
-   procedure Finalize (Object : in out Ref);
+   Nil_Ref : constant Ref := (Ada.Finalization.Controlled
+                              with A_Ref => null);
 
 end Broca.Refs;

@@ -34,8 +34,10 @@
 with CORBA;
 with CORBA.ORB;
 with CORBA.Object;
+
 with Broca.POA;
 with Broca.Buffers;
+
 pragma Elaborate_All (CORBA);
 
 package Broca.ORB is
@@ -51,11 +53,11 @@ package Broca.ORB is
 
    function Resolve_Initial_References
      (Identifier : CORBA.ORB.ObjectId)
-     return CORBA.Object.Ref;
+     return CORBA.Object.Ref'Class;
 
    procedure Register_Initial_Reference
      (Identifier : in CORBA.ORB.ObjectId;
-      Reference  : in CORBA.Object.Ref);
+      Reference  : in CORBA.Object.Ref'Class);
 
    type ORB_Type is abstract tagged null record;
    --  Internal tricks to avoid to a client to contain any part of the
@@ -67,13 +69,13 @@ package Broca.ORB is
    --  A state of a poa has changed.
    procedure POA_State_Changed
      (ORB : in out ORB_Type;
-      POA : in Broca.POA.POA_Object_Ptr) is abstract;
+      POA : in Broca.POA.Ref) is abstract;
 
    type ORB_Ptr is access all ORB_Type'Class;
 
    procedure Register_ORB (ORB : ORB_Ptr);
    procedure Run;
-   procedure POA_State_Changed (POA : Broca.POA.POA_Object_Ptr);
+   procedure POA_State_Changed (POA : Broca.POA.Ref);
 
    --  Well Known ObjectIds.
    Root_POA_ObjectId             : constant CORBA.ORB.ObjectId;

@@ -36,13 +36,6 @@ with CORBA.Object;
 with CORBA.Sequences.Unbounded;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
---  with CORBA.BOA;
-
---  with CORBA.NVList;
---  with CORBA.OperationDef;
---  with CORBA.Context;
---  with CORBA.Sequences;
-
 package CORBA.ORB is
 
    --  21.34
@@ -73,7 +66,7 @@ package CORBA.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref;
+     return CORBA.Object.Ref'Class;
 
    procedure Run;
 

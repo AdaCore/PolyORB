@@ -32,13 +32,11 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Sequences.Unbounded;
-with CORBA.ORB; use CORBA.ORB;
+with CORBA.Impl;
+
 with Broca.IOP;
-with CORBA.Object;
 with Broca.Exceptions;
 with Broca.CDR;
-with Broca.Buffers;
---  with Broca.Refs;
 with Broca.Object;
 with Broca.Repository;
 with Broca.IIOP;
@@ -51,6 +49,8 @@ package body Broca.ORB is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
    procedure O is new Broca.Debug.Output (Flag);
+
+   use CORBA.ORB;
 
    The_ORB : ORB_Ptr := null;
 
@@ -73,7 +73,6 @@ package body Broca.ORB is
       Nbr_Profiles : CORBA.Unsigned_Long;
       Tag : Broca.IOP.Profile_Tag;
       Type_Id : CORBA.String;
-      Obj : Broca.Object.Object_Ptr;
    begin
       pragma Debug (O ("IOR_To_Object : enter"));
 
@@ -92,37 +91,55 @@ package body Broca.ORB is
             pragma Debug (O ("IOR_To_Object : A_Ref is nil."));
             --  Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
             --                new Broca.Object.Object_Type);
-            CORBA.Object.Set (A_Ref, new Broca.Object.Object_Type);
+            CORBA.Object.Set
+              (A_Ref,
+               CORBA.Impl.Object_Ptr'(new Broca.Object.Object_Type));
          end if;
 
-         --  Get the access to the internal object.
-         Obj := Broca.Object.Object_Ptr (A_Ref.Ptr);
-         --  (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+         pragma Assert (not CORBA.Object.Is_Nil (A_Ref));
 
          Nbr_Profiles := Unmarshall (IOR);
 
-         Obj.Type_Id  := Type_Id;
-         Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
-         for I in 1 .. Nbr_Profiles loop
-            Tag := Unmarshall (IOR);
-            case Tag is
-               when Broca.IOP.Tag_Internet_IOP =>
-                  Broca.IIOP.Create_Profile (IOR, Obj.Profiles (I));
-               when others =>
-                  Broca.Exceptions.Raise_Bad_Param;
-            end case;
-         end loop;
+         declare
+            --  Get the access to the internal object.
+            Obj : constant Broca.Object.Object_Ptr
+              := Broca.Object.Object_Ptr
+              (CORBA.Object.Object_Of (A_Ref));
+         begin
+            Obj.Type_Id  := Type_Id;
+            Obj.Profiles := new IOP.Profile_Ptr_Array (1 .. Nbr_Profiles);
+            for I in 1 .. Nbr_Profiles loop
+               Tag := Unmarshall (IOR);
+               case Tag is
+                  when Broca.IOP.Tag_Internet_IOP =>
+                     Broca.IIOP.Create_Profile
+                       (IOR, Obj.Profiles (I));
+                  when others =>
+                     Broca.Exceptions.Raise_Bad_Param;
+               end case;
+            end loop;
+         end;
 
-         --  FIXME: type must be checked ?
-         if True then
-            --  No.
-            --  Broca.Refs.Set (Broca.Refs.Ref (Ref),
-            --                Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
-            CORBA.Object.Set (Ref, A_Ref.Ptr);
-         else
-            Ref := A_Ref;
-         end if;
+         CORBA.Object.Set (Ref, CORBA.Object.Object_Of (A_Ref));
+
+         --  We want to write
+         --    Ref := A_Ref;
+         --  but, since Ref is an out classwide parameter,
+         --  its tag is constrained by the value passed
+         --  to us by the caller. If that value is of a
+         --  specialised reference type, i. e. any particular
+         --  reference type generated in an interface stub
+         --  package, we cannot assign A_Ref into it because
+         --  A_Ref may be created as a CORBA.Object.Ref if
+         --  no factory is registered for the unmarshalled
+         --  repository ID.
+         --
+         --  We thus have to trust the user to pass us a proper
+         --  reference type, and bypass any dynamic tag check
+         --  on the reference type.
+
       end;
+
    end IOR_To_Object;
 
    ---------------------------
@@ -140,7 +157,7 @@ package body Broca.ORB is
 
    function Resolve_Initial_References
      (Identifier : ObjectId)
-     return CORBA.Object.Ref is
+     return CORBA.Object.Ref'Class is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
@@ -158,13 +175,13 @@ package body Broca.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : in CORBA.ORB.ObjectId;
-      Reference  : in CORBA.Object.Ref)
+      Reference  : in CORBA.Object.Ref'Class)
    is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
       Append (Identifiers, Identifier);
-      Append (References, Reference);
+      Append (References, CORBA.Object.Ref (Reference));
    end Register_Initial_Reference;
 
    ------------------
@@ -198,11 +215,9 @@ package body Broca.ORB is
    -----------------------
 
    procedure POA_State_Changed
-     (POA : in Broca.POA.POA_Object_Ptr) is
+     (POA : in Broca.POA.Ref) is
    begin
       POA_State_Changed (The_ORB.all, POA);
    end POA_State_Changed;
 
 end Broca.ORB;
-
-

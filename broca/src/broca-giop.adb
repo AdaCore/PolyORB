@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
 with Ada.Unchecked_Deallocation;
 with Ada.Strings.Unbounded;
+
+with CORBA;
+with CORBA.Impl;
 
 with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
@@ -456,13 +458,17 @@ package body Broca.GIOP is
                begin
                   pragma Debug
                     (O ("Send_Request_Send : Received Location_Forward"));
-                  --  CORBA.Object.Unmarshall_Reference
                   Broca.CDR.Unmarshall
                     (Message_Body_Buffer'Access,
                      New_Ref);
-                  --  FIXME: check type, use a lock ?
-                  Target.Profiles :=
-                    Object.Object_Ptr (New_Ref.Ptr).Profiles;
+                  --  FIXME: What guarantees that
+                  --    Object_Of (New_Ref)
+                  --    is in Broca.Object.Object_Type'Class ?
+                  --  FIXME: Use proper locking (??)
+                  Target.Profiles
+                    := Broca.Object.Object_Ptr
+                    (CORBA.Impl.Object_Ptr'
+                     (CORBA.Object.Object_Of (New_Ref))).Profiles;
                end;
                Result := Sr_Forward;
                Release (Handler);

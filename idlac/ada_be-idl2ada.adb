@@ -1616,7 +1616,7 @@ package body Ada_Be.Idl2Ada is
                II (CU);
                PL (CU, "Broca.GIOP.Send_Request_Marshall");
                PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-               PL (CU, "   (Get (Self)), "
+               PL (CU, "   (Object_Of (Self)), "
                    & Img (Response_Expected)
                    & ", " & O_Name & "_Operation);");
 
@@ -1662,7 +1662,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "Broca.GIOP.Send_Request_Send");
                PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-               PL (CU, "   (Get (Self)), "
+               PL (CU, "   (Object_Of (Self)), "
                    & Img (Response_Expected)
                    & ", " & T_Send_Request_Result & ");");
                PL (CU, "case " & T_Send_Request_Result & " is");

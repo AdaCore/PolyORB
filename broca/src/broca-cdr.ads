@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
 with CORBA;
+with CORBA.AbstractBase;
+with CORBA.Object;
 
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
@@ -301,11 +302,11 @@ package Broca.CDR is
    --  descendants.
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Object.Ref'Class);
+      Data   : in CORBA.AbstractBase.Ref'Class);
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in out CORBA.Object.Ref'Class);
+      Data : in out CORBA.AbstractBase.Ref'Class);
 
    function Unmarshall
      (Buffer : access Buffer_Type)
