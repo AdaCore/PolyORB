@@ -6,7 +6,7 @@ XXXXX
 --                                                                          --
 --         Copyright (C) 1999-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- GARLIC is free software;  you can redistribute it and/or modify it under --
+-- PolyORB is free software; you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
 -- ware Foundation;  either version 2,  or (at your option)  any later ver- --
 -- sion.  GARLIC is distributed  in the hope that  it will be  useful,  but --
