@@ -747,6 +747,8 @@ src/polyorb-tasking-profiles-ravenscar-mutexes.ads
 src/polyorb-tasking-profiles-ravenscar-threads.adb
 src/polyorb-tasking-profiles-ravenscar-threads.ads
 src/polyorb-tasking-profiles-ravenscar.ads
+src/polyorb-tasking-semaphores.adb
+src/polyorb-tasking-semaphores.ads
 src/polyorb-tasking-soft_links.adb
 src/polyorb-tasking-soft_links.ads
 src/polyorb-tasking-threads.adb

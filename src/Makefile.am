@@ -110,6 +110,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-tasking-profiles-ravenscar-index_manager.ads \
 		polyorb-tasking-profiles-ravenscar-mutexes.ads \
 		polyorb-tasking-profiles-ravenscar-threads.ads \
+		polyorb-tasking-semaphores.ads \
 		polyorb-tasking-soft_links.ads \
 		polyorb-tasking-threads.ads \
 		polyorb-tasking-watchers.ads \
