@@ -45,37 +45,30 @@
 --  the procedures affecting the internal
 --  synchronisation object.
 
+with System;
+
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
-with System;
 
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
+
    pragma Elaborate_Body;
 
    use PolyORB.Tasking.Threads;
 
+   package PTT renames PolyORB.Tasking.Threads;
+
    --  Ravenscar tasking profile.
    --  The documentation for the following declarations can be
    --  found in PolyORB.Tasking.Threads.
-
-   type Ravenscar_Thread_Id is new Thread_Id with private;
-
-   type Ravenscar_Thread_Id_Access is access all Ravenscar_Thread_Id'Class;
-
-   function "="
-     (T1 : Ravenscar_Thread_Id;
-      T2 : Ravenscar_Thread_Id)
-     return Boolean;
-
-   function Image (T : Ravenscar_Thread_Id) return String;
 
    type Ravenscar_Thread_Type is new Thread_Type with private;
 
    type Ravenscar_Thread_Access is access all Ravenscar_Thread_Type'Class;
 
    function Get_Thread_Id (T : access Ravenscar_Thread_Type)
-     return Thread_Id_Access;
+     return Thread_Id;
 
    type Ravenscar_Thread_Factory_Type is
      new Thread_Factory_Type with private;
@@ -103,19 +96,19 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    procedure Set_Priority
      (TF : access Ravenscar_Thread_Factory_Type;
-      T  : Thread_Id'Class;
+      T  : Thread_Id;
       P  : System.Any_Priority);
    --  This function has no sense in Ravenscar profile,
    --  It simply raises a Tasking.Tasking_Profile_Error.
 
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
-     return Thread_Id'Class;
+     return Thread_Id;
 
-   procedure Copy_Thread_Id
-     (TF     : access Ravenscar_Thread_Factory_Type;
-      Source : Thread_Id'Class;
-      Target : Thread_Id_Access);
+   function Thread_Id_Image
+     (TF : access Ravenscar_Thread_Factory_Type;
+      TID : PTT.Thread_Id)
+     return String;
 
    --  The following procedures make access to the
    --  profile-specific synchronisation objects, so it should
@@ -197,37 +190,29 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  Prepare_Wait were done before the call to Resume),
    --  the signal is lost.
 
-   function Get_Thread_Index (T : Ravenscar_Thread_Id)
-                             return Integer;
-   --  return a different integer for each Thread_Id.
+   function Get_Thread_Index (T : Thread_Id) return Integer;
+   --  Return a different integer for each Thread_Id.
 
    procedure Initialize;
    --  Initialize the package.
 
 private
 
-   type Ravenscar_Thread_Id is new Thread_Id with record
-      Id : Integer;
-      --  Index of the thread in the thread pool.
+   type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type
+     with null record;
+
+   The_Thread_Factory : constant Ravenscar_Thread_Factory_Access
+     := new Ravenscar_Thread_Factory_Type;
+
+   type Ravenscar_Thread_Type is new Thread_Type with record
+      Id      : PTT.Thread_Id;
+      --  Id of the Thread.
 
       Sync_Id : Synchro_Index_Type;
       pragma Atomic (Sync_Id);
       --  if the thread is available to be allocated to a caller of
       --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
       --  corresponding task is waiting.
-
-   end record;
-
-   type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type with record
-        null;
-   end record;
-
-   The_Thread_Factory : constant Ravenscar_Thread_Factory_Access
-     := new Ravenscar_Thread_Factory_Type;
-
-   type Ravenscar_Thread_Type is new Thread_Type with record
-      Id      : aliased Ravenscar_Thread_Id;
-      --  Id of the Thread.
    end record;
 
    package Thread_Index_Manager is
