@@ -150,7 +150,7 @@ package OmniObject is
    --        dispatching operators              --
    -----------------------------------------------
 
-   procedure Dispatch (Self : in out Implemented_Object ;
+   procedure Dispatch (Self : access Implemented_Object ;
                        Orls : in out Giop_S.Object ;
                        Orl_Op : in Standard.String ;
                        Orl_Response_Expected : in Corba.Boolean ;
@@ -217,6 +217,24 @@ package OmniObject is
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
                        S : in out MemBufferedStream.Object'class) ;
    -- This procedure marshalls the object Obj into the stream S
+
+
+   -----------------------------------------------
+   ---     finalization operators              ---
+   -----------------------------------------------
+
+   procedure Initialize (Self: in out Implemented_Object);
+   -- create the underlying Omniobject
+   -- both objects point on one another
+
+   procedure Adjust (Self: in out Implemented_Object) ;
+   -- create the underlying Omniobject
+   -- both objects point on one another
+   -- sets the repository ID
+
+
+   procedure Finalize (Self: in out Implemented_Object);
+   -- release the underlying omniobject
 
 
    -----------------------------------------------
@@ -353,24 +371,6 @@ private
   type Implemented_Object is abstract new Ada.Finalization.Controlled with record
       Omniobj : Object_Ptr ;
    end record ;
-
-
-   -----------------------------------------------
-   ---     finalization operators              ---
-   -----------------------------------------------
-
-   procedure Initialize (Self: in out Implemented_Object);
-   -- create the underlying Omniobject
-   -- both objects point on one another
-
-   procedure Adjust (Self: in out Implemented_Object) ;
-   -- create the underlying Omniobject
-   -- both objects point on one another
-   -- sets the repository ID
-
-
-   procedure Finalize (Self: in out Implemented_Object);
-   -- release the underlying omniobject
 
 
    -----------------------------------------------

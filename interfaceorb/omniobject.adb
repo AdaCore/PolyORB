@@ -132,22 +132,6 @@ package body OmniObject is
    --        dispatching operators              --
    -----------------------------------------------
 
-   -- Dispatch
-   -----------
---   procedure Dispatch (Self : in out Implemented_Object ;
---                       Orls : in out Giop_S.Object ;
---                       Orl_Op : in Standard.String ;
---                       Orl_Response_Expected : in Corba.Boolean ;
---                       Success : out Corba.Boolean) is
---   begin
---      pragma Debug(Output(Omniobject, "Dispatch in Implemented_Object")) ;
---      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
---                                     "Omniobject.Dispatch(Implemented_Object)"
---                                     & Corba.CRLF
---                                     & "should never be called on an Implemented_Object") ;
---      Success := False ;
---   end ;
-
 
    -- Is_A
    -------
@@ -700,12 +684,16 @@ package body OmniObject is
                       Orl_Response_Expected : in Corba.Boolean ;
                       Success : out Corba.Boolean) is
    begin
+      pragma Debug(Output(Omniobject,
+                          "Omniobject.Dispatch : about to make dispatching call")) ;
       -- check there is no error
       if Self.Implobj = null then
          Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                         "Omniobject.Dispatch should not be called on a proxy object") ;
       else
-         Dispatch(Self.Implobj.all,
+       pragma Debug(Output(Omniobject,
+                          "Omniobject.Dispatch : making dispatching call")) ;
+        Dispatch(Self.Implobj,
                   Orls,
                   Orl_Op,
                   Orl_Response_Expected,
