@@ -51,6 +51,7 @@ adabe_array::local_type()
 
   return "local_type";
 }
+
 void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];

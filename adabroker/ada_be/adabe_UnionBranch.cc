@@ -75,7 +75,7 @@ adabe_union_branch::produce_marshal_adb (dep_list& with,
   align_size += ",Tmp) ;\n";
 }
 
-string
+static string
 produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 {
   char temp[10];

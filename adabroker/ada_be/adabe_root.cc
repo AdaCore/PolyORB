@@ -343,7 +343,7 @@ adabe_root::produce() {
 		    dep_list proxy_header_module_with;
 		    
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
-		    module->produce_ads(proxy_header_module_with,proxy_header_module_body,proxy_header_module_previous);
+		    module->produce_proxies_ads(proxy_header_module_with,proxy_header_module_body,proxy_header_module_previous);
 		  }
 		  break;
 
@@ -452,7 +452,7 @@ adabe_root::produce() {
 		    dep_list skel_header_module_with;
 		    
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
-		    module->produce_ads(skel_header_module_with,skel_header_module_body,skel_header_module_previous);
+		    module->produce_skel_ads(skel_header_module_with,skel_header_module_body,skel_header_module_previous);
 		  }
 		  break;
 

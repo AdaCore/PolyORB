@@ -18,7 +18,6 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       switch (b->node_type())
 	{
 	case AST_Decl::NT_array:
-	case AST_Decl::NT_sequence:
 	case AST_Decl::NT_string:
 	case AST_Decl::NT_union:
 	  {
@@ -103,44 +102,102 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
 void
 adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
-  string arg1, arg2 = "";
-  string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, arg2); 
-  
-  body += "   function Marshall(A : in ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "      S : in out Giop_C.Object) is\n";
-  body += "   begin\n";
-  body += "      Marshall(";
-  body += name;
-  body += "(A), S) ;\n";
-  body += "   end ;\n\n\n";
-  
-  body += "   function UnMarshall(A : out ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "      S : in out Giop_C.Object) is\n";
-  body += "   begin\n";
-  body += "      UnMarshall(";
-  body += name;
-  body += "(A) ,S) ;\n";
-  body += "   end ;\n\n\n";
-    
-  body += "   function Align_Size (A : in ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long is\n";
-  body += "   begin\n";
-  body += "      return Align_Size(";
-  body += name;
-  body += "(A) , Tmp, N) ;\n";
-  body += "   end ;\n\n\n";
-
-  set_already_defined();
+  string arg2 = "";
+  AST_Decl *b = base_type();
+  if (((string) b->local_name()->get_string()) == "local type")
+    {
+      switch (b->node_type())
+	{
+	case AST_Decl::NT_array:
+	case AST_Decl::NT_string:
+	case AST_Decl::NT_union:
+	  {
+	    string arg1 = "";
+	    adabe_name *c = dynamic_cast<adabe_name *>(b);
+	    c->produce_marshal_adb(with, body, arg2);
+	    body += arg2;
+	    break;
+	  }
+	default:      
+	  {
+	    string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, arg2); 
+	    body += arg2;
+	    body += "   function Marshall(A : in ";
+	    body += get_ada_local_name();
+	    body += " ;\n";
+	    body += "      S : in out Giop_C.Object) is\n";
+	    body += "   begin\n";
+	    body += "      Marshall(";
+	    body += name;
+	    body += "(A), S) ;\n";
+	    body += "   end ;\n\n\n";
+	    
+	    body += "   function UnMarshall(A : out ";
+	    body += get_ada_local_name();
+	    body += " ;\n";
+	    body += "      S : in out Giop_C.Object) is\n";
+	    body += "   begin\n";
+	    body += "      UnMarshall(";
+	    body += name;
+	    body += "(A) ,S) ;\n";
+	    body += "   end ;\n\n\n";
+	    
+	    body += "   function Align_Size (A : in ";
+	    body += get_ada_local_name();
+	    body += " ;\n";
+	    body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+	    body += "                        N : in Corba.Unsigned_Long := 1)\n";
+	    body += "                        return Corba.Unsigned_Long is\n";
+	    body += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+	    body += "   begin\n";
+	    body += "      Tmp := Align_Size(";
+	    body += name;
+	    body += "(A) , Tmp) ;\n";
+	    body += "   end ;\n\n\n";
+	    set_already_defined();
+	    break;
+	  }
+	}
+    }
+  else
+    {
+      string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, arg2);
+      body += arg2;
+      body += "   function Marshall(A : in ";
+      body += get_ada_local_name();
+      body += " ;\n";
+      body += "      S : in out Giop_C.Object) is\n";
+      body += "   begin\n";
+      body += "      Marshall(";
+      body += name;
+      body += "(A), S) ;\n";
+      body += "   end ;\n\n\n";
+      
+      body += "   function UnMarshall(A : out ";
+      body += get_ada_local_name();
+      body += " ;\n";
+      body += "      S : in out Giop_C.Object) is\n";
+      body += "   begin\n";
+      body += "      UnMarshall(";
+      body += name;
+      body += "(A) ,S) ;\n";
+      body += "   end ;\n\n\n";
+      
+      body += "   function Align_Size (A : in ";
+      body += get_ada_local_name();
+      body += " ;\n";
+      body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+      body += "                        N : in Corba.Unsigned_Long := 1)\n";
+      body += "                        return Corba.Unsigned_Long is\n";
+      body += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
+      body += "   begin\n";
+      body += "      Tmp := Align_Size(";
+      body += name;
+      body += "(A) , Tmp) ;\n";
+      body += "   end ;\n\n\n";
+      set_already_defined();
+    }
 }
-
 
 string
 adabe_typedef::dump_name(dep_list& with, string &previous)

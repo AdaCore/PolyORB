@@ -1,6 +1,7 @@
 // File adabe_sequence.cc
 #include <adabe.h>
 
+
 void
 adabe_sequence::produce_ads(dep_list& with, string &body,
 			    string &previous)
@@ -11,9 +12,8 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   
   string is_bounded;
   adabe_name *adabe_base_type;
-
   
-  if (max_size() == 0)
+  if (max_size() != 0)
     is_bounded = "Bounded";
   else
     is_bounded = "Unbounded";
@@ -25,15 +25,19 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
   adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
   string type_name =  adabe_base_type->dump_name(with, previous);
   string short_type_name = type_name.substr(type_name.find_last_of('.') + 1) ;
-
+  if (short_type_name == "Sequence") 
+    {
+      short_type_name = type_name.substr(type_name.find_first_of('_') + 1) ;
+      short_type_name = short_type_name.substr(0,short_type_name.length()-9);
+    }
+  set_ada_local_name("IDL_SEQUENCE_" + short_type_name);
   body += "   type IDL_SEQUENCE_" + short_type_name +"_Array is ";
   body += "array (Integer range <>) of " + type_name +" ;\n";
   body += "\n";
   body += "   package  IDL_SEQUENCE_" + short_type_name +" is new\n";
   body += "      Corba.Sequences." + is_bounded;
-  body += "(Corba." + type_name + ", IDL_SEQUENCE_" + short_type_name +"_Array);\n";
-  body += "   type " + get_ada_local_name() + " is new IDL_SEQUENCE_" + short_type_name + ".Sequence ;\n";
-
+  body += "(" +type_name + ", IDL_SEQUENCE_" + short_type_name +"_Array);\n";
+  set_already_defined();
 }
 void
 adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previous)
@@ -54,7 +58,6 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long ;\n\n\n";
-
   set_already_defined();
 }
 
@@ -117,7 +120,6 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "      end loop ;\n";
   body += "      return Tmp ;\n";
   body += "   end ;\n\n\n";
-
   set_already_defined();
 }
 
@@ -132,10 +134,11 @@ adabe_sequence::dump_name(dep_list& with, string &previous)
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
-      return get_ada_local_name();
+      return (get_ada_local_name() + ".Sequence");
     }
-  return get_ada_full_name();	   
+  return (get_ada_local_name() + ".Sequence");	   
 }
+
 string
 adabe_sequence::marshal_name(dep_list& with, string &previous) 
 {
@@ -147,9 +150,9 @@ adabe_sequence::marshal_name(dep_list& with, string &previous)
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
-      return get_ada_local_name();
+      return (get_ada_local_name() + ".Sequence");
     }
-  return get_ada_full_name();	   
+  return (get_ada_local_name() + ".Sequence");	   
 }
 
 IMPL_NARROW_METHODS1(adabe_sequence, AST_Sequence)

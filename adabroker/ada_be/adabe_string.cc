@@ -183,7 +183,8 @@ adabe_string::produce_marshal_adb(dep_list& with, string &body, string &previous
   set_already_defined();
 }
 
-string adabe_string::dump_name (dep_list &with, string &previous)
+string 
+adabe_string::dump_name (dep_list &with, string &previous)
 {
   UTL_Scope *temp = defined_in();
   if (!is_imported(with))

@@ -23,7 +23,7 @@
 #define _ADABE_CLASSES_H_
 
 #include <string>
-#include <stream.h>
+#include <stream.h> 
 #include <idl.hh>
 #include <idl_extern.hh>
 #include "debug.h"
@@ -90,6 +90,9 @@ public:
   
   int is_name_already_used(string name, UTL_Scope *in_scope);
   // is this name already used in the current scope ?
+
+  void add_number_to_type_name(adabe_name *type);
+  // add a \x to the end of a type, if the name conflicts with another name
 
   bool has_fixed_size();
   // return true if the size of this element is fixed
