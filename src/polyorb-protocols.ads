@@ -34,10 +34,7 @@
 
 --  $Id$
 
-with Ada.Streams;
-
 with PolyORB.Any.NVList;
-with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
@@ -157,10 +154,5 @@ private
       --    documentation in the spec of PolyORB.Components.
       --    Store-and-forward behaviour is not expected.)
    end record;
-
-   procedure Expect_Data
-     (S      : access Session;
-      In_Buf : Buffers.Buffer_Access;
-      Max    : Ada.Streams.Stream_Element_Count);
 
 end PolyORB.Protocols;

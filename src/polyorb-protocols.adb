@@ -138,17 +138,6 @@ package body PolyORB.Protocols is
       return Nothing;
    end Handle_Message;
 
-   procedure Expect_Data
-     (S      : access Session;
-      In_Buf : Buffers.Buffer_Access;
-      Max    : Ada.Streams.Stream_Element_Count) is
-   begin
-      Emit_No_Reply
-        (Port   => Lower (S),
-         Msg    => Data_Expected'
-           (In_Buf => In_Buf, Max => Max));
-   end Expect_Data;
-
    -------------------------
    -- Get_Request_Watcher --
    -------------------------
