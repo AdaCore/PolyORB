@@ -2137,17 +2137,23 @@ package body Exp_Dist is
 
       Type_Def : constant Node_Id   := Type_Definition (N);
 
-      Ras_Type : constant Entity_Id := Defining_Identifier (N);
+      RAS_Type : constant Entity_Id := Defining_Identifier (N);
+      Fat_Type : constant Entity_Id := Equivalent_Type (RAS_Type);
 
-      Fat_Type : constant Entity_Id := Equivalent_Type (Ras_Type);
+      RACW_Type : constant Entity_Id := Underlying_RACW_Type (RAS_Type);
+      Desig : constant Entity_Id :=
+        Etype (Designated_Type (RACW_Type));
+      Stub_Elements : constant Stub_Structure := Stubs_Table.Get (Desig);
+      pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
       Proc_Decls      : constant List_Id := New_List;
       Proc_Statements : constant List_Id := New_List;
 
-      Inner_Decls      : constant List_Id := New_List;
-      Inner_Statements : constant List_Id := New_List;
-
       Direct_Statements : constant List_Id := New_List;
+
+      Inner_Decls      : constant List_Id := New_List;
+      Remote_Statements : constant List_Id := New_List;
+      RACW_Primitive_Name : Node_Id;
 
       Proc : Node_Id;
 
@@ -2159,10 +2165,8 @@ package body Exp_Dist is
 
       Pointer : Node_Id;
 
+      RACW_Parameter   : Entity_Id;
       Converted_Ras    : Node_Id;
-      Target_Object    : Node_Id;
-      Subprogram_Id    : Node_Id;
-      Asynchronous     : Node_Id;
 
       Is_Function : constant Boolean :=
         Nkind (Type_Def) = N_Access_Function_Definition;
@@ -2181,76 +2185,21 @@ package body Exp_Dist is
       Pointer :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
---        Target_Partition :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
+      RACW_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
---        Append_To (Proc_Decls,
---          Make_Object_Declaration (Loc,
---            Defining_Identifier => Target_Partition,
---            Constant_Present    => True,
---            Object_Definition   =>
---              New_Occurrence_Of (RTE (RE_Partition_ID), Loc),
---            Expression          =>
---              Unchecked_Convert_To (RTE (RE_Partition_ID),
---                Make_Selected_Component (Loc,
---                  Prefix        =>
---                    New_Occurrence_Of (Pointer, Loc),
---                  Selector_Name =>
---                    Make_Identifier (Loc, Name_Origin)))));
-
---        RPC_Receiver :=
---          Make_Selected_Component (Loc,
---            Prefix        =>
---              New_Occurrence_Of (Pointer, Loc),
---            Selector_Name =>
---              Make_Identifier (Loc, Name_Receiver));
---  XXX remove this old Garlic version.
-
-      Target_Object := Empty;
-      Subprogram_Id := Empty;
---        Target_Object :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('T'));
-
---        Append_To (Proc_Decls,
---          Make_Object_Declaration (Loc,
---            Defining_Identifier => Target_Object,
---            Constant_Present    => True,
---            Object_Definition   =>
---              New_Occurrence_Of (RTE (RE_Reference), Loc),
---            Expression          =>
---              Make_Selected_Component (Loc,
---                Prefix        =>
---                  New_Occurrence_Of (Pointer, Loc),
---                Selector_Name =>
---                  Make_Identifier (Loc, Name_Target))));
-
---        Subprogram_Id :=
---          Unchecked_Convert_To (RTE (RE_Subprogram_Id),
---            Make_Selected_Component (Loc,
---              Prefix        =>
---                New_Occurrence_Of (Pointer, Loc),
---              Selector_Name =>
---                Make_Identifier (Loc, Name_Subp_Id)));
---  XXX decomment this new, rewritten version.
-
-      --  A function is never asynchronous. A procedure may or may not be
-      --  asynchronous depending on whether a pragma Asynchronous applies
-      --  on it. Since a RAST may point onto various subprograms, this is
-      --  only known at runtime so both versions (synchronous and asynchronous)
-      --  must be built every times it is not a function.
-
-      if Is_Function then
-         Asynchronous := Empty;
-
-      else
-         Asynchronous :=
-           Make_Selected_Component (Loc,
-             Prefix        =>
-               New_Occurrence_Of (Pointer, Loc),
-             Selector_Name =>
-               Make_Identifier (Loc, Name_Asynchronous));
-
-      end if;
+      Append_To (Inner_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => RACW_Parameter,
+          Constant_Present    => True,
+          Object_Definition   =>
+            New_Occurrence_Of (RACW_Type, Loc),
+          Expression          =>
+            Make_Selected_Component (Loc,
+              Prefix        =>
+                New_Occurrence_Of (Pointer, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Ras))));
 
       if Present (Parameter_Specifications (Type_Def)) then
          Current_Parameter := First (Parameter_Specifications (Type_Def));
@@ -2276,6 +2225,71 @@ package body Exp_Dist is
             Next (Current_Parameter);
          end loop;
       end if;
+
+      --  In the case of a call to a local subprogram, for
+      --  a library unit to which no pragma All_Calls_Remote
+      --  applies: call the real subprogram directly.
+
+      Converted_Ras :=
+        Unchecked_Convert_To (RAS_Type,
+          Make_Selected_Component (Loc,
+            Prefix        =>
+              Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                New_Occurrence_Of (RACW_Parameter, Loc)),
+            Selector_Name => Make_Identifier (Loc, Name_Addr)));
+
+      if Is_Function then
+         Append_To (Direct_Statements,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Make_Function_Call (Loc,
+                 Name                   =>
+                   Make_Explicit_Dereference (Loc,
+                     Prefix => Converted_Ras),
+                 Parameter_Associations => Param_Assoc)));
+
+      else
+         Append_To (Direct_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   =>
+               Make_Explicit_Dereference (Loc,
+                 Prefix => Converted_Ras),
+             Parameter_Associations => Param_Assoc));
+      end if;
+
+      --  In the remote case, perform the call through the
+      --  underlying RACW.
+
+      Prepend_To (Param_Specs,
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier => Pointer,
+          In_Present          => True,
+          Parameter_Type      =>
+            New_Occurrence_Of (Fat_Type, Loc)));
+
+      RACW_Primitive_Name :=
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (Scope (RACW_Type), Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Call));
+
+      if Is_Function then
+         Append_To (Remote_Statements,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Make_Function_Call (Loc,
+                 Name                   => RACW_Primitive_Name,
+                 Parameter_Associations => Param_Assoc)));
+
+      else
+         Append_To (Remote_Statements,
+           Make_Procedure_Call_Statement (Loc,
+             Name                   => RACW_Primitive_Name,
+             Parameter_Associations => Param_Assoc));
+      end if;
+
+      --  Build the complete subprogram.
 
       Proc := Make_Defining_Identifier (Loc, Name_uRAS_Dereference);
 
@@ -2303,76 +2317,25 @@ package body Exp_Dist is
          Set_Etype (Proc, Standard_Void_Type);
       end if;
 
-      --  Build the calling stubs for the dereference of the RAS
-
-      Build_General_Calling_Stubs
-        (Decls                     => Inner_Decls,
-         Statements                => Inner_Statements,
-         Target_Object             => Target_Object,
-         Subprogram_Id             => Subprogram_Id,
-         Asynchronous              => Asynchronous,
-         Is_Known_Non_Asynchronous => Is_Function,
-         Is_Function               => Is_Function,
-         Spec                      => Proc_Spec,
-         Nod                       => N);
-
-      Converted_Ras :=
-        Unchecked_Convert_To (Ras_Type,
-          OK_Convert_To (RTE (RE_Address),
-            Make_Selected_Component (Loc,
-              Prefix        => New_Occurrence_Of (Pointer, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Ras))));
-
-      if Is_Function then
-         Append_To (Direct_Statements,
-           Make_Return_Statement (Loc,
-             Expression =>
-               Make_Function_Call (Loc,
-                 Name                   =>
-                   Make_Explicit_Dereference (Loc,
-                     Prefix => Converted_Ras),
-                 Parameter_Associations => Param_Assoc)));
-
-      else
-         Append_To (Direct_Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               Make_Explicit_Dereference (Loc,
-                 Prefix => Converted_Ras),
-             Parameter_Associations => Param_Assoc));
-      end if;
-
-      Prepend_To (Param_Specs,
-        Make_Parameter_Specification (Loc,
-          Defining_Identifier => Pointer,
-          In_Present          => True,
-          Parameter_Type      =>
-            New_Occurrence_Of (Fat_Type, Loc)));
+      Prepend_To (Param_Assoc,
+        Make_Selected_Component (Loc,
+          Prefix =>
+            New_Occurrence_Of (Pointer, Loc),
+          Selector_Name =>
+            Make_Identifier (Loc, Name_Ras)));
 
       Append_To (Proc_Statements,
         Make_Implicit_If_Statement (N,
           Condition =>
-            Make_And_Then (Loc,
+            Make_Op_Ne (Loc,
               Left_Opnd  =>
-                Make_Op_Ne (Loc,
-                  Left_Opnd  =>
-                    Make_Selected_Component (Loc,
-                      Prefix        => New_Occurrence_Of (Pointer, Loc),
-                      Selector_Name =>
-                         Make_Identifier (Loc, Name_Ras)),
-                  Right_Opnd =>
-                    Make_Integer_Literal (Loc, Uint_0)),
-
-              Right_Opnd => New_Occurrence_Of (Standard_False, Loc)),
---                  Make_Op_Eq (Loc,
---                    Left_Opnd  =>
---                      New_Occurrence_Of (Target_Partition, Loc),
---                    Right_Opnd =>
---                      Make_Function_Call (Loc,
---                        New_Occurrence_Of (
---                          RTE (RE_Get_Local_Partition_Id), Loc)))),
-         --  XXX TBD (RAS) Rewrite locality condition
-         --  for PolyORB (Is_Local (Target_Object)?)
+                Make_Selected_Component (Loc,
+                  Prefix        =>
+                    Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                      New_Occurrence_Of (RACW_Parameter, Loc)),
+                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
+              Right_Opnd =>
+                New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
           Then_Statements =>
             Direct_Statements,
 
@@ -2381,7 +2344,7 @@ package body Exp_Dist is
               Declarations               => Inner_Decls,
               Handled_Statement_Sequence =>
                 Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => Inner_Statements)))));
+                  Statements => Remote_Statements)))));
 
       Proc_Body :=
         Make_Subprogram_Body (Loc,
@@ -2392,7 +2355,6 @@ package body Exp_Dist is
               Statements => Proc_Statements));
 
       Set_TSS (Fat_Type, Defining_Unit_Name (Proc_Spec));
-
    end Add_RAS_Dereference_TSS;
 
    procedure Add_RAS_From_Any
