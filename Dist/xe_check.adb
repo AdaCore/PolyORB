@@ -62,7 +62,6 @@ package body XE_Check is
       Main      : Boolean;
       Full_Name : File_Name_Type;
       Stamp     : Time_Stamp_Type;
-      Internal  : Boolean;
 
       procedure Recompile (Name : File_Name_Type);
       procedure Recompile (Name : File_Name_Type) is
@@ -85,7 +84,6 @@ package body XE_Check is
                      Exit_Program (E_Fatal);
                   end if;
                end if;
-               Internal := Is_Predefined_File_Name (Full_Name);
             end Look_For_Full_File_Name;
 
             --  Taken from Gnatmake.
@@ -97,10 +95,9 @@ package body XE_Check is
                Most_Recent_Obj_File  => Obj,
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
-               Check_Internal_Files  => Internal,
+               Check_Internal_Files  => Opt.Check_Internal_Files,
                Dont_Execute          => False,
-               Force_Compilations    => Opt.Force_Compilations and
-               not Internal,
+               Force_Compilations    => Opt.Force_Compilations,
                Initialize_Ali_Data   => False,
                Max_Process           => 1);
 

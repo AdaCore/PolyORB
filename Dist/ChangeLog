@@ -1,3 +1,12 @@
+Tue Feb 11 16:27:04 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_check.adb: Do not try to recompile internal units. This code
+ 	was taken from an old version of gnatmake.
+
+Tue Feb 11 11:38:48 1997  Laurent Pautet  <pautet@lglsun2.epfl.ch>
+
+	* xe.adb, xe_stubs.adb: Use of Write_Missing_File.
+
 Mon Feb 10 21:10:20 1997  Laurent Pautet  <pautet@lglsun2.epfl.ch>
 
 	* xe_stubs.adb: Reorganize code (alphabetical order) and change

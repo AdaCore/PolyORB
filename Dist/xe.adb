@@ -175,11 +175,7 @@ package body XE is
       Lib  := Lib_File_Name (File);
       Text := Read_Library_Info (Lib);
       if Text = null then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (Lib);
-         Write_Str  (" not found");
-         Write_Eol;
+         Write_Missing_File (Lib);
          raise Fatal_Error;
       end if;
       Read_ALI (Scan_ALI (Lib, Text));

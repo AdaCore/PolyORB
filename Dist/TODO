@@ -1,5 +1,9 @@
 CLADS : Configuration Language for Ada Distributed System
 
+* Strip executables when not debugging.
+
+* Remove script when configuration has been modified.
+
 * Remove harcoded "/" and ".." since this may be nonportable onto other
   systems (e.g. Mac)
 

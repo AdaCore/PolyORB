@@ -105,21 +105,21 @@ procedure XE_Stubs is
    -- Build_Stub --
    ----------------
 
-   procedure Build_Stub (Base_Name : in Name_Id;
+   procedure Build_Stub (Base_Name : in File_Name_Type;
                          Spec_Only : in Boolean) is
 
       Obsolete        : Boolean := False;
-      Full_RCI_Spec   : Name_Id;
-      Full_RCI_Body   : Name_Id;
-      Full_ALI_File   : Name_Id;
-      RCI_Spec        : Name_Id;
-      RCI_Body        : Name_Id;
-      Caller_Body     : Name_Id;
-      Caller_Object   : Name_Id;
-      Caller_ALI      : Name_Id;
-      Receiver_Body   : Name_Id;
-      Receiver_Object : Name_Id;
-      Receiver_ALI    : Name_Id;
+      Full_RCI_Spec   : File_Name_Type;
+      Full_RCI_Body   : File_Name_Type;
+      Full_ALI_File   : File_Name_Type;
+      RCI_Spec        : File_Name_Type;
+      RCI_Body        : File_Name_Type;
+      Caller_Body     : File_Name_Type;
+      Caller_Object   : File_Name_Type;
+      Caller_ALI      : File_Name_Type;
+      Receiver_Body   : File_Name_Type;
+      Receiver_Object : File_Name_Type;
+      Receiver_ALI    : File_Name_Type;
 
    begin
 
@@ -287,7 +287,8 @@ procedure XE_Stubs is
    -- Copy_Stub --
    ---------------
 
-   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name  : in Name_Id) is
+   procedure Copy_Stub
+     (Source_Dir, Target_Dir, Base_Name : in File_Name_Type) is
       ALI_Src : File_Name_Type
         := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
       ALI_Tgt : File_Name_Type
@@ -305,33 +306,21 @@ procedure XE_Stubs is
       --  Copy the stubs from source directory to the target directory.
 
       if not Is_Regular_File (ALI_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (ALI_Src);
-         Write_Str  (" not found");
-         Write_Eol;
+         Write_Missing_File (ALI_Src);
          raise Fatal_Error;
       else
          Copy_With_File_Stamp (ALI_Src, ALI_Tgt);
       end if;
 
       if not Is_Regular_File (Obj_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (Obj_Src);
-         Write_Str  (" not found");
-         Write_Eol;
+         Write_Missing_File (Obj_Src);
          raise Fatal_Error;
       else
          Copy_With_File_Stamp (Obj_Src, Obj_Tgt);
       end if;
 
       if not Is_Regular_File (ADB_Src) then
-         Write_Program_Name;
-         Write_Str  (": ");
-         Write_Name (ADB_Src);
-         Write_Str  (" not found");
-         Write_Eol;
+         Write_Missing_File (ADB_Src);
          raise Fatal_Error;
       else
          Copy_With_File_Stamp (ADB_Src, ADB_Tgt);
@@ -690,7 +679,7 @@ procedure XE_Stubs is
    -- Delete_Stub --
    -----------------
 
-   procedure Delete_Stub (Source_Dir, Base_Name  : in Name_Id) is
+   procedure Delete_Stub (Source_Dir, Base_Name  : in File_Name_Type) is
       ALI_Src : File_Name_Type
         := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
       Obj_Src : File_Name_Type
