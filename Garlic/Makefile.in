@@ -391,10 +391,10 @@ inlining: all-local
 	      cat gnatlib/tocheck > gnatlib/tocheck.tmp;\
 	      grep -v $$i gnatlib/tocheck.tmp > gnatlib/tocheck;\
 	   done;\
-	   if test ! -f gnatlib/tocheck; then\
-	      echo no > inlining;\
-	   else\
+	   if test -s gnatlib/tocheck; then\
 	      echo go > inlining;\
+	   else\
+	      echo no > inlining;\
 	   fi;\
 	fi
 	@if test `cat inlining` = "go"; then\

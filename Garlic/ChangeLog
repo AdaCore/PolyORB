@@ -1,5 +1,8 @@
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile.am (inlining): Fix a bug causing an error at
+	installation time when no inlining at all was present.
+
 	* isthrbio.adb: Use GNAT style and add copyright information.
 
 1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
