@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       T E S T 0 0 1 _ C O M M O N                        --
+--                              T E S T 0 0 2                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,14 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Condition variables testsuite.
+
 --  $Id$
 
-package Test001_Common is
+with PolyORB.Initialization;
 
-   procedure Initialize_Test;
-   --  Initialize test.
+with Test002_Common;
 
-   procedure Test_Task_Creation (Nb_Of_Tasks : Natural := 1000);
-   --  Create 'Nb_Of_Tasks' tasks that wait 1s then exit.
+procedure Test002 is
+   use Test002_Common;
 
-end Test001_Common;
+begin
+   PolyORB.Initialization.Initialize_World;
+   Initialize_Test;
+   Test_CV;
+
+end Test002;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                       T E S T 0 0 1 _ C O M M O N                        --
+--                       T E S T 0 0 2 _ C O M M O N                        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -32,12 +32,12 @@
 
 --  $Id$
 
-package Test001_Common is
+package Test002_Common is
 
    procedure Initialize_Test;
    --  Initialize test.
 
-   procedure Test_Task_Creation (Nb_Of_Tasks : Natural := 1000);
-   --  Create 'Nb_Of_Tasks' tasks that wait 1s then exit.
+   procedure Test_CV;
+   --  XXX
 
-end Test001_Common;
+end Test002_Common;

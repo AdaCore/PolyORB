@@ -34,16 +34,27 @@
 
 --  $Id$
 
+with Ada.Command_Line;
+with Ada.Text_IO;
+
 with PolyORB.Initialization;
 
 with Test001_Common;
 
 procedure Test001 is
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+
    use Test001_Common;
 
+   Nb_Of_Tasks : Natural := 1000;
 begin
+   if Ada.Command_Line.Argument_Count = 1 then
+      Nb_Of_Tasks := Natural'Value (Ada.Command_Line.Argument (1));
+   end if;
+   Put_Line ("Generate test with" & Natural'Image (Nb_Of_Tasks) & " tasks");
    PolyORB.Initialization.Initialize_World;
    Initialize_Test;
-   Test_Task_Creation;
+   Test_Task_Creation (Nb_Of_Tasks);
 
 end Test001;

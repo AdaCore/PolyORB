@@ -14,22 +14,18 @@ package body Test001_Common is
 
    My_Thread_Factory  : Thread_Factory_Access;
 
-   Number_Of_Tasks : constant Integer := 1000;
-   --  Number of tasks to be created.
-
-   subtype Task_Index is Integer range 1 .. Number_Of_Tasks;
-
    type Generic_Runnable is new Runnable with record
       P  : Parameterless_Procedure;
    end record;
-
    procedure Run (R : access Generic_Runnable);
 
-   type Generic_Runnable_Arr is array (Task_Index) of aliased Generic_Runnable;
-   R  : Generic_Runnable_Arr;
+   R  : aliased Generic_Runnable;
 
    type Do_Nothing_Controller is new Runnable_Controller with null record;
    --  Simple controller that does nothing...
+
+   procedure Test_Task;
+   --  Body of the task.
 
    ---------------------
    -- Initialize_Test --
@@ -38,6 +34,7 @@ package body Test001_Common is
    procedure Initialize_Test is
    begin
       My_Thread_Factory := Get_Thread_Factory;
+      R.P := Test_Task'Access;
    end Initialize_Test;
 
    ---------
@@ -52,8 +49,6 @@ package body Test001_Common is
    ---------------
    -- Test_Task --
    ---------------
-
-   procedure Test_Task;
 
    procedure Test_Task is
    begin
@@ -70,21 +65,21 @@ package body Test001_Common is
    -- Test_Task_Creation --
    ------------------------
 
-   procedure Test_Task_Creation
+   procedure Test_Task_Creation (Nb_Of_Tasks : Natural := 1000)
    is
       use PolyORB.Tasking.Threads;
 
-      RA : Runnable_Access;
+--      RA : Runnable_Access;
       C  : constant Runnable_Controller_Access := new Do_Nothing_Controller;
    begin
-      for J in Task_Index'Range loop
-         R (J).P := Test_Task'Access;
-         RA := R (J)'Access;
+      for J in 1 .. Nb_Of_Tasks loop
+
+--       RA := R (J)'Access;
          declare
             pragma Warnings (Off);
             T : constant Thread_Access := Run_In_Task
               (TF => My_Thread_Factory,
-               R  => RA,
+               R  => R'Access,
                C  => C);
             pragma Unreferenced (T);
             pragma Warnings (On);
