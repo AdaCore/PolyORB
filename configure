@@ -1181,47 +1181,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
   CERRNO=get_errno
 else
   echo "$ac_t""no" 1>&6
-echo $ac_n "checking for __get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1186: checking for __get_errno in -lgnat" >&5
-ac_lib_var=`echo gnat'_'__get_errno | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-lgnat  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 1194 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char __get_errno();
-
-int main() {
-__get_errno()
-; return 0; }
-EOF
-if { (eval echo configure:1205: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  CERRNO=__get_errno
-else
-  echo "$ac_t""no" 1>&6
-{ echo "configure: error: "Cannot find get_errno or __get_errno in GNAT library"" 1>&2; exit 1; }
-fi
-
+CERRNO=__get_errno
 fi
 
 

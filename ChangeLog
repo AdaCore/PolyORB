@@ -1,3 +1,8 @@
+	* configure.in: Changed detection of get_errno. Should raise an
+	  error on Linux instead of producing bad assembly code.
+
+Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
+Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
 	* INSTALL: Fix minor typos.
 
 Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
