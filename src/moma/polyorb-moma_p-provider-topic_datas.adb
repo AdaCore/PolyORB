@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            M O M A . P R O V I D E R . T O P I C _ D A T A S             --
+--  P O L Y O R B . M O M A _ P . P R O V I D E R . T O P I C _ D A T A S   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -38,7 +38,7 @@
 
 with PolyORB.Log;
 
-package body MOMA.Provider.Topic_Datas is
+package body PolyORB.MOMA_P.Provider.Topic_Datas is
 
    use Perfect_Htable;
 
@@ -164,4 +164,4 @@ package body MOMA.Provider.Topic_Datas is
       Unlock_W (Data.T_Lock);
    end Remove_Subscriber;
 
-end MOMA.Provider.Topic_Datas;
+end PolyORB.MOMA_P.Provider.Topic_Datas;

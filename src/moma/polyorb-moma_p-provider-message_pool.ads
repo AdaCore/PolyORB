@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           M O M A . P R O V I D E R . M E S S A G E _ P O O L            --
+--                  POLYORB.MOMA_P.PROVIDER.MESSAGE_POOL                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -38,14 +38,14 @@
 --  $Id$
 
 with MOMA.Types;
-with MOMA.Provider.Warehouse;
+with PolyORB.MOMA_P.Provider.Warehouse;
 
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 
-package MOMA.Provider.Message_Pool is
+package PolyORB.MOMA_P.Provider.Message_Pool is
 
    type Object is new PolyORB.Minimal_Servant.Servant with private;
 
@@ -75,7 +75,7 @@ private
      Pool : MOMA.Types.Message_Pool;
          --  Pool information.
 
-     W : MOMA.Provider.Warehouse.Warehouse;
+     W : PolyORB.MOMA_P.Provider.Warehouse.Warehouse;
          --  XXX up to now, we use one and only one Warehouse, per
          --  message_pool, more warehouses would require message analysis,
          --  => to be done later, after proper message definition.
@@ -96,4 +96,4 @@ private
 
    end record;
 
-end MOMA.Provider.Message_Pool;
+end PolyORB.MOMA_P.Provider.Message_Pool;

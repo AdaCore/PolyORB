@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with MOMA.Provider.Message_Consumer;
+with PolyORB.MOMA_P.Provider.Message_Consumer;
 
 with PolyORB.Any.NVList;
 with PolyORB.Exceptions;
@@ -45,7 +45,7 @@ with PolyORB.Types;
 package body MOMA.Message_Consumers is
 
    use MOMA.Messages;
-   use MOMA.Provider.Message_Consumer;
+   use PolyORB.MOMA_P.Provider.Message_Consumer;
 
    use PolyORB.Any;
    use PolyORB.Minimal_Servant.Tools;
@@ -75,13 +75,13 @@ package body MOMA.Message_Consumers is
 
       use PolyORB.Exceptions;
 
-      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc :=
-        new MOMA.Provider.Message_Consumer.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Consumer.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Consumer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
 
-      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
-        new MOMA.Message_Consumers.Message_Consumer;
+      Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc
+        := new MOMA.Message_Consumers.Message_Consumer;
 
       Error : Error_Container;
 
@@ -91,7 +91,7 @@ package body MOMA.Message_Consumers is
       --  using session position in the POA
 
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Consumer.If_Desc,
+                        PolyORB.MOMA_P.Provider.Message_Consumer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref,
                         Error);
@@ -105,7 +105,8 @@ package body MOMA.Message_Consumers is
       Set_Ref (Consumer.all, MOMA_Ref);
       --  XXX Is it really useful to have the Ref to the remote destination in
       --  the Message_Consumer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Consumer.Object ....
+      --  encapsulated in the PolyORB.MOMA_P.Provider.Message_Consumer.Object
+
       return Consumer;
    end Create_Consumer;
 

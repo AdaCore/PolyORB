@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           M O M A . P R O V I D E R . M E S S A G E _ P O O L            --
+--                  POLYORB.MOMA_P.PROVIDER.MESSAGE_POOL                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -44,10 +44,10 @@ with PolyORB.Exceptions;
 
 with MOMA.Messages;
 with MOMA.Types;
-with MOMA.Provider.Warehouse;
+with PolyORB.MOMA_P.Provider.Warehouse;
 with MOMA.Destinations;
 
-package body MOMA.Provider.Message_Pool is
+package body PolyORB.MOMA_P.Provider.Message_Pool is
 
    use MOMA.Messages;
 
@@ -289,7 +289,7 @@ package body MOMA.Provider.Message_Pool is
       Info :        MOMA.Types.Message_Pool) is
    begin
       Self.Pool := Info;
-      MOMA.Provider.Warehouse.Set_Persistence
+      PolyORB.MOMA_P.Provider.Warehouse.Set_Persistence
         (Self.W,
          MOMA.Types.Get_Persistence (Info));
 
@@ -354,12 +354,12 @@ package body MOMA.Provider.Message_Pool is
             pragma Debug (O ("Got new message " & Image (Message)
                              & " with Id " & Key));
             Self.Message_Id := Self.Message_Id + 1;
-            MOMA.Provider.Warehouse.Register (Self.W, Key, Message);
+            PolyORB.MOMA_P.Provider.Warehouse.Register (Self.W, Key, Message);
 
          else
             pragma Debug (O ("Got new message " & Image (Message)
                              & " with Id " & Id));
-            MOMA.Provider.Warehouse.Register (Self.W, Id, Message);
+            PolyORB.MOMA_P.Provider.Warehouse.Register (Self.W, Id, Message);
          end if;
 
          if Self.Behavior = Notify
@@ -413,14 +413,14 @@ package body MOMA.Provider.Message_Pool is
 
    begin
       if Id = "" then
-         Result := MOMA.Provider.Warehouse.Lookup (Self.W, Key);
-         MOMA.Provider.Warehouse.Unregister (Self.W, Key);
+         Result := PolyORB.MOMA_P.Provider.Warehouse.Lookup (Self.W, Key);
+         PolyORB.MOMA_P.Provider.Warehouse.Unregister (Self.W, Key);
          Self.Last_Read_Id := Self.Last_Read_Id + 1;
 
          pragma Debug (O ("Sending back message " & Image (Result)
                           & " with id " & Key));
       else
-         Result := MOMA.Provider.Warehouse.Lookup (Self.W, Key);
+         Result := PolyORB.MOMA_P.Provider.Warehouse.Lookup (Self.W, Key);
          pragma Debug (O ("Sending back message " & Image (Result)
                           & " with id " & Key));
 
@@ -442,4 +442,4 @@ package body MOMA.Provider.Message_Pool is
       Self.Behavior := Behavior;
    end Register_Handler;
 
-end MOMA.Provider.Message_Pool;
+end PolyORB.MOMA_P.Provider.Message_Pool;

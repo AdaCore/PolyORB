@@ -2,7 +2,6 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                M O M A . P R O V I D E R . R O U T E R S                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,95 +30,49 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A servant used for routing topic messages.
+--  Actual implementation of the Message_Handler object.
+--  It is derived from PolyORB's Minimal_Servant.
+--  The call-back purpose of a Message Handler is to receive a Request from
+--  the actual message consumer servant when a message is received : this
+--  Request can either be Handle (then the message can not be recovered by a
+--  call to the Message_Consumer's Receive and has to be treated by the Handle
+--  procedure), or Notify (then the message stays in the pool).
 
 --  $Id$
 
-with MOMA.Destinations;
-with MOMA.Provider.Topic_Datas;
-with MOMA.Types;
+with MOMA.Message_Handlers;
 
 with PolyORB.Minimal_Servant;
-with PolyORB.Obj_Adapters.Simple;
-with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Obj_Adapters.Simple;
 
-package MOMA.Provider.Routers is
+package PolyORB.MOMA_P.Provider.Message_Handler is
 
-   use MOMA.Types;
-   use PolyORB.References;
+   type Object is new PolyORB.Minimal_Servant.Servant with private;
 
-   type Router is new PolyORB.Minimal_Servant.Servant with private;
-   --  Id       : the Id of the router.
-   --  Routers  : the list of routers the router will exchange messages with.
-   --  Self_Ref : a reference to the router, that it can give to other routers.
-   --  Topics   : the list of all topics, with their subscribers.
-
-   type Router_Acc is access Router;
-
-   type Routers_List is private;
-   --  A protected list of routers.
-
-   function Create_Destination
-     (Self : Router)
-     return MOMA.Destinations.Destination;
-   --  Return a destination object whose reference is the router and whose
-   --  name is the router Id.
-
-   procedure Initialize
-     (Self       : access Router;
-      Router_Ref :        PolyORB.References.Ref);
-   --  Initialize a Router.
-   --  Router_Ref is a reference to another router on the network (it can be
-   --  Nil_Ref) the router will register with.
+   type Object_Acc is access Object;
 
    procedure Invoke
-     (Self : access Router;
-      Req  :        PolyORB.Requests.Request_Access);
-   --  Router servant skeleton.
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access);
+   --  Message_Handler servant skeleton.
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
    --  Interface description for SOA object adapter.
 
-   --  Accessors to internal data.
-
-   function Get_Id
-     (Self : Router)
-     return MOMA.Types.String;
-
-   procedure Set_Id
-     (Self  : in out Router;
-      Id    :        MOMA.Types.String);
-
-   function Get_Self_Ref
-     (Self : Router)
-     return PolyORB.References.Ref;
-
-   procedure Set_Self_Ref
-     (Self  : in out Router;
-      Ref   :        PolyORB.References.Ref);
+   procedure Initialize
+     (Self                 : access Object;
+      MOMA_Message_Handler :        MOMA.Message_Handlers.Message_Handler_Acc);
+   --  Initialize with MOMA_Message_Handler.
+   --  Should be called after Initiate_Servant.
+   --  Should be called only once.
 
 private
 
-   type Routers_List is record
-      List           : MOMA.Provider.Topic_Datas.Destination_List.List;
-      L_Initialized  : Boolean := False;
-      L_Lock         : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+   type Object is new PolyORB.Minimal_Servant.Servant with record
+      MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc := null;
    end record;
 
-   type Router is new PolyORB.Minimal_Servant.Servant with record
-      Id       : MOMA.Types.String;
-      Routers  : Routers_List;
-      Self_Ref : PolyORB.References.Ref;
-      Topics   : MOMA.Provider.Topic_Datas.Topic_Data;
-   end record;
-
-   pragma Inline (Get_Id);
-   pragma Inline (Set_Id);
-   pragma Inline (Get_Self_Ref);
-   pragma Inline (Set_Self_Ref);
-
-end MOMA.Provider.Routers;
+end PolyORB.MOMA_P.Provider.Message_Handler;

@@ -35,7 +35,7 @@
 
 with MOMA.Messages;
 with MOMA.Destinations;
-with MOMA.Provider.Message_Handler;
+with PolyORB.MOMA_P.Provider.Message_Handler;
 with MOMA.Types;
 
 with PolyORB.Annotations;
@@ -91,17 +91,19 @@ package body MOMA.Message_Handlers is
 
       use PolyORB.Exceptions;
 
-      Self    : MOMA.Message_Handlers.Message_Handler_Acc :=
-        new MOMA.Message_Handlers.Message_Handler;
-      Servant : constant MOMA.Provider.Message_Handler.Object_Acc :=
-        new MOMA.Provider.Message_Handler.Object;
+      Self    : MOMA.Message_Handlers.Message_Handler_Acc
+        := new MOMA.Message_Handlers.Message_Handler;
+
+      Servant : constant PolyORB.MOMA_P.Provider.Message_Handler.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Handler.Object;
+
       Servant_Ref : PolyORB.References.Ref;
 
       Error : Error_Container;
 
    begin
       Initiate_Servant (Servant,
-                        MOMA.Provider.Message_Handler.If_Desc,
+                        PolyORB.MOMA_P.Provider.Message_Handler.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         Servant_Ref,
                         Error);
@@ -110,7 +112,7 @@ package body MOMA.Message_Handlers is
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      MOMA.Provider.Message_Handler.Initialize (Servant, Self);
+      PolyORB.MOMA_P.Provider.Message_Handler.Initialize (Servant, Self);
 
       Self.Message_Cons := Message_Cons;
       Self.Servant_Ref := Servant_Ref;

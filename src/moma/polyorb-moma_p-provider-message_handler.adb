@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R        --
+--                 POLYORB.MOMA_P.PROVIDER.MESSAGE_HANDLER                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Message_Producer servant.
+--  Message_Handler servant.
 
 --  $Id$
 
@@ -44,27 +44,32 @@ with PolyORB.Types;
 with PolyORB.Requests;
 with PolyORB.Exceptions;
 
-package body MOMA.Provider.Message_Producer is
+package body PolyORB.MOMA_P.Provider.Message_Handler is
 
-   use MOMA.Messages;
+   use MOMA.Message_Handlers;
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Log;
-   use PolyORB.Requests;
    use PolyORB.Types;
+   use PolyORB.Requests;
 
    package L is
-     new PolyORB.Log.Facility_Log ("moma.provider.message_producer");
+     new PolyORB.Log.Facility_Log ("moma.provider.message_handler");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    --  Actual function implemented by the servant.
 
-   procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any);
-   --  Publish a message.
+   procedure Handle
+     (Self    : access Object;
+      Message : PolyORB.Any.Any);
+   --  Execute the Handler procedure.
+   --  Called when receiving a Handle request.
+
+   procedure Notify (Self : access Object);
+   --  Execute the Notifier procedure.
+   --  Called when receiving a Notify request.
 
    --  Accessors to servant interface.
 
@@ -78,6 +83,57 @@ package body MOMA.Provider.Message_Producer is
      return PolyORB.Any.Any;
    --  Result part of the interface description.
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self                 : access Object;
+      MOMA_Message_Handler :        MOMA.Message_Handlers.Message_Handler_Acc)
+   is
+   begin
+      Self.MOMA_Message_Handler := MOMA_Message_Handler;
+   end Initialize;
+
+   ------------
+   -- Invoke --
+   ------------
+
+   procedure Invoke (Self : access Object;
+                     Req  : in     PolyORB.Requests.Request_Access)
+   is
+      use PolyORB.Exceptions;
+
+      Args        : PolyORB.Any.NVList.Ref;
+      Operation   : constant String := To_Standard_String (Req.Operation);
+      Error       : Error_Container;
+   begin
+      pragma Debug (O ("The message handler is executing the request:"
+                    & PolyORB.Requests.Image (Req.all)));
+
+      PolyORB.Any.NVList.Create (Args);
+
+      Args := Get_Parameter_Profile (Operation);
+      PolyORB.Requests.Arguments (Req, Args, Error);
+
+      if Found (Error) then
+         raise PolyORB.Unknown;
+         --  XXX We should do something more contructive
+      end if;
+
+      if Req.Operation = To_PolyORB_String ("Notify") then
+         Notify (Self);
+
+      elsif Operation = "Handle" then
+         declare
+            use PolyORB.Any.NVList.Internals;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
+         begin
+            Handle (Self, Value (First (List_Of (Args).all)).Argument);
+         end;
+      end if;
+   end Invoke;
+
    ---------------------------
    -- Get_Parameter_Profile --
    ---------------------------
@@ -86,21 +142,22 @@ package body MOMA.Provider.Message_Producer is
      (Method : String)
      return PolyORB.Any.NVList.Ref
    is
-      use PolyORB.Any;
-      use PolyORB.Any.NVList;
-      use PolyORB.Types;
-
       Result : PolyORB.Any.NVList.Ref;
    begin
+      PolyORB.Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
 
-      PolyORB.Any.NVList.Create (Result);
+      if Method = "Notify" then
+         null;
 
-      if Method = "Publish" then
-         Add_Item (Result,
-                   (Name      => To_PolyORB_String ("Message"),
-                    Argument  => Get_Empty_Any (TC_MOMA_Message),
-                    Arg_Modes => ARG_IN));
+      elsif Method = "Handle" then
+         PolyORB.Any.NVList.Add_Item
+            (Result,
+             (Name      => To_PolyORB_String ("Message"),
+              Argument  => PolyORB.Any.Get_Empty_Any
+                              (MOMA.Messages.TC_MOMA_Message),
+              Arg_Modes => PolyORB.Any.ARG_IN));
+
       else
          raise Program_Error;
       end if;
@@ -108,34 +165,23 @@ package body MOMA.Provider.Message_Producer is
       return Result;
    end Get_Parameter_Profile;
 
-   --------------------
-   -- Get_Remote_Ref --
-   --------------------
-
-   function Get_Remote_Ref
-     (Self : Object)
-     return PolyORB.References.Ref is
-   begin
-      return Self.Remote_Ref;
-   end Get_Remote_Ref;
-
    ------------------------
    -- Get_Result_Profile --
    ------------------------
 
    function Get_Result_Profile
      (Method : String)
-     return PolyORB.Any.Any
-   is
-      use PolyORB.Any;
-
+     return PolyORB.Any.Any is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
-      if Method = "Publish" then
+
+      if Method = "Handle" or else Method = "Notify" then
          return Get_Empty_Any (TypeCode.TC_Void);
+
       else
          raise Program_Error;
       end if;
+
    end Get_Result_Profile;
 
    -------------
@@ -151,99 +197,35 @@ package body MOMA.Provider.Message_Producer is
    end If_Desc;
 
    ------------
-   -- Invoke --
+   -- Handle --
    ------------
 
-   procedure Invoke
-     (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
+   procedure Handle
+     (Self    : access Object;
+      Message :        PolyORB.Any.Any)
    is
-      use PolyORB.Exceptions;
-
-      Args  : PolyORB.Any.NVList.Ref;
-      Error : Error_Container;
+      Rcvd_Message : constant MOMA.Messages.Message'Class
+         := MOMA.Messages.From_Any (Message);
+      Handler_Procedure : constant MOMA.Message_Handlers.Handler
+         := Get_Handler (Self.MOMA_Message_Handler);
    begin
-      pragma Debug (O ("The server is executing the request:"
-                    & PolyORB.Requests.Image (Req.all)));
-
-      Create (Args);
-
-      if Req.all.Operation = To_PolyORB_String ("Publish") then
-
-         --  Publish
-
-         Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TC_MOMA_Message),
-                    Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args, Error);
-
-         if Found (Error) then
-            raise Program_Error;
-            --  XXX We should do something more contructive
-
-         end if;
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            use PolyORB.Any.NVList.Internals.NV_Lists;
-         begin
-            Publish
-              (Self.Remote_Ref,
-               Value (First (List_Of (Args).all)).Argument);
-         end;
-
+      if Handler_Procedure /= null then
+         Handler_Procedure.all (Self.MOMA_Message_Handler, Rcvd_Message);
       end if;
-   end Invoke;
+   end Handle;
 
-   -------------
-   -- Publish --
-   -------------
+   ------------
+   -- Notify --
+   ------------
 
-   procedure Publish
-     (Self    : in PolyORB.References.Ref;
-      Message : in PolyORB.Any.Any)
+   procedure Notify (Self : access Object)
    is
-      Request     : PolyORB.Requests.Request_Access;
-      Arg_List    : PolyORB.Any.NVList.Ref;
-      Result      : PolyORB.Any.NamedValue;
-
+      Notifier_Procedure : constant MOMA.Message_Handlers.Notifier
+         := Get_Notifier (Self.MOMA_Message_Handler);
    begin
-      pragma Debug (O ("Publishing Message " & Image (Message)));
+      if Notifier_Procedure /= null then
+         Notifier_Procedure.all (Self.MOMA_Message_Handler);
+      end if;
+   end Notify;
 
-      PolyORB.Any.NVList.Create (Arg_List);
-
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message"),
-                                   Message,
-                                   PolyORB.Any.ARG_IN);
-
-      Result := (Name      => To_PolyORB_String ("Result"),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
-                 Arg_Modes => 0);
-
-      PolyORB.Requests.Create_Request
-        (Target    => Self,
-         Operation => "Publish",
-         Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
-
-      PolyORB.Requests.Invoke (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-   end Publish;
-
-   --------------------
-   -- Set_Remote_Ref --
-   --------------------
-
-   procedure Set_Remote_Ref
-     (Self : in out Object;
-      Ref  :        PolyORB.References.Ref)
-   is
-   begin
-      Self.Remote_Ref := Ref;
-   end Set_Remote_Ref;
-
-end MOMA.Provider.Message_Producer;
+end PolyORB.MOMA_P.Provider.Message_Handler;

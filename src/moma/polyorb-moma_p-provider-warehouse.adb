@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              M O M A . P R O V I D E R . W A R E H O U S E               --
+--    P O L Y O R B . M O M A _ P . P R O V I D E R . W A R E H O U S E     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -35,7 +35,6 @@
 
 --  $Id$
 
-with Ada.Streams;
 with Ada.Streams.Stream_IO;
 
 with System;
@@ -49,7 +48,7 @@ with PolyORB.Utils.HTables.Perfect;
 
 with MOMA.Messages;
 
-package body MOMA.Provider.Warehouse is
+package body PolyORB.MOMA_P.Provider.Warehouse is
 
    use Ada.Streams;
    use Ada.Streams.Stream_IO;
@@ -218,4 +217,4 @@ package body MOMA.Provider.Warehouse is
       W.T_Persistence := Persistence;
    end Set_Persistence;
 
-end MOMA.Provider.Warehouse;
+end PolyORB.MOMA_P.Provider.Warehouse;

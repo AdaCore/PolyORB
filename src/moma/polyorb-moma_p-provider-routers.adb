@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                M O M A . P R O V I D E R . R O U T E R S                 --
+--      P O L Y O R B . M O M A _ P . P R O V I D E R . R O U T E R S       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -35,7 +35,7 @@
 
 with MOMA.Destinations;
 with MOMA.Messages;
-with MOMA.Provider.Topic_Datas;
+with PolyORB.MOMA_P.Provider.Topic_Datas;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -44,11 +44,11 @@ with PolyORB.Requests;
 with PolyORB.Types;
 with PolyORB.Exceptions;
 
-package body MOMA.Provider.Routers is
+package body PolyORB.MOMA_P.Provider.Routers is
 
    use MOMA.Destinations;
    use MOMA.Messages;
-   use MOMA.Provider.Topic_Datas;
+   use PolyORB.MOMA_P.Provider.Topic_Datas;
 
    use PolyORB.Any;
    use PolyORB.Log;
@@ -126,7 +126,7 @@ package body MOMA.Provider.Routers is
 
    function Get_Routers
      (Self : Router)
-     return MOMA.Provider.Topic_Datas.Destination_List.List;
+     return PolyORB.MOMA_P.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
    ----------------
@@ -255,7 +255,7 @@ package body MOMA.Provider.Routers is
 
    function Get_Routers
      (Self : Router)
-     return MOMA.Provider.Topic_Datas.Destination_List.List
+     return PolyORB.MOMA_P.Provider.Topic_Datas.Destination_List.List
    is
       Routers : Destination_List.List;
    begin
@@ -296,7 +296,7 @@ package body MOMA.Provider.Routers is
      (Self       : access Router;
       Router_Ref :        PolyORB.References.Ref) is
    begin
-      MOMA.Provider.Topic_Datas.Ensure_Initialization (Self.Topics);
+      PolyORB.MOMA_P.Provider.Topic_Datas.Ensure_Initialization (Self.Topics);
 
       if not (Self.Routers.L_Initialized) then
          PolyORB.Tasking.Rw_Locks.Create (Self.Routers.L_Lock);
@@ -460,26 +460,33 @@ package body MOMA.Provider.Routers is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Destination : constant MOMA.Destinations.Destination :=
-        Create_Destination (Self.all);
+      Destination : constant MOMA.Destinations.Destination
+        := Create_Destination (Self.all);
    begin
       PolyORB.Any.NVList.Create (Arg_List);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Router"),
-                                   To_Any (Destination),
-                                   PolyORB.Any.ARG_IN);
-      Result := (Name      => To_PolyORB_String ("Result"),
-                 Argument  => PolyORB.Any.Get_Empty_Any
-                                 (MOMA.Destinations.TC_MOMA_Destination),
-                 Arg_Modes => 0);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("Router"),
+         To_Any (Destination),
+         PolyORB.Any.ARG_IN);
+
+      Result
+        := (Name      => To_PolyORB_String ("Result"),
+            Argument  => PolyORB.Any.Get_Empty_Any
+            (MOMA.Destinations.TC_MOMA_Destination),
+            Arg_Modes => 0);
+
       PolyORB.Requests.Create_Request
         (Target    => Router_Ref,
          Operation => "Register",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
       PolyORB.Requests.Invoke (Request);
       PolyORB.Requests.Destroy_Request (Request);
+
       Add_Router (Self.all,
                   MOMA.Destinations.From_Any (Result.Argument));
    end Register;
@@ -498,23 +505,31 @@ package body MOMA.Provider.Routers is
       Result      : PolyORB.Any.NamedValue;
    begin
       PolyORB.Any.NVList.Create (Arg_List);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message"),
-                                   Message,
-                                   PolyORB.Any.ARG_IN);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("From_Router_Id"),
-                                   To_Any (Get_Id (Self.all)),
-                                   PolyORB.Any.ARG_IN);
-      Result := (Name      => To_PolyORB_String ("Result"),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
-                 Arg_Modes => 0);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("Message"),
+         Message,
+         PolyORB.Any.ARG_IN);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("From_Router_Id"),
+         To_Any (Get_Id (Self.all)),
+         PolyORB.Any.ARG_IN);
+
+      Result
+        := (Name      => To_PolyORB_String ("Result"),
+            Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+            Arg_Modes => 0);
+
       PolyORB.Requests.Create_Request
         (Target    => Get_Ref (To_Router),
          Operation => "Route",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
       PolyORB.Requests.Invoke (Request);
       PolyORB.Requests.Destroy_Request (Request);
    end Route;
@@ -554,13 +569,18 @@ package body MOMA.Provider.Routers is
       Result      : PolyORB.Any.NamedValue;
    begin
       PolyORB.Any.NVList.Create (Arg_List);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message"),
-                                   Message,
-                                   PolyORB.Any.ARG_IN);
-      Result := (Name      => To_PolyORB_String ("Result"),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
-                 Arg_Modes => 0);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("Message"),
+         Message,
+         PolyORB.Any.ARG_IN);
+
+      Result
+        := (Name      => To_PolyORB_String ("Result"),
+            Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+            Arg_Modes => 0);
+
       PolyORB.Requests.Create_Request
         (Target    => Pool,
          Operation => "Publish",
@@ -581,12 +601,15 @@ package body MOMA.Provider.Routers is
       Pool  :        MOMA.Destinations.Destination) is
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
-      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+        or else Get_Kind (Pool) /= MOMA.Types.Pool
+      then
          raise Program_Error;
       end if;
-      MOMA.Provider.Topic_Datas.Add_Subscriber (Self.Topics,
-                                                Get_Name (Topic),
-                                                Pool);
+
+      PolyORB.MOMA_P.Provider.Topic_Datas.Add_Subscriber
+        (Self.Topics,
+         Get_Name (Topic),
+         Pool);
    end Subscribe;
 
    -----------------
@@ -599,14 +622,15 @@ package body MOMA.Provider.Routers is
       Pool   :        MOMA.Destinations.Destination) is
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
-      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+        or else Get_Kind (Pool) /= MOMA.Types.Pool
+      then
          raise Program_Error;
       end if;
 
-      MOMA.Provider.Topic_Datas.Remove_Subscriber
+      PolyORB.MOMA_P.Provider.Topic_Datas.Remove_Subscriber
         (Self.Topics,
          Get_Name (Topic),
          Pool);
    end Unsubscribe;
 
-end MOMA.Provider.Routers;
+end PolyORB.MOMA_P.Provider.Routers;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       M O M A . P R O V I D E R . M E S S A G E _ C O N S U M E R        --
+--                POLYORB.MOMA_P.PROVIDER.MESSAGE_CONSUMER                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -46,7 +46,7 @@ with PolyORB.Types;
 with PolyORB.Requests;
 with PolyORB.Exceptions;
 
-package body MOMA.Provider.Message_Consumer is
+package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    use MOMA.Messages;
    use MOMA.Destinations;
@@ -372,4 +372,4 @@ package body MOMA.Provider.Message_Consumer is
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;
 
-end MOMA.Provider.Message_Consumer;
+end PolyORB.MOMA_P.Provider.Message_Consumer;

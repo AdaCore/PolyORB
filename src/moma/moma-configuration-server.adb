@@ -33,8 +33,8 @@
 
 --  $Id$
 
-with MOMA.Provider.Message_Pool;
-with MOMA.Provider.Routers;
+with PolyORB.MOMA_P.Provider.Message_Pool;
+with PolyORB.MOMA_P.Provider.Routers;
 
 with PolyORB.Exceptions;
 with PolyORB.Log;
@@ -62,8 +62,8 @@ package body MOMA.Configuration.Server is
      (Pool :     MOMA.Types.Message_Pool;
       Ref  : out PolyORB.References.Ref)
    is
-      MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc :=
-        new MOMA.Provider.Message_Pool.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Pool.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Pool.Object;
 
       Error : Error_Container;
 
@@ -72,7 +72,7 @@ package body MOMA.Configuration.Server is
                        & To_Standard_String (Get_Name (Pool))));
 
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Pool.If_Desc,
+                        PolyORB.MOMA_P.Provider.Message_Pool.If_Desc,
                         MOMA_Type_Id,
                         Ref,
                         Error);
@@ -81,7 +81,7 @@ package body MOMA.Configuration.Server is
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
+      PolyORB.MOMA_P.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
 
    -------------------
@@ -93,8 +93,8 @@ package body MOMA.Configuration.Server is
       Ref        : out PolyORB.References.Ref;
       Router_Ref :     PolyORB.References.Ref := PolyORB.References.Nil_Ref)
    is
-      Router : constant MOMA.Provider.Routers.Router_Acc
-       := new MOMA.Provider.Routers.Router;
+      Router : constant PolyORB.MOMA_P.Provider.Routers.Router_Acc
+       := new PolyORB.MOMA_P.Provider.Routers.Router;
 
       Error : Error_Container;
 
@@ -102,7 +102,7 @@ package body MOMA.Configuration.Server is
       pragma Debug (O ("Creating Router"));
 
       Initiate_Servant (Router,
-                        MOMA.Provider.Routers.If_Desc,
+                        PolyORB.MOMA_P.Provider.Routers.If_Desc,
                         MOMA_Type_Id,
                         Ref,
                         Error);
@@ -111,9 +111,9 @@ package body MOMA.Configuration.Server is
          PolyORB.MOMA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      MOMA.Provider.Routers.Set_Id (Router.all, Id);
-      MOMA.Provider.Routers.Set_Self_Ref (Router.all, Ref);
-      MOMA.Provider.Routers.Initialize (Router, Router_Ref);
+      PolyORB.MOMA_P.Provider.Routers.Set_Id (Router.all, Id);
+      PolyORB.MOMA_P.Provider.Routers.Set_Self_Ref (Router.all, Ref);
+      PolyORB.MOMA_P.Provider.Routers.Initialize (Router, Router_Ref);
    end Create_Router;
 
 end MOMA.Configuration.Server;

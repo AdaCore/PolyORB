@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        M O M A . P R O V I D E R                         --
+--                POLYORB.MOMA_P.PROVIDER.MESSAGE_CONSUMER                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,50 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Base package for MOMA provider. Its child packages define MOMA actual
---  objects, implemented as PolyORB servants using the Minimal_Servant
---  construction; they also define internal constructs.
+--  Actual implementation of the Message_Consumer object. It is
+--  derived from PolyORB's Minimal_Servant. This package contains
+--  Message_Consumer skeleton and implementation subroutines. By
+--  construction, its implementation subroutines contain parts of a
+--  stub for the Message_Pool object.
 
 --  $Id$
 
-package MOMA.Provider is
+with PolyORB.Minimal_Servant;
+with PolyORB.Requests;
+with PolyORB.Obj_Adapters.Simple;
+with PolyORB.References;
 
-   pragma Pure;
+package PolyORB.MOMA_P.Provider.Message_Consumer is
 
-end MOMA.Provider;
+   type Object is new PolyORB.Minimal_Servant.Servant with private;
+   --  Remote_Ref : Reference to the pool from which receive messages.
+
+   type Object_Acc is access Object;
+
+   procedure Invoke
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access);
+   --  Message_Consumer servant skeleton.
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+   --  Interface description for SOA object adapter.
+
+   --  Accessors to Object internals.
+
+   function Get_Remote_Ref
+     (Self : Object)
+      return PolyORB.References.Ref;
+
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref);
+
+private
+
+   type Object is new PolyORB.Minimal_Servant.Servant with record
+      Remote_Ref : PolyORB.References.Ref;
+   end record;
+
+end PolyORB.MOMA_P.Provider.Message_Consumer;

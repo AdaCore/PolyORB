@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            M O M A . P R O V I D E R . T O P I C _ D A T A S             --
+--    P O L Y O R B . M O M A _ P . P R O V I D E R . W A R E H O U S E     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,86 +31,77 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected dictionary of Topics, indexed by Strings.
---  Such a dictionary is used by a router to retrieve topics informations.
+--  A dynamic, protected  dictionary of Any, indexed by Strings. It is used
+--  as a placeholder for received messages.
 
 --  $Id$
 
+with PolyORB.Any;
 with PolyORB.Tasking.Rw_Locks;
-with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 
-with MOMA.Destinations;
 with MOMA.Types;
 
-package MOMA.Provider.Topic_Datas is
-
-   use MOMA.Destinations;
-
-   package Destination_List is
-      new PolyORB.Utils.Chained_Lists (MOMA.Destinations.Destination,
-                                       MOMA.Destinations."=");
-   --  A chained list of destinations.
-
-   type Topic is private;
-   --  Name          : Name of the topic.
-   --  Subscribers   : chained list of destinations, which are the message
-   --                  pools subscribed to this topic.
-   --  XXX Maybe not necessary to store a name...
-
-   Null_Topic : constant Topic;
+package PolyORB.MOMA_P.Provider.Warehouse is
 
    Key_Not_Found : exception;
 
-   type Topic_Data is private;
+   type Warehouse is private;
 
-   procedure Add_Subscriber
-     (Data      : Topic_Data;
-      Topic_Id  : MOMA.Types.String;
-      Pool      : MOMA.Destinations.Destination);
-   --  Add a new pool in the subscribers list of a topic.
+   procedure Register
+     (W : in out Warehouse;
+      K :        String;
+      V :        PolyORB.Any.Any);
+   --  Associate key K with value V.
 
-   procedure Ensure_Initialization (W : in out Topic_Data);
-   --  Ensure that T was initialized.
+   procedure Unregister
+     (W : in out Warehouse;
+      K :        String);
+   --  Remove any association for K. Key_Not_Found is raised
+   --  if no value was registered for this key.
 
-   procedure Remove_Subscriber
-     (Data      : Topic_Data;
-      Topic_Id  : MOMA.Types.String;
-      Pool      : MOMA.Destinations.Destination);
-   --  Remove a pool from the subscribers list of a topic.
+   function Lookup
+      (W : Warehouse;
+       K : String)
+     return PolyORB.Any.Any;
+   --  Lookup K in the dictionary, and return the associated value.
+   --  Key_Not_Found is raised if no value was registered for this
+   --  key.
 
-   function Get_Subscribers
-     (Data      : Topic_Data;
-      Topic_Id  : MOMA.Types.String)
-     return Destination_List.List;
-   --  Return the list of current subscribers to a given topic.
+   function Lookup
+     (W       : Warehouse;
+      K       : String;
+      Default : PolyORB.Any.Any)
+     return PolyORB.Any.Any;
+   --  As above, but Default is returned for non-registered keys,
+   --  instead of raising an exception.
+
+   procedure Set_Persistence
+     (W           : in out Warehouse;
+      Persistence :        MOMA.Types.Persistence_Mode);
+   --  Set persistency flag for this warehouse,
+   --  Note : this overrides any flag set for a message if set to a mode
+   --  allowing persistence.
+
+   --  XXX Warning : not safe in case of multiple message pools !!!!
 
 private
 
-   type Topic is record
-      Name        : MOMA.Types.String;
-      Subscribers : Destination_List.List;
-   end record;
-
-   Null_Topic : constant Topic := (Name => MOMA.Types.To_MOMA_String (""),
-                                   Subscribers => Destination_List.Empty);
-
    package Perfect_Htable is
       new PolyORB.Utils.HTables.Perfect
-     (Topic,
+     (PolyORB.Any.Any,
       PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
       PolyORB.Utils.HFunctions.Hyper.Hash,
       PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
+   use Perfect_Htable;
 
-   type Topic_Data is record
-      T             : Perfect_Htable.Table_Instance;
+   type Warehouse is record
+      T             : Table_Instance;
       T_Initialized : Boolean := False;
+      T_Persistence : MOMA.Types.Persistence_Mode := MOMA.Types.None;
       T_Lock        : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
 
-   function New_Topic (S : Destination_List.List) return Topic;
-   --  Return a new topic with the list of subscribers S.
-
-end MOMA.Provider.Topic_Datas;
+end PolyORB.MOMA_P.Provider.Warehouse;

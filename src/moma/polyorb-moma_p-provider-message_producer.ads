@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R        --
+--                POLYORB.MOMA_P.PROVIDER.MESSAGE_PRODUCER                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,7 +44,7 @@ with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 
-package MOMA.Provider.Message_Producer is
+package PolyORB.MOMA_P.Provider.Message_Producer is
 
    type Object is new PolyORB.Minimal_Servant.Servant with private;
    --  Remote_Ref : Reference to the remote object to which send messages.
@@ -77,4 +77,4 @@ private
       Remote_Ref : PolyORB.References.Ref;
    end record;
 
-end MOMA.Provider.Message_Producer;
+end PolyORB.MOMA_P.Provider.Message_Producer;

@@ -33,16 +33,16 @@
 
 --  $Id$
 
-with MOMA.Messages;
 with MOMA.Messages.MExecutes;
-with MOMA.Provider.Message_Producer;
 with MOMA.Types;
+
+with PolyORB.MOMA_P.Exceptions;
+with PolyORB.MOMA_P.Provider.Message_Producer;
 
 with PolyORB.Any.NVList;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
-with PolyORB.MOMA_P.Exceptions;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -51,16 +51,16 @@ package body MOMA.Message_Producers is
 
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
-   use MOMA.Provider.Message_Producer;
    use MOMA.Types;
+
+   use PolyORB.MOMA_P.Provider.Message_Producer;
 
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Types;
 
-   package L is
-     new PolyORB.Log.Facility_Log ("moma.message_producers");
+   package L is new PolyORB.Log.Facility_Log ("moma.message_producers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -110,8 +110,8 @@ package body MOMA.Message_Producers is
 
       use MOMA.Types;
 
-      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc :=
-        new MOMA.Provider.Message_Producer.Object;
+      MOMA_Obj : constant PolyORB.MOMA_P.Provider.Message_Producer.Object_Acc
+        := new PolyORB.MOMA_P.Provider.Message_Producer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
       Producer : MOMA.Message_Producers.Message_Producer;
@@ -121,7 +121,7 @@ package body MOMA.Message_Producers is
       Error : Error_Container;
    begin
       Initiate_Servant (MOMA_Obj,
-                        MOMA.Provider.Message_Producer.If_Desc,
+                        PolyORB.MOMA_P.Provider.Message_Producer.If_Desc,
                         MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref,
                         Error);
@@ -136,7 +136,7 @@ package body MOMA.Message_Producers is
       Set_Type_Id_Of (Producer, Type_Id_S);
       --  XXX Is it really useful to have the Ref to the remote destination in
       --  the Message_Producer itself ? By construction, this ref is
-      --  encapsulated in the MOMA.Provider.Message_Producer.Object ....
+      --  encapsulated in the PolyORB.MOMA_P.Provider.Message_Producer.Object
       return Producer;
    end Create_Producer;
 
