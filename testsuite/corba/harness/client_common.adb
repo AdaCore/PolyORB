@@ -24,7 +24,7 @@ package body Client_Common is
       MyHarness : Harness.Ref;
       Ok : Boolean := True;
 
-      T0, T1 : Time;
+      T0, T1, T2 : Time;
       Delta1 : Duration;
 
       How_Many : Integer;
@@ -56,10 +56,11 @@ package body Client_Common is
          Ok := Ok and (echoULong (MyHarness, 1234) = 1234);
       end loop;
       T1 := Clock;
+      T2 := Clock;
 
       Output ("Test success", Ok);
 
-      Delta1 := To_Duration (T1 - T0);
+      Delta1 := To_Duration (T1 - T0 - (T2 - T1));
       Ada.Text_IO.Put_Line ("Time: " & Duration'Image (Delta1) & "s");
 
       End_Report;
