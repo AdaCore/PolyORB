@@ -36,7 +36,7 @@
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug; use System.Garlic.Debug;
 
-@LAUNCHING_INCLUDED@with System.Garlic.Debug; use System.Garlic.Debug;
+@LAUNCHING_INCLUDED@with System.Garlic.Remote; use System.Garlic.Remote;
 
 package body System.Garlic.Services is
 
