@@ -4,7 +4,7 @@
 	defining_identifier and colon.
 
 	* backend-be_ada-nutils.adb: Add one to Token_Type'Pos in order to
-	have a positive value.
+	have a positive value. Fix an incorrect redirection to backend tree.
 
 	* iac.adb: Comments.
 

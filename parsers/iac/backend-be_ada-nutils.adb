@@ -374,7 +374,7 @@ package body Backend.BE_Ada.Nutils is
       K := FEN.Kind (Entity);
       if K = FEN.K_Scoped_Name then
          R := Reference (Entity);
-         if Kind (BE_Node (R)) = K_Specification then
+         if Kind (R) = K_Specification then
             return No_Node;
          end if;
          N := New_Node (K_Designator);
