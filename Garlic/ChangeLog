@@ -1,3 +1,8 @@
+2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* split.adb: Force a hard line break when splitting very long name
+	instead of causing an error with -gnatg later on.
+
 2000-05-03  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gardfs.adb, s-gardfs.ads: Add a field Lock in DFS_Data_Type
