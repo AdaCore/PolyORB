@@ -1,9 +1,14 @@
 2001-03-08  Samuel Tardieu  <sam@inf.enst.fr>
 
-	Still debugging 7830-007.
-	
-	* s-gartas.adb: Use a protected object that can detect lock contention
-	as the global lock.
+	* s-gasoli.ads: Make lock structures limited and pass them in-out
+	when it is logical to do so.
+
+	* s-ganota.ads, s-ganota.adb: Ditto.
+
+	* s-gartas.ads, s-gartas.adb: Use a protected object that can detect
+	lock contention	as the global lock.
+	Implement fine-grained locking where appropriate.
+	Remove many uses of pointers when they are not needed.
 
 	* s-gardeb.ads, s-gardeb.adb: Add new procedure to debug the global
 	lock.
