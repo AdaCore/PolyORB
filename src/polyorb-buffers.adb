@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#5 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#6 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -348,6 +348,8 @@ package body PolyORB.Buffers is
    begin
       if Use_Current then
          Start_Position := Buffer.CDR_Position;
+      else
+         Start_Position := At_Position;
       end if;
       Extract_Data
         (Buffer.Contents, Data,
