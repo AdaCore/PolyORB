@@ -175,6 +175,8 @@ package body Idl_Fe.Lexer is
    -- State stack --
    -----------------
 
+   --  ??? More comments needed
+
    type State_Item is record
       Idl_File_Name          : GNAT.OS_Lib.String_Access;
       Current_Location       : Errors.Location;
@@ -199,17 +201,17 @@ package body Idl_Fe.Lexer is
    --  is already initialized, else its initialization for new file
    --  current state should be saved in state stack.
 
-   procedure Store_State;
+   procedure Push_State;
    --  Store lexer state in stack
 
-   procedure Restore_State;
+   procedure Pop_State;
    --  Restore lexer state from stack
 
-   -----------------
-   -- Store_State --
-   -----------------
+   ----------------
+   -- Push_State --
+   ----------------
 
-   procedure Store_State is
+   procedure Push_State is
    begin
       State_Stack.Append
         ((Idl_File_Name          => Idl_File_Name,
@@ -221,13 +223,13 @@ package body Idl_Fe.Lexer is
           TIO_Line               => Ada.Text_IO.Line (Idl_File),
           TIO_Col                => Ada.Text_IO.Col (Idl_File)));
       Ada.Text_IO.Close (Idl_File);
-   end Store_State;
+   end Push_State;
 
-   -------------------
-   -- Restore_State --
-   -------------------
+   ---------------
+   -- Pop_State --
+   ---------------
 
-   procedure Restore_State is
+   procedure Pop_State is
       S : constant State_Item := State_Stack.Table (State_Stack.Last);
    begin
       State_Stack.Set_Last (State_Stack.Last - 1);
@@ -241,9 +243,9 @@ package body Idl_Fe.Lexer is
 
       Ada.Text_IO.Open (Idl_File, Ada.Text_IO.In_File, Idl_File_Name.all);
       Ada.Text_IO.Set_Input (Idl_File);
-      Ada.Text_IO.Set_Line (Idl_File, S.TIO_Line);
-      Ada.Text_IO.Set_Col (Idl_File, S.TIO_Col);
-   end Restore_State;
+      Ada.Text_IO.Set_Line  (Idl_File, S.TIO_Line);
+      Ada.Text_IO.Set_Col   (Idl_File, S.TIO_Col);
+   end Pop_State;
 
    ------------------------
    -- Set_Token_Location --
@@ -252,9 +254,10 @@ package body Idl_Fe.Lexer is
    procedure Set_Token_Location is
    begin
       Current_Token_Location.Filename := Current_Location.Filename;
-      Current_Token_Location.Dirname := Current_Location.Dirname;
-      Current_Token_Location.Line := Current_Location.Line;
-      Current_Token_Location.Col := Current_Location.Col + Offset - Line'First;
+      Current_Token_Location.Dirname  := Current_Location.Dirname;
+      Current_Token_Location.Line     := Current_Location.Line;
+      Current_Token_Location.Col      := Current_Location.Col
+                                           + Offset - Line'First;
    end Set_Token_Location;
 
    -----------------------
@@ -271,9 +274,9 @@ package body Idl_Fe.Lexer is
                        ", Filename = " &
                        Current_Location.Filename.all));
       return (Filename => Current_Location.Filename,
-              Dirname => Current_Location.Dirname,
-              Line => Current_Location.Line,
-              Col => Current_Location.Col + Offset - Line'First);
+              Dirname  => Current_Location.Dirname,
+              Line     => Current_Location.Line,
+              Col      => Current_Location.Col + Offset - Line'First);
    end Get_Real_Location;
 
    ---------------
@@ -282,7 +285,9 @@ package body Idl_Fe.Lexer is
 
    procedure Read_Line is
    begin
-      --  Get next line and append a LF at the end.
+
+      --  Get next line and append LF
+
       Ada.Text_IO.Get_Line (Line, Current_Line_Len);
       Current_Line_Len := Current_Line_Len + 1;
       Line (Current_Line_Len) := LF;
@@ -1255,7 +1260,7 @@ package body Idl_Fe.Lexer is
 
    begin
       if Initialized then
-         Store_State;
+         Push_State;
       else
          Initialized := True;
       end if;
@@ -1315,7 +1320,7 @@ package body Idl_Fe.Lexer is
       end if;
 
       if State_Stack.Last /= 0 then
-         Restore_State;
+         Pop_State;
       else
          Initialized := False;
       end if;

@@ -116,6 +116,8 @@ package body Idl_Fe.Parser is
    -- Parser State Stack --
    ------------------------
 
+   --  ??? More comments needed
+
    type State_Item is record
       Token_Buffer    : Token_Buffer_Type;
       Location_Buffer : Location_Buffer_Type;
@@ -132,9 +134,8 @@ package body Idl_Fe.Parser is
       Table_Initial        => 10,
       Table_Increment      => 100);
 
-   procedure Store_State;
-
-   procedure Restore_State;
+   procedure Push_State;
+   procedure Pop_State;
 
    ---------------------------
    -- Processed files table --
@@ -165,25 +166,25 @@ package body Idl_Fe.Parser is
       return False;
    end Is_Processed;
 
-   -----------------
-   -- Store_State --
-   -----------------
+   ----------------
+   -- Push_State --
+   ----------------
 
-   procedure Store_State is
+   procedure Push_State is
    begin
       State_Stack.Append
-        ((Token_Buffer,
-          Location_Buffer,
-          String_Buffer,
-          Current_Index,
-          Newest_Index));
-   end Store_State;
+        (State_Item'(Token_Buffer,
+                     Location_Buffer,
+                     String_Buffer,
+                     Current_Index,
+                     Newest_Index));
+   end Push_State;
 
-   -------------------
-   -- Restore_State --
-   -------------------
+   ---------------
+   -- Pop_State --
+   ---------------
 
-   procedure Restore_State is
+   procedure Pop_State is
       S : constant State_Item := State_Stack.Table (State_Stack.Last);
    begin
       State_Stack.Set_Last (State_Stack.Last - 1);
@@ -193,11 +194,11 @@ package body Idl_Fe.Parser is
       String_Buffer   := S.String_Buffer;
       Current_Index   := S.Current_Index;
       Newest_Index    := S.Newest_Index;
-   end Restore_State;
+   end Pop_State;
 
-   -----------------
-   --  Get_Token  --
-   -----------------
+   ---------------
+   -- Get_Token --
+   ---------------
 
    function Get_Token return Idl_Token is
    begin
@@ -222,31 +223,32 @@ package body Idl_Fe.Parser is
          Free_String_Ptr (String_Buffer (Newest_Index));
       end if;
       case Token_Buffer (Newest_Index) is
-         when T_Lit_Decimal_Integer |
-           T_Lit_Octal_Integer |
-           T_Lit_Hexa_Integer |
-           T_Lit_Char |
-           T_Lit_Wide_Char |
-           T_Lit_Simple_Floating_Point |
-           T_Lit_Exponent_Floating_Point |
+         when T_Lit_Decimal_Integer           |
+           T_Lit_Octal_Integer                |
+           T_Lit_Hexa_Integer                 |
+           T_Lit_Char                         |
+           T_Lit_Wide_Char                    |
+           T_Lit_Simple_Floating_Point        |
+           T_Lit_Exponent_Floating_Point      |
            T_Lit_Pure_Exponent_Floating_Point |
-           T_Lit_String |
-           T_Lit_Wide_String |
-           T_Lit_Simple_Fixed_Point |
-           T_Lit_Floating_Fixed_Point |
-           T_Identifier |
-           T_Pragma =>
+           T_Lit_String                       |
+           T_Lit_Wide_String                  |
+           T_Lit_Simple_Fixed_Point           |
+           T_Lit_Floating_Fixed_Point         |
+           T_Identifier                       |
+           T_Pragma                           =>
             String_Buffer (Newest_Index) :=
              new String'(Get_Lexer_String);
+
          when others =>
             String_Buffer (Newest_Index) := null;
       end case;
       pragma Debug (O ("Get_Token_From_Lexer: end"));
    end Get_Token_From_Lexer;
 
-   ------------------
-   --  Next_Token  --
-   ------------------
+   ----------------
+   -- Next_Token --
+   ----------------
 
    procedure Next_Token is
    begin
@@ -257,27 +259,27 @@ package body Idl_Fe.Parser is
    end Next_Token;
 
 
-   ---------------------------
-   --  View_Previous_Token  --
-   ---------------------------
+   -------------------------
+   -- View_Previous_Token --
+   -------------------------
 
    function View_Previous_Token return Idl_Token is
    begin
       return Token_Buffer (Current_Index - 1);
    end View_Previous_Token;
 
-   ------------------------------------
-   --  View_Previous_Previous_Token  --
-   ------------------------------------
+   ----------------------------------
+   -- View_Previous_Previous_Token --
+   ----------------------------------
 
    function View_Previous_Previous_Token return Idl_Token is
    begin
       return Token_Buffer (Current_Index - 2);
    end View_Previous_Previous_Token;
 
-   -----------------------
-   --  View_Next_Token  --
-   -----------------------
+   ---------------------
+   -- View_Next_Token --
+   ---------------------
 
    function View_Next_Token return Idl_Token is
    begin
@@ -287,9 +289,9 @@ package body Idl_Fe.Parser is
       return Token_Buffer (Current_Index + 1);
    end View_Next_Token;
 
-   ----------------------------
-   --  View_Next_Next_Token  --
-   ----------------------------
+   --------------------------
+   -- View_Next_Next_Token --
+   --------------------------
 
    function View_Next_Next_Token return Idl_Token is
    begin
@@ -302,9 +304,9 @@ package body Idl_Fe.Parser is
       return Token_Buffer (Current_Index + 2);
    end View_Next_Next_Token;
 
-   --------------------------
-   --  Get_Token_Location  --
-   --------------------------
+   ------------------------
+   -- Get_Token_Location --
+   ------------------------
 
    function Get_Token_Location return Errors.Location is
    begin
@@ -312,9 +314,9 @@ package body Idl_Fe.Parser is
       return Location_Buffer (Current_Index);
    end Get_Token_Location;
 
-   -----------------------------------
-   --  Get_Previous_Token_Location  --
-   -----------------------------------
+   ---------------------------------
+   -- Get_Previous_Token_Location --
+   ---------------------------------
 
    function Get_Previous_Token_Location return Errors.Location is
    begin
@@ -324,9 +326,9 @@ package body Idl_Fe.Parser is
       return Location_Buffer (Current_Index - 1);
    end Get_Previous_Token_Location;
 
-   -----------------------------------
-   --  Get_Previous_Token_Location  --
-   -----------------------------------
+   ---------------------------------
+   -- Get_Previous_Token_Location --
+   ---------------------------------
 
    function Get_Previous_Previous_Token_Location
      return Errors.Location is
@@ -334,55 +336,54 @@ package body Idl_Fe.Parser is
       return Location_Buffer (Current_Index - 2);
    end Get_Previous_Previous_Token_Location;
 
-   -------------------------------
-   --  Get_Next_Token_Location  --
-   -------------------------------
+   -----------------------------
+   -- Get_Next_Token_Location --
+   -----------------------------
 
    function Get_Next_Token_Location return Errors.Location is
    begin
       return Location_Buffer (Current_Index + 1);
    end Get_Next_Token_Location;
 
-   ------------------------
-   --  Get_Token_String  --
-   ------------------------
+   ----------------------
+   -- Get_Token_String --
+   ----------------------
 
    function Get_Token_String return String is
    begin
       return String_Buffer (Current_Index).all;
    end Get_Token_String;
 
-   ---------------------------------
-   --  Get_Previous_Token_String  --
-   ---------------------------------
+   -------------------------------
+   -- Get_Previous_Token_String --
+   -------------------------------
 
    function Get_Previous_Token_String return String is
    begin
       return String_Buffer (Current_Index - 1).all;
    end Get_Previous_Token_String;
 
-   ------------------------------------------
-   --  Get_Previous_Previous_Token_String  --
-   ------------------------------------------
+   ----------------------------------------
+   -- Get_Previous_Previous_Token_String --
+   ----------------------------------------
 
    function Get_Previous_Previous_Token_String return String is
    begin
       return String_Buffer (Current_Index - 2).all;
    end Get_Previous_Previous_Token_String;
 
-   -----------------------------
-   --  Get_Next_Token_String  --
-   -----------------------------
+   ---------------------------
+   -- Get_Next_Token_String --
+   ---------------------------
 
    function Get_Next_Token_String return String is
    begin
       return String_Buffer (Current_Index + 1).all;
    end Get_Next_Token_String;
 
-
-   -------------------------------
-   --  Divide_T_Greater_Greater --
-   -------------------------------
+   ------------------------------
+   -- Divide_T_Greater_Greater --
+   ------------------------------
 
    procedure Divide_T_Greater_Greater is
       Loc : Errors.Location := Get_Token_Location;
@@ -427,7 +428,7 @@ package body Idl_Fe.Parser is
       if not Initialized then
          Initialized := True;
       else
-         Store_State;
+         Push_State;
       end if;
 
       Token_Buffer := (others => T_Error);
@@ -449,7 +450,7 @@ package body Idl_Fe.Parser is
    procedure Finalize is
    begin
       if State_Stack.Last /= 0 then
-         Restore_State;
+         Pop_State;
       else
          Initialized := False;
       end if;
@@ -457,9 +458,9 @@ package body Idl_Fe.Parser is
       Idl_Fe.Lexer.Finalize;
    end Finalize;
 
-   ---------------------------------
-   --  Management of expressions  --
-   ---------------------------------
+   -------------------------------
+   -- Management of expressions --
+   -------------------------------
 
 --    --  the actual list of already used values
 --    Used_Values : Set_Ptr := null;
@@ -548,9 +549,9 @@ package body Idl_Fe.Parser is
    --  Parsing of the idl  --
    --------------------------
 
-   ---------------------------
-   --  Parse_Specification  --
-   ---------------------------
+   -------------------------
+   -- Parse_Specification --
+   -------------------------
 
    procedure Parse_Specification
      (Repository         : in Node_Id;
@@ -600,6 +601,10 @@ package body Idl_Fe.Parser is
       end if;
    end Parse_Specification;
 
+   -------------------------
+   -- Parse_Specification --
+   -------------------------
+
    function Parse_Specification return Node_Id is
       Result : Node_Id;
    begin
@@ -614,25 +619,28 @@ package body Idl_Fe.Parser is
       return Result;
    end Parse_Specification;
 
-   ------------------------
-   --  Parse_Definition  --
-   ------------------------
+   ----------------------
+   -- Parse_Definition --
+   ----------------------
+
    procedure Parse_Definition
-     (Result : out Node_Id;
+     (Result  : out Node_Id;
       Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Definition: enter"));
       case Get_Token is
-         when T_Typedef
-           | T_Struct
-           | T_Union
-           | T_Enum
-           | T_Native =>
+         when
+           T_Typedef |
+           T_Struct  |
+           T_Union   |
+           T_Enum    |
+           T_Native  =>
             Parse_Type_Dcl (Result, Success);
             if not Success then
                pragma Debug (O2 ("Parse_Definition: end"));
                return;
             end if;
+
          when T_Const =>
             Parse_Const_Dcl (Result, Success);
             if not Success then
@@ -745,9 +753,7 @@ package body Idl_Fe.Parser is
                end if;
             end;
 
-         when
-           T_ValueType |
-           T_Custom    =>
+         when T_ValueType | T_Custom =>
             Parse_Value (Result, Success);
             if not Success then
                pragma Debug (O2 ("Parse_Definition: end"));
@@ -773,8 +779,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
 
-         when T_Eof
-           | T_Right_Cbracket =>
+         when T_Eof | T_Right_Cbracket =>
             Result := No_Node;
             Success := False;
             pragma Debug (O2 ("Parse_Definition: end"));
@@ -789,6 +794,7 @@ package body Idl_Fe.Parser is
             pragma Debug (O2 ("Parse_Definition: end"));
             return;
       end case;
+
       if Get_Token /= T_Semi_Colon then
          Errors.Error
            ("';' expected at the end of a definition.",
@@ -802,18 +808,20 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Definition;
 
-   --------------------
-   --  Parse_Module  --
-   --------------------
+   ------------------
+   -- Parse_Module --
+   ------------------
+
    procedure Parse_Module
-      (Result : out Node_Id;
+      (Result  : out Node_Id;
        Success : out Boolean;
-       Reopen  : out Boolean)
-   is
+       Reopen  : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Module: enter"));
       Reopen := False;
-      --  Is there an identifier ?
+
+      --  Is there an identifier?
+
       Next_Token;
       case Get_Token is
          when  T_Identifier =>
@@ -958,12 +966,12 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Module: end"));
    end Parse_Module;
 
-   -----------------------
-   --  Parse_Interface  --
-   -----------------------
+   ---------------------
+   -- Parse_Interface --
+   ---------------------
 
    procedure Parse_Interface
-     (Result : out  Node_Id;
+     (Result  : out  Node_Id;
       Success : out Boolean)
    is
       Res : Node_Id;
@@ -1140,9 +1148,8 @@ package body Idl_Fe.Parser is
    ------------------
 
    procedure Parse_Export
-     (Result : out Node_Id;
-      Success : out Boolean)
-   is
+     (Result  : out Node_Id;
+      Success : out Boolean) is
    begin
       case Get_Token is
          when T_Readonly | T_Attribute =>
@@ -1235,9 +1242,10 @@ package body Idl_Fe.Parser is
       end if;
    end Parse_Export;
 
-   -------------------------------
-   --  Parse_Interface_Dcl_End  --
-   -------------------------------
+   -----------------------------
+   -- Parse_Interface_Dcl_End --
+   -----------------------------
+
    procedure Parse_Interface_Dcl_End
      (Result : in out Node_Id;
       Success : out Boolean) is
@@ -1354,11 +1362,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Interface_Dcl_End: end"));
    end Parse_Interface_Dcl_End;
 
-
-
-   ----------------------------
-   --  Parse_Interface_Body  --
-   ----------------------------
+   --------------------------
+   -- Parse_Interface_Body --
+   --------------------------
 
    procedure Parse_Interface_Body
      (List : in out Node_List;
@@ -1381,12 +1387,13 @@ package body Idl_Fe.Parser is
       end loop;
    end Parse_Interface_Body;
 
-   ----------------------------
-   --  Parse_Interface_Name  --
-   ----------------------------
+   --------------------------
+   -- Parse_Interface_Name --
+   --------------------------
 
-   procedure Parse_Interface_Name (Result : out Node_Id;
-                                   Success : out Boolean) is
+   procedure Parse_Interface_Name
+     (Result  : out Node_Id;
+      Success : out Boolean) is
    begin
       Parse_Scoped_Name (Result, Success);
       --  the scoped name should denote an interface
@@ -1409,12 +1416,14 @@ package body Idl_Fe.Parser is
       end if;
    end Parse_Interface_Name;
 
-   -------------------------
-   --  Parse_Scoped_Name  --
-   -------------------------
+   -----------------------
+   -- Parse_Scoped_Name --
+   -----------------------
 
-   procedure Parse_Scoped_Name (Result : out Node_Id;
-                                Success : out Boolean) is
+   procedure Parse_Scoped_Name
+     (Result  : out Node_Id;
+      Success : out Boolean)
+   is
       Res : Node_Id;
       Scope : Node_Id;
       A_Name : Node_Id := No_Node;
@@ -1690,11 +1699,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Scoped_Name;
 
-   -------------------
-   --  Parse_Value  --
-   -------------------
-   procedure Parse_Value (Result : out Node_Id;
-                          Success : out Boolean) is
+   -----------------
+   -- Parse_Value --
+   -----------------
+
+   procedure Parse_Value
+     (Result  : out Node_Id;
+      Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Value: enter"));
       case Get_Token is
@@ -1718,11 +1729,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Value;
 
-   --------------------------
-   --  Parse_Custom_Value  --
-   --------------------------
-   procedure Parse_Custom_Value (Result : out Node_Id;
-                                 Success : out Boolean) is
+   ------------------------
+   -- Parse_Custom_Value --
+   ------------------------
+
+   procedure Parse_Custom_Value
+     (Result  : out Node_Id;
+      Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Custom_Value: enter"));
       if Get_Token /= T_ValueType then
@@ -1838,11 +1851,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Abstract_Value;
 
-   --------------------------
-   --  Parse_Direct_Value  --
-   --------------------------
-   procedure Parse_Direct_Value (Result : out Node_Id;
-                                 Success : out Boolean) is
+   ------------------------
+   -- Parse_Direct_Value --
+   ------------------------
+
+   procedure Parse_Direct_Value
+     (Result  : out Node_Id;
+      Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Direct_Value: enter"));
       Next_Token;
@@ -7277,7 +7292,8 @@ package body Idl_Fe.Parser is
       declare
          NK : constant Node_Kind := Kind (Value (Scoped_Name_Node));
       begin
-         if NK /= K_Module
+         if True
+           and then NK /= K_Module
            and then NK /= K_Interface
            and then NK /= K_Forward_Interface
            and then NK /= K_ValueType
