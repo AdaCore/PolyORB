@@ -1,3 +1,24 @@
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_stubs.adb: Use Has_RACW to set correctly Light_PCS. Fix
+ 	7722-014.
+
+	* xe.adb: Fix a problem when we restore an empty context - this is
+ 	used to resolve overloading in gnatdist. When the context is
+ 	empty, the first node is the configuration itself and this is a
+	special case.
+
+	* xe_back.adb, xe_stdcnf.adb: Overload pragma Boot_Location for a
+ 	signature with a location. We still have a pragma Boot_Location
+ 	with two parameters (protocol name and data) and another one with
+ 	a location list.
+
+	* xe_parse.adb: Add a procedure Print_Node to dump the tree.
+
+	* xe_stubs.adb: Fix a code generation problem for shared passive
+ 	partitions. Set the data location for data storage support
+ 	correctly.
+
 2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (xe_defs.adb): Generate the code for
