@@ -34,16 +34,15 @@
 
 --  $Id$
 
-with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Strings.Lists;
+pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 
 package PolyORB.Configurator is
 
    pragma Elaborate_Body;
 
-   package String_Lists is new PolyORB.Utils.Chained_Lists
-     (String);
+   package String_Lists renames PolyORB.Utils.Strings.Lists;
 
    type Initializer is access procedure;
 

@@ -35,16 +35,21 @@
 --  $Id$
 
 generic
-   type T (<>) is private;
+   type T is private;
 package PolyORB.Utils.Chained_Lists is
 
    pragma Preelaborate;
 
    type List is private;
    type Iterator is private;
-   type Element_Access is access T;
+   type Element_Access is access all T;
 
    function Length (L : List) return Natural;
+   function Element
+     (L : List;
+      Index : Natural)
+     return Element_Access;
+
    function First (L : List) return Iterator;
    function Value (I : Iterator) return Element_Access;
    function Last (I : Iterator) return Boolean;
@@ -83,7 +88,7 @@ private
    type Node;
    type Node_Access is access all Node;
    type Node is record
-      Value : Element_Access;
+      Value : aliased T;
       Next  : Node_Access;
    end record;
 

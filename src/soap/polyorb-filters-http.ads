@@ -41,8 +41,8 @@ with PolyORB.Buffers;
 with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
 with PolyORB.Types;
-with PolyORB.Utils.Chained_Lists;
-pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
+with PolyORB.Utils.Strings.Lists;
+pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 with PolyORB.Utils.Strings;
 
 package PolyORB.Filters.HTTP is
@@ -220,7 +220,7 @@ private
 
    function Image (V : HTTP_Version) return String;
 
-   package String_Lists is new PolyORB.Utils.Chained_Lists (String);
+   package String_Lists renames PolyORB.Utils.Strings.Lists;
 
    type HTTP_Filter is new Filter with record
       Role : PolyORB.ORB.Endpoint_Role;

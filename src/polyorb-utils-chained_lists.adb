@@ -49,6 +49,24 @@ package body PolyORB.Utils.Chained_Lists is
       return C;
    end Length;
 
+   function Element
+     (L : List;
+      Index : Natural)
+     return Element_Access
+   is
+      N : Node_Access := L.First;
+      C : Natural := 0;
+   begin
+      while N /= null loop
+         if C = Index then
+            return N.Value'Access;
+         end if;
+         C := C + 1;
+         N := N.Next;
+      end loop;
+      raise Constraint_Error;
+   end Element;
+
    function First (L : List) return Iterator is
    begin
       return Iterator (L.First);
@@ -56,7 +74,7 @@ package body PolyORB.Utils.Chained_Lists is
 
    function Value (I : Iterator) return Element_Access is
    begin
-      return I.Value;
+      return I.Value'Access;
    end Value;
 
    function Last (I : Iterator) return Boolean is
@@ -71,14 +89,14 @@ package body PolyORB.Utils.Chained_Lists is
 
    procedure Prepend (L : in out List; I : T) is
    begin
-      L.First := new Node'(Next => L.First, Value => new T'(I));
+      L.First := new Node'(Next => L.First, Value => I);
       if L.Last = null then
          L.Last := L.First;
       end if;
    end Prepend;
 
    procedure Append (L : in out List; I : T) is
-      N : constant Node_Access := new Node'(Next => null, Value => new T'(I));
+      N : constant Node_Access := new Node'(Next => null, Value => I);
    begin
       if L.Last = null then
          L.First := N;
@@ -90,7 +108,7 @@ package body PolyORB.Utils.Chained_Lists is
    end Append;
 
    function "+" (I : T) return List is
-      N : constant Node_Access := new Node'(Next => null, Value => new T'(I));
+      N : constant Node_Access := new Node'(Next => null, Value => I);
    begin
       return List'(First => N, Last => N);
    end "+";
@@ -134,7 +152,6 @@ package body PolyORB.Utils.Chained_Lists is
    begin
       if L /= null then
          Deallocate (L.Next);
-         Free (L.Value);
          Free (L);
       end if;
    end Deallocate;

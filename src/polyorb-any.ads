@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#11 $
+--  $Id: //droopi/main/src/polyorb-any.ads#12 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -39,6 +39,7 @@ with PolyORB.Locks;
 with PolyORB.References;
 with PolyORB.Storage_Pools;
 with PolyORB.Types; use PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any is
 
@@ -897,18 +898,15 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (TypeCode.Object, TypeCode.Object_Ptr);
 
-   --  a list of any
-   type Content_Cell;
-   type Content_List is access all Content_Cell;
-   type Content_Cell is record
-      The_Value : Any_Content_Ptr := null;
-      Next : Content_List := null;
-   end record;
-   Null_Content_List : constant Content_List := null;
+   --  A list of Any contents (for construction of aggregates).
+   package Content_Lists is new PolyORB.Utils.Chained_Lists
+     (Any_Content_Ptr);
+   subtype Content_List is Content_Lists.List;
+
    function Duplicate (List : in Content_List) return Content_List;
    procedure Deep_Deallocate (List : in out Content_List);
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Content_Cell, Content_List);
+   --  procedure Deallocate (L : in out Content_List)
+
    function Get_Content_List_Length (List : in Content_List)
      return Unsigned_Long;
 
@@ -932,11 +930,12 @@ private
    --     - for Valuebox : FIXME
    --     - for Abstract_Interface : FIXME
    type Content_Aggregate is new Content with record
-      Value : Content_List := null;
+      Value : Content_List := Content_Lists.Empty;
    end record;
    type Content_Aggregate_Ptr is access all Content_Aggregate;
-   function Duplicate (Object : access Content_Aggregate)
-                       return Any_Content_Ptr;
+   function Duplicate
+     (Object : access Content_Aggregate)
+     return Any_Content_Ptr;
    procedure Deallocate (Object : access Content_Aggregate);
 
    type Natural_Ptr is access Natural;

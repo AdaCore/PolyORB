@@ -2,7 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
-XXXXXX
+--          P O L Y O R B . U T I L S . S T R I N G S . L I S T S           --
+--                                                                          --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 2001-2002 Free Software Fundation              --
 --                                                                          --
@@ -27,3 +29,48 @@ XXXXXX
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  Generic chained list.
+
+--  $Id$
+
+with PolyORB.Utils.Chained_Lists;
+pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
+
+package PolyORB.Utils.Strings.Lists is
+
+   pragma Elaborate_Body;
+
+   package String_Ptr_Lists is new PolyORB.Utils.Chained_Lists
+     (String_Ptr);
+
+   type List is new String_Ptr_Lists.List;
+   type Iterator is new String_Ptr_Lists.Iterator;
+   Empty : constant List := List (String_Ptr_Lists.Empty);
+
+   function First (L : List) return Iterator;
+   function Value (I : Iterator) return String_Ptr;
+   procedure Prepend (L : in out List; I : String);
+   procedure Append (L : in out List; I : String);
+
+   function "+" (I : String) return List;
+   --  Make a list with I as its only element.
+
+   function "&" (I : String; L : List) return List;
+   --  Prepend I to L.
+
+   function "&" (L : List; I : String) return List;
+   --  Append I to L.
+
+   procedure Deallocate (L : in out List);
+
+private
+
+   pragma Inline (First);
+   pragma Inline (Value);
+   pragma Inline (Prepend);
+   pragma Inline (Append);
+   pragma Inline ("+");
+   pragma Inline ("&");
+
+end PolyORB.Utils.Strings.Lists;

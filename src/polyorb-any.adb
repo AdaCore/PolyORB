@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#19 $
+--  $Id: //droopi/main/src/polyorb-any.adb#20 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2250,26 +2250,31 @@ package body PolyORB.Any is
       Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all = null then
          Any_Value.The_Value.all :=
-          new Content_Aggregate'(Value => Null_Content_List);
+          new Content_Aggregate;
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Aggregate_Value;
 
-   ---------------------------
-   --  Get_Aggregate_Count  --
-   ---------------------------
-   function Get_Aggregate_Count (Value : Any) return Unsigned_Long is
+   -------------------------
+   -- Get_Aggregate_Count --
+   -------------------------
+
+   function Get_Aggregate_Count (Value : Any)
+     return Unsigned_Long is
    begin
       return Get_Content_List_Length
         (Content_Aggregate_Ptr
          (Get_Value (Value)).Value);
    end Get_Aggregate_Count;
 
-   -----------------------------
-   --  Add_Aggregate_Element  --
-   -----------------------------
-   procedure Add_Aggregate_Element (Value : in out Any;
-                                    Element : in Any) is
+   ---------------------------
+   -- Add_Aggregate_Element --
+   ---------------------------
+
+   procedure Add_Aggregate_Element
+     (Value : in out Any;
+      Element : in Any)
+   is
       Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
@@ -2279,28 +2284,23 @@ package body PolyORB.Any is
                        & TCKind'Image
                        (TypeCode.Kind
                         (Get_Type (Element)))));
-      if Cl = Null_Content_List then
-         Content_Aggregate_Ptr (Value.The_Value.all).Value
-           := new Content_Cell' (Duplicate (Element.The_Value.all),
-                                 Null_Content_List);
-      else
-         while Cl.Next /= Null_Content_List loop
-            Cl := Cl.Next;
-         end loop;
-         Cl.Next := new Content_Cell' (Duplicate (Element.The_Value.all),
-                                       Null_Content_List);
-      end if;
+      Content_Lists.Append
+        (Content_Aggregate_Ptr (Value.The_Value.all).Value,
+         Duplicate (Element.The_Value.all));
       Unlock_W (Value.Any_Lock);
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
-   -----------------------------
-   --  Get_Aggregate_Element  --
-   -----------------------------
-   function Get_Aggregate_Element (Value : Any;
-                                   Tc : TypeCode.Object;
-                                   Index : Unsigned_Long)
-                                   return Any is
+   ---------------------------
+   -- Get_Aggregate_Element --
+   ---------------------------
+
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : TypeCode.Object;
+      Index : Unsigned_Long)
+     return Any
+   is
       Result : Any;
       Ptr : Content_List;
    begin
@@ -2313,15 +2313,10 @@ package body PolyORB.Any is
                        & ", aggregate_count = "
                        & Unsigned_Long'Image
                        (Get_Aggregate_Count (Value))));
-      pragma Assert (Get_Aggregate_Count (Value) > Index);
-      if Index > 0 then
-         for I in 0 .. Index - 1 loop
-            Ptr := Ptr.Next;
-         end loop;
-      end if;
-      pragma Assert (Ptr /= null);
-      pragma Assert (Ptr.The_Value /= null);
-      Result.The_Value.all := Duplicate (Ptr.The_Value);
+
+      Result.The_Value.all
+        := Duplicate
+        (Content_Lists.Element (Ptr, Integer (Index)).all);
       Unlock_R (Value.Any_Lock);
       Inc_Usage (Result);
       Set_Type (Result, Tc);
@@ -2329,16 +2324,17 @@ package body PolyORB.Any is
       return Result;
    end Get_Aggregate_Element;
 
-   -------------------------------
-   --  Get_Empty_Any_Aggregate  --
-   -------------------------------
-   function Get_Empty_Any_Aggregate (Tc : TypeCode.Object)
-                                     return Any is
+   -----------------------------
+   -- Get_Empty_Any_Aggregate --
+   -----------------------------
+
+   function Get_Empty_Any_Aggregate
+     (Tc : TypeCode.Object)
+     return Any is
       Result : Any;
    begin
       pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
-      Set_Value (Result,
-                 new Content_Aggregate'(Value => Null_Content_List));
+      Set_Value (Result, new Content_Aggregate);
       Set_Type (Result, Tc);
       Inc_Usage (Result);
       pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
@@ -2403,49 +2399,47 @@ package body PolyORB.Any is
    --  Duplicate  --
    -----------------
    function Duplicate (List : in Content_List) return Content_List is
+      use Content_Lists;
+
+      R : Content_List;
+      I : Iterator := First (List);
    begin
-      pragma Debug (O ("Duplicate (Content_List) : enter & end"));
-      if List /= null then
-         return new Content_Cell'(The_Value => Duplicate (List.The_Value),
-                                  Next => Duplicate (List.Next));
-      else
-         return null;
-      end if;
+      pragma Debug (O ("Duplicate (Content_List): enter"));
+      while not Last (I) loop
+         Append (R, Duplicate (Value (I).all));
+         Next (I);
+      end loop;
+      pragma Debug (O ("Duplicate (Content_List): leave"));
+      return R;
    end Duplicate;
 
    -----------------------
    --  Deep_Deallocate  --
    -----------------------
    procedure Deep_Deallocate (List : in out Content_List) is
+      use Content_Lists;
+      I : Iterator := First (List);
    begin
       pragma Debug (O2 ("Deep_Deallocate : enter"));
-      if List /= null then
-         Deep_Deallocate (List.Next);
-         pragma Debug (O2 ("Deep_Deallocate : end of the list deallocated"));
-         pragma Debug (O2 ("Deep_Deallocate : object type is "
+      while not Last (I) loop
+         pragma Debug (O2 ("Deep_Deallocate: object type is "
                            & Ada.Tags.External_Tag
-                           (List.The_Value'Tag)));
-         Deallocate (List.The_Value);
-         pragma Debug (O2 ("Deep_Deallocate : current value deallocated"));
-         Deallocate (List);
-         pragma Debug (O2 ("Deep_Deallocate : current cell deallocated"));
-      end if;
+                           (Value (I).all'Tag)));
+         Deallocate (Value (I).all);
+         Next (I);
+      end loop;
+      Deallocate (List);
       pragma Debug (O2 ("Deep_Deallocate : end"));
    end Deep_Deallocate;
 
-   -------------------------------
-   --  Get_Content_List_Length  --
-   -------------------------------
+   -----------------------------
+   -- Get_Content_List_Length --
+   -----------------------------
+
    function Get_Content_List_Length (List : in Content_List)
      return Unsigned_Long is
-      Ptr : Content_List := List;
-      N : Unsigned_Long := 0;
    begin
-      while Ptr /= null loop
-         N := N + 1;
-         Ptr := Ptr.Next;
-      end loop;
-      return N;
+      return Unsigned_Long (Content_Lists.Length (List));
    end Get_Content_List_Length;
 
    ------------------
