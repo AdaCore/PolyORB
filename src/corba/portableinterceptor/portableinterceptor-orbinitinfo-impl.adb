@@ -269,6 +269,23 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       raise PolyORB.Not_Implemented;
    end Register_Initial_Reference;
 
+   -----------------------------
+   -- Register_Policy_Factory --
+   -----------------------------
+
+   procedure Register_Policy_Factory
+     (Self           : access Object;
+      IDL_Type       : in     CORBA.PolicyType;
+      Policy_Factory : in     PortableInterceptor.PolicyFactory.Local_Ref)
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (IDL_Type);
+      pragma Unreferenced (Policy_Factory);
+
+   begin
+      raise PolyORB.Not_Implemented;
+   end Register_Policy_Factory;
+
    --------------------------------
    -- Resolve_Initial_References --
    --------------------------------

@@ -577,6 +577,10 @@ src/corba/portableinterceptor/portableinterceptor-orbinitinfo-impl.adb
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo-impl.ads
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo.adb
 src/corba/portableinterceptor/portableinterceptor-orbinitinfo.ads
+src/corba/portableinterceptor/portableinterceptor-policyfactory-impl.adb
+src/corba/portableinterceptor/portableinterceptor-policyfactory-impl.ads
+src/corba/portableinterceptor/portableinterceptor-policyfactory.adb
+src/corba/portableinterceptor/portableinterceptor-policyfactory.ads
 src/corba/portableinterceptor/portableinterceptor-requestinfo-impl.adb
 src/corba/portableinterceptor/portableinterceptor-requestinfo-impl.ads
 src/corba/portableinterceptor/portableinterceptor-requestinfo.adb

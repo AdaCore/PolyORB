@@ -38,6 +38,8 @@ ADA_SPECS_WITH_BODY = \
 	portableinterceptor-orbinitinfo.ads \
 	portableinterceptor-orbinitinfo-helper.ads \
 	portableinterceptor-orbinitinfo-impl.ads \
+	portableinterceptor-policyfactory.ads \
+	portableinterceptor-policyfactory-impl.ads \
 	portableinterceptor-requestinfo.ads \
 	portableinterceptor-requestinfo-impl.ads \
 	portableinterceptor-serverrequestinfo.ads \

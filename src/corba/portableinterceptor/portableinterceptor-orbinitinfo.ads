@@ -43,6 +43,7 @@ with CORBA.Object;
 with IOP.CodecFactory;
 with PortableInterceptor.ClientRequestInterceptor;
 with PortableInterceptor.IORInterceptor;
+with PortableInterceptor.PolicyFactory;
 with PortableInterceptor.ServerRequestInterceptor;
 
 package PortableInterceptor.ORBInitInfo is
@@ -117,10 +118,10 @@ package PortableInterceptor.ORBInitInfo is
      (Self : in Local_Ref)
       return PortableInterceptor.SlotId;
 
---   procedure Register_Policy_Factory
---     (Self           : in Local_Ref;
---      IDL_Type       : in CORBA.PolicyType;
---      Policy_Factory : in PortableInterceptor.PolicyFactory.Ref);
+   procedure Register_Policy_Factory
+     (Self           : in Local_Ref;
+      IDL_Type       : in CORBA.PolicyType;
+      Policy_Factory : in PortableInterceptor.PolicyFactory.Local_Ref);
 
    --  RepositoryIds
 

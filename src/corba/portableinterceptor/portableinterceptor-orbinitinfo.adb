@@ -197,6 +197,28 @@ package body PortableInterceptor.ORBInitInfo is
          Obj);
    end Register_Initial_Reference;
 
+   -----------------------------
+   -- Register_Policy_Factory --
+   -----------------------------
+
+   procedure Register_Policy_Factory
+     (Self           : in Local_Ref;
+      IDL_Type       : in CORBA.PolicyType;
+      Policy_Factory : in PortableInterceptor.PolicyFactory.Local_Ref)
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+
+   begin
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      PortableInterceptor.ORBInitInfo.Impl.Register_Policy_Factory
+        (PortableInterceptor.ORBInitInfo.Impl.Object_Ptr (Entity_Of (Self)),
+         IDL_Type,
+         Policy_Factory);
+   end Register_Policy_Factory;
+
    --------------------------------
    -- Resolve_Initial_References --
    --------------------------------

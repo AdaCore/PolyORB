@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  PORTABLEINTERCEPTOR.ORBINITINFO.IMPL                    --
+--    P O R T A B L E I N T E R C E P T O R . P O L I C Y F A C T O R Y     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,75 +36,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Local;
+with CORBA.Object;
+with CORBA.Policy;
 
-package PortableInterceptor.ORBInitInfo.Impl is
+package PortableInterceptor.PolicyFactory is
 
-   pragma Elaborate_Body;
+   type Local_Ref is new CORBA.Object.Ref with null record;
 
-   type Object is new CORBA.Local.Object with private;
+   function Create_Policy
+     (Self     : in Local_Ref;
+      IDL_Type : in CORBA.PolicyType;
+      Value    : in CORBA.Any)
+     return CORBA.Policy.Ref;
 
-   type Object_Ptr is access all Object'Class;
+   --  Repository Ids
 
-   procedure Init (Self : access Object);
+   Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableInterceptor/PolicyFactory:1.0";
 
-   procedure Post_Init_Done (Self : access Object);
-   --  Called once the initialization is complete. It is required for
-   --  raising exception in case of call object operations after
-   --  initialization complete. XXX reword this comment
+   Create_Policy_Repository_Id : constant Standard.String
+     := "IDL:omg.org/PortableInterceptor/PolicyFactory/create_policy:1.0";
 
---   function Get_Arguments
---     (Self : access Object)
---      return CORBA.StringSeq;
-
-   function Get_ORB_Id (Self : access Object) return CORBA.String;
-
-   function Get_Codec_Factory
-     (Self : access Object)
-      return IOP.CodecFactory.Local_Ref;
-
-   procedure Register_Initial_Reference
-     (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId;
-      Obj  : in     CORBA.Object.Ref);
-
-   function Resolve_Initial_References
-     (Self : access Object;
-      Id   : in     PortableInterceptor.ORBInitInfo.ObjectId)
-      return CORBA.Object.Ref;
-
-   procedure Add_Client_Request_Interceptor
-     (Self        : access Object;
-      Interceptor : in
-        PortableInterceptor.ClientRequestInterceptor.Local_Ref);
-
-   procedure Add_Server_Request_Interceptor
-     (Self        : access Object;
-      Interceptor : in
-        PortableInterceptor.ServerRequestInterceptor.Local_Ref);
-
-   procedure Add_IOR_Interceptor
-     (Self        : access Object;
-      Interceptor : in     PortableInterceptor.IORInterceptor.Local_Ref);
-
-   function Allocate_Slot_Id
-     (Self : access Object)
-     return PortableInterceptor.SlotId;
-
-   procedure Register_Policy_Factory
-     (Self           : access Object;
-      IDL_Type       : in     CORBA.PolicyType;
-      Policy_Factory : in     PortableInterceptor.PolicyFactory.Local_Ref);
-
-   function Is_A
-     (Self            : access Object;
-      Logical_Type_Id : in     String)
-      return Boolean;
-
-private
-
-   type Object is new CORBA.Local.Object with record
-      Post_Init_Done : Boolean := False;
-   end record;
-
-end PortableInterceptor.ORBInitInfo.Impl;
+end PortableInterceptor.PolicyFactory;
