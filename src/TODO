@@ -12,6 +12,9 @@ Items still requiring attention
 * Droopi.Buffers: remove mentions of CDR.
 * When a connection is closed, release all associated
   resources in a top-down fashion.
+* A single-task client configuration.
+* A multi-tasking server configuration.
+* A multi-tasking client configuration.
 
 Items processed
 ---------------
