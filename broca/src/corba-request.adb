@@ -88,8 +88,10 @@ package body CORBA.Request is
                Self.Result := Broca.CDR.Unmarshall
                  (Handler.Buffer'Access,
                   Self.Result.Name,
+                  CORBA.Get_Type (Self.Result.Argument),
                   Self.Result.Arg_Modes);
                Broca.GIOP.Release (Handler);
+               return;
             when Broca.GIOP.Sr_No_Reply =>
                Broca.GIOP.Release (Handler);
                raise Program_Error;
@@ -143,5 +145,10 @@ package body CORBA.Request is
                   Result => Result,
                   Req_Flags => Req_Flags);
    end Create_Request;
+
+   function Return_Value (Self : Object) return NamedValue is
+   begin
+      return Self.Result;
+   end Return_Value;
 
 end CORBA.Request;

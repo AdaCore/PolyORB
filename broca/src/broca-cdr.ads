@@ -276,6 +276,7 @@ package Broca.CDR is
    function Unmarshall
      (Buffer : access Buffer_Type;
       Name : CORBA.Identifier;
+      Arg_Type : CORBA.TypeCode.Object;
       Flags : CORBA.Flags)
       return CORBA.NamedValue;
 

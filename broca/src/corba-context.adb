@@ -54,8 +54,9 @@ package body CORBA.Context is
       This_Object : in     Boolean := TRUE;
       Prop_Name   : in     Identifier;
       Values      :    out CORBA.NVList.Ref) is
+      Result : CORBA.NVList.Ref;
    begin
-      null;
+      Values := Result;
    end Get_Values;
 
    procedure Delete_Values
@@ -70,7 +71,7 @@ package body CORBA.Context is
       Ctx_Name  : in     Identifier;
       Child_Ctx :    out Ref) is
    begin
-      null;
+      Child_Ctx := Self;
    end Create_Child;
 
    procedure Delete

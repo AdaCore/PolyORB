@@ -643,6 +643,7 @@ package body CORBA is
       function Length (Self : in Object)
                        return CORBA.Unsigned_Long is
       begin
+         pragma Debug (O ("Length : enter & end"));
          case Kind (Self) is
             when Tk_String
               | Tk_Wstring
@@ -841,12 +842,17 @@ package body CORBA is
                               return Any is
          Ptr : Cell_Ptr := Self.Parameters;
       begin
+         pragma Debug (O ("Get_Parameter : enter"));
+         pragma Debug (O ("Get_Parameter : Index = " &
+                          CORBA.Unsigned_Long'Image (Index)));
          pragma Assert (Ptr /= null);
-         for I in 0 .. Index - 1
-         loop
-            Ptr := Ptr.Next;
-            pragma Assert (Ptr /= null);
-         end loop;
+         if Index /= 0 then
+            for I in 0 .. Index - 1 loop
+               Ptr := Ptr.Next;
+               pragma Assert (Ptr /= null);
+            end loop;
+         end if;
+         pragma Debug (O ("Get_Parameter : end"));
          return Ptr.Parameter;
       end Get_Parameter;
 
@@ -1361,7 +1367,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set_Kind (Tco, Tk_String);
-      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Long (0)));
+      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       return (new Content_String' (Value => Item), Tco);
    end To_Any;
@@ -1370,7 +1376,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set_Kind (Tco, Tk_Wstring);
-      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Long (0)));
+      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       return (new Content_Wide_String' (Value => Item), Tco);
    end To_Any;

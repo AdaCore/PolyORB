@@ -785,9 +785,9 @@ package CORBA is
    function Get_Empty_Any_Aggregate (Tc : CORBA.TypeCode.Object)
                                      return Any;
 
-   ------------------
-   --  Named_Value --
-   ------------------
+   -----------------
+   --  NamedValue --
+   -----------------
 
    type Flags is new CORBA.Unsigned_Long;
 

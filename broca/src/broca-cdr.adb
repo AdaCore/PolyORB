@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
@@ -280,10 +280,16 @@ package body Broca.CDR is
    is
       Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
    begin
+      pragma Debug (O ("Marshall (String) : enter"));
+      pragma Debug (O ("Marshall (String) : length is " &
+                       CORBA.Unsigned_Long'Image (Equiv'Length)));
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
          Marshall (Buffer, CORBA.Char'Val (Character'Pos (Equiv (I))));
+         pragma Debug (O ("Marshall (String) : I = " &
+                          Integer'Image (I)));
       end loop;
+      pragma Debug (O ("Marshall (String) : end"));
    end Marshall;
 
    procedure Marshall
@@ -332,8 +338,11 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any) is
    begin
+      pragma Debug (O ("Marshall (Any) : enter"));
       Marshall (Buffer, Get_Type (Data));
+      pragma Debug (O ("Marshall (Any) : type marshalled"));
       Marshall_From_Any (Buffer, Data);
+      pragma Debug (O ("Marshall (Any) : end"));
    end Marshall;
 
    procedure Marshall_From_Any
@@ -341,6 +350,7 @@ package body Broca.CDR is
       Data   : in CORBA.Any) is
       Data_Type : CORBA.TypeCode.Object := Get_Type (Data);
    begin
+      pragma Debug (O ("Marshall_From_Any : enter"));
       while CORBA.TypeCode.Kind (Data_Type) = Tk_Alias loop
          Data_Type := CORBA.TypeCode.Content_Type (Data_Type);
       end loop;
@@ -565,6 +575,7 @@ package body Broca.CDR is
             --  FIXME : to be done
             null;
       end case;
+      pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
 
    procedure Marshall
@@ -572,6 +583,7 @@ package body Broca.CDR is
       Data   : in CORBA.TypeCode.Object) is
       Complex_Buffer : aliased Buffer_Type;
    begin
+      pragma Debug (O ("Marshall (Typecode) : enter"));
       case CORBA.TypeCode.Kind (Data) is
          when Tk_Null =>
             Marshall (Buffer, CORBA.Unsigned_Long'(0));
@@ -797,13 +809,16 @@ package body Broca.CDR is
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
       end case;
+      pragma Debug (O ("Marshall (Typecode) : end"));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.NamedValue) is
    begin
-      Marshall (Buffer, Data.Argument);
+      pragma Debug (O ("Marshall (NamedValue) : enter"));
+      Marshall_From_Any (Buffer, Data.Argument);
+      pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
 
    procedure Marshall
@@ -1114,10 +1129,14 @@ package body Broca.CDR is
         := Unmarshall (Buffer);
       Equiv  : String (1 .. Natural (Length));
    begin
+      pragma Debug (O ("Unmarshall (String) : enter"));
+      pragma Debug (O ("Unmarshall (String) : length is " &
+                    CORBA.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
          Equiv (I) := Character'Val (CORBA.Char'Pos
                                      (Unmarshall (Buffer)));
       end loop;
+      pragma Debug (O ("Unmarshall (String) : end"));
       return CORBA.To_CORBA_String
         (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
@@ -1783,13 +1802,14 @@ package body Broca.CDR is
    function Unmarshall
      (Buffer : access Buffer_Type;
       Name : CORBA.Identifier;
+      Arg_Type : CORBA.TypeCode.Object;
       Flags : CORBA.Flags)
       return CORBA.NamedValue
    is
       Result : NamedValue;
    begin
       Result.Name := Name;
-      Result.Argument := Unmarshall (Buffer);
+      Result.Argument := Unmarshall_To_Any (Buffer, Arg_Type);
       Result.Arg_Modes := Flags;
       return Result;
    end Unmarshall;
@@ -2005,10 +2025,6 @@ package body Broca.CDR is
    --  Fixed_Point --
    ------------------
    package body Fixed_Point is
-
-      Flag : constant Natural :=
-        Broca.Debug.Is_Active ("broca.cdr.fixed_point");
-      procedure O is new Broca.Debug.Output (Flag);
 
       subtype BO_Octet is Broca.Opaque.Octet;
 

@@ -37,7 +37,7 @@ with CORBA.NVList;
 with CORBA.ORB;
 
 procedure DynClient is
-   Sent_Msg : CORBA.String := To_CORBA_String ("Hello world");
+   Sent_Msg : CORBA.String := To_CORBA_String ("Hello Dynamic World");
    Operation_Name : CORBA.Identifier := To_CORBA_String ("echoString");
    Arg_Name : CORBA.Identifier := To_CORBA_String ("Mesg");
    IOR : CORBA.String;
@@ -47,6 +47,8 @@ procedure DynClient is
    Arg : CORBA.Any;
    Arg_List : CORBA.NVList.Ref;
    Result : CORBA.NamedValue;
+   Result_Name : CORBA.String;
+   Result_Value : CORBA.String;
    Recv_Msg : CORBA.String;
 begin
 
@@ -68,6 +70,13 @@ begin
                           Arg,
                           CORBA.ARG_IN);
 
+   --  setting the result type
+   Result_Name := To_CORBA_String ("Result");
+   Result_Value := To_CORBA_String ("Not Successfull");
+   Result := (Name => Identifier (Result_Name),
+	      Argument => To_Any (Result_Value),
+	      Arg_Modes => 0);
+
    --  creating a request
    CORBA.Object.Create_Request (myecho,
                                 Ctx,
@@ -81,7 +90,7 @@ begin
    CORBA.Request.Invoke (Request, 0);
 
    --  getting the answer
-   Recv_Msg := From_Any (Result.Argument);
+   Recv_Msg := From_Any (CORBA.Request.Return_Value (Request).Argument);
 
    --  printing result
    Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
