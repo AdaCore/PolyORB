@@ -45,6 +45,12 @@
 #endif
 
 #ifdef HAVE_SYS_CONF_H
+# ifdef HAVE_SYS_PARAM_H
+# include <sys/param.h>
+# endif
+# ifdef HAVE_TIME_H
+# include <time.h>
+# endif
 #include <sys/conf.h>
 #endif
 
