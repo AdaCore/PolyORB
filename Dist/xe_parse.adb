@@ -661,7 +661,6 @@ package body XE_Parse is
 
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
-         Write_Str  (": ");
          Write_Name (Para_Type_Name);
          Write_Str  (" is not an expected type");
          Write_Eol;
@@ -690,7 +689,6 @@ package body XE_Parse is
 
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
-         Write_Str  (": ");
          Write_Name (Para_Type_Name);
          Write_Str  (" is not an expected type");
          Write_Eol;
@@ -758,7 +756,7 @@ package body XE_Parse is
       Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Kind = Pragma_Unknown then
          Write_Location (Get_Token_Location);
-         Write_Str  (": pragma ");
+         Write_Str  ("pragma ");
          Write_Name (Token_Name);
          Write_Str  (" not supported");
          Write_Eol;
@@ -805,7 +803,8 @@ package body XE_Parse is
 
          if Get_Variable_Type (Unit_Node) /= Ada_Unit_Type_Node then
             Write_Location (Get_Token_Location);
-            Write_Str  (": variable is not declared as an Ada unit");
+            Write_Name (Unit_Name);
+            Write_Str  (" conflicts with a previous declaration");
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -921,7 +920,9 @@ package body XE_Parse is
 
          else
             Write_Location (Get_Token_Location);
-            Write_Str (": identifier is neither a variable");
+            Write_Str ("identifier ");
+            Write_Name (Direct_Name);
+            Write_Str (" is neither a variable");
             Write_Str (" nor a predefined type");
             Write_Eol;
             Exit_On_Parsing_Error;
@@ -929,7 +930,9 @@ package body XE_Parse is
 
       else
          Write_Location (Get_Token_Location);
-         Write_Str (": identifier is undefined");
+         Write_Name ("identifier ");
+         Write_Name (Direct_Name);
+         Write_Str (" is undefined");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -1162,7 +1165,7 @@ package body XE_Parse is
 
          if Var_Type_Node = Null_Type then
             Write_Location (Get_Token_Location);
-            Write_Str ("unexpected type");
+            Write_Str  ("unexpected type");
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -1404,7 +1407,7 @@ package body XE_Parse is
             if Token = Tok_Right_Paren then
                exit when N_Parameter = 0;
                Write_Location (Get_Token_Location);
-               Write_Str (": missing parameters");
+               Write_Str ("missing parameters");
                Write_Eol;
                Exit_On_Parsing_Error;
             end if;
@@ -2277,7 +2280,7 @@ package body XE_Parse is
       end loop;
 
       Write_Location (Get_Token_Location);
-      Write_Str  (": identifier ");
+      Write_Str  ("identifier ");
       Write_Name (Actual_Name);
       Write_Str  (" is undefined");
       Write_Eol;
@@ -2483,7 +2486,7 @@ package body XE_Parse is
       end loop;
 
       Write_Location (Get_Token_Location);
-      Write_Str  (": no matching parameter");
+      Write_Str  ("no matching parameter");
       Write_Eol;
       Exit_On_Parsing_Error;
 
