@@ -45,79 +45,112 @@ package body XE_Back is
    subtype Unit_Name_Type is Types.Unit_Name_Type;
    subtype Int            is Types.Int;
 
-   procedure Set_Host
-     (Node : in Node_Id;
-      Host : in Host_Id);
-   --  Set Node Mark component to Host.
+   procedure Build_New_Host
+     (Subprogram : in Subprogram_Id;
+      Host_Entry : out Host_Id);
+
+   procedure Build_New_Variable
+     (Variable : in Variable_Id);
+
+   procedure Build_New_Partition
+     (Partition : in Variable_Id);
+   --  Retrieve ada units and attributes previously parsed in order to
+   --  build the partition.
 
    function Get_Host
      (Node : Node_Id)
      return Host_Id;
    --  Retrieve Node Mark component.
 
-   procedure Build_New_Partition
-     (Partition : Node_Id);
-   --  Retrieve ada units and attributes previously parsed in order to
-   --  build the partition.
+   procedure Set_Host
+     (Node : in Node_Id;
+      Host : in Host_Id);
+   --  Set Node Mark component to Host.
+
+   procedure Set_Partition_Attribute
+     (Attribute : in Attribute_Id;
+      Partition : in PID_Type);
+
+   procedure Set_Type_Attribute
+     (Pre_Type : in Type_Id);
+
+   procedure Set_Pragma_Statement
+     (Subprogram : in Subprogram_Id);
+
+   ----------
+   -- Back --
+   ----------
+
+   procedure Back is
+      Node : Node_Id;
+      Host : Host_Id;
+   begin
+
+      First_Configuration_Declaration (Configuration_Node, Node);
+      while Node /= Null_Node loop
+         if Is_Variable (Node) then
+            Build_New_Variable (Variable_Id (Node));
+
+         elsif Is_Configuration (Node) then
+            Configuration := Get_Node_Name (Node);
+
+         elsif Is_Type (Node) then
+            Set_Type_Attribute (Type_Id (Node));
+
+         elsif Is_Statement (Node) then
+            Set_Pragma_Statement
+              (Get_Subprogram_Call (Statement_Id (Node)));
+
+         elsif Is_Subprogram (Node) then
+            Build_New_Host (Subprogram_Id (Node), Host);
+         end if;
+         Next_Configuration_Declaration (Node);
+      end loop;
+
+      if Main_Subprogram = No_Main_Subprogram then
+         Write_SLOC (Node_Id (Configuration_Node));
+         Write_Str ("non-dist. app. main subprogram has not been declared");
+         Write_Eol;
+         raise Parsing_Error;
+      end if;
+   end Back;
+
+   --------------------
+   -- Build_New_Host --
+   --------------------
 
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
-      Host_Entry : out Host_Id);
-
-   procedure Set_Partition_Attribute
-     (Attribute : Attribute_Id;
-      Partition : PID_Type);
-   procedure Set_Type_Attribute
-     (Pre_Type : Type_Id);
-   procedure Set_Pragma_Statement
-     (Subprogram : Subprogram_Id);
-
-   --------------
-   -- Set_Host --
-   --------------
-
-   procedure Set_Host
-     (Node : in Node_Id;
-      Host : in Host_Id) is
+      Host_Entry : out Host_Id) is
+      Host : Host_Id := Null_Host;
+      Name : Name_Id;
    begin
-      if Is_Subprogram (Node) then
-         Set_Subprogram_Mark (Subprogram_Id (Node), Int (Host));
-      elsif Is_Variable (Node) then
-         Set_Variable_Mark (Variable_Id (Node), Int (Host));
-      else
-         raise Parsing_Error;
-      end if;
-   end Set_Host;
 
-   --------------
-   -- Get_Host --
-   --------------
+      Host := Get_Host (Node_Id (Subprogram));
 
-   function Get_Host (Node : Node_Id) return Host_Id is
-      Info : Int;
-   begin
-      if Is_Subprogram (Node) then
-         Info := Get_Subprogram_Mark (Subprogram_Id (Node));
-      elsif Is_Variable (Node) then
-         Info := Get_Variable_Mark (Variable_Id (Node));
-      else
-         raise Parsing_Error;
+      if Host = Wrong_Host then
+         Hosts.Increment_Last;
+         Host := Hosts.Last;
+         Name := Get_Node_Name (Node_Id (Subprogram));
+         Hosts.Table (Host).Name     := Name;
+         Hosts.Table (Host).Static   := False;
+         Hosts.Table (Host).Import   := None_Import;
+         Hosts.Table (Host).External := Name;
+         Set_Host (Node_Id (Subprogram), Host);
       end if;
-      case Info is
-         when Host_First .. Host_Last =>
-            return Host_Id (Info);
-         when others =>
-            return Wrong_Host;
-      end case;
-   end Get_Host;
+
+      Host_Entry := Host;
+
+   end Build_New_Host;
 
    -------------------------
    -- Build_New_Partition --
    -------------------------
 
-   procedure Build_New_Partition (Partition : Node_Id) is
-      Partition_Name : Name_Id := Get_Node_Name (Partition);
-      Partition_Type : Type_Id := Get_Variable_Type (Variable_Id (Partition));
+   procedure Build_New_Partition
+     (Partition : in Variable_Id) is
+      Partition_Name : Name_Id := Get_Node_Name (Node_Id (Partition));
+      Partition_Type : Type_Id := Get_Variable_Type (Partition);
       Ada_Unit_Name  : Name_Id;
       Ada_Unit_Node  : Node_Id;
       Component_Node : Component_Id;
@@ -185,67 +218,71 @@ package body XE_Back is
 
    end Build_New_Partition;
 
-   --------------------
-   -- Build_New_Host --
-   --------------------
-
-   procedure Build_New_Host
-     (Subprogram : in Subprogram_Id;
-      Host_Entry : out Host_Id) is
-      Host : Host_Id := Null_Host;
-      Name : Name_Id;
-   begin
-
-      Host := Get_Host (Node_Id (Subprogram));
-
-      if Host = Wrong_Host then
-         Hosts.Increment_Last;
-         Host := Hosts.Last;
-         Name := Get_Node_Name (Node_Id (Subprogram));
-         Hosts.Table (Host).Name     := Name;
-         Hosts.Table (Host).Static   := False;
-         Hosts.Table (Host).Import   := None_Import;
-         Hosts.Table (Host).External := Name;
-         Set_Host (Node_Id (Subprogram), Host);
-      end if;
-
-      Host_Entry := Host;
-
-   end Build_New_Host;
-
    ------------------------
-   -- Set_Type_Attribute --
+   -- Build_New_Variable --
    ------------------------
 
-   procedure Set_Type_Attribute
-     (Pre_Type : Type_Id) is
-      Component_Node : Component_Id;
+   procedure Build_New_Variable
+     (Variable : in Variable_Id) is
+      Var_Type : Type_Id;
+      Pre_Type : Predefined_Type;
    begin
+      Var_Type := Get_Variable_Type (Variable);
+      Pre_Type := Convert (Get_Type_Mark (Var_Type));
+      case Pre_Type is
+         when Pre_Type_Partition =>
+            Build_New_Partition (Variable);
+         when others =>
+            null;
+      end case;
+   end Build_New_Variable;
 
-      --  Some attribute apply to type ... in our case, Partition is
-      --  the only type concerned.
+   --------------
+   -- Get_Host --
+   --------------
 
-      if Pre_Type /= Partition_Type_Node then
-         return;
+   function Get_Host (Node : Node_Id) return Host_Id is
+      Info : Int;
+   begin
+      if Is_Subprogram (Node) then
+         Info := Get_Subprogram_Mark (Subprogram_Id (Node));
+      elsif Is_Variable (Node) then
+         Info := Get_Variable_Mark (Variable_Id (Node));
+      else
+         raise Parsing_Error;
       end if;
+      case Info is
+         when Host_First .. Host_Last =>
+            return Host_Id (Info);
+         when others =>
+            return Wrong_Host;
+      end case;
+   end Get_Host;
 
-      First_Type_Component (Pre_Type, Component_Node);
-      while Component_Node /= Null_Component loop
-         if Is_Component_An_Attribute (Component_Node) then
-            Set_Partition_Attribute (Attribute_Id (Component_Node), Null_PID);
-         end if;
-         Next_Type_Component (Component_Node);
-      end loop;
+   --------------
+   -- Set_Host --
+   --------------
 
-   end Set_Type_Attribute;
+   procedure Set_Host
+     (Node : in Node_Id;
+      Host : in Host_Id) is
+   begin
+      if Is_Subprogram (Node) then
+         Set_Subprogram_Mark (Subprogram_Id (Node), Int (Host));
+      elsif Is_Variable (Node) then
+         Set_Variable_Mark (Variable_Id (Node), Int (Host));
+      else
+         raise Parsing_Error;
+      end if;
+   end Set_Host;
 
    -----------------------------
    -- Set_Partition_Attribute --
    -----------------------------
 
    procedure Set_Partition_Attribute
-     (Attribute : Attribute_Id;
-      Partition : PID_Type) is
+     (Attribute : in Attribute_Id;
+      Partition : in PID_Type) is
       Attribute_Kind : Attribute_Type;
       Attribute_Item : Variable_Id;
       Ada_Unit_Name  : Name_Id;
@@ -492,12 +529,14 @@ package body XE_Back is
    --------------------------
 
    procedure Set_Pragma_Statement
-     (Subprogram  : Subprogram_Id) is
+     (Subprogram  : in Subprogram_Id) is
+
       Pragma_Kind : Pragma_Type;
-      Parameter : Parameter_Id;
-      Method    : Import_Method_Type;
-      Value     : Variable_Id;
-      Host      : Host_Id;
+      Parameter   : Parameter_Id;
+      Method      : Import_Method_Type;
+      Value       : Variable_Id;
+      Host        : Host_Id;
+
    begin
 
       --  Apply pragma statement.
@@ -548,44 +587,31 @@ package body XE_Back is
 
    end Set_Pragma_Statement;
 
-   ----------
-   -- Back --
-   ----------
+   ------------------------
+   -- Set_Type_Attribute --
+   ------------------------
 
-   procedure Back is
-      Node : Node_Id;
-      Host : Host_Id;
+   procedure Set_Type_Attribute
+     (Pre_Type : in Type_Id) is
+      Component_Node : Component_Id;
    begin
 
-      First_Configuration_Declaration (Configuration_Node, Node);
-      while Node /= Null_Node loop
-         if Is_Variable (Node) and then
-            Get_Variable_Type (Variable_Id (Node)) = Partition_Type_Node then
-            Build_New_Partition (Node);
+      --  Some attribute apply to type ... in our case, Partition is
+      --  the only type concerned.
 
-         elsif Is_Configuration (Node) then
-            Configuration := Get_Node_Name (Node);
+      if Pre_Type /= Partition_Type_Node then
+         return;
+      end if;
 
-         elsif Is_Type (Node) then
-            Set_Type_Attribute (Type_Id (Node));
-
-         elsif Is_Statement (Node) then
-            Set_Pragma_Statement
-              (Get_Subprogram_Call (Statement_Id (Node)));
-
-         elsif Is_Subprogram (Node) then
-            Build_New_Host (Subprogram_Id (Node), Host);
+      First_Type_Component (Pre_Type, Component_Node);
+      while Component_Node /= Null_Component loop
+         if Is_Component_An_Attribute (Component_Node) then
+            Set_Partition_Attribute (Attribute_Id (Component_Node), Null_PID);
          end if;
-         Next_Configuration_Declaration (Node);
+         Next_Type_Component (Component_Node);
       end loop;
 
-      if Main_Subprogram = No_Main_Subprogram then
-         Write_SLOC (Node_Id (Configuration_Node));
-         Write_Str ("non-dist. app. main subprogram has not been declared");
-         Write_Eol;
-         raise Parsing_Error;
-      end if;
-   end Back;
+   end Set_Type_Attribute;
 
 end XE_Back;
 

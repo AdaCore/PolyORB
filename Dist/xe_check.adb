@@ -232,9 +232,9 @@ package body XE_Check is
 
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
          Write_Program_Name;
-         Write_Str (": ");
+         Write_Str (": """);
          Write_Name (Main_Subprogram);
-         Write_Str (" is not a main program");
+         Write_Str (""" is not a main program");
          Write_Eol;
          raise Partitioning_Error;
       end if;
@@ -260,9 +260,9 @@ package body XE_Check is
             --  as no ali file has been found.
 
             Write_Program_Name;
-            Write_Str (": unit from configuration file ");
+            Write_Str (": unit from configuration file """);
             Write_Name (CUnit.Table (U).CUname);
-            Write_Str (" is not an Ada unit");
+            Write_Str (""" is not an Ada unit");
             Write_Eol;
             Inconsistent := True;
 
@@ -277,9 +277,9 @@ package body XE_Check is
 
                   if Get_CUID (Unit.Table (I).Uname) /= Null_CUID  then
                      Write_Program_Name;
-                     Write_Str  (": RCI unit ");
+                     Write_Str  (": RCI Ada unit """);
                      Write_Name (CUnit.Table (U).CUname);
-                     Write_Str  (" has been assigned twice");
+                     Write_Str  (""" has been assigned twice");
                      Write_Eol;
                      Inconsistent := True;
                   end if;
@@ -321,9 +321,9 @@ package body XE_Check is
          if Unit.Table (U).RCI and then
             Get_CUID (Unit.Table (U).Uname) = Null_CUID then
             Write_Program_Name;
-            Write_Str (": RCI Ada unit ");
+            Write_Str (": RCI Ada unit """);
             Write_Unit_Name (Unit.Table (U).Uname);
-            Write_Str (" has not been assigned to a partition");
+            Write_Str (""" has not been assigned to a partition");
             Write_Eol;
             Inconsistent := True;
          end if;
@@ -340,9 +340,9 @@ package body XE_Check is
          if PID = Null_PID and then
            Partitions.Table (P).Main_Subprogram = No_Name then
             Write_Program_Name;
-            Write_Str  (": partition ");
+            Write_Str  (": partition """);
             Write_Name (Partitions.Table (P).Name);
-            Write_Str  (" is empty");
+            Write_Str  (""" is empty");
             Write_Eol;
             Inconsistent := True;
          end if;

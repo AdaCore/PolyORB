@@ -30,7 +30,6 @@ with Fname;
 with System;
 with Unchecked_Deallocation;
 with Namet;          use Namet;
-with Casing;         use Casing;
 with Opt;
 with Osint;          use Osint;
 with Output;         use Output;
@@ -100,26 +99,32 @@ package body XE_Utils is
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
 
+   Inc_Path_Flag         : Name_Id;
+   Lib_Path_Flag         : Name_Id;
+   Private_Id            : Name_Id;
+   Caller_Id             : Name_Id;
+   Receiver_Id           : Name_Id;
+
    Sem_Only_Flag    : constant String_Access := new String' ("-gnatc");
    --  Workaround : bad object file generated during stub generation
 
-   I_Current_Dir    : constant String_Access
-     := new String' ("-I.");
-   I_Caller_Dir     : constant String_Access
-     := new String' ("-I../../private/caller/");
-   I_DSA_Caller_Dir : constant String_Access
-     := new String' ("-Idsa/private/caller/");
-   I_Original_Dir   : constant String_Access
-     := new String' ("-I../../../");
+   I_Current_Dir    : String_Access;
+   --  := new String' ("-I.");
+   I_Caller_Dir     : String_Access;
+   --  := new String' ("-I../../private/caller/");
+   I_DSA_Caller_Dir : String_Access;
+   --  := new String' ("-Idsa/private/caller/");
+   I_Original_Dir   : String_Access;
+   --  := new String' ("-I../../../");
 
-   L_Current_Dir    : constant String_Access
-     := new String' ("-L.");
-   L_Caller_Dir     : constant String_Access
-     := new String' ("-L../../private/caller");
-   L_DSA_Caller_Dir : constant String_Access
-     := new String' ("-Ldsa/private/caller");
-   L_Original_Dir   : constant String_Access
-     := new String' ("-L../../../");
+   L_Current_Dir    : String_Access;
+   --  := new String' ("-L.");
+   L_Caller_Dir     : String_Access;
+   --  := new String' ("-L../../private/caller");
+   L_DSA_Caller_Dir : String_Access;
+   --  := new String' ("-Ldsa/private/caller");
+   L_Original_Dir   : String_Access;
+   --  := new String' ("-L../../../");
 
    No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
@@ -686,13 +691,21 @@ package body XE_Utils is
    ----------------
 
    procedure Initialize is
-      Dir_Sep : String (1 .. 1) := (others => Directory_Separator);
+      Dir_Sep    : String (1 .. 1) := (others => Directory_Separator);
+      Name       : Name_Id;
    begin
       if Verbose_Mode then
          GNAT_Verbose := new String' ("-v");
       else
          GNAT_Verbose := new String' ("-q");
       end if;
+
+      Inc_Path_Flag  := Str_To_Id ("-I");
+      Lib_Path_Flag  := Str_To_Id ("-L");
+      Private_Id     := Str_To_Id ("private");
+      Caller_Id      := Str_To_Id ("caller");
+      Receiver_Id    := Str_To_Id ("receiver");
+      Parent_Dir     := Str_To_Id ("..");
 
       Obj_Suffix     := Str_To_Id (".o");
       ALI_Suffix     := Str_To_Id (".ali");
@@ -707,12 +720,11 @@ package body XE_Utils is
 
       DSA_Dir        := Str_To_Id ("dsa");
 
-      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Str_To_Id ("private") &
-                       Dir_Sep_Id & Str_To_Id ("caller");
-      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Str_To_Id ("private") &
-                       Dir_Sep_Id & Str_To_Id ("receiver");
+      Caller_Dir     := DSA_Dir & Dir_Sep_Id & Private_Id &
+                       Dir_Sep_Id & Caller_Id;
+      Receiver_Dir   := DSA_Dir & Dir_Sep_Id & Private_Id &
+                       Dir_Sep_Id & Receiver_Id;
 
-      Parent_Dir     := Str_To_Id ("..");
       Original_Dir   := Parent_Dir & Dir_Sep_Id &
                         Parent_Dir & Dir_Sep_Id &
                         Parent_Dir;
@@ -723,15 +735,53 @@ package body XE_Utils is
       Elaboration_Full_Name := Str_To_Id ("System.Garlic.Elaboration");
 
       declare
-         GARLIC_Dir  : constant String_Access := Get_GARLIC_Dir;
-         GARLIC_Flag : String (1 .. GARLIC_Dir'Length + 2);
+         Dir  : constant String_Access := Get_GARLIC_Dir;
+         Len  : Natural;
       begin
-         GARLIC_Flag (3 .. GARLIC_Flag'Length) := GARLIC_Dir.all;
-         GARLIC_Flag (1 .. 2) := "-I";
-         I_GARLIC_Dir := new String'(GARLIC_Flag);
-         GARLIC_Flag (2) := 'L';
-         L_GARLIC_Dir := new String'(GARLIC_Flag);
+         Len := Dir'Length;
+         Get_Name_String (Inc_Path_Flag);
+         Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
+         I_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
+         Get_Name_String (Lib_Path_Flag);
+         Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
+         L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
       end;
+
+      Name := Inc_Path_Flag & Dot_Sep_Id;
+      Get_Name_String (Name);
+      I_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+              Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+      Get_Name_String (Name);
+      I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Inc_Path_Flag & DSA_Dir &
+        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+      Get_Name_String (Name);
+      I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+        Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
+      I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Lib_Path_Flag & Dot_Sep_Id;
+      L_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+      Get_Name_String (Name);
+      L_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Lib_Path_Flag & DSA_Dir &
+        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+      Get_Name_String (Name);
+      L_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+      Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+        Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
+      L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
 
    end Initialize;
 
@@ -762,7 +812,7 @@ package body XE_Utils is
    function Is_Relative_Dir (File : File_Name_Type) return Boolean is
    begin
       Get_Name_String (File);
-      return Name_Buffer (1) /= Separator;
+      return Name_Len = 0 or else Name_Buffer (1) /= Separator;
    end Is_Relative_Dir;
 
    -----------------
@@ -945,7 +995,6 @@ package body XE_Utils is
    procedure Write_Unit_Name (U : in Unit_Name_Type) is
    begin
       Get_Decoded_Name_String (U);
-      Set_Casing (Mixed_Case, Mixed_Case);
       for J in 1 .. Name_Len loop
          if Name_Buffer (J) = '-' then
             Name_Buffer (J) := '.';

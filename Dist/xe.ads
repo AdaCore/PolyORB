@@ -208,7 +208,7 @@ package XE is
    Null_Node  : constant Node_Id := Node_Id'First;
    First_Node : constant Node_Id := Null_Node + 1;
 
-   NN                 : constant Node_Id := Null_Node;
+   NN                 : constant Node_Id          := Null_Node;
    Null_Type          : constant Type_Id          := Type_Id (NN);
    Null_Variable      : constant Variable_Id      := Variable_Id (NN);
    Null_Parameter     : constant Parameter_Id     := Parameter_Id (NN);

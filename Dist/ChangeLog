@@ -1,3 +1,18 @@
+Wed Feb 12 12:26:01 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_utils.adb: Fix bug in Is_Relative_Dir with No_Name.
+	Try to suppress '/' occurrences to futur port to Windows.
+
+	* xe_stubs.adb: Fix bug that occurs when building executable file
+ 	name with No_Storage_Dir. String "../../.." appended twice.
+
+	* xe_check.adb, xe_util.adb: Clean error message. Use
+ 	All_Lower_Case in Write_Unit_Name.
+
+	* xe.ads: Minor reformatting.
+
+	* xe_back.adb: Reorganize code (alphabetical order).
+
 Tue Feb 11 16:27:04 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe_check.adb: Do not try to recompile internal units. This code

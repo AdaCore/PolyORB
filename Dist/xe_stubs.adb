@@ -942,9 +942,7 @@ begin
             Directory := Partitions.Table (PID).Storage_Dir;
          end if;
 
-         if Directory  = No_Storage_Dir then
-            Executable := Original_Dir & Dir_Sep_Id & Executable;
-         else
+         if Directory  /= No_Storage_Dir then
             if not Is_Directory (Directory) then
                Create_Dir (Directory);
             end if;
