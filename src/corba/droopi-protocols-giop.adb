@@ -11,12 +11,14 @@
 
 
 with Ada.Streams;                use Ada.Streams;
+--   with Ada.Text_IO; use Ada.Text_IO;
 
 with Sequences.Unbounded;
 
 with Droopi.Any;
 with Droopi.Any.NVList;
 with Droopi.Buffers;             use Droopi.Buffers;
+with Droopi.Opaque;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
 with Droopi.Binding_Data.Local;
@@ -123,6 +125,49 @@ package body Droopi.Protocols.GIOP is
          4 => Loc_System_Exception,
          5 => Loc_Needs_Addressing_Mode);
 
+
+   ------------------------------
+   --   Utility function for testing
+   ------------------------------
+
+   procedure To_Buffer (S   : access GIOP_Session;
+                     Octets : access Encapsulation)
+   is
+      use Droopi.Representations.CDR;
+      use Droopi.Opaque;
+      Endianness1 : Endianness_Type;
+      Z : constant Zone_Access
+        := Zone_Access'(Octets.all'Unchecked_Access);
+   begin
+
+      if Droopi.Types.Boolean'Val
+        (Droopi.Types.Octet (Octets (Octets'First))) then
+         Endianness1 := Little_Endian;
+      else
+         Endianness1 := Big_Endian;
+      end if;
+
+      Initialize_Buffer
+        (Buffer               => S.Buffer_In,
+         Size                 => Octets'Length - 1,
+         Data                 =>
+           (Zone   => Z,
+            Offset => Z'First + 1),
+         --  Bypass runtime accessibility check.
+         Endianness           => Endianness1,
+         Initial_CDR_Position => 0);
+
+      Show (S.Buffer_In.all);
+
+   end To_Buffer;
+
+
+
+
+
+
+
+
    --------------------------------
    -- Marshalling Messages Types --
    --------------------------------
@@ -186,7 +231,7 @@ package body Droopi.Protocols.GIOP is
       Value  : in Version) is
 
    begin
-      Marshall (Buffer, Version_To_Unsigned_Long (Value));
+      Marshall (Buffer, Version_To_Octet (Value));
    end Marshall;
 
 
@@ -194,10 +239,10 @@ package body Droopi.Protocols.GIOP is
      (Buffer : access Buffer_Type)
      return Version
    is
-      V : constant Types.Unsigned_Long := Unmarshall (Buffer);
+      V : constant Types.Octet := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Got version value: (ulong)" & V'Img));
-      return Unsigned_Long_To_Version (V);
+      return Octet_To_Version (V);
    end Unmarshall;
 
 
@@ -310,12 +355,9 @@ package body Droopi.Protocols.GIOP is
          Message_Endianness := Big_Endian;
       end if;
 
---       Buffers.Initialize_Buffer
---         (Message_Header, Message_Header_Size,
---          Opaque_Pointer'(Zone => Zone_Address,
---          Offset => 0), Message_Endianness, 0);
 
       Set_Endianness (Buffer, Message_Endianness);
+
 
       --  Magic
       for I in Message_Magic'Range loop
@@ -354,6 +396,7 @@ package body Droopi.Protocols.GIOP is
       if Message_Minor_Version /= Ver0 then
          Fragment_Next := ((Flags and 2 ** Fragment_Bit) /= 0);
       end if;
+
 
       --  Message type
       Message_Type := Unmarshall (Buffer);
@@ -1549,6 +1592,7 @@ package body Droopi.Protocols.GIOP is
       Release (S.Buffer_In);
       Release (S.Buffer_Out);
    end Handle_Disconnect;
+
 
 end Droopi.Protocols.GIOP;
 

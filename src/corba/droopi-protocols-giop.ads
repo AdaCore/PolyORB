@@ -22,8 +22,10 @@ with Droopi.Objects;
 with Droopi.ORB;
 with Droopi.Types;
 with Droopi.Any;
+with Droopi.Representations.CDR;
 
 with Sequences.Unbounded;
+
 
 package Droopi.Protocols.GIOP is
 
@@ -172,15 +174,15 @@ package Droopi.Protocols.GIOP is
          2 => Reference_Addr);
 
 
-   Version_To_Unsigned_Long :
-     constant array (Version'Range) of Types.Unsigned_Long
+   Version_To_Octet :
+     constant array (Version'Range) of Types.Octet
      := (Ver0  => 0,
          Ver1  => 1,
          Ver2  => 2);
 
 
-   Unsigned_Long_To_Version :
-     constant array (Types.Unsigned_Long range 0 .. 2) of Version
+   Octet_To_Version :
+     constant array (Types.Octet range 0 .. 2) of Version
      := (0 => Ver0,
          1 => Ver1,
          2 => Ver2);
@@ -355,6 +357,12 @@ package Droopi.Protocols.GIOP is
 
    procedure Handle_Disconnect (S : access GIOP_Session);
 
+   ------------------------------
+   --   Utility function for testing
+   ------------------------------
+   procedure To_Buffer
+             (S   : access GIOP_Session;
+              Octets : access Representations.CDR.Encapsulation);
 
 
    ----------------------------------------
@@ -370,7 +378,7 @@ private
 
    type GIOP_Session is new Session with record
       Major_Version        : Version := Ver1;
-      Minor_Version        : Version;
+      Minor_Version        : Version := Ver2;
       Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
       Role                 : ORB.Endpoint_Role := Client;
