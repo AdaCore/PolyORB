@@ -9,7 +9,7 @@ corba_exe=evolutedp_corba
 dsa_exe=simplep evolutedp serverp
 moma_exe=
 
-EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC) -gnatD -O0
+EXAMPLE_GNATMAKE_FLAGS=-I$(srcdir) -I$(DSA_SRC) -O0
 simplep_FLAGS=		-Aclient.stubs
 evolutedp_FLAGS=	-Aclient.stubs
 serverp_FLAGS=		-Aserver.stubs

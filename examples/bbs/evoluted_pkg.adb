@@ -22,6 +22,9 @@ package body Evoluted_Pkg is
    procedure Cmd_Read;
    --  READ command
 
+   procedure Cmd_Page;
+   --  PAGE commend
+
    type Command is access procedure;
    type String_Access is access String;
 
@@ -47,7 +50,12 @@ package body Evoluted_Pkg is
 
       (Command_Name => new String'("read"),
        Real_Command => Cmd_Read'Access,
-       Help_String  => new String'("Read messages posted on the BBS")));
+       Help_String  => new String'("Read messages posted on the BBS")),
+
+      (Command_Name => new String'("page"),
+       Real_Command => Cmd_Page'Access,
+       Help_String  => new String'
+         ("Send a private message to a connected user.")));
 
    --------------
    -- Cmd_Help --
@@ -76,6 +84,23 @@ package body Evoluted_Pkg is
       when Ada.IO_Exceptions.End_Error =>
          Put_Line ("Control-D pressed, aborting post operation");
    end Cmd_Post;
+
+   --------------
+   -- Cmd_Page --
+   --------------
+
+   procedure Cmd_Page is
+   begin
+      New_Message
+        (Sender    => Name_Of (Penpal'Access),
+         Recipient => Get_Penpal (Get_Line ("   Penpal> ")),
+         Message   => Get_Line ("   Message> "));
+   exception
+      when Message_Error =>
+         Put_Line ("Invalid message");
+      when Ada.IO_Exceptions.End_Error =>
+         Put_Line ("Control-D pressed, aborting post operation");
+   end Cmd_Page;
 
    --------------
    -- Cmd_Quit --

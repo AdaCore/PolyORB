@@ -64,6 +64,7 @@ package body PortableServer is
       use PolyORB.Objects.Interface;
 
    begin
+      pragma Debug (O ("Execute_Servant: enter"));
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
@@ -76,11 +77,14 @@ package body PortableServer is
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
+            pragma Debug (O ("Execute_Servant: executed, setting out args"));
             Set_Out_Args (R);
 
+            pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
       else
+         pragma Debug (O ("Execute_Servant: bad message, leave"));
          raise PolyORB.Components.Unhandled_Message;
       end if;
    end Execute_Servant;

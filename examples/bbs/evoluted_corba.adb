@@ -4,7 +4,6 @@ with Ada.Text_IO;             use Ada.Text_IO;
 with Exceptions;              use Exceptions;
 with Utils;                   use Utils;
 with CORBA;
-with DSA_Common.Penpal_Type; use DSA_Common.Penpal_Type;
 
 package body Evoluted_CORBA is
 
@@ -76,10 +75,11 @@ package body Evoluted_CORBA is
    --------------
 
    procedure Cmd_Post is
+      use DSA_Common.Penpal_Type.Impl;
    begin
-      Post_Message
-        (My_Server,
-         Sender  => CORBA.To_CORBA_String (Penpal_Name.all),
+      DSA_Server.Post_Message
+        (Self    => My_Server,
+         Sender  => Name_Of (Penpal'Access),
          Message => CORBA.To_CORBA_String (Get_Line ("   Message> ")));
    exception
       when Message_Error =>
@@ -102,6 +102,7 @@ package body Evoluted_CORBA is
    --------------
 
    procedure Cmd_Read is
+      use DSA_Server;
    begin
       for I in 1 .. Number_Of_Messages (My_Server) loop
          Put_Line ("Message " & Integer_To_String (Integer (I)) & ": <"
@@ -116,10 +117,12 @@ package body Evoluted_CORBA is
    --------------
 
    procedure Cmd_Page is
+      use DSA_Common.Penpal_Type;
+      use DSA_Common.Penpal_Type.Impl;
    begin
-      New_Message (Self    => Get_Penpal
+      new_message (Self    => DSA_Server.Get_Penpal
                    (My_Server, CORBA.To_CORBA_String (Get_Line ("Penpal> "))),
-                   Sender  => CORBA.To_CORBA_String (Penpal_Name.all),
+                   Sender  => Name_Of (Penpal'Access),
                    Message => CORBA.To_CORBA_String (Get_Line ("Message> ")));
    end Cmd_Page;
 

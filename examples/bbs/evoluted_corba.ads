@@ -1,14 +1,12 @@
-with DSA_Server; use DSA_Server;
-pragma Elaborate_All (DSA_Server);
+with DSA_Common.Penpal_Type.Impl;
+with DSA_Server;
 
 package Evoluted_CORBA is
 
    My_Server   : DSA_Server.Ref;
    --  The server.
 
-   type String_Ptr is access String;
-   Penpal_Name : String_Ptr;
-   --  Penpal : aliased Penpal_Type;
+   Penpal : aliased DSA_Common.Penpal_Type.Impl.Object;
    --  The penpal representing the user
 
    procedure Mainloop;
