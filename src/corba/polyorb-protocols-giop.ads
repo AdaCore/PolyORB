@@ -223,7 +223,9 @@ package PolyORB.Protocols.GIOP is
 
    procedure Handle_Connect_Confirmation (S : access GIOP_Session);
 
-   procedure Handle_Data_Indication (S : access GIOP_Session);
+   procedure Handle_Data_Indication
+     (S : access GIOP_Session;
+      Data_Amount : Stream_Element_Count);
 
    procedure Handle_Disconnect (S : access GIOP_Session);
 

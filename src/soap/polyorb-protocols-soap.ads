@@ -32,6 +32,7 @@
 
 --  $Id$
 
+with PolyORB.Buffers;
 with PolyORB.ORB;
 
 package PolyORB.Protocols.SOAP is
@@ -62,7 +63,9 @@ package PolyORB.Protocols.SOAP is
 
    procedure Handle_Connect_Confirmation (S : access SOAP_Session);
 
-   procedure Handle_Data_Indication (S : access SOAP_Session);
+   procedure Handle_Data_Indication
+     (S : access SOAP_Session;
+     Data_Amount : Ada.Streams.Stream_Element_Count);
 
    procedure Handle_Disconnect (S : access SOAP_Session);
 
@@ -71,6 +74,7 @@ private
    type SOAP_Protocol is new Protocol with null record;
 
    type SOAP_Session is new Session with record
+      In_Buf : PolyORB.Buffers.Buffer_Access;
       Role : PolyORB.ORB.Endpoint_Role;
    end record;
 

@@ -90,7 +90,9 @@ package body PolyORB.Protocols is
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
       elsif S in Data_Indication then
-         Handle_Data_Indication (Session_Access (Sess));
+         Handle_Data_Indication
+           (Session_Access (Sess),
+            Data_Indication (S).Data_Amount);
       elsif S in Unmarshall_Arguments then
          declare
             Args : PolyORB.Any.NVList.Ref

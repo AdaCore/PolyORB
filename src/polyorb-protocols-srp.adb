@@ -272,7 +272,9 @@ package body PolyORB.Protocols.SRP is
    --     end loop;
    --  end Free;
 
-   procedure Handle_Data_Indication (S : access SRP_Session)
+   procedure Handle_Data_Indication
+     (S : access SRP_Session;
+      Data_Amount : Stream_Element_Count)
    is
    begin
       pragma Debug (O ("Received data on SRP service..."));

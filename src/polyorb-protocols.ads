@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Ada.Streams;
+
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
@@ -117,7 +119,10 @@ package PolyORB.Protocols is
       is abstract;
    --  A new client connection has been established as session S.
 
-   procedure Handle_Data_Indication (S : access Session) is abstract;
+   procedure Handle_Data_Indication
+     (S : access Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count)
+      is abstract;
    --  Invoked when some data arrives for session S.
 
    procedure Handle_Disconnect (S : access Session) is abstract;

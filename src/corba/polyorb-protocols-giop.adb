@@ -1695,7 +1695,9 @@ package body PolyORB.Protocols.GIOP is
       Expect_Message (S);
    end Handle_Connect_Confirmation;
 
-   procedure Handle_Data_Indication (S : access GIOP_Session)
+   procedure Handle_Data_Indication
+     (S : access GIOP_Session;
+      Data_Amount : Stream_Element_Count)
    is
       use Binding_Data.IIOP;
       use Objects;

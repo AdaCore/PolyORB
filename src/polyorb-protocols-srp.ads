@@ -84,7 +84,9 @@ package PolyORB.Protocols.SRP is
    procedure Handle_Connect_Confirmation (S : access SRP_Session);
    --  Setup client dialog.
 
-   procedure Handle_Data_Indication (S : access SRP_Session);
+   procedure Handle_Data_Indication
+     (S : access SRP_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count);
    --  Handle data received from user.
 
    procedure Handle_Disconnect (S : access SRP_Session);

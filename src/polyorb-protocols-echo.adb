@@ -187,7 +187,9 @@ package body PolyORB.Protocols.Echo is
       end loop;
    end Free;
 
-   procedure Handle_Data_Indication (S : access Echo_Session)
+   procedure Handle_Data_Indication
+     (S : access Echo_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count)
    is
       use Binding_Data.Local;
       use Objects;

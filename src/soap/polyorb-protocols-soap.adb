@@ -32,11 +32,19 @@
 
 --  $Id$
 
+--  with SOAP.Message;
+with SOAP.Message.XML;
+with SOAP.Message.Payload;
+with SOAP.Message.Response;
+
+with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.Utils.Text_Buffers;
 
 package body PolyORB.Protocols.SOAP  is
 
+   use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
 
@@ -51,6 +59,8 @@ package body PolyORB.Protocols.SOAP  is
       Result : constant Filter_Access
         := new SOAP_Session;
    begin
+      SOAP_Session (Session.all).In_Buf
+        := new PolyORB.Buffers.Buffer_Type;
       Session := Result;
    end Create;
 
@@ -61,7 +71,6 @@ package body PolyORB.Protocols.SOAP  is
    begin
       raise PolyORB.Not_Implemented;
    end Invoke_Request;
-
 
    procedure Abort_Request
      (S : access SOAP_Session;
@@ -81,10 +90,34 @@ package body PolyORB.Protocols.SOAP  is
 
 
    procedure Handle_Data_Indication
-      (S : access SOAP_Session)
+     (S : access SOAP_Session;
+      Data_Amount : Ada.Streams.Stream_Element_Count)
    is
+      Entity : String (1 .. Integer (Data_Amount));
    begin
-      raise PolyORB.Not_Implemented;
+      PolyORB.Utils.Text_Buffers.Unmarshall_String
+        (S.In_Buf, Entity);
+      if S.Role = Server then
+         declare
+            M : constant Standard.SOAP.Message.Payload.Object
+              := Standard.SOAP.Message.XML.Load_Payload (Entity);
+         begin
+            pragma Warnings (Off, M);
+            --  XXX not referenced.
+            --  Queue_Request (To_Request (M));
+            raise Not_Implemented;
+         end;
+      else
+         declare
+            M : constant Standard.SOAP.Message.Response.Object'Class
+              := Standard.SOAP.Message.XML.Load_Response (Entity);
+         begin
+            pragma Warnings (Off, M);
+            --  XXX not referenced.
+            --  Process_Reply (To_Reply (M));
+            raise Not_Implemented;
+         end;
+      end if;
    end Handle_Data_Indication;
 
    procedure Handle_Connect_Indication
@@ -92,7 +125,7 @@ package body PolyORB.Protocols.SOAP  is
    is
    begin
       S.Role := Server;
-      --  Expect_Data ();
+      Expect_Data (S, S.In_Buf, 0);
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation
