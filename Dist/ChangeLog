@@ -1,3 +1,11 @@
+2002-05-09  Pascal Obry  <p.obry@wanadoo.fr>
+
+	* xe_sysdep.ads, xe_sysdep-nt.adb, xe_sysdep-std.adb: Copy_File
+	removed.
+
+	* xe_utils.adb: (Copy_With_File_Stamp) Use Copy_File from GNAT.OS_Lib.
+	Fix 9930-004.
+	
 2002-04-02  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe.adb: In the GLADE configuration language, an Ada unit has no
