@@ -572,7 +572,7 @@ package body System.Garlic.Heart is
       --  Compute the length of the packet: this is the length of the
       --  unused space that will be used by the protocol to stick its own
       --  data at the beginning + 1 for the opcode + 1 for partition id +
-      --  the length of the unfiltered data. Allocate a packet of the right
+      --  the length of the filtered data. Allocate a packet of the right
       --  length.
 
       Length := Unused_Space + 2 + Filtered'Length;

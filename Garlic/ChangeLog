@@ -1,5 +1,8 @@
 1999-07-01  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garhea.adb: In a comment, change "unfiltered" by
+	"filtered". Documentation bug found by code reading.
+
 	* s-gartcp.adb: Use SEC_Size instead of Banner_Size when writing
 	the length of the stream in the data buffer. Latent bug found by
 	code reading. By change, both constants happened to have the same
