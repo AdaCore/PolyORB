@@ -31,7 +31,6 @@ with GenericServer; use GenericServer;
 
 procedure Server is
 begin
-
    Repository_Id := new String'("IDL:all_types:1.0");
    My_Obj := new all_types.Impl.Object;
    GenericServer.Main (My_Obj);

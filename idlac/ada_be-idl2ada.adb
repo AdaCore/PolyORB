@@ -195,8 +195,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Stream_Suffix;
       Skel_Name : constant String
         := Stubs_Name & Skel_Suffix;
-      --  Impl_Name : constant String
-      --    := Stubs_Name & Impl_Suffix;
+      Impl_Name : constant String
+        := Stubs_Name & Impl_Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -263,9 +263,20 @@ package body Ada_Be.Idl2Ada is
               (Stubs_Spec, Node, Full_View => False);
             --  The object reference type.
 
-            Gen_Object_Servant_Declaration
-              (Skel_Spec, Node);
-            --  The object implementation type.
+            --  XXX skel/impl
+            --  Gen_Object_Servant_Declaration
+            --    (Skel_Spec, Node);
+            --  --  The object implementation type.
+
+            NL (Skel_Spec);
+            PL (Skel_Spec, "pragma Elaborate_Body;");
+
+            Add_With (Skel_Body, "Broca.Buffers");
+            Add_With (Skel_Body, "Broca.Exceptions");
+            Add_With (Skel_Body, "PortableServer",
+                      Use_It => False,
+                      Elaborate => True);
+            Add_With (Skel_Body, Impl_Name);
 
             Gen_Node_Stream_Spec
               (Stream_Spec, Node);
@@ -290,20 +301,37 @@ package body Ada_Be.Idl2Ada is
             end;
 
             NL (Skel_Body);
-            PL (Skel_Body, "type Object_Ptr is access all Object'Class;");
+            PL (Skel_Body, "type Object_Ptr is access all "
+                & Impl_Name & ".Object'Class;");
             NL (Skel_Body);
-            PL (Skel_Body, "function Get_Type_Id (Obj : Object)");
-            PL (Skel_Body, "  return CORBA.RepositoryId is");
+            PL (Skel_Body, "--  Skeleton subprograms");
+            NL (Skel_Body);
+            PL (Skel_Body, "function Servant_Is_A");
+            PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+            PL (Skel_Body, "  return Boolean;");
+            PL (Skel_Body, "procedure GIOP_Dispatch");
+            PL (Skel_Body, "  (Obj : PortableServer.Servant;");
+            II (Skel_Body);
+            PL (Skel_Body, "Operation : String;");
+            PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
+            PL (Skel_Body, "Response_Expected : CORBA.Boolean;");
+            PL (Skel_Body,
+                "Request_Buffer : access Broca.Buffers.Buffer_Type;");
+            PL (Skel_Body,
+                "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
+            NL (Skel_Body);
+            PL (Skel_Body, "function Servant_Is_A");
+            PL (Skel_Body, "  (Obj : PortableServer.Servant)");
+            PL (Skel_Body, "  return Boolean is");
             PL (Skel_Body, "begin");
             II (Skel_Body);
-            PL (Skel_Body, "return CORBA.To_CORBA_String ("
-                & Ada_Name (Node) & ".RepositoryID);");
+            PL (Skel_Body, "return Obj.all in "
+                & Impl_Name & ".Object'Class;");
             DI (Skel_Body);
-            PL (Skel_Body, "end Get_Type_Id;");
-
+            PL (Skel_Body, "end Servant_Is_A;");
             NL (Skel_Body);
             PL (Skel_Body, "procedure GIOP_Dispatch");
-            PL (Skel_Body, "  (Obj : access Object;");
+            PL (Skel_Body, "  (Obj : PortableServer.Servant;");
             II (Skel_Body);
             PL (Skel_Body, "Operation : String;");
             PL (Skel_Body, "Request_Id : CORBA.Unsigned_Long;");
@@ -339,8 +367,9 @@ package body Ada_Be.Idl2Ada is
                      Gen_Node_Stream_Body
                        (Stream_Body, Export_Node);
 
-                     Gen_Node_Skel_Spec
-                       (Skel_Spec, Export_Node);
+                     --  XXX skel/impl
+                     --  Gen_Node_Skel_Spec
+                     --    (Skel_Spec, Export_Node);
                      Gen_Node_Skel_Body
                        (Skel_Body, Export_Node);
                   end if;
@@ -351,6 +380,15 @@ package body Ada_Be.Idl2Ada is
             end;
 
             --  XXX Declare Repository_Id
+            --  XXX (This is a temporary workaround)
+            Add_With (Stubs_Spec, "CORBA",
+                      Use_It => False,
+                      Elaborate => True);
+            NL (Stubs_Spec);
+            PL (Stubs_Spec, "Repository_Id : constant CORBA.RepositoryId");
+            PL (Stubs_Spec, "  := CORBA.To_CORBA_String (""IDL:"
+                & Ada_Full_Name (Node) & ":1.0"");");
+
             --  XXX Declare and implement Is_A
 
             Gen_To_Ref (Stubs_Spec, Stubs_Body);
@@ -363,35 +401,19 @@ package body Ada_Be.Idl2Ada is
             Gen_Object_Reference_Declaration
               (Stubs_Spec, Node, Full_View => True);
 
-            NL (Skel_Spec);
-            DI (Skel_Spec);
-            PL (Skel_Spec, "private");
-            II (Skel_Spec);
-
-            Add_With (Skel_Spec, "Broca.Buffers");
-
-            NL (Skel_Spec);
-            PL (Skel_Spec, "function Get_Type_Id");
-            PL (Skel_Spec, "  (Obj : Object)");
-            PL (Skel_Spec, "  return CORBA.RepositoryId;");
-            NL (Skel_Spec);
-            PL (Skel_Spec, "procedure GIOP_Dispatch");
-            PL (Skel_Spec, "  (Obj : access Object;");
-            PL (Skel_Spec, "   Operation : String;");
-            PL (Skel_Spec, "   Request_Id : CORBA.Unsigned_Long;");
-            PL (Skel_Spec, "   Response_Expected : CORBA.Boolean;");
-            PL (Skel_Spec,
-                "   Request_Buffer : access Broca.Buffers.Buffer_Type;");
-            PL (Skel_Spec,
-                "   Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
-
-            Add_With (Skel_Body, "Broca.Exceptions");
-
             NL (Skel_Body);
             PL (Skel_Body, "Broca.Exceptions.Raise_Bad_Operation;");
             DI (Skel_Body);
             PL (Skel_Body, "end GIOP_Dispatch;");
-
+            NL (Skel_Body);
+            DI (Skel_Body);
+            PL (Skel_Body, "begin");
+            II (Skel_Body);
+            PL (Skel_Body, "PortableServer.Register_Skeleton");
+            PL (Skel_Body, "  (" & Stubs_Name & ".Repository_Id,");
+            PL (Skel_Body, "   Servant_Is_A'Access,");
+            PL (Skel_Body, "   GIOP_Dispatch'Access);");
+            NL (Skel_Body);
          when others =>
             pragma Assert (False);
             --  This never happens.
@@ -470,13 +492,31 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "  abstract new PortableServer.Servant_Base");
             else
                declare
-                  First_Parent_Name : constant String
-                    := Ada_Full_Name (Head (Parents (Node)));
+                  It : Node_Iterator;
+                  P_Node : Node_Id;
+                  First : Boolean := True;
                begin
-                  Add_With (CU, First_Parent_Name & ".Skel");
-                  Put (CU, "  abstract new "
-                       & First_Parent_Name
-                       & ".Skel.Object");
+                  Init (It, Parents (Node));
+
+                  while not Is_End (It) loop
+                     P_Node := Get_Node (It);
+                     Next (It);
+
+                     Add_With (CU, Ada_Full_Name (P_Node)
+                               & Impl_Suffix,
+                               Use_It => False,
+                               Elaborate => True);
+                     --  Make it so that the skeleton unit for
+                     --  an interface is elaborated after those
+                     --  of all its parents.
+
+                     if First then
+                        Put (CU, "  abstract new "
+                             & Ada_Full_Name (P_Node)
+                             & Skel_Suffix & ".Object");
+                        First := False;
+                     end if;
+                  end loop;
                end;
             end if;
 

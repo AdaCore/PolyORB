@@ -26,15 +26,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with all_types.Skel;
---  with all_types_IDL_FILE;
 with CORBA;
+with PortableServer;
 
 package all_types.Impl is
    --  My own implementation of echo object.
    --  This is simply used to define the operations.
 
-   type Object is new all_types.Skel.Object with record
+   type Object is new PortableServer.Servant_Base with record
       Attr_My_Color : Color := Blue;
       Attr_Counter  : CORBA.Long := 0;
    end record;

@@ -771,7 +771,7 @@ package body Broca.Rootpoa is
 
       Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
       Obj := Create_Skeleton
-        (Self, Slot, P_Servant, Get_Type_Id (P_Servant.all), Oid);
+        (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
       return Oid;
    end Activate_Object;
 
@@ -800,7 +800,7 @@ package body Broca.Rootpoa is
       end if;
 
       Obj := Create_Skeleton
-        (Self, Slot, P_Servant, Get_Type_Id (P_Servant.all), Oid);
+        (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
    end Activate_Object_With_Id;
 
    function Create_Reference (Self : access Object; Intf : CORBA.RepositoryId)
@@ -868,7 +868,7 @@ package body Broca.Rootpoa is
          Slot := Reserve_A_Slot (Self);
          Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
          Obj := Create_Skeleton
-           (Self, Slot, P_Servant, Get_Type_Id (P_Servant.all), Oid);
+           (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
          return Oid;
       end if;
       raise PortableServer.POA.ServantNotActive;
@@ -894,7 +894,7 @@ package body Broca.Rootpoa is
          Slot := Reserve_A_Slot (Self);
          Oid := To_Sequence (Slot_Index_Type_To_Objectid_Type (Slot));
          Obj := Create_Skeleton
-           (Self, Slot, P_Servant, Get_Type_Id (P_Servant.all), Oid);
+           (Self, Slot, P_Servant, Get_Type_Id (P_Servant), Oid);
          return Self.Object_Map (Slot).Skeleton;
       end if;
       raise PortableServer.POA.ServantNotActive;
@@ -1498,8 +1498,10 @@ package body Broca.Rootpoa is
    end Find_POA;
 
    Root_POA : Broca.POA.POA_Object_Ptr;
+
 begin
    --  Build the default POAManager.
+
    --  9.3.2  Processing States
    --  The RootPOA is therefore initially in the holding state.
    Default_Poa_Manager := new Poa_Manager_Type;
@@ -1530,6 +1532,7 @@ begin
    Root_POA.Activation_Policy := IMPLICIT_ACTIVATION;
    Register (Default_Poa_Manager.all, Root_POA);
    Broca.Server.Register_POA (Root_POA);
+
    if Root_POA.Index /= Root_POA_Index then
       raise Program_Error;
    end if;
@@ -1542,4 +1545,5 @@ begin
       Broca.ORB.Register_Initial_Reference
         (Broca.ORB.Root_POA_ObjectId, Obj_Ref);
    end;
+
 end Broca.Rootpoa;

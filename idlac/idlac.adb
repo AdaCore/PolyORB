@@ -9,11 +9,13 @@ with Ada_Be;
 pragma Warnings (Off, Ada_Be);
 
 procedure Idlac is
---     procedure Help is
---     begin
---        Put_Line ("usage: " & Command_Name & " idl_file");
---        Set_Exit_Status (Failure);
---     end Help;
+
+   procedure Help is
+   begin
+      Put_Line ("usage: " & Command_Name & " idl_file");
+      Set_Exit_Status (Failure);
+   end Help;
+
 --
 --     Idl_File: File_Type;
 --     File_Name: String_Cacc;

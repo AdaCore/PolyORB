@@ -27,6 +27,9 @@
 ------------------------------------------------------------------------------
 
 --  with Broca.Exceptions; use Broca.Exceptions;
+with all_types.Skel;
+pragma Elaborate (all_types.Skel);
+pragma Warnings (Off, all_types.Skel);
 
 package body all_types.Impl is
 
@@ -388,5 +391,4 @@ package body all_types.Impl is
 --      return Result;
 --   end get_myself;
 --
-
 end all_types.Impl;
