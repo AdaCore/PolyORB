@@ -53,10 +53,9 @@ package body PolyORB.Buffers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   subtype Output_Line is String (1 .. 48);
-
-   Hex : constant String      := "0123456789ABCDEF";
-   Nil : constant Output_Line := (others => ' ');
+   package LL is new PolyORB.Log.Facility_Log ("polyorb.buffers_show");
+   procedure OO (Message : in String; Level : Log_Level := Debug)
+     renames LL.Output;
 
    ------------------------
    -- General operations --
@@ -576,7 +575,8 @@ package body PolyORB.Buffers is
    -- Utility subprograms --
    -------------------------
 
-   procedure Show (Octets : Zone_Access);
+   procedure Show
+     (Octets : Zone_Access);
    --  Display the contents of Octets for
    --  debugging purposes.
 
@@ -584,37 +584,64 @@ package body PolyORB.Buffers is
    -- Show --
    ----------
 
-   procedure Show (Octets : Zone_Access)
+   procedure Show
+     (Octets : Zone_Access)
    is
-      Output : Output_Line;
-      Index  : Natural := 1;
+      subtype Hexa_Line is String (1 .. 50);
+      subtype Ascii_Line is String (1 .. 17);
 
+      Hex : constant String      := "0123456789ABCDEF";
+      Nil_Hexa : constant Hexa_Line := (others => ' ');
+      Nil_Ascii : constant Ascii_Line := (others => ' ');
+
+      Hexa : Hexa_Line := Nil_Hexa;
+      Ascii : Ascii_Line := Nil_Ascii;
+      Index_Hexa : Natural := 1;
+      Index_Ascii : Natural := 1;
    begin
       for J in Octets'Range loop
-         Output (Index)     := ' ';
-         Output (Index + 1) := Hex
+         Hexa (Index_Hexa) := ' ';
+         Hexa (Index_Hexa + 1) := Hex
            (Natural (Octets (J) / 16) + 1);
-         Output (Index + 2) := Hex
+         Hexa (Index_Hexa + 2) := Hex
            (Natural (Octets (J) mod 16) + 1);
-         Index := Index + 3;
+         Index_Hexa := Index_Hexa + 3;
 
-         if Index > Output'Length then
-            pragma Debug (O (Output));
-            Index := 1;
-            Output := Nil;
+         if Octets (J) < 33 then
+            Ascii (Index_Ascii) := '.';
+         else
+            Ascii (Index_Ascii) := Character'Val (Natural (Octets (J)));
+         end if;
+         Index_Ascii := Index_Ascii + 1;
+
+         if Index_Hexa = 25 then
+            Hexa (Index_Hexa) := ' ';
+            Hexa (Index_Hexa + 1) := ' ';
+            Index_Hexa := Index_Hexa + 2;
+            Ascii (Index_Ascii) := ' ';
+            Index_Ascii := Index_Ascii + 1;
+         end if;
+
+         if Index_Hexa > Hexa'Length then
+            pragma Debug (OO (Hexa & "   " & Ascii));
+            Index_Hexa := 1;
+            Hexa := Nil_Hexa;
+            Index_Ascii := 1;
+            Ascii := Nil_Ascii;
          end if;
       end loop;
 
-      if Index /= 1 then
-         pragma Debug (O (Output (1 .. Index - 1)));
+      if Index_Hexa /= 1 then
+         pragma Debug (OO (Hexa & "   " & Ascii));
          null;
       end if;
    end Show;
 
    procedure Show
-     (Buffer : in Buffer_Type) is
+     (Buffer : in Buffer_Type)
+   is
    begin
-      pragma Debug (O ("Dumping "
+      pragma Debug (OO ("Dumping "
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Stream_Element_Offset'Image
