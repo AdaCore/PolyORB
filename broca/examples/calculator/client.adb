@@ -60,6 +60,8 @@ with CORBA.Repository_Root.Helper;
 
 with Naming_Tools;
 
+with Interfaces.C;
+
 procedure Client is
    IOR_RepId : CORBA.String;
    RepId : Repository.Ref;
@@ -69,6 +71,9 @@ procedure Client is
    Postfix : CORBA.String := To_Corba_String (":1.0");
    Separator : CORBA.String := To_Corba_String ("/");
    Module_name : CORBA.String := To_Corba_String ("calculators");
+
+   procedure Quit (I : in Interfaces.C.int);
+   pragma Import (C, quit, "exit");
 
    function Generic_Function
      (Server : in CORBA.Object.Ref;
@@ -110,6 +115,86 @@ procedure Client is
       return From_Any (Result.Argument);
    end Generic_Function;
 
+
+   function Get_Parameter_Seq (Op : Contained.Ref) return StringSeq.Sequence is
+      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
+      --  select all the available operations
+      Cont_Desc : Contained.Description := Contained.Describe (Op);
+      D : OperationDescription :=
+        CORBA.Repository_Root.Helper.From_Any (Cont_Desc.Value);
+      DescSeq : ParDescriptionSeq := D.Parameters;
+      package PDS renames
+        IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
+      A : PDS.Element_Array
+        := PDS.To_Element_Array (PDS.Sequence (DescSeq));
+   begin
+      for I in A'Range loop
+         StringSeq.Append (Result, CORBA.String (A (I).Name));
+      end loop;
+      return Result;
+   end Get_Parameter_Seq;
+
+
+   function Get_Operation_List (Int : InterfaceDef.Ref) return StringSeq.Sequence is
+      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
+      --  select all the available operations
+      Content : ContainedSeq := InterfaceDef.Contents (Int,
+                                                       Dk_Operation,
+                                                       True);
+      Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      Cont_Array : CFS.Element_Array := CFS.To_Element_Array (CFS.Sequence (Content));
+   begin
+      for I in Cont_Array'Range loop
+         declare
+            The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
+         begin
+            StringSeq.Append (Result, CORBA.String (Contained.Get_Name (The_Ref)));
+         end;
+      end loop;
+      return Result;
+   end Get_Operation_List;
+
+   procedure Print_Operations (Name : CORBA.String) is
+      Serv : InterfaceDef.Ref := InterfaceDef.Helper.To_Ref
+        (Repository.Lookup_Id (RepId,
+                               CORBA.RepositoryId
+                               (Prefix & Module_Name & Separator
+                                & Name & Postfix)));
+      Op_List : StringSeq.Sequence := Get_Operation_List (Serv);
+      Op_Array : StringSeq.Element_Array
+        := StringSeq.To_Element_Array (Op_List);
+   begin
+      for I in Op_Array'Range loop
+         declare
+            Operation_Ref : Contained.Ref
+              := Repository.Lookup_Id
+              (RepId,
+               CORBA.RepositoryId
+               (Prefix & Module_Name & Separator &
+                Name & Separator & Op_Array (I) & Postfix));
+            Parameter_Names : StringSeq.Sequence
+              := Get_Parameter_Seq (Operation_Ref);
+            Parameter_Array : StringSeq.Element_Array
+              := StringSeq.To_Element_Array (Parameter_Names);
+            Is_First : Boolean := True;
+         begin
+            Put ("function " &
+                 To_Standard_String (Op_Array (I))
+                 & "(");
+            for J in Parameter_Array'Range loop
+               if Is_First then
+                  Is_First := False;
+               else
+                  Put ("; ");
+               end if;
+               Put (To_Standard_String (Parameter_Array (J)) &
+                    " : Long");
+            end loop;
+            Put_Line (") return Long;");
+         end;
+      end loop;
+   end;
+
    function Get_Integer (Prompt : in String) return CORBA.Long is
       Line : String (1..50);
       End_Of_String : Natural;
@@ -135,97 +220,125 @@ procedure Client is
       return Op;
    end Get_Integer;
 
+   function Choose_Server return CORBA.String;
+
    function Get_Name (Prompt : in String;
-                      Name_List : in StringSeq.Sequence) return CORBA.String is
+                      Name_List : in StringSeq.Sequence;
+                      Un_Name_List : in StringSeq.Sequence)
+                      return CORBA.String is
       Line : String (1..100);
       End_Of_String : Natural;
-      String_Array : StringSeq.Element_Array := StringSeq.To_Element_Array (NAme_List);
-      Bad_Arg : Boolean := True;
-      Index : Natural;
+      String_Array : StringSeq.Element_Array := StringSeq.To_Element_Array (Name_List);
+      Un_String_Array : StringSeq.Element_Array := StringSeq.To_Element_Array (Un_Name_List);
+      Index, Un_Index : Natural;
+      Put_Available : Boolean := False;
    begin
-      while Bad_Arg loop
-         Put_Line (Prompt & " :");
-         for I in String_Array'Range loop
-            Put_line ("     " & To_Standard_String (String_Array (I)));
+      if (StringSeq.Length (Name_List) = 0) and
+        (StringSeq.Length (Un_Name_List) = 0) then
+         Put_Line ("There is nothing to choose!");
+         raise End_Of_Game;
+      end if;
+
+      Put_Line (Prompt & " :");
+      if StringSeq.Length (Un_Name_List) /= 0 then
+         Put_Available := True;
+         for I in Un_String_Array'Range loop
+            Put_line ("     " &
+                      To_Standard_String (Un_String_Array (I)) &
+                      " (unavailable)");
          end loop;
-         Put_Line ("");
-         Put ("Give your choice : ");
-         Get_Line (Line, End_Of_String);
-         if Line (1 .. End_Of_String) = "quit" then
-            raise End_Of_Game;
+      end if;
+      for I in String_Array'Range loop
+         Put ("     " &
+              To_Standard_String (String_Array (I)));
+         if Put_Available then
+            Put_Line (" (available)");
+         else
+            Put_Line ("");
          end if;
-         declare
-            Ar : StringSeq.Element_Array (1 .. 1);
-         begin
-            Ar (1) := To_Corba_String (Line (1 .. End_Of_String));
-            Index := StringSeq.Index (Name_List,
-                                     Ar);
-            if Index = 0 then
-               Put_Line ("This is not a valid entry.");
-            else
-               Bad_Arg := False;
-            end if;
-         end;
       end loop;
+      Put_Line ("");
+      Put ("Give your choice : ");
+      Get_Line (Line, End_Of_String);
+      if Line (1 .. End_Of_String) = "quit" then
+         raise End_Of_Game;
+      end if;
+      declare
+         Ar : StringSeq.Element_Array (1 .. 1);
+      begin
+         Ar (1) := To_Corba_String (Line (1 .. End_Of_String));
+         Index := StringSeq.Index (Name_List,
+                                   Ar);
+         Un_Index := StringSeq.Index (Un_Name_List,
+                                      Ar);
+         if (Index = 0) and (Un_Index = 0) then
+            Put_Line ("This is not a valid entry.");
+            return Choose_Server;
+         else
+            if Un_Index /= 0 then
+               Put_Line ("");
+               Put_Line ("The available operations are");
+               Print_Operations (Un_String_Array (Un_Index));
+               Put_Line ("");
+               Put_Line ("But this selection is not available,");
+               Put_Line ("You will have to choose another one.");
+               return Choose_Server;
+            end if;
+         end if;
+      end;
       return String_Array (Index);
    end Get_Name;
 
-   function Get_Operation_List (Int : InterfaceDef.Ref) return StringSeq.Sequence is
-      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
-      --  select all the available operations
-      Content : ContainedSeq := InterfaceDef.Contents (Int,
-                                                       Dk_Operation,
-                                                       True);
-      Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
-      Cont_Array : CFS.Element_Array := CFS.To_Element_Array (CFS.Sequence (Content));
-   begin
-      for I in Cont_Array'Range loop
-         declare
-            The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
-         begin
-            StringSeq.Append (Result, CORBA.String (Contained.Get_Name (The_Ref)));
-         end;
-      end loop;
-      return Result;
-   end Get_Operation_List;
-
-   function Get_Parameter_Seq (Op : Contained.Ref) return StringSeq.Sequence is
-      Result : StringSeq.Sequence := StringSeq.Null_Sequence;
-      --  select all the available operations
-      Cont_Desc : Contained.Description := Contained.Describe (Op);
-      D : OperationDescription :=
-        CORBA.Repository_Root.Helper.From_Any (Cont_Desc.Value);
-      DescSeq : ParDescriptionSeq := D.Parameters;
-      package PDS renames
-        IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
-      A : PDS.Element_Array
-        := PDS.To_Element_Array (PDS.Sequence (DescSeq));
-   begin
-      for I in A'Range loop
-         StringSeq.Append (Result, CORBA.String (A (I).Name));
-      end loop;
-      return Result;
-   end Get_Parameter_Seq;
-
    function Choose_Server return CORBA.String is
-      Servers : StringSeq.Sequence := StringSeq.Null_Sequence;
-      Module : Contained.Ref :=  Repository.Lookup_Id
-        (RepId, CORBA.RepositoryId (Prefix & Module_Name & Postfix));
-      Content : ContainedSeq := ModuleDef.Contents (ModuleDef.Helper.To_Ref (Module),
-                                                    Dk_Interface,
-                                                    True);
-      Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
-      Cont_Array : CFS.Element_Array := CFS.To_Element_Array (CFS.Sequence (Content));
+      Module : Contained.Ref;
+      Look_Is_Nil : Boolean;
    begin
-      for I in Cont_Array'Range loop
-         declare
-            The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
-         begin
-            StringSeq.Append (Servers, CORBA.String (Contained.Get_Name (The_Ref)));
-         end;
-      end loop;
-      return Get_Name ("The available servers are",
-                       Servers);
+      begin
+         Module := Repository.Lookup_Id
+           (RepId,
+            CORBA.RepositoryId (Prefix & Module_Name & Postfix));
+         Look_Is_Nil := Contained.Is_Nil (Module);
+         --  This is a work-around to supply a bug of the ORB
+      exception
+         when others =>
+            Look_Is_Nil := True;
+      end;
+
+      if Look_Is_Nil then
+         Put_Line ("There is no server available");
+         raise End_Of_Game;
+      end if;
+
+      declare
+         Servers : StringSeq.Sequence := StringSeq.Null_Sequence;
+         Un_Servers : StringSeq.Sequence := StringSeq.Null_Sequence;
+         Content : ContainedSeq
+           := ModuleDef.Contents (ModuleDef.Helper.To_Ref (Module),
+                                  Dk_Interface,
+                                  True);
+         Package CFS renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+         Cont_Array : CFS.Element_Array
+           := CFS.To_Element_Array (CFS.Sequence (Content));
+      begin
+         for I in Cont_Array'Range loop
+            declare
+               The_Ref : Contained.Ref := Contained.Convert_Forward.To_Ref (Cont_Array (I));
+               The_Name : CORBA.String := CORBA.String (Contained.Get_Name (The_Ref));
+               The_Useless_Ref : CORBA.Object.Ref;
+            begin
+               begin
+                  The_Useless_Ref := Naming_Tools.Locate
+                    (To_Standard_String (Module_Name & Separator & The_Name));
+                  StringSeq.Append (Servers, The_Name);
+               exception
+                  when others =>
+                     StringSeq.Append (Un_Servers, The_Name);
+               end;
+            end;
+         end loop;
+         return Get_Name ("The servers are",
+                          Servers, Un_Servers);
+      end;
    end Choose_Server;
 
    procedure Server_Loop (Serv_Ref : InterfaceDef.Ref;
@@ -236,7 +349,7 @@ procedure Client is
       Parameter_Names : StringSeq.Sequence := StringSeq.Null_Sequence;
       Parameters : LongSeq.Sequence := LongSeq.Null_Sequence;
    begin
-      Operation_Name := Get_Name ("The available operations are", Operations);
+      Operation_Name := Get_Name ("The available operations are", Operations, StringSeq.Null_Sequence);
       Operation_Ref := Repository.Lookup_Id
         (RepId,
          CORBA.RepositoryId
@@ -301,6 +414,7 @@ exception
    when End_Of_Game =>
       --  End of the game
       Put_Line ("Thank you for using our adaptative calculator...");
+      Quit (Interfaces.C.Int (2));
 end Client;
 
 

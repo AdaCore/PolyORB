@@ -59,4 +59,23 @@ package body Naming_Tools is
       end if;
    end Register;
 
+   ----------------
+   -- Unregister --
+   ----------------
+
+   procedure Unregister
+     (Name   : in String)
+   is
+      RNS : constant NamingContext.Ref :=
+        To_Ref (CORBA.ORB.Resolve_Initial_References
+                (CORBA.ORB.To_Corba_String ("NamingService")));
+      N   : CosNaming.Name;
+      NC  : NameComponent;
+   begin
+      NC.Kind := CosNaming.To_CORBA_String ("");
+      NC.Id   := CosNaming.To_CORBA_String (Name);
+      Append (N, NC);
+      Unbind (RNS, N);
+   end Unregister;
+
 end Naming_Tools;

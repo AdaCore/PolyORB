@@ -14,4 +14,7 @@ package Naming_Tools is
       Rebind : in Boolean := False);
    --  Register an object by its name by binding or rebinding
 
+   procedure Unregister (Name : in String);
+   --  Unregister an object by its name by unbinding it.
+
 end Naming_Tools;

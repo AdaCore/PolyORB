@@ -29,6 +29,11 @@
 
 with Ada.Tags;
 with Ada.Command_Line;
+with Ada.Interrupts; use Ada.Interrupts;
+with Ada.Interrupts.Names;
+
+with Handler;
+
 with CORBA; use CORBA;
 with CORBA.ORB;
 with CORBA.Object;
@@ -54,6 +59,8 @@ with CORBA.Repository_Root.ModuleDef.Helper;
 with Naming_Tools;
 with CosNaming.NamingContext;
 with Ada.Text_IO; use Ada.Text_IO;
+
+with Interfaces.C;
 
 procedure Simple_Server is
 
@@ -124,8 +131,23 @@ procedure Simple_Server is
      := new Calculators.Simple_Calculator.Impl.Object;
    package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
 
+   --  this task is waiting for a SIGINT and removes
+   --  this server from the naming service when it occurs
+   task Wait_SIGINT;
+   task body Wait_SIGINT is
+      procedure Quit (I : in Interfaces.C.int);
+      pragma Import (C, quit, "exit");
+   begin
+      Handler.Handle_Kill.Wait;
+      Put_Line ("Removing this server from cosnaming");
+      Naming_Tools.Unregister ("calculators/simple_calculator");
+      Put_Line ("Thank you for using our servers.");
+      Quit (Interfaces.C.Int (2));
+   end;
+
    Myrep : Repository.Ref;
    Look_Is_Nil : Boolean;
+   Int : InterfaceDef_Forward.Ref;
 begin
    --------------------------
    --  Register to the IR  --
@@ -185,7 +207,6 @@ begin
       end;
       if Look_Is_Nil then
          declare
-            Int : InterfaceDef_Forward.Ref;
             Id : RepositoryId;
             Name : Identifier;
             Version : VersionSpec;
@@ -247,6 +268,13 @@ begin
       when CosNaming.NamingContext.AlreadyBound =>
          Naming_Tools.Register ("calculators/simple_calculator", Ref, Rebind => True);
    end;
+
+   --------------------------------
+   --  Unregister to the naming  --
+   --------------------------------
+   --  deal with the SIGINT Signal
+   Attach_Handler (Handler.Handle_Kill.Response'Access,
+                   Names.SIGINT);
 
    ----------------------
    --  Run the server  --
