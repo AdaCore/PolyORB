@@ -1,4 +1,3 @@
-pragma Warnings (Off);
 ------------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
@@ -36,6 +35,7 @@ with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
 with Utils;                 use Utils;
+with Errors;                use Errors;
 
 package body Ada_Be.Idl2Ada.IR_Info is
 
@@ -46,12 +46,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
-   --  Helpers need a special diversion for the initialization procedure.
-
-   Deferred_Initialization     : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
-   Initialization_Dependencies : constant Source_Streams.Diversion
-     := Source_Streams.Allocate_User_Diversion;
+   CRR : constant String := "CORBA.Repository_Root";
 
    procedure Gen_IR_Function_Prologue
      (CU       : in out Compilation_Unit;
@@ -72,12 +67,17 @@ package body Ada_Be.Idl2Ada.IR_Info is
    -- Specialised generation subprograms --
    ----------------------------------------
 
+   procedure Gen_Parent_Container_Dcl
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the declaration of a Container_Ref corresponding
+   --  to the container corresponding to Node's parent scope.
+
    procedure Gen_Parent_Container_Lookup
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
    --  Generate the code to look up Node's name in the container
    --  object that describes its parent scope.
-
 
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
@@ -182,13 +182,164 @@ package body Ada_Be.Idl2Ada.IR_Info is
    ----------------------------------------------
 
    function Ada_IR_Name (Node : Node_Id) return String is
+      Prefix : constant String := "IR_";
+      NK : constant Node_Kind := Kind (Node);
+
+      function Get_Primitive (S : String) return String;
+      --  Return a call to Get_Primitive for the named
+      --  PrimitiveDef kind.
+
+      function Get_Primitive (S : String) return String is
+      begin
+         return "Get_Primitive" & ASCII.LF
+           & "  (Root_Repo_Ref, CORBA.Repository_Root." & S & ")";
+      end Get_Primitive;
+
    begin
-      return Ada_Ancillary_Name (Node, "IR_");
+      case NK is
+         when
+           K_Module            |
+           K_Interface         |
+           K_Forward_Interface |
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
+           K_Sequence_Instance |
+           K_String_Instance   |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Exception         |
+           K_Operation         |
+           K_Declarator        =>
+            return Prefix & Ada_Name (Node);
+
+         when K_Scoped_Name =>
+            return Ada_IR_Name (Value (Node));
+
+         when K_Short =>
+            return Get_Primitive ("pk_short");
+
+         when K_Long =>
+            return Get_Primitive ("pk_long");
+
+         when K_Long_Long =>
+            return Get_Primitive ("pk_longlong");
+
+         when K_Unsigned_Short =>
+            return Get_Primitive ("pk_ushort");
+
+         when K_Unsigned_Long =>
+            return Get_Primitive ("pk_ulong");
+
+         when K_Unsigned_Long_Long =>
+            return Get_Primitive ("pk_ulonglong");
+
+         when K_Char =>
+            return Get_Primitive ("pk_char");
+
+         when K_Wide_Char =>
+            return Get_Primitive ("pk_widechar");
+
+         when K_Boolean =>
+            return Get_Primitive ("pk_boolean");
+
+         when K_Float =>
+            return Get_Primitive ("pk_float");
+
+         when K_Double =>
+            return Get_Primitive ("pk_double");
+
+         when K_Long_Double =>
+            return Get_Primitive ("pk_longdouble");
+
+         when K_String =>
+            return Get_Primitive ("pk_string");
+
+         when K_Wide_String =>
+            return Get_Primitive ("pk_widestring");
+
+         when K_Octet =>
+            return Get_Primitive ("pk_octet");
+
+         when K_Object =>
+            return Get_Primitive ("pk_objref");
+
+         when K_Any =>
+            return Get_Primitive ("pk_any");
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Error
+              ("No IR object for "
+               & Node_Kind'Image (NK) & " nodes.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+
+      end case;
    end Ada_IR_Name;
 
    function Ada_IR_Info_Name (Node : Node_Id) return String is
+      NK : constant Node_Kind := Kind (Node);
    begin
-      return Ada_Ancillary_Package_Name (Node, IR_Info.Suffix);
+      case NK is
+         when
+           K_Module            |
+           K_Interface         =>
+            return Ada_Full_Name (Node) & Suffix;
+
+         when
+           K_Forward_Interface =>
+            return Parent_Scope_Name (Node) & Suffix;
+
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
+         when
+           K_Sequence_Instance |
+           K_String_Instance   |
+           K_Enum              |
+           K_Union             |
+           K_Struct            |
+           K_Exception         |
+           K_Declarator        =>
+            return Parent_Scope_Name (Node) & Suffix;
+
+         when K_Scoped_Name =>
+            return Ada_Helper_Name (Value (Node));
+
+         when K_Short           |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_String             |
+           K_Wide_String        |
+           K_Octet              |
+           K_Object             |
+           K_Any                =>
+            return CRR;
+
+         when others =>
+            --  Improper use: node N does not have a correspoding
+            --  IR object.
+
+            Error
+              ("No IR info for " & Node_Kind'Image (NK) & " nodes.",
+               Fatal, Get_Location (Node));
+
+            --  Keep the compiler happy.
+            raise Program_Error;
+      end case;
    end Ada_IR_Info_Name;
 
    function Ada_Full_IR_Name (Node : Node_Id) return String is
@@ -383,7 +534,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
    begin
       NL (CU);
       if not For_Body then
-         Add_With (CU, "CORBA.Repository_Root.IRObject");
+         Add_With (CU, CRR & ".IRObject");
       else
          PL (CU, "Cached_" & Name & " :");
          PL (CU, "  CORBA.Repository_Root.IRObject.Ref;");
@@ -409,23 +560,21 @@ package body Ada_Be.Idl2Ada.IR_Info is
       end if;
    end Gen_IR_Function_Prologue;
 
-   ---------------------------------
-   -- Gen_Parent_Container_Lookup --
-   ---------------------------------
+   ------------------------------
+   -- Gen_Parent_Container_Dcl --
+   ------------------------------
 
-   procedure Gen_Parent_Container_Lookup
+   procedure Gen_Parent_Container_Dcl
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      Cached_Name : constant String := "Cached_" & Ada_IR_Name (Node);
       PS_Node : constant Node_Id := Parent_Scope (Node);
    begin
-      Add_With (CU, "CORBA.Repository_Root.Container.Helper");
-      Add_With (CU, "CORBA.Repository_Root.IRObject.Helper");
-      PL (CU, "declare");
-      II (CU);
+      Add_With (CU, CRR & ".Container.Helper");
+      Add_With (CU, CRR & ".IRObject.Helper");
       PL (CU, "Container_Ref : "
           & "constant CORBA.Repository_Root.Container.Ref");
+
       case Kind (PS_Node) is
          when K_Interface | K_ValueType | K_Module =>
             --  The PS_Node corresponds to a container in
@@ -436,18 +585,27 @@ package body Ada_Be.Idl2Ada.IR_Info is
          when others =>
             PL (CU, "  := The_Repository_Root_Ref;");
       end case;
-      DI (CU);
-      PL (CU, "begin");
-      II (CU);
+
+   end Gen_Parent_Container_Dcl;
+
+   ---------------------------------
+   -- Gen_Parent_Container_Lookup --
+   ---------------------------------
+
+   procedure Gen_Parent_Container_Lookup
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id)
+   is
+      Cached_Name : constant String := "Cached_" & Ada_IR_Name (Node);
+   begin
+
       PL (CU, Cached_Name & " :=");
       PL (CU, "  CORBA.Repository_Root.IRObject.Helper.To_Ref");
       PL (CU, "  (CORBA.Repository_Root.Container.Lookup");
       II (CU);
       PL (CU, "(Container_Ref));");
       DI (CU);
-      DI (CU);
-      PL (CU, "end;");
-      PL (CU, "if not Is_Nil");
+      PL (CU, "if not CORBA.Repository_Root.IRObject.Is_Nil");
       PL (CU, "  (" & Cached_Name & ")");
       PL (CU, "then");
       II (CU);
@@ -467,10 +625,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
    begin
-      Add_With (CU, "CORBA.Repository_Root.InterfaceDef.Helper");
+      Add_With (CU, CRR & ".InterfaceDef.Helper");
 
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
+      NL (CU);
       PL (CU, "declare");
       II (CU);
       PL (CU, "Base_Ifs : InterfaceDefSeq;");
@@ -526,8 +685,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
       IRN : constant String := Ada_IR_Name (Node);
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Dcl (CU, Node);
       Gen_Parent_Container_Lookup (CU, Node);
-
+      NL (CU);
       PL (CU, "declare");
       II (CU);
       PL (CU, "Params : ParDescriptionSeq;");
@@ -554,9 +714,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Add_With (CU, Ada_IR_Info_Name (T_Node));
 
             PL (CU, " type =>");
-            PL (CU, "   " & Ada_Full_TC_Name (T_Node) & ",");
+            II (CU);
+            PL (CU, Ada_Full_TC_Name (T_Node) & ",");
+            DI (CU);
             PL (CU, " type_def =>");
-            PL (CU, "   " & Ada_Full_IR_Name (T_Node) & ",");
+            II (CU);
+            PL (CU, Ada_Full_IR_Name (T_Node) & ",");
+            DI (CU);
             Put (CU, " mode => ");
             case Mode (P_Node) is
                when Mode_In =>
@@ -578,10 +742,12 @@ package body Ada_Be.Idl2Ada.IR_Info is
 --                Next (It);
 --             end loop;
 
+      Add_With (CU, CRR & ".InterfaceDef.Helper");
       PL (CU, "Cached_" & IRN);
       PL (CU, "  := Create_Operation");
-      PL (CU, "  (Interface_Def_Ref,");
+      PL (CU, "  (CORBA.Repository_Root.InterfaceDef.Helper.To_Ref");
       II (CU);
+      PL (CU, "(Container_Ref),");
       PL (CU, Repository_Id_Name (Node) & ",");
       PL (CU, Name (Node) & ",");
       PL (CU, """" & Image (Version (Node)) & """,");
@@ -607,7 +773,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
    is
       IRN : constant String := Ada_IR_Name (Node);
    begin
-      Add_With (CU, "CORBA.Repository_Root.ModuleDef.Helper");
+      Add_With (CU, CRR & ".ModuleDef.Helper");
 
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);

@@ -425,8 +425,9 @@ package body Ada_Be.Source_Streams is
    is
       Indent_String : constant String
         (1 .. Indent_Size
-           * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
-          := (others => ' ');
+         * Unit.Diversions (Unit.Current_Diversion).Indent_Level)
+        := (others => ' ');
+      LF_Pos : Integer;
    begin
       Unit.Diversions (Unit.Current_Diversion).Empty := False;
       if Unit.Diversions (Unit.Current_Diversion).At_BOL then
@@ -435,15 +436,36 @@ package body Ada_Be.Source_Streams is
             Indent_String);
          Unit.Diversions (Unit.Current_Diversion).At_BOL := False;
       end if;
-      Append (Unit.Diversions (Unit.Current_Diversion).Library_Item, Text);
+
+      LF_Pos := Text'First;
+      while LF_Pos <= Text'Last
+        and then Text (LF_Pos) /= ASCII.LF
+      loop
+         LF_Pos := LF_Pos + 1;
+      end loop;
+
+      Append
+        (Unit.Diversions (Unit.Current_Diversion).Library_Item,
+         Text (Text'First .. LF_Pos - 1));
+
+      --  LF seen?
+
+      if LF_Pos <= Text'Last then
+         New_Line (Unit);
+      end if;
+
+      --  More?
+
+      if LF_Pos + 1 <= Text'Last then
+         Put (Unit, Text (LF_Pos + 1 .. Text'Last));
+      end if;
    end Put;
 
    procedure Put_Line
      (Unit : in out Compilation_Unit;
       Line : String) is
    begin
-      Put (Unit, Line);
-      New_Line (Unit);
+      Put (Unit, Line & ASCII.LF);
    end Put_Line;
 
    procedure New_Line (Unit : in out Compilation_Unit) is

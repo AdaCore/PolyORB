@@ -36,7 +36,6 @@ with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
 
 with Utils;                 use Utils;
-with Errors;                use Errors;
 
 package body Ada_Be.Idl2Ada.Helper is
 
@@ -172,16 +171,6 @@ package body Ada_Be.Idl2Ada.Helper is
       Decl_Node : in     Node_Id);
    --  generate lines to fill in an array typecode
    --  only used in the type_declarator part of gen_node_body
-
-   function Ada_TC_Name (Node : Node_Id) return String;
-   --  The name of the typecode corresponding to an Ada type
-
-   function Ada_Full_TC_Name (Node : Node_Id) return String;
-   --  The full name of the typecode corresponding to an Ada type
-
-   function Ada_Helper_Name (Node : in Node_Id) return String;
-   --  returns the name of the helper package where the TypeCode
-   --  corresponding to Node is defined
 
    function Raise_From_Any_Name (Node : in Node_Id) return String;
    --  Return the name of a procedure that raises that exception
@@ -2466,183 +2455,10 @@ package body Ada_Be.Idl2Ada.Helper is
       Rec_Gen_Array_TC (CU, Bounds_It, True, 0, Type_Node, Decl_Node);
    end Gen_Array_TC;
 
-   -----------------
-   -- Ada_TC_Name --
-   -----------------
-
-   function Ada_TC_Name
-     (Node : Node_Id)
-     return String
-   is
-      NK : constant Node_Kind := Kind (Node);
-      Prefix : constant String := "TC_";
-   begin
-      case NK is
-         when
-           K_Interface         |
-           K_Forward_Interface |
-            --          K_ValueType         |
-            --          K_Forward_ValueType |
-           K_Sequence_Instance |
-           K_String_Instance   |
-           K_Enum              |
-           K_Union             |
-           K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
-            return Prefix & Ada_Name (Node);
-
-         when K_Scoped_Name =>
-            return Ada_TC_Name (Value (Node));
-
-         when K_Short =>
-            return Prefix & "Short";
-
-         when K_Long =>
-            return Prefix & "Long";
-
-         when K_Long_Long =>
-            return Prefix & "Long_Long";
-
-         when K_Unsigned_Short =>
-            return Prefix & "Unsigned_Short";
-
-         when K_Unsigned_Long =>
-            return Prefix & "Unsigned_Long";
-
-         when K_Unsigned_Long_Long =>
-            return Prefix & "Unsigned_Long_Long";
-
-         when K_Char =>
-            return Prefix & "Char";
-
-         when K_Wide_Char =>
-            return Prefix & "Wide_Char";
-
-         when K_Boolean =>
-            return Prefix & "Boolean";
-
-         when K_Float =>
-            return Prefix & "Float";
-
-         when K_Double =>
-            return Prefix & "Double";
-
-         when K_Long_Double =>
-            return Prefix & "Long_Double";
-
-         when K_String =>
-            return Prefix & "String";
-
-         when K_Wide_String =>
-            return Prefix & "Wide_String";
-
-         when K_Octet =>
-            return Prefix & "Octet";
-
-         when K_Object =>
-            return Prefix & "Object";
-
-         when K_Any =>
-            return Prefix & "Any";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("No TypeCode for " & Node_Kind'Image (NK) & " nodes.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-
-      end case;
-   end Ada_TC_Name;
-
-   ---------------------
-   -- Ada_Helper_Name --
-   ---------------------
-
-   function Ada_Helper_Name
-     (Node : in     Node_Id)
-     return String
-   is
-      NK : constant Node_Kind := Kind (Node);
-   begin
-      case NK is
-         when
-           K_Interface         =>
-            return Ada_Full_Name (Node) & ".Helper";
-
-         when
-           K_Forward_Interface =>
-            return Parent_Scope_Name (Node) & ".Helper";
-
-            --          K_ValueType         |
-            --          K_Forward_ValueType |
-         when
-           K_Sequence_Instance |
-           K_String_Instance   |
-           K_Enum              |
-           K_Union             |
-           K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
-            return Parent_Scope_Name (Node) & ".Helper";
-
-         when K_Scoped_Name =>
-            return Ada_Helper_Name (Value (Node));
-
-         when K_Short           |
-           K_Long               |
-           K_Long_Long          |
-           K_Unsigned_Short     |
-           K_Unsigned_Long      |
-           K_Unsigned_Long_Long |
-           K_Char               |
-           K_Wide_Char          |
-           K_Boolean            |
-           K_Float              |
-           K_Double             |
-           K_Long_Double        |
-           K_String             |
-           K_Wide_String        |
-           K_Octet              |
-           K_Any                =>
-            return "CORBA";
-
-         when K_Object =>
-            return "CORBA.Object.Helper";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("No helpers for " & Node_Kind'Image (NK) & " nodes.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-      end case;
-   end Ada_Helper_Name;
-
    function Raise_From_Any_Name (Node : Node_Id) return String is
    begin
       pragma Assert (Kind (Node) = K_Exception);
       return "Raise_" & Ada_Name (Node) & "_From_Any";
    end Raise_From_Any_Name;
-
-   ----------------------
-   -- Ada_Full_TC_Name --
-   ----------------------
-
-   function Ada_Full_TC_Name
-     (Node : Node_Id)
-     return String is
-   begin
-      return Ada_Helper_Name (Node) & "." & Ada_TC_Name (Node);
-   end Ada_Full_TC_Name;
 
 end Ada_Be.Idl2Ada.Helper;

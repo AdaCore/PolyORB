@@ -69,17 +69,6 @@ private
    --  The name of the Ada constant that contains
    --  the repository ID of K_Named Node.
 
-   function Ada_Ancillary_Name (Node : Node_Id; Prefix : String)
-     return String;
-   --  Return the name of an ancillary descriptive
-   --  object (TypeCode, IRObject) associated with Node.
-
-   function Ada_Ancillary_Package_Name
-     (Node : Node_Id; Suffix : String)
-     return String;
-   --  Return the name of a package containing ancillary descriptive
-   --  objects (TypeCode, IRObject) associated with Node.
-
    function Ada_TC_Name (Node : Node_Id) return String;
    --  The name of the typecode corresponding to an Ada type
 

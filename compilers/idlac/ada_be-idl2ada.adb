@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#25 $
+--  $Id$
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -2488,9 +2488,9 @@ package body Ada_Be.Idl2Ada is
       return -Typ;
    end Ada_Type_Name;
 
-   --------------------
-   --  TC_Name       --
-   --------------------
+   -------------
+   -- TC_Name --
+   -------------
 
    function TC_Name
      (Node : Node_Id)
@@ -2915,18 +2915,19 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Constant_Value;
 
-   ------------------------
-   -- Ada_Ancillary_Name --
-   ------------------------
+   -----------------
+   -- Ada_TC_Name --
+   -----------------
 
-   function Ada_Ancillary_Name (Node : Node_Id; Prefix : String)
+   function Ada_TC_Name
+     (Node : Node_Id)
      return String
    is
       NK : constant Node_Kind := Kind (Node);
+      Prefix : constant String := "TC_";
    begin
       case NK is
          when
-           K_Module            |
            K_Interface         |
            K_Forward_Interface |
             --          K_ValueType         |
@@ -2937,7 +2938,6 @@ package body Ada_Be.Idl2Ada is
            K_Union             |
            K_Struct            |
            K_Exception         |
-           K_Operation         |
            K_Declarator        =>
             return Prefix & Ada_Name (Node);
 
@@ -3000,41 +3000,33 @@ package body Ada_Be.Idl2Ada is
             --  mapped to an Ada type.
 
             Error
-              ("No ancillary " & Prefix & " object for "
-               & Node_Kind'Image (NK) & " nodes.",
+              ("No TypeCode for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
             raise Program_Error;
 
       end case;
-   end Ada_Ancillary_Name;
-
-   function Ada_TC_Name (Node : Node_Id) return String is
-   begin
-      return Ada_Ancillary_Name (Node, "TC_");
    end Ada_TC_Name;
 
-   --------------------------------
-   -- Ada_Ancillary_Package_Name --
-   --------------------------------
+   ---------------------
+   -- Ada_Helper_Name --
+   ---------------------
 
-   function Ada_Ancillary_Package_Name
-     (Node : in     Node_Id;
-      Suffix : String)
+   function Ada_Helper_Name
+     (Node : in     Node_Id)
      return String
    is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
          when
-           K_Interface    |
-           K_Module       =>
-            return Ada_Full_Name (Node) & Suffix;
+           K_Interface         =>
+            return Ada_Full_Name (Node) & Helper.Suffix;
 
          when
            K_Forward_Interface =>
-            return Parent_Scope_Name (Node) & Suffix;
+            return Parent_Scope_Name (Node) & Helper.Suffix;
 
             --          K_ValueType         |
             --          K_Forward_ValueType |
@@ -3046,7 +3038,7 @@ package body Ada_Be.Idl2Ada is
            K_Struct            |
            K_Exception         |
            K_Declarator        =>
-            return Parent_Scope_Name (Node) & Suffix;
+            return Parent_Scope_Name (Node) & Helper.Suffix;
 
          when K_Scoped_Name =>
             return Ada_Helper_Name (Value (Node));
@@ -3070,29 +3062,19 @@ package body Ada_Be.Idl2Ada is
             return "CORBA";
 
          when K_Object =>
-            return "CORBA.Object" & Suffix;
+            return "CORBA.Object.Helper";
 
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
 
             Error
-              ("No " & Suffix & " package for "
-               & Node_Kind'Image (NK) & " nodes.",
+              ("No helpers for " & Node_Kind'Image (NK) & " nodes.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
             raise Program_Error;
       end case;
-   end Ada_Ancillary_Package_Name;
-
-   ---------------------
-   -- Ada_Helper_Name --
-   ---------------------
-
-   function Ada_Helper_Name (Node : in Node_Id) return String is
-   begin
-      return Ada_Ancillary_Package_Name (Node, Helper.Suffix);
    end Ada_Helper_Name;
 
    ----------------------
