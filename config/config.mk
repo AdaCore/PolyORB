@@ -10,4 +10,4 @@ ADABROKER_FLAGS = -I$(ADABROKER_INTERFACEORB)  \
 
 ADABROKER_LIB_DEPEND = $(ADABROKER_INTERFACEORB)/libadabroker.a
 
-include $(ADABROKER_TOP)/omniORB_2.7.0/config/config.mk
+include $(TOP)/config/config.mk
