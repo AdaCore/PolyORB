@@ -47,6 +47,7 @@ with System.Garlic.Termination; use System.Garlic.Termination;
 with System.Garlic.Thin;   use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
 with System.Garlic.Utils; use System.Garlic.Utils;
+with System.Storage_Elements; use System.Storage_Elements;
 
 package body System.Garlic.TCP is
 
@@ -626,11 +627,9 @@ package body System.Garlic.TCP is
      (FD : in C.int; Data : out Stream_Element_Array)
    is
       function To_Chars_Ptr is
-         new Ada.Unchecked_Conversion (C.int, Strings.chars_ptr);
-      function To_Int is
-         new Ada.Unchecked_Conversion (System.Address, C.int);
-      Current : C.int := To_Int (Data (Data'First) 'Address);
-      Rest    : C.int := Data'Length;
+         new Ada.Unchecked_Conversion (System.Address, Strings.chars_ptr);
+      Current : System.Address := Data (Data'First) 'Address;
+      Rest    : C.int          := Data'Length;
       Code    : C.int;
    begin
       while Rest > 0 loop
@@ -640,7 +639,7 @@ package body System.Garlic.TCP is
          if Code <= 0 then
             raise Communication_Error;
          end if;
-         Current := Current + Code;
+         Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
       end loop;
    end Physical_Receive;
@@ -652,11 +651,9 @@ package body System.Garlic.TCP is
    procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array)
    is
       function To_Chars_Ptr is
-         new Ada.Unchecked_Conversion (C.int, Strings.chars_ptr);
-      function To_Int is
-         new Ada.Unchecked_Conversion (System.Address, C.int);
-      Current : C.int := To_Int (Data (Data'First) 'Address);
-      Rest    : C.int := Data'Length;
+         new Ada.Unchecked_Conversion (System.Address, Strings.chars_ptr);
+      Current : System.Address := Data (Data'First) 'Address;
+      Rest    : C.int          := Data'Length;
       Code    : C.int;
    begin
       while Rest > 0 loop
@@ -664,7 +661,7 @@ package body System.Garlic.TCP is
          if Code <= 0 then
             raise Communication_Error;
          end if;
-         Current := Current + Code;
+         Current := Current + Storage_Offset (Code);
          Rest := Rest - Code;
       end loop;
    end Physical_Send;
