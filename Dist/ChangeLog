@@ -1,3 +1,10 @@
+2001-01-19  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_check.adb: in (Recompile), when we decide to discard a
+	compilation error because the unit is not needed to build the
+	partition, check that the unit name extracted by
+	Make.Extract_Failure is not No_Name.
+
 2000-12-11  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* xe_stubs.adb: Call initialization procedure of each filter
