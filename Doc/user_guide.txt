@@ -69,7 +69,7 @@ How to Use Gnatdist to Configure a Distributed Application.
 -----------------------------------------------------------
 
 1. Write a non-distributed Ada application. Use the categorization
-   pragmas to specify the packages that can be called remotly. The
+   pragmas to specify the packages that can be called remotely. The
    Shared_Passive categorization pragma is not yet implemented. The
    Remote_Call_Interface and Remote_Types categorization pragmas are.
 
@@ -228,7 +228,7 @@ configuration My_Config is
   pragma Boot_Server
     (Protocol_Name => "tcp", Protocol_Data => "`hostname`:`unused-port`");
   --  Specify the use of a particular boot server. It is especially
-  --  usefull when the default port 5555 used by GARLIC is already assigned.
+  --  useful when the default port 5555 used by GARLIC is already assigned.
 
   pragma Version (False);
   --  It is a bounded error to elaborate a partition of a distributed
@@ -310,8 +310,8 @@ not intend to rebuild your distributed applications.
 Restrictions.
 -------------
 
-Static remote procedures, asynchonous remote procedures, remote access
-to class wide types and asynchronous transfert of control with remote
+Static remote procedures, asynchronous remote procedures, remote access
+to class wide types and asynchronous transfer of control with remote
 procedures are implemented. Remote types packages are implemented.
 
 Remote access to subprogram have not yet been implemented.
@@ -327,6 +327,6 @@ changed into System.RPC.Communication_Error, but the right exception
 message (if any) is propagated correctly.
 
 For the time being, gnatdist is only able to build distributed
-applications for a pool of homogeneous or heterogeneours machines
+applications for a pool of homogeneous or heterogeneous machines
 using TCP/IP as a common network protocol.
 
