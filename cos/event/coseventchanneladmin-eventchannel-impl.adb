@@ -39,14 +39,20 @@ with CosEventChannelAdmin.ConsumerAdmin.Impl;
 
 with CosEventChannelAdmin.EventChannel;
 
---  with CosEventChannelAdmin.EventChannel.Helper;
---  with CosEventChannelAdmin.EventChannel.Skel;
+with CosEventChannelAdmin.EventChannel.Helper;
+pragma Elaborate (CosEventChannelAdmin.EventChannel.Helper);
+pragma Warnings (Off, CosEventChannelAdmin.EventChannel.Helper);
+
+with CosEventChannelAdmin.EventChannel.Skel;
+pragma Elaborate (CosEventChannelAdmin.EventChannel.Skel);
+pragma Warnings (Off, CosEventChannelAdmin.EventChannel.Skel);
 
 with PolyORB.CORBA_P.Server_Tools;
 
 with PortableServer; use PortableServer;
 
---  with CORBA.Impl;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
 
 
 with PolyORB.Log;

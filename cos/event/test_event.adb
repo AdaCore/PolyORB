@@ -410,6 +410,9 @@ procedure Test_Event is
       end case;
    end Produce_Event;
 
+
+   Ada.Text_IO.Put_Line ("Server starting.");
+   CORBA.ORB.Initialize ("ORB");
    -------------
    -- To_Name --
    -------------
@@ -463,8 +466,10 @@ procedure Test_Event is
    Kind    : Entity_Kind;
 
 begin
-   Initiate_Server (False);
 
+   CORBA.ORB.Initialize ("ORB");
+
+   Initiate_Server;
    pragma Debug (O ("Initiate_Server completed"));
 
    if Count ("enter naming IOR [otherwise create one]: ") = 0 then

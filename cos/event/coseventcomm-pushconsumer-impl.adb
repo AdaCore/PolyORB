@@ -37,15 +37,21 @@ with CosEventChannelAdmin; use CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPushSupplier;
 
---  with CosEventComm.PushConsumer.Helper;
---  with CosEventComm.PushConsumer.Skel;
+with CosEventComm.PushConsumer.Helper;
+pragma Elaborate (CosEventComm.PushConsumer.Helper);
+pragma Warnings (Off, CosEventComm.PushConsumer.Helper);
+
+with CosEventComm.PushConsumer.Skel;
+pragma Elaborate (CosEventComm.PushConsumer.Skel);
+pragma Warnings (Off, CosEventComm.PushConsumer.Skel);
 
 with PolyORB.CORBA_P.Server_Tools; use  PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
 with PolyORB.Log;
 with PolyORB.Tasking.Watchers; use PolyORB.Tasking.Watchers;
 
---  with CORBA.Impl;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
 
 with PortableServer; use PortableServer;
 

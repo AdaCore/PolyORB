@@ -32,10 +32,16 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
---  with CORBA.Impl;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
 
---  with CosEventComm.PullSupplier.Helper;
---  with CosEventComm.PullSupplier.Skel;
+with CosEventComm.PullSupplier.Helper;
+pragma Elaborate (CosEventComm.PullSupplier.Helper);
+pragma Warnings (Off, CosEventComm.PullSupplier.Helper);
+
+with CosEventComm.PullSupplier.Skel;
+pragma Elaborate (CosEventComm.PullSupplier.Skel);
+pragma Warnings (Off, CosEventComm.PullSupplier.Skel);
 
 with CosEventChannelAdmin; use CosEventChannelAdmin;
 
