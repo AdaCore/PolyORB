@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -148,7 +148,7 @@ package body System.RPC.Stream_IO is
 
    function Fetch
      (Partition : in Partition_ID)
-     return Partition_Stream_Access
+      return Partition_Stream_Access
    is
       Stream : Partition_Stream_Access := Streams.Get_Component (Partition);
    begin
@@ -185,7 +185,8 @@ package body System.RPC.Stream_IO is
 
       SEA : Stream_Element_Array (1 .. Query.Count);
       Len : Stream_Element_Offset;
-      Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));
+      Str : constant Partition_Stream_Access :=
+        Fetch (Partition_ID (Partition));
    begin
       pragma Debug (D ("Receive new message"));
       pragma Debug (D ("Receive - Lock stream" & Partition'Img));
@@ -355,7 +356,8 @@ package body System.RPC.Stream_IO is
 
    procedure Write
      (Stream : in out Partition_Stream_Type;
-      Item   : in     Ada.Streams.Stream_Element_Array) is
+      Item   : in     Ada.Streams.Stream_Element_Array)
+   is
       Str : Partition_Stream_Access;
    begin
       if not Stream.Open then
