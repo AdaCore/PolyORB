@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-current.ads#5 $
 
 with Ada.Exceptions;
 
@@ -48,6 +48,20 @@ package PortableServer.Current is
 
    NoContext : exception;
 
+   function Get_POA
+     (Self : Ref)
+     return PortableServer.POA_Forward.Ref;
+
+   function Get_Object_Id
+     (Self : Ref)
+     return ObjectId;
+
+   --------------------------------------------------
+   -- PortableServer.Current Exceptions Management --
+   --------------------------------------------------
+
+   --  NoContext_Members
+
    type NoContext_Members is new CORBA.IDL_Exception_Members
      with null record;
 
@@ -55,13 +69,12 @@ package PortableServer.Current is
      (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out NoContext_Members);
 
-   function get_POA (Self : Ref)
-     return PortableServer.POA_Forward.Ref;
-
-   function get_object_id (Self : Ref)
-     return ObjectId;
+   procedure Raise_NoContext
+     (Excp_Memb : in NoContext_Members);
+   pragma No_Return (Raise_NoContext);
 
 private
+
    type Ref is new CORBA.Current.Ref with null record;
 
 end PortableServer.Current;

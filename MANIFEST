@@ -441,6 +441,7 @@ src/corba/corba-context.adb
 src/corba/corba-context.ads
 src/corba/corba-contextlist.adb
 src/corba/corba-contextlist.ads
+src/corba/corba-current.ads
 src/corba/corba-exceptionlist.adb
 src/corba/corba-exceptionlist.ads
 src/corba/corba-fixed_point.adb
@@ -493,6 +494,7 @@ src/corba/polyorb-if_descriptors-corba_ir.adb
 src/corba/polyorb-if_descriptors-corba_ir.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
+src/corba/portableserver-current.adb
 src/corba/portableserver-current.ads
 src/corba/portableserver-idassignmentpolicy.adb
 src/corba/portableserver-idassignmentpolicy.ads

@@ -30,6 +30,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-servantlocator.ads \
 	polyorb-corba_p-server_tools.ads \
 	portableserver-adapteractivator.ads \
+	portableserver-current.ads \
 	portableserver-idassignmentpolicy.ads \
 	portableserver-iduniquenesspolicy.ads \
 	portableserver-implicitactivationpolicy.ads \
@@ -44,6 +45,7 @@ ADA_SPECS_WITH_BODY = \
 	portableserver.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	corba-current.ads \
 	corba-local.ads \
 	corba-sequences-bounded.ads \
 	corba-sequences-unbounded.ads \
