@@ -18,7 +18,7 @@
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
 --                GLADE is maintained by ACT Europe.                        --
---            (email:distribution@act-europe.gnat.com).                     --
+--                (email:glade-report@act-europe.fr)                        --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -87,7 +87,8 @@ This release also works on the following machines although less efficiently:
      partitions by hand (using the kill(1) command).]
 
 Ports to  SGI/Irix, DEC/OSF, HP/HP-UX, Windows NT will appear in the
-future. Please contact ACT Europe for more information.
+future. Please contact ACT Europe (sales@act-europe.fr) for more 
+information.
 
 Downloading Glade.
 ------------------
@@ -99,16 +100,23 @@ Commercial Support.
 -------------------
 
 Commercial support for Glade will be available from Ada Core
-Technologies and ACT-Europe. Contact support@gnat.com or
-support@act-europe.gnat.com for further details.
+Technologies and ACT-Europe. Contact sales@gnat.com or
+sales@act-europe.fr for further details.
 
 Bug Reports & Technical Questions.
 ----------------------------------
 
-Bug reports or technical questions pertaining to the implementation of
-the distribution annex should be sent to:
+Bug reports related to the implementation of the distribution annex
+should be sent to:
 
-		   distribution@act-europe.gnat.com
+		   glade-report@act-europe.fr
+
+TO participate to general discussions on glade, subscribe to the
+mailing list 
+                   glade-chat@act-europe.fr
+
+To subscribe, send a mail to  glade-chat-request@act-europe.fr with no
+subject and a body containing exactly and only the word "subscribe". 
 
 Bug reports and technical queries regarding GNAT itself should be
 addressed to "report@gnat.com" following the usual reporting
@@ -133,8 +141,7 @@ you are running.
 
 To be maximally helpful, for a report that contains multiple separate
 compilation units, and hence multiple files, submit them in the form
-of a single file that is acceptable input to gnatchop (used to be
-called gnatsplit on versions of GNAT prior to 1.80), i.e. contains no
+of a single file that is acceptable input to gnatchop i.e. contains no
 non-Ada text. If you use banners to separate the files, make sure they
 are composed entirely of blank lines or Ada comments.
 
@@ -184,21 +191,4 @@ and send us the patch_file via E-mail at the address above.
 If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.ibp.fr/pub/gnu/).
-
-Glade Development Team.
------------------------
-
-Glade has been jointly developed by Ada Core Technologies and a
-research team from the Ecole Nat. Sup. de Telecommunication (Paris &
-Brittany). The ENST team comprises:
-  Yvon Kermarrec (yvon.kermarrec@enst-bretagne.fr),
-  Laurent Nana   (Laurent.Nana@enst-bretagne.fr),
-  Laurent Pautet (pautet@inf.enst.fr),
-  Samuel Tardieu (sam@inf.enst.fr).
-
-Thanks.
--------
-
-We are especially grateful to Alfred Strohmeier (EPFL) and his team
-for his constant support.
 

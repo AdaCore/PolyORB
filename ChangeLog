@@ -1,3 +1,8 @@
+	* configure.in: Changed Linux target. Damn new config.guess!
+
+Mon Feb 10 14:39:45 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Added cygwin32 and SNI target, even if it is not
 	  used yet. Added support for gnatmake -s.
 
 	* config.guess, config.sub: Update to the latest version.
