@@ -114,7 +114,7 @@ while [ "$hostnumber" -lt "$nhosts" -a "$clinumber" -lt "$nmax" ]; do
       POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
       POLYORB_CONF=$evolutedp_conf \
       LD_LIBRARY_PATH=/usr/local/lib \
-      $evolutedp -n $nmax -c $count -s $size TEST_$clinumber 2>&1 \" \
+      $evolutedp $broadcast -n $nmax -c $count -s $size TEST_$clinumber 2>&1 \" \
         >> $cliout" &
     Revolutedp_pids="$Revolutedp_pids $!"
     eval "cli_host_$clinumber=$h"
