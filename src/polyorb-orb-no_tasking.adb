@@ -137,7 +137,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: Idle -> Program error is raised"));
+      pragma Debug (O ("No_Tasking: dead lock detected."));
       raise Program_Error;
       --  When there is no tasking, the (only) task in the
       --  application may not go idle, since this would

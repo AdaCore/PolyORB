@@ -70,7 +70,6 @@ package body PolyORB.ORB is
    use PolyORB.References;
    use PolyORB.Requests;
    use PolyORB.Tasking.Advanced_Mutexes;
-   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
@@ -207,11 +206,8 @@ package body PolyORB.ORB is
       ORB.Shutdown := False;
       ORB.Polling  := False;
       Create (ORB.Polling_Watcher);
-      Leave (ORB.ORB_Lock);
-      Create (ORB.Idle_Lock);
-      Enter (ORB.Idle_Lock);
       ORB.Idle_Counter := 0;
-      Leave (ORB.Idle_Lock);
+      Leave (ORB.ORB_Lock);
    end Create;
 
    ----------------------
@@ -527,22 +523,15 @@ package body PolyORB.ORB is
          if Do_Idle then
 
             --  This task is going idle. We are still holding
-            --  ORB_Lock at this point.
+            --  ORB_Lock at this point. The tasking policy
+            --  will release it while we are idle, and
+            --  re-assert it before returning.
 
             Set_Status_Idle (This_Task, ORB.Idle_Tasks);
-            Leave (ORB.ORB_Lock);
+            Idle (ORB.Tasking_Policy, ORB_Access (ORB));
+            --  XXX Dunno if this is the right interface
+            --  between ORB and TP for idling.
 
-            begin
-               Idle (ORB.Tasking_Policy, ORB_Access (ORB));
-               --  XXX Dunno if this is the right interface
-               --  between ORB and TP for idling.
-            exception
-               when others =>
-                  Enter (ORB.ORB_Lock);
-                  raise;
-            end;
-
-            Enter (ORB.ORB_Lock);
             Set_Status_Running (This_Task);
 
             --  XXX memo for selves:

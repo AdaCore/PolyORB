@@ -49,7 +49,6 @@ with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Tasking.Advanced_Mutexes;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Watchers;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
@@ -148,6 +147,9 @@ package PolyORB.ORB is
       ORB : ORB_Access) is abstract;
    --  Called by a task that has nothing to do in order
    --  to wait until there may be anything to do.
+   --  The calling task must hold ORB_Lock before calling Idle;
+   --  the tasking policy shall release it while the task is
+   --  idling, and re-assert it before Idle returns.
 
    procedure Queue_Request_To_Handler
      (P   : access Tasking_Policy_Type;
@@ -349,9 +351,6 @@ private
 
       Idle_Counter : Natural;
       --  Number of thread in the Idle State
-
-      Idle_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
-      --  Protect the access to Idle_Counter;
 
       Monitors : Monitor_Seq;
       --  The set of asynchronous event monitors to be watched

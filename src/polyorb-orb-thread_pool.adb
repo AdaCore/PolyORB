@@ -52,7 +52,6 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
    use PolyORB.Tasking.Watchers;
 
@@ -173,6 +172,7 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
+      use PolyORB.Tasking.Advanced_Mutexes;
       V : Version_Id;
    begin
       pragma Warnings (Off);
@@ -181,16 +181,20 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " is going idle."));
-      Enter (ORB.Idle_Lock);
+
+      --  Precondition: ORB_Lock is held.
+
       ORB.Idle_Counter := ORB.Idle_Counter + 1;
-      Leave (ORB.Idle_Lock);
-
       Lookup (ORB.Idle_Tasks, V);
-      Differ (ORB.Idle_Tasks, V);
+      Leave (ORB.ORB_Lock);
 
-      Enter (ORB.Idle_Lock);
+      Differ (ORB.Idle_Tasks, V);
+      --  Wait for a notification.
+
+      Enter (ORB.ORB_Lock);
       ORB.Idle_Counter := ORB.Idle_Counter - 1;
-      Leave (ORB.Idle_Lock);
+
+      --  Post condition: ORB_Lock is held.
 
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
