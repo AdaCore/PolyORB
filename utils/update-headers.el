@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#4 $
+;;; $Id: //droopi/main/utils/update-headers.el#5 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -15,7 +15,7 @@
 ;; given context.
 
 (defun update-header ()
-  "Update headers according to header.txt."
+  "Update headers."
   (interactive)
   (let (name spec)
 
@@ -58,6 +58,14 @@
     (insert (center-ada (upcase (expand-ada-name name))))
     (insert (center-ada ""))
     (insert (center-ada (if spec "S p e c" "B o d y")))
+
+    ; add Copyright year
+    (goto-char (point-min))
+    (re-search-forward "^ZZZZZ" nil)
+    (beginning-of-line)
+    (let ((beg (point)))
+      (next-line 1) (delete-region beg (point)))
+    (insert (center-ada (copyright-date)))
 
     ; add secondary header file if necessary.
     (goto-char (point-min))
@@ -155,7 +163,7 @@
 --                                                                          --
 XXXXX
 --                                                                          --
---         Copyright (C) 1999-2003 Free Software Foundation, Inc.           --
+ZZZZZ
 --                                                                          --
 YYYYY
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
@@ -192,3 +200,54 @@ YYYYY
 -- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 ")
+
+;;
+;; first-rev-date: return year of the first file revision
+;;
+
+(defun first-rev-date ()
+  (let* (
+	 (command-line (concat "p4 filelog " (buffer-name) "#1"))
+	 (result (split-string (shell-command-to-string  command-line)))
+	 )
+
+    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
+
+    )
+  )
+
+;;
+;; last-rev-date: return year of the last file revision
+;;
+
+(defun last-rev-date ()
+  (let* (
+	 (command-line (concat "p4 filelog " (buffer-name)))
+	 (result (split-string (shell-command-to-string  command-line)))
+	 )
+
+    (substring (car (cdr (cddr (cddr (cddr result))))) 0 4)
+
+    )
+  )
+
+;;
+;; copyright-date: format Copyright year line
+;;
+
+(defun copyright-date ()
+  (let* (
+	 (copyright-logo "Copyright (C) ")
+	 (fsf-logo " Free Software Foundation, Inc.")
+	 (first (first-rev-date))
+	 (last  (last-rev-date))
+	 )
+    (if (string-equal first last)
+	(concat copyright-logo last fsf-logo)
+      (concat copyright-logo first  "-" last fsf-logo)
+      )
+    )
+  )
+
+
+
