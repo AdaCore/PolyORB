@@ -81,35 +81,41 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is array";
-  for (unsigned int i=0; i < n_dims(); i++) {
-    body += " (0..";  
-    AST_Expression::AST_ExprValue* v = dims()[i]->ev();
-    switch (v->et) 
+  body += " (";  
+  for (unsigned int i=0; i < n_dims(); i++) 
     {
-      case AST_Expression::EV_short:
-      sprintf (number, "%d", v->u.sval);
-      break;
-      case AST_Expression::EV_ushort:
-      sprintf (number, "%d", v->u.usval);
-      break;
-      case AST_Expression::EV_long:
-      sprintf (number, "%ld", v->u.lval);
-      break;
-      case AST_Expression::EV_ulong:
-      sprintf (number, "%ld", v->u.ulval);
-      break;
-      default:
-      throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
+      AST_Expression::AST_ExprValue* v = dims()[i]->ev();
+      body += " 0..";  
+      switch (v->et) 
+	{
+	case AST_Expression::EV_short:
+	  sprintf (number, "%d", v->u.sval-1);
+	  break;
+	case AST_Expression::EV_ushort:
+	  sprintf (number, "%d", v->u.usval-1);
+	  break;
+	case AST_Expression::EV_long:
+	  sprintf (number, "%ld", v->u.lval-1);
+	  break;
+	case AST_Expression::EV_ulong:
+	  sprintf (number, "%ld", v->u.ulval-1);
+	  break;
+	default:
+	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
+	}
+      body +=number;
+      if (i != n_dims() - 1) body += ",";  
     }
-    body +=number;
-    body +=")";
-  }
-  body+=" of "+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
+  body +=" )";
+  adabe_name *f = dynamic_cast<adabe_name *>(base_type());
+  body+= " of " + f->dump_name(with, previous);
   body += " ;\n" ;
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
   body += get_ada_local_name() + " ;\n\n";
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
+  cerr << " Size  of " << f->node_type() << " : " <<  f->has_fixed_size() << endl;  
+  if (!f->has_fixed_size()) no_fixed_size();
   set_already_defined();
 }
 
@@ -143,75 +149,134 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   adabe_name *b = dynamic_cast<adabe_name *>(base_type());
   string name = b->marshal_name(with, previous);
   
-  body += "   procedure Marshall (A : in ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
-  body += "   begin\n";
-  body += "      for I in A'range loop \n";
-  body += "         Marshall (A(i), S) ; \n";
-  body += "      end loop ;\n ";
-  body += "   end Marshall ;\n\n";
+  unsigned long size = 1;
+  for (unsigned int i=0; i < n_dims(); i++) {
+    AST_Expression::AST_ExprValue* v = dims()[i]->ev();
+    switch (v->et) 
+      {
+      case AST_Expression::EV_short:
+	size *= v->u.sval;
+	break;
+      case AST_Expression::EV_ushort:
+	size *= v->u.usval;
+	break;
+      case AST_Expression::EV_long:
+	size *= v->u.lval;
+	break;
+      case AST_Expression::EV_ulong:
+	size *= v->u.ulval;
+	break;
+      default:
+	throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
+      }
+  }
+  char Size[256];
+  sprintf(Size,"%lu",size);
 
-  body += "   procedure UnMarshall (A : out ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "                         S : in out Netbufferedstream.Object'Class) is\n";
-  body += "   begin\n";
-  body += "      for I in A'range loop \n";
-  body += "         UnMarshall (A(I), S) ;\n";
-  body += "      end loop ;\n ";
-  body += "   end UnMarshall ;\n\n";
+  string marshall = "";
+  string unmarshall = "";
+  string align_size = "";
 
-  body += "   function Align_Size (A : in ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "                        N : in Corba.Unsigned_Long := 1)\n";
-  body += "                        return Corba.Unsigned_Long is\n";
+  marshall += "   procedure Marshall (A : in ";
+  marshall += get_ada_local_name();
+  marshall += " ;\n";
+  marshall += "                       S : in out Netbufferedstream.Object'Class) is\n";
+  marshall += "   begin\n";
+
+  unmarshall += "   procedure UnMarshall (A : out ";
+  unmarshall += get_ada_local_name();
+  unmarshall += " ;\n";
+  unmarshall += "                         S : in out Netbufferedstream.Object'Class) is\n";
+  unmarshall += "   begin\n";
+
+  align_size += "   function Align_Size (A : in ";
+  align_size += get_ada_local_name();
+  align_size += " ;\n";
+  align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
+  align_size += "                        return Corba.Unsigned_Long is\n";
   if (b->has_fixed_size())
     {
-      body += "   begin\n";
-      body += "      return Align_Size (A(A'First), Initial_Offset, N * ";
-      unsigned long size = 1;
-      for (unsigned int i=0; i < n_dims(); i++) {
-	AST_Expression::AST_ExprValue* v = dims()[i]->ev();
-	switch (v->et) 
-	  {
-	  case AST_Expression::EV_short:
-	    size *= v->u.sval;
-	    break;
-	  case AST_Expression::EV_ushort:
-	    size *= v->u.usval;
-	    break;
-	  case AST_Expression::EV_long:
-	    size *= v->u.lval;
-	    break;
-	  case AST_Expression::EV_ulong:
-	    size *= v->u.ulval;
-	    break;
-	  default:
-	    throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
-	  }
-      }
-      char Size[256];
-      sprintf(Size,"%lu",size);
-      body += Size;
-      body += ") ;\n";
-    } else {
-      body += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
-      body += "   begin\n";
-      body += "      for I in 1..N loop\n";
-      body += "         for J in 1..\n";
-      body += n_dims();
-      body += " loop\n";
-      body += "            Tmp := Align_Size (A(J),Tmp) ;\n";
-      body += "         end loop ;\n";
-      body += "      end loop ;\n";
-      body += "      return Tmp ;\n";
+      align_size += "   begin\n";
+      align_size += "      return Align_Size (A(A'First), Initial_Offset, N * ";
+      align_size += Size;
+      align_size += ") ;\n";
+    } 
+  else 
+    {
+      align_size += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
+      align_size += "   begin\n";
+      align_size += "      for I in 1..N loop\n";
     }
-  body += "   end Align_Size ;\n\n\n";
+
+  string spaces = "      ";
+  for (unsigned int i = 0 ; i < n_dims() ; i++) 
+    {
+      char number[10];
+      sprintf (number,"%d",i+1);
+
+      marshall += spaces + "for I";
+      marshall += number;
+      marshall += " in A'range(";
+      marshall += number;
+      marshall += ") loop \n";
       
+      unmarshall += spaces + "for I";
+      unmarshall += number;
+      unmarshall += " in A'range(";
+      unmarshall += number;
+      unmarshall += ") loop \n";
+      
+      if (!b->has_fixed_size())
+	{
+	  align_size += spaces + "   for I";
+	  align_size += number;
+	  align_size += " in A'range(";
+	  align_size += number;
+	  align_size += ") loop \n";
+	}
+      spaces += "   ";
+    }
+
+  marshall += spaces + "Marshall (A(I1";
+  unmarshall += spaces + "UnMarshall (A(I1";
+  align_size += spaces + "   Tmp := Align_Size (A(I1";
+
+  for (unsigned int i = 1 ; i < n_dims() ; i++) 
+    {
+      char number[256];
+      sprintf (number,"%d",i+1);
+
+      marshall += ", I";
+      marshall +=  number;
+      unmarshall += ", I";
+      unmarshall += number;
+      align_size += ", I";
+      align_size += number;
+    }
+
+  marshall += "), S) ; \n";
+  unmarshall += "), S) ; \n";
+  align_size += "), Tmp) ; \n";
+
+  for (unsigned int i = 0 ; i < n_dims() ; i++) 
+    {
+      spaces = spaces.substr(0,spaces.length()-3);
+      marshall += spaces + "end loop ;\n";
+      unmarshall += spaces + "end loop ;\n";
+      align_size += spaces + "   end loop ;\n";
+    }
+      
+  marshall += "   end Marshall ;\n\n";
+  unmarshall += "   end UnMarshall ;\n\n";
+  align_size += "      end loop ;\n";
+  align_size += "      return Tmp ;\n";
+  align_size += "   end Align_Size ;\n\n\n";      
+
+  body += marshall;
+  body += unmarshall;
+  body += align_size;
+
   set_already_defined();
 }
 

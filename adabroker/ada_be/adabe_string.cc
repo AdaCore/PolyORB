@@ -122,10 +122,6 @@ adabe_string::local_type()
 
 void adabe_string::produce_ads (dep_list &with,string &body, string &previous)
 {
-  no_fixed_size();
-  // set a flag of this object and its ancestors saying
-  // they have not a fixed size.
-
   //  with.add ("Corba.Bounded_Strings");
   
   if (evaluate(max_size()->ev())==0)

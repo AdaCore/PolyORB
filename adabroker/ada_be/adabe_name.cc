@@ -34,7 +34,18 @@ adabe_name::adabe_name(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* up)
   pd_ada_local_name = "";
   pd_ada_full_name  = "";
   pd_defined_type   = 0;
-  pd_fixed_size = true ;
+  switch (node_type())
+    {
+    case AST_Decl::NT_string :
+    case AST_Decl::NT_sequence :
+    case AST_Decl::NT_union :
+      pd_fixed_size = false;
+      break;
+    default:
+      pd_fixed_size = true;
+      break;
+    }
+
   pd_repositoryID = internal_produce_repositoryID(this,this);
   compute_ada_name();
 };
@@ -651,11 +662,6 @@ void
 adabe_name::no_fixed_size()
 {
   pd_fixed_size = false;
-  UTL_Scope *b = defined_in();
-  if (b != NULL) {
-    adabe_name *e = dynamic_cast<adabe_name *>(b);
-    if (e->has_fixed_size()) e->no_fixed_size();
-  };
 };
   // set fixed size to False and calls no_fixed_size of the parent
 

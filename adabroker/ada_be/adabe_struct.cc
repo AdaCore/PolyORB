@@ -40,10 +40,14 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
+      adabe_field *e = dynamic_cast<adabe_field *>(d);
       if (d->node_type() == AST_Decl::NT_field)
-	dynamic_cast<adabe_field *>(d)->produce_ads(with, body, previous);
+	{
+	  e->produce_ads(with, body, previous);
+	}
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
-      i.next();
+      if (!(dynamic_cast<adabe_name *>(e->field_type()))->has_fixed_size()) no_fixed_size();
+      i.next();      
     }
   body += "   end record ;\n";
   body += "   type " + get_ada_local_name() + "_Ptr is access ";

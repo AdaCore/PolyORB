@@ -35,10 +35,6 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
 void
 adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 {
-  no_fixed_size();
-  // set a flag of this object and its ancestors saying
-  // they have not a fixed size.
-  
   compute_ada_name();
   body += "   type " + get_ada_local_name();
   adabe_name *b = dynamic_cast<adabe_name *>(disc_type());

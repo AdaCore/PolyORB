@@ -36,6 +36,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
   AST_Decl *b = base_type();
+  adabe_name *c = dynamic_cast<adabe_name *>(b);
   if (((string) b->local_name()->get_string()) == "local type")
     {
       switch (b->node_type())
@@ -44,7 +45,6 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 	case AST_Decl::NT_string:
 	case AST_Decl::NT_union:
 	  {
-	    adabe_name *c = dynamic_cast<adabe_name *>(b);
 	    c->set_ada_local_name(get_ada_local_name());
 	    c->set_ada_full_name(get_ada_full_name());
 	    c->produce_ads(with, body, previous);
@@ -73,6 +73,7 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
       body += "   procedure free is new Ada.Unchecked_Deallocation(";
       body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
     }
+  if (!c->has_fixed_size()) no_fixed_size();
   set_already_defined ();
 }
 

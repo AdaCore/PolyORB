@@ -63,6 +63,9 @@ adabe_root::produce() {
       string header_body          = "";
       bool   first = true;
       dep_list header_with;
+      header_with.add("Ada.Unchecked_Deallocation") ;
+      header_with.add("Corba");
+      header_with.add("AdaBroker") ;
       UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
       header_body = "Package " + get_ada_full_name()+" is\n";
       while (!header_activator.is_done())
@@ -100,7 +103,6 @@ adabe_root::produce() {
 		  string module_body = "";
 		  string module_with_string;
 		  dep_list module_with;
-		  
 		  module->produce_ads(module_with,module_body,module_previous);
 		  module_with_string = *module_with.produce("with ");
 		  

@@ -73,10 +73,6 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
 {
   static int count = 0;
   char count_str[4];
-  no_fixed_size();
-  // set a flag of this object and its ancestors saying
-  // they have not a fixed size.
-  
   string is_bounded;
   adabe_name *adabe_base_type;
 

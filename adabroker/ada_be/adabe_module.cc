@@ -46,6 +46,9 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
   
   compute_ada_name(); 
   bool first = true;
+  with.add("Ada.Unchecked_Deallocation") ;
+  with.add("Corba");
+  with.add("AdaBroker") ;
   
   // For each declaration in the node produce the code
   

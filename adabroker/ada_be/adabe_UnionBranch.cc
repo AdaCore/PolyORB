@@ -113,7 +113,7 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	 case AST_Expression::EV_bool:
 	   return ((v->u.bval == 0) ? "FALSE" : "TRUE");
 	 case AST_Expression::EV_char:        
-	   sprintf(temp, "%c",v->u.cval);  
+	   sprintf(temp, "'%c'",v->u.cval);  
 	   break;
 	 default:
 	   throw adabe_internal_error(__FILE__,__LINE__,
