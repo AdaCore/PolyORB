@@ -1,265 +1,281 @@
-with all_types.Skeleton;
+with CORBA.Object.OmniORB;
+with AdaBroker.Exceptions;
+with all_types.Skel;
 with CORBA;
 with CORBA.Object;
-with CORBA.Object.OmniORB;
-
-
 package body all_types.Impl is 
 
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
-
-   --  echoBoolean
-   -------------------------------
-   function echoBoolean(Self : access Object; arg : in CORBA.Boolean) return CORBA.Boolean is
+   function echoBoolean
+     (Self : access Object;
+      arg : in CORBA.Boolean)
+      return CORBA.Boolean
+   is
    begin 
       return arg;
-   end;
+   end echoBoolean;
 
-
-   --  echoShort
-   -------------------------------
-   function echoShort(Self : access Object; arg : in CORBA.Short) return CORBA.Short is
+   function echoShort
+     (Self : access Object;
+      arg : in CORBA.Short)
+      return CORBA.Short
+   is
    begin 
       return arg;
-   end;
+   end echoShort;
 
-
-   --  echoLong
-   -------------------------------
-   function echoLong(Self : access Object; arg : in CORBA.Long) return CORBA.Long is
+   function echoLong
+     (Self : access Object;
+      arg : in CORBA.Long)
+      return CORBA.Long
+   is
    begin 
       return arg;
-   end;
+   end echoLong;
 
-
-   --  echoUShort
-   -------------------------------
-   function echoUShort(Self : access Object; arg : in CORBA.Unsigned_Short) return CORBA.Unsigned_Short is
+   function echoUShort
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Short)
+      return CORBA.Unsigned_Short
+   is
    begin 
       return arg;
-   end;
+   end echoUShort;
 
-
-   --  echoULong
-   -------------------------------
-   function echoULong(Self : access Object; arg : in CORBA.Unsigned_Long) return CORBA.Unsigned_Long is
+   function echoULong
+     (Self : access Object;
+      arg : in CORBA.Unsigned_Long)
+      return CORBA.Unsigned_Long
+   is
    begin 
       return arg;
-   end;
+   end echoULong;
 
-
-   --  echoFloat
-   -------------------------------
-   function echoFloat(Self : access Object; arg : in CORBA.Float) return CORBA.Float is
+   function echoFloat
+     (Self : access Object;
+      arg : in CORBA.Float)
+      return CORBA.Float
+   is
    begin 
       return arg;
-   end;
+   end echoFloat;
 
-
-   --  echoDouble
-   -------------------------------
-   function echoDouble(Self : access Object; arg : in CORBA.Double) return CORBA.Double is
+   function echoDouble
+     (Self : access Object;
+      arg : in CORBA.Double)
+      return CORBA.Double
+   is
    begin 
       return arg;
-   end;
+   end echoDouble;
 
-
-   --  echoChar
-   -------------------------------
-   function echoChar(Self : access Object; arg : in CORBA.Char) return CORBA.Char is
+   function echoChar
+     (Self : access Object;
+      arg : in CORBA.Char)
+      return CORBA.Char
+   is
    begin 
       return arg;
-   end;
+   end echoChar;
 
-
-   --  echoOctet
-   -------------------------------
-   function echoOctet(Self : access Object; arg : in CORBA.Octet) return CORBA.Octet is
+   function echoOctet
+     (Self : access Object;
+      arg : in CORBA.Octet)
+      return CORBA.Octet
+   is
    begin 
       return arg;
-   end;
+   end echoOctet;
 
-
-   --  echoString
-   -------------------------------
-   function echoString(Self : access Object; arg : in CORBA.String) return CORBA.String is
+   function echoString
+     (Self : access Object;
+      arg : in CORBA.String)
+      return CORBA.String
+   is
    begin 
       return arg;
-   end;
+   end echoString;
 
-
-   --  simple_exception_test
-   -------------------------------
-   procedure simple_exception_test(Self : access Object) is 
+   procedure simple_exception_test
+     (Self : access Object)
+   is
    begin 
-      raise Simple_Exception;
-   end;
+      raise simple_exception;
+   end simple_exception_test;
 
-
-   procedure complexe_exception_test(Self : access Object) is
+   procedure complexe_exception_test
+     (Self : access Object)
+   is
       Member : Complexe_Exception_Members;
    begin
       Member.Excep := 21;
       AdaBroker.Exceptions.Raise_Corba_Exception
         (Complexe_Exception'Identity, Member);
-   end;
+   end complexe_exception_test;
 
-
-   --  echo1
-   -------------------------------
-   function echo1(Self : access Object; arg : in example) return example is
+   function echo1
+     (Self : access Object;
+      arg : in example)
+      return example
+   is
    begin 
       return arg;
-   end;
+   end echo1;
 
-
-   --  echo2
-   -------------------------------
-   function echo2(Self : access Object; arg : in simple_struct) return simple_struct is
+   function echo2
+     (Self : access Object;
+      arg : in simple_struct)
+      return simple_struct
+   is
    begin 
       return arg;
-   end;
+   end echo2;
 
-
-   --  echo3
-   -------------------------------
-   function echo3(Self : access Object; arg : in Color) return Color is
+   function echo3
+     (Self : access Object;
+      arg : in Color)
+      return Color
+   is
    begin 
       return arg;
-   end;
+   end echo3;
 
-
-   --  echo4
-   -------------------------------
-   function echo4(Self : access Object; arg : in U_string) return U_string is
+   function echo4
+     (Self : access Object;
+      arg : in U_string)
+      return U_string
+   is
    begin 
       return arg;
-   end;
+   end echo4;
 
-
-   --  echo6
-   -------------------------------
-   function echo6(Self : access Object; arg : in U_sequence) return U_sequence is
+   function echo6
+     (Self : access Object;
+      arg : in U_sequence)
+      return U_sequence
+   is
    begin 
       return arg;
-   end;
+   end echo6;
 
-
-   --  echo7
-   -------------------------------
-   function echo7(Self : access Object; arg : in B_sequence) return B_sequence is
+   function echo7
+     (Self : access Object;
+      arg : in B_sequence)
+      return B_sequence
+   is
    begin 
       return arg;
-   end;
+   end echo7;
 
-
-   function Get_R_attribute(Self : access Object) return Color is
+   function Get_R_attribute
+     (Self : access Object)
+      return Color
+   is
    begin
       return Self.all.Pd_Col;
-   end;
+   end Get_R_attribute;
 
-
-   function Get_N_attribute(Self : access Object) return example is
+   function Get_N_attribute
+     (Self : access Object)
+      return example
+   is
    begin
       return Self.all.Pd_Ex;
-   end;
+   end Get_N_attribute;
 
-
-   procedure Set_N_attribute(Self : access Object; To : in example) is
+   procedure Set_N_attribute
+     (Self : access Object;
+      To   : in example)
+   is
    begin
       Self.all.Pd_Ex := To;
-   end;
+   end Set_N_attribute;
 
-
-   --  echo8
-   -------------------------------
-   function echo8(Self : access Object; arg : in line) return line is
+   function echo8
+     (Self : access Object;
+      arg : in line)
+      return line
+   is
    begin 
       return arg;
-   end;
+   end echo8;
 
-
-   --  echo9
-   -------------------------------
-   function echo9(Self : access Object; arg : in square) return square is
+   function echo9
+     (Self : access Object;
+      arg : in square)
+      return square
+   is
    begin 
       return arg;
-   end;
+   end echo9;
 
-
-   --  echo10
-   -------------------------------
-   function echo10(Self : access Object; arg : in cube) return cube is
+   function echo10
+     (Self : access Object;
+      arg : in cube)
+      return cube
+   is
    begin 
       return arg;
-   end;
+   end echo10;
 
-
-   --  echo11
-   -------------------------------
-   function echo11(Self : access Object; arg : in Ref) return Ref is
+   function echo11
+     (Self : access Object;
+      arg : in Ref)
+      return Ref
+   is
    begin 
       return arg;
-   end;
+   end echo11;
 
-
-   --  echo12
-   -------------------------------
-   function echo12(Self : access Object; arg : in CORBA.Object.Ref) return CORBA.Object.Ref is
+   function echo12
+     (Self : access Object;
+      arg : in CORBA.Object.Ref)
+      return CORBA.Object.Ref
+   is
    begin 
       return arg;
-   end;
+   end echo12;
 
-
-   --  get_myself
-   -------------------------------
-   function get_myself(Self : access Object) return Ref is
+   function get_myself
+     (Self : access Object)
+      return Ref
+   is
       Result : Ref;
    begin 
       CORBA.Object.Ref (Result) :=
          CORBA.Object.OmniORB.To_Ref (Self.all, Repository_Id);
       return Result;
-   end;
+   end get_myself;
 
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
    --  instructions in the following functions as specified --
    -----------------------------------------------------------
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Object) is
+   procedure Initialize (Self : in out Object) is
    begin
-      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self));
-      Initialize_Local_Object(Self,
-                        Repository_Id,
-                        all_types.Skeleton.Dispatch'Access);
-      -- You can add things *BELOW* this line
-
+      AdaBroker.OmniORB.Initialize
+        (AdaBroker.OmniORB.ImplObject (Self),
+         all_types.Repository_Id);
+      -- Add user code *BELOW* this line
    end Initialize;
 
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self: in out Object) is
+   procedure Adjust (Self: in out Object) is
    begin
-   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self));
-      -- You can add things *BELOW* this line
-
+      AdaBroker.OmniORB.Adjust
+        (AdaBroker.OmniORB.ImplObject (Self));
+      -- Add user code *BELOW* this line
    end Adjust;
 
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Object) is
+   procedure Finalize (Self : in out Object) is
    begin
-
-      -- You can add things *BEFORE* this line
-   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self));
+      -- Add user code *BEFORE* this line
+      AdaBroker.OmniORB.Finalize
+        (AdaBroker.OmniORB.ImplObject (Self));
    end Finalize;
 
-
+begin
+   CORBA.Object.OmniORB.Register
+     (all_types.Repository_Id,
+      all_types.Nil_Ref,
+      all_types.Skel.Dispatch'Access);
 end all_types.Impl;

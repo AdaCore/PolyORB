@@ -1,40 +1,24 @@
-with AdaBroker.OmniORB ;
-with Egg_forward ;
-with CORBA.Boa ;
+with AdaBroker.OmniORB;
+with Egg_Forward;
 package Chicken.Impl is
 
-   type Object is new AdaBroker.OmniORB.ImplObject with private ;
-   type Object_Ptr is access all Object ;
+   type Object is new AdaBroker.OmniORB.ImplObject with private;
 
+   type Object_Ptr is access all Object;
 
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
-
-   procedure lay(Self : access Object; number : out CORBA.Unsigned_Short; Returns : out Egg_forward.Ref ) ;
-
-
-   --------------------------
-   -- user-defined stuff   --
-   --------------------------
-   procedure Set_Boa(Self : in out Object ;
-                     Boa : CORBA.Boa.Object) ;
-
-
+   procedure lay
+     (Self : access Object;
+      number : out CORBA.Unsigned_Short;
+      Returns : out Egg_Forward.Ref);
 
 private
 
-   -- You may add fields to this record
    type Object is new AdaBroker.OmniORB.ImplObject with record
       Number : CORBA.Unsigned_Short := 0 ;
-      Boa : CORBA.Boa.Object ;
-   end record ;
+   end record;
 
-   --------------------------------------------------
-   ----          finalization operators          ----
-   --------------------------------------------------
-   procedure Initialize(Self : in out Object) ;
-   procedure Adjust(Self : in out Object) ;
-   procedure Finalize(Self : in out Object) ;
+   procedure Initialize (Self : in out Object);
+   procedure Adjust     (Self : in out Object);
+   procedure Finalize   (Self : in out Object);
 
-end Chicken.Impl ;
+end Chicken.Impl;

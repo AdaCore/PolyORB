@@ -1,40 +1,30 @@
-with Ada.Command_Line ;
-with Text_Io ; use Text_Io ;
-with CORBA ; use CORBA ;
-with CORBA.Object ;
-with CORBA.Orb ; use CORBA.Orb ;
-with CORBA.Boa ; use CORBA.Boa ;
-with AdaBroker.Exceptions ;
-with Chicken ;
-with Chicken_Forward ;
-with Egg ;
-with Egg_Forward ;
-with Egg.Impl ;
-with Chicken.Impl ;
+with Ada.Command_Line;
+with Ada.Text_IO;
+with CORBA; use CORBA;
+with CORBA.Object;
+with CORBA.ORB;
+with CORBA.BOA;
+with AdaBroker.Exceptions;
+with Chicken;
+with Chicken_Forward;
+with Egg;
+with Egg_Forward;
+with Egg.Impl;
+with Chicken.Impl;
 
 procedure Server is
-   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2") ;
-   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Myegg : Egg.Impl.Object ;
-   Mychicken : Chicken.Impl.Object ;
-   Ior : CORBA.String ;
+   MyEgg : Egg.Impl.Object;
+   MyChicken : Chicken.Impl.Object;
+   IOR : CORBA.String;
 begin
+   ORB.Init ("omniORB2");
+   BOA.Init ("omniORB2_BOA");
 
-   Put_Line("MAIN : Starting server") ;
+   BOA.Object_Is_Ready (MyEgg);
+   BOA.Object_Is_Ready (MyChicken);
 
-   Chicken.Impl.Set_Boa(Mychicken, Boa) ;
-   Egg.Impl.Set_Boa(Myegg, Boa) ;
+   IOR := ORB.Object_To_String (Egg.To_Ref (MyEgg));
+   Ada.Text_IO.Put_Line ("'" & To_Standard_String (IOR) & "'");
 
-   Object_Is_Ready(Boa, Myegg) ;
-   Object_Is_Ready(Boa, Mychicken) ;
-
-   Ior := Object_To_String (Egg.To_Ref (Myegg)) ;
-   Put_Line("'" & To_Standard_String(Ior) & "'") ;
-
-   Implementation_Is_Ready(Boa) ;
-
+   BOA.Impl_Is_Ready;
 end Server;
-
-
-
-

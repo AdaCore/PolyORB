@@ -1,34 +1,27 @@
 with Ada.Command_Line;
-with Ada.Text_IO;  use Ada.Text_IO;
+with Ada.Text_IO;
 
 with CORBA;        use CORBA;
 with CORBA.Object; use CORBA.Object;
 
 with CORBA.ORB;
-with CORBA.BOA;
 
 with All_Types; use All_Types;
 with Report;    use Report;
 
 procedure Client is
-
-   -- initialization of the ORB
-   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
-
    IOR : CORBA.String;
    MyAll_Types : All_Types.Ref;
-
    Ok : Boolean;
-
 begin
-
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
       return;
    end if;
 
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)) ;
-   CORBA.ORB.String_To_Object (IOR, MyAll_Types);
+   ORB.Init ("omniORB2");
+   IOR := To_CORBA_String (Ada.Command_Line.Argument (1)) ;
+   ORB.String_To_Object (IOR, MyAll_Types);
 
    Output ("test not null", not All_Types.Is_Nil (MyAll_Types));
    Output ("test boolean", EchoBoolean (MyAll_Types, True) = True);

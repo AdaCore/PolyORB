@@ -1,34 +1,21 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object (corresponds to eg2_impl.cc in omniORB     ----
-----                                                                    ----
-----                server                                              ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
+with CORBA; use CORBA;
+with CORBA.Orb;
+with CORBA.Boa;
+with Ada.Text_IO;
+with Tank.Impl;
+with Weapon.Impl;
+with Vehicle.Impl;
 
-with Corba ; use Corba ;
-with Corba.Orb ; use Corba.Orb ;
-with Corba.Boa ; use Corba.Boa ;
-with Text_IO ; use Text_Io ;
-with Tank.Impl ;
-with Weapon.Impl ;
-with Vehicle.Impl  ;
-
-procedure server is
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Myecho : Tank.Impl.Object ;
-   Ior : Corba.String ;
+procedure Server is
+   Myecho : Tank.Impl.Object;
+   IOR : CORBA.String;
 begin
-   Object_Is_Ready(Boa, Myecho) ;
+   ORB.Init ("omniORB2");
+   BOA.Init ("omniORB2_BOA");
+   BOA.Object_Is_Ready (Myecho);
 
-   Ior := Object_To_String(Tank.To_Ref (Myecho)) ;
-   Put_Line("'" & To_Standard_String(Ior) & "'") ;
+   IOR := ORB.Object_To_String (Tank.To_Ref (Myecho));
+   Ada.Text_IO.Put_Line("'" & To_Standard_String (IOR) & "'");
 
-   Implementation_Is_Ready(Boa) ;
-
-end ;
-
+   BOA.Impl_Is_Ready;
+end Server;

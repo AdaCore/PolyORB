@@ -1,32 +1,20 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object (corresponds to eg2_impl.cc in omniORB     ----
-----                                                                    ----
-----                server                                              ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-with Corba ; use Corba ;
-with Corba.Orb ; use Corba.Orb ;
-with Corba.Boa ; use Corba.Boa ;
-with Text_IO ; use Text_Io ;
+with CORBA; use CORBA;
+with CORBA.Orb; use CORBA.Orb;
+with CORBA.Boa; use CORBA.Boa;
+with Ada.Text_IO;
 with All_Functions;
-with All_Functions.Impl ;
+with All_Functions.Impl;
 
-procedure server is
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Myobj : All_Functions.Impl.Object ;
-   Ior : Corba.String ;
+procedure Server is
+   Myobj : All_Functions.Impl.Object;
+   IOR : CORBA.String;
 begin
-   Object_Is_Ready(Boa, Myobj) ;
+   ORB.Init ("omniORB2");
+   BOA.Init ("omniORB2_BOA");
+   BOA.Object_Is_Ready (Myobj);
 
-   Ior := Object_To_String(All_Functions.To_Ref (Myobj)) ;
-   Put_Line("'" & To_Standard_String(Ior) & "'") ;
+   IOR := ORB.Object_To_String (All_Functions.To_Ref (Myobj));
+   Ada.Text_IO.Put_Line ("'" & To_Standard_String (IOR) & "'");
 
-   Implementation_Is_Ready(Boa) ;
-
-end ;
+   Impl_Is_Ready;
+end Server;

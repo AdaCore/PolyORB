@@ -1,81 +1,58 @@
-with Egg.Skeleton ;
-with Chicken_forward ;
-with Chicken ;
-with Chicken.Impl ;
-with CORBA.Boa ;
+with CORBA.Object.OmniORB;
+with Egg.Skel;
+with Chicken_Forward;
+with Chicken.Impl;
+with CORBA.BOA;
+package body Egg.Impl is 
 
-package body Egg.Impl is
-
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
-
-   --  hatch
-   -------------------------------
-   function hatch(Self : access Object) return Chicken_forward.Ref is
-   begin
-      if Self.all.Already then
-         raise Already_Hatched ;
-      end if ;
+   function hatch
+     (Self : access Object)
+      return Chicken_Forward.Ref
+   is
+   begin 
+      if Self.Already then
+         raise Already_Hatched;
+      end if;
       declare
-         Mychicken : Chicken.Impl.Object_Ptr := new Chicken.Impl.Object ;
+         MyChicken : Chicken.Impl.Object_Ptr := new Chicken.Impl.Object;
       begin
-         Self.all.Already := True ;
-         Chicken.Impl.Set_Boa(Mychicken.all, Self.all.Boa) ;
-         CORBA.Boa.Object_Is_Ready(Self.all.Boa, Mychicken.all) ;
-         return Chicken.Convert_Forward.To_Forward(Chicken.To_Ref(Mychicken.all)) ;
+         Self.Already := True ;
+         CORBA.BOA.Object_Is_Ready (MyChicken.all);
+         return Chicken.Convert_Forward.To_Forward
+            (Chicken.To_Ref (MyChicken.all));
       end ;
-   end ;
-
-
-   -- Set_Boa
-   ----------
-   procedure Set_Boa(Self : in out Object ;
-                     Boa : CORBA.Boa.Object) is
-   begin
-      Self.Boa := Boa ;
-   end ;
-
-
-
+   end hatch;
 
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
    --  instructions in the following functions as specified --
    -----------------------------------------------------------
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Object) is
+   procedure Initialize (Self : in out Object) is
    begin
-      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self)) ;
-      Initialize_Local_Object(Self,
-                        Repository_Id,
-                        Egg.Skeleton.Dispatch'Access);
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Initialize
+        (AdaBroker.OmniORB.ImplObject (Self),
+         Egg.Repository_Id);
+      -- Add user code *BELOW* this line
+   end Initialize;
 
-   end Initialize ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self: in out Object) is
+   procedure Adjust (Self: in out Object) is
    begin
-   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self)) ;
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Adjust
+        (AdaBroker.OmniORB.ImplObject (Self));
+      -- Add user code *BELOW* this line
+   end Adjust;
 
-   end Adjust ;
-
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Object) is
+   procedure Finalize (Self : in out Object) is
    begin
+      -- Add user code *BEFORE* this line
+      AdaBroker.OmniORB.Finalize
+        (AdaBroker.OmniORB.ImplObject (Self));
+   end Finalize;
 
-      -- You can add things *BEFORE* this line
-   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self)) ;
-   end Finalize ;
-
-
-end Egg.Impl ;
+begin
+   CORBA.Object.OmniORB.Register
+     (Egg.Repository_Id,
+      Egg.Nil_Ref,
+      Egg.Skel.Dispatch'Access);
+end Egg.Impl;

@@ -1,31 +1,25 @@
 with Ada.Command_Line;
-with Ada.Text_Io;    use Ada.Text_Io;
-with CORBA;          use CORBA;
+with Ada.Text_IO;
+with CORBA; use CORBA;
 with CORBA.ORB;
-with CORBA.BOA;
-with CORBA.Object;   use CORBA.Object;
+with CORBA.Object;
 with All_Exceptions; use All_Exceptions;
 with Report;         use Report;
 
 procedure Client is
-
-   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
-   BOA : CORBA.BOA.Object := CORBA.ORB.BOA_Init (ORB, "omniORB2_BOA");
-
    IOR : CORBA.String;
-   IOR_Arg : Standard.String := Ada.Command_Line.Argument (1);
    MyAll_Exceptions : All_Exceptions.Ref;
    Ok : Boolean;
-
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
       return;
    end if;
 
-   IOR := CORBA.To_Corba_String (IOR_Arg);
-   CORBA.ORB.String_To_Object (IOR, MyAll_Exceptions);
+   ORB.Init ("omniORB2");
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+   ORB.String_To_Object (IOR, MyAll_Exceptions);
 
    Output ("test not nil reference", not Is_Nil (MyAll_Exceptions));
 

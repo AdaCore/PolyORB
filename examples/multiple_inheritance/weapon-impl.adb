@@ -1,63 +1,45 @@
-with weapon.Skeleton ;
-with Text_IO; use Text_IO;
+with CORBA.Object.OmniORB;
+with weapon.Skel;
+package body weapon.Impl is 
 
-
-package body weapon.Impl is
-
-
-   -----------------------
-   -- IDL definitions   --
-   -----------------------
-
-   procedure shoot(Self : access Object; ranges : in Dist) is
-   begin
+   procedure shoot
+     (Self : access Object;
+      ranges : in dist)
+   is
+   begin 
       null;
-   end;
-
-
-
-
+   end shoot;
 
    -----------------------------------------------------------
    --  Implementations objects are controlled, you can add  --
    --  instructions in the following functions as specified --
    -----------------------------------------------------------
 
-   -- Initialize
-   -------------
-   procedure Initialize(Self : in out Object) is
+   procedure Initialize (Self : in out Object) is
    begin
-      AdaBroker.OmniORB.Initialize(AdaBroker.OmniORB.ImplObject(Self)) ;
-      Initialize_Local_Object(Self,
-                        Repository_Id,
-                        weapon.Skeleton.Dispatch'Access);
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Initialize
+        (AdaBroker.OmniORB.ImplObject (Self),
+         weapon.Repository_Id);
+      -- Add user code *BELOW* this line
+   end Initialize;
 
-   end Initialize ;
-
-
-   -- Adjust
-   ---------
-   procedure Adjust(Self: in out Object) is
+   procedure Adjust (Self: in out Object) is
    begin
-   AdaBroker.OmniORB.Adjust(AdaBroker.OmniORB.ImplObject(Self)) ;
-      -- You can add things *BELOW* this line
+      AdaBroker.OmniORB.Adjust
+        (AdaBroker.OmniORB.ImplObject (Self));
+      -- Add user code *BELOW* this line
+   end Adjust;
 
-   end Adjust ;
-
-
-   -- Finalize
-   -----------
-   procedure Finalize(Self : in out Object) is
+   procedure Finalize (Self : in out Object) is
    begin
+      -- Add user code *BEFORE* this line
+      AdaBroker.OmniORB.Finalize
+        (AdaBroker.OmniORB.ImplObject (Self));
+   end Finalize;
 
-      -- You can add things *BEFORE* this line
-   AdaBroker.OmniORB.Finalize(AdaBroker.OmniORB.ImplObject(Self)) ;
-   end Finalize ;
-
-
-end weapon.Impl ;
-
-
-
-
+begin
+   CORBA.Object.OmniORB.Register
+     (weapon.Repository_Id,
+      weapon.Nil_Ref,
+      weapon.Skel.Dispatch'Access);
+end weapon.Impl;

@@ -1,5 +1,5 @@
 with Ada.Command_Line;
-with Text_IO; use Text_IO;
+with Ada.Text_IO;
 with CORBA; use CORBA;
 with CORBA.ORB;
 with CORBA.BOA;
@@ -12,25 +12,24 @@ with Egg_Forward;
 with Report; use Report;
 
 procedure Client is
-   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
-   BOA : CORBA.BOA.Object := CORBA.ORB.BOA_Init (ORB, "omniORB2_BOA");
-
-   ER : Egg.Ref;
-   CR : Chicken.Ref;
-   EF : Egg_Forward.Ref;
+   ER  : Egg.Ref;
+   CR  : Chicken.Ref;
+   EF  : Egg_Forward.Ref;
    IOR : CORBA.String;
-   N : CORBA.Unsigned_Short := 0;
-   Ok : Boolean;
+   N   : CORBA.Unsigned_Short := 0;
+   Ok  : Boolean;
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <egg_IOR>");
+      Ada.Text_IO.Put_Line ("usage : client <egg_IOR>");
       return;
    end if;
 
-   IOR := CORBA.To_Corba_String (Ada.Command_Line.Argument (1));
+   ORB.Init ("omniORB2");
+   BOA.Init ("omniORB2_BOA");
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
 
-   CORBA.ORB.String_To_Object (IOR, ER);
+   ORB.String_To_Object (IOR, ER);
 
    CR := Chicken.Convert_Forward.From_Forward (Hatch (ER));
    Output ("a new chicken is born", not Is_Nil (CR));
@@ -59,8 +58,4 @@ begin
    ER :=  Egg.Convert_Forward.From_Forward (EF);
    Output ("the old chicken can still lay an egg",
            N = 1 and then not Is_Nil (ER));
-end;
-
-
-
-
+end Client;

@@ -1,18 +1,14 @@
 with Ada.Command_Line;
-with CORBA.Object; use CORBA.Object;
-with CORBA;        use CORBA;
+with CORBA.Object;
+with CORBA; use CORBA;
 with CORBA.ORB;
-with CORBA.BOA;
 with Weapon;
 with Vehicle;
 with Tank;
 with Report; use Report;
-with Text_IO; use Text_IO;
+with Ada.Text_IO;
 
 procedure Client is
-
-   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
-
    O : CORBA.Object.Ref;
    T : Tank.Ref;
    W : Weapon.Ref;
@@ -26,12 +22,14 @@ procedure Client is
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
       return;
    end if;
 
+   ORB.Init ("omniORB2");
+
    IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-   CORBA.ORB.String_To_Object (IOR, T);
+   ORB.String_To_Object (IOR, T);
 
    Tank.Set_Mark (T, M);
    Output ("test tank mark attribute", Tank.Get_Mark (T) = M);
@@ -65,9 +63,3 @@ begin
    T := Tank.To_Ref (O);
    Output ("test widening on CORBA.Object.Ref", Tank.Get_Mark (T) = M);
 end Client;
-
-
-
-
-
-

@@ -1,5 +1,4 @@
-
-FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
+FLAGS = -A../../InterfaceORB $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 	gnatmake -g -I.. -gnatf -gnata -m -i client.adb $(FLAGS)
@@ -8,7 +7,7 @@ all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) ada
 
 clean::
 	-rm -f *.o *.ali *~ server client \
-*-skeleton* *-marshal* *-proxies* chicken.ad* egg.ad* *_forward* \
+*-skel* *-stream* *-proxy* chicken.ad* egg.ad* *_forward* \
 chicken_idl_file.ads egg_idl_file.ads
 
 ada: egg.ads chicken.ads
