@@ -1,7 +1,3 @@
-##
-## Makefile.am,v 1.8 1996/05/11 13:09:51 tardieu Exp
-##
-
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
 ADA = @ADA@
