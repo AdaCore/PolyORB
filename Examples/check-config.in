@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# check-config.in,v 1.2 1996/04/10 15:41:40 tardieu Exp
-#
 # This script tries to ensure that the user has set up a correct
 # environnement to run the example.
 #

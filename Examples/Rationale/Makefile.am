@@ -1,7 +1,3 @@
-##
-## Makefile.am,v 1.1 1996/04/10 15:41:47 tardieu Exp
-##
-
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
 SED = @SED@
