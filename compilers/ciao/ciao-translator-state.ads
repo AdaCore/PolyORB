@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#4 $
 
 package CIAO.Translator.State is
 
@@ -32,11 +32,11 @@ package CIAO.Translator.State is
       --  We are translating declarations in order of
       --  appearance.
 
-      Deferred_Discriminant_Part,
+--      Deferred_Discriminant_Part,
       --  We are translating a discriminant part which was
       --  precedently left over into a set of <member>s.
 
-      Type_Definition,
+--      Type_Definition,
       --  We are translating a type_definition into a <type_spec>.
 
 --       Translate_Subtype_Mark,

@@ -17,14 +17,10 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#5 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
-with Ada.Wide_Text_Io; use Ada.Wide_Text_Io;
-
-with Asis.Compilation_Units.Relations;
-use  Asis.Compilation_Units.Relations;
 
 with Asis.Compilation_Units; use Asis.Compilation_Units;
 with Asis.Declarations;      use Asis.Declarations;
@@ -90,29 +86,34 @@ package body CIAO.ASIS_Queries is
      (Definition : Asis.Definition)
      return Asis.Program_Text is
    begin
-     case Discrete_Range_Kind (Definition) is
-        when Not_A_Discrete_Range =>
-           raise ASIS_Failed;
+      case Discrete_Range_Kind (Definition) is
+         when Not_A_Discrete_Range =>
+            raise ASIS_Failed;
 
-        when A_Discrete_Subtype_Indication =>
-           return Ada_Full_Name
-             (Corresponding_Entity_Name_Declaration
-              (Asis.Definitions.Subtype_Mark (Definition)));
+         when A_Discrete_Subtype_Indication =>
+            return Ada_Full_Name
+              (Corresponding_Entity_Name_Declaration
+               (Asis.Definitions.Subtype_Mark (Definition)));
 
-        when A_Discrete_Range_Attribute_Reference =>
-           return Ada_Full_Name
-             (Corresponding_Entity_Name_Declaration
-              (Prefix (Definition)));
+         when A_Discrete_Range_Attribute_Reference =>
+            return Ada_Full_Name
+              (Corresponding_Entity_Name_Declaration
+               (Prefix (Definition)));
 
-        when A_Discrete_Simple_Expression_Range =>
-           return Ada_Full_Name
+         when A_Discrete_Simple_Expression_Range =>
+            return Ada_Full_Name
               (Corresponding_Expression_Type
                (Asis.Definitions.Lower_Bound (Definition)));
 
-     end case;
+      end case;
    end Discrete_Subtype_Name;
 
-   --  Internal subprogram
+   function Corresponding_Base_Type
+     (Subtype_Mark : Asis.Expression)
+     return Asis.Declaration;
+   --  Return (the first subtype of) the base type of the subtype
+   --  denoted by Subtype_Mark.
+
    function Corresponding_Base_Type
      (Subtype_Mark : Asis.Expression)
      return Asis.Declaration is
@@ -123,7 +124,7 @@ package body CIAO.ASIS_Queries is
             Identifier := Subtype_Mark;
          when A_Selected_Component =>
             Identifier := Selector (Subtype_Mark);
-         -- XXX An_Attribute_Reference??
+         --  XXX An_Attribute_Reference??
          when others =>
             raise ASIS_Failed;
       end case;
@@ -146,7 +147,7 @@ package body CIAO.ASIS_Queries is
          return False;
       end if;
 
-      -- XXX Warning! Toto'Class == Toto'Class ??
+      --  XXX Warning! Toto'Class == Toto'Class ??
       if DK_1 = A_Function_Declaration
         and then not Is_Identical
           (Corresponding_Base_Type (Result_Profile (Declaration_1)),
@@ -178,6 +179,16 @@ package body CIAO.ASIS_Queries is
    function Is_Inheritance_Homograph
      (Ancestor_Subprogram, Ancestor,
         Child_Subprogram, Child : Asis.Declaration)
+     return Boolean;
+   --  Determine whether subprogram declaration Child_Subprogram
+   --  is homograph to the implicit declaration of the primitive
+   --  operation for type Child corresponding to the primitive
+   --  operation Ancestor_Subprogram of its ancestor type Ancestor.
+   --  (8.3(8 et seq) rules for overriding of primitive operations).
+
+   function Is_Inheritance_Homograph
+     (Ancestor_Subprogram, Ancestor,
+        Child_Subprogram, Child : Asis.Declaration)
      return Boolean is
 
       DK_1 : constant Asis.Declaration_Kinds
@@ -185,7 +196,19 @@ package body CIAO.ASIS_Queries is
       DK_2 : constant Asis.Declaration_Kinds
         := Declaration_Kind (Child_Subprogram);
 
-      function Is_Same_Type (Ancestor_Decl, Child_Decl : Asis.Declaration)
+      function Is_Same_Type
+        (Ancestor_Decl, Child_Decl : Asis.Declaration)
+        return Boolean;
+      --  Check whether Ancestor_Decl and Child_Decl are
+      --  identical for the determination of inheritance
+      --  homography between a primitive operation of type
+      --  Ancestor and a primitive operation of type Child
+      --  which is derived from Ancestor. (3.4(18 et seq) rules
+      --  for type replacement in the implicit declaration of
+      --  inherited subprograms).
+
+      function Is_Same_Type
+        (Ancestor_Decl, Child_Decl : Asis.Declaration)
         return Boolean is
       begin
          return Is_Identical (Ancestor_Decl, Child_Decl)
@@ -196,11 +219,12 @@ package body CIAO.ASIS_Queries is
    begin
       if (DK_1 /= DK_2)
         or else not (DK_1 = A_Procedure_Declaration
-                     or else DK_1 = A_Function_Declaration) then
+                     or else DK_1 = A_Function_Declaration)
+      then
          return False;
       end if;
 
-      -- XXX Warning! Toto'Class == Toto'Class ??
+      --  XXX Warning! Toto'Class == Toto'Class ??
       if DK_1 = A_Function_Declaration
         and then not Is_Same_Type
           (Corresponding_Base_Type (Result_Profile (Ancestor_Subprogram)),
@@ -220,11 +244,12 @@ package body CIAO.ASIS_Queries is
          end if;
 
          for I in Params_1'Range loop
-            if not Is_Same_Type (Corresponding_Base_Type
-                                   (Declaration_Subtype_Mark (Params_1 (I))),
-                                 Corresponding_Base_Type
-                                   (Declaration_Subtype_Mark
-                                    (Params_2 (I + Params_2'First - Params_1'First))))
+            if not Is_Same_Type
+              (Corresponding_Base_Type
+               (Declaration_Subtype_Mark (Params_1 (I))),
+               Corresponding_Base_Type
+               (Declaration_Subtype_Mark
+                (Params_2 (I + Params_2'First - Params_1'First))))
             then
                return False;
             end if;
@@ -273,8 +298,14 @@ package body CIAO.ASIS_Queries is
       end case;
    end Is_Tagged_Type;
 
-   --  Local subprogram.
-   function Has_Limited_Component (Components : Asis.Record_Component_List)
+   function Has_Limited_Component
+     (Components : Asis.Record_Component_List)
+     return Boolean;
+   --  Determine whether any of the components declared by
+   --  Components has a limited type or has the 'limited' keyword.
+
+   function Has_Limited_Component
+     (Components : Asis.Record_Component_List)
      return Boolean is
    begin
       for I in Components'Range loop
@@ -288,27 +319,29 @@ package body CIAO.ASIS_Queries is
                   View : constant Asis.Definition
                     := Object_Declaration_View (Components (I));
                begin
-                  if Trait_Kind (View) = A_Limited_Trait
-                    or else Is_Limited_Type
+                  if Is_Limited_Type
                     (Corresponding_Entity_Name_Declaration
                      (Asis.Definitions.Subtype_Mark
-                      (Component_Subtype_Indication (View)))) then
+                      (Component_Subtype_Indication (View))))
+                  then
                      return True;
                   end if;
                end;
             when A_Definition => --  A_Variant_Part
-               -- XXX DEBUG assertion
-               pragma Assert (Definition_Kind (Components (I)) = A_Variant_Part);
+
                declare
                   Variants : constant Asis.Variant_List
                     := Asis.Definitions.Variants (Components (I));
                begin
                   for I in Variants'Range loop
-                     if Has_Limited_Component (Record_Components (Variants (I))) then
+                     if Has_Limited_Component
+                       (Record_Components (Variants (I)))
+                     then
                         return True;
                      end if;
                   end loop;
                end;
+
             when others =>
                --  Cannot happen!
                raise ASIS_Failed;
@@ -355,12 +388,14 @@ package body CIAO.ASIS_Queries is
                         when
                           A_Derived_Type_Definition             |
                           A_Derived_Record_Extension_Definition =>
-                           return Is_Limited_Type (Corresponding_Root_Type (Def));
+                           return Is_Limited_Type
+                             (Corresponding_Root_Type (Def));
                         when
                           An_Unconstrained_Array_Definition |
                           A_Constrained_Array_Definition    =>
 
-                           return (Trait_Kind (Array_Component_Definition (Def))
+                           return (Trait_Kind
+                                   (Array_Component_Definition (Def))
                                    = A_Limited_Trait)
                              or else Is_Limited_Type
                                 (Corresponding_Entity_Name_Declaration
@@ -375,11 +410,14 @@ package body CIAO.ASIS_Queries is
                               Record_Def : constant Asis.Definition
                                 := Definitions.Record_Definition (Def);
                            begin
-                              if Definition_Kind (Record_Def) = A_Null_Record_Definition then
+                              if Definition_Kind (Record_Def)
+                                = A_Null_Record_Definition
+                              then
                                  return False;
                               else
                                  return Has_Limited_Component
-                                   (Record_Components (Asis.Definitions.Record_Definition (Def)));
+                                   (Record_Components
+                                    (Definitions.Record_Definition (Def)));
                               end if;
                            end;
                         when others =>
@@ -401,17 +439,22 @@ package body CIAO.ASIS_Queries is
       end case;
    end Is_Limited_Type;
 
-   --  Internal subprogram: determines whether Subprogram_Declaration
-   --  is overriding an implicit subprogram inherited from an ancestor
-   --  of the type declared by the Derived_Type_Declaration as a result
+   function Recursive_Is_Overriding_Inherited_Subprogram
+     (Subprogram_Declaration   : Asis.Declaration;
+      Derived_Type_Declaration : Asis.Declaration;
+      Leaf_Type_Declaration    : Asis.Declaration)
+     return Boolean;
+   --  Determine whether Subprogram_Declaration is overriding an
+   --  implicit subprogram inherited from an ancestor of the type
+   --  declared by the Derived_Type_Declaration as a result
    --  of the derivation Leaf_Type_Declaration.
 
    function Recursive_Is_Overriding_Inherited_Subprogram
      (Subprogram_Declaration   : Asis.Declaration;
       Derived_Type_Declaration : Asis.Declaration;
       Leaf_Type_Declaration    : Asis.Declaration)
-     return Boolean is
-
+     return Boolean
+   is
       type Declaration_List_Access is access Declaration_List;
 
       procedure Free is new Ada.Unchecked_Deallocation
@@ -544,7 +587,7 @@ package body CIAO.ASIS_Queries is
             raise ASIS_Failed;
       end case;
 
-  Parent_Scope:
+      Parent_Scope :
       for I in Scope_Items.all'Range loop
          declare
             Item    : constant Asis.Declaration
@@ -554,7 +597,8 @@ package body CIAO.ASIS_Queries is
             Type_Decl : Asis.Declaration;
             Is_Primitive : Boolean := False;
          begin
-            exit Parent_Scope when Is_Identical (Item, Derived_Type_Declaration);
+            exit Parent_Scope
+              when Is_Identical (Item, Derived_Type_Declaration);
             --  Primitives declared after the derivation are not inherited.
 
             if False
@@ -575,7 +619,7 @@ package body CIAO.ASIS_Queries is
                   Params : constant Parameter_Specification_List
                     := Parameter_Profile (Item);
                begin
-              Profile:
+                  Profile :
                   for I in Params'Range loop
                      exit Profile when Is_Primitive;
                      Type_Decl := Corresponding_Base_Type
@@ -604,7 +648,8 @@ package body CIAO.ASIS_Queries is
                     Child_Subprogram    => Subprogram_Declaration,
                     Child               => Leaf_Type_Declaration)
                then
-                  --  This primitive operation is homograph to Subprogram_Declaration.
+                  --  This primitive operation is homograph to
+                  --  Subprogram_Declaration.
                   Result := True;
                   exit Parent_Scope;
                end if;
@@ -639,16 +684,21 @@ package body CIAO.ASIS_Queries is
          Derived_Type_Declaration);
    end Is_Overriding_Inherited_Subprogram;
 
+   function Is_Controlling_Formal_Or_Result
+     (Subprogram_Declaration : Asis.Declaration;
+      Subtype_Mark           : Asis.Expression)
+   return Boolean;
    --  Determine whether a formal parameter or result of a
    --  subprogram declaration is a controlling formal parameter,
    --  resp. controlling result.
+
    function Is_Controlling_Formal_Or_Result
      (Subprogram_Declaration : Asis.Declaration;
       Subtype_Mark           : Asis.Expression)
    return Boolean is
-     Type_Declaration : constant Asis.Declaration
-       := Corresponding_Entity_Name_Declaration (Subtype_Mark);
-     Type_Enclosing_Element : Asis.Element;
+      Type_Declaration : constant Asis.Declaration
+        := Corresponding_Entity_Name_Declaration (Subtype_Mark);
+      Type_Enclosing_Element : Asis.Element;
    begin
       if not Is_Tagged_Type (Type_Declaration) then
          return False;
@@ -690,10 +740,6 @@ package body CIAO.ASIS_Queries is
    function Is_Controlling_Result
      (Result_Profile : Asis.Expression)
      return Boolean is
-      T : Asis.Declaration;
-      Type_Enclosing_Element : Asis.Element;
-      Subprogram_Declaration : constant Asis.Declaration
-        := Enclosing_Element (Result_Profile);
    begin
       return Is_Controlling_Formal_Or_Result
         (Enclosing_Element (Result_Profile),
@@ -718,7 +764,7 @@ package body CIAO.ASIS_Queries is
       end loop;
 
       if Controlling_Count = 0 then
-              return Nil_Element_List;
+         return Nil_Element_List;
       else
          return Controlling_Params
            (Controlling_Params'First ..
@@ -831,7 +877,8 @@ package body CIAO.ASIS_Queries is
       Padded_Image : constant Program_Text
         := Asis.Text.Element_Image (Element);
    begin
-      return Padded_Image (Element_Span (Element).First_Column .. Padded_Image'Last);
+      return Padded_Image
+        (Element_Span (Element).First_Column .. Padded_Image'Last);
    end Isolated_Element_Image;
 
    function Ada_Full_Name (Declaration : Asis.Declaration)
@@ -839,23 +886,11 @@ package body CIAO.ASIS_Queries is
       Origin : constant Compilation_Unit
         := Enclosing_Compilation_Unit (Declaration);
 
-      -- XXX This is a work-around for a bug in ASIS-for-GNAT 3.11p
-      --  remove it for later versions.
-      function Safe_Names (Declaration : Asis.Declaration)
-        return Asis.Defining_Name_List is
-         Empty_List : Asis.Defining_Name_List (1 .. 0);
-      begin
-         return Names (Declaration);
-      exception
-         when others =>
-            return Empty_List;
-      end Safe_Names;
-
    begin
       if Is_Nil (Corresponding_Parent_Declaration (Origin)) then
          declare
             Declaration_Names : constant Asis.Defining_Name_List
-              := Safe_Names (Declaration);
+              := Names (Declaration);
          begin
             if Declaration_Names'Length > 0 then
                return "Standard." & Defining_Name_Image
@@ -864,24 +899,27 @@ package body CIAO.ASIS_Queries is
                --  The implicit declaration of a root or universal
                --  numeric type.
 
-               pragma Assert (True
-                 and then Declaration_Kind (Declaration) = An_Ordinary_Type_Declaration);
+               pragma Assert (Declaration_Kind (Declaration)
+                              = An_Ordinary_Type_Declaration);
 
                declare
                   Definition : constant Asis.Definition
                     := Type_Declaration_View (Declaration);
                begin
-                  -- XXX pragma Assert (Type_Kind (Definition) = A_Root_Type_Definition);
-                  -- XXX This should be checked, but ASIS for GNAT up to 3.13w 19991007
-                  --     makes this assertion fail (Not_A_Root_Type_Definition, see below).
-
+                  pragma Assert
+                    (Type_Kind (Definition) = A_Root_Type_Definition);
+                  --  XXX This should be checked, but ASIS for
+                  --     GNAT up to 3.13w 19991007 makes this
+                  --     assertion fail (Not_A_Root_Type_Definition,
+                  --     see below).
+                  --  XXX check reinstated 20011211 TQ
                   case Root_Type_Kind (Definition) is
                      when Not_A_Root_Type_Definition =>
-                        -- raise ASIS_Failed;
-                        -- XXX
+                        raise ASIS_Failed;
+                        --  XXX exception reinstated 20011211 TQ
                         --  XXX The only scalar type that has an implicit
                         --  declaration is universal_integer.
-                        return "Standard.Integer";
+                        --  return "Standard.Integer";
 
                      when A_Root_Integer_Definition =>
                         --  Integer'Base

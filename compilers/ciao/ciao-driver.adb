@@ -18,7 +18,7 @@
 
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#5 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
@@ -207,11 +207,14 @@ procedure CIAO.Driver is
          Brief_Help;
          --  Initialized remains False here!
       else
-         --  first, scanning the command line parameters:
+
+         --  First scan command line parameters
+
+         Command_Line :
          loop
             case Getopt ("f I: i: k l: q r t v") is
                when ASCII.NUL =>
-                  exit;
+                  exit Command_Line;
 
                when 'f' =>
                   Overwrite_Body := True;
@@ -256,7 +259,7 @@ procedure CIAO.Driver is
                   Ada.Text_IO.Put_Line ("CIAO: unknown option " & Parameter);
                   raise Parameter_Error;
             end case;
-         end loop;
+         end loop Command_Line;
 
          declare
             S : constant String := Get_Argument (Do_Expansion => True);
@@ -351,12 +354,13 @@ procedure CIAO.Driver is
       --  and now, we have to compute some names before continuing checking:
       Ind := File_Name_First;
 
+      File_Name_Scan :
       for I in reverse File_Name_First .. File_Name_Last loop
          if File_Name (I) = Directory_Separator then
             Ind := I + 1;
-            exit;
+            exit File_Name_Scan;
          end if;
-      end loop;
+      end loop File_Name_Scan;
 
       Short_File_Name := new String'(File_Name (Ind .. File_Name_Last));
       Short_File_Name_Len   := Short_File_Name'Length;

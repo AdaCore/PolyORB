@@ -17,22 +17,15 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#3 $
 
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
-with Ada.Wide_Text_Io;       use Ada.Wide_Text_Io;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 
 with Asis.Compilation_Units; use Asis.Compilation_Units;
-with Asis.Declarations;      use Asis.Declarations;
 with Asis.Elements;          use Asis.Elements;
-with Asis.Expressions;       use Asis.Expressions;
-with Asis.Text;              use Asis.Text;
 
-with CIAO.ASIS_Queries;      use CIAO.ASIS_Queries;
---  with CIAO.IDL_Tree;          use CIAO.IDL_Tree;
---  with CIAO.IDL_Syntax.Scoped_Names;
-
+with Idl_Fe.Tree;            use Idl_Fe.Tree;
 with Errors;
 
 package body CIAO.Translator.Maps is
@@ -67,102 +60,26 @@ package body CIAO.Translator.Maps is
          Dot_Count : Natural := 0;
       begin
          for I in Library_Unit_Name'Range loop
-            if Library_Unit_Name (I) /= '.' then
-               IDL_Name
-                 (IDL_Name'First + Dot_Count + (I - Library_Unit_Name'First))
-                 := Library_Unit_Name (I);
-            else
-               IDL_Name
-                 (IDL_Name'First + Dot_Count + (I - Library_Unit_Name'First) ..
-                  IDL_Name'First + Dot_Count + (I - Library_Unit_Name'First) + 1)
-                 := "__";
-               Dot_Count := Dot_Count + 1;
-            end if;
+            declare
+               II : constant Integer := I - Library_Unit_Name'First;
+            begin
+               if Library_Unit_Name (I) /= '.' then
+                  IDL_Name
+                    (IDL_Name'First + Dot_Count + II)
+                    := Library_Unit_Name (I);
+               else
+                  IDL_Name
+                    (IDL_Name'First + Dot_Count + II ..
+                     IDL_Name'First + Dot_Count + II + 1)
+                    := "__";
+                  Dot_Count := Dot_Count + 1;
+               end if;
+            end;
          end loop;
 
          return "DSA_" & IDL_Name;
       end;
    end Internal_IDL_Module_Name;
-
---    function Relative_Scoped_Name (Denoted_Definition : Definition;
---                                   Referer            : Declaration)
---      return Node_Id is
-
---       use CIAO.IDL_Syntax.Scoped_Names;
-
---       Context : constant Asis.Element := Enclosing_Element (Enclosing_Basic_Declaration (Referer));
---    begin
---       if False
---         and then Is_Identical
---         (Enclosing_Element
---          (Enclosing_Basic_Declaration (Denoted_Definition)),
---          Context)
---       then
---          pragma Assert (False);
---          --  XXX DISABLED FOR NOW
---          --  because With_Convert_For_Type expects that full scoped names
---          --  are generated for all param_type_specs.
---          --  The real fix for this problem would be to store node ids
---          --  in param type specs, and to make With_Convert_For_Type
---          --  work from the node actually defining the type, *not* from
---          --  the scoped name that denotes it.
---          --  2000 07 11 Thomas.
-
---          --  The basic_declarations containing the Referer and the
---          --  Denoted_Definition occur within the same scope:
---          --  use short name.
---          return CIAO.IDL_Syntax.New_Scoped_Name
---            (Isolated_Element_Image (Denoted_Definition));
---       else
---          declare
---             Enclosing_Declaration : Declaration
---               := Enclosing_Element (Enclosing_Element (Denoted_Definition));
---             Origin           : constant Compilation_Unit
---               := Enclosing_Compilation_Unit (Enclosing_Declaration);
---             Scoped_Name_Node : Node_Id;
---             Origin_Scoped_Name_Node : Node_Id;
---          begin
---             Scoped_Name_Node := New_Node (N_Scoped_Name);
---             Set_Name (Scoped_Name_Node,
---                       New_Name (Isolated_Element_Image (Denoted_Definition)));
-
---             --  Unwind all enclosing subunit declarations.
---             while not
---               (Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
---                or else Is_Identical (Enclosing_Declaration, Context))
---             loop
---                declare
---                   N : constant Node_Id
---                     := New_Node (N_Scoped_Name);
---                   Defining_Names : constant Asis.Defining_Name_List
---                     := Names (Enclosing_Declaration);
---                begin
---                   pragma Assert (Defining_Names'Length = 1);
-
---                   Set_Name (N, New_Name (Isolated_Element_Image
---                                          (Defining_Names (Defining_Names'First))));
---                   Add_Prefix (Scoped_Name_Node, N);
---                end;
---                Enclosing_Declaration := Enclosing_Element (Enclosing_Declaration);
---             end loop;
-
---             if Is_Identical (Enclosing_Declaration, Unit_Declaration (Origin))
---               --  and then not Is_Identical (Enclosing_Declaration, Context)
---               --  XXX Condition disabled, see above.
---             then
---                Origin_Scoped_Name_Node := New_Node (N_Scoped_Name);
---                Set_Name (Origin_Scoped_Name_Node, New_Name (IDL_Module_Name (Origin)));
-
---                Add_Prefix (Scoped_Name_Node, Origin_Scoped_Name_Node);
---                Add_Absolute (Scoped_Name_Node);
---             end if;
-
---             Chain_Prefixes (Scoped_Name_Node);
-
---             return Scoped_Name_Node;
---          end;
---       end if;
---    end Relative_Scoped_Name;
 
    function Operator_Symbol_Identifier
      (Op : Asis.Defining_Name)
@@ -215,7 +132,7 @@ package body CIAO.Translator.Maps is
          when A_Not_Operator =>
             return "Op_Not";
          when others =>
-            -- XXX Error
+            --  XXX Error
             raise Program_Error;
             return "";
       end case;

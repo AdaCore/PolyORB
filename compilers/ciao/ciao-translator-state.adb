@@ -17,18 +17,12 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#2 $
-
-with Ada.Wide_Text_Io; use Ada.Wide_Text_Io;
-with Ada.Characters.Handling; use Ada.Characters.Handling;
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#3 $
 
 with Asis;
 with Asis.Elements;
 
-with GNAT.Htable;
-
---  with CIAO.IDL_Tree;   use CIAO.IDL_Tree;
---  with CIAO.IDL_Syntax; use CIAO.IDL_Syntax;
+with GNAT.HTable;
 
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -80,20 +74,24 @@ package body CIAO.Translator.State is
    --  Retrieve the mapping information for an Element.
    --  If no information was set, Nil_Map_Info is returned.
 
-   type Map_Htable_Header_Num is range 1 .. 256;
+   type Map_HTable_Header_Num is range 1 .. 256;
 
    function Hash_Element (E : Asis.Element)
-     return Map_Htable_Header_Num is
+     return Map_HTable_Header_Num;
+   --  Hash function for an ASIS Element.
+
+   function Hash_Element (E : Asis.Element)
+     return Map_HTable_Header_Num is
    begin
-      return Map_Htable_Header_Num
-        (Integer (Map_Htable_Header_Num'First)
+      return Map_HTable_Header_Num
+        (Integer (Map_HTable_Header_Num'First)
          + Asis.Elements.Hash (E)
-         mod Asis.ASIS_Integer (Map_Htable_Header_Num'Last -
-                           Map_Htable_Header_Num'First + 1));
+         mod Asis.ASIS_Integer (Map_HTable_Header_Num'Last -
+                           Map_HTable_Header_Num'First + 1));
    end Hash_Element;
 
-   package Map_Htable is new GNAT.Htable.Simple_Htable
-     (Header_Num => Map_Htable_Header_Num,
+   package Map_HTable is new GNAT.HTable.Simple_HTable
+     (Header_Num => Map_HTable_Header_Num,
       Element    => Map_Info,
       No_Element => Nil_Map_Info,
       Key        => Asis.Element,
@@ -101,7 +99,7 @@ package body CIAO.Translator.State is
       Equal      => Asis.Elements.Is_Identical);
    --  A table that records a reference of the corresponding
    --  IDL node for any given Ada element (represented by an
-   --  Ids.Id value). The Map_Htable is notionally part of the
+   --  Ids.Id value). The Map_HTable is notionally part of the
    --  translator's state.
 
    procedure Set_Translation
@@ -138,12 +136,12 @@ package body CIAO.Translator.State is
 
    procedure Set_Map_Info (Element : Asis.Element; Info : Map_Info) is
    begin
-      Map_Htable.Set (Element , Info);
+      Map_HTable.Set (Element, Info);
    end Set_Map_Info;
 
    function Get_Map_Info (Element : Asis.Element) return Map_Info is
    begin
-      return Map_Htable.Get (Element);
+      return Map_HTable.Get (Element);
    end Get_Map_Info;
 
 end CIAO.Translator.State;

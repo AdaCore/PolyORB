@@ -1,4 +1,5 @@
-include $(srcdir)/../Makefile.common
+# include $(srcdir)/../Makefile.common
+GNATFLAGS=	-g -O0 -gnatfa -fstack-check -gnaty -gnatwa -Wall
 
 ASIS_INCLUDES=	$(HOME)/gnat-3.15w/asis
 ASIS_LIBS=	-L$(HOME)/gnat-3.15w/asis -lasis
