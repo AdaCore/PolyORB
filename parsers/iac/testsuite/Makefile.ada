@@ -1,6 +1,7 @@
 SHELL           = /bin/sh
 GNATFLAGS       = -g -gnatwA  
-FLAGS           = -I. 
+GNATINCLUDE     = -I`gnatls -v | grep adainclude | sed 's/ *//g`  
+FLAGS           = -I. $(GNATINCLUDE)
 
 
 all : stubs 
