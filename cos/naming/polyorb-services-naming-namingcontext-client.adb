@@ -128,7 +128,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -208,7 +208,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -291,7 +291,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -371,7 +371,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -442,7 +442,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -516,7 +516,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -562,7 +562,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -640,7 +640,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request
@@ -698,7 +698,7 @@ package body PolyORB.Services.Naming.NamingContext.Client is
 
       PolyORB.Requests.Invoke (Request);
       if not Is_Empty (Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Default_Raise_From_Any
            (Request.Exception_Info);
       end if;
       PolyORB.Requests.Destroy_Request

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#9 $
+--  $Id$
 
 with Ada.Unchecked_Conversion;
 
@@ -70,7 +70,12 @@ package body PolyORB.Exceptions is
      (Exception_Info);
 
    All_Exceptions : Exception_Lists.List;
-   --  Exception list;
+   --  Exception list, use to associate an exception typecode
+   --  with a raiser function that retrieves member data from
+   --  an Any and raises the exception with the appropriate
+   --  information in the occurrence.
+   --  This is mostly specific to the CORBA application personality,
+   --  and should accordingly be moved to PolyORB.CORBA_P.Exceptions.
 
    All_Exceptions_Lock : Mutex_Access;
    --  Mutex used to safely access All_Exceptions list.
@@ -212,11 +217,9 @@ package body PolyORB.Exceptions is
    -- Get_ExcepId_By_RepositoryId --
    ---------------------------------
 
-   procedure Get_ExcepId_By_RepositoryId
-     (RepoId        : in     Standard.String;
-      ExcpId        :    out Ada.Exceptions.Exception_Id;
-      Default       :        Ada.Exceptions.Exception_Id
-        := PolyORB.Unknown'Identity)
+   function Get_ExcepId_By_RepositoryId
+     (RepoId : Standard.String)
+      return Ada.Exceptions.Exception_Id
    is
 
       use PolyORB.Utils;
@@ -228,14 +231,11 @@ package body PolyORB.Exceptions is
       --  A repository ID is of the form 'MODEL:X/Y/Z:VERSION'
 
       Internal_Name : Standard.String  := Exception_Name (RepoId);
-
-      Result : Ada.Exceptions.Exception_Id;
    begin
       pragma Debug (O ("Internal_Name: " & Internal_Name));
 
       if Internal_Name = "" then
-         ExcpId := Ada.Exceptions.Null_Id;
-         return;
+         return Ada.Exceptions.Null_Id;
       end if;
 
       for J in Internal_Name'Range loop
@@ -244,18 +244,10 @@ package body PolyORB.Exceptions is
          end if;
       end loop;
 
-      Result := To_Exception_Id
+      return To_Exception_Id
         (System.Exception_Table.Internal_Exception
            (Internal_Name));
 
-      if Result = Ada.Exceptions.Null_Id then
-         ExcpId := Default;
-         --  XXX Hum, this should never happen: for an unknown
-         --  exception, System.Exception_Table will create an
-         --  exception_id on the fly.
-      else
-         ExcpId := Result;
-      end if;
    end Get_ExcepId_By_RepositoryId;
 
    -------------------------
@@ -595,55 +587,16 @@ package body PolyORB.Exceptions is
    -- Raise_From_Any --
    --------------------
 
-   procedure Raise_From_Any (Occurrence : Any.Any)
-   is
-      Repository_Id : constant PolyORB.Types.RepositoryId
-        := Any.TypeCode.Id (Get_Type (Occurrence));
-
-      System_Id : Ada.Exceptions.Exception_Id;
-      Is_System_Exc : constant Boolean
-        := Is_System_Exception (To_Standard_String (Repository_Id));
-
+   procedure Default_Raise_From_Any (Occurrence : Any.Any) is
+      use PolyORB.Any;
    begin
-      Get_ExcepId_By_RepositoryId
-        (To_Standard_String (Repository_Id),
-         System_Id);
-
-      if Is_System_Exc then
-
-         declare
-            Minor : constant PolyORB.Types.Unsigned_Long
-              := From_Any
-              (Get_Aggregate_Element
-               (Occurrence, TC_Unsigned_Long,
-                PolyORB.Types.Unsigned_Long (0)));
-            Completed : constant Completion_Status
-              := From_Any
-              (Get_Aggregate_Element
-               (Occurrence, TC_Completion_Status,
-                PolyORB.Types.Unsigned_Long (1)));
-         begin
-            Raise_System_Exception
-              (System_Id,
-               System_Exception_Members'
-                 (Minor => Minor, Completed => Completed));
-
-            raise Program_Error;
-            --  Not reached.
-
-         end;
+      if not Is_Empty (Occurrence) then
+         Ada.Exceptions.Raise_Exception
+           (Get_ExcepId_By_RepositoryId
+              (To_Standard_String
+                 (TypeCode.Id (Get_Type (Occurrence)))));
       end if;
-
-      declare
-         EInfo : constant Exception_Info := Find_Exception_Info
-           (Repository_Id);
-      begin
-         EInfo.Raiser.all (Occurrence);
-      end;
-
-      raise Program_Error;
-      --  Never reached (Raiser raises an exception.)
-   end Raise_From_Any;
+   end Default_Raise_From_Any;
 
    --------------------------
    -- TC_Completion_Status --

@@ -30,11 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#14 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#15 $
 
 with Ada.Exceptions;
-
-with CORBA;
 
 with PolyORB.Any;
 with PolyORB.Exceptions;
@@ -92,13 +90,10 @@ package body PolyORB.CORBA_P.Exceptions is
         := To_CORBA_Exception (PolyORB.Types.To_Standard_String
                                  (Repository_Id));
 
-      System_Id : Ada.Exceptions.Exception_Id;
-
+      System_Id : constant Ada.Exceptions.Exception_Id
+        := PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
+        (CORBA_Repository_Id);
    begin
-      PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
-        (CORBA_Repository_Id, System_Id,
-         Default => CORBA.Unknown'Identity);
-
       if Is_CORBA_System_Exc then
          PolyORB.Exceptions.Raise_System_Exception_From_Any
            (System_Id, Occurrence);

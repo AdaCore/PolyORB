@@ -41,7 +41,7 @@
 --   is stored and the Get_Members function created a new
 --   object from a derivation of Exception_Members
 
---  $Id: //droopi/main/src/polyorb-exceptions.ads#5 $
+--  $Id$
 
 with Ada.Exceptions;
 
@@ -389,6 +389,8 @@ package PolyORB.Exceptions is
    --  Exception utility functions --
    ----------------------------------
 
+   procedure Default_Raise_From_Any (Occurrence : Any.Any);
+
    type Raise_From_Any_Procedure is access procedure
      (Occurrence : PolyORB.Any.Any);
 
@@ -409,9 +411,6 @@ package PolyORB.Exceptions is
 
    function From_Any (Item : PolyORB.Any.Any)
                       return Completion_Status;
-
-   procedure Raise_From_Any (Occurrence : PolyORB.Any.Any);
-   pragma No_Return (Raise_From_Any);
 
    function System_Exception_TypeCode
      (Name : Standard.String)
@@ -445,11 +444,9 @@ package PolyORB.Exceptions is
    function Is_System_Exception (Name : String)
                                  return Boolean;
 
-   procedure Get_ExcepId_By_RepositoryId
-     (RepoId        : in     Standard.String;
-      ExcpId        :    out Ada.Exceptions.Exception_Id;
-      Default       :        Ada.Exceptions.Exception_Id
-        := PolyORB.Unknown'Identity);
+   function Get_ExcepId_By_RepositoryId
+     (RepoId  : Standard.String)
+      return Ada.Exceptions.Exception_Id;
    --  Return the corresponding Ada Exception_Id for
    --  a repository id.
 

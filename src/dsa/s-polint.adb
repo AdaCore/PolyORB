@@ -945,10 +945,10 @@ package body System.PolyORB_Interface is
    ------------------------------
 
    procedure Request_Raise_Occurrence (R : Request_Access) is
+      use Ada.Exceptions;
    begin
-      if not Is_Empty (R.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any (R.Exception_Info);
-      end if;
+      PolyORB.Exceptions.Default_Raise_From_Any (R.Exception_Info);
+
    end Request_Raise_Occurrence;
 
    -----------------

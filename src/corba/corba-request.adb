@@ -119,6 +119,12 @@ package body CORBA.Request is
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
       if not Is_Empty (Self.The_Request.Exception_Info) then
+         --  XXX warning, should verify that the raised exception
+         --  is either a system exception or a declared user
+         --  exception before propagating it: if an unknown
+         --  user exception gets up to here, CORBA.UNKNOWN
+         --  must be raised.
+
          PolyORB.CORBA_P.Exceptions.Raise_From_Any
            (Self.The_Request.Exception_Info);
       end if;
