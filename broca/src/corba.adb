@@ -1523,6 +1523,15 @@ package body CORBA is
       return The_Any.The_Type;
    end Get_Type;
 
+   ----------------
+   --  Set_Type  --
+   ----------------
+   procedure Set_Type (The_Any : in out Any;
+                       The_Type : in TypeCode.Object) is
+   begin
+      The_Any.The_Type := The_Type;
+   end Set_Type;
+
    ---------------------------------
    --  Iterate_Over_Any_Elements  --
    ---------------------------------
@@ -1530,6 +1539,14 @@ package body CORBA is
    begin
       null;
    end Iterate_Over_Any_Elements;
+
+   ---------------------
+   --  Get_Empty_Any  --
+   ---------------------
+   function Get_Empty_Any (Tc : TypeCode.Object) return Any is
+   begin
+      return (The_Type => Tc, The_Value => Null_Content_Ptr);
+   end Get_Empty_Any;
 
    -----------
    --  Any  --

@@ -406,7 +406,7 @@ package CORBA is
       --  case its kind is struct, union, enum, value or except.
       --  Raises badKind else.
       function Member_Count (Self : in Object)
-                             return Unsigned_Long;
+                             return CORBA.Unsigned_Long;
 
       --  returns the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
@@ -745,11 +745,18 @@ package CORBA is
 
 
    function Get_Type (The_Any : in Any) return TypeCode.Object;
+   --  not in spec : change the type of an any without changing its
+   --  value : to be used carefully
+   procedure Set_Type (The_Any : in out Any;
+                       The_Type : in TypeCode.Object);
 
    generic
       with procedure Process (The_Any : in Any;
                               Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
+
+   --  Not in spec : get empty Any (no value ptr)
+   function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
@@ -878,6 +885,7 @@ private
 
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access Content'Class;
+   Null_Content_Ptr : constant Any_Content_Ptr := null;
 
    type Content_Octet is new Content with
       record

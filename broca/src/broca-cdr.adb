@@ -1164,15 +1164,268 @@ package body Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Any is
+      Tc : CORBA.TypeCode.Object := Unmarshall (Buffer);
    begin
-      return CORBA.To_Any (CORBA.Short (0));
+      return Unmarshall_To_Any (Buffer, Tc);
    end Unmarshall;
 
    function Unmarshall_To_Any (Buffer : access Buffer_Type;
                                Any_Type : TypeCode.Object)
      return CORBA.Any is
+      Tc : CORBA.TypeCode.Object := Any_Type;
+      Result : CORBA.Any;
+      use CORBA;
    begin
-      return CORBA.To_Any (CORBA.Short (0));
+      while TypeCode.Kind (Tc) = Tk_Alias loop
+         Tc := TypeCode.Content_Type (Tc);
+      end loop;
+      case TypeCode.Kind (Tc) is
+         when Tk_Null
+           | Tk_Void =>
+            Result := Get_Empty_Any (Any_Type);
+         when Tk_Short =>
+            declare
+               S : Short := Unmarshall (Buffer);
+            begin
+               Result := To_Any (S);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Long =>
+            declare
+               L : Long := Unmarshall (Buffer);
+            begin
+               Result := To_Any (L);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Ushort =>
+            declare
+               Us : Unsigned_Short := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Us);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Ulong =>
+            declare
+               Ul : Unsigned_Long := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Ul);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Float =>
+            declare
+               F : CORBA.Float := Unmarshall (Buffer);
+            begin
+               Result := To_Any (F);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Double =>
+            declare
+               D : Double := Unmarshall (Buffer);
+            begin
+               Result := To_Any (D);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Boolean =>
+            declare
+               B : CORBA.Boolean := Unmarshall (Buffer);
+            begin
+               Result := To_Any (B);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Char =>
+            declare
+               C : Char := Unmarshall (Buffer);
+            begin
+               Result := To_Any (C);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Octet =>
+            declare
+               O : CORBA.Octet := Unmarshall (Buffer);
+            begin
+               Result := To_Any (O);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Any =>
+            declare
+               A : Any := Unmarshall (Buffer);
+            begin
+               Result := To_Any (A);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_TypeCode =>
+            declare
+               T : TypeCode.Object := Unmarshall (Buffer);
+            begin
+               Result := To_Any (T);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Principal =>
+            --  FIXME : to be done
+            null;
+         when Tk_Objref =>
+            declare
+               O : CORBA.Object.Ref := Unmarshall (Buffer);
+            begin
+               Result := CORBA.Object.To_Any (O);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Struct =>
+            declare
+               Nb : Unsigned_Long :=
+                 TypeCode.Member_Count (Tc);
+            begin
+               Result := Get_Empty_Any_Aggregate (Any_Type);
+               for I in 0 .. Nb - 1 loop
+                  Add_Aggregate_Element
+                    (Result,
+                     Unmarshall_To_Any (Buffer,
+                                        TypeCode.Member_Type (Tc, I)));
+               end loop;
+            end;
+         when Tk_Union =>
+            declare
+               Nb : Unsigned_Long :=
+                 TypeCode.Member_Count (Tc);
+            begin
+               Result := Get_Empty_Any_Aggregate (Any_Type);
+               Add_Aggregate_Element
+                 (Result,
+                  Unmarshall_To_Any (Buffer,
+                                     TypeCode.Discriminator_Type (Tc)));
+               for I in 0 .. Nb - 1 loop
+                  Add_Aggregate_Element
+                    (Result,
+                     Unmarshall_To_Any (Buffer,
+                                        TypeCode.Member_Type (Tc, I)));
+               end loop;
+            end;
+         when Tk_Enum =>
+            Result := Get_Empty_Any_Aggregate (Any_Type);
+            Add_Aggregate_Element
+              (Result,
+               Unmarshall_To_Any (Buffer,
+                                  TypeCode.TC_Unsigned_Long));
+         when Tk_String =>
+            declare
+               S : CORBA.String := Unmarshall (Buffer);
+            begin
+               Result := To_Any (S);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Sequence =>
+            declare
+               Nb : Unsigned_Long := Unmarshall (Buffer);
+            begin
+               if Nb > TypeCode.Length (Tc) then
+                  Broca.Exceptions.Raise_Marshal;
+               end if;
+               Result := Get_Empty_Any_Aggregate (Any_Type);
+               for I in 0 .. Nb - 1 loop
+                  Add_Aggregate_Element
+                    (Result,
+                     Unmarshall_To_Any (Buffer,
+                                        TypeCode.Content_Type (Tc)));
+               end loop;
+            end;
+         when Tk_Array =>
+            declare
+               Nb : Unsigned_Long := TypeCode.Length (Tc);
+            begin
+               Result := Get_Empty_Any_Aggregate (Any_Type);
+               for I in 0 .. Nb - 1 loop
+                  Add_Aggregate_Element
+                    (Result,
+                     Unmarshall_To_Any (Buffer,
+                                        TypeCode.Content_Type (Tc)));
+               end loop;
+            end;
+         when Tk_Alias =>
+            --  we should never reach this point
+            raise Program_Error;
+         when Tk_Except =>
+            declare
+               Nb : Unsigned_Long :=
+                 TypeCode.Member_Count (Tc);
+            begin
+               Result := Get_Empty_Any_Aggregate (Any_Type);
+               for I in 0 .. Nb - 1 loop
+                  Add_Aggregate_Element
+                    (Result,
+                     Unmarshall_To_Any (Buffer,
+                                        TypeCode.Member_Type (Tc, I)));
+               end loop;
+            end;
+         when Tk_Longlong =>
+            declare
+               Ll : Long_Long := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Ll);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Ulonglong =>
+            declare
+               Ull : Unsigned_Long_Long := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Ull);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Longdouble =>
+            declare
+               Ld : Long_Double := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Ld);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Widechar =>
+            declare
+               Wc : Wchar := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Wc);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Wstring =>
+            declare
+               Ws : CORBA.Wide_String := Unmarshall (Buffer);
+            begin
+               Result := To_Any (Ws);
+               --  set the true type of the any, in case there is some alias
+               Set_Type (Result, Any_Type);
+            end;
+         when Tk_Fixed =>
+            --  FIXME : to be done
+            null;
+         when Tk_Value =>
+            --  FIXME : to be done
+            null;
+         when Tk_Valuebox =>
+            --  FIXME : to be done
+            null;
+         when Tk_Native =>
+            --  FIXME : to be done
+            null;
+         when Tk_Abstract_Interface =>
+            --  FIXME : to be done
+            null;
+      end case;
+      return Result;
    end Unmarshall_To_Any;
 
    function Unmarshall (Buffer : access Buffer_Type)
@@ -1519,7 +1772,7 @@ package body Broca.CDR is
                  (Result, To_Any (Id));
             end;
          when others =>
-            raise Constraint_Error;
+            Broca.Exceptions.Raise_Marshal;
       end case;
       return Result;
    end Unmarshall;
