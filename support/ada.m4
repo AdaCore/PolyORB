@@ -14,22 +14,21 @@ if test -z "$ADA"; then
   ADA="$CC"
 fi])
 
-dnl Usage: AM_TRY_ADA(filename, content, success, failure)
-dnl Compile an Ada program and report its success or failure
+dnl Usage: AM_TRY_ADA(gnatmake, filename, content, success, failure)
+dnl Compile, bind and link an Ada program and report its success or failure
 
 AC_DEFUN([AM_TRY_ADA],
-[AC_REQUIRE([AM_PROG_ADA])
-mkdir conftest
-cat > conftest/[$1] <<EOF
-[$2]
+[mkdir conftest
+cat > conftest/src.ada <<EOF
+[$3]
 EOF
-ac_try="cd conftest && $ADA -c $1 > /dev/null 2>../conftest.out"
+ac_try="cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out"
 if AC_TRY_EVAL(ac_try); then
-  ifelse([$3], , :, [rm -rf conftest*
-  $3])
-else
-  ifelse([$4], , :, [ rm -rf conftest*
+  ifelse([$4], , :, [rm -rf conftest*
   $4])
+else
+  ifelse([$5], , :, [ rm -rf conftest*
+  $5])
 fi
 rm -f conftest*])
 
@@ -37,28 +36,18 @@ dnl Usage: AM_TRY_ADA_CONFPRAGMA(pragma, success, failure)
 dnl Check whether a given configuration pragma is supported.
 
 AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
-[AC_REQUIRE([AM_PROG_ADA])
-mkdir conftest
-echo "[$1]" > conftest/gnat.adc
-echo "procedure Check is begin null; end Check;" > conftest/check.adb
-ac_try="cd conftest && $ADA -c check.adb > /dev/null 2>../conftest.out"
-if AC_TRY_EVAL(ac_try); then
-  ifelse([$2], , :, [rm -rf conftest*
-  $2])
-else
-  ifelse([$3], , :, [ rm -rf conftest*
-  $3])
-fi
-rm -f conftest*])
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
+[$1
+procedure Check is begin null; end Check;],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
 
 AC_DEFUN([AM_PROG_WORKING_ADA],
-[AC_REQUIRE([AM_PROG_ADA])
-AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
-AM_TRY_ADA([check.adb],
+[AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
+AM_TRY_ADA([$ADA -c],[check.adb],
 [with Ada.Text_IO;
 procedure Check is
 begin
@@ -160,11 +149,13 @@ dnl Usage: AM_HAS_GNAT_SOCKETS_COPY
 dnl Determine whether GNAT.Sockets has a Copy operation.
 
 AC_DEFUN([AM_HAS_GNAT_SOCKETS_COPY],
-[AC_REQUIRE([AM_CROSS_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
+AC_BEFORE([AM_HAS_GNAT_SOCKETS_COPY])
+AC_BEFORE([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS])
+AC_BEFORE([AM_HAS_PRAGMA_PROFILE_RAVENSCAR])
+AC_BEFORE([AM_HAS_PRAGMA_PROFILE_WARNINGS])
 AC_MSG_CHECKING([whether you have GNAT.Sockets.Copy])
-OLDADA=$ADA
-ADA=$ADA_FOR_TARGET
-AM_TRY_ADA([check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
 [with GNAT.Sockets;
 procedure Check is
    S1, S2 : GNAT.Sockets.Socket_Set_Type;
@@ -175,7 +166,6 @@ end Check;
 MISS_GNAT_SOCKETS_COPY="--  "],
 [AC_MSG_RESULT(no)
 HAVE_GNAT_SOCKETS_COPY="--  "])
-ADA=$OLDADA
 AC_SUBST(MISS_GNAT_SOCKETS_COPY)dnl
 AC_SUBST(HAVE_GNAT_SOCKETS_COPY)])
 
@@ -183,11 +173,9 @@ dnl Usage: AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
 dnl Determine whether GNAT.OS_Lib has a Close operation with status report.
 
 AC_DEFUN([AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS],
-[AC_REQUIRE([AM_CROSS_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether you have GNAT.OS_Lib.Close (FD : File_Descriptor; Status : out Boolean)])
-OLDADA=$ADA
-ADA=$ADA_FOR_TARGET
-AM_TRY_ADA([check.adb],
+AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
 [with GNAT.OS_Lib;
 procedure Check is
    FD : GNAT.OS_Lib.File_Descriptor;
@@ -199,32 +187,25 @@ end Check;
 MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "],
 [AC_MSG_RESULT(no)
 HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "])
-ADA=$OLDADA
 AC_SUBST(MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS)dnl
 AC_SUBST(HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS)])
 
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_RAVENSCAR],
-[AC_REQUIRE([AM_CROSS_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether pragma Profile (Ravenscar) is supported])
-OLDADA=$ADA
-ADA=$ADA_FOR_TARGET
 AM_TRY_ADA_CONFPRAGMA([pragma Profile (Ravenscar);],
 [AC_MSG_RESULT(yes)
 PRAGMA_PROFILE_RAVENSCAR="pragma Profile (Ravenscar);"],
 [AC_MSG_RESULT(no)
 PRAGMA_PROFILE_RAVENSCAR="pragma Ravenscar;"])
-ADA=$OLDADA
 AC_SUBST(PRAGMA_PROFILE_RAVENSCAR)])
 
 AC_DEFUN([AM_HAS_PRAGMA_PROFILE_WARNINGS],
-[AC_REQUIRE([AM_CROSS_PROG_ADA])
+[AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AC_MSG_CHECKING([whether pragma Profile_Warnings (Ravenscar) is supported])
-OLDADA=$ADA
-ADA=$ADA_FOR_TARGET
 AM_TRY_ADA_CONFPRAGMA([pragma Profile_Warnings (Ravenscar);],
 [AC_MSG_RESULT(yes)
 DISABLE_PROFILE_WARNINGS=""],
 [AC_MSG_RESULT(no)
 DISABLE_PROFILE_WARNINGS="--  "])
-ADA=$OLDADA
 AC_SUBST(DISABLE_PROFILE_WARNINGS)])
