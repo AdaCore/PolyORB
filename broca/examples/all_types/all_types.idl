@@ -14,7 +14,7 @@ interface all_types {
   char echoChar(in char arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
-  all_types echoRef (in all_types arg);
+  // all_types echoRef (in all_types arg);
 
   // Exceptions
   //-----------
