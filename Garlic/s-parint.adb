@@ -36,8 +36,8 @@
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 with GNAT.HTable;              use GNAT.HTable;
-with GNAT.Table;
 with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
@@ -107,23 +107,6 @@ package body System.Partition_Interface is
 
    procedure Free is
       new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
-
-   function Hash (K : Address) return Hash_Index;
-
-   package Address_HTable is
-      new Simple_HTable (Header_Num => Hash_Index,
-                         Element    => Natural,
-                         No_Element => 0,
-                         Key        => Address,
-                         Hash       => Hash,
-                         Equal      => "=");
-
-   package Address_Table is
-      new GNAT.Table (Table_Component_Type => Address,
-                      Table_Index_Type     => Natural,
-                      Table_Low_Bound      => 1,
-                      Table_Initial        => 16,
-                      Table_Increment      => 100);
 
    --  This is a list of caller units whose Version_ID needs to check.
 
@@ -387,15 +370,6 @@ package body System.Partition_Interface is
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index is
    begin
       return Hash_Index (Natural (K.Addr) mod Positive (Hash_Index'Last + 1));
-   end Hash;
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash (K : Address) return Hash_Index is
-   begin
-      return Hash_Index (Integer (K) mod Integer (Hash_Index'Last));
    end Hash;
 
    ------------
