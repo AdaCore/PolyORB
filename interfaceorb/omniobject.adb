@@ -15,32 +15,44 @@ with Corba, OmniObjectManager, Omniropeandkey ;
 
 package body OmniObject is
 
-   function Is_Proxy return Boolean is
-      function C_Is_Proxy return Interfaces.C.Unsigned_Char ;
+   function Is_Proxy (This : in Object'Class)
+                      return Boolean is
+      function C_Is_Proxy (This : in Object'Class)
+                           return Interfaces.C.Unsigned_Char ;
       -- here is supposed that HAS_Cplusplus_Bool is'nt defined
       -- cf definition of type _CORBA_Boolean in CORBA_basetypes.h L59
       pragma Import (C,C_Is_Proxy,"is_proxy__C10omniObject") ;
    begin
-      return (Is_Proxy() \= 0) ;
+      return (C_Is_Proxy(This) \= 0) ;
    end ;
 
-   procedure PR_IRRepositoryId(RepositoryId : in String ) is
-      procedure C_PR_IRRepositoryId (C_RepositoryId : in Chars_Ptr) ;
+   procedure PR_IRRepositoryId(This : in Object'Class;
+                               RepositoryId : in String ) is
+      procedure C_PR_IRRepositoryId (This : in Object'Class;
+                                     C_RepositoryId : in Chars_Ptr) ;
       pragma Import (C,C_PR_IRRepositoryId,"is_proxy__C10omniObject") ;
    begin
-      C_PR_IRRepositoryId ( New_String(RepositoryId) ) ;
+      C_PR_IRRepositoryId (This,New_String(RepositoryId) ) ;
       return;
    end ;
 
-   procedure Set_Rope_And_Key (Self : in out Object ;
+   procedure Init (Self : in out Object'Class ;
+                   Manager : in OmniObjectManager.Object);
+   -- wrapper around   omniObject(omniObjectManager*p =0);
+   -- in omniInternal.h L 294
+
+
+   procedure Set_Rope_And_Key (This : in out Object'Class ;
                             L : in out Omniropeandkey.Object ;
                             KeepIOP : Corba.boolean
                            ) is
-      procedure C_Set_Rope_And_Key () ;
+      procedure C_Set_Rope_And_Key (This : in out Object'Class,
+                                   L : --in out Omniropeandkey.Object'Class,
+                                   KeepIOP : --) ;
       pragma Import (C,C_Set_Rope_And_Key,
                      "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
    begin
-      C_Set_Rope_And_Key () ;
+      C_Set_Rope_And_Key (This,--,) ;
    end ;
 
    procedure Get_Rope_And_Key (Self : in Object ;
@@ -56,12 +68,6 @@ package body OmniObject is
    procedure Reset_Rope_And_Key (Self : in Object);
    -- wrapper around void resetRopeAndKey();
    -- in omniInternal.h L 332
-
-   procedure Init (Self : in out Object ;
-                   Manager : in OmniObjectManager.Object);
-   -- wrapper around   omniObject(omniObjectManager*p =0);
-   -- in omniInternal.h L 294
-
 
 private
 
