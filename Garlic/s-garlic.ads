@@ -104,4 +104,6 @@ package System.Garlic is
    --
    --  (8) It asks for a partition ID.
 
+   Communication_Error : exception;
+
 end System.Garlic;
