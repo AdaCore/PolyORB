@@ -482,6 +482,7 @@ package body Sem_Dist is
    ------------------------------------
 
    procedure Process_Remote_AST_Declaration (N : Node_Id) is
+      pragma Warnings (Off);
       Loc            : constant Source_Ptr := Sloc (N);
       User_Type      : constant Node_Id := Defining_Identifier (N);
       Type_Def       : constant Node_Id := Type_Definition (N);
@@ -510,6 +511,7 @@ package body Sem_Dist is
                         Make_Defining_Identifier
                           (Loc, Chars (User_Type));
       Fat_Type_Decl  : Node_Id;
+      pragma Warnings (On);
    begin
       Obj_Type_Decl :=
         Make_Private_Type_Declaration (Loc,
@@ -519,7 +521,7 @@ package body Sem_Dist is
           Limited_Present  => True);
       Insert_After (N, Obj_Type_Decl);
 
-      if No (Private_Declarations (Pkg_Spec)) then
+      if Private_Declarations (Pkg_Spec) = No_List then
          Set_Private_Declarations (Pkg_Spec, New_List);
       end if;
 
@@ -534,8 +536,8 @@ package body Sem_Dist is
               Limited_Present  => True,
               Component_List   => Empty,
               Null_Present     => True)));
-      Set_Ekind (Obj_Type, E_Limited_Private_Type);
-      Set_Full_View (Obj_Type, Full_Obj_Type);
+--        Set_Ekind (Obj_Type, E_Limited_Private_Type);
+--        Set_Full_View (Obj_Type, Full_Obj_Type);
 
       Prim_Decl :=
         Make_Abstract_Subprogram_Declaration (Loc,
@@ -553,10 +555,11 @@ package body Sem_Dist is
               Subtype_Mark =>
                 New_Occurrence_Of (Obj_Type, Loc))));
       --  XXX if the RAS definition has a formal parameter
-      --    that is of a tagged type, shit happens because
+      --    that is of a tagged type, bad bad things happens because
       --    Call becomes a dispatching operation in both this type
       --    and Obj_Type.
-
+      Set_Comes_From_Source (
+        Defining_Unit_Name (Specification (Prim_Decl)), True);
       Insert_After (Obj_Type_Decl, Prim_Decl);
 
       RACW_Type_Decl := Make_Full_Type_Declaration (Loc,
@@ -570,7 +573,15 @@ package body Sem_Dist is
                   New_Occurrence_Of (Obj_Type, Loc),
                 Attribute_Name =>
                   Name_Class)));
+      Set_Is_Remote_Call_Interface (
+        RACW_Type, Is_Remote_Call_Interface (Scope (User_Type)));
+      Set_Is_Remote_Types (RACW_Type, Is_Remote_Types (Scope (User_Type)));
       Insert_After (Prim_Decl, RACW_Type_Decl);
+      --  XXX RACW RPC Receiver generation should be shorted out for this
+      --      RACW type.
+      --  XXX RACW From_Any generation should be changed for this type
+      --      to always instantiate a stub type, regardless of locality.
+      --  XXX possible predicate: not (Comes_From_Source (Designated_Type))
 
       --  Many parts of the analyzer and expander expect
       --  that the fat pointer type used to implement remote
@@ -599,9 +610,9 @@ package body Sem_Dist is
 
       Set_Suppress_Init_Proc (Fat_Type);
 
-      --  if Expander_Active then
-      --     Add_RAST_Features (Parent (User_Type));
-      --  end if;
+--        if Expander_Active then
+--           Add_RAST_Features (Parent (User_Type));
+--        end if;
 
    end Process_Remote_AST_Declaration;
 
