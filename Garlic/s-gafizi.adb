@@ -54,8 +54,6 @@ use System.RPC;
 
 package body System.Garlic.Filters.Zip is
 
-   pragma Linker_Options ("-lz");
-
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("FILTER", "(s-gafizi): ");
 

@@ -6,6 +6,8 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 CC      = @CC@
 SED     = @SED@
+RANLIB  = @RANLIB@
+LIBTOOL = @LIBTOOL@
 
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
@@ -39,6 +41,8 @@ s-ganobl.o
 
 NOBLTCPSOURCES = \
 ${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb
+
+Makefile.in: Makefile.fil
 
 @FILTERFILE@
 
@@ -118,23 +122,27 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb $(FILTERSOBJECTS) split
+	s-garser.adb $(FILTERSOBJECTS) split *.lo *.la .libs
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
 %.o: %.adb
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${LIBTOOL} --mode=compile \
+		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 %.o: %.ads
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${LIBTOOL} --mode=compile \
+		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.adb
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${LIBTOOL} --mode=compile \
+		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.ads
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${LIBTOOL} --mode=compile \
+		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 s-garcon.ads: ${CONSTANTS_SH} split
 	if test -f ${CONSTANTS_PLATFORM}; then \
@@ -158,8 +166,21 @@ install-dirs-local:
 install-extra-libs: ${FILTERINSTALL}
 
 install-data-local: all-local install-dirs-local install-extra-libs
-	${CP} -p ${SOURCES} ${OBJECTS} \
-		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'` ${GARLIC}
+	${INSTALL} `type gcc | sed 's/gcc is //' | sed 's%/bin/gcc%%'`/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adalib/libgnat.a ${GARLIC}
+	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
+	${RANLIB} ${GARLIC}/libgnat.a
+	for i in ${SOURCES} \
+		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'` ${GARLIC}; do \
+		if test -f $$i; then \
+			${CP} -p $$i ${GARLIC}/; \
+		fi; \
+	done
+	${LIBTOOL} --mode=link \
+		${CC} -version-info 1:0 -o libgarlic.la -rpath ${GARLIC} \
+		`echo ${OBJECTS} | ${SED} -e 's/\.o/.lo/g'`
+	${LIBTOOL} --mode=install \
+		${INSTALL} libgarlic.la ${GARLIC} | grep -v LIBDIR
+	chmod a+r ${GARLIC}/*
 	chmod a-w ${GARLIC}/*
 
 # Cross references

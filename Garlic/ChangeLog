@@ -1,6 +1,12 @@
-1997-06-11  Samuel Tardieu  <sam@inf.enst.fr>
+Tue Aug 12 13:08:31 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-stratt.adb: Changed 2**8 - 1 into 16#FF# to prevent error on VMS.
+	* Makefile.am: Use libtool to compile files and generate shared
+	  library as well. Extract duplicate symbols from libgnat.a.
+
+Fri Jun  6 15:30:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-stratt.adb: Changed 2**8 - 1 into 16#FF# to prevent
+	  (letigimate) error on VMS.
 
 Wed Jun  4 18:00:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
 

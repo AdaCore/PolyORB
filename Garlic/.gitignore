@@ -1,5 +1,8 @@
 *.ali
 *.o
+*.lo
+*.la
+.libs
 *.xrs
 *.xrb
 .gdb_history
