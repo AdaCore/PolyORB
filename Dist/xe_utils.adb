@@ -657,11 +657,13 @@ package body XE_Utils is
 
       PWD_Id         := Dir (Str_To_Id ("`pwd`"), No_File);
 
-      Build_Stamp_File    := Str_To_Id ("glade.sta");
-      Elaboration_File    := Str_To_Id ("s-garela");
-      Elaboration_Name    := Str_To_Id ("System.Garlic.Elaboration");
-      Partition_Main_File := Str_To_Id ("partition");
-      Partition_Main_Name := Str_To_Id ("Partition");
+      Build_Stamp_File     := Str_To_Id ("glade.sta");
+      Elaboration_File     := Str_To_Id ("s-garela");
+      Elaboration_Name     := Str_To_Id ("System.Garlic.Elaboration");
+      Partition_Main_File  := Str_To_Id ("partition");
+      Partition_Main_Name  := Str_To_Id ("Partition");
+      Protocol_Config_File := Str_To_Id ("s-gaprco");
+      Protocol_Config_Name := Str_To_Id ("System.Garlic.Protocols.Config");
 
       GARLIC := Getenv ("GLADE_LIBRARY_DIR");
       if GARLIC = null
@@ -738,7 +740,7 @@ package body XE_Utils is
       Verbose_Mode       := Opt.Verbose_Mode;
       Debug_Mode         := Debug.Debug_Flag_Q;
       Optimization_Mode  := Optimization_Mode and then Debug.Debug_Flag_S;
-      Quiet_Output       := Opt.Quiet_Output;
+      Quiet_Mode         := Opt.Quiet_Output;
       No_Recompilation   := Opt.Do_Not_Execute;
       Building_Script    := Opt.List_Dependencies;
 
@@ -749,7 +751,7 @@ package body XE_Utils is
       --  Don't want log messages that would corrupt scripts.
       if Building_Script then
          Verbose_Mode := False;
-         Quiet_Output := True;
+         Quiet_Mode := True;
       end if;
 
       Opt.Check_Source_Files := False;

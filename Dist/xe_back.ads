@@ -73,6 +73,15 @@ package XE_Back is
    Last_PID  : constant PID_Type := 499_999;
 
 
+   --  LID_Type : location id type
+
+   type LID_Type is new Types.Int range 500_000 .. 599_999;
+
+   Null_LID  : constant LID_Type := 500_000;
+   First_LID : constant LID_Type := 500_001;
+   Last_LID  : constant LID_Type := 599_999;
+
+
    -- Names --
 
    subtype Partition_Name_Type is Types.Name_Id;
@@ -108,8 +117,8 @@ package XE_Back is
    Default_Channel             : CID_Type;
 
    Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
-   Default_Protocol_Name       : Types.Name_Id         := Types.No_Name;
-   Default_Protocol_Data       : Types.Name_Id         := Types.No_Name;
+   Def_Boot_Location_First     : LID_Type              := Null_LID;
+   Def_Boot_Location_Last      : LID_Type              := Null_LID;
    Default_Starter             : XE.Import_Method_Type := XE.Ada_Import;
    Default_Version_Check       : Boolean               := True;
 
@@ -149,6 +158,12 @@ package XE_Back is
       Most_Recent : Types.File_Name_Type  := Types.No_File;
    end record;
 
+   type Location_Type is record
+      Protocol_Name : Types.Name_Id;
+      Protocol_Data : Types.Name_Id;
+      Next_Location : LID_Type;
+   end record;
+
    type Partition_Type is record
       Name            : Partition_Name_Type;
       Node            : XE.Node_Id;
@@ -158,17 +173,19 @@ package XE_Back is
       Main_Subprogram : Types.Unit_Name_Type;
       Termination     : XE.Termination_Type;
       Reconnection    : XE.Reconnection_Type;
+      Task_Pool       : Task_Pool_Type;
+      Filter          : Filter_Name_Type;
+      Light_PCS       : Boolean;
+      Executable_File : Types.File_Name_Type;
+      Partition_Dir   : Types.File_Name_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       First_Channel   : CID_Type;
       Last_Channel    : CID_Type;
+      First_Location  : LID_Type;
+      Last_Location   : LID_Type;
       To_Build        : Boolean;
       Most_Recent     : Types.File_Name_Type;
-      Filter          : Filter_Name_Type;
-      Task_Pool       : Task_Pool_Type;
-      Light_PCS       : Boolean;
-      Executable_File : Types.File_Name_Type;
-      Partition_Dir   : Types.File_Name_Type;
       Global_Checksum : Types.Word;
    end record;
 
@@ -179,7 +196,7 @@ package XE_Back is
       Table_Index_Type     => PID_Type,
       Table_Low_Bound      => First_PID,
       Table_Initial        => 20,
-      Table_Increment      => 100,
+      Table_Increment      => 10,
       Table_Name           => "Partition");
 
    package Hosts  is new Table.Table
@@ -187,7 +204,7 @@ package XE_Back is
       Table_Index_Type     => HID_Type,
       Table_Low_Bound      => First_HID,
       Table_Initial        => 20,
-      Table_Increment      => 100,
+      Table_Increment      => 10,
       Table_Name           => "Host");
 
    package Channels  is new Table.Table
@@ -195,7 +212,7 @@ package XE_Back is
       Table_Index_Type     => CID_Type,
       Table_Low_Bound      => First_CID,
       Table_Initial        => 20,
-      Table_Increment      => 100,
+      Table_Increment      => 10,
       Table_Name           => "Channel");
 
    package CUnits is new Table.Table
@@ -205,6 +222,14 @@ package XE_Back is
       Table_Initial        => 200,
       Table_Increment      => 100,
       Table_Name           => "CUnits");
+
+   package Locations is new Table.Table
+     (Table_Component_Type => Location_Type,
+      Table_Index_Type     => LID_Type,
+      Table_Low_Bound      => First_LID,
+      Table_Initial        => 20,
+      Table_Increment      => 10,
+      Table_Name           => "Locations");
 
    Configuration   : Types.Name_Id := Types.No_Name;
    --  Name of the configuration.
@@ -280,6 +305,9 @@ package XE_Back is
 
    function Get_Light_PCS       (P : PID_Type) return Boolean;
    --  Return true when a partition has neither RCI nor RACW.
+
+   function Get_Location        (P : PID_Type) return LID_Type;
+   --  Look for location definition. If none, return default.
 
    function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
    --  Look for main_subprogram into partitions. If null, return default.

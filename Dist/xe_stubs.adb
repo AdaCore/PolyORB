@@ -69,6 +69,10 @@ package body XE_Stubs is
    --  Create a procedure which "withes" all the RCI or SP receivers
    --  of the partition and insert the main procedure if needed.
 
+   procedure Create_Protocol_Config_File (PID : in PID_Type);
+   --  Create a procedure which "withes" all the RCI or SP receivers
+   --  of the partition and insert the main procedure if needed.
+
    procedure Create_Stamp_File (PID : in PID_Type);
    --  Create a stamp file in which the executable file stamp and the
    --  configuration file stamp are stored.
@@ -280,12 +284,13 @@ package body XE_Stubs is
             end if;
 
             if Rebuild_Partition (P) then
-               if not Quiet_Output then
+               if not Quiet_Mode then
                   Message ("building partition", Partitions.Table (P).Name);
                end if;
 
                Create_Partition_Main_File (P);
                Create_Elaboration_File (P);
+               Create_Protocol_Config_File (P);
                Create_Executable_File (P);
                Create_Stamp_File (P);
             end if;
@@ -307,7 +312,7 @@ package body XE_Stubs is
    begin
       for F in S'Range loop
          if S (F) /= ' ' then
-            return GNAT_Style (Str_To_Id (S (F .. S'Last)));
+            return C (Str_To_Id (S (F .. S'Last)));
          end if;
       end loop;
       return No_Name;
@@ -355,6 +360,7 @@ package body XE_Stubs is
       Task_Pool    : Task_Pool_Type;
       Termination  : Termination_Type;
       Reconnection : Reconnection_Type;
+      Location     : LID_Type;
 
       CID : CID_Type;
       FD  : File_Descriptor;
@@ -456,14 +462,50 @@ package body XE_Stubs is
       --  If a protocol has been specified, then use it (with its data
       --  if present).
 
-      if Default_Protocol_Name /= No_Name then
-         Get_Name_String (Default_Protocol_Name);
-         if Default_Protocol_Data /= No_Name then
+      if Def_Boot_Location_First /= Null_LID then
+         Location := Def_Boot_Location_First;
+         Name_Len := 0;
+         loop
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Protocol_Name);
             Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append (Default_Protocol_Data);
-         end if;
-         Dwrite_Call (FD, 2, "Set_Boot_Server", To_String (Name_Find));
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Protocol_Data);
+            Location := Locations.Table (Location).Next_Location;
+            exit when Location = Null_LID;
+            Add_Char_To_Name_Buffer (' ');
+         end loop;
+         Dwrite_Call (FD, 2, "Set_Boot_Location", To_String (Name_Find));
       end if;
+
+
+      --  Compute the self location string (eventually composed of
+      --  several locations separated by commas).
+
+      Name_Len := 0;
+      Location := Get_Location (PID);
+      while Location /= Null_LID loop
+         if Name_Len = 0 then
+            Get_Name_String
+              (Locations.Table (Location).Protocol_Name);
+         else
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Protocol_Name);
+         end if;
+         if Locations.Table (Location).Protocol_Data /= No_Name then
+            Add_Str_To_Name_Buffer ("://");
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Protocol_Data);
+         end if;
+         Location := Locations.Table (Location).Next_Location;
+         if Location /= Null_LID then
+            Add_Char_To_Name_Buffer (' ');
+         end if;
+      end loop;
+      if Name_Len /= 0 then
+         Dwrite_Call (FD, 2, "Set_Self_Location", To_String (Name_Find));
+      end if;
+
 
       --  If we have no Ada starter (None or Shell), then it is equivalent
       --  to having --nolaunch on the command line.
@@ -572,6 +614,19 @@ package body XE_Stubs is
          Dir (Directory, Partition_Main_File & Obj_Suffix),
          (Include, I_Caller_Dir, I_Current_Dir)
          );
+
+      --  If we want to load the protocols needed to communicate with
+      --  the boot partition, we need to add this condition.
+      --    and then Def_Boot_Location_First /= Null_LID
+
+      if Get_Location (PID) /= Null_LID then
+         Execute_Gcc
+           (Dir (Directory, Protocol_Config_File & ADB_Suffix),
+            Dir (Directory, Protocol_Config_File & Obj_Suffix),
+            (GNATLib_Compile_Flag,
+             I_GARLIC_Dir)
+            );
+      end if;
 
       Execute_Bind
         (Dir (Directory, Partition_Main_File & ALI_Suffix),
@@ -738,6 +793,126 @@ package body XE_Stubs is
 
    end Create_Partition_Main_File;
 
+   ---------------------------------
+   -- Create_Protocol_Config_File --
+   ---------------------------------
+
+   procedure Create_Protocol_Config_File (PID : in PID_Type) is
+
+      Config_File   : File_Name_Type;
+      Protocol_Name : Name_Id;
+      Location      : LID_Type;
+
+      FD      : File_Descriptor;
+
+   begin
+
+      Config_File := Dir (Partitions.Table (PID).Partition_Dir,
+                          Protocol_Config_File);
+
+      Location := Get_Location (PID);
+
+      --  If we want to load the protocols needed to communicate with
+      --  the boot partition, we need to add this condition.
+      --    and then Def_Boot_Location_First = Null_LID
+
+      if Location = Null_LID then
+         Delete (Config_File & ADB_Suffix);
+         Delete (Config_File & ALI_Suffix);
+         Delete (Config_File & Obj_Suffix);
+         return;
+      end if;
+
+      Config_File := Config_File & ADB_Suffix;
+
+      if Building_Script then
+         Write_Str  (Standout, "cat >");
+         Write_Name (Standout, Config_File);
+         Write_Str  (Standout, " <<__EOF__");
+         Write_Eol  (Standout);
+      end if;
+
+      Stdout := Building_Script;
+      Create (FD, Config_File);
+
+      Dwrite_Line (FD, 0, "pragma Warnings (Off);");
+      Dwrite_Eol (FD);
+      Dwrite_With_Clause (FD, "System.Garlic.Replay");
+
+      Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Replay);");
+      Dwrite_Eol (FD);
+
+      --  Withed protocols
+      Location := Get_Location (PID);
+      while Location /= Null_LID loop
+         Protocol_Name := C (Locations.Table (Location).Protocol_Name);
+         Dwrite_With_Clause (FD, "System.Garlic", Protocol_Name);
+         Dwrite_Line
+           (FD, 0, "pragma Elaborate_All (System.Garlic.",
+            Protocol_Name, ");");
+         Dwrite_Eol (FD);
+         Location := Locations.Table (Location).Next_Location;
+      end loop;
+
+      if Def_Boot_Location_First /= Null_LID then
+         Location := Def_Boot_Location_First;
+         while Location /= Null_LID loop
+            Dwrite_With_Clause
+              (FD, "System.Garlic",
+               C (Locations.Table (Location).Protocol_Name));
+            Dwrite_Line
+              (FD, 0, "pragma Elaborate_All (System.Garlic.",
+               C (Locations.Table (Location).Protocol_Name), ");");
+            Dwrite_Eol (FD);
+            Location := Locations.Table (Location).Next_Location;
+         end loop;
+      end if;
+
+      Dwrite_Line (FD, 0, "package body ", Protocol_Config_Name, " is");
+      Dwrite_Line (FD, 1, "procedure Initialize is");
+      Dwrite_Line (FD, 1, "begin");
+
+      --  Register only self location protocols + replay
+
+      Dwrite_Line (FD, 2, "Register (System.Garlic.Replay.Create);");
+      Location := Get_Location (PID);
+      while Location /= Null_LID loop
+         Dwrite_Line
+           (FD, 2, "Register (System.Garlic.",
+            C (Locations.Table (Location).Protocol_Name),
+            ".Create);");
+         Location := Locations.Table (Location).Next_Location;
+      end loop;
+
+      --  We do not include protocols that would be needed to contact
+      --  boot partitions.
+      --
+      --        if Def_Boot_Location_First /= Null_LID then
+      --           Location := Def_Boot_Location_First;
+      --           while Location /= Null_LID loop
+      --              Dwrite_Line
+      --                (FD, 2, "Register (System.Garlic.",
+      --                 C (Locations.Table (Location).Protocol_Name),
+      --                 ".Create);");
+      --              Location := Locations.Table (Location).Next_Location;
+      --           end loop;
+      --        end if;
+
+      Dwrite_Line (FD, 1, "end Initialize;");
+      Dwrite_Eol (FD);
+
+      Dwrite_Line (FD, 0, "end ", Protocol_Config_Name, ";");
+
+      if Building_Script then
+         Write_Str (Standout, "__EOF__");
+         Write_Eol (Standout);
+      end if;
+
+      Stdout := False;
+      Close (FD);
+
+   end Create_Protocol_Config_File;
+
    -----------------------
    -- Create_Stamp_File --
    -----------------------
@@ -864,7 +1039,7 @@ package body XE_Stubs is
             Unit_File      := Unit_Body;
          end if;
 
-         if not Quiet_Output then
+         if not Quiet_Mode then
             Message
               ("building", Unit_Name, "caller stubs from", Full_Unit_File);
          end if;
@@ -893,7 +1068,7 @@ package body XE_Stubs is
                Copy_With_File_Stamp (Unit_Obj, Caller_Object);
             end if;
          end;
-      elsif not Quiet_Output then
+      elsif not Quiet_Mode then
          Message ("  ", Unit_Name, "caller stubs is up to date");
       end if;
 
@@ -926,14 +1101,14 @@ package body XE_Stubs is
       end if;
 
       if Obsolete then
-         if not Quiet_Output then
+         if not Quiet_Mode then
             Message
               ("building", Unit_Name, "receiver stubs from", Full_Unit_Body);
          end if;
 
          Compile_RCI_Receiver (Full_Unit_Body, Receiver_Object);
 
-      elsif not Quiet_Output then
+      elsif not Quiet_Mode then
          Message ("  ", Unit_Name, "receiver stubs is up to date");
       end if;
 

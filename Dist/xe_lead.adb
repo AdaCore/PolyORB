@@ -48,18 +48,27 @@ procedure XE_Lead is
    ---------------------
 
    procedure Set_Boot_Server
-     (Partition : in PID_Type) is
+     (Partition : in PID_Type)
+   is
+      LID : LID_Type;
    begin
-      if Default_Protocol_Name = No_Name then
+      if Def_Boot_Location_First = Null_LID then
          Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:");
          Write_Str  (FD, "`echo 000$$ | sed 's,^.*\(...\),5\1,'`");
          Write_Eol  (FD);
       else
-         Write_Str  (FD, "BOOT_SERVER=");
-         Write_Name (FD, Default_Protocol_Name);
-         Write_Str  (FD, "://");
-         Write_Name (FD, Default_Protocol_Data);
-         Write_Eol  (FD);
+         LID := Partitions.Table (Partition).First_Location;
+         Write_Str  (FD, "BOOT_SERVER='");
+         loop
+            Write_Name (FD, Locations.Table (LID).Protocol_Name);
+            Write_Str  (FD, "://");
+            Write_Name (FD, Locations.Table (LID).Protocol_Data);
+            LID := Locations.Table (LID).Next_Location;
+            exit when LID = Null_LID;
+            Write_Str  (FD, " ");
+         end loop;
+         Write_Str (FD, "'");
+         Write_Eol (FD);
       end if;
    end Set_Boot_Server;
 
@@ -106,7 +115,7 @@ procedure XE_Lead is
 
       Write_Name (FD, Get_Absolute_Exec (Partition));
 
-      Write_Str  (FD, " --boot_server $BOOT_SERVER");
+      Write_Str  (FD, " --boot_location ${BOOT_SERVER}");
       Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
          Write_Str (FD, " --detach --slave &"" >/dev/null 2>&1");
@@ -118,7 +127,7 @@ procedure XE_Lead is
 
 begin
 
-   if Default_Starter /= None_Import and then not Quiet_Output then
+   if Default_Starter /= None_Import and then not Quiet_Mode then
       Message ("generating starter", Main_Subprogram);
    end if;
 

@@ -55,14 +55,14 @@ package body XE_Stdcnf is
 
       Create_Configuration (Configuration_Node, Str_To_Id ("private"));
 
-      --  type Boolean_Type is (False, True, Unknown);
+      --  type Boolean_Type is (False, True, Infinite);
 
       Declare_Type
         (Type_Name    => Str_To_Id ("boolean"),
          Type_Kind    => Pre_Type_Boolean,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Boolean_Type_Node);
 
@@ -98,9 +98,9 @@ package body XE_Stdcnf is
       Declare_Type
         (Type_Name    => Str_To_Id ("string"),
          Type_Kind    => Pre_Type_String,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => String_Type_Node);
 
@@ -109,9 +109,9 @@ package body XE_Stdcnf is
       Declare_Type
         (Type_Name    => Str_To_Id ("integer"),
          Type_Kind    => Pre_Type_Integer,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Integer_Type_Node);
 
@@ -137,24 +137,24 @@ package body XE_Stdcnf is
       --     function F (...: String) return String;
 
       Declare_Type
-        (Type_Name    => Type_Prefix & "host_function",
+        (Type_Name    => Type_Prefix & "host function",
          Type_Kind    => Pre_Type_Function,
-         Comp_Type    => String_Type_Node,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Composite    => True,
+         Comp_Type    => Null_Type,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Host_Function_Type_Node);
 
       Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
-         Component_Name   => ISN_Subpro_Par,
+         Component_Name   => Str_To_Id ("partition_name"),
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
       Declare_Type_Component
         (Type_Node        => Host_Function_Type_Node,
-         Component_Name   => ISN_Return_Par,
+         Component_Name   => Str_To_Id ("return parameter"),
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
@@ -163,22 +163,22 @@ package body XE_Stdcnf is
       --     procedure P
 
       Declare_Type
-        (Type_Name    => Type_Prefix & "main_procedure",
+        (Type_Name    => Type_Prefix & "main procedure",
          Type_Kind    => Pre_Type_Procedure,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Main_Procedure_Type_Node);
 
       --  type type__ada_unit (standard)
 
       Declare_Type
-        (Type_Name    => Type_Prefix & "ada_unit",
+        (Type_Name    => Type_Prefix & "ada unit",
          Type_Kind    => Pre_Type_Ada_Unit,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => False,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Ada_Unit_Type_Node);
 
@@ -187,18 +187,20 @@ package body XE_Stdcnf is
       Declare_Type
         (Type_Name    => Str_To_Id ("partition"),
          Type_Kind    => Pre_Type_Partition,
+         Composite    => True,
          Comp_Type    => Ada_Unit_Type_Node,
-         List_Size    => Unbounded,
-         Is_Frozen    => True,
+         Array_Len    => Infinite,
          Type_Sloc    => Null_Location,
          Type_Node    => Partition_Type_Node);
 
+      --  type type__task_pool (standard)
+
       Declare_Type
-        (Type_Name    => Str_To_Id ("_task_pool_type"),
+        (Type_Name    => Type_Prefix & "task pool",
          Type_Kind    => Pre_Type_Task_Pool,
-         Comp_Type    => Integer_Type_Node,
-         List_Size    => 3,
-         Is_Frozen    => True,
+         Composite    => True,
+         Comp_Type    => Null_Type,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Task_Pool_Type_Node);
 
@@ -223,12 +225,49 @@ package body XE_Stdcnf is
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
+      --  type type__location (standard)
+
+      Declare_Type
+        (Type_Name    => Type_Prefix & "location",
+         Type_Kind    => Pre_Type_Location,
+         Composite    => True,
+         Comp_Type    => Null_Type,
+         Array_Len    => 0,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Location_Type_Node);
+
+      Declare_Type_Component
+        (Type_Node        => Location_Type_Node,
+         Component_Name   => Str_To_Id ("protocol_name"),
+         Comp_Type_Node   => String_Type_Node,
+         Component_Sloc   => Null_Location,
+         Component_Node   => Component_Node);
+
+      Declare_Type_Component
+        (Type_Node        => Location_Type_Node,
+         Component_Name   => Str_To_Id ("protocol_data"),
+         Comp_Type_Node   => String_Type_Node,
+         Component_Sloc   => Null_Location,
+         Component_Node   => Component_Node);
+
+      --  type type__location_list (standard)
+
+      Declare_Type
+        (Type_Name    => Type_Prefix & "location_list",
+         Type_Kind    => Pre_Type_Locations,
+         Composite    => True,
+         Comp_Type    => Location_Type_Node,
+         Array_Len    => Infinite,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Locations_Type_Node);
+
       --  Legal attribute : 'Main
       --  Legal attribute : 'Host
       --  Legal attribute : 'Filter
       --  Legal attribute : 'Storage_Dir
       --  Legal attribute : 'Termination
       --  Legal attribute : 'Command_Line
+      --  Legal attribute : 'Protocol
 
       Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
@@ -295,8 +334,24 @@ package body XE_Stdcnf is
          Attribute_Node   => Attribute_Node);
 
       Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Str_To_Id ("self_location"),
+         Attr_Type_Node   => Locations_Type_Node,
+         Attribute_Kind   => Attribute_Self_Location,
+         Attribute_Sloc   => Null_Location,
+         Attribute_Node   => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Str_To_Id ("self_location"),
+         Attr_Type_Node   => Location_Type_Node,
+         Attribute_Kind   => Attribute_Self_Location,
+         Attribute_Sloc   => Null_Location,
+         Attribute_Node   => Attribute_Node);
+
+      Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
-         Attribute_Name => Str_To_Id ("_leader"),
+         Attribute_Name => Str_To_Id ("is boot partition"),
          Attr_Type_Node => Boolean_Type_Node,
          Attribute_Kind => Attribute_Leader,
          Attribute_Sloc => Null_Location,
@@ -307,9 +362,9 @@ package body XE_Stdcnf is
       Declare_Type
         (Type_Name    => Str_To_Id ("channel"),
          Type_Kind    => Pre_Type_Channel,
+         Composite    => True,
          Comp_Type    => Null_Type,
-         List_Size    => 2,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Channel_Type_Node);
 
@@ -340,9 +395,9 @@ package body XE_Stdcnf is
       Declare_Type
         (Type_Name    => Type_Prefix & "convention",
          Type_Kind    => Pre_Type_Convention,
+         Composite    => False,
          Comp_Type    => Null_Type,
-         List_Size    => 0,
-         Is_Frozen    => True,
+         Array_Len    => 0,
          Type_Sloc    => Null_Location,
          Type_Node    => Convention_Type_Node);
 
@@ -450,22 +505,84 @@ package body XE_Stdcnf is
 
       Declare_Subprogram
         (Pragma_Prefix & "boot_server",
-         Pragma_Boot_Server,
+         Pragma_Boot_Location,
          True,
          Null_Location,
-         Pragma_Boot_Server_Node);
+         Pragma_Boot_Location_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_name"),
          String_Type_Node,
-         Pragma_Boot_Server_Node,
+         Pragma_Boot_Location_Node,
          Null_Location,
          Parameter_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_data"),
          String_Type_Node,
-         Pragma_Boot_Server_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_server ... or
+      --  procedure pragma__boot_server
+      --    (protocol_list : type__location_list);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "boot_server",
+         Pragma_Boot_Location,
+         True,
+         Null_Location,
+         Pragma_Boot_Location_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_list"),
+         Locations_Type_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_location ... or
+      --  procedure pragma__boot_location
+      --    (protocol_name : type__string;
+      --     protocol_data : type__string);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "boot_location",
+         Pragma_Boot_Location,
+         True,
+         Null_Location,
+         Pragma_Boot_Location_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_name"),
+         String_Type_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_data"),
+         String_Type_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_location ... or
+      --  procedure pragma__boot_server
+      --    (protocol_list : type__location_list);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "boot_location",
+         Pragma_Boot_Location,
+         True,
+         Null_Location,
+         Pragma_Boot_Location_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("protocol_list"),
+         Locations_Type_Node,
+         Pragma_Boot_Location_Node,
          Null_Location,
          Parameter_Node);
 

@@ -63,6 +63,8 @@ package XE_Utils is
    Elaboration_Name      : Types.File_Name_Type;
    Partition_Main_File   : Types.File_Name_Type;
    Partition_Main_Name   : Types.File_Name_Type;
+   Protocol_Config_File  : Types.File_Name_Type;
+   Protocol_Config_Name  : Types.File_Name_Type;
 
    A_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
    I_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
@@ -75,6 +77,7 @@ package XE_Utils is
    Fatal_Error         : exception;   --  Operating system error
    Scanning_Error      : exception;   --  Error during scanning
    Parsing_Error       : exception;   --  Error during parsing
+   Matching_Error      : exception;   --  Error on overloading
    Partitioning_Error  : exception;   --  Error during partitionning
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;

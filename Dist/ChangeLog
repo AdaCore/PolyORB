@@ -1,5 +1,62 @@
 1999-12-01  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* xe.adb, xe.ads: Revisit configuration node structure. Revisit
+ 	the way literals and array components are handled. Declare new
+ 	attribute Self_Location that allows to define the locations to use
+ 	to contact a partition. Accept two notations for attribute
+ 	Self_Location (overloading). Define two new predefined types. A
+ 	record type composed of two string components Protocol_Name and
+ 	Protocol_Data to specify a location like (<protocol_name>,
+ 	<protocol_data>). An array type of Location to specify several
+ 	locations. Add a new pragma Boot_Location which is supposed to
+ 	replace Boot_Server which is not really meaningful and not
+ 	consistent with Self_Location attribute. Accept two notations for
+ 	this pragma (same as attribute Self_Location). Define a context
+ 	type to preserve and restore the parsing context before resolving
+ 	overloaded pragmas and attributes.
+
+	* xe_back.adb, xe_backs.ads: New procedure Add_Location to add a
+ 	new location <protocol_name>://<protocol_data> to a partition. New
+ 	function Get_Location to get the first location assigned to a
+ 	partition. The locations of a partition are linked and the first
+ 	location is the root of this list. Define a new type LID_Type for
+ 	Location Index and add a first and last location id in a partition
+ 	record to store the location list. Define a location record and a
+ 	location table. Handle attribute Self_Location and pragma
+ 	Boot_Location. Define a boot location list with
+ 	Def_Boot_Location_First and Def_Boot_Location_First.
+
+	* xe_parse.adb, xe_parse.ads: Fix a typo. Improve
+ 	P_Aggregate_Assignment to parse an array of records. Handle
+ 	overloading of pragmas and attributes. Improve the way we deal
+ 	with unconstrained arrays. Warn user that the configuration body
+ 	is now an obsolete feature.
+
+	* xe_stdcnf.adb: Add an anonymous location record type composed of
+ 	two strings and an anonymous location unconstrained array
+ 	type. Add an attribute Self_Location to partition type and a
+ 	pragma Boot_Location.
+
+	* xe_stubs.adb: New procedure Create_Protocol_Conf_File. This
+ 	procedure creates a s-gaprco.adb file which contains a protocol
+ 	configuration for a given partition. This unit contains an
+ 	initialization procedure which registers all the protocols needed
+ 	by the location attribute plus the replay protocol. By default,
+ 	tcp and replay are registered. Force the naming convention of
+ 	system protocol files to follow gnat style. Compile this new file
+ 	if needed. Modify s-garela to initialize a partition self location
+ 	configuration. Call to Set_Self_Location with a string which can
+ 	be a list of locations (<protocol_name>://<protocol_data>)
+ 	separated by spaces.
+
+	* xe_utils.adb, xe_utils.ads: Declare the protocol configuration
+ 	file name and unit name.
+
+	* xe_build.adb, xe_lead.adb: Changes due to specification changes
+ 	above.
+	
+	* Makefile.in: Rebuild because of configure.in changes.
+	
 	* config.sdefault: Update to new sdefault specification. Fix
  	7201-001.
 

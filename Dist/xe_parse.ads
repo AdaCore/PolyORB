@@ -38,8 +38,6 @@ package XE_Parse is
    Type_Prefix      : Types.Name_Id;
    Pragma_Prefix    : Types.Name_Id;
 
-   Unbounded        : constant Types.Int := Types.Int'Last;
-
    procedure Check_Not_Declared
      (Declaration_Name : in Types.Name_Id;
       Declaration_Sloc : in XE_Scan.Location_Type);
@@ -52,7 +50,8 @@ package XE_Parse is
       Literal_Node : out XE.Variable_Id);
 
    procedure Declare_Procedure_Call
-     (Subprogram_Node : in XE.Subprogram_Id);
+     (Subprogram_Node : in XE.Subprogram_Id;
+      Subprogram_Sloc : in XE_Scan.Location_Type);
    --  Declare a call to a procedure. A statement node is created and
    --  contains an entire copy of the subprogram node.
 
@@ -78,14 +77,15 @@ package XE_Parse is
    procedure Declare_Type
      (Type_Name : in  Types.Name_Id;
       Type_Kind : in  XE.Predefined_Type;
-      List_Size : in  Types.Int;
+      Composite : in  Boolean;
+      Array_Len : in  Types.Int;
       Comp_Type : in  XE.Type_Id;
-      Is_Frozen : in  Boolean;
       Type_Sloc : in  XE_Scan.Location_Type;
       Type_Node : out XE.Type_Id);
-   --  Declare a new type into the configuration context. If List_Size is
-   --  zero, it is non component list type. If List_Size is Unbounded, then
-   --  it is an unbounded array. Otherwise, it is a component list.
+   --  Declare a new type into the configuration context. If type is
+   --  not a composite, then it is a scalar type or a string type. If
+   --  Array_Len is zero, it is a record type. Comp_Type is the type
+   --  of an array component type.
 
    procedure Declare_Type_Attribute
      (Type_Node          : in XE.Type_Id;
@@ -121,25 +121,17 @@ package XE_Parse is
      (Variable_Node      : in  XE.Variable_Id;
       Component_Name     : in  Types.Name_Id;
       Component_Type     : in  XE.Type_Id;
-      Component_Value    : in  XE.Variable_Id;
       Attribute_Kind     : in  XE.Attribute_Type;
       Component_Sloc     : in  XE_Scan.Location_Type;
       Component_Node     : out XE.Component_Id);
-   --  Add a component for a given variable. This component is possibly an
-   --  attribute and is initialized to Component_Value.  The component type
-   --  is given by Component_Type.
-
-   procedure Duplicate_Component
-     (Source : in  XE.Component_Id;
-      Target : out XE.Component_Id);
-   --  Duplicate component, attribute or not, but do not duplicate
-   --  component value.
+   --  Add a component for a given variable. This component is
+   --  possibly an attribute. The component type is Component_Type.
 
    procedure Duplicate_Variable
      (Source, Target : in XE.Variable_Id);
    --  Duplicate all the content except attributes
 
-   procedure Exit_On_Parsing_Error;
+   procedure Exit_On_Error;
    --  Print configuration if verbose_mode and then raise Parsing_Error
 
    procedure Initialize;
@@ -150,7 +142,7 @@ package XE_Parse is
    --  Parse a subprogram call and associate actual parameters to formal
    --  parameters.
 
-   procedure P_Aggregate_Assignement
+   procedure P_Aggregate_Assignment
      (Variable_Node   : in XE.Variable_Id);
    --  Parse an aggregate assignement
 
@@ -249,6 +241,34 @@ package XE_Parse is
    --  Convention is Named, then returns Parameter_Node of name
    --  Formal_Name. If is Positional, returns the next unmatched parameter
    --  and returns also its name in Formal_Name.
+
+   procedure Search_Next_Component
+     (Component_Name : in     Types.Name_Id;
+      Component_Node : in out XE.Component_Id);
+   --  Search for the next occurrence of a component Component_Name in
+   --  a list of components starting from Component_Node. If
+   --  unsuccessful, returns Null_Component.
+
+   procedure Search_Next_Declaration
+     (Declaration_Name : in     Types.Name_Id;
+      Declaration_Node : in out XE.Node_Id);
+   --  Search the next occurence of a declaration Declaration_Name in
+   --  the configuration starting from Declaratio_Node. If unsuccessful,
+   --  returns Null_Node.
+
+   procedure Search_Next_Pragma
+     (Pragma_Name : in     Types.Name_Id;
+      Pragma_Node : in out XE.Subprogram_Id);
+   --  Search for the next occurrence of a pragma Pragma_Name in a
+   --  configuration starting from Subprogram_Node. If unsuccessful,
+   --  returns Null_Subprogram.
+
+   procedure Search_Next_Subprogram
+     (Subprogram_Name : in     Types.Name_Id;
+      Subprogram_Node : in out XE.Subprogram_Id);
+   --  Search for the next occurrence of a subprogram Subprogram_Name
+   --  in a configuration starting from Subprogram_Node. If
+   --  unsuccessful, returns Null_Subprogram.
 
    procedure Search_Pragma
      (Pragma_Name : in  Types.Name_Id;

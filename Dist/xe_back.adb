@@ -38,6 +38,16 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Back is
 
+   subtype Node_Id is XE.Node_Id;
+
+   procedure Add_Location
+     (First : in out LID_Type;
+      Last  : in out LID_Type;
+      Name  : in Name_Id;
+      Data  : in Name_Id);
+   --  Read components name and data from variable and add this pair
+   --  to partition location list.
+
    procedure Build_New_Channel
      (Channel   : in Variable_Id);
    --  Retrieve the two partitions and attributes previously parsed in
@@ -167,6 +177,38 @@ package body XE_Back is
 
    end Add_Conf_Unit;
 
+   ------------------
+   -- Add_Location --
+   ------------------
+
+   procedure Add_Location
+     (First : in out LID_Type;
+      Last  : in out LID_Type;
+      Name  : in Name_Id;
+      Data  : in Name_Id)
+   is
+      LID       : LID_Type;
+   begin
+      --  Add a new element in the location table and fill it with the
+      --  protocol name and the protocol data.
+
+      Locations.Increment_Last;
+      LID := Locations.Last;
+      Locations.Table (LID).Protocol_Name := Name;
+      Locations.Table (LID).Protocol_Data := Data;
+      Locations.Table (LID).Next_Location := Null_LID;
+
+      --  Link this new location to the end of the partition location
+      --  list.
+
+      if First = Null_LID then
+         First := LID;
+      else
+         Locations.Table (Last).Next_Location := LID;
+      end if;
+      Last := LID;
+   end Add_Location;
+
    --------------------
    -- Already_Loaded --
    --------------------
@@ -193,7 +235,7 @@ package body XE_Back is
    ----------
 
    procedure Back is
-      Node : XE.Node_Id;
+      Node : Node_Id;
       HID  : HID_Type;
 
    begin
@@ -227,7 +269,7 @@ package body XE_Back is
       end loop;
 
       if Main_Partition = Null_PID then
-         Write_SLOC (XE.Node_Id (Configuration_Node));
+         Write_SLOC (Node_Id (Configuration_Node));
          Write_Str  ("non-dist. app. main subprogram has not been declared");
          Write_Eol;
          raise Parsing_Error;
@@ -239,21 +281,22 @@ package body XE_Back is
    -----------------------
 
    procedure Build_New_Channel
-     (Channel   : in Variable_Id) is
-      Channel_Name   : Name_Id := Get_Node_Name (XE.Node_Id (Channel));
+     (Channel   : in Variable_Id)
+   is
+      Channel_Name   : Name_Id := Get_Variable_Name (Channel);
       Partition_Name : Name_Id;
-      Partition_Node : XE.Node_Id;
+      Partition_Node : Variable_Id;
       Component_Node : Component_Id;
       Channel_ID     : CID_Type;
    begin
 
       --  Create a new entry in Channels.Table.
 
-      Create_Channel (Channel_Name, XE.Node_Id (Channel), Channel_ID);
+      Create_Channel (Channel_Name, Node_Id (Channel), Channel_ID);
 
       --  Scan Channel_Name partition pair and Channel_Name attributes.
 
-      First_Variable_Component (Variable_Id (Channel), Component_Node);
+      First_Variable_Component (Channel, Component_Node);
       while Component_Node /= Null_Component loop
 
          --  This is a partition (upper or lower).
@@ -263,7 +306,7 @@ package body XE_Back is
 
                --  Append this partition to the pair.
                Partition_Node := Get_Component_Value (Component_Node);
-               Partition_Name := Get_Node_Name (Partition_Node);
+               Partition_Name := Get_Variable_Name (Partition_Node);
                Add_Channel_Partition (Partition_Name, Channel_ID);
 
             end if;
@@ -287,15 +330,14 @@ package body XE_Back is
       Host_Entry : out HID_Type) is
       Host : HID_Type;
       Name : Name_Id;
-      Node : XE.Node_Id;
+      Node : Node_Id;
    begin
 
-      Node := XE.Node_Id (Subprogram);
+      Node := Node_Id (Subprogram);
       Name := Get_Node_Name (Node);
       Host := Get_HID (Name);
 
       if Host = Null_HID then
-         Name := Get_Node_Name (Node);
          Create_Host (Name, Node, Host);
          Hosts.Table (Host).Static      := False;
          Hosts.Table (Host).Import      := Ada_Import;
@@ -311,21 +353,22 @@ package body XE_Back is
    -------------------------
 
    procedure Build_New_Partition
-     (Partition : in Variable_Id) is
-      Partition_Name : Name_Id := Get_Node_Name (XE.Node_Id (Partition));
+     (Partition : in Variable_Id)
+   is
+      Partition_Name : Name_Id := Get_Variable_Name (Partition);
       Ada_Unit_Name  : Name_Id;
-      Ada_Unit_Node  : XE.Node_Id;
+      Ada_Unit_Node  : Variable_Id;
       Component_Node : Component_Id;
       Partition_ID   : PID_Type;
    begin
 
       --  Create a new entry into Partitions.Table.
 
-      Create_Partition (Partition_Name, XE.Node_Id (Partition), Partition_ID);
+      Create_Partition (Partition_Name, Node_Id (Partition), Partition_ID);
 
       --  Scan Partition_Name ada unit list and Partition_Name attributes.
 
-      First_Variable_Component (Variable_Id (Partition), Component_Node);
+      First_Variable_Component (Partition, Component_Node);
       while Component_Node /= Null_Component loop
 
          if Get_Attribute_Kind (Component_Node) = Attribute_Unknown then
@@ -334,7 +377,7 @@ package body XE_Back is
 
             --  Append this unit to the partition list.
             Ada_Unit_Node := Get_Component_Value (Component_Node);
-            Ada_Unit_Name := Get_Node_Name (Ada_Unit_Node);
+            Ada_Unit_Name := Get_Variable_Name (Ada_Unit_Node);
             Add_Conf_Unit (Ada_Unit_Name, Partition_ID);
 
          else
@@ -401,7 +444,7 @@ package body XE_Back is
 
    procedure Create_Channel
      (Name : in  Channel_Name_Type;
-      Node : in  XE.Node_Id;
+      Node : in  Node_Id;
       CID  : out CID_Type) is
       Channel : CID_Type;
    begin
@@ -426,7 +469,7 @@ package body XE_Back is
 
    procedure Create_Host
      (Name : in Host_Name_Type;
-      Node : in XE.Node_Id;
+      Node : in Node_Id;
       HID  : out HID_Type) is
       Host : HID_Type;
    begin
@@ -452,7 +495,7 @@ package body XE_Back is
 
    procedure Create_Partition
      (Name : in Partition_Name_Type;
-      Node : in XE.Node_Id;
+      Node : in Node_Id;
       PID  : out PID_Type) is
       Partition : PID_Type;
    begin
@@ -463,24 +506,33 @@ package body XE_Back is
       Partitions.Increment_Last;
       Partition := Partitions.Last;
       Set_PID (Name, Partition);
-      Partitions.Table (Partition).Name            := Name;
-      Partitions.Table (Partition).Node            := Node;
-      Partitions.Table (Partition).Host            := Null_HID;
-      Partitions.Table (Partition).Storage_Dir     := No_Storage_Dir;
-      Partitions.Table (Partition).Command_Line    := No_Command_Line;
-      Partitions.Table (Partition).Main_Subprogram := No_Name;
-      Partitions.Table (Partition).Filter          := No_Filter_Name;
-      Partitions.Table (Partition).Termination     := Unknown_Termination;
-      Partitions.Table (Partition).Reconnection    := Unknown_Reconnection;
-      Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
-      Partitions.Table (Partition).First_Unit      := Null_CUID;
-      Partitions.Table (Partition).Last_Unit       := Null_CUID;
-      Partitions.Table (Partition).First_Channel   := Null_CID;
-      Partitions.Table (Partition).Last_Channel    := Null_CID;
-      Partitions.Table (Partition).To_Build        := True;
-      Partitions.Table (Partition).Most_Recent     := No_File;
-      Partitions.Table (Partition).Light_PCS       := True;
-      Partitions.Table (Partition).Global_Checksum := 0;
+
+      --  Initialize through an aggregate in order to set of the
+      --  fields.
+
+      Partitions.Table (Partition) :=
+        (Name            => Name,
+         Node            => Node,
+         Host            => Null_HID,
+         Storage_Dir     => No_Storage_Dir,
+         Command_Line    => No_Command_Line,
+         Main_Subprogram => No_Name,
+         Termination     => Unknown_Termination,
+         Reconnection    => Unknown_Reconnection,
+         Task_Pool       => No_Task_Pool,
+         Light_PCS       => True,
+         Filter          => No_Filter_Name,
+         Executable_File => No_Name,
+         Partition_Dir   => No_Name,
+         First_Unit      => Null_CUID,
+         Last_Unit       => Null_CUID,
+         First_Channel   => Null_CID,
+         Last_Channel    => Null_CID,
+         First_Location  => Null_LID,
+         Last_Location   => Null_LID,
+         To_Build        => True,
+         Most_Recent     => No_File,
+         Global_Checksum => 0);
       PID := Partition;
    end Create_Partition;
 
@@ -685,6 +737,19 @@ package body XE_Back is
       return Partitions.Table (P).Light_PCS;
    end Get_Light_PCS;
 
+   ------------------
+   -- Get_Location --
+   ------------------
+
+   function Get_Location        (P : PID_Type) return LID_Type is
+      L : LID_Type := Partitions.Table (P).First_Location;
+   begin
+      if L = Null_LID then
+         L := Partitions.Table (Default_Partition).First_Location;
+      end if;
+      return L;
+   end Get_Location;
+
    -------------------------
    -- Get_Main_Subprogram --
    -------------------------
@@ -855,7 +920,7 @@ package body XE_Back is
       C : CID_Type;
       N : Partition_Name_Type;
    begin
-      N := Get_Node_Name (XE.Node_Id (Partition_Type_Node));
+      N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
       Name_Len := 1;
 
@@ -874,8 +939,7 @@ package body XE_Back is
 
       Channels.Increment_Last;
       C := Channels.Last;
-      Channels.Table (C).Name
-        := Get_Node_Name (XE.Node_Id (Channel_Type_Node));
+      Channels.Table (C).Name := Get_Node_Name (Node_Id (Channel_Type_Node));
 
       Channels.Table (C).Filter             := No_Filter_Name;
       Default_Channel := C;
@@ -945,12 +1009,10 @@ package body XE_Back is
 
    procedure Set_Channel_Attribute
      (Attribute : in Attribute_Id;
-      Channel   : in CID_Type) is
-
-      --  Could be a variable or a subprogram.
-      Attr_Item : XE.Node_Id;
+      Channel   : in CID_Type)
+   is
+      Attr_Item : Variable_Id;
       Attr_Kind : Attribute_Type;
-
    begin
 
       --  Apply attribute to a channel.
@@ -960,7 +1022,7 @@ package body XE_Back is
 
       --  No attribute was really assigned.
 
-      if Attr_Item = Null_Node then
+      if Attr_Item = Null_Variable then
          return;
       end if;
 
@@ -969,11 +1031,8 @@ package body XE_Back is
 
             --  Only string literals are allowed here.
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Channels.Table (Channel).Name);
                Write_Str ("'s filter attribute must be ");
                Write_Str ("a string literal");
@@ -989,7 +1048,7 @@ package body XE_Back is
               Channels.Table (Default_Channel).Filter = No_Filter_Name
             then
                Channels.Table (Default_Channel).Filter
-                 := Get_Node_Name (Attr_Item);
+                 := Get_Variable_Name (Attr_Item);
                To_Lower (Channels.Table (Default_Channel).Filter);
 
             --  Apply to one channel. Check that it has not already
@@ -1000,13 +1059,13 @@ package body XE_Back is
               Channels.Table (Channel).Filter = No_Filter_Name
             then
                Channels.Table (Channel).Filter
-                 := Get_Node_Name (Attr_Item);
+                 := Get_Variable_Name (Attr_Item);
                To_Lower (Channels.Table (Channel).Filter);
 
             --  This operation has already been done !
 
             else
-               Write_SLOC (Attr_Item);
+               Write_SLOC (Node_Id (Attr_Item));
                if Channel = Null_CID then
                   Write_Str ("predefined type Channel");
                else
@@ -1066,25 +1125,26 @@ package body XE_Back is
 
    procedure Set_Partition_Attribute
      (Attribute : in Attribute_Id;
-      Partition : in PID_Type) is
-
-      --  Could be a variable or a subprogram.
-      Attr_Item : XE.Node_Id;
+      Partition : in PID_Type)
+   is
+      Attr_Item : Variable_Id;
       Attr_Kind : Attribute_Type;
-      Item_Type : Type_Id;
+      Attr_Type : Type_Id;
       Comp_Node : Component_Id;
       PID       : PID_Type;
       Ada_Unit  : Name_Id;
 
       Host      : HID_Type;
+      Name      : Name_Id;
+      Data      : Name_Id;
 
       procedure Write_Error_Message
-        (Node : in XE.Node_Id;
+        (Node : in Node_Id;
          Part : in PID_Type;
          Attr : in String);
 
       procedure Write_Error_Message
-        (Node : in XE.Node_Id;
+        (Node : in Node_Id;
          Part : in PID_Type;
          Attr : in String) is
       begin
@@ -1109,7 +1169,7 @@ package body XE_Back is
 
       --  No attribute was really assigned.
 
-      if Attr_Item = Null_Node then
+      if Attr_Item = Null_Variable then
          return;
       end if;
 
@@ -1120,11 +1180,8 @@ package body XE_Back is
 
             --  Only string literals are allowed here.
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s filter attribute must be ");
                Write_Str ("a string literal");
@@ -1139,17 +1196,17 @@ package body XE_Back is
               and then
               Partitions.Table (PID).Filter = No_Filter_Name
             then
-               Partitions.Table (PID).Filter := Get_Node_Name (Attr_Item);
+               Partitions.Table (PID).Filter := Get_Variable_Name (Attr_Item);
                To_Lower (Partitions.Table (PID).Filter);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
 
             elsif PID /= Default_Partition then
-               Write_SLOC (XE.Node_Id (Attribute));
+               Write_SLOC (Node_Id (Attribute));
                Write_Str ("a partition filter attribute applies only to ");
                Write_Eol;
-               Write_SLOC (XE.Node_Id (Attribute));
+               Write_SLOC (Node_Id (Attribute));
                Write_Str ("predefined type Partition");
                Write_Eol;
                raise Parsing_Error;
@@ -1157,18 +1214,15 @@ package body XE_Back is
             --  This operation has already been done !
 
             else
-               Write_Error_Message (XE.Node_Id (Attribute), PID, "filter");
+               Write_Error_Message (Node_Id (Attribute), PID, "filter");
             end if;
 
          when Attribute_Storage_Dir =>
 
             --  Only strings are allowed here.
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s storage_dir attribute must be ");
                Write_Str ("a string litteral");
@@ -1179,29 +1233,29 @@ package body XE_Back is
             --  Check that it has not already been assigned.
 
             if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Partitions.Table (PID).Storage_Dir := Get_Node_Name (Attr_Item);
+               Partitions.Table (PID).Storage_Dir
+                 := Get_Variable_Name (Attr_Item);
             else
                Write_Error_Message
-                 (XE.Node_Id (Attribute), PID, "storage_dir");
+                 (Node_Id (Attribute), PID, "storage_dir");
             end if;
 
          when Attribute_Host =>
 
-            Item_Type := Get_Variable_Type (Variable_Id (Attr_Item));
-            case Get_Type_Kind (Item_Type) is
+            Attr_Type := Get_Variable_Type (Attr_Item);
+            case Get_Type_Kind (Attr_Type) is
                when Pre_Type_String =>
                   Hosts.Increment_Last;
                   Host := Hosts.Last;
-                  Hosts.Table (Host).Name := Get_Node_Name (Attr_Item);
+                  Hosts.Table (Host).Name := Get_Variable_Name (Attr_Item);
                   Hosts.Table (Host).Static := True;
 
                when Pre_Type_Ada_Unit =>
-                  Attr_Item :=
-                    XE.Node_Id (Get_Variable_Value (Variable_Id (Attr_Item)));
+                  Attr_Item := Get_Variable_Value (Attr_Item);
                   Build_New_Host (Subprogram_Id (Attr_Item), Host);
 
                when others =>
-                  Write_SLOC (XE.Node_Id (Attribute));
+                  Write_SLOC (Node_Id (Attribute));
                   Write_Name (Partitions.Table (PID).Name);
                   Write_Str  ("'s host attribute must of string type");
                   Write_Eol;
@@ -1213,7 +1267,7 @@ package body XE_Back is
             if Partitions.Table (PID).Host = Null_HID then
                Partitions.Table (PID).Host := Host;
             else
-               Write_Error_Message (XE.Node_Id (Attribute), PID, "host");
+               Write_Error_Message (Node_Id (Attribute), PID, "host");
             end if;
 
          when Attribute_Main =>
@@ -1222,27 +1276,24 @@ package body XE_Back is
 
             if Partitions.Table (PID).Main_Subprogram = No_Main_Subprogram then
                Partitions.Table (PID).Main_Subprogram
-                 := Get_Node_Name (XE.Node_Id (Attr_Item));
+                 := Get_Variable_Name (Attr_Item);
 
                --  We are not sure at this point that this unit
                --  has been configured on partition.
 
-               Ada_Unit := Get_Node_Name (XE.Node_Id (Attr_Item));
+               Ada_Unit := Get_Variable_Name (Attr_Item);
                Add_Conf_Unit (Ada_Unit, PID);
 
             else
-               Write_Error_Message (XE.Node_Id (Attribute), PID, "main");
+               Write_Error_Message (Node_Id (Attribute), PID, "main");
             end if;
 
          when Attribute_Command_Line =>
 
             --  Only strings are allowed.
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= String_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s command line attribute must be string litteral");
                Write_Eol;
@@ -1253,19 +1304,16 @@ package body XE_Back is
 
             if Partitions.Table (PID).Command_Line = No_Command_Line then
                Partitions.Table (PID).Command_Line
-                 := Get_Node_Name (XE.Node_Id (Attr_Item));
+                 := Get_Variable_Name (Attr_Item);
             else
                Write_Error_Message
-                 (XE.Node_Id (Attribute), PID, "command_Line");
+                 (Node_Id (Attribute), PID, "command_Line");
             end if;
 
          when Attribute_Termination =>
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= Integer_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s termination attribute must be ");
                Write_Str ("of termination type");
@@ -1276,20 +1324,17 @@ package body XE_Back is
             --  Check that it has not already been assigned.
 
             if Partitions.Table (PID).Termination = Unknown_Termination then
-               Set_Termination (PID, Termination_Type
-                                (Get_Scalar_Value (Variable_Id (Attr_Item))));
+               Set_Termination
+                 (PID, Termination_Type (Get_Scalar_Value (Attr_Item)));
             else
                Write_Error_Message
-                 (XE.Node_Id (Attribute), PID, "termination");
+                 (Node_Id (Attribute), PID, "termination");
             end if;
 
          when Attribute_Reconnection =>
 
-            if not Is_Variable (Attr_Item)
-              or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /= Integer_Type_Node
-            then
-               Write_SLOC (XE.Node_Id (Attribute));
+            if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
+               Write_SLOC (Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s reconnection attribute must be ");
                Write_Str ("of reconnection type");
@@ -1300,11 +1345,10 @@ package body XE_Back is
             --  Check that it has not already been assigned.
 
             if Partitions.Table (PID).Reconnection = Unknown_Reconnection then
-               Set_Reconnection (PID, Reconnection_Type
-                                (Get_Scalar_Value (Variable_Id (Attr_Item))));
+               Set_Reconnection (PID, Convert (Get_Scalar_Value (Attr_Item)));
             else
                Write_Error_Message
-                 (XE.Node_Id (Attribute), PID, "reconnection");
+                 (Node_Id (Attribute), PID, "reconnection");
             end if;
 
          when Attribute_Leader =>
@@ -1317,12 +1361,60 @@ package body XE_Back is
 
          when Attribute_Task_Pool =>
 
-            First_Variable_Component (Variable_Id (Attr_Item), Comp_Node);
+            First_Variable_Component (Attr_Item, Comp_Node);
             for B in Partitions.Table (PID).Task_Pool'Range loop
                Partitions.Table (PID).Task_Pool (B)
-                 := Get_Node_Name (Get_Component_Value (Comp_Node));
+                 := Get_Variable_Name (Get_Component_Value (Comp_Node));
                Next_Variable_Component (Comp_Node);
             end loop;
+
+         when Attribute_Self_Location =>
+            if Partitions.Table (PID).First_Location = Null_LID then
+               Attr_Type := Get_Variable_Type (Attr_Item);
+
+               case Get_Type_Kind (Attr_Type) is
+                  when Pre_Type_Location =>
+                     First_Variable_Component (Attr_Item, Comp_Node);
+                     Name
+                       := Get_Variable_Name (Get_Component_Value (Comp_Node));
+                     Next_Variable_Component (Comp_Node);
+                     Data
+                       := Get_Variable_Name (Get_Component_Value (Comp_Node));
+                     Add_Location
+                       (Partitions.Table (PID).First_Location,
+                        Partitions.Table (PID).Last_Location,
+                        Name, Data);
+
+                  when Pre_Type_Locations =>
+                     First_Variable_Component (Attr_Item, Comp_Node);
+                     while Comp_Node /= Null_Component loop
+                        declare
+                           C : Component_Id;
+                           V : Variable_Id;
+                        begin
+                           V := Get_Component_Value (Comp_Node);
+                           First_Variable_Component (V, C);
+                           Name
+                             := Get_Variable_Name (Get_Component_Value (C));
+                           Next_Variable_Component (C);
+                           Data
+                             := Get_Variable_Name (Get_Component_Value (C));
+                           Add_Location
+                             (Partitions.Table (PID).First_Location,
+                              Partitions.Table (PID).Last_Location,
+                              Name, Data);
+                        end;
+                        Next_Variable_Component (Comp_Node);
+                     end loop;
+
+                  when others =>
+                     raise Parsing_Error;
+               end case;
+
+            else
+               Write_Error_Message
+                 (Node_Id (Attribute), PID, "location");
+            end if;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
@@ -1345,14 +1437,17 @@ package body XE_Back is
    --------------------------
 
    procedure Set_Pragma_Statement
-     (Subprogram  : in Subprogram_Id) is
-
+     (Subprogram  : in Subprogram_Id)
+   is
       Pragma_Kind : Pragma_Type;
       Parameter   : Parameter_Id;
       Method      : Import_Method_Type;
       Value       : Variable_Id;
       Host        : HID_Type;
-
+      Name        : Name_Id;
+      Data        : Name_Id;
+      Param_Type  : Type_Id;
+      Param_Kind  : Predefined_Type;
    begin
 
       --  Apply pragma statement.
@@ -1361,13 +1456,12 @@ package body XE_Back is
       First_Subprogram_Parameter (Subprogram, Parameter);
 
       case Pragma_Kind is
-
          when Pragma_Import =>
-            Value := Get_Variable_Value (Variable_Id (Parameter));
+            Value := Get_Parameter_Value (Parameter);
             Method := Convert (Get_Scalar_Value (Value));
             Next_Subprogram_Parameter (Parameter);
-            Value := Get_Variable_Value (Variable_Id (Parameter));
-            Value := Get_Variable_Value (Variable_Id (Value));
+            Value := Get_Parameter_Value (Parameter);
+            Value := Get_Variable_Value (Value);
 
             --  We are not sure that this function has been already
             --  declared as an host function.
@@ -1378,33 +1472,81 @@ package body XE_Back is
 
             Hosts.Table (Host).Import := Method;
             Next_Subprogram_Parameter (Parameter);
-            Value := Get_Variable_Value (Variable_Id (Parameter));
-            Hosts.Table (Host).External := Get_Node_Name (XE.Node_Id (Value));
+            Value := Get_Parameter_Value (Parameter);
+            Hosts.Table (Host).External := Get_Variable_Name (Value);
 
          when Pragma_Starter =>
-            Value := Get_Variable_Value (Variable_Id (Parameter));
+            Value := Get_Parameter_Value (Parameter);
             Default_Starter := Convert (Get_Scalar_Value (Value));
 
-         when Pragma_Boot_Server =>
-            Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Protocol_Name := Get_Node_Name (XE.Node_Id (Value));
-            Next_Subprogram_Parameter (Parameter);
-            Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Protocol_Data := Get_Node_Name (XE.Node_Id (Value));
+         when Pragma_Boot_Location =>
+            if Def_Boot_Location_First /= Null_LID then
+               Write_SLOC (Node_Id (Subprogram));
+               Write_Str  ("multiple boot location definition not allowed");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            Param_Type := Get_Parameter_Type (Parameter);
+            Param_Kind := Get_Type_Kind (Param_Type);
+            case Param_Kind is
+               when Pre_Type_String =>
+                  Value := Get_Parameter_Value (Parameter);
+                  Name  := Get_Variable_Name (Value);
+                  Next_Subprogram_Parameter (Parameter);
+                  Value := Get_Parameter_Value (Parameter);
+                  Data  := Get_Variable_Name (Value);
+                  Add_Location
+                    (Def_Boot_Location_First,
+                     Def_Boot_Location_Last,
+                     Name,
+                     Data);
+
+               when Pre_Type_Locations =>
+                  declare
+                     V1 : Variable_Id;
+                     C1 : Component_Id;
+                  begin
+                     V1 := Get_Parameter_Value (Parameter);
+                     First_Variable_Component (V1, C1);
+                     while C1 /= Null_Component loop
+                        declare
+                           V2 : Variable_Id;
+                           C2 : Component_Id;
+                        begin
+                           V2 := Get_Component_Value (C1);
+                           First_Variable_Component (V2, C2);
+                           Name
+                             := Get_Variable_Name (Get_Component_Value (C2));
+                           Next_Variable_Component (C2);
+                           Data
+                             := Get_Variable_Name (Get_Component_Value (C2));
+                           Add_Location
+                             (Def_Boot_Location_First,
+                              Def_Boot_Location_Last,
+                              Name, Data);
+                        end;
+                        Next_Variable_Component (C1);
+                     end loop;
+                  end;
+
+               when others =>
+                  raise Program_Error;
+            end case;
 
          when Pragma_Version =>
-            Value := Get_Variable_Value (Variable_Id (Parameter));
+            Value := Get_Parameter_Value (Parameter);
             Default_Version_Check := (Get_Scalar_Value (Value) = Int (Btrue));
 
          when Pragma_Reg_Filter =>
-            Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Registration_Filter := Get_Node_Name (XE.Node_Id (Value));
+            Value := Get_Parameter_Value (Parameter);
+            Default_Registration_Filter := Get_Variable_Name (Value);
 
          when Pragma_Priority =>
             raise Program_Error;
 
          when Pragma_Unknown =>
-            null;
+            raise Program_Error;
 
       end case;
 
@@ -1439,13 +1581,13 @@ package body XE_Back is
       Component_Node : Component_Id;
       Pre_Type_Id    : Predefined_Type;
    begin
-
-      if Get_Component_List_Size (Pre_Type) /= 0 then
+      if Is_Type_Composite (Pre_Type) then
          Pre_Type_Id := Get_Type_Kind (Pre_Type);
          First_Type_Component (Pre_Type, Component_Node);
          while Component_Node /= Null_Component loop
             if Get_Attribute_Kind (Component_Node) /= Attribute_Unknown
-              and then Is_Component_Initialized (Component_Node) then
+              and then Is_Component_Initialized (Component_Node)
+            then
                case Pre_Type_Id is
                   when Pre_Type_Partition =>
                      Set_Partition_Attribute
@@ -1462,7 +1604,6 @@ package body XE_Back is
             Next_Type_Component (Component_Node);
          end loop;
       end if;
-
    end Set_Type_Attribute;
 
    -----------------
@@ -1508,12 +1649,29 @@ package body XE_Back is
       end case;
       Write_Eol;
 
-      if Default_Protocol_Name /= No_Name then
+      if Def_Boot_Location_First /= Null_LID then
          Write_Str  ("   Protocol    : ");
-         Write_Name (Default_Protocol_Name);
-         Write_Str  ("://");
-         Write_Name (Default_Protocol_Data);
-         Write_Eol;
+         declare
+            LID : LID_Type := Def_Boot_Location_First;
+            One : Boolean  := (Locations.Table (LID).Next_Location = Null_LID);
+         begin
+            if One then
+               Write_Name (Locations.Table (LID).Protocol_Name);
+               Write_Str  ("://");
+               Write_Name (Locations.Table (LID).Protocol_Data);
+
+            else
+               while LID /= Null_LID loop
+                  Write_Eol;
+                  Write_Str ("             - ");
+                  Write_Name (Locations.Table (LID).Protocol_Name);
+                  Write_Str  ("://");
+                  Write_Name (Locations.Table (LID).Protocol_Data);
+                  LID := Locations.Table (LID).Next_Location;
+               end loop;
+            end if;
+            Write_Eol;
+         end;
       end if;
       Write_Eol;
 
@@ -1657,6 +1815,25 @@ package body XE_Back is
                null;
          end case;
          Write_Eol;
+      end if;
+
+      if Get_Location (PID) /= Null_LID then
+         Write_Str  ("   Locations   : ");
+         Write_Eol;
+         declare
+            L : LID_Type := Get_Location (PID);
+         begin
+            while L /= Null_LID loop
+               Write_Str  ("             - ");
+               Write_Name (Locations.Table (L).Protocol_Name);
+               if Locations.Table (L).Protocol_Data /= No_Name then
+                  Write_Str ("://");
+                  Write_Name (Locations.Table (L).Protocol_Data);
+               end if;
+               Write_Eol;
+               L := Locations.Table (L).Next_Location;
+            end loop;
+         end;
       end if;
 
       if Partitions.Table (PID).First_Unit /= Null_CUID then

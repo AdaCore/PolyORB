@@ -35,11 +35,16 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Parse is
 
-   Indent : constant String := "   ";
-   Seed   : String (1 .. 3) := "AAA";
+   subtype Node_Id is XE.Node_Id;
 
-   function Tmp_Name (P : String := "XXX") return Name_Id;
-   --  Return a name with P as prefix and a suffix based on the location.
+   Indent : constant String := "   ";
+
+   --  Set Fatal_Error to False to allow overloading. In this case, if
+   --  a litteral does not match the expected type, no error message
+   --  is printed, an exception is raised and handled in order to try
+   --  another matching.
+
+   Fatal_Error    : Boolean := True;
 
    procedure Write_Conflict_Error
      (SLOC  : in Location_Type;
@@ -70,8 +75,9 @@ package body XE_Parse is
 
    procedure Check_Not_Declared
      (Declaration_Name : in Name_Id;
-      Declaration_Sloc : in Location_Type) is
-      Node : XE.Node_Id;
+      Declaration_Sloc : in Location_Type)
+   is
+      Node : Node_Id;
    begin
       Search_Declaration (Declaration_Name, Node);
       if Node /= Null_Node then
@@ -87,7 +93,8 @@ package body XE_Parse is
      (Literal_Name : in  Name_Id;
       Literal_Type : in  Type_Id;
       Literal_Sloc : in  Location_Type;
-      Literal_Node : out Variable_Id) is
+      Literal_Node : out Variable_Id)
+   is
       L : Variable_Id;
    begin
 
@@ -96,9 +103,8 @@ package body XE_Parse is
 
       Create_Variable    (L, Literal_Name);
       Set_Variable_Type  (L, Literal_Type);
-      Set_Node_Location  (XE.Node_Id (L), Literal_Sloc);
+      Set_Node_Location  (Node_Id (L), Literal_Sloc);
       Literal_Node := L;
-
    end Declare_Literal;
 
    ----------------------------
@@ -106,28 +112,34 @@ package body XE_Parse is
    ----------------------------
 
    procedure Declare_Procedure_Call
-     (Subprogram_Node : in Subprogram_Id) is
+     (Subprogram_Node : in Subprogram_Id;
+      Subprogram_Sloc : in Location_Type)
+   is
       New_Statement  : Statement_Id;
       Old_Subprogram : Subprogram_Id;
       New_Subprogram : Subprogram_Id;
       Old_Parameter  : Parameter_Id;
       New_Parameter  : Parameter_Id;
    begin
-
       Old_Subprogram := Subprogram_Node;
 
-      --  Parser naming convention: ISN_Proc_Call indicates a procedure call.
+      --  Parser naming convention: Procedure_Name_Id indicates a
+      --  procedure call.
 
-      Create_Statement (New_Statement, ISN_Proc_Call);
+      Create_Statement (New_Statement, Procedure_Name_Id);
+      Set_Node_Location
+        (Node_Id (New_Statement), Subprogram_Sloc);
 
-      --  Make a entire copy of subprogram node.
+      --  Make a copy of subprogram node.
 
       Create_Subprogram
-        (New_Subprogram, Get_Node_Name (XE.Node_Id (Old_Subprogram)));
+        (New_Subprogram, Get_Node_Name (Node_Id (Old_Subprogram)));
       Subprogram_Is_A_Procedure
         (New_Subprogram, Is_Subprogram_A_Procedure (Old_Subprogram));
       Set_Pragma_Kind
         (New_Subprogram, Get_Pragma_Kind (Old_Subprogram));
+      Set_Node_Location
+        (Node_Id (New_Subprogram), Subprogram_Sloc);
 
       --  Make a copy of parameters.
 
@@ -135,18 +147,19 @@ package body XE_Parse is
       while Old_Parameter /= Null_Parameter loop
 
          Declare_Subprogram_Parameter
-           (Get_Node_Name (XE.Node_Id (Old_Parameter)),
+           (Get_Node_Name (Node_Id (Old_Parameter)),
             Get_Parameter_Type (Old_Parameter),
             New_Subprogram,
             Null_Location,
             New_Parameter);
 
-         --  Assign the formal parameters as they were during the parameter
-         --  matching phase.
+         --  Assign the (actual) parameters of subprogram execution
+         --  to the value of the formal parameters computed during
+         --  the parameter matching phase.
 
-         Duplicate_Variable
-           (Get_Variable_Value (Variable_Id (Old_Parameter)),
-            Variable_Id (New_Parameter));
+         Set_Variable_Value
+           (Variable_Id (New_Parameter),
+            Get_Variable_Value (Variable_Id (Old_Parameter)));
 
          Parameter_Is_Initialized  (New_Parameter, True);
          Next_Subprogram_Parameter (Old_Parameter);
@@ -156,8 +169,8 @@ package body XE_Parse is
       Set_Subprogram_Call (New_Statement, New_Subprogram);
 
       Add_Configuration_Declaration
-        (Configuration_Node, XE.Node_Id (New_Statement));
-
+        (Configuration_Node,
+         Node_Id (New_Statement));
    end Declare_Procedure_Call;
 
    ------------------------
@@ -169,7 +182,8 @@ package body XE_Parse is
       Pragma_Kind      : in  Pragma_Type;
       Is_A_Procedure   : in  Boolean;
       Subprogram_Sloc  : in  Location_Type;
-      Subprogram_Node  : out Subprogram_Id) is
+      Subprogram_Node  : out Subprogram_Id)
+   is
       Node : Subprogram_Id;
       Unit : Variable_Id;
    begin
@@ -202,21 +216,20 @@ package body XE_Parse is
       end if;
 
       Create_Subprogram             (Node, Subprogram_Name);
-      Set_Node_Location             (XE.Node_Id (Node), Subprogram_Sloc);
+      Set_Node_Location             (Node_Id (Node), Subprogram_Sloc);
       Subprogram_Is_A_Procedure     (Node, Is_A_Procedure);
       Set_Pragma_Kind               (Node, Pragma_Kind);
       Subprogram_Node := Node;
 
       if Pragma_Kind = Pragma_Unknown then
 
-         --  If it is an ada unit (variable) then it is already linked into
-         --  the configuration declaration list.
+         --  If it is an ada unit (variable) then it is already linked
+         --  into the configuration declaration list.
          Set_Variable_Value      (Unit, Variable_Id (Node));
 
       else
-         Add_Configuration_Declaration (Configuration_Node, XE.Node_Id (Node));
+         Add_Configuration_Declaration (Configuration_Node, Node_Id (Node));
       end if;
-
    end Declare_Subprogram;
 
    ----------------------------------
@@ -228,16 +241,15 @@ package body XE_Parse is
       Para_Type_Node  : in  Type_Id;
       Subprogram_Node : in  Subprogram_Id;
       Parameter_Sloc  : in  Location_Type;
-      Parameter_Node  : out Parameter_Id) is
+      Parameter_Node  : out Parameter_Id)
+   is
       Node : Parameter_Id;
    begin
-
       Create_Parameter           (Node, Parameter_Name);
       Set_Parameter_Type         (Node, Para_Type_Node);
       Add_Subprogram_Parameter   (Subprogram_Node, Node);
-      Set_Node_Location          (XE.Node_Id (Node), Parameter_Sloc);
+      Set_Node_Location          (Node_Id (Node), Parameter_Sloc);
       Parameter_Node := Node;
-
    end Declare_Subprogram_Parameter;
 
    ------------------
@@ -247,29 +259,35 @@ package body XE_Parse is
    procedure Declare_Type
      (Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
-      List_Size : in  Int;
+      Composite : in  Boolean;
+      Array_Len : in  Int;
       Comp_Type : in  Type_Id;
-      Is_Frozen : in  Boolean;
       Type_Sloc : in  Location_Type;
-      Type_Node : out Type_Id) is
+      Type_Node : out Type_Id)
+   is
       T : Type_Id;
    begin
+      pragma Assert
+        (not Composite
+         or else Array_Len = 0
+         or else Comp_Type /= Null_Type);
 
       Check_Not_Declared (Type_Name, Get_Token_Location);
       Create_Type (T, Type_Name);
-      if Comp_Type /= Null_Type then
-         Set_Array_Component_Type (T, Comp_Type);
+
+      Type_Is_Composite (T, Composite);
+      if Composite then
+         Set_Array_Length (T, Array_Len);
+         if Array_Len /= 0 then
+            Set_Array_Component_Type (T, Comp_Type);
+         end if;
       end if;
-      if 0 /= List_Size then
-         Set_Component_List_Size (T, List_Size);
-      end if;
-      Type_Is_Frozen      (T, Is_Frozen);
+
       Set_Type_Kind       (T, Type_Kind);
-      Set_Node_Location   (XE.Node_Id (T), Type_Sloc);
+      Set_Node_Location   (Node_Id (T), Type_Sloc);
       Type_Node := T;
 
-      Add_Configuration_Declaration  (Configuration_Node, XE.Node_Id (T));
-
+      Add_Configuration_Declaration  (Configuration_Node, Node_Id (T));
    end Declare_Type;
 
    ----------------------------
@@ -282,19 +300,18 @@ package body XE_Parse is
       Attr_Type_Node     : in Type_Id;
       Attribute_Kind     : in Attribute_Type;
       Attribute_Sloc     : in Location_Type;
-      Attribute_Node     : out Attribute_Id) is
+      Attribute_Node     : out Attribute_Id)
+   is
       A : Attribute_Id;
    begin
-
       Declare_Type_Component
         (Type_Node,
          Attribute_Prefix & Attribute_Name,
          Attr_Type_Node,
          Attribute_Sloc,
          Component_Id (A));
-      Set_Attribute_Kind        (Component_Id (A), Attribute_Kind);
+      Set_Attribute_Kind (Component_Id (A), Attribute_Kind);
       Attribute_Node := A;
-
    end Declare_Type_Attribute;
 
    ----------------------------
@@ -306,17 +323,17 @@ package body XE_Parse is
       Component_Name     : in Name_Id;
       Comp_Type_Node     : in Type_Id;
       Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id) is
+      Component_Node     : out Component_Id)
+   is
       C : Component_Id;
    begin
-
       Create_Component          (C, Component_Name);
       Set_Component_Type        (C, Comp_Type_Node);
       Set_Attribute_Kind        (C, Attribute_Unknown);
+      Component_Is_Initialized  (C, False);
       Add_Type_Component        (Type_Node, C);
-      Set_Node_Location         (XE.Node_Id (C), Component_Sloc);
+      Set_Node_Location         (Node_Id (C), Component_Sloc);
       Component_Node            := C;
-
    end Declare_Type_Component;
 
    ----------------------
@@ -327,40 +344,39 @@ package body XE_Parse is
      (Variable_Name : in  Name_Id;
       Variable_Type : in  Type_Id;
       Variable_Sloc : in  Location_Type;
-      Variable_Node : out Variable_Id) is
-      V : Variable_Id;
-      C : Component_Id;
-      X : Component_Id;
-      S : Int;
+      Variable_Node : out Variable_Id)
+   is
+      TV : Variable_Id;
+      SC : Component_Id;
+      TC : Component_Id;
    begin
-
       Check_Not_Declared (Variable_Name, Variable_Sloc);
+      Create_Variable    (TV, Variable_Name);
+      Set_Variable_Type  (TV, Variable_Type);
 
-      Create_Variable         (V, Variable_Name);
-      Set_Variable_Type       (V, Variable_Type);
-
-      --  This type is a structure, duplicate the structure (but not
+      --  This type is a record, allocate the record (but not
       --  attributes).
 
-      S := Get_Component_List_Size (Variable_Type);
-      if S /= 0 and then S /= Unbounded then
-         First_Type_Component (Variable_Type, C);
-         while C /= Null_Component loop
-            if Get_Attribute_Kind (C) = Attribute_Unknown then
-               Duplicate_Component (C, X);
-               Add_Variable_Component (V, X);
-               S := S - 1;
+      if Is_Type_Composite (Variable_Type)
+        and then Get_Array_Length (Variable_Type) = 0
+      then
+         First_Type_Component (Variable_Type, SC);
+         while SC /= Null_Component loop
+            if Get_Attribute_Kind (SC) = Attribute_Unknown then
+               Declare_Variable_Component
+                 (TV, Get_Node_Name (Node_Id (SC)),
+                  Get_Component_Type (SC),
+                  Attribute_Unknown,
+                  Null_Location, TC);
             end if;
-            Next_Type_Component (C);
+            Next_Type_Component (SC);
          end loop;
-         pragma Assert (S = 0);
       end if;
 
-      Set_Node_Location  (XE.Node_Id (V), Variable_Sloc);
-      Variable_Node := V;
+      Set_Node_Location  (Node_Id (TV), Variable_Sloc);
+      Variable_Node := TV;
 
-      Add_Configuration_Declaration (Configuration_Node, XE.Node_Id (V));
-
+      Add_Configuration_Declaration (Configuration_Node, Node_Id (TV));
    end Declare_Variable;
 
    --------------------------------
@@ -371,93 +387,98 @@ package body XE_Parse is
      (Variable_Node      : in Variable_Id;
       Component_Name     : in Name_Id;
       Component_Type     : in Type_Id;
-      Component_Value    : in Variable_Id;
       Attribute_Kind     : in Attribute_Type;
       Component_Sloc     : in Location_Type;
-      Component_Node     : out Component_Id) is
-      C : Component_Id;
+      Component_Node     : out Component_Id)
+   is
+      VC : Component_Id;
+      VT : Type_Id;
    begin
+      Create_Component         (VC, Component_Name);
+      Set_Component_Type       (VC, Component_Type);
+      Set_Attribute_Kind       (VC, Attribute_Kind);
+      Component_Is_Initialized (VC, False);
+      Add_Variable_Component   (Variable_Node, VC);
+      Set_Node_Location        (Node_Id (VC), Component_Sloc);
 
-      Create_Component          (C, Component_Name);
-      Set_Component_Type        (C, Component_Type);
-      Set_Attribute_Kind        (C, Attribute_Kind);
-      Set_Component_Value       (C, XE.Node_Id (Component_Value));
-      Add_Variable_Component    (Variable_Node, C);
-      Set_Node_Location         (XE.Node_Id (C), Component_Sloc);
-      Component_Node            := C;
+      --  If we add a new component to an array, then increment the
+      --  number of components.
 
+      VT := Get_Variable_Type (Variable_Node);
+      if Attribute_Kind = Attribute_Unknown
+        and then Get_Array_Length (VT) /= 0
+      then
+         Set_Array_Length
+           (Variable_Node,
+            Get_Array_Length (Variable_Node) + 1);
+      end if;
+      Component_Node           := VC;
    end Declare_Variable_Component;
-
-   -------------------------
-   -- Duplicate_Component --
-   -------------------------
-
-   procedure Duplicate_Component
-     (Source : in Component_Id;
-      Target : out Component_Id) is
-      C : Component_Id;
-      N : Name_Id;
-      T : Type_Id;
-      A : Attribute_Type;
-   begin
-
-      N := Get_Node_Name (XE.Node_Id (Source));
-      T := Get_Component_Type (Source);
-      A := Get_Attribute_Kind (Source);
-      Create_Component   (C, N);
-      Set_Component_Type (C, T);
-      Set_Attribute_Kind (C, A);
-      Target := C;
-
-   end Duplicate_Component;
 
    ------------------------
    -- Duplicate_Variable --
    ------------------------
 
    procedure Duplicate_Variable
-     (Source, Target : in Variable_Id) is
-      C : Component_Id;
-      T : Type_Id;
-      X : Component_Id;
-      V : Variable_Id;
+     (Source, Target : in Variable_Id)
+   is
+      SC : Component_Id;
+      VT : Type_Id;
+      TC : Component_Id;
    begin
+      VT := Get_Variable_Type (Source);
+      pragma Assert (Get_Variable_Type (Target) = VT);
 
-      T := Get_Variable_Type (Source);
-      pragma Assert (Get_Variable_Type (Target) = T);
+      --  For a non-composite type, just set the variable value if
+      --  needed.
 
-      if Get_Array_Component_Type (T) /= Null_Type then
-
-         --  This is a list assignment.
-         First_Variable_Component (Source, C);
-         while C /= Null_Component loop
-            if Get_Attribute_Kind (C) = Attribute_Unknown then
-               Duplicate_Component (C, X);
-               Add_Variable_Component (Target, X);
-               V := Variable_Id (Get_Component_Value (C));
-               Set_Component_Value (X, XE.Node_Id (V));
-            end if;
-            Next_Variable_Component (C);
-         end loop;
+      if not Is_Type_Composite (VT) then
+         if Is_Variable_Initialized (Source) then
+            Set_Variable_Value (Target, Get_Variable_Value (Source));
+         end if;
 
       else
 
-         --  Assign a single element.
-         Set_Variable_Value      (Target, Source);
+         --  If it is an array, then copy the number of components for
+         --  the target.
 
+         if Get_Array_Length (VT) /= 0 then
+            Set_Array_Length (Target, Get_Array_Length (Source));
+         end if;
+
+         --  Allocate and initialize only non_attribute components;
+
+         First_Variable_Component (Source, SC);
+         while SC /= Null_Component loop
+            if Get_Attribute_Kind (SC) = Attribute_Unknown then
+               Declare_Variable_Component
+                 (Target,
+                  Get_Node_Name (Node_Id (SC)),
+                  Get_Component_Type (SC),
+                  Attribute_Unknown,
+                  Null_Location, TC);
+               if Is_Component_Initialized (SC) then
+                  Set_Component_Value (TC, Get_Component_Value (SC));
+               end if;
+            end if;
+            Next_Variable_Component (SC);
+         end loop;
       end if;
-
    end Duplicate_Variable;
 
-   ---------------------------
-   -- Exit_On_Parsing_Error --
-   ---------------------------
+   -------------------
+   -- Exit_On_Error --
+   -------------------
 
-   procedure Exit_On_Parsing_Error is
+   procedure Exit_On_Error is
    begin
-      Print;
-      raise Parsing_Error;
-   end Exit_On_Parsing_Error;
+      if Fatal_Error then
+         Print;
+         raise Parsing_Error;
+      else
+         raise Matching_Error;
+      end if;
+   end Exit_On_Error;
 
    ----------------
    -- Initialize --
@@ -465,20 +486,13 @@ package body XE_Parse is
 
    procedure Initialize is
    begin
+      Attribute_Prefix  := Str_To_Id ("attribute ");
+      Pragma_Prefix     := Str_To_Id ("pragma ");
+      Type_Prefix       := Str_To_Id ("type ");
 
-      Attribute_Prefix := Str_To_Id ("attr__");
-      Pragma_Prefix    := Str_To_Id ("pragma__");
-      Type_Prefix      := Str_To_Id ("type__");
-
-      ISN_List_Comp  := Str_To_Id ("_list_component");
-      ISN_Array_Comp := Str_To_Id ("array_component");
-      ISN_Proc_Main  := Str_To_Id ("_main_procedure");
-      ISN_Appl_Main  := Str_To_Id ("_appl_main_proc");
-      ISN_Return_Par := Str_To_Id ("_returned_param");
-      ISN_Subpro_Par := Str_To_Id ("_sub_prog_param");
-      ISN_Proc_Call  := Str_To_Id ("_procedure_call");
-      ISN_Proc_Call  := Str_To_Id ("_procedure_unit");
-
+      Function_Name_Id  := Str_To_Id ("function");
+      Procedure_Name_Id := Str_To_Id ("procedure");
+      Return_Name_Id    := Str_To_Id ("return");
    end Initialize;
 
    ------------------------------
@@ -486,7 +500,8 @@ package body XE_Parse is
    ------------------------------
 
    procedure Match_Actual_With_Formal
-     (Subprogram_Node : in Subprogram_Id) is
+     (Subprogram_Node : in Subprogram_Id)
+   is
       Convention     : Convention_Type;
       Actual_Name    : Name_Id;
       Formal_Name    : Name_Id;
@@ -516,20 +531,23 @@ package body XE_Parse is
          return;
       end if;
 
-      T_Left_Paren;
+      --  Look forward to find the convention.
 
-      --  What is the the convention used here.
-
-      Take_Token ((Tok_Identifier, Tok_String_Literal));
+      Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
       Location := Get_Token_Location;
-      Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
-      if Token = Tok_Arrow then
-         Convention := Named;
-      else
-         Convention := Positional;
+
+      Convention := Positional;
+      if Token = Tok_Identifier then
+         Next_Token;
+         if Token = Tok_Arrow then
+            Convention := Named;
+         end if;
       end if;
       Set_Token_Location (Location);
 
+      --  Do the real matching once the convention is known.
+
+      Formal_Name := No_Name;
       loop
          Location := Get_Token_Location;
 
@@ -555,7 +573,7 @@ package body XE_Parse is
             Write_Error_Message (Location, "formal parameter mismatch");
          end if;
 
-         Take_Token ((Tok_Identifier, Tok_String_Literal));
+         Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
          Location    := Get_Token_Location;
          Actual_Name := Token_Name;
 
@@ -565,101 +583,113 @@ package body XE_Parse is
                Write_Error_Message (Location, "actual parameter mismatch");
             end if;
 
-            --  Create a dummy declaration that contains the literal.
-
+            --  Create a declaration that contains the literal.
             Declare_Literal
               (Actual_Name,
                String_Type_Node,
                Location,
                Actual_Node);
 
-         else
+         elsif Token = Tok_Identifier then
 
             --  Does this actual parameter really exist ?
 
             Search_Actual_Parameter (Actual_Name, Formal_Type, Actual_Node);
-
             if Actual_Node = Null_Variable then
                Write_Error_Message (Location, "actual parameter mismatch");
             end if;
 
+         else
+
+            --  This is a literal aggregate.
+
+            Declare_Variable
+              (New_Variable_Name,
+               Formal_Type,
+               Location,
+               Actual_Node);
+
+            --  Reset the location to read the first left parenthesis.
+
+            Set_Token_Location (Location);
+            P_Aggregate_Assignment (Actual_Node);
          end if;
 
          --  Mark the matching parameter and set its value to actual
          --  parameter value.
 
-         Duplicate_Variable (Actual_Node, Variable_Id (Formal_Node));
-
-         --  There is one less parameter to match.
-
-         Parameter_Is_Initialized (Formal_Node, True);
+         Set_Variable_Value (Variable_Id (Formal_Node), Actual_Node);
          N_Parameter := N_Parameter - 1;
 
-         Take_Token ((Tok_Comma, Tok_Right_Paren));
+         exit when N_Parameter = 0;
 
-         if Token = Tok_Right_Paren then
-            exit when N_Parameter = 0;
+         Next_Token;
+         if Token /= Tok_Comma then
             Write_Error_Message (Get_Token_Location, "missing parameters");
-         elsif Token /= Tok_Right_Paren and then N_Parameter = 0 then
-            Write_Error_Message (Get_Token_Location, "too many parameters");
          end if;
-
       end loop;
-
-      T_Semicolon;
-
    end Match_Actual_With_Formal;
 
    -----------------------------
-   -- P_Aggregate_Assignement --
+   -- P_Aggregate_Assignment --
    -----------------------------
 
-   procedure P_Aggregate_Assignement
-     (Variable_Node : in Variable_Id) is
+   procedure P_Aggregate_Assignment
+     (Variable_Node : in Variable_Id)
+   is
       Expression_Name   : Name_Id;
       Expression_Node   : Variable_Id;
       Expression_Sloc   : Location_Type;
       Variable_Type     : Type_Id;
-      List_Element_Node : Component_Id;
-      List_Element_Type : Type_Id;
-      Comp_List_Size    : Int;
+      Component_Node    : Component_Id;
+      Component_Type    : Type_Id;
+      Array_Length      : Int;
    begin
 
       --  Only aggregates are allowed at this point.
-      Variable_Type  := Get_Variable_Type (Variable_Node);
-      Comp_List_Size := Get_Component_List_Size (Variable_Type);
-      T_Left_Paren;
-
-      if Comp_List_Size = 0 then
+      Variable_Type := Get_Variable_Type (Variable_Node);
+      if not Is_Type_Composite (Variable_Type) then
          Write_Error_Message
            (Get_Token_Location, "only aggregate are allowed");
+         return;
       end if;
 
-      if Comp_List_Size = Unbounded then
-         List_Element_Type := Get_Array_Component_Type (Variable_Type);
+      Array_Length  := Get_Array_Length  (Variable_Type);
+      T_Left_Paren;
+
+      if Array_Length /= 0 then
+         Component_Type := Get_Array_Component_Type (Variable_Type);
       end if;
 
       loop
+         if Array_Length = 0 then
+            Search_Uninitialized_Component
+              (Variable_Node, Null_Type, Component_Node);
+            if Component_Node = Null_Component then
+               Write_Error_Message
+                 (Get_Token_Location,
+                  "too many components for record aggregate");
+            end if;
 
-         Take_Token ((Tok_Identifier, Tok_Right_Paren, Tok_Numeric_Literal));
+            Component_Type := Get_Component_Type (Component_Node);
+         end if;
+
+         if Is_Type_Composite (Component_Type) then
+            Take_Token ((Tok_Identifier,
+                         Tok_Left_Paren,
+                         Tok_Right_Paren,
+                         Tok_String_Literal,
+                         Tok_Numeric_Literal));
+         else
+            Take_Token ((Tok_Identifier,
+                         Tok_Right_Paren,
+                         Tok_String_Literal,
+                         Tok_Numeric_Literal));
+         end if;
 
          exit when Token = Tok_Right_Paren;
 
          Expression_Sloc := Get_Token_Location;
-
-         if Comp_List_Size /= Unbounded then
-
-            Search_Uninitialized_Component
-              (Variable_Node, Null_Type, List_Element_Node);
-            if List_Element_Node = Null_Component then
-               Write_Error_Message
-                 (Expression_Sloc, "too many components for record aggregate");
-            end if;
-
-            List_Element_Type := Get_Component_Type (List_Element_Node);
-         end if;
-
-         --  Tok_String_Literal
 
          if Token = Tok_Identifier then
 
@@ -669,10 +699,27 @@ package body XE_Parse is
             Expression_Name := Token_Name;
 
             Search_Variable (Expression_Name, Expression_Node);
+            if Expression_Node = Null_Variable then
+               Declare_Variable
+                 (Expression_Name,
+                  Component_Type,
+                  Expression_Sloc,
+                  Expression_Node);
+            end if;
+
+         --  Tok_String_Literal.
+
+         elsif Token = Tok_String_Literal then
+
+            Declare_Literal
+              (Token_Name,
+               String_Type_Node,
+               Expression_Sloc,
+               Expression_Node);
 
          --  Tok_Numeric_Literal.
 
-         else
+         elsif Token = Tok_Numeric_Literal then
 
             Declare_Literal
               (Token_Name,
@@ -680,69 +727,72 @@ package body XE_Parse is
                Expression_Sloc,
                Expression_Node);
 
-         end if;
-
-         --  Has this variable already been declared.
-
-         if Expression_Node /= Null_Variable then
-
-            if Get_Variable_Type (Expression_Node) /= List_Element_Type then
-               Write_Conflict_Error (Expression_Sloc, Expression_Name);
-            end if;
-
-         elsif Is_Type_Frozen (List_Element_Type) then
-            Write_Declaration_Error (Expression_Sloc, Expression_Name);
-
          else
-
-            --  Increase the enumeration type.
-
             Declare_Variable
-              (Expression_Name,
-               List_Element_Type,
+              (New_Variable_Name,
+               Component_Type,
                Expression_Sloc,
                Expression_Node);
 
+            --  Reset the location to read the first left parenthesis.
+
+            Set_Token_Location (Expression_Sloc);
+            P_Aggregate_Assignment (Expression_Node);
          end if;
 
-         if Get_Component_List_Size (Variable_Type) = Unbounded then
+         --  Do this variable have the appropriate type.
 
-            --  As a naming convention, we use the keyword Component_Unit
-            --  as a anonymous component name.
+         if Get_Variable_Type (Expression_Node) /= Component_Type then
+            Write_Conflict_Error (Expression_Sloc, Expression_Name);
+         end if;
+
+         --  ???
+
+         --  Variable_Is_Initialized (Expression_Node, True);
+
+         if Array_Length /= 0 then
+
+            --  We declare a component with an anonymous name.
 
             Declare_Variable_Component
               (Variable_Node,
-               ISN_Array_Comp,
-               List_Element_Type,
-               Expression_Node,
+               New_Component_Name (Variable_Node),
+               Component_Type,
                Attribute_Unknown,
                Expression_Sloc,
-               List_Element_Node);
-
-         else
-            Set_Component_Value
-              (List_Element_Node, XE.Node_Id (Expression_Node));
+               Component_Node);
          end if;
+
+         Set_Component_Value (Component_Node, Expression_Node);
 
          Take_Token ((Tok_Comma, Tok_Right_Paren));
          exit when Token = Tok_Right_Paren;
 
       end loop;
-
-   end P_Aggregate_Assignement;
+      Variable_Is_Initialized (Variable_Node, True);
+   end P_Aggregate_Assignment;
 
    --------------------------
    -- P_Configuration_Body --
    --------------------------
 
-   procedure P_Configuration_Body is
+   procedure P_Configuration_Body
+   is
       Name : Name_Id;
    begin
+      if not Quiet_Mode then
+         Write_Location (Get_Token_Location);
+         Write_Str ("a configuration body is an obsolete feature");
+         Write_Eol;
+         Write_Location (Get_Token_Location);
+         Write_Str ("this code should be moved in the declarative part");
+         Write_Eol;
+      end if;
       loop
          Take_Token ((Tok_Identifier, Tok_Null, Tok_End));
          if Token = Tok_Identifier then
 
-            --  This is an assignement. Includes a list of ada units
+            --  This is an assignment. Includes a list of ada units
             --  into a partition.
 
             declare
@@ -757,17 +807,16 @@ package body XE_Parse is
 
                --  Read the ada units aggregate.
 
-               P_Aggregate_Assignement (Variable_Node);
+               P_Aggregate_Assignment (Variable_Node);
                T_Semicolon;
 
             end;
-         elsif Token = Tok_End  then
 
+         elsif Token = Tok_End  then
             P_Configuration_End;
             exit;
 
          end if;
-
       end loop;
 
    end P_Configuration_Body;
@@ -776,13 +825,14 @@ package body XE_Parse is
    -- P_Configuration_Declaration --
    ---------------------------------
 
-   procedure P_Configuration_Declaration is
+   procedure P_Configuration_Declaration
+   is
       Conf_Name : Name_Id;
       Conf_Sloc : Location_Type;
       Conf_Node : Configuration_Id;
    begin
 
-      --  Use "standard" configuration to start.
+      --  Use "private" configuration to start.
 
       T_Configuration;
       T_Identifier;
@@ -794,19 +844,18 @@ package body XE_Parse is
       --  We have the real configuration node. Let's use this one.
 
       Create_Configuration (Conf_Node, Conf_Name);
-      Set_Node_Location    (XE.Node_Id (Conf_Node), Conf_Sloc);
+      Set_Node_Location    (Node_Id (Conf_Node), Conf_Sloc);
 
-      --  Append the "standard" root configuration to the new one.
+      --  Append the "private" configuration to the new one.
 
       Add_Configuration_Declaration
-        (Conf_Node, XE.Node_Id (Configuration_Node));
+        (Conf_Node, Node_Id (Configuration_Node));
 
       --  Now, the new configuration is the root configuration.
 
       Configuration_Node := Conf_Node;
 
       T_Is;
-
    end P_Configuration_Declaration;
 
    -------------------------
@@ -821,19 +870,19 @@ package body XE_Parse is
       --  configuration name.
 
       if Token = Tok_Identifier then
-         if Get_Node_Name (XE.Node_Id (Configuration_Node)) /= Token_Name then
+         if Get_Node_Name (Node_Id (Configuration_Node)) /= Token_Name then
             Write_Error_Message (Get_Token_Location, "name mismatch");
          end if;
          T_Semicolon;
       end if;
-
    end P_Configuration_End;
 
    ---------------------------
    -- P_Full_Ada_Identifier --
    ---------------------------
 
-   procedure P_Full_Ada_Identifier is
+   procedure P_Full_Ada_Identifier
+   is
       Identifier : Name_Id := Token_Name;
       Location   : Location_Type;
    begin
@@ -859,14 +908,14 @@ package body XE_Parse is
             exit;
          end if;
       end loop;
-
    end P_Full_Ada_Identifier;
 
    ----------------------------
    -- P_Function_Declaration --
    ----------------------------
 
-   procedure P_Function_Declaration is
+   procedure P_Function_Declaration
+   is
       Function_Name  : Name_Id;
       Function_Sloc  : Location_Type;
       Function_Node  : Subprogram_Id;
@@ -949,27 +998,30 @@ package body XE_Parse is
       end if;
 
       --  Declare returned parameter type. As a naming convention
-      --  we use keyword Returned_Param as the anonymous parameter.
+      --  we use keyword Return_Name_Id as the anonymous parameter.
 
       Declare_Subprogram_Parameter
-        (ISN_Return_Par,
+        (Return_Name_Id,
          Para_Type_Node,
          Function_Node,
-         Null_Location,
+         Para_Type_Sloc,
          Parameter_Node);
 
       T_Semicolon;
-
    end P_Function_Declaration;
 
    --------------
    -- P_Pragma --
    --------------
 
-   procedure P_Pragma is
+   procedure P_Pragma
+   is
       Pragma_Kind : Pragma_Type;
       Pragma_Node : Subprogram_Id;
       Pragma_Name : Name_Id;
+      Pragma_Sloc : Location_Type;
+      Invoke_Sloc : Location_Type;
+      Context     : Context_Type;
    begin
 
       --  Token PRAGMA has already been parsed.
@@ -978,31 +1030,79 @@ package body XE_Parse is
 
       --  Known pragmas are prefixed by Pragma_Prefix.
 
-      Pragma_Name := Pragma_Prefix & Token_Name;
+      Pragma_Name := Token_Name;
+      Pragma_Sloc := Get_Token_Location;
 
-      --  Is this pragma a legal pragma.
+      --  Is this pragma a known pragma.
 
-      Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
+      Search_Pragma (Pragma_Prefix & Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Node = Null_Subprogram then
          Write_Error_Message
-           (Get_Token_Location, "unrecognized pragma """, Token_Name, """");
+           (Get_Token_Location, "unrecognized pragma """, Pragma_Name, """");
       end if;
 
-      --  Parse a pragma as a procedure call.
+      declare
+         Next_Node : Subprogram_Id := Pragma_Node;
+      begin
+         Search_Next_Pragma (Pragma_Prefix & Pragma_Name, Next_Node);
+         Fatal_Error := (Next_Node = Null_Subprogram);
+      end;
 
-      Match_Actual_With_Formal (Pragma_Node);
+      --  Save the context. Try to find a matching pragma (some
+      --  pragmas are overloaded). If the attempt fails, then reset
+      --  the context and try another pragma. If this pragma is not
+      --  overloaded, then a failure is a fatal error and errors have
+      --  to be printed.
+
+      loop
+         begin
+            Save_Context (Configuration_Node, Context);
+            T_Left_Paren;
+            Invoke_Sloc := Get_Token_Location;
+
+            --  Parse a pragma as a procedure call.
+
+            Match_Actual_With_Formal (Pragma_Node);
+
+            --  There is a match. Any error is now fatal.
+            Fatal_Error := True;
+
+            Next_Token;
+            if Token /= Tok_Right_Paren then
+               Write_Error_Message (Get_Token_Location, "too many parameters");
+            end if;
+            exit;
+
+         exception when Matching_Error =>
+
+            --  Reset context and location
+            Jump_Context (Context);
+            Set_Token_Location (Invoke_Sloc);
+
+            --  Find another overloaded pragma.
+            Search_Next_Pragma (Pragma_Prefix & Pragma_Name, Pragma_Node);
+            if Pragma_Node = Null_Subprogram then
+               Fatal_Error := True;
+               Write_Error_Message
+                 (Invoke_Sloc, "invalid """, Pragma_Name, """ parameter list");
+            end if;
+         end;
+      end loop;
+
+      Fatal_Error := True;
 
       --  When successful, declare the procedure call node.
 
-      Declare_Procedure_Call (Pragma_Node);
-
+      Declare_Procedure_Call (Pragma_Node, Pragma_Sloc);
+      T_Semicolon;
    end P_Pragma;
 
    -----------------------------
    -- P_Procedure_Declaration --
    -----------------------------
 
-   procedure P_Procedure_Declaration is
+   procedure P_Procedure_Declaration
+   is
       Ada_Unit_Node  : Variable_Id;
       Constant_True  : Variable_Id;
       Partition_Name : Name_Id;
@@ -1064,39 +1164,50 @@ package body XE_Parse is
 
          Search_Variable (Procedure_Name, Ada_Unit_Node);
 
+         if Ada_Unit_Node = Null_Variable then
+            Declare_Variable
+              (Procedure_Name,
+               Ada_Unit_Type_Node,
+               Procedure_Sloc,
+               Ada_Unit_Node);
+         end if;
+
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
             Component_Name     => Attribute_Prefix & "main",
             Component_Type     => Ada_Unit_Type_Node,
-            Component_Value    => Ada_Unit_Node,
             Attribute_Kind     => Attribute_Main,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
+         Set_Component_Value
+           (Component_Node,
+            Variable_Id (Ada_Unit_Node));
 
          Search_Variable (Str_To_Id ("true"), Constant_True);
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
-            Component_Name     => Attribute_Prefix & "_leader",
+            Component_Name     => Attribute_Prefix & "is boot partition",
             Component_Type     => Boolean_Type_Node,
-            Component_Value    => Constant_True,
             Attribute_Kind     => Attribute_Leader,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
+         Set_Component_Value
+           (Component_Node,
+            Variable_Id (Constant_True));
 
          T_Semicolon;
-
       end if;
-
    end P_Procedure_Declaration;
 
    -----------------------------
    -- P_Representation_Clause --
    -----------------------------
 
-   procedure P_Representation_Clause is
+   procedure P_Representation_Clause
+   is
       Direct_Name : Name_Id;
-      Direct_Node : XE.Node_Id;
+      Direct_Node : Node_Id;
       Direct_Type : Type_Id;
       Attr_Name   : Name_Id;
       Attr_Sloc   : Location_Type;
@@ -1107,6 +1218,7 @@ package body XE_Parse is
       Expr_Type   : Type_Id;
       Expr_Sloc   : Location_Type;
       Is_A_Type   : Boolean;
+      Context     : Context_Type;
    begin
 
       --  Token FOR has already been parsed.
@@ -1154,102 +1266,151 @@ package body XE_Parse is
       Search_Component
         (Attribute_Prefix & Attr_Name, Direct_Type, Attr_Node);
 
-      --  Check that this attribute is a legal attribute for the given type.
+      --  Check that this attribute is a legal attribute for the
+      --  given type.
 
-      if Attr_Node = Null_Component or else
-        Get_Attribute_Kind (Attr_Node) = Attribute_Unknown then
+      if Attr_Node = Null_Component then
          Write_Error_Message
-           (Get_Token_Location, "unrecognized attribute """, Attr_Name, """");
+           (Attr_Sloc, "unrecognized attribute """, Attr_Name, """");
       end if;
 
-      Attr_Name := Attribute_Prefix & Attr_Name;
+      --  Attributes may be overloaded. If it is the case, then we
+      --  will have to perform several attempts. In this case, an
+      --  error is not a fatal error.
+
+      declare
+         Next_Node : Component_Id := Attr_Node;
+      begin
+         Search_Next_Component
+           (Attribute_Prefix & Attr_Name,
+            Next_Node);
+         Fatal_Error := (Next_Node = Null_Component);
+      end;
 
       T_Use;
-      Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
-      Expr_Name := Token_Name;
-      Expr_Sloc := Get_Token_Location;
 
-      Attr_Type := Get_Component_Type (Attr_Node);
+      --  Save the context. Try to find a matching attribute (some
+      --  attributes are overloaded). If the attempt fails, then reset
+      --  the context and try another aattribute. If this attribute is
+      --  not overloaded, then a failure is a fatal error and errors
+      --  have to be printed.
 
-      --  If string literal, declare an anonymous variable.
-
-      if Token = Tok_String_Literal then
-         Declare_Literal
-           (Expr_Name, String_Type_Node, Expr_Sloc, Variable_Id (Expr_Node));
-
-      --  If aggregate literal, declare an anonymous variable.
-
-      elsif Token = Tok_Left_Paren then
-
-         if Get_Component_List_Size (Attr_Type) = 0 then
-            Write_Type_Error (Expr_Sloc, Expr_Name);
-         end if;
-
-         Expr_Name := Tmp_Name;
-         Declare_Variable
-           (Expr_Name, Attr_Type, Expr_Sloc, Variable_Id (Expr_Node));
-         Set_Token_Location (Expr_Sloc);
-         P_Aggregate_Assignement (Expr_Node);
-
-      --  Otherwise, retrieve the declaration.
-
-      else
-         Search_Variable (Expr_Name, Expr_Node);
-         if Expr_Node = Null_Variable then
-            Write_Declaration_Error (Expr_Sloc, Expr_Name);
-         end if;
-      end if;
-
-      --  Check that the expression has the correct type
-      Expr_Type := Get_Variable_Type (Expr_Node);
-
-      --  Special case for functions and procedures
-      if Expr_Type = Ada_Unit_Type_Node and then
-        Is_Variable_Initialized (Expr_Node) then
-         declare
-            S : Subprogram_Id;
-            P : Parameter_Id;
+      loop
          begin
-            S := Subprogram_Id (Get_Variable_Value (Expr_Node));
-            if Is_Subprogram_A_Procedure (S) then
+            Save_Context (Configuration_Node, Context);
+            Take_Token ((Tok_Identifier, Tok_String_Literal, Tok_Left_Paren));
+            Expr_Name := Token_Name;
+            Expr_Sloc := Get_Token_Location;
+            Attr_Type := Get_Component_Type (Attr_Node);
 
-               --  ??? Very ugly kludge
-               Expr_Type := Main_Procedure_Type_Node;
+            --  If string literal, declare an anonymous variable.
+
+            if Token = Tok_String_Literal then
+               Declare_Literal
+                 (Expr_Name,
+                  String_Type_Node,
+                  Expr_Sloc,
+                  Variable_Id (Expr_Node));
+
+            --  If aggregate literal, declare an anonymous variable.
+
+            elsif Token = Tok_Left_Paren then
+               if not Is_Type_Composite (Attr_Type) then
+                  Write_Type_Error (Expr_Sloc, Expr_Name);
+               end if;
+
+               Declare_Variable
+                 (New_Variable_Name,
+                  Attr_Type,
+                  Expr_Sloc,
+                  Variable_Id (Expr_Node));
+
+               --  Reset the location to read the first left parenthesis.
+
+               Set_Token_Location (Expr_Sloc);
+               P_Aggregate_Assignment (Expr_Node);
+
+            --  Otherwise, retrieve the declaration.
 
             else
-               Search_Function_Returned_Parameter (S, P);
-               Expr_Type := Get_Parameter_Type (P);
+               Search_Variable (Expr_Name, Expr_Node);
+               if Expr_Node = Null_Variable then
+                  Write_Declaration_Error (Expr_Sloc, Expr_Name);
+               end if;
+            end if;
+
+            --  Check that the expression has the correct type
+            Expr_Type := Get_Variable_Type (Expr_Node);
+
+            --  Special case for functions and procedures
+            if Expr_Type = Ada_Unit_Type_Node
+              and then Is_Variable_Initialized (Expr_Node)
+            then
+               declare
+                  S : Subprogram_Id;
+                  P : Parameter_Id;
+               begin
+                  S := Subprogram_Id (Get_Variable_Value (Expr_Node));
+                  if Is_Subprogram_A_Procedure (S) then
+
+                     --  ??? Very ugly kludge
+                     Expr_Type := Main_Procedure_Type_Node;
+
+                  else
+                     Search_Function_Returned_Parameter (S, P);
+                     Expr_Type := Get_Parameter_Type (P);
+                  end if;
+               end;
+            end if;
+
+            --  Is this the expected type ?
+            if Expr_Type /= Attr_Type then
+               Write_Type_Error
+                 (Get_Token_Location,
+                  Get_Node_Name (Node_Id (Expr_Type)));
+            end if;
+
+            if Is_A_Type then
+               --  When the attribute applies to a type, the attribute
+               --  component does already exist.
+               Set_Component_Value (Attr_Node, Expr_Node);
+
+            else
+               --  When the attribute applies to a variable, the
+               --  attribute has to be created.
+               Declare_Variable_Component
+                 (Variable_Id (Direct_Node),
+                  Attribute_Prefix & Attr_Name,
+                  Attr_Type,
+                  Get_Attribute_Kind (Attr_Node),
+                  Attr_Sloc,
+                  Attr_Node);
+               Set_Component_Value (Attr_Node, Expr_Node);
+            end if;
+            exit;
+
+         exception when Matching_Error =>
+
+            --  Reset context and location
+            Jump_Context (Context);
+            Set_Token_Location (Expr_Sloc);
+
+
+            --  Find another overloaded attribute.
+            Search_Next_Component
+              (Attribute_Prefix & Attr_Name,
+               Attr_Node);
+            if Attr_Node = Null_Component then
+               Fatal_Error := True;
+               Write_Error_Message
+                 (Expr_Sloc, "expression type does not match """,
+                  Attr_Name, """ attribute type");
             end if;
          end;
-      end if;
+      end loop;
 
-      --  At the end, is this the expected type ?
-      if Expr_Type /= Attr_Type then
-         Write_Type_Error
-           (Get_Token_Location, Get_Node_Name (XE.Node_Id (Expr_Type)));
-      end if;
-
-      if Is_A_Type then
-
-         --  In case of a type, the attribute component does already exist.
-         Set_Component_Value (Attr_Node, XE.Node_Id (Expr_Node));
-
-      else
-
-         --  In case of a variable, the attribute has to be created.
-         Declare_Variable_Component
-           (Variable_Id (Direct_Node),
-            Attr_Name,
-            Attr_Type,
-            Expr_Node,
-            Get_Attribute_Kind (Attr_Node),
-            Attr_Sloc,
-            Attr_Node);
-
-      end if;
-
+      Fatal_Error := True;
       T_Semicolon;
-
    end P_Representation_Clause;
 
    ---------------------------------
@@ -1258,7 +1419,8 @@ package body XE_Parse is
 
    procedure P_Variable_List_Declaration
      (Previous_Name : in Name_Id;
-      Previous_Sloc : in Location_Type) is
+      Previous_Sloc : in Location_Type)
+   is
       Previous_Node : Variable_Id;
       Variable_Name : Name_Id;
       Variable_Node : Variable_Id;
@@ -1268,7 +1430,6 @@ package body XE_Parse is
       Var_Type_Kind : Predefined_Type;
       Var_Type_Sloc : Location_Type;
    begin
-
       Take_Token ((Tok_Comma, Tok_Colon));
 
       --  Is it a list of identifiers ?
@@ -1289,7 +1450,7 @@ package body XE_Parse is
             Previous_Node);
 
          --  Call recursively P_Variable_List_Declaration until the
-         --  end of list. Variable_Node is a node to the next
+         --  end of list. Variable_Node is a node for the next
          --  declared variable.
 
          P_Variable_List_Declaration (Variable_Name, Variable_Sloc);
@@ -1330,12 +1491,11 @@ package body XE_Parse is
          --  Is there an initialization ?
 
          if Token = Tok_Colon_Equal then
-            P_Aggregate_Assignement (Previous_Node);
+            P_Aggregate_Assignment (Previous_Node);
             T_Semicolon;
          end if;
 
       end if;
-
    end P_Variable_List_Declaration;
 
    -----------
@@ -1344,7 +1504,6 @@ package body XE_Parse is
 
    procedure Parse is
    begin
-
       Load_File (Configuration_File);
 
       P_Configuration_Declaration;
@@ -1392,15 +1551,17 @@ package body XE_Parse is
       T_EOF;
 
       Print;
-
    end Parse;
 
    -----------
    -- Print --
    -----------
 
-   procedure Print is
-      Node : XE.Node_Id;
+   procedure Print
+   is
+      Node : Node_Id;
+      X, Y : Int;
+      C    : Character;
    begin
       if not Debug_Mode then
          return;
@@ -1413,30 +1574,44 @@ package body XE_Parse is
       Write_Eol;
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
-         Write_Str  ("Name    : ");
-         Write_Name (Get_Node_Name (Node));
-         Write_Eol;
-         Write_Str  ("Node    : ");
          if Is_Variable (Node) then
-            Write_Str ("variable");
-            Write_Eol;
-            Print_Variable (Variable_Id (Node), 0);
+            C := 'V';
+            Write_Str ("variable <");
          elsif Is_Type (Node) then
-            Write_Str ("type");
-            Write_Eol;
-            Print_Type (Type_Id (Node), 0);
+            C := 'T';
+            Write_Str ("type <");
          elsif Is_Subprogram (Node) then
-            Write_Str ("subprogram");
-            Write_Eol;
-            Print_Subprogram (Subprogram_Id (Node), 0);
+            C := 'S';
+            Write_Str ("subprogram <");
          elsif Is_Statement (Node) then
-            Write_Str ("statement");
-            Write_Eol;
-            Print_Statement (Statement_Id (Node), 0);
+            C := 'I';
+            Write_Str ("invoke <");
          elsif Is_Configuration (Node) then
-            Write_Str ("configuration");
-            Write_Eol;
+            C := 'C';
+            Write_Str ("configuration <");
          end if;
+         Write_Name (Get_Node_Name (Node));
+         Write_Str  ("> (");
+         Write_Int  (Int (Node));
+         Write_Str  (" at ");
+         Get_Node_SLOC (Node, X, Y);
+         Write_Int  (X);
+         Write_Str  (":");
+         Write_Int  (Y);
+         Write_Str  (")");
+         Write_Eol;
+         case C is
+            when 'V' =>
+               Print_Variable (Variable_Id (Node), 1);
+            when 'T' =>
+               Print_Type (Type_Id (Node), 1);
+            when 'S' =>
+               Print_Subprogram (Subprogram_Id (Node), 1);
+            when 'I' =>
+               Print_Statement (Statement_Id (Node), 1);
+            when others =>
+               null;
+         end case;
          Write_Eol;
          Next_Configuration_Declaration (Node);
       end loop;
@@ -1451,23 +1626,22 @@ package body XE_Parse is
 
    procedure Print_Component
      (Node : in Component_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       T : Type_Id;
-      S : Int;
+      N : Variable_Id;
    begin
       T := Get_Component_Type (Node);
-      S := Get_Component_List_Size (T);
-      Write_Indent (Many, "Name    : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (Node)));
-      Write_Eol;
-      Write_Indent (Many, "Type    : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (T)));
-      Write_Eol;
-      if S = 0 and then Is_Component_Initialized (Node) then
-         Write_Indent (Many, "Data    : ");
-         Write_Name (Get_Node_Name (XE.Node_Id (Get_Component_Value (Node))));
-         Write_Eol;
+      Write_Indent (Many, "");
+      Write_Name (Get_Component_Name (Node));
+      Write_Str  (" : ");
+      Write_Name (Get_Node_Name (Node_Id (T)));
+      if Is_Component_Initialized (Node) then
+         N := Get_Component_Value (Node);
+         Write_Str  (" := ");
+         Write_Name (Get_Variable_Name (N));
       end if;
+      Write_Eol;
    end Print_Component;
 
    ---------------------
@@ -1476,25 +1650,22 @@ package body XE_Parse is
 
    procedure Print_Parameter
      (Node : in Parameter_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       T : Type_Id;
-      S : Int;
       V : Variable_Id;
    begin
       T := Get_Parameter_Type (Node);
-      S := Get_Component_List_Size (T);
-      Write_Indent (Many, "Name    : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (Node)));
-      Write_Eol;
-      Write_Indent (Many, "Type    : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (T)));
-      Write_Eol;
-      if S = 0 and then Is_Variable_Initialized (Variable_Id (Node)) then
-         V := Get_Variable_Value (Variable_Id (Node));
-         Write_Indent (Many + 1, "Data    : ");
-         Write_Name   (Get_Node_Name (XE.Node_Id (V)));
-         Write_Eol;
+      Write_Indent (Many, "");
+      Write_Name (Get_Variable_Name (Variable_Id (Node)));
+      Write_Str  (" : ");
+      Write_Name (Get_Node_Name (Node_Id (T)));
+      if Is_Variable_Initialized (Variable_Id (Node)) then
+         V := Get_Parameter_Value (Node);
+         Write_Str  (" := ");
+         Write_Name (Get_Variable_Name (V));
       end if;
+      Write_Eol;
    end Print_Parameter;
 
    ---------------------
@@ -1503,15 +1674,15 @@ package body XE_Parse is
 
    procedure Print_Statement
      (Node : in Statement_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       S : Subprogram_Id;
    begin
       S := Get_Subprogram_Call (Node);
-      Write_Indent (Many, "Invoke  : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (S)));
+      Write_Indent (Many, "");
+      Write_Name (Get_Node_Name (Node_Id (S)));
       Write_Eol;
-      Write_Eol;
-      Print_Subprogram (S, Many + 1);
+      Print_Subprogram (S, Many);
    end Print_Statement;
 
    ----------------------
@@ -1520,17 +1691,13 @@ package body XE_Parse is
 
    procedure Print_Subprogram
      (Node : in Subprogram_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       P : Parameter_Id;
    begin
-      Write_Indent (Many, "Pragma  : ");
-      Write_Int    (Int (Get_Pragma_Kind (Node)));
-      Write_Eol;
-      Write_Eol;
       First_Subprogram_Parameter (Node, P);
       while P /= Null_Parameter loop
-         Print_Parameter (P, Many + 2);
-         Write_Eol;
+         Print_Parameter (P, Many + 1);
          Next_Subprogram_Parameter (P);
       end loop;
    end Print_Subprogram;
@@ -1541,52 +1708,44 @@ package body XE_Parse is
 
    procedure Print_Type
      (Node : in Type_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       C : Component_Id;
       S : Int;
       T : Type_Id;
    begin
-      S := Get_Component_List_Size (Node);
-      if S = 0 then
+      if not Is_Type_Composite (Node) then
          return;
       end if;
-      if S = Unbounded then
-         Write_Indent (Many, "Size    : +oo");
-         Write_Eol;
+      S := Get_Array_Length (Node);
+      if S /= 0 then
+         Write_Indent (Many, "array (");
+         if S = Infinite then
+            Write_Str ("<>");
+         else
+            Write_Str ("0 .. ");
+            Write_Int (S - 1);
+         end if;
          T := Get_Array_Component_Type (Node);
-         Write_Indent (Many, "Item    : ");
-         Write_Name   (Get_Node_Name (XE.Node_Id (T)));
+         Write_Str    (") of ");
+         Write_Name   (Get_Node_Name (Node_Id (T)));
          Write_Eol;
-         First_Type_Component (Node, C);
-         while C /= Null_Component loop
-            if Get_Attribute_Kind (C) /= Attribute_Unknown then
-               Print_Component (C, Many + 2);
-               Write_Eol;
-            end if;
-            Next_Type_Component (C);
-         end loop;
       else
-         Write_Indent (Many, "Size    : ");
-         Write_Int  (S);
-         Write_Eol;
-         Write_Eol;
          First_Type_Component (Node, C);
          while C /= Null_Component loop
             if Get_Attribute_Kind (C) = Attribute_Unknown then
-               Print_Component (C, Many + 2);
-               Write_Eol;
-            end if;
-            Next_Type_Component (C);
-         end loop;
-         First_Type_Component (Node, C);
-         while C /= Null_Component loop
-            if Get_Attribute_Kind (C) /= Attribute_Unknown then
-               Print_Component (C, Many + 2);
-               Write_Eol;
+               Print_Component (C, Many + 1);
             end if;
             Next_Type_Component (C);
          end loop;
       end if;
+      First_Type_Component (Node, C);
+      while C /= Null_Component loop
+         if Get_Attribute_Kind (C) /= Attribute_Unknown then
+            Print_Component (C, Many + 1);
+         end if;
+         Next_Type_Component (C);
+      end loop;
    end Print_Type;
 
    --------------------
@@ -1595,52 +1754,49 @@ package body XE_Parse is
 
    procedure Print_Variable
      (Node : in Variable_Id;
-      Many : in Int) is
+      Many : in Int)
+   is
       T : Type_Id;
       S : Int;
       C : Component_Id;
-      V : Variable_Id;
    begin
       T := Get_Variable_Type (Node);
-      S := Get_Component_List_Size (T);
-      Write_Indent (Many, "Type    : ");
-      Write_Name (Get_Node_Name (XE.Node_Id (T)));
-      Write_Eol;
-      if S = 0 then
+      Write_Indent (Many, " : ");
+      Write_Name (Get_Node_Name (Node_Id (T)));
+      if not Is_Type_Composite (T) then
          if Is_Variable_Initialized (Node) then
-            if Get_Variable_Value (Node) /= Null_Variable then
-               Write_Indent (Many, "Data    : ");
-               V := Get_Variable_Value (Node);
-               Write_Name (Get_Node_Name (XE.Node_Id (V)));
-               Write_Eol;
+            Write_Str (" := ");
+            if T = String_Type_Node then
+               Write_Name (Get_Variable_Name (Node));
             else
-               Write_Indent (Many, "Value   : ");
-               Write_Int (Get_Scalar_Value (Node));
-               Write_Eol;
+               Write_Int  (Get_Scalar_Value (Node));
             end if;
          end if;
+         Write_Eol;
       else
-         if S = Unbounded then
-            Write_Indent (Many, "Size    : +oo");
-            Write_Eol;
+         S := Get_Array_Length (T);
+         if S > 0 then
+            Write_Str  (" (0 .. ");
+            Write_Int  (Get_Array_Length (Node) - 1);
+            Write_Str  (") of ");
             T := Get_Array_Component_Type (T);
-            Write_Indent (Many, "Item    : ");
-            Write_Name   (Get_Node_Name (XE.Node_Id (T)));
-            Write_Eol;
-         else
-            Write_Indent (Many, "Size    : ");
-            Write_Int  (S);
-            Write_Eol;
+            Write_Name (Get_Node_Name (Node_Id (T)));
          end if;
          Write_Eol;
          First_Variable_Component (Node, C);
-         if C /= Null_Component then
-            while C /= Null_Component loop
-               Print_Component (C, Many + 2);
-               Write_Eol;
-               Next_Type_Component (C);
-            end loop;
-         end if;
+         while C /= Null_Component loop
+            if Get_Attribute_Kind (C) = Attribute_Unknown then
+               Print_Component (C, Many + 1);
+            end if;
+            Next_Type_Component (C);
+         end loop;
+         First_Variable_Component (Node, C);
+         while C /= Null_Component loop
+            if Get_Attribute_Kind (C) /= Attribute_Unknown then
+               Print_Component (C, Many + 1);
+            end if;
+            Next_Type_Component (C);
+         end loop;
       end if;
    end Print_Variable;
 
@@ -1651,25 +1807,25 @@ package body XE_Parse is
    procedure Search_Actual_Parameter
      (Actual_Name : in  Name_Id;
       Actual_Type : in  Type_Id;
-      Actual_Node : out Variable_Id) is
-      Actual : XE.Node_Id;
+      Actual_Node : out Variable_Id)
+   is
+      Actual : Node_Id;
    begin
 
       --  Scan the configuration to find variable Actual_Name.
 
       First_Configuration_Declaration (Configuration_Node, Actual);
       while Actual /= Null_Node loop
-         if Is_Variable       (Actual) and then
-            Get_Node_Name     (Actual) = Actual_Name and then
-            Get_Variable_Type (Variable_Id (Actual)) = Actual_Type then
+         if Is_Variable       (Actual)
+           and then Get_Node_Name     (Actual) = Actual_Name
+           and then Get_Variable_Type (Variable_Id (Actual)) = Actual_Type
+         then
             Actual_Node := Variable_Id (Actual);
             return;
          end if;
          Next_Configuration_Declaration (Actual);
       end loop;
-
       Write_Declaration_Error (Get_Token_Location, Actual_Name);
-
    end Search_Actual_Parameter;
 
    ----------------------
@@ -1679,17 +1835,16 @@ package body XE_Parse is
    procedure Search_Component
      (Component_Name : in  Name_Id;
       Type_Node      : in  Type_Id;
-      Component_Node : out Component_Id) is
+      Component_Node : out Component_Id)
+   is
       C : Component_Id;
    begin
-
       First_Type_Component (Type_Node, C);
       while C /= Null_Component loop
-         exit when Get_Node_Name (XE.Node_Id (C)) = Component_Name;
+         exit when Get_Node_Name (Node_Id (C)) = Component_Name;
          Next_Type_Component (C);
       end loop;
       Component_Node := C;
-
    end Search_Component;
 
    ----------------------
@@ -1699,17 +1854,16 @@ package body XE_Parse is
    procedure Search_Component
      (Component_Name : in  Name_Id;
       Variable_Node  : in  Variable_Id;
-      Component_Node : out Component_Id) is
+      Component_Node : out Component_Id)
+   is
       C : Component_Id;
    begin
-
       First_Variable_Component (Variable_Node, C);
       while C /= Null_Component loop
-         exit when Get_Node_Name (XE.Node_Id (C)) = Component_Name;
+         exit when Get_Node_Name (Node_Id (C)) = Component_Name;
          Next_Variable_Component (C);
       end loop;
       Component_Node := C;
-
    end Search_Component;
 
    ------------------------
@@ -1718,11 +1872,11 @@ package body XE_Parse is
 
    procedure Search_Declaration
      (Declaration_Name : in Name_Id;
-      Declaration_Node : out XE.Node_Id) is
-      Node : XE.Node_Id;
+      Declaration_Node : out Node_Id)
+   is
+      Node : Node_Id;
       Name : Name_Id;
    begin
-
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
          Name := Get_Node_Name (Node);
@@ -1730,7 +1884,6 @@ package body XE_Parse is
          Next_Configuration_Declaration (Node);
       end loop;
       Declaration_Node := Node;
-
    end Search_Declaration;
 
    ----------------------------------------
@@ -1739,7 +1892,8 @@ package body XE_Parse is
 
    procedure Search_Function_Returned_Parameter
      (Function_Node  : in Subprogram_Id;
-      Parameter_Node : out Parameter_Id) is
+      Parameter_Node : out Parameter_Id)
+   is
       Prev, Next : Parameter_Id;
    begin
       pragma Assert (not Is_Subprogram_A_Procedure (Function_Node));
@@ -1752,7 +1906,6 @@ package body XE_Parse is
          Next_Subprogram_Parameter (Next);
       end loop;
       Parameter_Node := Parameter_Id (Prev);
-
    end Search_Function_Returned_Parameter;
 
    -------------------------------
@@ -1766,33 +1919,97 @@ package body XE_Parse is
       Formal_Type     : in out Type_Id;
       Parameter_Node  : in out Parameter_Id) is
    begin
-
       First_Subprogram_Parameter (Subprogram_Node, Parameter_Node);
       while Parameter_Node /= Null_Parameter loop
-         Formal_Type := Get_Variable_Type (Variable_Id (Parameter_Node));
+         Formal_Type := Get_Parameter_Type (Parameter_Node);
          case Convention is
 
             --  If Positional, find the first uninitialized parameter.
             when Positional =>
                if not Is_Parameter_Initialized (Parameter_Node) then
-                  Formal_Name := Get_Node_Name (XE.Node_Id (Parameter_Node));
+                  Formal_Name := Get_Node_Name (Node_Id (Parameter_Node));
                   return;
                end if;
 
             --  If Named, use Formal_Name to return format parameter node.
             when Named =>
                if Get_Node_Name
-                 (XE.Node_Id (Parameter_Node)) = Formal_Name then
+                 (Node_Id (Parameter_Node)) = Formal_Name then
                   return;
                end if;
 
          end case;
          Next_Subprogram_Parameter (Parameter_Node);
       end loop;
-
       Write_Error_Message (Get_Token_Location, "no matching parameter");
-
    end Search_Matching_Parameter;
+
+   ---------------------------
+   -- Search_Next_Component --
+   ---------------------------
+
+   procedure Search_Next_Component
+     (Component_Name : in     Name_Id;
+      Component_Node : in out Component_Id) is
+   begin
+      Next_Type_Component (Component_Node);
+      while Component_Node /= Null_Component
+        and then Get_Node_Name (Node_Id (Component_Node)) /= Component_Name
+      loop
+         Next_Type_Component (Component_Node);
+      end loop;
+   end Search_Next_Component;
+
+   -----------------------------
+   -- Search_Next_Declaration --
+   -----------------------------
+
+   procedure Search_Next_Declaration
+     (Declaration_Name : in Name_Id;
+      Declaration_Node : in out Node_Id)
+   is
+      Node : Node_Id;
+      Name : Name_Id;
+   begin
+      Node := Node_Id (Declaration_Node);
+      Next_Configuration_Declaration (Node);
+      while Node /= Null_Node loop
+         Name := Get_Node_Name (Node);
+         exit when Name = Declaration_Name;
+         Next_Configuration_Declaration (Node);
+      end loop;
+      Declaration_Node := Node;
+   end Search_Next_Declaration;
+
+   ------------------------
+   -- Search_Next_Pragma --
+   ------------------------
+
+   procedure Search_Next_Pragma
+     (Pragma_Name : in     Name_Id;
+      Pragma_Node : in out Subprogram_Id) is
+   begin
+      Search_Next_Subprogram (Pragma_Name, Pragma_Node);
+   end Search_Next_Pragma;
+
+   ----------------------------
+   -- Search_Next_Subprogram --
+   ----------------------------
+
+   procedure Search_Next_Subprogram
+     (Subprogram_Name : in     Name_Id;
+      Subprogram_Node : in out Subprogram_Id)
+   is
+      Node : Node_Id := Node_Id (Subprogram_Node);
+   begin
+      Search_Next_Declaration (Subprogram_Name, Node);
+      while Node /= Null_Node
+        and then not Is_Subprogram (Node)
+      loop
+         Search_Next_Declaration (Subprogram_Name, Node);
+      end loop;
+      Subprogram_Node := Subprogram_Id (Node);
+   end Search_Next_Subprogram;
 
    -------------------
    -- Search_Pragma --
@@ -1801,16 +2018,15 @@ package body XE_Parse is
    procedure Search_Pragma
      (Pragma_Name : in  Name_Id;
       Pragma_Kind : out Pragma_Type;
-      Pragma_Node : out Subprogram_Id) is
+      Pragma_Node : out Subprogram_Id)
+   is
       Node : Subprogram_Id;
    begin
-
       Search_Subprogram (Pragma_Name, Node);
       if Node /= Null_Subprogram then
          Pragma_Kind := Get_Pragma_Kind (Node);
       end if;
       Pragma_Node := Node;
-
    end Search_Pragma;
 
    -----------------------
@@ -1819,17 +2035,17 @@ package body XE_Parse is
 
    procedure Search_Subprogram
      (Subprogram_Name : in  Name_Id;
-      Subprogram_Node : out Subprogram_Id) is
-      Node : XE.Node_Id;
+      Subprogram_Node : out Subprogram_Id)
+   is
+      Node : Node_Id;
    begin
-
       Search_Declaration (Subprogram_Name, Node);
-      if Node /= Null_Node and then
-         not Is_Subprogram (Node) then
+      if Node /= Null_Node
+        and then not Is_Subprogram (Node)
+      then
          Node := Null_Node;
       end if;
       Subprogram_Node := Subprogram_Id (Node);
-
    end Search_Subprogram;
 
    -----------------
@@ -1839,20 +2055,20 @@ package body XE_Parse is
    procedure Search_Type
      (Type_Name : in  Name_Id;
       Type_Kind : out Predefined_Type;
-      Type_Node : out Type_Id) is
-      Node : XE.Node_Id;
+      Type_Node : out Type_Id)
+   is
+      Node : Node_Id;
    begin
-
       Search_Declaration (Type_Name, Node);
-      if Node /= Null_Node and then
-         not Is_Type (Node) then
+      if Node /= Null_Node
+        and then not Is_Type (Node)
+      then
          Node := Null_Node;
       end if;
       Type_Node := Type_Id (Node);
       if Node /= Null_Node then
          Type_Kind := Get_Type_Kind (Type_Id (Node));
       end if;
-
    end Search_Type;
 
    ------------------------------------
@@ -1862,7 +2078,8 @@ package body XE_Parse is
    procedure Search_Uninitialized_Component
      (Variable_Node  : in  Variable_Id;
       Component_Type : in  Type_Id;
-      Component_Node : out Component_Id) is
+      Component_Node : out Component_Id)
+   is
       C : Component_Id;
       T : Type_Id;
    begin
@@ -1878,7 +2095,6 @@ package body XE_Parse is
          Next_Variable_Component (C);
       end loop;
       Component_Node := C;
-
    end Search_Uninitialized_Component;
 
    ---------------------
@@ -1887,17 +2103,16 @@ package body XE_Parse is
 
    procedure Search_Variable
      (Variable_Name : in  Name_Id;
-      Variable_Node : out Variable_Id) is
-      Node : XE.Node_Id;
+      Variable_Node : out Variable_Id)
+   is
+      Node : Node_Id;
    begin
-
       Search_Declaration (Variable_Name, Node);
       if Node /= Null_Node  and then
          not Is_Variable (Node) then
          Node := Null_Node;
       end if;
       Variable_Node := Variable_Id (Node);
-
    end Search_Variable;
 
    ---------------------
@@ -1907,17 +2122,16 @@ package body XE_Parse is
    procedure Search_Variable
      (Variable_Name : in  Name_Id;
       Variable_Type : in Type_Id;
-      Variable_Node : out Variable_Id) is
-      Node : XE.Node_Id;
+      Variable_Node : out Variable_Id)
+   is
+      Node : Node_Id;
    begin
-
       Search_Declaration (Variable_Name, Node);
       if Node /= Null_Node  and then
          not Is_Variable (Node) then
          Node := Null_Node;
       end if;
       Variable_Node := Variable_Id (Node);
-
    end Search_Variable;
 
    -----------------------
@@ -1925,8 +2139,9 @@ package body XE_Parse is
    -----------------------
 
    procedure Set_Node_Location
-     (Node     : in XE.Node_Id;
-      Location : in Location_Type) is
+     (Node     : in Node_Id;
+      Location : in Location_Type)
+   is
       X, Y : Int;
    begin
       Location_To_XY (Location, X, Y);
@@ -2139,11 +2354,13 @@ package body XE_Parse is
    begin
       Next_Token;
       if T /= Token then
-         Write_Location (Get_Token_Location);
-         Write_Token (T);
-         Write_Str (" was expected");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         if Fatal_Error then
+            Write_Location (Get_Token_Location);
+            Write_Token (T);
+            Write_Str (" was expected");
+            Write_Eol;
+         end if;
+         Exit_On_Error;
       end if;
    end Take_Token;
 
@@ -2159,40 +2376,18 @@ package body XE_Parse is
             return;
          end if;
       end loop;
-      Write_Location (Get_Token_Location);
-      Write_Token (L (L'First));
-      for Index in L'First + 1 .. L'Last loop
-         Write_Str (" or ");
-         Write_Token (L (Index));
-      end loop;
-      Write_Str (" was expected");
-      Write_Eol;
-      Exit_On_Parsing_Error;
+      if Fatal_Error then
+         Write_Location (Get_Token_Location);
+         Write_Token (L (L'First));
+         for Index in L'First + 1 .. L'Last loop
+            Write_Str (" or ");
+            Write_Token (L (Index));
+         end loop;
+         Write_Str (" was expected");
+         Write_Eol;
+      end if;
+      Exit_On_Error;
    end Take_Token;
-
-   --------------
-   -- Tmp_Name --
-   --------------
-
-   function Tmp_Name (P : String := "XXX") return Name_Id is
-   begin
-      Name_Buffer (1 .. P'Length) := P;
-      Name_Len := P'Length;
-
-      for I in Seed'Range loop
-         if Seed (I) = 'Z' then
-            Seed (I) := 'A';
-         else
-            Seed (I) := Character'Succ (Seed (I));
-            exit;
-         end if;
-      end loop;
-      Name_Buffer (Name_Len + 1 .. Name_Len + Seed'Length) := Seed;
-      Name_Len := Name_Len + Seed'Length;
-
-      return Name_Find;
-
-   end Tmp_Name;
 
    --------------------------
    -- Write_Conflict_Error --
@@ -2229,21 +2424,23 @@ package body XE_Parse is
       Mesg2 : in String  := "";
       Name2 : in Name_Id := No_Name) is
    begin
-      Write_Location (SLOC);
-      if Mesg1 /= "" then
-         Write_Str (Mesg1);
+      if Fatal_Error then
+         Write_Location (SLOC);
+         if Mesg1 /= "" then
+            Write_Str (Mesg1);
+         end if;
+         if Name1 /= No_Name then
+            Write_Name (Name1);
+         end if;
+         if Mesg2 /= "" then
+            Write_Str (Mesg2);
+         end if;
+         if Name2 /= No_Name then
+            Write_Name (Name2);
+         end if;
+         Write_Eol;
       end if;
-      if Name1 /= No_Name then
-         Write_Name (Name1);
-      end if;
-      if Mesg2 /= "" then
-         Write_Str (Mesg2);
-      end if;
-      if Name2 /= No_Name then
-         Write_Name (Name2);
-      end if;
-      Write_Eol;
-      Exit_On_Parsing_Error;
+      Exit_On_Error;
    end Write_Error_Message;
 
    ------------------

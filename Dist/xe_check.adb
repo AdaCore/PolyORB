@@ -273,7 +273,7 @@ package body XE_Check is
          Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
-      if not Quiet_Output then
+      if not Quiet_Mode then
          Message ("checking configuration consistency");
       end if;
 

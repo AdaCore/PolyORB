@@ -112,7 +112,7 @@ begin
       Get_Name_String (Configuration_File);
       Name_Len := Name_Len - 4;
       if Configuration /= Name_Find then
-         if not Quiet_Output then
+         if not Quiet_Mode then
             Message ("configuration file name should be",
                      To_String (Configuration & Str_To_Id (Suffix)));
          end if;
@@ -158,7 +158,7 @@ begin
 
       Check;
 
-      if not Quiet_Output then
+      if not Quiet_Mode then
          Show_Configuration;
       end if;
 
