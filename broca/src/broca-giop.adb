@@ -66,8 +66,8 @@ package body Broca.GIOP is
    --  The offset of the byte_order boolean field in
    --  a GIOP message header.
 
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
-      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
+   Default_Principal : Ada.Strings.Unbounded.Unbounded_String
+     := Nobody_Principal;
 
    MsgType_To_Octet :
      constant array (MsgType'Range) of CORBA.Octet
@@ -287,6 +287,13 @@ package body Broca.GIOP is
       Free (H.Data.Message_Body);
    end Release;
 
+   procedure Set_Default_Principal
+     (Principal : Ada.Strings.Unbounded.Unbounded_String
+        := Nobody_Principal) is
+   begin
+      Default_Principal := Principal;
+   end Set_Default_Principal;
+
    ---------------------------
    -- Send_Request_Marshall --
    ---------------------------
@@ -329,7 +336,7 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer'Access, CORBA.String (Operation));
 
       --  Principal
-      Marshall (Handler.Buffer'Access, CORBA.String (Nobody_Principal));
+      Marshall (Handler.Buffer'Access, CORBA.String (Default_Principal));
    end Send_Request_Marshall;
 
    -----------------------
