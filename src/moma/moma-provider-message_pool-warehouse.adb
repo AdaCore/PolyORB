@@ -86,6 +86,9 @@ package body MOMA.Provider.Message_Pool.Warehouse is
       Last        : Ada.Streams.Stream_Element_Offset;
       Received    : Ada.Streams.Stream_Element_Count;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (W);
+      pragma Warnings (On);
       --  Ensure_Initialization (Temp);
 
       --  Lock_R (W.T_Lock);
@@ -141,6 +144,10 @@ package body MOMA.Provider.Message_Pool.Warehouse is
       Stream_File   : Ada.Streams.Stream_IO.File_Type;
       Buffer : constant Buffer_Access := new Buffer_Type;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (W);
+      pragma Warnings (On);
+
       --  Ensure_Initialization (Temp);
 
       --  Lock_W (W.T_Lock);
