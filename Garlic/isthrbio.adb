@@ -52,7 +52,7 @@ procedure IsThrBIO is
    end A_Task;
 
    Result  : int;
-   Input   : constant Fd_Set_Access  := new Fd_Set'(0);
+   Input   : constant Fd_Set_Access  := new Fd_Set;
    Timeout : constant Timeval_Access := new Timeval'(1, 0);
 
    ------------
@@ -78,6 +78,7 @@ procedure IsThrBIO is
    end A_Task;
 
 begin
+   Clear (Input.all);
    A_Task.Start;
    Result := C_Select (1, Input, null, null, Timeout);
    A_Task.Stop;
