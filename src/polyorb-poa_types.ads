@@ -193,11 +193,6 @@ package PolyORB.POA_Types is
      return Unmarshalled_Oid;
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
-   function Oid_To_U_Oid
-     (Oid : Object_Id)
-     return Unmarshalled_Oid;
-   --  Unmarshall an Object_Id into a Unmarshalled_Oid
-
    procedure Oid_To_U_Oid
      (Oid   :        Object_Id;
       U_Oid :    out Unmarshalled_Oid;

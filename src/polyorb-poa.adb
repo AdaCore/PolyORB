@@ -992,17 +992,18 @@ package body PolyORB.POA is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container)
    is
-      A_Oid : aliased Object_Id := Oid;
-
-      U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (A_Oid'Access);
-
+      U_Oid : Unmarshalled_Oid;
    begin
+      Oid_To_U_Oid (Oid, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
+
       Ensure_Lifespan
         (Self.Lifespan_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          U_Oid,
          Error);
-
       if Found (Error) then
          return;
       end if;
@@ -1436,8 +1437,13 @@ package body PolyORB.POA is
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      U_Oid : Unmarshalled_Oid;
    begin
+      Oid_To_U_Oid (Id.all, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
+
       if U_Oid.System_Generated then
          Throw (Error,
                 Invalid_Object_Id_E,
@@ -1543,18 +1549,22 @@ package body PolyORB.POA is
    is
       use type PolyORB.Servants.Servant_Access;
 
-      U_Oid    : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      U_Oid    : Unmarshalled_Oid;
 
       Obj_OA   : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Find_Servant: Enter."));
+
+      Oid_To_U_Oid (Id.all, U_Oid, Error);
+      if Found (Error) then
+         return;
+      end if;
 
       Find_POA (OA,
                 To_Standard_String (U_Oid.Creator),
                 True,
                 Obj_OA,
                 Error);
-
       if Found (Error) then
          return;
       end if;

@@ -250,11 +250,10 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Warnings (Off); -- WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
-      pragma Unreferenced (Error);
       pragma Warnings (On); -- WAG:3.15
 
    begin
-      U_Oid := PolyORB.POA_Types.Oid_To_U_Oid (Oid);
+      PolyORB.POA_Types.Oid_To_U_Oid (Oid, U_Oid, Error);
    end Reconstruct_Object_Identifier;
 
    -----------------------

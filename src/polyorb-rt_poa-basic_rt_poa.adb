@@ -213,10 +213,16 @@ package body PolyORB.RT_POA.Basic_RT_POA is
 
       if Found (Error) then
          declare
-            U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (Id.all);
-            It : Iterator := First (Shadow_Oids);
-
+            U_Oid  : Unmarshalled_Oid;
+            It     : Iterator := First (Shadow_Oids);
+            Error2 : PolyORB.Exceptions.Error_Container;
          begin
+            Oid_To_U_Oid (Id.all, U_Oid, Error2);
+            if Found (Error2) then
+               Catch (Error);
+               Error := Error2;
+               return;
+            end if;
             while not Last (It) loop
                if U_Oid = Value (It).all.U_Oid then
                   Model := Value (It).all.Model;
