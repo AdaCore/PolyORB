@@ -1024,14 +1024,20 @@ package Rtsfind is
      RE_Partition_ID,                    -- System.RPC
      RE_RPC_Receiver,                    -- System.RPC
 
+     RE_To_PolyORB_String,               -- System.PolyORB_Interface
+     RE_Any,                             -- System.PolyORB_Interface
+     RE_Mode_In,                         -- System.PolyORB_Interface
+     RE_Mode_Out,                        -- System.PolyORB_Interface
+     RE_Mode_Inout,                      -- System.PolyORB_Interface
      RE_NamedValue,                      -- System.PolyORB_Interface
+     RE_TypeCode,                        -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
+     RE_NVList_Add_Item,                 -- System.PolyORB_Interface
      RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Access,                  -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
-     RE_To_PolyORB_String,               -- System.PolyORB_Interface
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -1942,14 +1948,20 @@ package Rtsfind is
      RE_RCI_Info                         => System_Partition_Interface,
      RE_Subprogram_Id                    => System_Partition_Interface,
 
+     RE_To_PolyORB_String                => System_PolyORB_Interface,
+     RE_Any                              => System_PolyORB_Interface,
+     RE_Mode_In                          => System_PolyORB_Interface,
+     RE_Mode_Out                         => System_PolyORB_Interface,
+     RE_Mode_Inout                       => System_PolyORB_Interface,
      RE_NamedValue                       => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
+     RE_NVList_Add_Item                  => System_PolyORB_Interface,
      RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Access                   => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
-     RE_To_PolyORB_String                => System_PolyORB_Interface,
+     RE_TypeCode                         => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 

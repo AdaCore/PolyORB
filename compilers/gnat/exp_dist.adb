@@ -366,9 +366,9 @@ package body Exp_Dist is
 
    RCI_Cache : Node_Id;
 
-   Output_From_Constrained : constant array (Boolean) of Name_Id :=
-     (False => Name_Output,
-      True  => Name_Write);
+--    Output_From_Constrained : constant array (Boolean) of Name_Id :=
+--      (False => Name_Output,
+--       True  => Name_Write);
    --  The attribute to choose depending on the fact that the parameter
    --  is constrained or not. There is no such thing as Input_From_Constrained
    --  since this require separate mechanisms ('Input is a function while
@@ -2080,6 +2080,10 @@ package body Exp_Dist is
       Request_Parameter : Node_Id;
       --  The request object constructed by these stubs.
 
+      Arguments_Anys : List_Id := Empty_List;
+      --  The declarations of the Any objects for each of the
+      --  arguments of the operation.
+
       Result_NV_Parameter : Node_Id;
       --  The named value that receives the result of the invocation
       --  (non-APC case).
@@ -2285,24 +2289,80 @@ package body Exp_Dist is
                                Is_Constrained (Etyp)
                                  or else Is_Elementary_Type (Etyp);
 
+               Mode_Expr : Node_Id;
             begin
-               if In_Present (Current_Parameter)
-                 or else not Out_Present (Current_Parameter)
-                 or else not Constrained
-               then
-                  Append_To (Statements,
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (Etyp, Loc),
-                      Attribute_Name => Output_From_Constrained (Constrained),
-                      Expressions    => New_List (
-                        Make_Attribute_Reference (Loc,
-                          Prefix         =>
-                            New_Occurrence_Of (Stream_Parameter, Loc),
-                          Attribute_Name => Name_Access),
-                        New_Occurrence_Of (
-                          Defining_Identifier (Current_Parameter), Loc))));
+--                if In_Present (Current_Parameter)
+--                  or else not Out_Present (Current_Parameter)
+--                  or else not Constrained
+--                then
+--                   Append_To (Statements,
+--                     Make_Attribute_Reference (Loc,
+--                       Prefix         =>
+--                         New_Occurrence_Of (Etyp, Loc),
+--                       Attribute_Name => Output_From_Constrained
+--                             (Constrained),
+--                       Expressions    => New_List (
+--                         Make_Attribute_Reference (Loc,
+--                           Prefix         =>
+--                             New_Occurrence_Of (Stream_Parameter, Loc),
+--                           Attribute_Name => Name_Access),
+--                         New_Occurrence_Of (
+--                           Defining_Identifier (Current_Parameter), Loc))));
+--                end if;
+               Append_To (Arguments_Anys,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier =>
+                     Make_Defining_Identifier (Loc,
+                       New_Internal_Name ('A')),
+                   Aliased_Present     => False,
+                   Object_Definition   =>
+                     New_Occurrence_Of (RTE (RE_Any), Loc),
+                   Expression          =>
+                     --  Make_To_Any_Function_Call (Loc,)
+                     Empty));
+
+               Append_To (Statements,
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of
+                       (RTE (RE_NVList_Add_Item), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Args_Parameter, Loc),
+                     Make_Function_Call (Loc,
+                       Name =>
+                         New_Occurrence_Of
+                           (RTE (RE_To_PolyORB_String), Loc),
+                       Parameter_Associations => New_List (
+                         Make_String_Literal (Loc,
+                           Strval => Get_String_Id
+                             (Get_Name_String
+                              (Chars (Defining_Identifier
+                               (Current_Parameter))))))),
+                     New_Occurrence_Of
+                       (Defining_Identifier
+                        (Last (Arguments_Anys)), Loc))));
+
+               if Out_Present (Current_Parameter) then
+                  if In_Present (Current_Parameter)
+                    or else not Constrained
+                  then
+                     --  Unconstrained formals must be translated
+                     --  to 'in' or 'inout', not 'out', because
+                     --  they need to be constrained by the actual.
+
+                     Mode_Expr := New_Occurrence_Of
+                       (RTE (RE_Mode_Inout), Loc);
+                  else
+                     Mode_Expr := New_Occurrence_Of
+                       (RTE (RE_Mode_Out), Loc);
+                  end if;
+               else
+                  Mode_Expr := New_Occurrence_Of
+                    (RTE (RE_Mode_In), Loc);
                end if;
+
+               Append_To (Parameter_Associations (Last (Statements)),
+                 Mode_Expr);
             end;
          end if;
 
@@ -2356,6 +2416,8 @@ package body Exp_Dist is
 
          Next (Current_Parameter);
       end loop;
+
+      Append_List_To (Decls, Arguments_Anys);
 
       --  Append the formal statements list to the statements
 

@@ -8,14 +8,28 @@ with PolyORB.Types;
 
 package System.PolyORB_Interface is
 
+   function To_PolyORB_String (S : Standard.String)
+     return PolyORB.Types.Identifier
+     renames PolyORB.Types.To_PolyORB_String;
+
+   subtype Any is PolyORB.Any.Any;
+   Mode_In    : PolyORB.Any.Flags renames PolyORB.Any.ARG_IN;
+   Mode_Out   : PolyORB.Any.Flags renames PolyORB.Any.ARG_OUT;
+   Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
    subtype NamedValue is PolyORB.Any.NamedValue;
+
    subtype Object_Ref is PolyORB.References.Ref;
+
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
      renames PolyORB.Any.NVList.Create;
-   function To_PolyORB_String (S : String) return PolyORB.Types.String
-     renames PolyORB.Types.To_PolyORB_String;
-   subtype Operation_Id is PolyORB.Requests.Operation_Id;
+   procedure NVList_Add_Item
+     (Self       :    PolyORB.Any.NVList.Ref;
+      Item_Name  : in PolyORB.Types.Identifier;
+      Item       : in PolyORB.Any.Any;
+      Item_Flags : in PolyORB.Any.Flags)
+     renames PolyORB.Any.NVList.Add_Item;
+
    subtype Request_Access is PolyORB.Requests.Request_Access;
    Nil_Exc_List : PolyORB.Any.ExceptionList.Ref
       renames PolyORB.Any.ExceptionList.Nil_Ref;
