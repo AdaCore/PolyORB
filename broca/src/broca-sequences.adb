@@ -1,52 +1,64 @@
-with Broca.Marshalling;
+with Broca.Marshalling; use Broca.Marshalling;
+with Ada.Unchecked_Conversion;
 
 package body Broca.Sequences is
-   procedure Unmarshall
-     (Buffer : in out Buffer_Descriptor;
-      Seq_Octet : out IDL_SEQUENCE_Octet.Sequence)
-   is
-      use Broca.Marshalling;
 
-      Length : CORBA.Unsigned_Long;
-      Res : IDL_SEQUENCE_Octet.Sequence;
-      El : CORBA.Octet;
+   ----------------------
+   -- Compute_New_Size --
+   ----------------------
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Octet_Sequences.Sequence) is
    begin
-      Unmarshall (Buffer, Length);
-      Res := IDL_SEQUENCE_Octet.To_Sequence (Natural (Length));
-      for I in 1 .. Length loop
-         Unmarshall (Buffer, El);
-         IDL_SEQUENCE_Octet.Replace_Element (Res, Natural (I), El);
-      end loop;
-      Seq_Octet := Res;
-   end Unmarshall;
+      Compute_New_Size
+        (Buffer,
+         UL_Size,
+         O_Size,
+         Octet_Sequences.Length (Value));
+   end Compute_New_Size;
+
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
-     (Stream : in out Buffer_Descriptor;
-      Seq_Octet : in IDL_SEQUENCE_Octet.Sequence)
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Octet_Sequences.Sequence)
    is
-      use Broca.Marshalling;
-      Length : Natural;
+      package OS renames Octet_Sequences;
+      Octets : constant OS.Element_Array := OS.To_Element_Array (Value);
+      subtype Sub_Element_Array is OS.Element_Array (Octets'Range);
+      subtype Sub_Buffer_Type is Buffer_Type (0 .. Octets'Length - 1);
+      function Element_Array_To_Buffer_Type is
+        new Ada.Unchecked_Conversion (Sub_Element_Array, Sub_Buffer_Type);
    begin
-      Length := IDL_SEQUENCE_Octet.Length (Seq_Octet);
-      Marshall (Stream, CORBA.Unsigned_Long (Length));
-      for I in 0 .. Length - 1 loop
-         --  Low bound is 1.
-         Stream.Buffer (Stream.Pos + Buffer_Index_Type (I)) :=
-           Buffers.Byte (IDL_SEQUENCE_Octet.Element_Of (Seq_Octet, 1 + I));
-      end loop;
-      Stream.Pos := Stream.Pos + Buffer_Index_Type (Length);
+      Marshall (Buffer, CORBA.Unsigned_Long (Octets'Length));
+      Write (Buffer, Element_Array_To_Buffer_Type (Octets));
    end Marshall;
 
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor;
-      Seq_Octet : in IDL_SEQUENCE_Octet.Sequence)
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   procedure Unmarshall
+     (Buffer : in out Buffer_Descriptor;
+      Result : out Octet_Sequences.Sequence)
    is
-      use Broca.Marshalling;
-      Length : Natural;
+      package S renames Octet_Sequences;
+      Length : Buffer_Index_Type;
    begin
-      Length := IDL_SEQUENCE_Octet.Length (Seq_Octet);
-      Compute_New_Size (Stream, UL_Size, UL_Size);
-      Stream.Pos := Stream.Pos + Buffer_Index_Type (Length);
-   end Marshall_Size;
+      Unmarshall (Buffer, CORBA.Unsigned_Long (Length));
+      declare
+         subtype Sub_Element_Array is S.Element_Array (1 .. Natural (Length));
+           subtype Sub_Buffer_Type is Buffer_Type (0 .. Length - 1);
+         function Buffer_Type_To_Element_Array is
+           new Ada.Unchecked_Conversion (Sub_Buffer_Type, Sub_Element_Array);
+         Bytes : Sub_Buffer_Type;
+      begin
+         Read (Buffer, Bytes);
+         Result := S.To_Sequence (Buffer_Type_To_Element_Array (Bytes));
+      end;
+   end Unmarshall;
 
 end Broca.Sequences;

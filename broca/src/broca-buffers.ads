@@ -19,9 +19,9 @@ package Broca.Buffers is
    --  endianness.
    type Buffer_Descriptor is
       record
-         Buffer : Buffer_Access := null;
-         Pos    : Buffer_Index_Type := 0;
+         Pos           : Buffer_Index_Type := 0;
          Little_Endian : Boolean := False;
+         Buffer        : Buffer_Access := null;
       end record;
 
    subtype Alignment_Type is Buffer_Index_Type range 1 .. 8;
@@ -81,6 +81,8 @@ package Broca.Buffers is
       Bytes   : out Buffer_Type);
    pragma Inline (Read);
    --  Read from Buffer an array of bytes
+
+   function Size (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
 
    procedure Write
      (Buffer  : in out Buffer_Descriptor;

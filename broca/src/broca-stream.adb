@@ -28,8 +28,9 @@ package body Broca.Stream is
       Stream.Lock_R.Unlock;
    end Unlock_Receive;
 
-   procedure Send (Stream : access Fd_Stream_Type;
-                   Buffer : in Buffer_Descriptor)
+   procedure Send
+     (Stream : access Fd_Stream_Type;
+      Buffer : in Buffer_Descriptor)
    is
       use Sockets.Thin;
       use Interfaces.C;

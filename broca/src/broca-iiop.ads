@@ -36,7 +36,7 @@ package Broca.Iiop is
          Host : CORBA.String;
          Port : CORBA.Unsigned_Short;
          Network_Port : Interfaces.C.unsigned_short;
-         Object_Key : Broca.Sequences.Octet;
+         Object_Key : Broca.Sequences.Octet_Sequence;
          --  Components: Natural;
 
          --  The address corresponding to host/port.
@@ -62,6 +62,6 @@ package Broca.Iiop is
 
 private
    function Get_Object_Key (Profile : Profile_Iiop_Type)
-                            return Broca.Sequences.Octet;
+                            return Broca.Sequences.Octet_Sequence;
 
 end Broca.Iiop;

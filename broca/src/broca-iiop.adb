@@ -14,7 +14,7 @@ package body Broca.Iiop is
    procedure O is new Broca.Debug.Output (Flag);
 
    function Get_Object_Key (Profile : Profile_Iiop_Type)
-                            return Broca.Sequences.Octet is
+                            return Broca.Sequences.Octet_Sequence is
    begin
       return Profile.Object_Key;
    end Get_Object_Key;

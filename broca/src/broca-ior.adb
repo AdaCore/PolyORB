@@ -55,8 +55,10 @@ package body Broca.Ior is
 
    --  Convert a buffer containing an marshalled contents of an IOR into
    --  a string.
-   function Buffer_To_Ior_String (Buffer : Buffer_Descriptor)
-                                  return CORBA.String is
+   function Buffer_To_Ior_String
+     (Buffer : Buffer_Descriptor)
+     return CORBA.String
+   is
       Target : CORBA.String;
       Len : Natural;
    begin

@@ -38,7 +38,7 @@ package PortableServer is
    function Get_Default_POA (For_Servant : Servant_Base)
      return POA_Forward.Ref;
 
-   type ObjectId is new Broca.Sequences.Octet;
+   type ObjectId is new Broca.Sequences.Octet_Sequence;
 
    ForwardRequest : exception;
 

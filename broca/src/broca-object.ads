@@ -26,7 +26,7 @@ package Broca.Object is
 
    type Profile_Type is abstract tagged limited null record;
    function Get_Object_Key (Profile : Profile_Type)
-                            return Broca.Sequences.Octet is abstract;
+                            return Broca.Sequences.Octet_Sequence is abstract;
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE and reserve it.
    function Find_Connection (Profile : access Profile_Type)

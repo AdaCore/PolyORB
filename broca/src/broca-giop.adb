@@ -160,7 +160,7 @@ package body Broca.Giop is
         (Buffer       => Handler.Buffer,
          Length_Size  => UL_Size,
          Element_Size => 1,
-         Array_Length => Broca.Sequences.IDL_SEQUENCE_Octet.Length
+         Array_Length => Broca.Sequences.Octet_Sequences.Length
          (Broca.Object.Get_Object_Key (Handler.Profile.all)));
 
       --  Size of operation

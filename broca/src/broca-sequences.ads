@@ -4,18 +4,23 @@ with Broca.Buffers; use Broca.Buffers;
 pragma Elaborate_All (CORBA.Sequences.Unbounded);
 
 package Broca.Sequences is
-   package IDL_SEQUENCE_Octet is new CORBA.Sequences.Unbounded (CORBA.Octet);
+
+   package Octet_Sequences is new CORBA.Sequences.Unbounded (CORBA.Octet);
+
+   subtype Octet_Sequence is Octet_Sequences.Sequence;
+
+   Null_Sequence : Octet_Sequence renames Octet_Sequences.Null_Sequence;
+
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Octet_Sequences.Sequence);
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Value  : in Octet_Sequences.Sequence);
 
    procedure Unmarshall
      (Buffer : in out Buffer_Descriptor;
-      Seq_Octet : out IDL_SEQUENCE_Octet.Sequence);
-   procedure Marshall
-     (Stream : in out Buffer_Descriptor;
-      Seq_Octet : in IDL_SEQUENCE_Octet.Sequence);
-   procedure Marshall_Size
-     (Stream : in out Buffer_Descriptor;
-      Seq_Octet : in IDL_SEQUENCE_Octet.Sequence);
+      Result : out Octet_Sequences.Sequence);
 
-   subtype Octet is IDL_SEQUENCE_Octet.Sequence;
-   Null_Sequence : Octet renames IDL_SEQUENCE_Octet.Null_Sequence;
 end Broca.Sequences;

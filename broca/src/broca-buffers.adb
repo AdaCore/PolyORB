@@ -177,6 +177,15 @@ package body Broca.Buffers is
       Buffer.Pos := Buffer.Pos + Length;
    end Read;
 
+   ----------
+   -- Size --
+   ----------
+
+   function Size (Buffer : in Buffer_Descriptor) return Buffer_Index_Type is
+   begin
+      return Buffer.Pos;
+   end Size;
+
    -----------
    -- Write --
    -----------

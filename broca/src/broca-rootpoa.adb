@@ -358,9 +358,11 @@ package body Broca.Rootpoa is
      return Skeleton_Access;
 
    subtype Objectid_Type is
-      Broca.Sequences.IDL_SEQUENCE_Octet.Element_Array (0 .. 3);
+     Broca.Sequences.Octet_Sequences.Element_Array (0 .. 3);
+
    function Slot_Index_Type_To_Objectid_Type is new Ada.Unchecked_Conversion
      (Source => Slot_Index_Type, Target => Objectid_Type);
+
    function Objectid_Type_To_Slot_Index_Type is new Ada.Unchecked_Conversion
      (Source => Objectid_Type, Target => Slot_Index_Type);
 
@@ -531,19 +533,20 @@ package body Broca.Rootpoa is
                                 Oid : ObjectId)
    is
    begin
-      Broca.Sequences.Marshall (Buf, Broca.Sequences.Octet (Oid));
+      Broca.Sequences.Marshall (Buf, Broca.Sequences.Octet_Sequence (Oid));
    end Marshall_Objectid;
 
    procedure Marshall_Size_Objectid
      (Buf : in out Broca.Buffers.Buffer_Descriptor; Oid : ObjectId) is
    begin
-      Broca.Sequences.Marshall_Size (Buf, Broca.Sequences.Octet (Oid));
+      Broca.Sequences.Compute_New_Size
+        (Buf, Broca.Sequences.Octet_Sequence (Oid));
    end Marshall_Size_Objectid;
 
    procedure Unmarshall_Objectid (Buf : in out Broca.Buffers.Buffer_Descriptor;
                                   Oid : out ObjectId)
    is
-      Seq_Oct : Broca.Sequences.Octet;
+      Seq_Oct : Broca.Sequences.Octet_Sequence;
    begin
       Broca.Sequences.Unmarshall (Buf, Seq_Oct);
       Oid := ObjectId (Seq_Oct);
