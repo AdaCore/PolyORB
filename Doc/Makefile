@@ -3,7 +3,8 @@ SED = sed
 A2PSFLAGS = -1 -B --border=no --font-size=9
 
 CONFIGS=\
-myconfig.cfg
+myconfig.cfg\
+naming.idl
 
 IMAGES=\
 xe-arch.fig\
@@ -11,7 +12,6 @@ full-ex.fig\
 corba-arch.fig
 
 SOURCES=\
-naming.idl\
 rcibank.ads\
 terminal.ads\
 types.ads\
@@ -50,11 +50,17 @@ asynchronousrci.ads\
 asynchronousmain.adb\
 genericrci.ads\
 rciinstantiation.ads\
-normalinstantiation.ads\
+normalinstantiation.ads
 
 GUIDE=glade_ug
 
-all: ps info html
+GRAPHS=$(SOURCES) $(CONFIGS) $(IMAGES)
+
+default:
+	$(MAKE) $(GUIDE).ps $(GUIDE).info
+
+all:
+	$(MAKE) $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).pdf
 
 ps: $(GUIDE).ps
 
@@ -62,36 +68,46 @@ info: $(GUIDE).info
 
 html: $(GUIDE).html
 
-txtfiles: ${SOURCES}
-	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.txt,g'`;
-	make `echo $(CONFIGS) | sed 's,\([^ ][^ ]*\),\1.txt,g'`;
+pdf: $(GUIDE).pdf
+
+txtfiles: ${SOURCES} ${CONFIGS}
+	make `echo $(SOURCES) $(CONFIGS) | sed 's,\([^ ][^ ]*\),\1.txt,g'`
+	touch txtfiles
 
 jpegfiles: epsfiles
-	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
-	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
-	make `echo $(CONFIGS)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
+	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`
+	touch jpegfiles
 
-epsfiles: ${SOURCES}
-	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
-	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
-	make `echo $(CONFIGS)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
+epsfiles: ${GRAPHS}
+	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.eps,g'`
+	touch epsfiles
+
+pdffiles: epsfiles
+	make `echo $(GRAPHS) | sed 's,\([^ ][^ ]*\),\1.pdf,g'`
+	touch pdffiles
 
 allfiles: txtfiles epsfiles jpegfiles
 
-$(GUIDE).html: $(GUIDE).texi allfiles
+$(GUIDE).html: $(GUIDE).texi jpegfiles
 	makeinfo --html $(GUIDE).texi
 
-$(GUIDE).info: $(GUIDE).texi allfiles
+$(GUIDE).info: $(GUIDE).texi txtfiles
 	makeinfo $<
 
 $(GUIDE).ps: $(GUIDE).dvi
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi allfiles
+$(GUIDE).dvi: $(GUIDE).texi epsfiles
 	texi2dvi $(GUIDE).texi
+
+$(GUIDE).pdf: $(GUIDE).texi pdffiles
+	texi2pdf $(GUIDE).texi
 
 ${SOURCES}: all-srcs.ada
 	gnatchop -w $<
+
+%.pdf: %.eps
+	epstopdf $<
 
 %.ads.txt: %.ads
 	${CP} -f $< $@
@@ -142,5 +158,6 @@ ${SOURCES}: all-srcs.ada
 	fig2dev -L ps $< $@
 
 clean:
-	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.ad?.txt *.html
+	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.ad?.txt *.html *.pdf
 	rm -f *.jpeg *.cp *.info *.pg *.toc *.vr *.fn *.ky *.tp *~ *.idl.txt
+	rm -f txtfiles epsfiles jpegfiles pdffiles

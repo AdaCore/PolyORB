@@ -1,5 +1,10 @@
 1999-01-06  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* Makefile: Cleanup to avoid useless operations.
+
+	* texinfo.tex: Add support for pictures in PDF files. Sent to the
+	maintainer of texinfo.tex/texi2dvi/texi2pdf for integration.
+
 	* glade_ug.texi: Make some changes.
 
 	* all-srcs.ada: Likewise.
