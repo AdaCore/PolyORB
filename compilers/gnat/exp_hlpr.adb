@@ -37,7 +37,6 @@ with Nmake;    use Nmake;
 with Rtsfind;  use Rtsfind;
 with Sinfo;    use Sinfo;
 with Einfo;    use Einfo;
-with Sem;      use Sem;
 with Sem_Ch7;  use Sem_Ch7;
 with Sem_Ch8;  use Sem_Ch8;
 with Sem_Util; use Sem_Util;
@@ -98,8 +97,9 @@ package body Exp_Hlpr is
    -------------------------
 
    function Build_From_Any_Call
-     (Typ : Entity_Id;
-      N   : Node_Id)
+     (Typ   : Entity_Id;
+      N     : Node_Id;
+      Decls : List_Id)
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
@@ -204,9 +204,7 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_From_Any_Function (Loc, U_Type, Decl, Fnam);
-            Append_Freeze_Action (U_Type, Decl);
-            Analyze (Decl);
-            --  Set_TSS (U_Type, Decl);
+            Append_To (Decls, Decl);
          end;
       end if;
 
@@ -270,7 +268,8 @@ package body Exp_Hlpr is
                     Typ,
                     Build_From_Any_Call (
                       Rt_Type,
-                      New_Occurrence_Of (Any_Parameter, Loc)))));
+                      New_Occurrence_Of (Any_Parameter, Loc),
+                      Decls))));
          end;
       else
          declare
@@ -306,7 +305,8 @@ package body Exp_Hlpr is
    -----------------------
 
    function Build_To_Any_Call
-     (N : Node_Id)
+     (N     : Node_Id;
+      Decls : List_Id)
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
@@ -414,9 +414,7 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_To_Any_Function (Loc, U_Type, Decl, Fnam);
-            Append_Freeze_Action (U_Type, Decl);
-            Analyze (Decl);
-            --  Set_TSS (U_Type, Decl);
+            Append_To (Decls, Decl);
          end;
       end if;
 
@@ -485,14 +483,14 @@ package body Exp_Hlpr is
                Object_Definition   =>
                  New_Occurrence_Of (RTE (RE_Any), Loc),
                Expression =>
-                 Build_To_Any_Call (Expr)));
+                 Build_To_Any_Call (Expr, Decls)));
 
             Append_To (Stms,
               Make_Procedure_Call_Statement (Loc,
                 Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
                 Parameter_Associations => New_List (
                   New_Occurrence_Of (Any_Parameter, Loc),
-                  Build_TypeCode_Call (Loc, Typ))));
+                  Build_TypeCode_Call (Loc, Typ, Decls))));
             Append_To (Stms,
               Make_Return_Statement (Loc,
                 Expression => New_Occurrence_Of (Any_Parameter, Loc)));
@@ -516,7 +514,7 @@ package body Exp_Hlpr is
                 Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
                 Parameter_Associations => New_List (
                   New_Occurrence_Of (Any_Parameter, Loc),
-                  Build_TypeCode_Call (Loc, Typ))));
+                  Build_TypeCode_Call (Loc, Typ, Decls))));
             Append_To (Stms,
               Make_Return_Statement (Loc,
                 Expression => New_Occurrence_Of (Any_Parameter, Loc)));
@@ -537,8 +535,9 @@ package body Exp_Hlpr is
    -------------------------
 
    function Build_TypeCode_Call
-     (Loc : Source_Ptr;
-      Typ : Entity_Id)
+     (Loc   : Source_Ptr;
+      Typ   : Entity_Id;
+      Decls : List_Id)
       return Node_Id
    is
       U_Type  : constant Entity_Id  := Underlying_Type (Typ);
@@ -644,7 +643,8 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_TypeCode_Function (Loc, U_Type, Decl, Fnam);
-            Insert_Action (Declaration_Node (Typ), Decl);
+            --  Insert_Action (Declaration_Node (Typ), Decl);
+            Append_To (Decls, Decl);
          end;
       end if;
 
@@ -760,7 +760,7 @@ package body Exp_Hlpr is
                 Expression => Build_TC_Alias_Call (Loc,
                   Name_String,
                   Repo_Id_String,
-                  Build_TypeCode_Call (Loc, Parent_Type))));
+                  Build_TypeCode_Call (Loc, Parent_Type, Decls))));
          end;
       elsif Is_Integer_Type (Typ)
         or else Is_Unsigned_Type (Typ)
@@ -775,7 +775,7 @@ package body Exp_Hlpr is
                Name_String,
                Repo_Id_String,
                Build_TypeCode_Call (Loc,
-                  Find_Numeric_Representation (Typ)))));
+                  Find_Numeric_Representation (Typ), Decls))));
       else
          declare
             TypeCode_Parameter : constant Entity_Id

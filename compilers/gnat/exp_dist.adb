@@ -2640,7 +2640,7 @@ package body Exp_Dist is
 
          if Is_Function then
             Result_TC := Build_TypeCode_Call (Loc,
-              Etype (Subtype_Mark (Spec)));
+              Etype (Subtype_Mark (Spec)), Decls);
          else
             Result_TC := New_Occurrence_Of (RTE (RE_TC_Void), Loc);
          end if;
@@ -2763,13 +2763,13 @@ package body Exp_Dist is
                   --  The parameter has an input value, or is
                   --  constrained at runtime by an input value.
 
-                  Expr := Build_To_Any_Call (Actual_Parameter);
+                  Expr := Build_To_Any_Call (Actual_Parameter, Decls);
                else
                   Expr := Make_Function_Call (Loc,
                     Name =>
                       New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
                     Parameter_Associations => New_List (
-                      Build_TypeCode_Call (Loc, Etyp)));
+                      Build_TypeCode_Call (Loc, Etyp, Decls)));
                end if;
 
                Append_To (Decls,
@@ -2838,8 +2838,8 @@ package body Exp_Dist is
                          Prefix         =>
                            New_Occurrence_Of (
                              Defining_Identifier (Current_Parameter), Loc),
-                         Attribute_Name => Name_Constrained))));
-
+                         Attribute_Name => Name_Constrained),
+                       Decls)));
                Append_To (Extra_Formal_Statements,
                  Add_Parameter_To_NVList (Loc,
                    Parameter   => Extra_Any_Parameter,
@@ -2970,7 +2970,8 @@ package body Exp_Dist is
                         Prefix =>
                           New_Occurrence_Of (Result, Loc),
                         Selector_Name =>
-                          Make_Identifier (Loc, Name_Argument))))));
+                          Make_Identifier (Loc, Name_Argument)),
+                      Decls))));
 
          else
             --  Loop around parameters and assign out (or in out) parameters.
@@ -3014,7 +3015,9 @@ package body Exp_Dist is
                               Prefix =>
                                 New_Occurrence_Of (Result, Loc),
                               Selector_Name =>
-                                Make_Identifier (Loc, Name_Argument)))));
+                                Make_Identifier (Loc, Name_Argument)),
+                            Decls)));
+
                end if;
 
                Next (Current_Parameter);
@@ -3566,7 +3569,7 @@ package body Exp_Dist is
                     Name =>
                       New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
                     Parameter_Associations => New_List (
-                      Build_TypeCode_Call (Loc, Etyp)))));
+                      Build_TypeCode_Call (Loc, Etyp, Outer_Decls)))));
 
             Object := Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
             Set_Ekind (Object, E_Variable);
@@ -3592,7 +3595,7 @@ package body Exp_Dist is
                --  'Input instead of 'Read.
 
                Expr := Build_From_Any_Call (
-                         Etyp, New_Occurrence_Of (Any, Loc));
+                         Etyp, New_Occurrence_Of (Any, Loc), Decls);
 
                if Constrained then
 --                    Append_To (Statements,
@@ -3663,7 +3666,9 @@ package body Exp_Dist is
                      New_Occurrence_Of (RTE (RE_Copy_Any_Value), Loc),
                    Parameter_Associations => New_List (
                      New_Occurrence_Of (Any, Loc),
-                     Build_To_Any_Call (New_Occurrence_Of (Object, Loc)))));
+                     Build_To_Any_Call (
+                       New_Occurrence_Of (Object, Loc),
+                       Decls))));
             end if;
 
             if
@@ -3771,7 +3776,8 @@ package body Exp_Dist is
                       Expression =>
                         Build_From_Any_Call (
                           Etype (Extra_Parameter),
-                          New_Occurrence_Of (Extra_Any, Loc))));
+                          New_Occurrence_Of (Extra_Any, Loc),
+                    Decls)));
                   Set_Extra_Constrained (Object, Formal_Entity);
 
                end;
@@ -3826,8 +3832,9 @@ package body Exp_Dist is
                   New_Occurrence_Of (RTE (RE_Set_Result), Loc),
                 Parameter_Associations => New_List (
                   New_Occurrence_Of (Request_Parameter, Loc),
-                  Build_To_Any_Call (New_Occurrence_Of (Result, Loc)))));
-
+                  Build_To_Any_Call (
+                    New_Occurrence_Of (Result, Loc),
+                    Decls))));
             --  A DSA function does not have out or inout arguments.
 
          end;

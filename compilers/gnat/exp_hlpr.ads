@@ -33,11 +33,13 @@ with Types; use Types;
 package Exp_Hlpr is
 
    function Build_From_Any_Call
-     (Typ : Entity_Id;
-      N   : Node_Id)
+     (Typ   : Entity_Id;
+      N     : Node_Id;
+      Decls : List_Id)
       return Node_Id;
    --  Build call to From_Any attribute function of type Typ
-   --  withf expression N as actual parameter.
+   --  withf expression N as actual parameter. If the function
+   --  needs to be generated inline, append it to Decls.
 
    procedure Build_From_Any_Function
      (Loc  :     Source_Ptr;
@@ -46,9 +48,13 @@ package Exp_Hlpr is
       Fnam : out Entity_Id);
    --  Build From_Any attribute function for Typ.
 
-   function Build_To_Any_Call (N : Node_Id) return Node_Id;
+   function Build_To_Any_Call
+     (N     : Node_Id;
+      Decls : List_Id)
+      return Node_Id;
    --  Build call to To_Any attribute function with expression N
-   --  as actual parameter.
+   --  as actual parameter. If the function needs to be generated
+   --  inline, append it to Decls.
 
    procedure Build_To_Any_Function
      (Loc  :     Source_Ptr;
@@ -58,10 +64,12 @@ package Exp_Hlpr is
    --  Build To_Any attribute function for Typ.
 
    function Build_TypeCode_Call
-     (Loc : Source_Ptr;
-      Typ : Entity_Id)
+     (Loc   : Source_Ptr;
+      Typ   : Entity_Id;
+      Decls : List_Id)
       return Node_Id;
-   --  Build call to TypeCode attribute function for Typ.
+   --  Build call to TypeCode attribute function for Typ. If
+   --  the function needs to be generated inline, append it to Decls.
 
    procedure Build_TypeCode_Function
      (Loc  :     Source_Ptr;

@@ -116,14 +116,14 @@ package System.PolyORB_Interface is
       Exc_List  : in     PolyORB.Any.ExceptionList.Ref
         := PolyORB.Any.ExceptionList.Nil_Ref;
       Req       :    out PolyORB.Requests.Request_Access;
-      Req_Flags : in     PolyORB.Any.Flags := 0;
+      Req_Flags : in     PolyORB.Requests.Flags := 0;
       Deferred_Arguments_Session :
         in PolyORB.Components.Component_Access := null
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
      (R            : PolyORB.Requests.Request_Access;
-      Invoke_Flags : PolyORB.Any.Flags               := 0)
+      Invoke_Flags : PolyORB.Requests.Flags          := 0)
      renames PolyORB.Requests.Invoke;
 
    procedure Request_Arguments
@@ -185,7 +185,7 @@ package System.PolyORB_Interface is
    function TA_String (S : String) return PolyORB.Any.Any;
 
    function TA_ObjRef (R : PolyORB.References.Ref)
-     return PolyORB.Any.any
+     return PolyORB.Any.Any
      renames PolyORB.Any.ObjRef.To_Any;
 
    function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
