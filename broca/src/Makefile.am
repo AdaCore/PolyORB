@@ -121,7 +121,7 @@ install-data-local:
 ../adasockets/src/sockets-constants.ads:
 	cd ../adasockets/src && $(MAKE) sockets-constants.ads
 
-depend:
+depend: all
 	$(srcdir)/../support/mkdep $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
