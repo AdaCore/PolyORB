@@ -36,6 +36,7 @@ with CORBA.Object;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
+with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.InterfaceDef;
@@ -43,6 +44,7 @@ with CORBA.Repository_Root.OperationDef;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ModuleDef;
 
+with PolyORB.CORBA_P.Naming_Tools;
 
 procedure Client is
 
@@ -51,16 +53,13 @@ procedure Client is
 
 begin
 
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
-      return;
+   if Ada.Command_Line.Argument_Count = 1 then
+      IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+      CORBA.ORB.String_To_Object (IOR, Myrep);
+   else
+      MyRep := CORBA.Repository_Root.Repository.Helper.To_Ref
+         (PolyORB.CORBA_P.Naming_Tools.Locate ("Interface_Repository"));
    end if;
-
-   --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
-   --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, Myrep);
 
    --  checking if it worked
    if Repository.Is_Nil (Myrep) then

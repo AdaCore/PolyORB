@@ -26,12 +26,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-
---  with Ada.Tags;
---  with Ada.Text_IO;
-
 with CORBA;
 with CORBA.Object;
+with CORBA.ORB;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Repository.Impl;
@@ -44,12 +41,17 @@ with CosNaming.NamingContext;
 with PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 
+with PolyORB.Setup.No_Tasking_Server;
+pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+
 pragma Elaborate (PolyORB.CORBA_P.Server_Tools);
 
 procedure Server is
    Ref : CORBA.Object.Ref;
    Repo : Repository.Impl.Object_Ptr := new Repository.Impl.Object;
 begin
+   CORBA.ORB.Initialize ("ORB");
    Repository.Impl.Init (Repo,
                          IRObject.Impl.Object_Ptr (Repo),
                          dk_Repository,

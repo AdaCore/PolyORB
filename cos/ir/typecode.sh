@@ -12,6 +12,7 @@ pragma Warnings (Off);' \
          -e 's/CORBA.TypeCode.Ref/CORBA.TypeCode.Object/g' \
          -e '/with CORBA.Stream; use CORBA.Stream;/ D' \
          -e '/with CORBA.TypeCode.Helper;/ D' \
+         -e '/\& "CORBA.Helper"/ D' \
          -e 's/TypeCode.Helper.//g' < $file > $file.new
   mv $file.new $file
 done
