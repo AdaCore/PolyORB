@@ -7,4 +7,5 @@
 * Check termination on Prime.
 * Check that the Partition_RPC_Receiver of s-parint.adb cannot be installed
   more than once.
-* Fix termination on SunOS.
+* Make sure that System.Garlic.Startup is elaborated *before* any user
+  partition.
