@@ -1,6 +1,7 @@
 with Droopi.Locks;
 
-with CORBA.POA_Types;               use CORBA.POA_Types;
+with CORBA.Policy_Values; use CORBA.Policy_Values;
+with CORBA.POA_Types;     use CORBA.POA_Types;
 with CORBA.POA_Manager;
 with CORBA.Object_Map;
 with CORBA.Policy;
@@ -54,6 +55,10 @@ package CORBA.POA is
    --  ??? Part of this should be private (locks, active object map, father...)
    --  The policies are used by all corba-policy-*, we can keep them public
 
+   --------------------------------------------------
+   --  Procedures and functions required by CORBA  --
+   --------------------------------------------------
+
    function Create_POA
      (Self         : access Obj_Adapter;
       Adapter_Name :        String;
@@ -63,6 +68,55 @@ package CORBA.POA is
       is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
+
+   procedure Destroy
+     (Self                : access Obj_Adapter;
+      Etherealize_Objects : in     Boolean;
+      Wait_For_Completion : in     Boolean)
+      is abstract;
+   --  Destroys recursively the POA and all his descendants
+
+   function Create_Thread_Policy
+     (Self  : access Obj_Adapter;
+      Value :        ThreadPolicyValue)
+     return ThreadPolicy_Access
+      is abstract;
+
+   function Create_Lifespan_Policy
+     (Self  : access Obj_Adapter;
+      Value :        LifespanPolicyValue)
+     return LifespanPolicy_Access
+      is abstract;
+
+   function Create_Id_Uniqueness_Policy
+     (Self  : access Obj_Adapter;
+      Value :        IdUniquenessPolicyValue)
+     return IdUniquenessPolicy_Access
+      is abstract;
+
+   function Create_Id_Assignement_Policy
+     (Self  : access Obj_Adapter;
+      Value :        IdAssignementPolicyValue)
+     return IdAssignementPolicy_Access
+     is abstract;
+
+   function Create_Servant_Retention_Policy
+     (Self  : access Obj_Adapter;
+      Value :        ServantRetentionPolicyValue)
+     return ServantRetentionPolicy_Access
+     is abstract;
+
+   function Create_Request_Processing_Policy
+     (Self  : access Obj_Adapter;
+      Value :        RequestProcessingPolicyValue)
+     return RequestProcessingPolicy_Access
+     is abstract;
+
+   function Create_Implicit_Activation_Policy
+     (Self  : access Obj_Adapter;
+      Value :        ImplicitActivationPolicyValue)
+     return ImplicitActivationPolicy_Access
+      is abstract;
 
    function Activate_Object
      (Self      : access Obj_Adapter;
@@ -123,10 +177,16 @@ package CORBA.POA is
    --  Functions and procedures not in the CORBA Norme  --
    -------------------------------------------------------
 
-   procedure Copy_Obj_Adapter (From : in     Obj_Adapter;
-                               To   : access Obj_Adapter)
+   procedure Copy_Obj_Adapter
+     (From : in     Obj_Adapter;
+      To   : access Obj_Adapter)
       is abstract;
    --  Copy values from one Obj_Adapter to another
    --  (Obj_Adapter is limited...)
+
+   procedure Remove_POA_By_Name
+     (Self       : access Obj_Adapter;
+      Child_Name :        String)
+     is abstract;
 
 end CORBA.POA;

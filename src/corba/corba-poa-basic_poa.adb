@@ -29,6 +29,10 @@ package body CORBA.POA.Basic_POA is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ----------------------------------------------------------
+   --  Declaration of additional procedures and functions  --
+   ----------------------------------------------------------
+
    function Get_Boot_Time return Time_Stamp;
 
    function Get_Child (Adapter : access Basic_Obj_Adapter;
@@ -40,8 +44,11 @@ package body CORBA.POA.Basic_POA is
 
    procedure Init_With_User_Policies (OA       : Basic_Obj_Adapter_Access;
                                       Policies : Policy.PolicyList_Access);
+
    procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access);
+
    procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access);
+
    function Register_Child (Self  : access Basic_Obj_Adapter;
                             Child :        Basic_Obj_Adapter_Access)
                            return Positive;
@@ -64,6 +71,10 @@ package body CORBA.POA.Basic_POA is
    --  The Find_Servant from Droopi, plus a parameter.
    --  If check is NO_CHECK, the POA doesn't check its state.
 
+   ------------------------------------
+   --  Code of additional functions  --
+   ------------------------------------
+
    ---------------
    -- Get_Child --
    ---------------
@@ -81,7 +92,6 @@ package body CORBA.POA.Basic_POA is
          for I in 1 .. Length (Adapter.Children.all) loop
             A_Child := Element_Of (Adapter.Children.all, I);
             if CORBA.POA.Obj_Adapter_Access (A_Child).Name = Name then
-               Unlock_R (Adapter.Children_Lock);
                return A_Child;
             end if;
          end loop;
@@ -373,6 +383,46 @@ package body CORBA.POA.Basic_POA is
       Destroy_Locks    (OA.all);
    end Destroy_OA;
 
+   ---------------------
+   -- Create_Root_POA --
+   ---------------------
+
+   function Create_Root_POA
+     return Obj_Adapter_Access
+   is
+      New_Obj_Adapter : Basic_Obj_Adapter_Access;
+      Conf            : POA_Configuration.Minimum.Minimum_Configuration;
+   begin
+      pragma Debug (O ("Create a new Root_POA"));
+
+      --  Create new Obj Adapter
+      New_Obj_Adapter                  := new Basic_Obj_Adapter;
+      New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
+      New_Obj_Adapter.Name             := To_CORBA_String ("RootPOA");
+      New_Obj_Adapter.Absolute_Address := To_CORBA_String ("");
+      Create (New_Obj_Adapter.Children_Lock);
+      Create (New_Obj_Adapter.Map_Lock);
+
+      New_Obj_Adapter.POA_Manager      := new Basic_POA_Manager;
+      Create (New_Obj_Adapter.POA_Manager);
+      Register_POA (New_Obj_Adapter.POA_Manager,
+                    CORBA.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+
+      --  Create and initialize policies factory
+      New_Obj_Adapter.P_Factory
+        := CORBA.Policy.Policies_Factory_Pkg.New_Factory;
+      Initialize (Conf, New_Obj_Adapter.P_Factory);
+
+      --  Use default policies
+      Init_With_Default_Policies (New_Obj_Adapter);
+
+      return Obj_Adapter_Access (New_Obj_Adapter);
+   end Create_Root_POA;
+
+   -------------------------------------------------
+   -- Procedures and functions required by Corba  --
+   -------------------------------------------------
+
    ----------------
    -- Create_POA --
    ----------------
@@ -472,53 +522,57 @@ package body CORBA.POA.Basic_POA is
          raise;
    end Create_POA;
 
-   ---------------------
-   -- Create_Root_POA --
-   ---------------------
+   -------------
+   -- Destroy --
+   -------------
 
-   function Create_Root_POA
-     return Obj_Adapter_Access
+   procedure Destroy
+     (Self                : access Basic_Obj_Adapter;
+      Etherealize_Objects : in     Boolean;
+      Wait_For_Completion : in     Boolean)
    is
-      New_Obj_Adapter : Basic_Obj_Adapter_Access;
-      Conf            : POA_Configuration.Minimum.Minimum_Configuration;
+      use CORBA.POA_Types.POA_Sequences;
+      A_Child : CORBA.POA.Obj_Adapter_Access;
+      Name    : String := Self.Name;
    begin
-      pragma Debug (O ("Create a new Root_POA"));
+      pragma Debug (O ("Start destroying POA "
+                       & To_Standard_String (Name)));
 
-      --  Create new Obj Adapter
-      New_Obj_Adapter                  := new Basic_Obj_Adapter;
-      New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
-      New_Obj_Adapter.Name             := To_CORBA_String ("RootPOA");
-      New_Obj_Adapter.Absolute_Address := To_CORBA_String ("");
-      Create (New_Obj_Adapter.Children_Lock);
-      Create (New_Obj_Adapter.Map_Lock);
+      --  First, destroy all children
+      Lock_W (Self.Children_Lock);
+      if Self.Children /= null then
+         for I in 1 .. Length (Sequence (Self.Children.all)) loop
+            A_Child := CORBA.POA.Obj_Adapter_Access
+              (Element_Of (Sequence (Self.Children.all), I));
+            Destroy (A_Child.all'Access,
+                     Etherealize_Objects,
+                     Wait_For_Completion);
+            Replace_Element (Sequence (Self.Children.all), I, null);
+         end loop;
+      end if;
+      Unlock_W (Self.Children_Lock);
 
-      New_Obj_Adapter.POA_Manager      := new Basic_POA_Manager;
-      Create (New_Obj_Adapter.POA_Manager);
-      Register_POA (New_Obj_Adapter.POA_Manager,
-                    CORBA.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+      --  Tell father to remove current POA from its list of children
+      Remove_POA_By_Name
+        (CORBA.POA.Obj_Adapter_Access (Self.Father).all'Access,
+         Self.Name);
 
-      --  Create and initialize policies factory
-      New_Obj_Adapter.P_Factory
-        := CORBA.Policy.Policies_Factory_Pkg.New_Factory;
-      Initialize (Conf, New_Obj_Adapter.P_Factory);
-
-      --  Use default policies
-      Init_With_Default_Policies (New_Obj_Adapter);
-
-      return Obj_Adapter_Access (New_Obj_Adapter);
-   end Create_Root_POA;
-
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create (OA : access Basic_Obj_Adapter)
-   is
-      Result : Basic_Obj_Adapter_Access
-        := Basic_Obj_Adapter_Access (Create_Root_POA);
-   begin
-      Copy_Obj_Adapter (Result.all, OA);
-   end Create;
+      --  Destroy self
+      --  ??? Add code for Etherealize_Objects and Wait_For_Completion
+      Destroy_OA (Self);
+      declare
+         OA : Basic_Obj_Adapter_Access
+           := Basic_Obj_Adapter_Access (Self);
+      begin
+         Free (OA);
+      end;
+      pragma Debug (O ("POA "
+                       & To_Standard_String (Name)
+                       & " destroyed"));
+   exception
+      when others =>
+         Unlock_W (Self.Children_Lock);
+   end Destroy;
 
    --------------------------
    -- Create_Thread_Policy --
@@ -687,6 +741,10 @@ package body CORBA.POA.Basic_POA is
       return Oid.all;
    end Servant_To_Id;
 
+   ---------------------------------------------------------------
+   --  Procedures and functions neither in Corba nor in Droopi  --
+   ---------------------------------------------------------------
+
    -------------------
    -- Id_To_Servant --
    -------------------
@@ -772,9 +830,52 @@ package body CORBA.POA.Basic_POA is
       To.Map_Lock          := From.Map_Lock;
    end Copy_Obj_Adapter;
 
+   ------------------------
+   -- Remove_POA_By_Name --
+   ------------------------
+
+   procedure Remove_POA_By_Name
+     (Self       : access Basic_Obj_Adapter;
+      Child_Name :        String)
+   is
+      use POA_Sequences;
+      A_Child : POA_Types.Obj_Adapter_Access;
+   begin
+      pragma Debug (O (To_Standard_String (Self.Name)
+                       & ": removing POA with name "
+                       & To_Standard_String (Child_Name)
+                       & " from my children."));
+      Lock_W (Self.Children_Lock);
+      for I in 1 .. Length (Self.Children.all) loop
+         A_Child := Element_Of (Self.Children.all, I);
+         if CORBA.POA.Obj_Adapter_Access (A_Child).Name =  Child_Name then
+            Replace_Element (Sequence (Self.Children.all), I, null);
+            Unlock_W (Self.Children_Lock);
+            return;
+         end if;
+      end loop;
+      Unlock_W (Self.Children_Lock);
+   exception
+      when others =>
+         Unlock_W (Self.Children_Lock);
+         raise;
+   end Remove_POA_By_Name;
+
    ---------------------------------------------------
    --  Procedures and functions required by Droopi  --
    ---------------------------------------------------
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create (OA : access Basic_Obj_Adapter)
+   is
+      Result : Basic_Obj_Adapter_Access
+        := Basic_Obj_Adapter_Access (Create_Root_POA);
+   begin
+      Copy_Obj_Adapter (Result.all, OA);
+   end Create;
 
    -------------
    -- Destroy --

@@ -31,6 +31,10 @@ package CORBA.POA.Basic_POA is
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
+   --------------------------------------------------
+   --  Procedures and functions required by CORBA  --
+   --------------------------------------------------
+
    function Create_POA
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        String;
@@ -39,6 +43,11 @@ package CORBA.POA.Basic_POA is
      return Obj_Adapter_Access;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
+
+   procedure Destroy
+     (Self                : access Basic_Obj_Adapter;
+      Etherealize_Objects : in     Boolean;
+      Wait_For_Completion : in     Boolean);
 
    function Create_Thread_Policy
      (Self  : access Basic_Obj_Adapter;
@@ -102,6 +111,7 @@ package CORBA.POA.Basic_POA is
    --------------------------------------------------------
    --  Functions and procedures to interface with Droopi --
    --------------------------------------------------------
+
    procedure Create
      (OA : access Basic_Obj_Adapter);
 
@@ -146,6 +156,10 @@ package CORBA.POA.Basic_POA is
    procedure Copy_Obj_Adapter
      (From : in     Basic_Obj_Adapter;
       To   : access Basic_Obj_Adapter);
+
+   procedure Remove_POA_By_Name
+     (Self       : access Basic_Obj_Adapter;
+      Child_Name :        String);
 
    function Create_Root_POA
      return Obj_Adapter_Access;
