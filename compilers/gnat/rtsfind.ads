@@ -1078,7 +1078,11 @@ package Rtsfind is
      RE_TA_SU,                           -- System.PolyORB_Interface
      RE_TA_U,                            -- System.PolyORB_Interface
      RE_TA_WC,                           -- System.PolyORB_Interface
+     RE_TA_String,                       -- System.PolyORB_Interface
+     RE_TA_TC,                           -- System.PolyORB_Interface
 
+     RE_TC_Alias,                        -- System.PolyORB_Interface
+     RE_TC_Build,                        -- System.PolyORB_Interface
      RE_TC_AD,                           -- System.PolyORB_Interface
      RE_TC_AS,                           -- System.PolyORB_Interface
      RE_TC_B,                            -- System.PolyORB_Interface
@@ -2062,7 +2066,11 @@ package Rtsfind is
      RE_TA_SU                            => System_PolyORB_Interface,
      RE_TA_U                             => System_PolyORB_Interface,
      RE_TA_WC                            => System_PolyORB_Interface,
+     RE_TA_String                        => System_PolyORB_Interface,
+     RE_TA_TC                            => System_PolyORB_Interface,
 
+     RE_TC_Alias                         => System_PolyORB_Interface,
+     RE_TC_Build                         => System_PolyORB_Interface,
      RE_TC_AD                            => System_PolyORB_Interface,
      RE_TC_AS                            => System_PolyORB_Interface,
      RE_TC_B                             => System_PolyORB_Interface,

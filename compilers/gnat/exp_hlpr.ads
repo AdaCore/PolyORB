@@ -32,9 +32,14 @@ with Types; use Types;
 
 package Exp_Hlpr is
 
-   function Build_Elementary_TypeCode_Call (N : Node_Id) return Node_Id;
-   --  Build call to TypeCode attribute function for elementary type
-   --  N is the attribute reference node.
+   function Build_To_Any_Call (E : Entity_Id) return Node_Id;
+   --  Build call to To_Any attribute function for type Etyp (E).
+   --  E must declare an object, and is passed as argument to
+   --  To_Any.
+
+   function Build_TypeCode_Call (N : Node_Id) return Node_Id;
+   --  Build call to TypeCode attribute function for the type
+   --  declared by N.
 
    procedure Build_TypeCode_Function
      (Loc : Source_Ptr;

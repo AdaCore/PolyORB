@@ -30,7 +30,7 @@ with Atree;    use Atree;
 with Einfo;    use Einfo;
 with Exp_Util; use Exp_Util;
 with Lib;      use Lib;
---  with Namet;    use Namet;
+with Namet;    use Namet;
 with Nlists;   use Nlists;
 with Nmake;    use Nmake;
 with Rtsfind;  use Rtsfind;
@@ -41,6 +41,7 @@ with Sem_Ch8;  use Sem_Ch8;
 with Sem_Util; use Sem_Util;
 with Snames;   use Snames;
 with Stand;    use Stand;
+with Stringt;  use Stringt;
 with Tbuild;   use Tbuild;
 with Ttypes;   use Ttypes;
 with Exp_Tss;  use Exp_Tss;
@@ -57,6 +58,7 @@ package body Exp_Hlpr is
       Decl  : Node_Id;
       Arr   : Entity_Id;
       Check : Boolean);
+   pragma Unreferenced (Compile_Stream_Body_In_Scope);
    --  The body for a stream subprogram may be generated outside of the scope
    --  of the type. If the type is fully private, it may depend on the full
    --  view of other types (e.g. indices) that are currently private as well.
@@ -83,49 +85,72 @@ package body Exp_Hlpr is
    --  Return the name to be assigned for stream subprogram Nam of Typ.
    --  (copied from exp_strm.adb)
 
-   ------------------------------------
-   -- Build_Elementary_TypeCode_Call --
-   ------------------------------------
+   -----------------------
+   -- Build_To_Any_Call --
+   -----------------------
 
-   function Build_Elementary_TypeCode_Call (N : Node_Id) return Node_Id is
+   function Build_To_Any_Call (E : Entity_Id) return Node_Id is
+   begin
+      return Empty;
+   end Build_To_Any_Call;
+
+   -------------------------
+   -- Build_TypeCode_Call --
+   -------------------------
+
+   function Build_TypeCode_Call (N : Node_Id) return Node_Id is
       Loc     : constant Source_Ptr := Sloc (N);
-      P_Type  : constant Entity_Id  := Entity (Prefix (N));
+      P_Type  : constant Entity_Id  := Entity (N);
       U_Type  : constant Entity_Id  := Underlying_Type (P_Type);
-      Rt_Type : constant Entity_Id  := Root_Type (U_Type);
+      --  The full view, if P_Type is private; the completion,
+      --  if P_Type is incomplete.
+
+      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
       FST     : constant Entity_Id  := First_Subtype (U_Type);
       P_Size  : constant Uint       := Esize (FST);
-      Lib_RE  : RE_Id;
+
+      Pnam : Entity_Id := Empty;
+      Lib_RE  : RE_Id := RE_Null;
 
    begin
+
+      --  First simple case where the TypeCode is present
+      --  in the type's TSS.
+
+      Pnam := Find_Helper (N, P_Type, Name_uTypeCode);
+
       --  Check first for Boolean and Character. These are enumeration types,
       --  but we treat them specially, since they may require special handling
       --  in the transfer protocol. However, this special handling only applies
       --  if they have standard representation, otherwise they are treated like
       --  any other enumeration type.
 
-      if Rt_Type = Standard_Boolean then
+      if Present (Pnam) then
+         null;
+
+      elsif U_Type = Standard_Boolean then
          Lib_RE := RE_TC_B;
 
-      elsif Rt_Type = Standard_Character then
+      elsif U_Type = Standard_Character then
          Lib_RE := RE_TC_C;
 
-      elsif Rt_Type = Standard_Wide_Character then
+      elsif U_Type = Standard_Wide_Character then
          Lib_RE := RE_TC_WC;
 
       --  Floating point types
 
       elsif Is_Floating_Point_Type (U_Type) then
 
-         if Rt_Type = Standard_Short_Float then
+         if U_Type = Standard_Short_Float then
             Lib_RE := RE_TC_SF;
 
-         elsif Rt_Type = Standard_Float then
+         elsif U_Type = Standard_Float then
             Lib_RE := RE_TC_F;
 
-         elsif Rt_Type = Standard_Long_Float then
+         elsif U_Type = Standard_Long_Float then
             Lib_RE := RE_TC_LF;
 
-         else pragma Assert (Rt_Type = Standard_Long_Long_Float);
+         else pragma Assert (U_Type = Standard_Long_Long_Float);
             Lib_RE := RE_TC_LLF;
          end if;
 
@@ -216,15 +241,20 @@ package body Exp_Hlpr is
 
       --  Call the function
 
+      if Lib_RE /= RE_Null then
+         pragma Assert (No (Pnam));
+         Pnam := New_Occurrence_Of (RTE (Lib_RE), Loc);
+      end if;
+
       return
           Make_Function_Call (Loc,
-            Name => New_Occurrence_Of (RTE (Lib_RE), Loc),
+            Name => Pnam,
             Parameter_Associations => Empty_List);
 
-   end Build_Elementary_TypeCode_Call;
+   end Build_TypeCode_Call;
 
    -----------------------------
-   -- Build_TypeCode_function --
+   -- Build_TypeCode_Function --
    -----------------------------
 
    procedure Build_TypeCode_Function
@@ -234,8 +264,7 @@ package body Exp_Hlpr is
       Fnam : out Entity_Id)
    is
       Spec : Node_Id;
-      Stms : constant List_Id :=
-        New_List (Make_Null_Statement (Loc));
+      Stms : constant List_Id := New_List;
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTypeCode);
 
@@ -244,6 +273,47 @@ package body Exp_Hlpr is
           Defining_Unit_Name => Fnam,
           Parameter_Specifications => Empty_List,
           Subtype_Mark => RTE (RE_TypeCode));
+
+      if Is_Derived_Type (Typ)
+        and then not Is_Tagged_Type (Typ)
+      then
+         Get_Name_String (Chars (Defining_Identifier (Typ)));
+         declare
+            Name_String : constant String_Id := String_From_Name_Buffer;
+            Repo_Id_String : String_Id := Name_String;
+         begin
+
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression =>
+                  Make_Function_Call (Loc,
+                    Name =>
+                      New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+                    Parameter_Associations => New_List (
+                      New_Occurrence_Of (RTE (RE_TC_Alias), Loc),
+                      Make_Aggregate (Loc,
+                        Expressions =>
+                          New_List (
+                            Make_Function_Call (Loc,
+                              Name =>
+                                New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                              Parameter_Associations => New_List (
+                                Make_String_Literal (Loc, Name_String))),
+                            Make_Function_Call (Loc,
+                              Name =>
+                                New_Occurrence_Of (RTE (RE_TA_String), Loc),
+                              Parameter_Associations => New_List (
+                                Make_String_Literal (Loc, Repo_Id_String))),
+                            Make_Function_Call (Loc,
+                              Name =>
+                                New_Occurrence_Of (RTE (RE_TA_TC), Loc),
+                              Parameter_Associations => New_List (
+                                Build_TypeCode_Call
+                                  (Declaration_Node (Base_Type (Typ)))))))))));
+         end;
+      else
+         Append_To (Stms, Make_Null_Statement (Loc));
+      end if;
 
       Decl :=
         Make_Subprogram_Body (Loc,
@@ -314,7 +384,6 @@ package body Exp_Hlpr is
       Loc : constant Source_Ptr := Sloc (N);
       Pname : Entity_Id;
       Decl : Node_Id;
-
    begin
 
       Pname := Find_Inherited_TSS (Typ, Hnam);
@@ -323,8 +392,10 @@ package body Exp_Hlpr is
          null;
       elsif Hnam = Name_uTypeCode then
          Build_TypeCode_Function (Loc, Typ, Decl, Pname);
-         Compile_Stream_Body_In_Scope
-           (N, Decl, Typ, Check => False);
+         Insert_Action (N, Decl);
+--           Compile_Stream_Body_In_Scope
+--             (N, Decl, Typ, Check => True);
+
 --        elsif Hnam = Name_uFrom_Any then
 --           Build_From_Any_Function (Typ, Pname);
 --        else

@@ -8,6 +8,8 @@ with PolyORB.Types;
 
 package System.PolyORB_Interface is
 
+   pragma Preelaborate;
+
    function To_PolyORB_String (S : Standard.String)
      return PolyORB.Types.Identifier
      renames PolyORB.Types.To_PolyORB_String;
@@ -17,6 +19,7 @@ package System.PolyORB_Interface is
    Mode_Out   : PolyORB.Any.Flags renames PolyORB.Any.ARG_OUT;
    Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
    subtype NamedValue is PolyORB.Any.NamedValue;
+   subtype TypeCode is PolyORB.Any.TypeCode.Object;
 
    subtype Object_Ref is PolyORB.References.Ref;
 
@@ -85,7 +88,9 @@ package System.PolyORB_Interface is
 --       function TA_SU (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
 --       function TA_U (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
 --       function TA_WC (X) return PolyORB.Any.Any renames PolyORB.Any.To_Any;
-
+   function TA_String (S : String) return PolyORB.Any.Any;
+   function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
+     renames PolyORB.Any.To_Any;
 --       function TC_AD return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
 --       function TC_AS return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
 
@@ -133,6 +138,13 @@ package System.PolyORB_Interface is
    function TC_U return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Unsigned_Long;
    function TC_WC return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TC_Wide_Char;
+     renames PolyORB.Any.TC_Wchar;
+
+   type Any_Array is array (Natural range <>) of PolyORB.Any.Any;
+
+   function TC_Build
+     (Base : PolyORB.Any.TypeCode.Object;
+      Parameters : Any_Array)
+      return PolyORB.Any.TypeCode.Object;
 
 end System.PolyORB_Interface;

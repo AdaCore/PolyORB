@@ -29,6 +29,7 @@
 with Atree;       use Atree;
 with Einfo;       use Einfo;
 with Elists;      use Elists;
+with Exp_Hlpr;    use Exp_Hlpr;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
@@ -2285,9 +2286,18 @@ package body Exp_Dist is
                                Is_Constrained (Etyp)
                                  or else Is_Elementary_Type (Etyp);
 
+               TC_Parameter : constant Entity_Id :=
+                                 Make_Defining_Identifier (Loc,
+                                   New_Internal_Name ('T'));
+
                Any_Parameter : constant Entity_Id :=
                                  Make_Defining_Identifier (Loc,
                                    New_Internal_Name ('A'));
+
+               --  Just for testing: pull in helpers (actually
+               --  the TypeCode is needed only for Out parameters;
+               --  for in and onout, only To_Any is required
+               --  at this point.
 
                Mode_Expr : Node_Id;
             begin
@@ -2309,6 +2319,21 @@ package body Exp_Dist is
 --                         New_Occurrence_Of (
 --                           Defining_Identifier (Current_Parameter), Loc))));
 --                end if;
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier =>
+                     TC_Parameter,
+                   Constant_Present =>
+                     True,
+                   Aliased_Present =>
+                     False,
+                   Object_Definition =>
+                     New_Occurrence_Of (RTE (RE_TypeCode), Loc),
+                   Expression =>
+                     Build_TypeCode_Call
+                       (Parameter_Type (Current_Parameter))));
+
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
                    Defining_Identifier =>
@@ -2317,8 +2342,10 @@ package body Exp_Dist is
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     --  Make_To_Any_Function_Call (Loc,)
-                     Empty));
+                     Build_To_Any_Call (Current_Parameter)));
+
+               Get_Name_String (Chars (Defining_Identifier
+                                         (Current_Parameter)));
 
                Append_To (Statements,
                  Make_Procedure_Call_Statement (Loc,
@@ -2333,10 +2360,7 @@ package body Exp_Dist is
                            (RTE (RE_To_PolyORB_String), Loc),
                        Parameter_Associations => New_List (
                          Make_String_Literal (Loc,
-                           Strval => Get_String_Id
-                             (Get_Name_String
-                              (Chars (Defining_Identifier
-                               (Current_Parameter))))))),
+                           Strval => String_From_Name_Buffer))),
                      New_Occurrence_Of (Any_Parameter, Loc))));
 
                if Out_Present (Current_Parameter) then
@@ -2413,6 +2437,7 @@ package body Exp_Dist is
 --                        Attribute_Name => Name_Constrained)));
                      Empty));
 
+               Get_Name_String (Chars (Extra_Any_Parameter));
                Append_To (Extra_Formal_Statements,
                  Make_Procedure_Call_Statement (Loc,
                    Name =>
@@ -2426,9 +2451,7 @@ package body Exp_Dist is
                            (RTE (RE_To_PolyORB_String), Loc),
                        Parameter_Associations => New_List (
                          Make_String_Literal (Loc,
-                           Strval => Get_String_Id
-                             (Get_Name_String
-                              (Chars (Extra_Any_Parameter)))))),
+                           Strval => String_From_Name_Buffer))),
                      New_Occurrence_Of (Extra_Any_Parameter, Loc))));
 --             Append_To (Extra_Formal_Statements,
 --                  Make_Attribute_Reference (Loc,
