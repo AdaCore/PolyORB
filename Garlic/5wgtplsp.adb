@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Thin; use System.Garlic.Thin;
+
 package body System.Garlic.TCP.Platform_Specific is
 
    --  Windows NT version of this package.
@@ -44,7 +46,6 @@ package body System.Garlic.TCP.Platform_Specific is
    --  the specific goal it tries to achieve, it is acceptable.
 
    package C renames Interfaces.C;
-   use System.Garlic.Thin;
 
    type NT_Hostent is record
       H_Name      : Strings.chars_ptr;

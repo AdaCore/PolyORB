@@ -61,8 +61,8 @@ private
 
    --  Start the winsock service
 
-   Retcode : constant Interfaces.C.int :=
+   Return_Value : constant Interfaces.C.int :=
      WSAStartup (WS_Version, WSAData_Dummy'Address);
-   pragma Assert (Interfaces.C.int."=" (Retcode, 0));
+   pragma Assert (Interfaces.C."=" (Return_Value, 0));
 
 end System.Garlic.TCP.Platform_Specific;
