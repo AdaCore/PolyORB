@@ -54,7 +54,7 @@ package body CORBA.ServerRequest is
 
    function Operation (O : Object) return Identifier is
    begin
-      return Identifier (O.Operation);
+      return To_CORBA_String (O.Operation.all);
    end Operation;
 
    ---------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ package body PolyORB.Test_Object_SOA is
             Put_Line ("The server is executing the request:"
                       & PolyORB.Requests.Image (Req.all));
 
-            if Req.Operation = To_PolyORB_String ("echoString") then
+            if Req.Operation.all = "echoString" then
                declare
                   echoString_Arg : constant Types.String
                     := From_Any (Value (It).Argument);
@@ -139,9 +139,8 @@ package body PolyORB.Test_Object_SOA is
                     (echoString (Obj.all, echoString_Arg));
                   Put_Line ("Result: " & Image (Req.Result));
                end;
-            elsif
-              Req.Operation = To_PolyORB_String ("waitAndEchoString")
-            then
+
+            elsif Req.Operation.all = "waitAndEchoString" then
                declare
                   Arg1, Arg2 : Element_Access;
                begin
@@ -155,7 +154,8 @@ package body PolyORB.Test_Object_SOA is
                                         From_Any (Arg2.Argument)));
                   Put_Line ("Result: " & Image (Req.Result));
                end;
-            elsif Req.Operation = "echoInteger" then
+
+            elsif Req.Operation.all = "echoInteger" then
                declare
                   echoInteger_Arg : constant Types.Long
                      := From_Any (Value (It).Argument);
@@ -164,9 +164,11 @@ package body PolyORB.Test_Object_SOA is
                     (echoInteger (Obj.all, echoInteger_Arg));
                   Put_Line ("Result: " & Image (Req.Result));
                end;
+
             else
                raise Program_Error;
             end if;
+
             return Executed_Request'(Req => Req);
          end;
       else

@@ -141,8 +141,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
      (Self    : access Object;
       Request : in     PolyORB.Requests.Request_Access)
    is
-      Operation : constant Standard.String
-         := PolyORB.Types.To_Standard_String (Request.all.Operation);
+      Operation : Standard.String renames Request.all.Operation.all;
 
       Arg_List    : PolyORB.Any.NVList.Ref;
    begin

@@ -416,9 +416,7 @@ package body System.PolyORB_Interface is
                --  auto-generated ones constructed from a distributed object
                --  type declaration.
 
-               if PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Resolve
-               then
+               if EMsg.Req.Operation.all = Op_Resolve then
 
                   -------------
                   -- resolve --
@@ -515,10 +513,7 @@ package body System.PolyORB_Interface is
                   end;
                   goto Request_Completed;
 
-               elsif PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
-                 = Op_Get_Partition_Id
-               then
-
+               elsif EMsg.Req.Operation.all = Op_Get_Partition_Id then
                   declare
                      Arg_List    : NVList_Ref;
                   begin

@@ -301,7 +301,7 @@ package body PolyORB.Servants.Group_Servants is
               (Target                     =>
                  PolyORB.References.Ref'(TPL.Value (It).all),
                Operation                  =>
-                 To_Standard_String (Request.Operation),
+                 Request.Operation.all,
                Arg_List                   => Args,
                Result                     => Request.Result,
                Deferred_Arguments_Session =>

@@ -158,7 +158,7 @@ package body PortableInterceptor.RequestInfo.Impl is
 
    function Get_Operation (Self : access Object) return CORBA.String is
    begin
-      return CORBA.String (Self.Request.Operation);
+      return CORBA.To_CORBA_String (Self.Request.Operation.all);
    end Get_Operation;
 
    ---------------------------

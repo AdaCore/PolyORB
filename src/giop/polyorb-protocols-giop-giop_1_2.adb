@@ -1164,9 +1164,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Operation
 
-      pragma Debug (O ("Operation : "
-                       & To_Standard_String (R.Req.Operation)));
-      Marshall (Buffer, R.Req.Operation);
+      pragma Debug (O ("Operation : " & R.Req.Operation.all));
+
+      Marshall_Latin_1_String (Buffer, R.Req.Operation.all);
 
       --  Service context
 

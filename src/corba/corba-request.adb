@@ -153,7 +153,7 @@ package body CORBA.Request is
 
             PolyORB.Requests.Create_Request
               (Target    => Ref,
-               Operation => PolyORB.Types.To_String (Request.Operation),
+               Operation => Request.Operation.all,
                Arg_List  => Request.Args,
                Result    => Request.Result,
                Exc_List  => Request.Exc_List,

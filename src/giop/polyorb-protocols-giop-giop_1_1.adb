@@ -601,10 +601,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
          Stream_Element_Array
          (Oid.all));
 
-      pragma Debug (O ("Operation : "
-                       & To_Standard_String (R.Req.Operation)));
+      pragma Debug (O ("Operation : " & R.Req.Operation.all));
 
-      Marshall (Buffer, R.Req.Operation);
+      Marshall_Latin_1_String (Buffer, R.Req.Operation.all);
       Marshall_Latin_1_String (Buffer, Nobody_Principal);
 
       Marshall_Argument_List

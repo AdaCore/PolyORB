@@ -58,16 +58,6 @@ package body PolyORB.Representations.CDR.Common is
    procedure O (Message : in String; Level : Log_Level := Debug)
       renames L.Output;
 
-   --  Standard 'String' type
-
-   procedure Marshall_Latin_1_String
-     (Buffer : access Buffer_Type;
-      Data   : in     Standard.String);
-
-   function Unmarshall_Latin_1_String
-     (Buffer : access Buffer_Type)
-      return Standard.String;
-
    --------------------------------
    -- Types conversion functions --
    --------------------------------

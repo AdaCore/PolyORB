@@ -162,13 +162,13 @@ package body AWS.Server.Servants is
             if PolyORB_Servant.all in Web_Servant'Class then
                pragma Debug (O ("Extract_Data: got a Web request"));
 
-               if PolyORB_Request.Operation = "GET" then
+               if PolyORB_Request.Operation.all = "GET" then
                   HTTP_Method := GET;
-               elsif PolyORB_Request.Operation = "HEAD" then
+               elsif PolyORB_Request.Operation.all = "HEAD" then
                   HTTP_Method := HEAD;
-               elsif PolyORB_Request.Operation = "POST" then
+               elsif PolyORB_Request.Operation.all = "POST" then
                   HTTP_Method := POST;
-               elsif PolyORB_Request.Operation = "PUT" then
+               elsif PolyORB_Request.Operation.all = "PUT" then
                   HTTP_Method := PUT;
                else
                   raise Program_Error;
@@ -200,7 +200,7 @@ package body AWS.Server.Servants is
 
             elsif PolyORB_Servant.all in SOAP_Servant'Class then
                pragma Debug (O ("Extract_Data: got a SOAP request named "
-                                & To_String (PolyORB_Request.Operation)));
+                                & PolyORB_Request.Operation.all));
 
                AWS.Status.Set.Request
                  (AWS_Request,
@@ -228,7 +228,7 @@ package body AWS.Server.Servants is
                   end loop;
                   SOAP.Message.Set_Parameters (SOAP_Object, SOAP_Params);
                   SOAP.Message.Set_Wrapper_Name
-                    (SOAP_Object, To_String (PolyORB_Request.Operation));
+                    (SOAP_Object, PolyORB_Request.Operation.all);
                   AWS.Status.Set.Payload (AWS_Request, SOAP_Object);
                end;
 

@@ -76,8 +76,7 @@ package body Ping_Object is
             use PolyORB.Any.NVList.Internals.NV_Lists;
             use PolyORB.Exceptions;
 
-            Req   : constant Request_Access
-              := Execute_Request (Msg).Req;
+            Req   : Request_Access renames Execute_Request (Msg).Req;
             Args  : PolyORB.Any.NVList.Ref;
             Error : Error_Container;
          begin
@@ -85,7 +84,7 @@ package body Ping_Object is
                       & PolyORB.Requests.Image (Req.all));
 
             Create (Args);
-            if Req.all.Operation = To_PolyORB_String ("ping") then
+            if Req.all.Operation.all = "ping" then
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),

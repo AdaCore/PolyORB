@@ -114,7 +114,7 @@ package body PolyORB.Requests is
 
       Req := new Request;
       Req.Target     := Target;
-      Req.Operation  := To_PolyORB_String (Operation);
+      Req.Operation  := PolyORB.Utils.Strings."+" (Operation);
       Req.Args       := Arg_List;
       Req.Deferred_Arguments_Session := Deferred_Arguments_Session;
       Req.Result     := Result;
@@ -138,10 +138,10 @@ package body PolyORB.Requests is
    procedure Free is new Ada.Unchecked_Deallocation
      (Request, Request_Access);
 
-   procedure Destroy_Request
-     (R : in out Request_Access) is
+   procedure Destroy_Request (R : in out Request_Access) is
    begin
       if R /= null then
+         PolyORB.Utils.Strings.Free (R.Operation);
          Annotations.Destroy (R.Notepad);
          Free (R);
       end if;
@@ -794,7 +794,7 @@ package body PolyORB.Requests is
    is
       S1 : constant String
         := "Operation: "
-        & To_Standard_String (Req.Operation)
+        & Req.Operation.all
         & " on object "
         & References.Image (Req.Target);
    begin

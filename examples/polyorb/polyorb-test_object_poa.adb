@@ -111,7 +111,7 @@ package body PolyORB.Test_Object_POA is
                       & PolyORB.Requests.Image (Req.all));
 
             Create (Args);
-            if Req.all.Operation = To_PolyORB_String ("echoString") then
+            if Req.Operation.all = "echoString" then
                Add_Item (Args,
                          (Name => To_PolyORB_String ("S"),
                           Argument => Get_Empty_Any (TypeCode.TC_String),
@@ -131,7 +131,7 @@ package body PolyORB.Test_Object_POA is
                    (Value (First (List_Of (Args).all)).Argument)));
                Put_Line ("Result: " & Image (Req.Result));
 
-            elsif Req.all.Operation = "echoInteger" then
+            elsif Req.Operation.all = "echoInteger" then
                Add_Item (Args, (Name => To_PolyORB_String ("I"),
                                 Argument => Get_Empty_Any (TypeCode.TC_Long),
                                 Arg_Modes => PolyORB.Any.ARG_IN));
@@ -148,9 +148,11 @@ package body PolyORB.Test_Object_POA is
                   (Obj.all,
                    From_Any (Value (First (List_Of (Args).all)).Argument)));
                   Put_Line ("Result: " & Image (Req.Result));
+
             else
                raise Program_Error;
             end if;
+
             return Executed_Request'(Req => Req);
          end;
 

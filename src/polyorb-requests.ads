@@ -34,7 +34,6 @@
 --  The Request object.
 
 with PolyORB.Annotations;
-with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
@@ -44,6 +43,8 @@ with PolyORB.Task_Info;
 with PolyORB.Exceptions;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+with PolyORB.Utils.Strings;
+
 pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
 
 package PolyORB.Requests is
@@ -108,7 +109,7 @@ package PolyORB.Requests is
       Target    : References.Ref;
       --  A ref designating the target object.
 
-      Operation : Types.Identifier;
+      Operation : PolyORB.Utils.Strings.String_Ptr;
       --  The name of the method to be invoked.
 
       Args_Ident : Arguments_Identification := Ident_By_Position;

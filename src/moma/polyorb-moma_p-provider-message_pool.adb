@@ -102,7 +102,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
       Create (Args);
 
-      if Req.Operation = To_PolyORB_String ("Publish") then
+      if Req.Operation.all = "Publish" then
 
          --  Publish
 
@@ -120,7 +120,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
          Publish (Self, Value (First (List_Of (Args).all)).Argument);
 
-      elsif Req.Operation = To_PolyORB_String ("Get") then
+      elsif Req.Operation.all = "Get" then
 
          --  Get
 
@@ -144,12 +144,12 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
               (Value (First (List_Of (Args).all)).Argument))));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
-      elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
+      elsif Req.Operation.all = "Register_Handler" then
 
          --  Register Message call_back handler
 
          pragma Debug (O ("Register_Handler request"));
-         Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
+         Args := Get_Parameter_Profile (Req.Operation.all);
 
          PolyORB.Requests.Arguments (Req, Args, Error);
 
@@ -158,7 +158,6 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
             --  XXX We should do something more contructive
 
          end if;
-
 
          declare
             It : Iterator := First (List_Of (Args).all);
@@ -180,8 +179,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
             pragma Debug (O ("Registered message handler"));
          end;
       else
-         pragma Debug (O ("Unrecognized request "
-                          & To_Standard_String (Req.Operation)));
+         pragma Debug (O ("Unrecognized request " & Req.Operation.all));
          raise Program_Error;
       end if;
    end Invoke;

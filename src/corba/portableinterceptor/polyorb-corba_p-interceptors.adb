@@ -44,7 +44,6 @@ with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
-with PolyORB.Types;
 with PolyORB.Tasking.Threads.Annotations;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -597,7 +596,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
             PolyORB.Requests.Create_Request
               (Target    => Ref,
-               Operation => PolyORB.Types.To_String (Request.Operation),
+               Operation => Request.Operation.all,
                Arg_List  => Request.Args,
                Result    => Request.Result,
                Exc_List  => Request.Exc_List,

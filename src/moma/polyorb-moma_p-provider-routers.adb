@@ -282,7 +282,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       Args      : PolyORB.Any.NVList.Ref;
       It        : Iterator;
-      Operation : constant String := To_Standard_String (Req.all.Operation);
+      Operation : String renames Req.Operation.all;
       Error     : Error_Container;
    begin
       pragma Debug (O ("The router is executing the request:"
@@ -290,7 +290,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
 
       PolyORB.Any.NVList.Create (Args);
 
-      Args := Get_Parameter_Profile (To_Standard_String (Req.all.Operation));
+      Args := Get_Parameter_Profile (Operation);
       PolyORB.Requests.Arguments (Req, Args, Error);
 
       if Found (Error) then

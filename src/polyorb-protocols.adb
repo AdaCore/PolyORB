@@ -40,7 +40,6 @@ with PolyORB.If_Descriptors;
 with PolyORB.Log;
 with PolyORB.Protocols.Interface;
 with PolyORB.Servants.Interface;
-with PolyORB.Types;
 
 package body PolyORB.Protocols is
 
@@ -159,9 +158,7 @@ package body PolyORB.Protocols is
                --  the default interface descriptor objet.
 
                Args : Any.NVList.Ref
-                 := Get_Empty_Arg_List
-                 (Desc, Req.Target,
-                  Types.To_Standard_String (Req.Operation));
+                 := Get_Empty_Arg_List (Desc, Req.Target, Req.Operation.all);
 
                Reply : constant Components.Message'Class
                  := Components.Emit
@@ -175,8 +172,8 @@ package body PolyORB.Protocols is
                   pragma Debug (O ("Unmarshalled deferred arguments"));
                   Req.Args := Unmarshalled_Arguments (Reply).Args;
                   Req.Result.Argument := Get_Empty_Result
-                    (Desc, Req.Target,
-                     Types.To_Standard_String (Req.Operation));
+                    (Desc, Req.Target, Req.Operation.all);
+
                   Req.Deferred_Arguments_Session := null;
                   pragma Debug (O ("Proxying request: " & Image (Req.all)));
 

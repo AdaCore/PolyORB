@@ -118,7 +118,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       begin
          P := PolyORB.SOAP_P.Message.Payload.Build
-           (Types.To_Standard_String (R.Operation),
+           (R.Operation.all,
             PolyORB.SOAP_P.Parameters.List'(R.Args with null record));
 
       exception
@@ -139,7 +139,7 @@ package body PolyORB.Protocols.SOAP_Pr is
           Data => Types.String
           (Ada.Strings.Unbounded.Unbounded_String'
            (PolyORB.SOAP_P.Message.XML.Image (P))),
-          SOAP_Action => Types.String (R.Operation)));
+          SOAP_Action => Types.To_PolyORB_String (R.Operation.all)));
    end Invoke_Request;
 
    procedure Abort_Request

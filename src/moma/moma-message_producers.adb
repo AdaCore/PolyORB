@@ -285,9 +285,10 @@ package body MOMA.Message_Producers is
          Parameter_Map : Map;
          Note          : CBH_Note;
       begin
-         Method_Name := (Name  => To_MOMA_String ("method"),
-                         Value => PolyORB.Any.To_Any
-                         (PolyORB.Types.String (Req.Operation)));
+         Method_Name
+           := (Name  => To_MOMA_String ("method"),
+               Value => PolyORB.Any.To_Any
+               (PolyORB.Types.To_PolyORB_String (Req.Operation.all)));
 
          Return_1 := (Name  => To_MOMA_String ("return_1"),
                       Value => Req.Result.Argument);

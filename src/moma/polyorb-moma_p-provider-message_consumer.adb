@@ -206,7 +206,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       PolyORB.Any.NVList.Create (Args);
 
-      if Req.Operation = To_PolyORB_String ("Get") then
+      if Req.Operation.all = "Get" then
 
          PolyORB.Any.NVList.Add_Item
            (Args,
@@ -230,12 +230,12 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
                                         (Value (It).Argument)))));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
-      elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
+      elsif Req.Operation.all = "Register_Handler" then
 
          --  Register Message call_back handler
 
          pragma Debug (O ("Register_Handler request"));
-         Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
+         Args := Get_Parameter_Profile (Req.Operation.all);
 
          PolyORB.Requests.Arguments (Req, Args, Error);
 
@@ -265,7 +265,7 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
       else
          pragma Debug (O ("Unrecognized request "
-                          & To_Standard_String (Req.Operation)));
+                          & Req.Operation.all));
          null;
       end if;
    end Invoke;
