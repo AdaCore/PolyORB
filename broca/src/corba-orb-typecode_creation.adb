@@ -34,8 +34,7 @@
 package body CORBA.ORB.Typecode_Creation is
 
    function Create_Struct_Tc
-     (Self    : in Ref;
-      Id      : in CORBA.RepositoryId;
+     (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.StructMemberSeq)
       return CORBA.TypeCode.Object is
@@ -58,8 +57,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Struct_Tc;
 
    function Create_Union_Tc
-     (Self               : in Ref;
-      Id                 : in CORBA.RepositoryId;
+     (Id                 : in CORBA.RepositoryId;
       Name               : in CORBA.Identifier;
       Discriminator_Type : in CORBA.TypeCode.Object;
       Members            : in CORBA.UnionMemberSeq)
@@ -85,8 +83,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Union_Tc;
 
    function Create_Enum_Tc
-     (Self    : in Ref;
-      Id      : in CORBA.RepositoryId;
+     (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.EnumMemberSeq)
       return CORBA.TypeCode.Object is
@@ -103,8 +100,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Enum_Tc;
 
    function Create_Alias_Tc
-     (Self          : in Ref;
-      Id            : in CORBA.RepositoryId;
+     (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
@@ -118,8 +114,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Alias_Tc;
 
    function Create_Exception_Tc
-     (Self    : in Ref;
-      Id      : in CORBA.RepositoryId;
+     (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.StructMemberSeq)
       return CORBA.TypeCode.Object is
@@ -142,8 +137,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Exception_Tc;
 
    function Create_Interface_Tc
-     (Self : in Ref;
-      Id   : in CORBA.RepositoryId;
+     (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
@@ -155,8 +149,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Interface_Tc;
 
    function Create_String_Tc
-     (Self  : in Ref;
-      Bound : in CORBA.Unsigned_Long)
+     (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
    begin
@@ -166,8 +159,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_String_Tc;
 
    function Create_Wstring_Tc
-     (Self  : in Ref;
-      Bound : in CORBA.Unsigned_Long)
+     (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
    begin
@@ -177,8 +169,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Wstring_Tc;
 
    function Create_Fixed_Tc
-     (Self   : in Ref;
-      IDL_Digits : in CORBA.Unsigned_Short;
+     (IDL_Digits : in CORBA.Unsigned_Short;
       Scale  : in CORBA.Short)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
@@ -190,8 +181,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Fixed_Tc;
 
    function Create_Sequence_Tc
-     (Self        : in Ref;
-      Bound       : in CORBA.Unsigned_Long;
+     (Bound       : in CORBA.Unsigned_Long;
       Elementtype : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
@@ -203,8 +193,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Sequence_Tc;
 
    function Create_Recursive_Sequence_Tc
-     (Self   : in Ref;
-      Bound  : in CORBA.Unsigned_Long;
+     (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object is
    begin
@@ -212,8 +201,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Recursive_Sequence_Tc;
 
    function Create_Array_Tc
-     (Self         : in Ref;
-      Length       : in CORBA.Unsigned_Long;
+     (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
@@ -225,8 +213,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Array_Tc;
 
    function Create_Value_Tc
-     (Self          : in Ref;
-      Id            : in CORBA.RepositoryId;
+     (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Type_Modifier : in CORBA.ValueModifier;
       Concrete_Base : in CORBA.TypeCode.Object;
@@ -255,8 +242,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Value_Tc;
 
    function Create_Value_Box_Tc
-     (Self       : in Ref;
-      Id         : in CORBA.RepositoryId;
+     (Id         : in CORBA.RepositoryId;
       Name       : in CORBA.Identifier;
       Boxed_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object is
@@ -270,8 +256,7 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Value_Box_Tc;
 
    function Create_Native_Tc
-     (Self : in Ref;
-      Id   : in CORBA.RepositoryId;
+     (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;
@@ -283,16 +268,14 @@ package body CORBA.ORB.Typecode_Creation is
    end Create_Native_Tc;
 
    function Create_Recursive_Tc
-     (Self : in Ref;
-      Id   : in CORBA.RepositoryId)
+     (Id   : in CORBA.RepositoryId)
       return CORBA.TypeCode.Object is
    begin
       return TC_Null;
    end Create_Recursive_Tc;
 
    function Create_Abstract_Interface_Tc
-     (Self : in Ref;
-      Id   : in CORBA.RepositoryId;
+     (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object is
       Result : TypeCode.Object;

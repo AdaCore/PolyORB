@@ -339,14 +339,14 @@ package CORBA is
        Tk_Abstract_Interface);
 
    type ValueModifier is new Short;
-   VTM_NONE : constant ValueModifier := 0;
-   VTM_CUSTOM : constant ValueModifier := 1;
-   VTM_ABSTRACT : constant ValueModifier := 2;
-   VTM_TRUNCATABLE : constant ValueModifier := 3;
+   VTM_NONE : constant ValueModifier;
+   VTM_CUSTOM : constant ValueModifier;
+   VTM_ABSTRACT : constant ValueModifier;
+   VTM_TRUNCATABLE : constant ValueModifier;
 
    type Visibility is new Short;
-   PRIVATE_MEMBER : constant Visibility := 0;
-   PUBLIC_MEMBER : constant Visibility := 1;
+   PRIVATE_MEMBER : constant Visibility;
+   PUBLIC_MEMBER : constant Visibility;
 
 
    package TypeCode is
@@ -739,6 +739,24 @@ package CORBA is
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
 
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   type Flags is new CORBA.Unsigned_Long;
+
+   ARG_IN :        constant Flags;
+   ARG_OUT :       constant Flags;
+   ARG_INOUT :     constant Flags;
+   IN_COPY_VALUE : constant Flags;
+
+   type NamedValue is record
+      Name :      CORBA.Identifier;
+      Argument :  CORBA.Any;
+      Arg_Modes : CORBA.Flags;
+   end record;
+
+
    ----------------------------
    --  Interface Repository  --
    ----------------------------
@@ -793,6 +811,13 @@ private
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
+   VTM_NONE : constant ValueModifier := 0;
+   VTM_CUSTOM : constant ValueModifier := 1;
+   VTM_ABSTRACT : constant ValueModifier := 2;
+   VTM_TRUNCATABLE : constant ValueModifier := 3;
+
+   PRIVATE_MEMBER : constant Visibility := 0;
+   PUBLIC_MEMBER : constant Visibility := 1;
 
    -----------
    --  Any  --
@@ -942,5 +967,15 @@ private
         The_Value : Any_Content_Ptr;
         The_Type  : CORBA.TypeCode.Object;
      end record;
+
+
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   ARG_IN :        constant Flags := 0;
+   ARG_OUT :       constant Flags := 1;
+   ARG_INOUT :     constant Flags := 2;
+   IN_COPY_VALUE : constant Flags := 3;
 
 end CORBA;
