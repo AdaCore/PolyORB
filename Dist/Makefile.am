@@ -44,7 +44,7 @@ xe_defs.adb: Makefile
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
-	${CC} -c -g -O2 -gnatp -I${srcdir} xe_defs.adb
+	${CC} -c -g -O2 -gnatp -I${srcdir} -I${GNATSRC} xe_defs.adb
 
 sdefault.adb: ${srcdir}/config.sdefault
 	@echo Generating sdefault.adb
