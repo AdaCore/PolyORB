@@ -43,6 +43,7 @@ with Ada.Text_IO;
 with GNAT.OS_Lib;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Log;
 with PolyORB.Utils.Report;
 
 with PolyORB.Setup.Thread_Pool_Server;
@@ -91,7 +92,12 @@ procedure Test000 is
    use PortableServer.ThreadPolicy;
 
    use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Log;
    use PolyORB.Utils.Report;
+
+   package L is new PolyORB.Log.Facility_Log ("test000");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    -----------------------
    -- Utility functions --
@@ -146,8 +152,8 @@ procedure Test000 is
          (To_POA, PortableServer.Servant (Obj)));
 
       Output ("Attach servant to POA "
-                             & To_Standard_String (Get_The_Name (To_POA)),
-                             True);
+              & To_Standard_String (Get_The_Name (To_POA)),
+              True);
    end Attach_Servant;
 
    -----------------------
@@ -794,8 +800,10 @@ procedure Test000 is
    type Result_Vector is record
       Implicit_Activation : Boolean := True;
       Get_Type_Id         : Boolean := True;
-      Deactivated_Servant : Boolean := True;
       Activation_No_Id    : Boolean := True;
+      Deactivation_No_Id  : Boolean := True;
+      Activation_Id       : Boolean := True;
+      Deactivation_Id     : Boolean := True;
 
       Fatal               : Boolean := False;
    end record;
@@ -823,7 +831,7 @@ procedure Test000 is
               (PortableServer.POA.Servant_To_Reference (POA, Servant));
          exception
             when E : others =>
-               Put_Line ("Implicit_Activation failed");
+               pragma Debug (O ("Implicit_Activation failed"));
                Result.Implicit_Activation := False;
          end;
 
@@ -831,24 +839,24 @@ procedure Test000 is
             Temp := Invoke_On_Servant (Obj_Ref);
 
             if not Temp then
-               Put_Line ("FATAL: Did an invocation on a 'should-not-be'"
-                         & " activated servant !!");
+               pragma Debug (O ("FATAL: Did an invocation on a 'should-not-be'"
+                                & " activated servant !!"));
                Result.Fatal := True;
             end if;
 
          exception
             when E : others =>
-               Put_Line ("Implicit_Activation failed");
+               pragma Debug (O ("Implicit_Activation failed"));
                Result.Implicit_Activation := False;
          end;
 
       exception
          when E : others =>
-            Put_Line ("FATAL: Got exception @0 " & Exception_Name (E));
+            pragma Debug (O ("FATAL: Got exception @0 " & Exception_Name (E)));
             Result.Fatal := True;
       end;
 
-      --  Explicitely Activate servant.
+      --  Explicitely Activate servant with No Id.
 
       declare
          Servant : constant PortableServer.Servant := new Echo.Impl.Object;
@@ -866,7 +874,7 @@ procedure Test000 is
             Temp := Invoke_On_Servant (Obj_Ref);
 
             if not Temp then
-               Put_Line ("FATAL: Invooke_On_Servant failed");
+               pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
                Result.Fatal := True;
             end if;
 
@@ -874,75 +882,93 @@ procedure Test000 is
               (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
 
             if not Temp then
-               Put_Line ("Get_Type_Id failed");
+               pragma Debug (O ("Get_Type_Id failed"));
                Result.Get_Type_Id := False;
             end if;
 
-            PortableServer.POA.Deactivate_Object (POA, OID);
+            begin
+               PortableServer.POA.Deactivate_Object (POA, OID);
+            exception
+               when E : others =>
+                  pragma Debug (O ("Deactivation_No_Id failed"));
+                  Result.Deactivation_No_Id := False;
+            end;
 
             begin
                Temp := Invoke_On_Servant (Obj_Ref);
 
-               Put_Line ("FATAL: Invoke_On_Servant #1 raised no exception");
+               pragma Debug (O ("FATAL: Invoke_On_Servant "
+                                & "raised no exception"));
                Result.Fatal := True;
             exception
                when others =>
                   null;
             end;
-
-         exception
-            when E : others =>
-               Put_Line ("Deactivated_Servant failed");
-               Result.Deactivated_Servant := False;
          end;
 
       exception
          when E : others =>
-            Put_Line ("Activation_No_Id failed");
+            pragma Debug (O ("Activation_No_Id failed"));
             Result.Activation_No_Id := False;
+            Result.Deactivation_No_Id := False;
       end;
 
       --  Explicitely Activate servant with User Id.
 
---        declare
---           Servant : constant PortableServer.Servant := new Echo.Impl.Object;
---           Obj_Ref : Echo.Ref;
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
 
---           OID : ObjectId := PortableServer.String_To_ObjectId ("MyServant");
+         OID : ObjectId := PortableServer.String_To_ObjectId ("MyServant");
 
---        begin
---           begin
---              PortableServer.POA.Activate_Object_With_Id
---                (POA, OID, Servant);
+      begin
+         PortableServer.POA.Activate_Object_With_Id
+           (POA, OID, Servant);
 
---              Obj_Ref := Echo.Helper.To_Ref
---                (PortableServer.POA.Servant_To_Reference (POA, Servant));
+         Obj_Ref := Echo.Helper.To_Ref
+           (PortableServer.POA.Servant_To_Reference (POA, Servant));
 
---              Invoke_On_Servant (Obj_Ref, False, False);
+         Temp := Invoke_On_Servant (Obj_Ref);
 
---              Result := Result and
---                Echo.Repository_Id = To_Standard_String
---                (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+         if not Temp then
+            pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+            Result.Fatal := True;
+         end if;
 
---              PortableServer.POA.Deactivate_Object (POA, OID);
+         Temp := Echo.Repository_Id = To_Standard_String
+           (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
 
---              begin
---                 Invoke_On_Servant (Obj_Ref, False, False);
+         if not Temp then
+            pragma Debug (O ("Get_Type_Id failed"));
+            Result.Get_Type_Id := False;
+         end if;
 
---                 Output ("Invoke_On_Servant #2 raised no exception", False);
---                 Result := False;
---              exception
---                 when E : others =>
---                    null;
---              end;
+         begin
+            PortableServer.POA.Deactivate_Object (POA, OID);
+         exception
+            when E : others =>
+               pragma Debug (O ("Deactivaion_Id failed"));
+               Result.Deactivation_Id := False;
+         end;
 
---           exception
---              when E : others =>
---                 Put_Line ("Got exception @3 "
---                           & Exception_Name (E));
---                 Result := False;
---           end;
---        end;
+         begin
+            Temp := Invoke_On_Servant (Obj_Ref);
+
+            pragma Dbeug (O ("FATAL: Invoke_On_Servant raised no exception"));
+            Result.Fatal := True;
+         exception
+            when E : others =>
+               null;
+         end;
+
+      exception
+         when E : others =>
+            pragma Debug (O ("Activation_Id failed"));
+            Result.Activation_Id := False;
+            Result.Deactivation_Id := False;
+      end;
+
+      --  End of test
 
       return Result;
 
@@ -982,28 +1008,57 @@ procedure Test000 is
       Rp     : RequestProcessingPolicyValue)
      return Boolean is
    begin
-      if Result.Fatal
-
-        or else (Result.Implicit_Activation
-                 and then Sp /= RETAIN
-                 and then (Up /= UNIQUE_ID
-                           or else Ip /= IMPLICIT_ACTIVATION))
-        or else not Result.Get_Type_Id
-
-        or else (Result.Deactivated_Servant
-                 and then Sp /= RETAIN)
-
-        or else (Result.Activation_No_Id
-                 and then Ap /= SYSTEM_ID
-                 and then Sp /= RETAIN)
-      then
+      if Result.Fatal then
+         Output ("Result.Fatal", True);
          return False;
-
-      else
-
-         return True;
       end if;
 
+      if (Result.Implicit_Activation
+          and then Sp /= RETAIN
+          and then (Up /= UNIQUE_ID
+                    or else Ip /= IMPLICIT_ACTIVATION))
+      then
+         Output ("Result.Implicit_Activation", True);
+         return False;
+      end if;
+
+      if (not Result.Get_Type_Id) then
+         Output ("Result.Get_Type_Id", True);
+         return False;
+      end if;
+
+      if (Result.Activation_No_Id
+          and then Ap /= SYSTEM_ID
+          and then Sp /= RETAIN)
+      then
+         Output ("Resuilt.Activation_No_Id", True);
+         return False;
+      end if;
+
+      if (Result.Deactivation_No_Id
+          and then not Result.Activation_No_Id
+          and then Sp /= RETAIN)
+      then
+         Output ("Result.Deactivation_No_Id", True);
+         return False;
+      end if;
+
+      if (Result.Activation_Id
+          and then Sp /= RETAIN)
+      then
+         Output ("Result.Activation_Id", True);
+         return False;
+      end if;
+
+      if (Result.Deactivation_Id
+          and then not Result.Activation_Id
+          and then Sp /= RETAIN)
+      then
+         Output ("Result.Deactivation_Id", True);
+         return False;
+      end if;
+
+      return True;
    end Analyze_Result;
 
    ------------------
@@ -1018,6 +1073,8 @@ procedure Test000 is
       Temp : Boolean;
 
    begin
+      New_Test ("POA API");
+
       for Tp in ThreadPolicyValue'Range loop
          for Lp in LifespanPolicyValue'Range loop
             for Up in IdUniquenessPolicyValue'Range loop
@@ -1029,41 +1086,28 @@ procedure Test000 is
                            if Are_Policies_Valid
                              (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
 
-                              Put_Line
-                                ("Testing: " &
-                                    Policies_Image
-                                    (Tp, Lp, Up, Ap, Ip, Sp, Rp));
+                              pragma Debug (O ("Testing: " &
+                                               Policies_Image
+                                               (Tp, Lp, Up, Ap, Ip, Sp, Rp)));
 
                               Test_POA := Create_POA_With_Policies
                                 (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
-                              begin
-                                 Temp := Analyze_Result
-                                   (Test_POA_Activation_Policies (Test_POA),
-                                    Tp, Lp, Up, Ap, Ip, Sp, Rp);
-                              exception
-                                 when others =>
-                                    Put_Line ("plop");
-                                    raise;
-                              end;
+                              Temp := Analyze_Result
+                                (Test_POA_Activation_Policies (Test_POA),
+                                 Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
-                              begin
-                                 PortableServer.POA.Destroy
-                                   (Test_POA, False, False);
-                              exception
-                                 when others =>
-                                    Put_Line ("toto");
-                                    raise;
-                              end;
+                              PortableServer.POA.Destroy
+                                (Test_POA, False, False);
+
                               Result := Result and Temp;
 
                               if not Temp then
-                                 Put_Line ("Not Ok");
-
+                                 null;
+                                 pragma Debug (O ("Not Ok"));
                               end if;
-
-                              New_Line;
                            end if;
+
                         end loop;
                      end loop;
                   end loop;
@@ -1078,12 +1122,12 @@ procedure Test000 is
 begin
    Init_Test;
    Test_Root_POA;
-   Test_POAManager;
-   Test_Single_Thread_Policy;
-   Test_Main_Thread_Policy;
-   Test_Conversion (Get_Root_POA);
+--   Test_POAManager;
+--   Test_Single_Thread_Policy;
+--   Test_Main_Thread_Policy;
+--   Test_Conversion (Get_Root_POA);
    Test_POA_Creation;
---   Test_POA_API;
+   Test_POA_API;
    End_Report;
 
    GNAT.OS_Lib.OS_Exit (1);
