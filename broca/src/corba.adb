@@ -1735,6 +1735,7 @@ package body CORBA is
    ----------------
    function Get_Type (The_Any : in Any) return  TypeCode.Object is
    begin
+      pragma Debug (O ("Get_Type : enter & end"));
       return The_Any.The_Type;
    end Get_Type;
 
@@ -2128,14 +2129,17 @@ package body CORBA is
    procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any) is
       use TypeCode;
    begin
-      if CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Struct
-        and CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Union
-        and CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Enum
-        and CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Sequence
-        and CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Array
-        and CORBA.TypeCode.Kind (Get_Type (Any_Value)) /= Tk_Except then
+      pragma Debug (O ("Set_Any_Aggregate_Value : enter"));
+      if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Struct
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Union
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Enum
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Sequence
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Array
+        and CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Except
+      then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
+      pragma Debug (O ("Set_Any_Aggregate_Value : no exception raised"));
       Any_Value.Any_Lock.Lock_W;
       if Any_Value.The_Value = null then
          Any_Value.The_Value :=

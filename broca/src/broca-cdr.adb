@@ -1620,7 +1620,10 @@ package body Broca.CDR is
                   Broca.Exceptions.Raise_Marshal;
                end if;
                Set_Any_Aggregate_Value (Result);
+               pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
                if Is_Empty then
+                  pragma Debug (O ("Unmarshall_To_Any : about to call"
+                                   & " add_aggregate_element"));
                   Add_Aggregate_Element (Result, To_Any (Nb));
                else
                   Arg := Get_Aggregate_Element
