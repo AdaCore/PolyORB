@@ -40,20 +40,25 @@ package System.Garlic.Platform_Specific is
 
    pragma Pure;
 
-   Supports_Local_Launch  : constant Boolean := @SUPPORTS_LOCAL_LAUNCH@;
+   Process_Blocking_IO    : constant Boolean :=
+     @PROCESS_BLOCKING_IO@;
 
-   Platform_Name          : constant String  := "@PSNAME@";
+   Supports_Local_Launch  : constant Boolean :=
+     @SUPPORTS_LOCAL_LAUNCH@;
+
+   Platform_Name          : constant String  :=
+     "@PSNAME@";
 
    Default_Protocol_Name  : constant String  :=
-   "@DEFPROTOCOLNAME@";
+     "@DEFPROTOCOLNAME@";
 
    Default_Protocol_Data  : constant String  :=
-   "@DEFPROTOCOLDATA@";
+     "@DEFPROTOCOLDATA@";
 
    Default_Storage_Data : constant String  :=
-   "@DEFSTORAGEDATA@";
+     "@DEFSTORAGEDATA@";
 
    Default_Storage_Name : constant String  :=
-   "@DEFSTORAGENAME@";
+     "@DEFSTORAGENAME@";
 
 end System.Garlic.Platform_Specific;
