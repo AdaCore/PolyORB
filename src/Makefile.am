@@ -5,15 +5,16 @@ ADA_FULL = \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
 	   broca-buffers-io_operations.ads \
-           broca-exceptions.ads \
-           broca-exceptions-stack.ads \
-           broca-flags.ads \
-           broca-giop.ads \
-           broca-iiop.ads \
-           broca-inet_server.ads \
-           broca-ior.ads \
-           broca-locks.ads \
-           broca-cdr.ads \
+	   broca-exceptions.ads \
+	   broca-exceptions-stack.ads \
+	   broca-flags.ads \
+	   broca-giop.ads \
+	   broca-iiop.ads \
+	   broca-inet_server.ads \
+	   broca-ior.ads \
+	   broca-locks.ads \
+	   broca-cdr.ads \
+	   broca-cdr-fixed_point.ads \
 	   broca-cdr-refs.ads \
            broca-object.ads \
            broca-orb.ads \

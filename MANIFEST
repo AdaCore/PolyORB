@@ -163,6 +163,8 @@ src/broca-buffers.adb
 src/broca-buffers.ads
 src/broca-cdr.adb
 src/broca-cdr.ads
+src/broca-cdr-fixed_point.adb
+src/broca-cdr-fixed_point.ads
 src/broca-cdr-refs.adb
 src/broca-cdr-refs.ads
 src/broca-debug.adb

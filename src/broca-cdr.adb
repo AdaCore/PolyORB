@@ -35,7 +35,6 @@ with Ada.Unchecked_Conversion;
 with System.Address_To_Access_Conversions;
 
 with Broca.Debug;
-with Broca.Opaque; use Broca.Opaque;
 
 package body Broca.CDR is
 
@@ -91,21 +90,6 @@ package body Broca.CDR is
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
    --  The data is returned in the host's byte order.
-
-   procedure Align_Marshall_Copy
-     (Buffer    : access Buffer_Type;
-      Octets    : in Octet_Array;
-      Alignment : Alignment_Type := 1);
-   --  Align Buffer on Alignment, then marshall a copy
-   --  of Octets into Buffer, as is.
-
-   function Align_Unmarshall_Copy
-     (Buffer    : access Buffer_Type;
-      Size      : Index_Type;
-      Alignment : Alignment_Type := 1)
-     return Octet_Array;
-   --  Align Buffer on Alignment, then unmarshall a copy
-   --  of Size octets from Buffer's data, as is.
 
    ------------------------------------------
    -- Conversions between CORBA signed and --

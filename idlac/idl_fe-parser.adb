@@ -6767,6 +6767,7 @@ package body Idl_Fe.Parser is
                           | K_Wide_Char
                           | K_Boolean
                           | K_Octet
+                          | K_Fixed
                           | K_Any
                           | K_Object
                           | K_ValueBase

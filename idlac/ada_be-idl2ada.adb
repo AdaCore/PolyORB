@@ -855,6 +855,8 @@ package body Ada_Be.Idl2Ada is
             declare
                Is_Interface : constant Boolean
                  := Is_Interface_Type (T_Type (Node));
+               Is_Fixed : constant Boolean
+                 := Kind (T_Type (Node)) = K_Fixed;
             begin
                declare
                   It   : Node_Iterator;
@@ -904,7 +906,7 @@ package body Ada_Be.Idl2Ada is
                            end loop;
                            Put (CU, ") of ");
                         else
-                           if not Is_Interface then
+                           if not (Is_Interface or else Is_Fixed) then
                               Put (CU, "new ");
                            end if;
                         end if;
@@ -1059,16 +1061,10 @@ package body Ada_Be.Idl2Ada is
 
          when K_Fixed =>
 
-            raise Program_Error;
-
-            --  XXX This mapping shall be used for a
-            --  {fixed} note created by the expander, NOT
-            --  for the original (anonymous) <fixed_type_spec>.
-
-            --  Put (CU, "delta 10 ** -(");
-            --  Gen_Node_Stubs_Spec (CU, Scale (Node));
-            --  Put (CU, ") digits ");
-            --  Gen_Node_Stubs_Spec (CU, Digits_Nb (Node));
+            Put (CU, "delta 10.0 ** (-");
+            Gen_Node_Stubs_Spec (CU, Scale (Node));
+            Put (CU, ") digits ");
+            Gen_Node_Stubs_Spec (CU, Digits_Nb (Node));
 
          when others =>
             Gen_Node_Default (CU, Node);
@@ -1723,7 +1719,6 @@ package body Ada_Be.Idl2Ada is
       case Kind (Node) is
 
          when K_Exception =>
-            --  ???
             null;
 
          when
@@ -1977,6 +1972,10 @@ package body Ada_Be.Idl2Ada is
       end;
    end Gen_Array_Iterator;
 
+   --------------------------
+   -- Gen_Node_Stream_Body --
+   --------------------------
+
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id)
@@ -1987,7 +1986,6 @@ package body Ada_Be.Idl2Ada is
       case NK is
 
          when K_Exception =>
-            --  ???
             null;
 
          when K_Struct =>
@@ -2219,11 +2217,36 @@ package body Ada_Be.Idl2Ada is
             declare
                Is_Interface : constant Boolean
                  := Is_Interface_Type (T_Type (Node));
+               Is_Fixed : constant Boolean
+                 := Kind (T_Type (Node)) = K_Fixed;
             begin
-               if not Is_Interface then
-
+               if Is_Interface then
+                  null;
+               elsif Is_Fixed then
                   declare
-                     Base_Type_Name : String
+                     Decl_Node : constant Node_Id
+                       := Head (Declarators (Node));
+                     Type_Name : constant String
+                       := Ada_Name (Decl_Node);
+                  begin
+                     NL (CU);
+                     PL (CU, "package CDR_"
+                         & Type_Name & " is");
+                     PL (CU, "  new Broca.CDR.Fixed_Point ("
+                         & Type_Name & ";");
+
+                     Gen_Marshall_Profile
+                       (CU, Decl_Node);
+                     PL (CU, " renames CDR_" & Type_Name
+                         & ".Marshall;");
+                     Gen_Unmarshall_Profile
+                       (CU, Decl_Node);
+                     PL (CU, " renames CDR_" & Type_Name
+                         & ".Unmarshall;");
+                  end;
+               else
+                  declare
+                     Base_Type_Name : constant String
                        := Ada_Type_Name (T_Type (Node));
 
                      It   : Node_Iterator;
@@ -2246,16 +2269,16 @@ package body Ada_Be.Idl2Ada is
                            PL (CU, " is");
                            PL (CU, "begin");
                            II (CU);
-                           if Array_Dimensions = 0 then
-                              PL (CU, "Marshall");
-                              PL (CU, "  (Buffer,");
-                              PL (CU, "   "
-                                        & Base_Type_Name
-                                        & " (Val));");
-                           else
+                           if Array_Dimensions /= 0 then
                               Gen_Array_Iterator
                                 (CU, "Val", Array_Dimensions,
                                  "Marshall (Buffer, Val %);");
+                           else
+                              PL (CU, "Marshall");
+                              PL (CU, "  (Buffer,");
+                              PL (CU, "   "
+                                  & Base_Type_Name
+                                  & " (Val));");
                            end if;
                            DI (CU);
                            PL (CU, "end Marshall;");
@@ -2263,14 +2286,7 @@ package body Ada_Be.Idl2Ada is
                            NL (CU);
                            Gen_Unmarshall_Profile
                              (CU, Decl_Node);
-                           if Array_Dimensions = 0 then
-                              PL (CU, " is");
-                              PL (CU, "begin");
-                              II (CU);
-                              PL (CU, "return " & Type_Name);
-                              PL (CU, "  (" & Base_Type_Name & "'");
-                              PL (CU, "   (Unmarshall (Buffer)));");
-                           else
+                           if Array_Dimensions /= 0 then
                               NL (CU);
                               PL (CU, "is");
                               II (CU);
@@ -2284,6 +2300,13 @@ package body Ada_Be.Idl2Ada is
                                  T_Returns & " % := Unmarshall (Buffer);");
 
                               PL (CU, "return " & T_Returns & ";");
+                           else
+                              PL (CU, " is");
+                              PL (CU, "begin");
+                              II (CU);
+                              PL (CU, "return " & Type_Name);
+                              PL (CU, "  (" & Base_Type_Name & "'");
+                              PL (CU, "   (Unmarshall (Buffer)));");
                            end if;
 
                            DI (CU);
@@ -2628,6 +2651,9 @@ package body Ada_Be.Idl2Ada is
          when K_Object =>
             return "CORBA.Object.Ref";
 
+         when K_Any =>
+            return "CORBA.Any";
+
          when others =>
             --  Improper use: node N is not
             --  mapped to an Ada type.
@@ -2687,7 +2713,8 @@ package body Ada_Be.Idl2Ada is
            K_String             |
            K_Wide_String        |
            K_Octet              |
-           K_Object             =>
+           K_Object             |
+           K_Any                =>
             Add_With (CU, "CORBA");
 
          when others =>
@@ -2760,7 +2787,8 @@ package body Ada_Be.Idl2Ada is
            K_Long_Double        |
            K_String             |
            K_Wide_String        |
-           K_Octet              =>
+           K_Octet              |
+           K_Any                =>
 
             Add_With (CU, "Broca.CDR",
                       Use_It => True);
@@ -2768,6 +2796,9 @@ package body Ada_Be.Idl2Ada is
          when K_Object =>
             Add_With (CU, "Broca.CDR.Refs",
                       Use_It => True);
+
+         when K_Fixed =>
+            Add_With (CU, "Broca.CDR.Fixed_Point");
 
          when others =>
             --  Improper use: node N is not
@@ -2928,12 +2959,16 @@ package body Ada_Be.Idl2Ada is
                end if;
             end;
 
-         when
-           C_String  |
-           C_WString =>
+         when C_String =>
             Add_With (CU, "CORBA", Elab_Control => Elaborate);
             Put (CU, "CORBA.To_CORBA_String ("""
                  & String_Value (Node) & """)");
+
+         when C_WString =>
+            Add_With (CU, "CORBA", Elab_Control => Elaborate);
+            Put (CU, "CORBA.To_CORBA_Wide_String ("""
+                 & Ada.Characters.Handling.To_String
+                 (WString_Value (Node)) & """)");
 
          when C_Enum =>
             Put (CU, Ada_Full_Name (Enum_Value (Node)));

@@ -199,6 +199,13 @@ package body Idl_Fe.Tree.Synthetic is
       return Expr_Value (Node).String_Value.all;
    end String_Value;
 
+   function WString_Value
+     (Node : Node_Id)
+     return Wide_String is
+   begin
+      return Expr_Value (Node).WString_Value.all;
+   end WString_Value;
+
    function Boolean_Value
      (Node : Node_Id)
      return Boolean is

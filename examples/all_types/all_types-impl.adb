@@ -143,6 +143,14 @@ package body all_types.Impl is
       return arg;
    end echoColor;
 
+   function echoMoney
+     (Self : access Object;
+      arg  : in Money)
+      return Money is
+   begin
+      return arg;
+   end echoMoney;
+
    function echoArray
      (Self : access Object;
       Arg : in simple_array)
@@ -181,6 +189,14 @@ package body all_types.Impl is
       return arg;
    end echoStruct;
 
+   function echoArrayStruct
+     (Self : access Object;
+      arg  : in array_struct)
+      return array_struct is
+   begin
+      return arg;
+   end echoArrayStruct;
+
    function echoUnion
      (Self : access Object;
       arg : in myUnion)
@@ -198,23 +214,23 @@ package body all_types.Impl is
       return arg;
    end echoUsequence;
 
-   procedure Set_MyColor
+   procedure set_myColor
      (Self : access Object;
       arg : in Color)
    is
    begin
       Self.Attr_My_Color := arg;
-   end Set_MyColor;
+   end set_myColor;
 
-   function Get_MyColor
+   function get_myColor
      (Self : access Object)
      return Color
    is
    begin
       return Self.Attr_My_Color;
-   end Get_MyColor;
+   end get_myColor;
 
-   function Get_Counter
+   function get_Counter
      (Self : access Object)
      return CORBA.Long
    is
@@ -222,7 +238,7 @@ package body all_types.Impl is
    begin
       Self.Attr_Counter := Self.Attr_Counter + 1;
       return Self.Attr_Counter;
-   end Get_Counter;
+   end get_Counter;
 
 --   procedure simple_exception_test
 --     (Self : access Object)
@@ -307,29 +323,29 @@ package body all_types.Impl is
 --      return arg;
 --   end echo7;
 --
---   function Get_R_attribute
+--   function get_R_attribute
 --     (Self : access Object)
 --      return Color
 --   is
 --   begin
 --      return Self.all.Pd_Col;
---   end Get_R_attribute;
+--   end get_R_attribute;
 --
---   function Get_N_attribute
+--   function get_N_attribute
 --     (Self : access Object)
 --      return example
 --   is
 --   begin
 --      return Self.all.Pd_Ex;
---   end Get_N_attribute;
+--   end get_N_attribute;
 --
---   procedure Set_N_attribute
+--   procedure set_N_attribute
 --     (Self : access Object;
 --      To   : in example)
 --   is
 --   begin
 --      Self.all.Pd_Ex := To;
---   end Set_N_attribute;
+--   end set_N_attribute;
 --
 --   function echo8
 --     (Self : access Object;
