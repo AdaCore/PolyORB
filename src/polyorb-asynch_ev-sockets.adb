@@ -174,7 +174,6 @@ package body PolyORB.Asynch_Ev.Sockets is
                      Last := Last + 1;
                      Result (Last) := S;
 
-
                      Clear (AEM.Monitored_Set, Sock);
                      Remove (AEM.Sources, It);
                   else
