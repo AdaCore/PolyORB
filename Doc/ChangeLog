@@ -1,6 +1,10 @@
+Fri Nov 29 11:49:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* user_guide.txt: Documented the Ada starter.
+
 Wed Nov 27 15:42:47 1996  Laurent Pautet <pautet@inf.enst.fr>
 
-	* install_guide.txt: new file
+	* install_guide.txt: New file
 
 Sat Nov 23 17:07:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 

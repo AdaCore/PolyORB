@@ -220,6 +220,8 @@ configuration My_Config is
   --  no launch method is used and you have to start each partition
   --  manually. 
   --
+  --  If no starter is given, then an Ada starter will be used.
+  --
   --  In this example, Partition_2, Partitions_3 and Partition_4 will be
   --  started from Partition_1 (ie from the ada procedure Master_Procedure).
 
