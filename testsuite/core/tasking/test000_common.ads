@@ -37,6 +37,7 @@
 --  $Id$
 
 with PolyORB.Configuration;
+pragma Elaborate_All (PolyORB.Configuration); --  WAG:3.15
 
 package Test000_Common is
 
