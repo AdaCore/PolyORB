@@ -255,13 +255,11 @@ package body PolyORB.Buffers is
 
    function Peek
      (Buffer : access Buffer_Type;
-      Offset :      Ada.Streams.Stream_Element_Offset)
-     return Ada.Streams.Stream_Element
-   is
+      Offset :        Ada.Streams.Stream_Element_Offset)
+     return Ada.Streams.Stream_Element is
    begin
       return Iovec_Pools.Peek (Buffer.Contents, Offset);
    end Peek;
-
 
    ------------------------------
    -- The CDR view of a buffer --
@@ -704,8 +702,8 @@ package body PolyORB.Buffers is
                      --  unchanged.
                      pragma Debug
                        (O ("Cannot satisfy growth request "
-                             & "of size"
-                             & Stream_Element_Offset'Image (Size)));
+                           & "of size"
+                           & Stream_Element_Offset'Image (Size)));
                      null;
                   end if;
                end;
@@ -833,7 +831,7 @@ package body PolyORB.Buffers is
 
       procedure Dump
         (Iovecs : Iovec_Array;
-         Into : Opaque_Pointer)
+         Into   : Opaque_Pointer)
       is
          Offset : Storage_Offset := 0;
       begin
@@ -971,6 +969,7 @@ package body PolyORB.Buffers is
             Offset_Remainder := Offset_Remainder - Vecs (Index).Iov_Len;
             Index := Index + 1;
          end loop;
+
          pragma Assert (Offset_Remainder + Storage_Offset (Size)
            <= Vecs (Index).Iov_Len);
 

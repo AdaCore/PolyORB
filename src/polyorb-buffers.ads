@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#18 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#19 $
 
 with Ada.Streams;
 
@@ -63,6 +63,7 @@ package PolyORB.Buffers is
    --  The byte order of this host.
 
    type Buffer_Type is limited private;
+
    type Buffer_Access is access all Buffer_Type;
    --  A pointer to a dynamically allocated buffer.
 
@@ -79,10 +80,13 @@ package PolyORB.Buffers is
    procedure Set_Endianness
      (Buffer : access Buffer_Type;
       E      :        Endianness_Type);
+   pragma Inline (Set_Endianness);
+   --  Set the endianness of Buffer.
 
    function Endianness
      (Buffer : Buffer_Type)
      return Endianness_Type;
+   pragma Inline (Endianness);
    --  Return the endianness of Buffer.
    --  XXX This should be moved to CDR.
 
@@ -159,10 +163,10 @@ package PolyORB.Buffers is
 
    function Peek
      (Buffer : access Buffer_Type;
-      Offset :      Ada.Streams.Stream_Element_Offset)
+      Offset :        Ada.Streams.Stream_Element_Offset)
    return Ada.Streams.Stream_Element;
-   --  return the octet at offset from the buffer
-   --  raise a Read_Error Exception if not found
+   --  Return the octet at 'offset' from the buffer.
+   --  Raise a 'Read_Error' exception if not found.
 
    -------------------------------------
    -- Representation view of a buffer --
@@ -355,7 +359,6 @@ private
       --  Prealloc_Size items, else a dynamically-allocated
       --  array is used.
 
-      Write_Error : exception;
       Read_Error  : exception;
 
       type Iovec_Pool_Type is private;
@@ -393,7 +396,7 @@ private
       --  Retrieve exactly Size octets of data from
       --  Iovec_Pool starting at Offset.
       --  The data must be stored contiguously.
-      --  If there are not Size octest of data
+      --  If there are not Size octets of data
       --  contiguously stored in Iovec_Pool at Offset,
       --  then exception Read_Error is raised.
 
