@@ -305,8 +305,15 @@ package body Values is
       V : Value_Type := R;
    begin
       case V.K is
-         when K_Short .. K_Unsigned_Long_Long
-           | K_Octet =>
+         when K_Octet
+           | K_Short
+           | K_Unsigned_Short
+           | K_Long
+           | K_Unsigned_Long =>
+            V.IVal := Unsigned_Long_Long (not Unsigned_Long (V.IVal));
+
+         when K_Long_Long
+           | K_Unsigned_Long_Long =>
             V.IVal := not V.IVal;
 
          when K_Boolean =>
@@ -669,9 +676,9 @@ package body Values is
                RV.Sign := 1;
                return Shift_Right (LV, RV);
             end if;
-            if LV.Base /= RV.Base then
-               LV.Base := 10;
-            end if;
+
+            --  Keep working with left operand base
+
             LV.IVal := Shift_Left (LV.IVal, Natural (RV.IVal));
             return LV;
 
@@ -695,9 +702,9 @@ package body Values is
                RV.Sign := 1;
                return Shift_Left (LV, RV);
             end if;
-            if LV.Base /= RV.Base then
-               LV.Base := 10;
-            end if;
+
+            --  Keep working with left operand base
+
             LV.IVal := Shift_Right (LV.IVal, Natural (RV.IVal));
             return LV;
 
