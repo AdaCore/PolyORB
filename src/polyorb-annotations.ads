@@ -71,9 +71,5 @@ private
    package Note_Lists is new PolyORB.Utils.Chained_Lists (Note_Access);
 
    type Notepad is new Note_Lists.List;
-   --  Cannot be declared as "type Notepad is new Note_Seq;"
-   --  because this would be a derivation of a partial view
-   --  whose full view is tagged within its immediate scope,
-   --  which is illegal.
 
 end PolyORB.Annotations;
