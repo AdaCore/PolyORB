@@ -1,5 +1,3 @@
-all-local: client server
-
 IDLAC = ../../idlac/idlac
 SOCK_CONS = ../../adasockets/src/sockets-constants.ads
 
@@ -9,7 +7,7 @@ EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
                           -I$(srcdir)/../../src \
                           -I../../adasockets/src \
                           -I$(srcdir)/../../adasockets/src \
-                          -g -O2 -m -gnata -i
+                          -g -O2 -m -gnata
 
 CLEANFILES = b~*.* \
 	$(EXAMPLE).o $(EXAMPLE).ali \
@@ -22,6 +20,8 @@ CLEANFILES = b~*.* \
 	report.o report.ali
 
 DISTCLEANFILES = client server
+
+all-local: client server
 
 %.ads %.adb: %.idl $(IDLAC)
 	$(IDLAC) $<
@@ -36,3 +36,4 @@ client server: force $(EXAMPLE).ads
 	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
 
 force::
+	cd ../../src && $(MAKE)
