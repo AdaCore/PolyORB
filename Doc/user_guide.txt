@@ -498,21 +498,14 @@ expected.
 Restrictions.
 -------------
 
-Static remote procedures, asynchronous remote procedures, remote access
-to class wide types and asynchronous transfer of control with remote
-procedures are implemented. Remote types packages are implemented.
+Static remote procedures, asynchronous remote procedures, remote
+access to class wide types, remote access to subprogram and
+asynchronous transfer of control with remote procedures are
+implemented. Remote types packages are implemented.
 
-Remote access to subprogram have not yet been implemented.
+Pragma All_Calls_Remote has been implemented.
 
-Pragma All_Calls_Remote has not yet been implemented.
-
-Shared passive packages and generic RCI packages are also
-unimplemented.
+Shared passive packages are unimplemented.
 
 Language-defined exceptions propagate well through different
 partitions.
-
-For the time being, gnatdist is only able to build distributed
-applications for a pool of homogeneous or heterogeneous machines
-using TCP/IP as a common network protocol.
-
