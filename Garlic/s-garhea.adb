@@ -1232,7 +1232,10 @@ package body System.Garlic.Heart is
 
    procedure Wait_Until_Elaboration_Is_Terminated is
    begin
+      pragma Debug (D (D_Debug, "Checking that elaboration is terminated"));
       Elaboration_Barrier.Wait;
+      pragma Debug
+         (D (D_Debug, "Confirmation that elaboration is terminated"));
    end Wait_Until_Elaboration_Is_Terminated;
 
 end System.Garlic.Heart;

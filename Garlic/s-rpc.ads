@@ -129,5 +129,8 @@ private
       Header : in Request_Header);
    --  This procedure adds a Request_Header in front of Params.
 
+   procedure Initialize;
+   --  Initialize the runtime of System.RPC.
+
 end System.RPC;
 

@@ -44,6 +44,7 @@ package body System.RPC.Initialization is
 
    procedure Initialize is
    begin
+      RPC.Initialize;
       Pool.Initialize;
       Stream_IO.Initialize;
    end Initialize;

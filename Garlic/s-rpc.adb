@@ -130,16 +130,6 @@ package body System.RPC is
       Id        : in Request_Id);
    --  Send an abort message for a request.
 
-   Public_Receiver_Is_Installed : Boolean := False;
-
-   protected Public_Receiver_Installed is
-      procedure Check;
-      entry Wait;
-   end Public_Receiver_Installed;
-   --  This is redundant, but this is the fastest way to do this. This is
-   --  called whenever Establish_RPC_Receiver, Do_APC and Do_RPC are called
-   --  since we don't need to set it before this.
-
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
@@ -190,11 +180,6 @@ package body System.RPC is
       --     pragma Debug (D (D_Debug, "Cannot yet handle All_Calls_Remote");
       --     raise Communication_Error;
       --  end if;
-      if not Public_Receiver_Is_Installed then
-         pragma Debug
-           (D (D_Debug, "Checking the the GARLIC receiver is installed"));
-         Public_Receiver_Installed.Check;
-      end if;
       Insert_Request (Params, Header);
       Partition_ID'Write (Params, Partition);
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
@@ -224,11 +209,6 @@ package body System.RPC is
       --     pragma Debug (D (D_Debug, "Cannot yet handle All_Calls_Remote");
       --     raise Communication_Error;
       --  end if;
-      if not Public_Receiver_Is_Installed then
-         pragma Debug
-           (D (D_Debug, "Checking the the GARLIC receiver is installed"));
-         Public_Receiver_Installed.Check;
-      end if;
       begin
          pragma Abort_Defer;
          Request_Id_Server.Get (Id, Partition);
@@ -267,11 +247,6 @@ package body System.RPC is
       Receiver  : in RPC_Receiver)
    is
    begin
-      if not Public_Receiver_Is_Installed then
-         pragma Debug
-           (D (D_Debug, "Checking installation of GARLIC receiver"));
-         Public_Receiver_Installed.Check;
-      end if;
       pragma Debug
         (D (D_Debug, "Setting RPC receiver for partition" & Partition'Img));
       Receiver_Map.Set (Partition, Receiver);
@@ -293,6 +268,15 @@ package body System.RPC is
          Result_Watcher.Invalidate (Id);
       end if;
    end Finalize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Receive (Remote_Call, Public_RPC_Receiver'Access);
+   end Initialize;
 
    --------------------
    -- Insert_Request --
@@ -317,33 +301,6 @@ package body System.RPC is
       Request_Id_Server.Raise_Partition_Error (Partition);
    end Partition_Error_Notification;
 
-   -------------------------------
-   -- Public_Receiver_Installed --
-   -------------------------------
-
-   protected body Public_Receiver_Installed is
-
-      -----------
-      -- Check --
-      -----------
-
-      procedure Check is
-      begin
-         Receive (Remote_Call, Public_RPC_Receiver'Access);
-         Public_Receiver_Is_Installed := True;
-      end Check;
-
-      ----------
-      -- Wait --
-      ----------
-
-      entry Wait when Public_Receiver_Is_Installed is
-      begin
-         null;
-      end Wait;
-
-   end Public_Receiver_Installed;
-
    -------------------------
    -- Public_RPC_Receiver --
    -------------------------
@@ -358,13 +315,6 @@ package body System.RPC is
       case Header.Kind is
 
          when RPC_Request | APC_Request =>
-
-            --  First make sure that our elaboration is finished before
-            --  handling any RPC call. We do not make the check for
-            --  RPC answers because we do not want to stay locked if
-            --  we have requested something ourselves.
-
-            Wait_Until_Elaboration_Is_Terminated;
 
             declare
                Params_Copy  : Params_Stream_Access :=
@@ -643,7 +593,7 @@ package body System.RPC is
            (D (D_Debug, "Shutdown Waiter exiting because of Shutdown_Keeper"));
          raise Communication_Error;
       then abort
-         Public_Receiver_Installed.Wait;
+         Wait_Until_Elaboration_Is_Terminated;
       end select;
       System.Garlic.Termination.Add_Non_Terminating_Task;
       Shutdown_Keeper.Wait;

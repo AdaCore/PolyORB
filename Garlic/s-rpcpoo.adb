@@ -257,6 +257,12 @@ package body System.RPC.Pool is
             terminate;
          end select;
          exit when Aborted;
+
+         --  Before executing anything, make sure that our elaboration is
+         --  finished.
+
+         Wait_Until_Elaboration_Is_Terminated;
+
          Result    := new Params_Stream_Type (0);
          Cancelled := False;
          Task_Manager.Get_One;

@@ -36,7 +36,7 @@
 package System.RPC.Initialization is
 
    --  This package initializes all the private children package of
-   --  System.RPC.
+   --  System.RPC and System.RPC itself.
 
    procedure Initialize;
 
