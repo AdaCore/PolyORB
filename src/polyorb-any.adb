@@ -1130,11 +1130,23 @@ package body PolyORB.Any is
             pragma Debug (O ("Member_Count_With_Label: Member_Count = "
                              & Unsigned_Long'Image (Member_Count (Self))));
             for J in 0 .. Member_Count (Self) - 1 loop
-               if Member_Label (Self, J) = Label then
-                  Result := Result + 1;
-               end if;
+
+               --  The label parameter for the default label is just a
+               --  placeholder and must not be accounted for as a member
+               --  for the label-specific count.
+
                if Default_Index (Self) = Long (J) then
+                  pragma Debug
+                    (O ("Member_Count_With_Label: member"
+                        & Types.Unsigned_Long'Image (J)
+                        & " is a default member."));
                   Default_Nb := Default_Nb + 1;
+               elsif Member_Label (Self, J) = Label then
+                  pragma Debug
+                    (O ("Member_Count_With_Label: member"
+                        & Types.Unsigned_Long'Image (J)
+                        & " matches label."));
+                  Result := Result + 1;
                end if;
             end loop;
             if Result = 0 then
