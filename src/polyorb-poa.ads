@@ -31,17 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract interface for the POA Object Adapter..
+--  Abstract interface for the POA Object Adapter.
 
---  This package provides a higher level abstraction of a PolyORB's
---  Object Adapter as defined in PolyORB.Obj_Adapters, which is
---  notionnaly equivalent to CORBA's POA.
+--  This package provides a higher level abstraction (the POA) of a
+--  PolyORB's Object Adapter as defined in PolyORB.Obj_Adapters.
+--  PolyORB's POA is notionnaly equivalent to CORBA's POA.
 
---  PolyORB's POA can be accessed through two different interfaces.
+--  PolyORB's POA can be accessed through two different interfaces:
 --   - a CORBA-like interface', which encompasses CORBA POA API;
 --   - the PolyORB Obj_Adapter interface, as defined in PolyORB.Obj_Adapters.
 
---  Thus, an implementation of a this POA interface must implement both the
+--  Thus, an implementation of this interface must provide both the
 --  CORBA-like POA interface and the PolyORB Obj_Adapter interface.
 
 --  $Id$
@@ -128,7 +128,6 @@ package PolyORB.POA is
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
    --  The POA object
    --  XXX Part of this should be private (locks, active object map, father...)
-   --  The policies are used by all corba-policy-*, we can keep them public
 
    ------------------------------
    -- CORBA-like POA interface --
