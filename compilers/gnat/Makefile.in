@@ -1342,6 +1342,7 @@ ifeq ($(strip $(filter-out cygwin32% mingw32% pe,$(osys))),)
   s-osprim.adb<s-osprim-mingw.adb \
   s-taprop.adb<s-taprop-mingw.adb \
   s-taspri.ads<s-taspri-mingw.ads \
+  s-parame.adb<s-parame-mingw.adb \
   g-socthi.ads<g-socthi-mingw.ads \
   g-socthi.adb<g-socthi-mingw.adb \
   g-soccon.ads<g-soccon-mingw.ads \
@@ -1361,6 +1362,32 @@ ifeq ($(strip $(filter-out cygwin32% mingw32% pe,$(osys))),)
 # support for array/record will be done.
   GNATLIB_SHARED = gnatlib-shared-win32
   LIBRARY_VERSION := $(LIB_VERSION)
+endif
+
+ifeq ($(strip $(filter-out powerpc% linux%,$(arch) $(osys))),)
+  LIBGNAT_TARGET_PAIRS = \
+  a-intnam.ads<a-intnam-linux.ads \
+  s-inmaop.adb<s-inmaop-posix.adb \
+  s-intman.adb<s-intman-posix.adb \
+  s-osinte.adb<s-osinte-posix.adb \
+  s-osinte.ads<s-osinte-linux.ads \
+  s-osprim.adb<s-osprim-posix.adb \
+  s-taprop.adb<s-taprop-linux.adb \
+  s-taspri.ads<s-taspri-linux.ads \
+  s-tpopsp.adb<s-tpopsp-posix-foreign.adb \
+  s-parame.adb<s-parame-linux.adb \
+  system.ads<system-linux-ppc.ads
+
+  TOOLS_TARGET_PAIRS =  \
+    mlib-tgt.adb<mlib-tgt-linux.adb
+
+  SYMLIB = $(ADDR2LINE_SYMLIB)
+  THREADSLIB = -lpthread
+  GNATLIB_SHARED = gnatlib-shared-dual
+  GMEM_LIB = 
+  PREFIX_OBJS = $(PREFIX_REAL_OBJS)
+  LIBRARY_VERSION := $(LIB_VERSION)
+
 endif
 
 ifeq ($(strip $(filter-out %ia64 linux%,$(arch) $(osys))),)
@@ -1697,6 +1724,9 @@ install-gnatlib: ../stamp-gnatlib
 	-for file in rts/*$(arext);do \
 	    $(INSTALL_DATA_DATE) $$file $(ADA_RTL_OBJ_DIR); \
 	done
+	-$(foreach file, $(EXTRA_ADALIB_FILES), \
+	    $(INSTALL_DATA_DATE) rts/$(file) $(ADA_RTL_OBJ_DIR) && \
+	) true
 #	Install the shared libraries, if any, using $(INSTALL) instead
 # 	of $(INSTALL_DATA). The latter may force a mode inappropriate
 #	for shared libraries on some targets, e.g. on HP-UX where the x
@@ -1955,7 +1985,6 @@ b_gnatl.o : b_gnatl.c
 b_gnatm.c : $(GNATMAKE_OBJS)
 	$(GNATBIND) $(ADA_INCLUDES) -o b_gnatm.c gnatmake.ali
 b_gnatm.o : b_gnatm.c
-
 
 ada_extra_files : treeprs.ads einfo.h sinfo.h nmake.adb nmake.ads
 

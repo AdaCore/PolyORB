@@ -78,9 +78,10 @@ package Exp_Dist is
    --  Build stub for a shared passive package. U is the analyzed
    --  compilation unit for a package declaration.
 
-   function Build_Subprogram_Id (Loc : Source_Ptr; E : Entity_Id)
-     return Node_Id;
-   --  Build a literal representing the remote subprogram identifier of E.
+   function Build_Subprogram_Id
+     (Loc : Source_Ptr;
+      E   : Entity_Id) return Node_Id;
+   --  Build a literal representing the remote subprogram identifier of E
 
    function Copy_Specification
      (Loc         : Source_Ptr;
