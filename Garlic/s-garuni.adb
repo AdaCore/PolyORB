@@ -93,7 +93,7 @@ package body System.Garlic.Units is
      (Unit      : in Unit_Id;
       Partition : in Partition_ID;
       Receiver  : in Unsigned_64;
-      Version   : in String_Access;
+      Version   : in Version_Type;
       Status    : in Unit_Status;
       Pending   : in out Request_List);
    --  Fill new unit slot and link unit into the partition unit list.
@@ -193,8 +193,8 @@ package body System.Garlic.Units is
       D ("* Unit " & Units.Get_Name (Unit));
       D ("   Partition    "  & Info.Partition'Img);
       D ("   Receiver     "  & Info.Receiver'Img);
-      if Info.Version /= null then
-         D ("   Version       " & Info.Version.all);
+      if Info.Version /= Null_Version then
+         D ("   Version       " & String (Info.Version));
       else
          D ("   Version       <no version>");
       end if;
@@ -517,7 +517,7 @@ package body System.Garlic.Units is
       Unit      : Unit_Id;
       Partition : Partition_ID;
       Receiver  : Unsigned_64;
-      Version   : String_Access;
+      Version   : Version_Type;
       Status    : Unit_Status;
    begin
       List := Null_List;
@@ -533,7 +533,7 @@ package body System.Garlic.Units is
               (D ("Read unit info about " & Units.Get_Name (Unit)));
 
             Unsigned_64'Read (Stream, Receiver);
-            Version := new String'(String'Input (Stream));
+            Version := Version_Type (String'Input (Stream));
             Unit_Status'Read (Stream, Status);
             Store_New_Unit (Unit, Partition, Receiver, Version, Status, List);
          end loop;
@@ -640,7 +640,7 @@ package body System.Garlic.Units is
      (Unit      : in Unit_Id;
       Partition : in Partition_ID;
       Receiver  : in Unsigned_64;
-      Version   : in String_Access;
+      Version   : in Version_Type;
       Status    : in Unit_Status;
       Pending   : in out Request_List)
    is
@@ -831,7 +831,7 @@ package body System.Garlic.Units is
                   Boolean'Write     (Stream, True);
                   String'Output     (Stream, Units.Get_Name (Unit));
                   Unsigned_64'Write (Stream, Info.Receiver);
-                  String'Output     (Stream, Info.Version.all);
+                  String'Output     (Stream, String (Info.Version));
                   Unit_Status'Write (Stream, Info.Status);
                end if;
                Unit := Info.Next_Unit;

@@ -54,6 +54,9 @@ package System.Garlic.Types is
 
    Partition_ID_Increment : constant Valid_Partition_ID := 10;
 
+   type Version_Type is new String (1 .. 8);
+   Null_Version : constant Version_Type := (others => ' ');
+
    type Shutdown_Access is access procedure;
 
    --  This package defines basic types that are used throughout Garlic

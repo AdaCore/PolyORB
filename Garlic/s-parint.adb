@@ -264,7 +264,7 @@ package body System.Partition_Interface is
          Raise_Communication_Error (E'Access);
       end if;
 
-      return I.Version.all;
+      return String (I.Version);
    end Get_Active_Version;
 
    ----------------------------

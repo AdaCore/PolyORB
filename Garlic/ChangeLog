@@ -1,1986 +1,1992 @@
+1999-07-10  Laurent Pautet  <pautet@dorine.enst.fr>
+
+        * s-gartyp.ads, s-garuni.ads, s-parint.adb: Use Version_Type
+        instead of String_Access to define unit versions. Prevent some
+        memory leaks.
+
 1999-07-10  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb: Reduce initial size of filter table (not
-	frequently used).
+        * s-garfil.adb: Reduce initial size of filter table (not
+        frequently used).
 
-	* s-gargro.adb: Deallocate Inner_Query on error or when it is not
- 	going to be consumed.
+        * s-gargro.adb: Deallocate Inner_Query on error or when it is not
+        going to be consumed.
 
-	* s-garhea.adb: In Process_Stream, a query can be left not
-	entirely consumed because of group communication (a partition
-	receives its own query). Deallocated it anyway.
+        * s-garhea.adb: In Process_Stream, a query can be left not
+        entirely consumed because of group communication (a partition
+        receives its own query). Deallocated it anyway.
 
-	* s-garopt.adb: Do not redefine Free for GNAT.OS_Lib.String_Access.
-	
-	* s-garthi.ads: Remove Getenv.
+        * s-garopt.adb: Do not redefine Free for GNAT.OS_Lib.String_Access.
 
-	* s-garuni.ads: Minor reformatting.
+        * s-garthi.ads: Remove Getenv.
 
-	* s-gartcp.adb: Catch an error to deallocate its error message.
-	
+        * s-garuni.ads: Minor reformatting.
+
+        * s-gartcp.adb: Catch an error to deallocate its error message.
+
 1999-07-01  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb: In a comment, change "unfiltered" by
-	"filtered". Documentation bug found by code reading.
+        * s-garhea.adb: In a comment, change "unfiltered" by
+        "filtered". Documentation bug found by code reading.
 
-	* s-gartcp.adb: Use SEC_Size instead of Banner_Size when writing
-	the length of the stream in the data buffer. Latent bug found by
-	code reading. By change, both constants happened to have the same
-	value.
+        * s-gartcp.adb: Use SEC_Size instead of Banner_Size when writing
+        the length of the stream in the data buffer. Latent bug found by
+        code reading. By change, both constants happened to have the same
+        value.
 
 1999-06-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-stratt.adb: Use a short short unsigned to marshall a boolean.
+        * s-stratt.adb: Use a short short unsigned to marshall a boolean.
 
 1999-06-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garpar.adb, s-garopt.adb: Typo (Excepted -> Expected)
+        * s-garpar.adb, s-garopt.adb: Typo (Excepted -> Expected)
 
 1999-06-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gardeb.adb, s-gaplsp.ads.in: Sanity directory is now an
- 	env. variable instead of a configuration option (in order to test
- 	with a binary release).
+        * s-gardeb.adb, s-gaplsp.ads.in: Sanity directory is now an
+        env. variable instead of a configuration option (in order to test
+        with a binary release).
 
 1999-05-29  Pascal Obry  <obry@gnat.com>
-	
-	* s-garsta.adb: Remove withed unit System.Garlic.Exceptions that
-	is not needed. Will fix the nightly build failures.
+
+        * s-garsta.adb: Remove withed unit System.Garlic.Exceptions that
+        is not needed. Will fix the nightly build failures.
 
 1999-05-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garopt.adb: Fix use of Default_Boot_Server for Ada starter
-	(fix for 6510-008).
+        * s-garopt.adb: Fix use of Default_Boot_Server for Ada starter
+        (fix for 6510-008).
 
-	* s-gardeb.ads: Increase debug flag table (there are more than 25
-	debug keys).
+        * s-gardeb.ads: Increase debug flag table (there are more than 25
+        debug keys).
 
 1999-05-03  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.zip (install-zlib): Build libz.a prior to installation
-	time.
+        * Makefile.zip (install-zlib): Build libz.a prior to installation
+        time.
 
-	* Makefile.am (install-extra-libs): Install directory before
-	installing the libraries, fixes 0004-G08 failure on systems
-	without zlib.
+        * Makefile.am (install-extra-libs): Install directory before
+        installing the libraries, fixes 0004-G08 failure on systems
+        without zlib.
 
 1999-04-15  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* stamp-h.in: This file needs to be present in the distribution to 
-	avoid the need for autoheader.
+        * stamp-h.in: This file needs to be present in the distribution to
+        avoid the need for autoheader.
 
 1999-04-12  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5sgarcon.ads: New constant file for Solaris.
+        * 5sgarcon.ads: New constant file for Solaris.
 
-	* 5lgarcon.ads: New constant file for Linux.
+        * 5lgarcon.ads: New constant file for Linux.
 
-	* s-gafizi.ads: Add pragma Linker_Options ("-lz") to drag the zlib 
-	in the executable.
+        * s-gafizi.ads: Add pragma Linker_Options ("-lz") to drag the zlib
+        in the executable.
 
-	* garcon.txt: New file containing the header to use for static
-	platform specific files.
+        * garcon.txt: New file containing the header to use for static
+        platform specific files.
 
-	* constants.sh: Add code to generate the platform specific file
+        * constants.sh: Add code to generate the platform specific file
 
-	* Makefile.am: Add more flexibility in the build and install
-	process for filters.
-	If a platform specific file could be found, use it instead of
-	building it.
-	Replace ${} by $() so that it doesn't confuse automake any longer.
+        * Makefile.am: Add more flexibility in the build and install
+        process for filters.
+        If a platform specific file could be found, use it instead of
+        building it.
+        Replace ${} by $() so that it doesn't confuse automake any longer.
 
-	* Makefile.zip: Install libz.a only when no zlib has been found on 
-	the system at configure time.
+        * Makefile.zip: Install libz.a only when no zlib has been found on
+        the system at configure time.
 
 1999-04-10  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuti.adb: Change Tasking_Soft_Links into Soft_Links. This
-	unit is needed for Abort_Defer and Abort_Undefer.
+        * s-garuti.adb: Change Tasking_Soft_Links into Soft_Links. This
+        unit is needed for Abort_Defer and Abort_Undefer.
 
 1999-02-17  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuni.adb: Do not try to send a reply to a pending request to 
-	a dead partition as it will cause a lockup in the runtime.
+        * s-garuni.adb: Do not try to send a reply to a pending request to
+        a dead partition as it will cause a lockup in the runtime.
 
-	* s-garpar.ads, s-garpar.adb: (Is_Dead): New function that tests
-	if a partition is known as being dead.
+        * s-garpar.ads, s-garpar.adb: (Is_Dead): New function that tests
+        if a partition is known as being dead.
 
-	* s-gargro.adb: Barrier has been replaced by a mutex (Group_Mutex) 
-	as its only purpose is to provide non-reentrant mutual exclusion.
+        * s-gargro.adb: Barrier has been replaced by a mutex (Group_Mutex)
+        as its only purpose is to provide non-reentrant mutual exclusion.
 
 1999-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* constants.c, config.h.in: Use string.h if present, needed on
-	Digital Unix.
+        * constants.c, config.h.in: Use string.h if present, needed on
+        Digital Unix.
 
-	* makedall: New script that updates the debugging scripts
-	automatically.
+        * makedall: New script that updates the debugging scripts
+        automatically.
 
-	* DALL, UNDALL, DALL.el, UNDALL.el: Updated using makedall.
+        * DALL, UNDALL, DALL.el, UNDALL.el: Updated using makedall.
 
-	* s-garstr.adb: Dump streams only when a specific key *and*
-	S_GARSTR are set to avoid clobbering the output with large dumps.
+        * s-garstr.adb: Dump streams only when a specific key *and*
+        S_GARSTR are set to avoid clobbering the output with large dumps.
 
-	* s-gartcp.adb: Do not try to connect with a peer that has no
-	location (light PCS for example).
+        * s-gartcp.adb: Do not try to connect with a peer that has no
+        location (light PCS for example).
 
-	* s-garuni.adb: Minor reformatting.
-	(Store_New_Unit): Change name New_Unit_Info to Current_Info as the 
-	former was misleading. Add more debugging info. A unit can be in
-	the Queried state after a failure if the client needs it anyway,
-	so this state must be considered when receiving new information
-	about the unit.
-	(Read_Units): Initialize List which was used uninitialized.
-	(Answer_Pending_Requests): Do not share the Params_Stream_Type
-	between different answers.
+        * s-garuni.adb: Minor reformatting.
+        (Store_New_Unit): Change name New_Unit_Info to Current_Info as the
+        former was misleading. Add more debugging info. A unit can be in
+        the Queried state after a failure if the client needs it anyway,
+        so this state must be considered when receiving new information
+        about the unit.
+        (Read_Units): Initialize List which was used uninitialized.
+        (Answer_Pending_Requests): Do not share the Params_Stream_Type
+        between different answers.
 
 1999-02-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Check that system.garlic.debug is
-	the first garlic elaborated package.
+        * Makefile.am, Makefile.in: Check that system.garlic.debug is
+        the first garlic elaborated package.
 
-	* s-garexc.adb: Add visibility on system.garlic.debug.
+        * s-garexc.adb: Add visibility on system.garlic.debug.
 
-	* s-parint.adb: Move Delete_Termination_Sanity_File to the very
-	last shutdown step.
-	
-	* s-ganobl.adb (C_Accept): When Thin.C_Accept fails and Errno is
-	Eagain, try again later.
+        * s-parint.adb: Move Delete_Termination_Sanity_File to the very
+        last shutdown step.
 
-	* s-garfil.adb, s-garfil.ads, s-gafizi.adb, s-gafizi.ads,
- 	s-garhea.adb: Remove a copy of stream element array.
+        * s-ganobl.adb (C_Accept): When Thin.C_Accept fails and Errno is
+        Eagain, try again later.
+
+        * s-garfil.adb, s-garfil.ads, s-gafizi.adb, s-gafizi.ads,
+        s-garhea.adb: Remove a copy of stream element array.
 
 1999-02-01  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuti.adb: Avoid recursion in "<" operator by converting
-	arguments into Integers.
+        * s-garuti.adb: Avoid recursion in "<" operator by converting
+        arguments into Integers.
 
 1999-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuti.adb: Define No_Version which is the initialized value
- 	of a watcher and which can no longer be reached once this watcher
- 	is used. Substitute Commit by Lookup. Add a function "<" for
- 	Version_Id.
+        * s-garuti.adb: Define No_Version which is the initialized value
+        of a watcher and which can no longer be reached once this watcher
+        is used. Substitute Commit by Lookup. Add a function "<" for
+        Version_Id.
 
-	* s-gartab.adb, s-gartcp.adb, s-garuti.ads, s-rpc.adb: Substitute
-	Commit by Lookup.
+        * s-gartab.adb, s-gartcp.adb, s-garuti.ads, s-rpc.adb: Substitute
+        Commit by Lookup.
 
 1999-01-25  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garnam.adb: Another enhancement for "localhost".
+        * s-garnam.adb: Another enhancement for "localhost".
 
 1999-01-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartcp.adb (Initialize): Do not use "localhost" directly
-	but translate it into the offical name.
+        * s-gartcp.adb (Initialize): Do not use "localhost" directly
+        but translate it into the offical name.
 
 1999-01-12  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuti.adb: Fix unitialized level problem in
- 	Adv_Mutex_Type. Fixes 0004-G02.
+        * s-garuti.adb: Fix unitialized level problem in
+        Adv_Mutex_Type. Fixes 0004-G02.
 
 1998-12-29  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gaphlo.ads, s-gaphlo.adb: Remove memory leaks by making
-	Location_Type a controlled type. This type is used when connecting 
-	to a new partition, so the penalty won't be unaffordable.
+        * s-gaphlo.ads, s-gaphlo.adb: Remove memory leaks by making
+        Location_Type a controlled type. This type is used when connecting
+        to a new partition, so the penalty won't be unaffordable.
 
 1998-12-28  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gardeb.adb: Deallocate string returned by Getenv after use.
+        * s-gardeb.adb: Deallocate string returned by Getenv after use.
 
-	* s-gastha.adb: Fix two obvious bugs found by code reading. Pool
-	mutexes were allocated many times and deallocated many times.
+        * s-gastha.adb: Fix two obvious bugs found by code reading. Pool
+        mutexes were allocated many times and deallocated many times.
 
 1998-12-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gardeb.adb, s-gardeb.ads: Change debugging facilities. Reduce
-	to only one debugging level. A debugging env variable has be set
-	to "true" to be active.
-	
-	* all files: Adapt to new debugging facilities.
+        * s-gardeb.adb, s-gardeb.ads: Change debugging facilities. Reduce
+        to only one debugging level. A debugging env variable has be set
+        to "true" to be active.
 
-	* s-rpc.adb, s-parint.adb: Debugging facilities are always present 
-	even when GLADE ws not configured with --enable-debug.
+        * all files: Adapt to new debugging facilities.
+
+        * s-rpc.adb, s-parint.adb: Debugging facilities are always present
+        even when GLADE ws not configured with --enable-debug.
 
 1998-12-16  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garthi.ads: Fix some design mistakes that have been here for
-	years now using dynamic allocations.
+        * s-garthi.ads: Fix some design mistakes that have been here for
+        years now using dynamic allocations.
 
-	* s-garnam.adb: Use as few dynamic allocation as possible.
+        * s-garnam.adb: Use as few dynamic allocation as possible.
 
 1998-12-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartcp.adb: Add comments in Initialize.
+        * s-gartcp.adb: Add comments in Initialize.
 
-	* s-garnam.adb, s-garnam.ads: Fix a problem on DecAlpha because
- 	host entry names are not always in lower case on this system.
+        * s-garnam.adb, s-garnam.ads: Fix a problem on DecAlpha because
+        host entry names are not always in lower case on this system.
 
 1998-12-14  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuni.adb: Use new Broadcast function.
+        * s-garuni.adb: Use new Broadcast function.
 
-	* s-garstr.adb: (Deallocate): avoid code duplication when freeing
-	an access to stream.
+        * s-garstr.adb: (Deallocate): avoid code duplication when freeing
+        an access to stream.
 
-	* s-garhea.adb: (Send_Boot_Server): avoid dynamic allocation of
-	the stream copy.
-	Error is really an out parameter, not in out.
+        * s-garhea.adb: (Send_Boot_Server): avoid dynamic allocation of
+        the stream copy.
+        Error is really an out parameter, not in out.
 
-	* s-gargro.ads: (Broadcast): there is no need for the Error
-	parameter since no error can be sent back.
+        * s-gargro.ads: (Broadcast): there is no need for the Error
+        parameter since no error can be sent back.
 
-	* s-gargro.adb: (Send_Neighbor): Error is really of out type, not in 
-	out. Procedure rewritten to use the new Next_Boot_Mirror from
-	System.Garlic.Partitions.
+        * s-gargro.adb: (Send_Neighbor): Error is really of out type, not in
+        out. Procedure rewritten to use the new Next_Boot_Mirror from
+        System.Garlic.Partitions.
 
-	* s-garnam.adb: Remove usage of a Mutex_Type and replace it by
-	calls to Enter_ and Leave_Critical_Section.
+        * s-garnam.adb: Remove usage of a Mutex_Type and replace it by
+        calls to Enter_ and Leave_Critical_Section.
 
-	* s-garpar.ads: New function Next_Boot_Mirror returning the next
-	boot mirror.
-	
-	* s-garpar.adb: (Next_Boot_Mirror): implementation.
+        * s-garpar.ads: New function Next_Boot_Mirror returning the next
+        boot mirror.
 
-	* s-rpc.adb: Remove usage of Mutex_Type.
+        * s-garpar.adb: (Next_Boot_Mirror): implementation.
+
+        * s-rpc.adb: Remove usage of Mutex_Type.
 
 1998-12-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuni.adb: Discard definition of an unit mapped on a
-	partition with Failed_On_Restart reconnection mode (0004-G13).
+        * s-garuni.adb: Discard definition of an unit mapped on a
+        partition with Failed_On_Restart reconnection mode (0004-G13).
 
 1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuni.adb: Once invalidate an unit status can be either
-	Undefined or Invalidate depending on the reconnection mode. Handle 
-	this case correctly (0004-G11).
+        * s-garuni.adb: Once invalidate an unit status can be either
+        Undefined or Invalidate depending on the reconnection mode. Handle
+        this case correctly (0004-G11).
 
 1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuti.ads, s-garuti.adb: Made Error_Type a limited private
-	type to prevent misuses and copies.
-	Add a procedure Raise_Communication_Error that raises the
-	exception Communication_Error with the content of the error
-	string. This fixes a memory leak.
+        * s-garuti.ads, s-garuti.adb: Made Error_Type a limited private
+        type to prevent misuses and copies.
+        Add a procedure Raise_Communication_Error that raises the
+        exception Communication_Error with the content of the error
+        string. This fixes a memory leak.
 
-	* s-gartcp.adb: No need to initialize Error_Type variables anymore.
-	Do not pass Stream_Element_Array on the stack for Physical_Receive
-	as it is likely to cause segmentation faults for large data.
-	
-	* s-garfil.adb: Likewise.
+        * s-gartcp.adb: No need to initialize Error_Type variables anymore.
+        Do not pass Stream_Element_Array on the stack for Physical_Receive
+        as it is likely to cause segmentation faults for large data.
 
-	* s-garpar.adb: Likewise.
+        * s-garfil.adb: Likewise.
 
-	* s-garter.adb: Likewise.
+        * s-garpar.adb: Likewise.
 
-	* s-garuni.adb: Likewise.
+        * s-garter.adb: Likewise.
 
-	* s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Likewise.
+        * s-garuni.adb: Likewise.
 
-	* s-garhea.adb: Likewise.
+        * s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Likewise.
 
-	* s-parint.adb: Recode the exception raising accordingly with
-	the new spec of Error_Type.
+        * s-garhea.adb: Likewise.
 
-	* s-stratt.adb: Optimize integer coding (the most frequent case)
-	on some kind of machines (Sun).
+        * s-parint.adb: Recode the exception raising accordingly with
+        the new spec of Error_Type.
+
+        * s-stratt.adb: Optimize integer coding (the most frequent case)
+        on some kind of machines (Sun).
 
 1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-rpc.adb: Make a difference between a RPC receiver abortion due
- 	to a partition crash and a RPC caller abortion due to a task
- 	abortion (0004-G09).
+        * s-rpc.adb: Make a difference between a RPC receiver abortion due
+        to a partition crash and a RPC caller abortion due to a task
+        abortion (0004-G09).
 
-	* s-garuni.adb: If unit status is Defined and a request wants to
-	change it into Declared, just ignore. A partition is trying to
-	register an already registered unit (0004-G10).
+        * s-garuni.adb: If unit status is Defined and a request wants to
+        change it into Declared, just ignore. A partition is trying to
+        register an already registered unit (0004-G10).
 
-	* s-garpar.adb: Fix a problem of boot on main partition.
+        * s-garpar.adb: Fix a problem of boot on main partition.
 
-	* s-rpc.adb: Fix a bug in RPC abortion.
+        * s-rpc.adb: Fix a bug in RPC abortion.
 
 1998-12-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.in, Makefile.am: Fix a filemode problem.
-	
-	* s-parint.adb, s-rpc.adb: Move call to
- 	Register_Unit_On_Boot_Server from RPC.Establish_RPC_Receiver to
- 	Partition_Interface.Run to allow the replacement of System.RPC.
+        * Makefile.in, Makefile.am: Fix a filemode problem.
+
+        * s-parint.adb, s-rpc.adb: Move call to
+        Register_Unit_On_Boot_Server from RPC.Establish_RPC_Receiver to
+        Partition_Interface.Run to allow the replacement of System.RPC.
 
 1998-12-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Add user write mode to
- 	${GARLIC}/libgnat.a before updating it. Then, remove user write mode.
+        * Makefile.am, Makefile.in: Add user write mode to
+        ${GARLIC}/libgnat.a before updating it. Then, remove user write mode.
 
 1998-12-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gaphlo.adb, s-gaphlo.ads: Add a procedure to free a location
- 	and all its components.
+        * s-gaphlo.adb, s-gaphlo.ads: Add a procedure to free a location
+        and all its components.
 
-	* s-gardeb.adb: '+' is a special character that allows to set all 
-	debug levels to true.
+        * s-gardeb.adb: '+' is a special character that allows to set all
+        debug levels to true.
 
-	* s-garfil.ads, s-garfil.adb: Add a parameter Error to some
-	subprograms and remove use of exceptions.
+        * s-garfil.ads, s-garfil.adb: Add a parameter Error to some
+        subprograms and remove use of exceptions.
 
-	* s-garopt.ads, s-garopt.adb: Define two strings Boot_Location and
- 	Self_Location. Define three new flags Is_Boot_Server,
- 	Is_Boot_Mirror (true when a partition has a copy of units or
- 	partitions tables) and Mirrors_Expected (true when a partition can
- 	boot only with more than one boot mirror partition). Check for new
- 	env. var (and update old ones, for instance, LOCATION into
- 	SELF_LOCATION) and command line args (and update old ones). Check
- 	also option inconsistencies. Split Initialize in two procedures,
- 	one for the defaults, one for user options.
+        * s-garopt.ads, s-garopt.adb: Define two strings Boot_Location and
+        Self_Location. Define three new flags Is_Boot_Server,
+        Is_Boot_Mirror (true when a partition has a copy of units or
+        partitions tables) and Mirrors_Expected (true when a partition can
+        boot only with more than one boot mirror partition). Check for new
+        env. var (and update old ones, for instance, LOCATION into
+        SELF_LOCATION) and command line args (and update old ones). Check
+        also option inconsistencies. Split Initialize in two procedures,
+        one for the defaults, one for user options.
 
-	* s-garuti.ads, s-garuti.adb: Add error code management in order
- 	to remove use of exception. It is sometimes quite difficult to
- 	track an exception in the middle of critical sections. By using
- 	error code, the source code is easier to understand.
+        * s-garuti.ads, s-garuti.adb: Add error code management in order
+        to remove use of exception. It is sometimes quite difficult to
+        track an exception in the middle of critical sections. By using
+        error code, the source code is easier to understand.
 
-	* s-garrem.adb: Do not add --slave on command line to launch a
- 	slave. This is already included in the slave code. Adding --slave
- 	also forbids some configuration.
+        * s-garrem.adb: Do not add --slave on command line to launch a
+        slave. This is already included in the slave code. Adding --slave
+        also forbids some configuration.
 
-	* s-garstr.ads, s-garstr.adb: Change Deep_Copy into Move because
-	this procedure is supposed to move a source stream content into a
-	target stream. Add procedure Copy to make a copy of a source
-	stream into a target stream. Add a Deallocate procedure to
-	deallocate a Params_Stream_Type and all its components.
+        * s-garstr.ads, s-garstr.adb: Change Deep_Copy into Move because
+        this procedure is supposed to move a source stream content into a
+        target stream. Add procedure Copy to make a copy of a source
+        stream into a target stream. Add a Deallocate procedure to
+        deallocate a Params_Stream_Type and all its components.
 
-	* s-gartyp.ads: Add a Dead status to partition status.
-	
-	* s-garpro.ads: Add an Error parameter to some of the abstract
- 	subprograms to remove use of exceptions. Do not raise
- 	Communication_Error in those subprograms because it is sometimes
- 	too difficult to track an exception in the middle of critical
- 	sections.
+        * s-gartyp.ads: Add a Dead status to partition status.
 
-	* s-garrep.ads, s-garrep.adb: Update overriden subprograms
-	according to Garlic.Protocols changes.
+        * s-garpro.ads: Add an Error parameter to some of the abstract
+        subprograms to remove use of exceptions. Do not raise
+        Communication_Error in those subprograms because it is sometimes
+        too difficult to track an exception in the middle of critical
+        sections.
 
-	* s-gartcp.adb: Update overriden subprograms according to
- 	Garlic.Protocols changes. Do not raise Communication_Error
- 	anymore. Propagate an error code using error utilities from
- 	Garlic.Utils. Fix some bugs due to bad critical section exit.
+        * s-garrep.ads, s-garrep.adb: Update overriden subprograms
+        according to Garlic.Protocols changes.
 
-	* s-garter.adb, s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Use new
- 	error model. 
+        * s-gartcp.adb: Update overriden subprograms according to
+        Garlic.Protocols changes. Do not raise Communication_Error
+        anymore. Propagate an error code using error utilities from
+        Garlic.Utils. Fix some bugs due to bad critical section exit.
 
-	* s-garsta.adb: Use new error model. Initialize boot protocol with
- 	self location for non boot server partition. This way, a protocol
- 	does not bind its location randomly for a slave partition.
+        * s-garter.adb, s-rpc.adb, s-rpcpoo.adb, s-rpstio.adb: Use new
+        error model.
 
-	* s-gargro.ads, s-gargro.adb: Add an Error parameter to some
- 	subprograms. Use new stream utilities. Fix some bugs due to bad
- 	critical section exit. Broadcasts are asynchronous and it is not
- 	possible to start a new broadcast operation once the first one has
- 	completed. In Handle_Request, parameter Reply which was never used
- 	allows now to start a new broadcast when the current request has
- 	just completed.
-		
-	* s-garhea.ads, s-garhea.adb: Add an Error parameter to some
- 	subprograms. Add a Send_Boot_Server procedure to send a stream to
- 	boot server. When the boot server is dead, try to find a boot
- 	mirror. Throw an error only when there is no boot mirror left. Add
- 	a Wait_For_My_Partition_ID procedure that blocks until the
- 	partition id of the current partition has been computed. Move some
- 	procedures from Heart to Partitions in order to have all the
- 	primitives on the partition info table in the same package.
+        * s-garsta.adb: Use new error model. Initialize boot protocol with
+        self location for non boot server partition. This way, a protocol
+        does not bind its location randomly for a slave partition.
 
-	* s-garpar.ads, s-garpar.adb: Add some fault tolerance
- 	functionalities. Info of a given partition includes now the
- 	partition id of its boot server and a flag set to true when it is
- 	a boot mirror. Partition info requests now include a request to
- 	update the partition info table on all the mirroring
- 	partitions. Add an Error parameter to some subprograms. Add an
- 	Invalidate_Partition subprogram that finds a new boot partition
- 	when the invalidated partition is the boot server partition and
- 	notifies the partition invalidation to it (and propagate this
- 	invalidation to other mirrors). Add a function N_Boot_Mirrors to
- 	evaluate the number of boot mirrors already registered. Add two
- 	procedures to marshal and unmarshal the partition info table. Move
- 	some procedures from Heart to Partitions in order to have all the
- 	primitives on the partition info table in the same package. This
- 	concerns Handle_Partition_Request, Next_Partition, Get_Location,
- 	Get_Name, Get_Protocol, Invalidate_Partition. The choice of a
- 	partition id for a new partition is now a distributed
- 	computation. When a new partition registers itself or when a
- 	partition is invalidated, a copy of the new table is
- 	broadcast. When two new copies are broadcast, we merge them in the
- 	table. The number of updates could be optimized.
+        * s-gargro.ads, s-gargro.adb: Add an Error parameter to some
+        subprograms. Use new stream utilities. Fix some bugs due to bad
+        critical section exit. Broadcasts are asynchronous and it is not
+        possible to start a new broadcast operation once the first one has
+        completed. In Handle_Request, parameter Reply which was never used
+        allows now to start a new broadcast when the current request has
+        just completed.
 
-	* s-garuni.ads, s-garuni.adb: Add some fault tolerance
- 	functionalities. Add new requests to broadcast the units info
- 	table. Add an Error parameter to some subprograms. Improve the way
- 	units are invalidated when their partition is invalidated. Add two
- 	subprograms to marshal and unmarshal the units info table. Add a
- 	new subprogram Register_Units_On_Boot_Server in order to take into
- 	account boot server failures. Broadcast the units info table to
- 	the boot mirror partitions. Improve also the restarting features
- 	especially to resolve conflicts of duplicated registrations. A
- 	newly created partition registers its units and then asks for info
- 	on its units back. If this info is different, then Program_Error
- 	is raised. Such an info is definitively registered when all the
- 	mirrors have successfully merged the new copy sent by the
- 	partition boot server. When a conflict occurs, the validated unit
- 	is the one with the smallest partition id.
-		
+        * s-garhea.ads, s-garhea.adb: Add an Error parameter to some
+        subprograms. Add a Send_Boot_Server procedure to send a stream to
+        boot server. When the boot server is dead, try to find a boot
+        mirror. Throw an error only when there is no boot mirror left. Add
+        a Wait_For_My_Partition_ID procedure that blocks until the
+        partition id of the current partition has been computed. Move some
+        procedures from Heart to Partitions in order to have all the
+        primitives on the partition info table in the same package.
+
+        * s-garpar.ads, s-garpar.adb: Add some fault tolerance
+        functionalities. Info of a given partition includes now the
+        partition id of its boot server and a flag set to true when it is
+        a boot mirror. Partition info requests now include a request to
+        update the partition info table on all the mirroring
+        partitions. Add an Error parameter to some subprograms. Add an
+        Invalidate_Partition subprogram that finds a new boot partition
+        when the invalidated partition is the boot server partition and
+        notifies the partition invalidation to it (and propagate this
+        invalidation to other mirrors). Add a function N_Boot_Mirrors to
+        evaluate the number of boot mirrors already registered. Add two
+        procedures to marshal and unmarshal the partition info table. Move
+        some procedures from Heart to Partitions in order to have all the
+        primitives on the partition info table in the same package. This
+        concerns Handle_Partition_Request, Next_Partition, Get_Location,
+        Get_Name, Get_Protocol, Invalidate_Partition. The choice of a
+        partition id for a new partition is now a distributed
+        computation. When a new partition registers itself or when a
+        partition is invalidated, a copy of the new table is
+        broadcast. When two new copies are broadcast, we merge them in the
+        table. The number of updates could be optimized.
+
+        * s-garuni.ads, s-garuni.adb: Add some fault tolerance
+        functionalities. Add new requests to broadcast the units info
+        table. Add an Error parameter to some subprograms. Improve the way
+        units are invalidated when their partition is invalidated. Add two
+        subprograms to marshal and unmarshal the units info table. Add a
+        new subprogram Register_Units_On_Boot_Server in order to take into
+        account boot server failures. Broadcast the units info table to
+        the boot mirror partitions. Improve also the restarting features
+        especially to resolve conflicts of duplicated registrations. A
+        newly created partition registers its units and then asks for info
+        on its units back. If this info is different, then Program_Error
+        is raised. Such an info is definitively registered when all the
+        mirrors have successfully merged the new copy sent by the
+        partition boot server. When a conflict occurs, the validated unit
+        is the one with the smallest partition id.
+
 1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5bgtplsp.ads: New file, AIX version.
+        * 5bgtplsp.ads: New file, AIX version.
 
-	* Makefile.am: Use ${CP} instead of ${INSTALL} to install
-	libgnat.a, as it causes problems on AIX.
+        * Makefile.am: Use ${CP} instead of ${INSTALL} to install
+        libgnat.a, as it causes problems on AIX.
 
 1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am: Add BOOT_SERVER macros.
+        * Makefile.am: Add BOOT_SERVER macros.
 
-	* s-gaplsp.ads.in: Add Default_Boot_Server variable.
+        * s-gaplsp.ads.in: Add Default_Boot_Server variable.
 
-	* s-garuti.adb, s-garuti.ads: GLADE basic PO are now limited
- 	private types to have a finer control on them.
+        * s-garuti.adb, s-garuti.ads: GLADE basic PO are now limited
+        private types to have a finer control on them.
 
-	* s-gargro.adb, s-garnam.adb, s-gartab.adb, s-gastha.adb,
- 	s-rpc.adb, s-rpstio.adb: Updated from new Garlic.Utils spec.
+        * s-gargro.adb, s-garnam.adb, s-gartab.adb, s-gastha.adb,
+        s-rpc.adb, s-rpstio.adb: Updated from new Garlic.Utils spec.
 
-	* s-garpar.ads, s-garpar.adb: Change Boot_Ability into
-	Boot_Mirror.
+        * s-garpar.ads, s-garpar.adb: Change Boot_Ability into
+        Boot_Mirror.
 
-	* s-garhea.adb: Updated from new Garlic.Utils and
- 	Garlic.Partitions specs.
+        * s-garhea.adb: Updated from new Garlic.Utils and
+        Garlic.Partitions specs.
 
-	* s-garloc.adb: Use Garlic.Utils PO instead of its own PO. One PO
- 	removed.
+        * s-garloc.adb: Use Garlic.Utils PO instead of its own PO. One PO
+        removed.
 
-	* s-garopt.adb, s-garopt.ads: Use Default_Boot_Server to
- 	initialize defaults. Split Initialize in two procedures. The first
- 	one for default options, the second one for command line
- 	options. In between, initialize with configuration options
- 	(Garlic.Elaboration). Add Set_Boot_Mirror and Set_Self_Location
- 	procedures (env variables BOOT_MIRROR and LOCATION, command line
-	argument --boot_mirror and --location). When LOCATION is set to a
-	given location (tcp://<host>:<port>, for instance), the partition
-	has to accept messages from other partitions on this location. I
-	cannot compute its location dynamically. When BOOT_MIRROR is set to 
-	a given location, then its self location is set to this location and
-	the partition becomes an alternate boot server. It will own a copy 
-	of the partition info table.
+        * s-garopt.adb, s-garopt.ads: Use Default_Boot_Server to
+        initialize defaults. Split Initialize in two procedures. The first
+        one for default options, the second one for command line
+        options. In between, initialize with configuration options
+        (Garlic.Elaboration). Add Set_Boot_Mirror and Set_Self_Location
+        procedures (env variables BOOT_MIRROR and LOCATION, command line
+        argument --boot_mirror and --location). When LOCATION is set to a
+        given location (tcp://<host>:<port>, for instance), the partition
+        has to accept messages from other partitions on this location. I
+        cannot compute its location dynamically. When BOOT_MIRROR is set to
+        a given location, then its self location is set to this location and
+        the partition becomes an alternate boot server. It will own a copy
+        of the partition info table.
 
-	* s-garpro.ads: Add a new parameter in Initialize to force a
- 	protocol to receive messages from a given location.
+        * s-garpro.ads: Add a new parameter in Initialize to force a
+        protocol to receive messages from a given location.
 
-	* s-garrep.adb, s-garrep.ads, s-gartcp.adb, s-gartcp.ads: Updated
- 	from new Garlic.Protocols and Garlic.Utils spec. Use self location 
-	when required.
+        * s-garrep.adb, s-garrep.ads, s-gartcp.adb, s-gartcp.ads: Updated
+        from new Garlic.Protocols and Garlic.Utils spec. Use self location
+        when required.
 
-	* s-garsta.adb: Split initialization in three steps (See above).
-	Force a given location when BOOT_MIRROR or LOCATION is provided.
+        * s-garsta.adb: Split initialization in three steps (See above).
+        Force a given location when BOOT_MIRROR or LOCATION is provided.
 
 1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* isthrbio.adb: Do not require the package name to be created on
-	the command line, since no file is being created.
+        * isthrbio.adb: Do not require the package name to be created on
+        the command line, since no file is being created.
 
-	* Makefile.am: Do not explicitely substitute variables that will
- 	be substituted by automake anyway. Copy s-gtplsp.ad[bs] from its
-	origin (see configure.in checkin).
-	Call isthrbio at build time rather than at configure time.
-	Remove Makefile.fil which was not removed at distclean time.
-	Add -I${srcdir} to linktest to fix another VPATH bug.
+        * Makefile.am: Do not explicitely substitute variables that will
+        be substituted by automake anyway. Copy s-gtplsp.ad[bs] from its
+        origin (see configure.in checkin).
+        Call isthrbio at build time rather than at configure time.
+        Remove Makefile.fil which was not removed at distclean time.
+        Add -I${srcdir} to linktest to fix another VPATH bug.
 
 1998-10-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am (DISTCLEANFILES): Add s-gatcop.ads.
+        * Makefile.am (DISTCLEANFILES): Add s-gatcop.ads.
 
-	* s-ganobl.adb: Set accepted socket to asynchronous and
-	non-blocking mode.
+        * s-ganobl.adb: Set accepted socket to asynchronous and
+        non-blocking mode.
 
 1998-10-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garpar.adb: Implement a distributed PID allocator using the
-	group communication.
+        * s-garpar.adb: Implement a distributed PID allocator using the
+        group communication.
 
-	* s-gargro.adb, s-rpc.adb, s-rpstio.adb: Adapt to new Garlic.Utils
- 	specification.
+        * s-gargro.adb, s-rpc.adb, s-rpstio.adb: Adapt to new Garlic.Utils
+        specification.
 
-	* s-garpar.ads: Change field Boot_Server into Boot_Ability. Define
- 	a new Boot_Server field that correponds to the PID of the boot
- 	server used to boot a given partition. Add new Map_Partition_Info
- 	request.
-	
-	* s-garhea.adb: Adapt to new Garlic.Utils specification. Fix a
-	bug in trace/replay: parameter Partition was uninitialized in some 
-	circunstances. Handle new Map_Partition_Info request. Adapt to new 
-	Garlic.Partitions spec.
+        * s-garpar.ads: Change field Boot_Server into Boot_Ability. Define
+        a new Boot_Server field that correponds to the PID of the boot
+        server used to boot a given partition. Add new Map_Partition_Info
+        request.
 
-	* s-gartra.adb, s-gartra.adb: Take into account the offset of a
- 	stream.
+        * s-garhea.adb: Adapt to new Garlic.Utils specification. Fix a
+        bug in trace/replay: parameter Partition was uninitialized in some
+        circunstances. Handle new Map_Partition_Info request. Adapt to new
+        Garlic.Partitions spec.
 
-	* s-garuti.adb, s-garuti.ads: Barrier_Access becomes a private
-	type. Change its primitives.
+        * s-gartra.adb, s-gartra.adb: Take into account the offset of a
+        stream.
+
+        * s-garuti.adb, s-garuti.ads: Barrier_Access becomes a private
+        type. Change its primitives.
 
 1998-10-16  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* All files: Update headers.
+        * All files: Update headers.
 
 1998-10-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garhea.adb, s-rpcpoo.adb: Do not read RPC_Receiver from
- 	stream. Instead read an unsigned_64 and convert it to a
- 	RPC_Receiver.
+        * s-garhea.adb, s-rpcpoo.adb: Do not read RPC_Receiver from
+        stream. Instead read an unsigned_64 and convert it to a
+        RPC_Receiver.
 
 1998-10-14  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-garhea.adb, s-garhea.ads: Move some procedures to manage
- 	partition table from Garlic.Heart to package Garlic.Partitions.
+        * s-garhea.adb, s-garhea.ads: Move some procedures to manage
+        partition table from Garlic.Heart to package Garlic.Partitions.
 
-	* s-garpar.adb, s-garpar.ads: Define a body for this package. Move
- 	some procedures from Garlic.Heart to this package.
+        * s-garpar.adb, s-garpar.ads: Define a body for this package. Move
+        some procedures from Garlic.Heart to this package.
 
-	* s-garter.adb: Remove two protected objects. Cleanup.
+        * s-garter.adb: Remove two protected objects. Cleanup.
 
-	* s-garrem.adb: Adapt with clauses.
+        * s-garrem.adb: Adapt with clauses.
 
-	* Makefile.am, Makefile.in: Add Garlic.Partitions in source and
-	object lists.
+        * Makefile.am, Makefile.in: Add Garlic.Partitions in source and
+        object lists.
 
 1998-10-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* DALL, UNDALL: Add S_GARGRO debugging env. var.
+        * DALL, UNDALL: Add S_GARGRO debugging env. var.
 
-	* Makefile.am, Makefile.in: Add System.Garlic.Group in source and
-	object lists.
-	
-	* s-gargro.adb, s-gargro.ads: New package to manage a group of
- 	potential boot servers (token ring). Each member of this group has
- 	a copy of the partition info list. When one of them dies, there is
- 	always a copy in another member of the group. Procedure Broadcast
- 	allows to send a request to the group. Handle_Request handles a
- 	group request. It extracts the encapsulated request which is
- 	handled like any other request. When there is a reply to this
- 	encapsulated request, the reply is substituted to the broadcast
- 	request. Otherwise, the broadcast request is kept
- 	unmodified. Then, this request is sent to the next partition in
- 	the boot server group until the sender receives its own
- 	request. For now, a partition is a potential boot server when it
- 	has not a light PCS configuration (not Has_RCI_Pkg_Or_RACW_Var).
+        * Makefile.am, Makefile.in: Add System.Garlic.Group in source and
+        object lists.
 
-	* s-garpar.ads: Add new field Boot_Server in Partition_Info to
-	indicate whether a partition is a member of the boot server group.
-	
-	* s-garhea.adb: Rename Partition_Request_Handler into
- 	Handle_Partition_Request. Add several steps in the boot sequence
-	(Handle_Partition_Request) in order to add a partition in the boot
- 	server group and to broadcast the partition list to this
- 	group. Add function Get_Self_Location to compute the location of
- 	the current partition. Fix Next_Partition to wrap around the
- 	partition table. Split Process_Stream into two procedures
-	Process_Stream and Handle_Any_Request in order to handle a
-	broadcast request as an encapsulated request to other
-	services. 
+        * s-gargro.adb, s-gargro.ads: New package to manage a group of
+        potential boot servers (token ring). Each member of this group has
+        a copy of the partition info list. When one of them dies, there is
+        always a copy in another member of the group. Procedure Broadcast
+        allows to send a request to the group. Handle_Request handles a
+        group request. It extracts the encapsulated request which is
+        handled like any other request. When there is a reply to this
+        encapsulated request, the reply is substituted to the broadcast
+        request. Otherwise, the broadcast request is kept
+        unmodified. Then, this request is sent to the next partition in
+        the boot server group until the sender receives its own
+        request. For now, a partition is a potential boot server when it
+        has not a light PCS configuration (not Has_RCI_Pkg_Or_RACW_Var).
 
-	* s-garpro.ads, s-garpro.adb: Reformatting.
+        * s-garpar.ads: Add new field Boot_Server in Partition_Info to
+        indicate whether a partition is a member of the boot server group.
 
-	* s-garsta.adb: Add elaboration of Garlic.Group.
+        * s-garhea.adb: Rename Partition_Request_Handler into
+        Handle_Partition_Request. Add several steps in the boot sequence
+        (Handle_Partition_Request) in order to add a partition in the boot
+        server group and to broadcast the partition list to this
+        group. Add function Get_Self_Location to compute the location of
+        the current partition. Fix Next_Partition to wrap around the
+        partition table. Split Process_Stream into two procedures
+        Process_Stream and Handle_Any_Request in order to handle a
+        broadcast request as an encapsulated request to other
+        services.
 
-	* s-garstr.adb, s-garstr.ads: Rename field Special_First into
-	Insert and add a new procedure Insert to activate insertion mode
-	in a stream (by default, we append new data in a stream).
+        * s-garpro.ads, s-garpro.adb: Reformatting.
 
-	* s-gartcp.adb, s-gartcp.ads: Reformatting. Fix a problem that can 
-	occur when a connection is broken and the boot partition not
-	really computed.
+        * s-garsta.adb: Add elaboration of Garlic.Group.
 
-	* s-garter.adb: Use new Next_Partition behaviour. Use Reply
- 	parameter of Handle_Request to answer to a shutdown request.
+        * s-garstr.adb, s-garstr.ads: Rename field Special_First into
+        Insert and add a new procedure Insert to activate insertion mode
+        in a stream (by default, we append new data in a stream).
 
-	* s-garuni.adb: Do not execute an invalidate partition request
-	when shutdown is in progress.
+        * s-gartcp.adb, s-gartcp.ads: Reformatting. Fix a problem that can
+        occur when a connection is broken and the boot partition not
+        really computed.
 
-	* s-stratt.adb: Change SSU and SSI size to marshal a stream
-	element (Stream_Element'Write) as it would be with RPC.Write.
+        * s-garter.adb: Use new Next_Partition behaviour. Use Reply
+        parameter of Handle_Request to answer to a shutdown request.
+
+        * s-garuni.adb: Do not execute an invalidate partition request
+        when shutdown is in progress.
+
+        * s-stratt.adb: Change SSU and SSI size to marshal a stream
+        element (Stream_Element'Write) as it would be with RPC.Write.
 
 1998-10-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-parint.adb: Remove wrong code inserted during last merge.
+        * s-parint.adb: Remove wrong code inserted during last merge.
 
 1998-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-parint.ads: Add a parameter RCI to procedure Check to handle
- 	differently RCI version checks and SP version checks.
+        * s-parint.ads: Add a parameter RCI to procedure Check to handle
+        differently RCI version checks and SP version checks.
 
-	* s-parint.adb: Same as above. Add a new procedure
-	Get_Unit_Version which returns the correct version depending on
-	the unit categorization.
+        * s-parint.adb: Same as above. Add a new procedure
+        Get_Unit_Version which returns the correct version depending on
+        the unit categorization.
 
 1998-10-07  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garrem.adb: Use system to benefit from shell substitution for
-	non-local launches.
+        * s-garrem.adb: Use system to benefit from shell substitution for
+        non-local launches.
 
 1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads, s-parint.adb: New subprograms
- 	Register_Passive_Package and Get_Passive_Version necessary to pass
- 	Shared_Passive LXE ACVC tests.
+        * s-parint.ads, s-parint.adb: New subprograms
+        Register_Passive_Package and Get_Passive_Version necessary to pass
+        Shared_Passive LXE ACVC tests.
 
-	* s-garrem.adb: Rewrite launcher so that it strips "`pwd`" for local 
-	launch and replaces it by "." (to make it work on NT). Use
-	GNAT.OS_Lib.Non_Blocking_Spawn to spawn processes in background.
+        * s-garrem.adb: Rewrite launcher so that it strips "`pwd`" for local
+        launch and replaces it by "." (to make it work on NT). Use
+        GNAT.OS_Lib.Non_Blocking_Spawn to spawn processes in background.
 
-	* s-gartcp.adb: Open the listening socket in the initialization
-	routine to fix a race condition that causes intermittent failures
-	with the Ada starter.
+        * s-gartcp.adb: Open the listening socket in the initialization
+        routine to fix a race condition that causes intermittent failures
+        with the Ada starter.
 
 1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gardeb.adb: Fix bogus assertion that caused programs to raise
-	an assertion error when used in developper mode with no sanity
-	directory.
+        * s-gardeb.adb: Fix bogus assertion that caused programs to raise
+        an assertion error when used in developper mode with no sanity
+        directory.
 
-	* s-garter.adb: Do not try to negotiate a global shutdown if
-	shutdown is already in progress. Fixes a constraint error at
-	shutdown time for the main partition.
+        * s-garter.adb: Do not try to negotiate a global shutdown if
+        shutdown is already in progress. Fixes a constraint error at
+        shutdown time for the main partition.
 
-	* s-garrem.ads, s-garrem.adb: Remove a lot of unused
-	functions. Write local launcher for NT.
+        * s-garrem.ads, s-garrem.adb: Remove a lot of unused
+        functions. Write local launcher for NT.
 
-	* s-gaplsp.ads.in: Store platform name to be used by the runtime
-	for background launching, fixes background launching bug on NT.
+        * s-gaplsp.ads.in: Store platform name to be used by the runtime
+        for background launching, fixes background launching bug on NT.
 
 1998-09-30  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-rpcpoo.adb: Reformatting.
-	
-	* s-rpc.adb: Remove Invalidate_RCI_Units and call
- 	Units.Invalidate_Partition.
-	
-	* s-parint.adb: Expand procedure Process or call Get_Unit_Info
- 	instead. Move Handle_Request to Garlic.Units. Cleanup of RCI_Info.
-	
-	* s-garuni.adb, s-garuni.ads: Add procedure Initialize,
- 	Invalidate, Set_Unit_Info and Get_Unit_Info. Expand procedure
- 	Process. Remove Cache_Type and Cache_Access and access Units.Table
- 	directly because previously there was already a call to a
- 	protected object. Change Request_Type into a type with
- 	discriminant. Add a Reply parameter to Handle_Request.
-	
-	* s-garter.adb: Reformatting. Change Stamp into Stamp_Type. Use
- 	new procedure Next_Partition. Add a Reply parameter to
- 	Handle_Request.
-	
-	* s-gartcp.adb: Add debugging info. Fix the way the boot partition
- 	connection is moved from its old slot to the new one. Do not send
- 	a quit banner to the partition itself when there is no accept
- 	connection task.
+        * s-rpcpoo.adb: Reformatting.
 
-	* s-garfil.adb: Minor reformatting. Add a Reply parameter to
- 	Handle_Request.
+        * s-rpc.adb: Remove Invalidate_RCI_Units and call
+        Units.Invalidate_Partition.
 
-	* s-garhea.adb: Remove some procedures. Expand procedure
- 	Process. Add a Reply parameter to Partition_Request_Handler.
-  	Prevent boot partition from processing a request before its
- 	partition id is known. Add Next_Partition which is an
- 	iterator. Remove a invalid partition at the very end of
- 	Invalidate_Partition because we need to get its partition info.
+        * s-parint.adb: Expand procedure Process or call Get_Unit_Info
+        instead. Move Handle_Request to Garlic.Units. Cleanup of RCI_Info.
 
-	* s-garhea.ads: Reorganize spec.
+        * s-garuni.adb, s-garuni.ads: Add procedure Initialize,
+        Invalidate, Set_Unit_Info and Get_Unit_Info. Expand procedure
+        Process. Remove Cache_Type and Cache_Access and access Units.Table
+        directly because previously there was already a call to a
+        protected object. Change Request_Type into a type with
+        discriminant. Add a Reply parameter to Handle_Request.
 
-	* s-garpar.ads: Remove field in Request_Type.
+        * s-garter.adb: Reformatting. Change Stamp into Stamp_Type. Use
+        new procedure Next_Partition. Add a Reply parameter to
+        Handle_Request.
 
-	* s-garrem.adb: Add debugging info.
+        * s-gartcp.adb: Add debugging info. Fix the way the boot partition
+        connection is moved from its old slot to the new one. Do not send
+        a quit banner to the partition itself when there is no accept
+        connection task.
 
-	* s-garsta.adb: Add Units initialization.
+        * s-garfil.adb: Minor reformatting. Add a Reply parameter to
+        Handle_Request.
 
-	* s-garstr.adb, s-garstr.ads: Add function Empty to detect when a
-	stream is empty.
+        * s-garhea.adb: Remove some procedures. Expand procedure
+        Process. Add a Reply parameter to Partition_Request_Handler.
+        Prevent boot partition from processing a request before its
+        partition id is known. Add Next_Partition which is an
+        iterator. Remove a invalid partition at the very end of
+        Invalidate_Partition because we need to get its partition info.
 
-	* s-gartab.adb, s-gartab.adb: Add procedure Leave with no version
-	parameter.
+        * s-garhea.ads: Reorganize spec.
 
-	
+        * s-garpar.ads: Remove field in Request_Type.
+
+        * s-garrem.adb: Add debugging info.
+
+        * s-garsta.adb: Add Units initialization.
+
+        * s-garstr.adb, s-garstr.ads: Add function Empty to detect when a
+        stream is empty.
+
+        * s-gartab.adb, s-gartab.adb: Add procedure Leave with no version
+        parameter.
+
+
 1998-09-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garrep.adb: Fix bugs.
+        * s-garrep.adb: Fix bugs.
 
-	* s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garter.adb,
- 	s-parint.adb, s-rpc.adb, s-rpstio.adb: Change Request_Handler
-	signature to include a reply to a request.
+        * s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garter.adb,
+        s-parint.adb, s-rpc.adb, s-rpstio.adb: Change Request_Handler
+        signature to include a reply to a request.
 
 1998-09-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garhea.adb, s-garhea.ads: Boot_PID is no longer a
- 	constant. This is a very important to remove the point of failure
- 	of GLADE. Boot_PID is now "randomly" computed. At boot time,
- 	Boot_PID is Last_PID because we need a PID to use the low-level
- 	layers of Garlic. A normal partition sends its info to the boot
- 	partition. The boot partition sends its info back with the normal
- 	partition PID. When the normal partition receives this request, it 
-	will be able to retrieve the boot partition PID, its own PID amd
-	its own info. Then, the normal partition asks for the boot
-	partition info. When the normal partition receives this info, the
-	boot protocol is re-initialized in normal mode and the startup can 
-	complete. Remove Set_Self_Location and Get_Self_Location (were not 
-	used). Be careful that a partition info status should be the last
-	field to be updated if we want to use Partitions.Table as a cache.
-	
-	* s-garpar.ads: Change table index (no longer depend on
-	Boot_PID). Set Partition_Info Status field as atomic.
+        * s-garhea.adb, s-garhea.ads: Boot_PID is no longer a
+        constant. This is a very important to remove the point of failure
+        of GLADE. Boot_PID is now "randomly" computed. At boot time,
+        Boot_PID is Last_PID because we need a PID to use the low-level
+        layers of Garlic. A normal partition sends its info to the boot
+        partition. The boot partition sends its info back with the normal
+        partition PID. When the normal partition receives this request, it
+        will be able to retrieve the boot partition PID, its own PID amd
+        its own info. Then, the normal partition asks for the boot
+        partition info. When the normal partition receives this info, the
+        boot protocol is re-initialized in normal mode and the startup can
+        complete. Remove Set_Self_Location and Get_Self_Location (were not
+        used). Be careful that a partition info status should be the last
+        field to be updated if we want to use Partitions.Table as a cache.
 
-	* s-garpro.ads: Change Set_Boot_Data into Initialize. This
-	procedure initialize a protocol with default values to use and
-	also sets the protocol either in boot mode or in normal mode. This 
-	procedure can be called again to reset the protocol in normal mode 
-	once the partition has booted.
+        * s-garpar.ads: Change table index (no longer depend on
+        Boot_PID). Set Partition_Info Status field as atomic.
 
-	* s-gartcp.adb: Declare a table in Valid_Partition_ID (do not
- 	start from Boot_PID). Preserve Boot_PID between two
- 	initializations because it can be reset when the protocol is the
- 	boot protocol. Change this protocol because of Garlic.Protocols
- 	changes.
+        * s-garpro.ads: Change Set_Boot_Data into Initialize. This
+        procedure initialize a protocol with default values to use and
+        also sets the protocol either in boot mode or in normal mode. This
+        procedure can be called again to reset the protocol in normal mode
+        once the partition has booted.
 
-	* s-garrep.ads, s-garrep.adb: Change this protocol because of
-	Garlic.Protocols changes.
+        * s-gartcp.adb: Declare a table in Valid_Partition_ID (do not
+        start from Boot_PID). Preserve Boot_PID between two
+        initializations because it can be reset when the protocol is the
+        boot protocol. Change this protocol because of Garlic.Protocols
+        changes.
 
-	* s-garsta.adb: Change protocol initialization because of
-	Garlic.Protocols changes.
-	
-	* s-gartab.ads, s-gartab.adb: Add new procedure Update to signal
-	an update of the table.
+        * s-garrep.ads, s-garrep.adb: Change this protocol because of
+        Garlic.Protocols changes.
 
-	* s-gaphlo.ads, s-gaphlo.adb: Modify signature of Get_Data.
+        * s-garsta.adb: Change protocol initialization because of
+        Garlic.Protocols changes.
 
-	* s-parint.ads, s-parint.adb: Add new procedure Get_Partition_Name 
-	which returns the name of a given partition.
+        * s-gartab.ads, s-gartab.adb: Add new procedure Update to signal
+        an update of the table.
 
-	* s-gartyp.ads: Boot_PID is no longer a constant. Define
- 	Valid_Partition_ID.
+        * s-gaphlo.ads, s-gaphlo.adb: Modify signature of Get_Data.
 
-	* s-garter.adb: Do not start termination detection from Boot_PID to
- 	Last_Allocated_PID as Boot_PID is no longer the first PID to be
- 	allocated.
+        * s-parint.ads, s-parint.adb: Add new procedure Get_Partition_Name
+        which returns the name of a given partition.
+
+        * s-gartyp.ads: Boot_PID is no longer a constant. Define
+        Valid_Partition_ID.
+
+        * s-garter.adb: Do not start termination detection from Boot_PID to
+        Last_Allocated_PID as Boot_PID is no longer the first PID to be
+        allocated.
 
 1998-09-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garpar.ads,
- 	s-gartab.adb, s-gartab.ads, s-gartcp.adb, s-garter.adb,
- 	s-gartyp.ads, s-garuni.adb, s-garuni.ads, s-garuti.adb,
- 	s-garuti.ads, s-parint.adb, s-rpc.adb, s-rpstio.adb: Change
- 	implementation of Garlic.Table.Complex. This implemenation uses a
- 	basic implemenation of Mutex_Type and and new protected object
- 	Watcher. Watcher handles a resource stamp which can be modified
- 	and a procedure Differ which suspends a task until the stamp is
- 	modified. This new implementation of Garlic.Table.Complex is
-	needed to implement Garlic group communication.
-	
+        * s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garpar.ads,
+        s-gartab.adb, s-gartab.ads, s-gartcp.adb, s-garter.adb,
+        s-gartyp.ads, s-garuni.adb, s-garuni.ads, s-garuti.adb,
+        s-garuti.ads, s-parint.adb, s-rpc.adb, s-rpstio.adb: Change
+        implementation of Garlic.Table.Complex. This implemenation uses a
+        basic implemenation of Mutex_Type and and new protected object
+        Watcher. Watcher handles a resource stamp which can be modified
+        and a procedure Differ which suspends a task until the stamp is
+        modified. This new implementation of Garlic.Table.Complex is
+        needed to implement Garlic group communication.
+
 1998-09-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
- 	s-garrep.adb, s-gartcp.adb, s-garter.adb, s-parint.adb, s-rpc.adb,
- 	s-rpstio.adb: Reformatting. Rename Public_Receiver into
- 	Request_Handler to avoid confusion with RPC_Receiver. Renames
- 	Opcode into Any_Opcode (like Public_Opcode and Internal_Opcode) to
- 	be able to declare Opcode variable.
+        * s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
+        s-garrep.adb, s-gartcp.adb, s-garter.adb, s-parint.adb, s-rpc.adb,
+        s-rpstio.adb: Reformatting. Rename Public_Receiver into
+        Request_Handler to avoid confusion with RPC_Receiver. Renames
+        Opcode into Any_Opcode (like Public_Opcode and Internal_Opcode) to
+        be able to declare Opcode variable.
 
 1998-09-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Update dependencies
+        * Makefile.am, Makefile.in: Update dependencies
 
-	* s-rpc.adb: Reject any partition error notification when shutdown 
-	in progress.
+        * s-rpc.adb: Reject any partition error notification when shutdown
+        in progress.
 
-	* s-garhea.adb: Minor reformatting.
+        * s-garhea.adb: Minor reformatting.
 
-	* s-parint.adb: Fix an uninitialized variable.
+        * s-parint.adb: Fix an uninitialized variable.
 
 1998-09-14  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartcp.adb: Fix a strange bug which occurs during
-	termination. A task does not always succeed to connect to
-	itself. So, try to connect several times before quitting.
+        * s-gartcp.adb: Fix a strange bug which occurs during
+        termination. A task does not always succeed to connect to
+        itself. So, try to connect several times before quitting.
 
-	* s-gartab.adb: Suppress calls to global critical section which
- 	were done in the middle of a blocking procedure. We probably
- 	should simplify Enter_Critical_Section and Leave_Critical_Section
- 	now.
+        * s-gartab.adb: Suppress calls to global critical section which
+        were done in the middle of a blocking procedure. We probably
+        should simplify Enter_Critical_Section and Leave_Critical_Section
+        now.
 
-	* s-garpar.ads, s-garuni.ads, s-garuni.adb, s-parint.adb,
- 	s-rpc.adb: Change instanciation name of
- 	System.Garlic.Table.Complex.
+        * s-garpar.ads, s-garuni.ads, s-garuni.adb, s-parint.adb,
+        s-rpc.adb: Change instanciation name of
+        System.Garlic.Table.Complex.
 
 1998-09-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartcp.adb: Part of the Garlic full re-writting. Remove
- 	protected objects. Adapt to the new protocol. Remove unused
- 	procedures.
+        * s-gartcp.adb: Part of the Garlic full re-writting. Remove
+        protected objects. Adapt to the new protocol. Remove unused
+        procedures.
 
 1998-09-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garhea.adb: Workaround to avoid bad returned value assignment
- 	on Solaris (probably GNAT bug). We need this to detect GLADE bugs
- 	caused by the recent massive checkins.
+        * s-garhea.adb: Workaround to avoid bad returned value assignment
+        on Solaris (probably GNAT bug). We need this to detect GLADE bugs
+        caused by the recent massive checkins.
 
 1998-09-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garhea.adb: Change boot protocol to avoid multiple
- 	initialization messages. For a partition boot, a partition sends
- 	its partition info (location, termination, reconnection, name) to
- 	the boot partition. The boot partition replies with two
- 	messages. The first one contains the boot partition info. The
- 	second one contains the partition info and its partition id. The
- 	boot protocol is no longer in charge of allocating a partition id.
-  	Remove all the protected objects and use those defined in
- 	Garlic.Utils (we will use soft links later on). For this, we use
- 	the same package used in Filters and Units. Has_Arrived is split
- 	in two separate procedures. The first one extracts partition id,
- 	opcode and unfilter the remaining stream. The second one process
- 	the unfiltered stream. Always use Self_PID and Get_My_Partition_ID
- 	is supposed to initialize and get the partition id during
- 	elaboration.
+        * s-garhea.adb: Change boot protocol to avoid multiple
+        initialization messages. For a partition boot, a partition sends
+        its partition info (location, termination, reconnection, name) to
+        the boot partition. The boot partition replies with two
+        messages. The first one contains the boot partition info. The
+        second one contains the partition info and its partition id. The
+        boot protocol is no longer in charge of allocating a partition id.
+        Remove all the protected objects and use those defined in
+        Garlic.Utils (we will use soft links later on). For this, we use
+        the same package used in Filters and Units. Has_Arrived is split
+        in two separate procedures. The first one extracts partition id,
+        opcode and unfilter the remaining stream. The second one process
+        the unfiltered stream. Always use Self_PID and Get_My_Partition_ID
+        is supposed to initialize and get the partition id during
+        elaboration.
 
-	* s-garhea.ads: Change most of the procedure signatures. Move some
- 	types into Garlic.Types. Remove procedure Is_Shutdown_In_Progress
- 	to use a shared variable.
+        * s-garhea.ads: Change most of the procedure signatures. Move some
+        types into Garlic.Types. Remove procedure Is_Shutdown_In_Progress
+        to use a shared variable.
 
-	* s-gartyp.ads: Add types from Garlic.Heart. Define Self_PID
-	(current partition id), Boot_PID, Null_PID and Last_PID.
+        * s-gartyp.ads: Add types from Garlic.Heart. Define Self_PID
+        (current partition id), Boot_PID, Null_PID and Last_PID.
 
-	* s-gartcp.adb: Change TPC according to the new boot
- 	protocol. This is a major re-writting of this unit. The code is
- 	simpler as the boot protocol is done at higher level. Add new
- 	opcode Unknown_Code and remove Open_Code which was unused with the
- 	new boot protocol.
+        * s-gartcp.adb: Change TPC according to the new boot
+        protocol. This is a major re-writting of this unit. The code is
+        simpler as the boot protocol is done at higher level. Add new
+        opcode Unknown_Code and remove Open_Code which was unused with the
+        new boot protocol.
 
-	* s-gartcp.ads: Simplify Set_Boot_Data signature. With the new
- 	boot protocol, the startup phase is simpler as well as
- 	Set_Boot_Data.
+        * s-gartcp.ads: Simplify Set_Boot_Data signature. With the new
+        boot protocol, the startup phase is simpler as well as
+        Set_Boot_Data.
 
-	* s-garsta.adb: Cleanup in startup phase. Much simpler because of
-	the new boot protocol.
+        * s-garsta.adb: Cleanup in startup phase. Much simpler because of
+        the new boot protocol.
 
-	* s-rpc.adb, s-rpc.ads, s-rpcpoo.ads, s-rpcpoo.adb: Remove
- 	protected objects to use those defined in Garlic.Utils (we will
- 	use soft links later on). Change Request_Id into RPC_Id and update
- 	all the variables and procedures accordingly. Change Opcode to
- 	have always the same notation
- 	(Query/Reply).
+        * s-rpc.adb, s-rpc.ads, s-rpcpoo.ads, s-rpcpoo.adb: Remove
+        protected objects to use those defined in Garlic.Utils (we will
+        use soft links later on). Change Request_Id into RPC_Id and update
+        all the variables and procedures accordingly. Change Opcode to
+        have always the same notation
+        (Query/Reply).
 
-	* s-garuti.ads, s-garuti.adb: Mutex_Type is now a private
- 	type. Procedure Enter sets Abort_Defer and Leave sets
- 	Abort_Undefer because these procedures were always in a pragma
- 	Abort_Defer section. Add new procedures Create and Destroy.
+        * s-garuti.ads, s-garuti.adb: Mutex_Type is now a private
+        type. Procedure Enter sets Abort_Defer and Leave sets
+        Abort_Undefer because these procedures were always in a pragma
+        Abort_Defer section. Add new procedures Create and Destroy.
 
-	* ALL FILES: Update because of new Utils specification.
+        * ALL FILES: Update because of new Utils specification.
 
-	* s-garrep.adb, s-garrep.ads: Use new Protocol specification and 
-	adapt to new boot protocol.
-	
-	* s-gartra.adb, s-gartra.ads: Use new Protocol specification and 
-	adapt to new boot protocol.
-	
-	* s-garpro.ads: Use new Protocol specification.
+        * s-garrep.adb, s-garrep.ads: Use new Protocol specification and
+        adapt to new boot protocol.
 
-	* s-garter.adb: Use new Heart specification.
-	
+        * s-gartra.adb, s-gartra.ads: Use new Protocol specification and
+        adapt to new boot protocol.
+
+        * s-garpro.ads: Use new Protocol specification.
+
+        * s-garter.adb: Use new Heart specification.
+
 1998-09-07  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gartcp.adb: Do not pass data array to Physical_Send to prevent
- 	later stack blowup in signal handling for FSU threads. Fix for
- 	4628-G01 on Solaris/FSU (intermittent failure). Likewise for
- 	Physical_Receive.
+        * s-gartcp.adb: Do not pass data array to Physical_Send to prevent
+        later stack blowup in signal handling for FSU threads. Fix for
+        4628-G01 on Solaris/FSU (intermittent failure). Likewise for
+        Physical_Receive.
 
 1998-09-06  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-ganobl.adb, s-rpcpoo.adb, s-garhea.ads, s-garhea.adb,
-	s-garfil.ads, s-gastha.ads, s-gastha.adb, s-ganase.ads,
-	s-ganase.adb: Remove unused with and add pragma Warnings (Off, ...)
-	to get a clean compilation.
+        * s-ganobl.adb, s-rpcpoo.adb, s-garhea.ads, s-garhea.adb,
+        s-garfil.ads, s-gastha.ads, s-gastha.adb, s-ganase.ads,
+        s-ganase.adb: Remove unused with and add pragma Warnings (Off, ...)
+        to get a clean compilation.
 
-	* s-gaseli.ad[bs], s-gafino.ad[bs]: Remove unused files.
-	
+        * s-gaseli.ad[bs], s-gafino.ad[bs]: Remove unused files.
+
 1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* All files: Remove useless pragma Elaborate or Elaborate_All when 
-	the withed unit is already Pure, Preelaborate or Elaborate_Body.
+        * All files: Remove useless pragma Elaborate or Elaborate_All when
+        the withed unit is already Pure, Preelaborate or Elaborate_Body.
 
-	* s-gartyp.ads: Put PID related constants and subtypes here to
-	avoid dragging System.Garlic.Heart when those are needed.
+        * s-gartyp.ads: Put PID related constants and subtypes here to
+        avoid dragging System.Garlic.Heart when those are needed.
 
-	* s-gartcp.adb, s-gaseli.adb: Use subprograms from new package
-	System.Garlic.PID_Server.
+        * s-gartcp.adb, s-gaseli.adb: Use subprograms from new package
+        System.Garlic.PID_Server.
 
-	* s-gardeb.adb: Move assertion to the right place.
+        * s-gardeb.adb: Move assertion to the right place.
 
-	* s-garhea.ads: Add pragma Inline where appropriate.
+        * s-garhea.ads: Add pragma Inline where appropriate.
 
-	* s-garhea.adb: Remove useless "use type" and undetected unused
-	variable.
+        * s-garhea.adb: Remove useless "use type" and undetected unused
+        variable.
 
-	* s-garrep.adb: Remove now useless pragma Storage_Size on replay
-	task.
+        * s-garrep.adb: Remove now useless pragma Storage_Size on replay
+        task.
 
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb, s-gardeb.ads, s-gardeb.adb: Minor reformatting.
+        * s-garhea.adb, s-gardeb.ads, s-gardeb.adb: Minor reformatting.
 
 1998-09-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb: Fix a warning.
+        * s-garfil.adb: Fix a warning.
 
 1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb: Fix the same problem as below which appears in
-	another tricky situation.
+        * s-garfil.adb: Fix the same problem as below which appears in
+        another tricky situation.
 
 1998-08-28  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb: send reply to a Get_Params query outside from
- 	procedure Incoming which is executed in global critical
- 	section. The problem is that the public data of the remote
- 	partition can be unknown at this point. A request will be sent to
- 	boot server and the reply will be kept pending as it won't be
- 	possible to enter global critical section again.
+        * s-garfil.adb: send reply to a Get_Params query outside from
+        procedure Incoming which is executed in global critical
+        section. The problem is that the public data of the remote
+        partition can be unknown at this point. A request will be sent to
+        boot server and the reply will be kept pending as it won't be
+        possible to enter global critical section again.
 
 1998-08-26  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-rpc.ads: Minor reformatting.
+        * s-rpc.ads: Minor reformatting.
 
-	* s-rpc.adb: Likewise.
+        * s-rpc.adb: Likewise.
 
-	* s-garstr.ads: (Dump): pass packet by reference instead of by
-	copy.
+        * s-garstr.ads: (Dump): pass packet by reference instead of by
+        copy.
 
-	* s-garstr.adb: Likewise.
+        * s-garstr.adb: Likewise.
 
-	* s-gartra.ads: Unify Data_Type which is used by this package and 
-	System.Garlic.Replay. Define stream Read and Write attributes for
-	this type that do not require any large heap allocation.
+        * s-gartra.ads: Unify Data_Type which is used by this package and
+        System.Garlic.Replay. Define stream Read and Write attributes for
+        this type that do not require any large heap allocation.
 
-	* s-gartra.adb: Define new stream attributes for Data_Type.
+        * s-gartra.adb: Define new stream attributes for Data_Type.
 
-	* s-garhea.ads: (Has_Arrived): add an optional Offset argument
-	that says how much of the packet must be discarded. Pass the
-	packet by reference instead of by copy to prevent stack overflow.
+        * s-garhea.ads: (Has_Arrived): add an optional Offset argument
+        that says how much of the packet must be discarded. Pass the
+        packet by reference instead of by copy to prevent stack overflow.
 
-	* s-garhea.adb: Use new interface for tracing. Use the new Offset
-	parameter of Has_Arrived to discard the extra room allocated in
-	case of a All_Calls_Remote package.
+        * s-garhea.adb: Use new interface for tracing. Use the new Offset
+        parameter of Has_Arrived to discard the extra room allocated in
+        case of a All_Calls_Remote package.
 
-	* s-garrep.adb: Use Data_Type from System.Garlic.Trace. Use new
-	interface for Has_Arrived.
+        * s-garrep.adb: Use Data_Type from System.Garlic.Trace. Use new
+        interface for Has_Arrived.
 
-	* s-gartcp.adb: Use new interface for Has_Arrived.
+        * s-gartcp.adb: Use new interface for Has_Arrived.
 
 1998-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garhea.adb: Remove previous use of reconnection in this
- 	package (it was not implemented at all for several years). Add
- 	reconnection policy as a partition field in public_data.
+        * s-garhea.adb: Remove previous use of reconnection in this
+        package (it was not implemented at all for several years). Add
+        reconnection policy as a partition field in public_data.
 
-	* s-garopt.adb: Add reconnection option and initialized it as
- 	Reject_On_Restart. Provide new procedures.
+        * s-garopt.adb: Add reconnection option and initialized it as
+        Reject_On_Restart. Provide new procedures.
 
-	* s-garopt.ads: Add new procedure Set_Reconnection.
+        * s-garopt.ads: Add new procedure Set_Reconnection.
 
-	* s-gartyp.ads: Remove old Reconnection_Type and reset a new one.
+        * s-gartyp.ads: Remove old Reconnection_Type and reset a new one.
 
-	* s-garuni.adb: Handle the three reconnection policies. Also,
- 	handle the case where a RCI unit is registered several times in
- 	order to raise a program_error exception except for the first
- 	one. Handle a list of RCI units per partition. Update the way
- 	caches were handled and add a new status Invalid. Add a dependency
- 	on Garlic.Elaboration and Garlic.Options to get the reconnection
- 	policy. A registration is done now in two steps. A RCI sends its
- 	data and then ask for them to check that the registration went
- 	well.
+        * s-garuni.adb: Handle the three reconnection policies. Also,
+        handle the case where a RCI unit is registered several times in
+        order to raise a program_error exception except for the first
+        one. Handle a list of RCI units per partition. Update the way
+        caches were handled and add a new status Invalid. Add a dependency
+        on Garlic.Elaboration and Garlic.Options to get the reconnection
+        policy. A registration is done now in two steps. A RCI sends its
+        data and then ask for them to check that the registration went
+        well.
 
-	* s-garuni.ads: Add new field reconnection to Unit_Type and modify 
-	cache procedures.
+        * s-garuni.ads: Add new field reconnection to Unit_Type and modify
+        cache procedures.
 
-	* s-parint.adb: Move procedures Process and Send into s-garuni.adb
- 	to be able to call Process from System.RPC [Note: Garlic has no
- 	vibility on System.RPC and System.Partition_Interface and
- 	System.RPC has no visibility on System.Partition_Interface].
-  	Improve the way Version checks are done.
+        * s-parint.adb: Move procedures Process and Send into s-garuni.adb
+        to be able to call Process from System.RPC [Note: Garlic has no
+        vibility on System.RPC and System.Partition_Interface and
+        System.RPC has no visibility on System.Partition_Interface].
+        Improve the way Version checks are done.
 
-	* s-parint.ads: Remove Invalidate_Receiving_Stub (no longer
-	needed).
+        * s-parint.ads: Remove Invalidate_Receiving_Stub (no longer
+        needed).
 
-	* s-rpc.adb: Add new procedure Invalidate_RCI_Units and execute it 
-	in Partition_Error_Notification.
-	
-	
+        * s-rpc.adb: Add new procedure Invalidate_RCI_Units and execute it
+        in Partition_Error_Notification.
+
+
 1998-08-14  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garexc.ads: Add pragma No_Return to Raise_Communication_Error.
+        * s-garexc.ads: Add pragma No_Return to Raise_Communication_Error.
 
-	* s-garexc.adb: Add dummy raise to make GNAT happy in
-	Raise_Communication_Error.
+        * s-garexc.adb: Add dummy raise to make GNAT happy in
+        Raise_Communication_Error.
 
-	* s-garhea.adb: Add use clause for Ada.Streams to ease reading.
-	(Opcode_Read, Opcode_Write): new functions much lighter than
-	Opcode'Read and Opcode'Write that encode an opcode on one byte
-	only.
-	(Send): rewritten to ease reading, fix a stack blowup and use new
-	Opcode functions.
-	(Has_Arrived): rewritten to ease reading and use new Opcode
-	functions.
+        * s-garhea.adb: Add use clause for Ada.Streams to ease reading.
+        (Opcode_Read, Opcode_Write): new functions much lighter than
+        Opcode'Read and Opcode'Write that encode an opcode on one byte
+        only.
+        (Send): rewritten to ease reading, fix a stack blowup and use new
+        Opcode functions.
+        (Has_Arrived): rewritten to ease reading and use new Opcode
+        functions.
 
-	* s-gartcp.adb: Major cleanup and rewrite of all the code using
-	streams to send partition ids and buffer counts. Similar to what
-	has been done for opcodes in s-garhea.adb.
+        * s-gartcp.adb: Major cleanup and rewrite of all the code using
+        streams to send partition ids and buffer counts. Similar to what
+        has been done for opcodes in s-garhea.adb.
 
 1998-08-10  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuni.ads: Make Cache_Type into a limited type whose
-	primitive use the global lock instead of a protected type.
+        * s-garuni.ads: Make Cache_Type into a limited type whose
+        primitive use the global lock instead of a protected type.
 
-	* s-garuni.adb: Likewise.
+        * s-garuni.adb: Likewise.
 
-	* s-parint.adb: Use new primitives for Cache_Type objects.
-	Do not Fatal_Error anymore, and remove select then abort statement 
-	that can be avoided.
+        * s-parint.adb: Use new primitives for Cache_Type objects.
+        Do not Fatal_Error anymore, and remove select then abort statement
+        that can be avoided.
 
-	* s-garhea.ads: Replace protected object Shutdown_Keeper by an
-	inline function Is_Shutdown_In_Progress, which does the very same
-	job but is very light weight.
-	Remove Fatal_Error which was useless.
+        * s-garhea.ads: Replace protected object Shutdown_Keeper by an
+        inline function Is_Shutdown_In_Progress, which does the very same
+        job but is very light weight.
+        Remove Fatal_Error which was useless.
 
-	* s-garhea.adb: Likewise.
+        * s-garhea.adb: Likewise.
 
-	* s-gartcp.adb: Use new Shutdown_In_Progress function instead of
-	Shutdown_Keeper.
+        * s-gartcp.adb: Use new Shutdown_In_Progress function instead of
+        Shutdown_Keeper.
 
-	* s-garter.adb: Likewise.
+        * s-garter.adb: Likewise.
 
 1998-08-06  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5wgtplsp.ads: Fix typo in unit name.
+        * 5wgtplsp.ads: Fix typo in unit name.
 
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garrem.adb: Do not add -n inconditionnally onto the launcher
-	command line.
+        * s-garrem.adb: Do not add -n inconditionnally onto the launcher
+        command line.
 
-	* Makefile.am (COMMONSOURCES): Get s-gatcop.ads from the build
-	directory instead of the source directory (it won't be present
-	there if VPATH is used).
+        * Makefile.am (COMMONSOURCES): Get s-gatcop.ads from the build
+        directory instead of the source directory (it won't be present
+        there if VPATH is used).
 
 1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* 5egtplsp.ads, 5sgtplsp.ads, 5wgtplsp.adb, 5wgtplsp.ads,
- 	5xgtplsp.ads, s-gartcp.adb: Change s-gtplsp unit
- 	name to avoid recompiling too many files when isthrbio is built at
- 	configuration time.
-	
-	* isthrbio.adb: With System.Garlic.TCP_Platform_Specific to
-	please Windows configuration.
-	
+        * 5egtplsp.ads, 5sgtplsp.ads, 5wgtplsp.adb, 5wgtplsp.ads,
+        5xgtplsp.ads, s-gartcp.adb: Change s-gtplsp unit
+        name to avoid recompiling too many files when isthrbio is built at
+        configuration time.
+
+        * isthrbio.adb: With System.Garlic.TCP_Platform_Specific to
+        please Windows configuration.
+
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am (inlining): Fix a bug causing an error at
-	installation time when no inlining at all was present.
+        * Makefile.am (inlining): Fix a bug causing an error at
+        installation time when no inlining at all was present.
 
-	* isthrbio.adb: Use GNAT style and add copyright information.
+        * isthrbio.adb: Use GNAT style and add copyright information.
 
 1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am (inlining): Look for lines beginning by D when
-	looking for dependencies, thus avoiding useless recompilations in
-	the case of a non-inlined library.
-	Add System.Garlic.Locking.
+        * Makefile.am (inlining): Look for lines beginning by D when
+        looking for dependencies, thus avoiding useless recompilations in
+        the case of a non-inlined library.
+        Add System.Garlic.Locking.
 
-	* s-gardeb.adb: Style fixes, subprograms reordering.
-	Remove useless pragma Elaborate_All on predefined pure package.
+        * s-gardeb.adb: Style fixes, subprograms reordering.
+        Remove useless pragma Elaborate_All on predefined pure package.
 
-	* s-gasoli.adb: Use System.Garlic.Debug instead of GNAT.IO
-	directly.
+        * s-gasoli.adb: Use System.Garlic.Debug instead of GNAT.IO
+        directly.
 
-	* s-gasoli.ads: Due to the use of System.Garlic.Debug from within
-	the body, change Preelaborate into Elaborate_Body.
+        * s-gasoli.ads: Due to the use of System.Garlic.Debug from within
+        the body, change Preelaborate into Elaborate_Body.
 
-	* Many files: refine pragma Warnings to include only the name of
-	the subunits for which we do not want warnings.
+        * Many files: refine pragma Warnings to include only the name of
+        the subunits for which we do not want warnings.
 
-	* s-parint.adb: Adapt to the new stubs format.
-	Remove useless subprograms Register_Address and Get_Address.
-	Style fixes.
+        * s-parint.adb: Adapt to the new stubs format.
+        Remove useless subprograms Register_Address and Get_Address.
+        Style fixes.
 
-	* s-garuni.ads, s-garuni.adb: Likewise.
+        * s-garuni.ads, s-garuni.adb: Likewise.
 
-	* s-garloc.ads, s-garloc.adb: New package.
+        * s-garloc.ads, s-garloc.adb: New package.
 
-	* s-gasoli.ads: Add new softlinks for critical sections.
+        * s-gasoli.ads: Add new softlinks for critical sections.
 
-	* s-parint.adb: Use new softlinks. Minor reformatting.
+        * s-parint.adb: Use new softlinks. Minor reformatting.
 
-	* s-gartab.adb: Use new softlinks.
+        * s-gartab.adb: Use new softlinks.
 
-	* s-rpc.adb: Style fixes.
+        * s-rpc.adb: Style fixes.
 
-	* s-garuti.ads, s-garuti.adb: Remove Global_Mutex which is not
-	used anymore.
+        * s-garuti.ads, s-garuti.adb: Remove Global_Mutex which is not
+        used anymore.
 
-	* DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Add entry
-	for SOFTLINKS, the debugging key for s-gasoli.adb.
-	
+        * DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Add entry
+        for SOFTLINKS, the debugging key for s-gasoli.adb.
+
 1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Update due 
-	to last changes.
-	
-	* s-gardeb.adb: Fix a warning. In fact, GNAT is over pessimistic.
-	Fix a wrong comparison.
-	Check RTS_Sanity_Dir and create termination sanity file. Two new
-	procedures have been created: Create_Termination_Sanity_File and
-	Delete_Termination_Sanity_File. Create_Termination_Sanity_File is
-	executed during System.Garlic.Debug elaboration.
-	
-	* s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
-	is used when --with-sanity=dir is activated.
+        * DALL, UNDALL, DALL.rc, UNDALL.rc, DALL.el, UNDALL.el: Update due
+        to last changes.
 
-	* s-garhea.adb: Execute Delete_Termination_Sanity_File when the
-	termination is completed (shutdown).
+        * s-gardeb.adb: Fix a warning. In fact, GNAT is over pessimistic.
+        Fix a wrong comparison.
+        Check RTS_Sanity_Dir and create termination sanity file. Two new
+        procedures have been created: Create_Termination_Sanity_File and
+        Delete_Termination_Sanity_File. Create_Termination_Sanity_File is
+        executed during System.Garlic.Debug elaboration.
 
-	* All files: With System.Garlic.Debug when needed and elaborate it
- 	first to ensure that the sanity files are created at the very
- 	beginning of the elaboration. Change also debugging env. variable
-	to adopt a standard naming. A package s-abcdef has now a debugging 
-	env. variable of S_ABCDEF.
+        * s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
+        is used when --with-sanity=dir is activated.
+
+        * s-garhea.adb: Execute Delete_Termination_Sanity_File when the
+        termination is completed (shutdown).
+
+        * All files: With System.Garlic.Debug when needed and elaborate it
+        first to ensure that the sanity files are created at the very
+        beginning of the elaboration. Change also debugging env. variable
+        to adopt a standard naming. A package s-abcdef has now a debugging
+        env. variable of S_ABCDEF.
 
 1998-07-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-parint.adb, s-parint.ads: Major cleanup which comes from the
- 	major cleanup in gnatdist. Procedure Run is now in charge of the
- 	elaboration, the version consistency, the excution of the main
-	subprogram (if needed) and the termination. Exceptions raised at
-	the level of the main subprogram are now handled and the
-	termination properly executed.
+        * s-parint.adb, s-parint.ads: Major cleanup which comes from the
+        major cleanup in gnatdist. Procedure Run is now in charge of the
+        elaboration, the version consistency, the excution of the main
+        subprogram (if needed) and the termination. Exceptions raised at
+        the level of the main subprogram are now handled and the
+        termination properly executed.
 
-	* s-garter.adb: Global_Termination can be executed by a slave and
-	this will result in an immediat return. We want this behaviour
-	because in the general case, the slave could help in the global
-	termination detection. This is not the case in this algorithm, but 
-	the code generated by gnatdist should not be dependent.
+        * s-garter.adb: Global_Termination can be executed by a slave and
+        this will result in an immediat return. We want this behaviour
+        because in the general case, the slave could help in the global
+        termination detection. This is not the case in this algorithm, but
+        the code generated by gnatdist should not be dependent.
 
-	* s-garhea.ads, s-garhea.adb: Change Elaboration_Is_Terminated in
- 	Complete_Termination.
+        * s-garhea.ads, s-garhea.adb: Change Elaboration_Is_Terminated in
+        Complete_Termination.
 
 1998-07-29  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-ganobl.adb: Remove special rule when we receive 0 bytes out of 
-	N (with N /= 0).
+        * s-ganobl.adb: Remove special rule when we receive 0 bytes out of
+        N (with N /= 0).
 
 1998-07-26  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* isthrbio.adb: New source file used to detect whether we have a
-	thread blocking io gnat rts. Use 'select' with timeout to do so.
-	
-	* s-ganobl.adb, s-gartcp.adb: Don't use with
-	System.Garlic.TCP.Platform_Specific.Net anymore but
-	System.Garlic.TCP.Operations instead. This new file is created at
-	configuration time and decide to use a process blocking io mode or 
-	the thread blocking io mode.
+        * isthrbio.adb: New source file used to detect whether we have a
+        thread blocking io gnat rts. Use 'select' with timeout to do so.
 
-	* s-ganobl.adb : Create a new procedure Check to test if we can
- 	send or receive a message on a socket. This encapsulate the use of
- 	Poll or Select. Fix some problems on Linux using FSU threads.
+        * s-ganobl.adb, s-gartcp.adb: Don't use with
+        System.Garlic.TCP.Platform_Specific.Net anymore but
+        System.Garlic.TCP.Operations instead. This new file is created at
+        configuration time and decide to use a process blocking io mode or
+        the thread blocking io mode.
 
-	* Makefile.am, Makefile.in: Remove generation of s-gtplsp.ads as
-	this is now done during configuration file. Add new object and
-	source files: s-gatcop.ads s-gatcop.o.
+        * s-ganobl.adb : Create a new procedure Check to test if we can
+        send or receive a message on a socket. This encapsulate the use of
+        Poll or Select. Fix some problems on Linux using FSU threads.
 
-	* 5sgtplsp.ads, 5wgtplsp.ads, 5wgtplsp.adb: Remove renaming of
- 	System.Garlic.TCP.Platform_Specific.Net to System.Garlic.Thin as
- 	this mode is now detected during configuration.
+        * Makefile.am, Makefile.in: Remove generation of s-gtplsp.ads as
+        this is now done during configuration file. Add new object and
+        source files: s-gatcop.ads s-gatcop.o.
+
+        * 5sgtplsp.ads, 5wgtplsp.ads, 5wgtplsp.adb: Remove renaming of
+        System.Garlic.TCP.Platform_Specific.Net to System.Garlic.Thin as
+        this mode is now detected during configuration.
 
 1998-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gafizi.adb: target_bytes should be initialized before
-	executing Compress C function (because this variable is passed by
-	address and its value is used - not only updated). Last step
-	before full SGI port.
+        * s-gafizi.adb: target_bytes should be initialized before
+        executing Compress C function (because this variable is passed by
+        address and its value is used - not only updated). Last step
+        before full SGI port.
 
-	* s-garrem.adb: Check whether host is "localhost". In this case,
- 	do not use rsh but fork instead.
+        * s-garrem.adb: Check whether host is "localhost". In this case,
+        do not use rsh but fork instead.
 
 1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-rpc.adb: Use new soft link RPC_Shutdown.
+        * s-rpc.adb: Use new soft link RPC_Shutdown.
 
-	* s-gasoli.adb,s-gasoli.ads: Add two new soft links
-	(Global_Termination and RPC_Shutdown).
+        * s-gasoli.adb,s-gasoli.ads: Add two new soft links
+        (Global_Termination and RPC_Shutdown).
 
-	* s-garter.adb: Remove termination task and add a new soft link
- 	Global_Termination. This procedure is executed at the end of the
-	main subprogram by the main partition. This fixes a latent error
-	(difficult to detect). Update the no activity test (because we
-	have one less active task).
-	
-	* s-garhea.adb, s-garhea.ads: Remove Register_RPC_Shutdown and use
- 	a new soft link from s-gasoli. Fix a problem that occurs in the
- 	ACVC tests when a specific s-rpc is used. System_RPC_Shutdown was
- 	not registered. An exception was raised transparently because it
-	was raised in the termination task (which does not exist anymore).
+        * s-garter.adb: Remove termination task and add a new soft link
+        Global_Termination. This procedure is executed at the end of the
+        main subprogram by the main partition. This fixes a latent error
+        (difficult to detect). Update the no activity test (because we
+        have one less active task).
 
-	* s-ganobl.adb: Handle send with len = 0 with a special mechanism
- 	(select) because send does not behave the same way on different
-	platforms (especially sgi).
+        * s-garhea.adb, s-garhea.ads: Remove Register_RPC_Shutdown and use
+        a new soft link from s-gasoli. Fix a problem that occurs in the
+        ACVC tests when a specific s-rpc is used. System_RPC_Shutdown was
+        not registered. An exception was raised transparently because it
+        was raised in the termination task (which does not exist anymore).
 
-	* s-garter.adb: Solve termination problem caused by a
-	misunderstanding of gnat termination and a bug in gnat awake_count 
-	computation.
+        * s-ganobl.adb: Handle send with len = 0 with a special mechanism
+        (select) because send does not behave the same way on different
+        platforms (especially sgi).
+
+        * s-garter.adb: Solve termination problem caused by a
+        misunderstanding of gnat termination and a bug in gnat awake_count
+        computation.
 
 1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-ganobl.ads: Add some stat info to count sigpoll interrupts and 
-	sigpoll timeouts.
+        * s-ganobl.ads: Add some stat info to count sigpoll interrupts and
+        sigpoll timeouts.
 
-	* s-ganobl.adb: Merge Set_Asynchronous and Set_Non_Blocking
- 	because they were both executing Fcntl (FD, F_Setfl, ...) such a
- 	way that the flag status of the first call was removed by the
- 	second. We have only one call to Fcntl with Fasync + Fndelay. Add
- 	some stat info to count sigpoll interrupts and sigpoll timeouts.
+        * s-ganobl.adb: Merge Set_Asynchronous and Set_Non_Blocking
+        because they were both executing Fcntl (FD, F_Setfl, ...) such a
+        way that the flag status of the first call was removed by the
+        second. We have only one call to Fcntl with Fasync + Fndelay. Add
+        some stat info to count sigpoll interrupts and sigpoll timeouts.
 
-	* s-gasoli.adb: Add some debugging info.
+        * s-gasoli.adb: Add some debugging info.
 
-	* Makefile.am, Makefile.in: Just recompile linktest and bind
-	it. Don't try to link it.
-	
+        * Makefile.am, Makefile.in: Just recompile linktest and bind
+        it. Don't try to link it.
+
 1998-07-20  Pascal Obry  <obry@gnat.com>
 
-	* Makefile.am, Makefile.in: Fix a bug for NT build.
+        * Makefile.am, Makefile.in: Fix a bug for NT build.
 
 1998-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Fix a bug concerning inlined gnatlib
- 	regeneration introduced by new linktest.
+        * Makefile.am, Makefile.in: Fix a bug concerning inlined gnatlib
+        regeneration introduced by new linktest.
 
 1998-07-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb: Add debugging information.
+        * s-garhea.adb: Add debugging information.
 
 1998-06-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuti.ads, s-garuti.adb: Move exception utilities to
- 	System.Garlic.Exceptions.
-	
-	* s-garexc.adb, s-garexc.ads: Move exception utilities to
- 	System.Garlic.Exceptions.
+        * s-garuti.ads, s-garuti.adb: Move exception utilities to
+        System.Garlic.Exceptions.
 
-	* s-gartcp.adb: Update because of previous changes.
+        * s-garexc.adb, s-garexc.ads: Move exception utilities to
+        System.Garlic.Exceptions.
 
-	* s-parint.adb: Use function Different which was implemented but
-	never used. Different compares to Version_ID and adds a special
-	rule for Empty_Version (to please ADEPT project).
+        * s-gartcp.adb: Update because of previous changes.
 
-	* Makefile.am, Makefile.in: Update because of new unit.
+        * s-parint.adb: Use function Different which was implemented but
+        never used. Different compares to Version_ID and adds a special
+        rule for Empty_Version (to please ADEPT project).
+
+        * Makefile.am, Makefile.in: Update because of new unit.
 
 1998-06-16  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gasoli.ads, s-gasoli.adb: New package containing soft links
-	for termination-related stuff.
+        * s-gasoli.ads, s-gasoli.adb: New package containing soft links
+        for termination-related stuff.
 
-	* s-gaphlo.ads, s-gaphlo.adb: Use pragma Stream_Convert instead
-	than defining stream attributes that do the same thing.
+        * s-gaphlo.ads, s-gaphlo.adb: Use pragma Stream_Convert instead
+        than defining stream attributes that do the same thing.
 
-	* s-gartcp.adb: Return "tcp" only as location when the light
-	runtime has been activated to emphasize that fact.
+        * s-gartcp.adb: Return "tcp" only as location when the light
+        runtime has been activated to emphasize that fact.
 
-	* s-garhea.ads: Move the types Public_Data and Partition_Data into 
-	the body, and add access functions to read the various values.
-	(Name, Termination_Policy, Location): new functions
-	
-	* s-garhea.adb: Do not send shutdown messages to partition whose
-	termination policy is Local_Termination.
-	(Name, Termination_Policy, Location): new functions
+        * s-garhea.ads: Move the types Public_Data and Partition_Data into
+        the body, and add access functions to read the various values.
+        (Name, Termination_Policy, Location): new functions
 
-	* s-garfil.adb: Use the new function Name from System.Garlic.Heart 
-	to get a partition's name.
+        * s-garhea.adb: Do not send shutdown messages to partition whose
+        termination policy is Local_Termination.
+        (Name, Termination_Policy, Location): new functions
 
-	* s-garter.ads: Empty spec since now soft links are used for
-	termination strategies.
+        * s-garfil.adb: Use the new function Name from System.Garlic.Heart
+        to get a partition's name.
 
-	* s-garter.adb: Do not poll partitions whose termination policy is 
-	Local_Termination.
+        * s-garter.ads: Empty spec since now soft links are used for
+        termination strategies.
 
-	* linktest.adb: New file, that will be used in developper mode to
-	test that no circular dependencies have been introduced.
+        * s-garter.adb: Do not poll partitions whose termination policy is
+        Local_Termination.
 
-	* Makefile.am: Add linktest target.
+        * linktest.adb: New file, that will be used in developper mode to
+        test that no circular dependencies have been introduced.
 
-	* s-garlic.ads: Move Communication_Error from System.Garlic.Types
-	to here to prevent an elaboration circularity in
-	System.Garlic.Utils.
+        * Makefile.am: Add linktest target.
 
-	* s-garuti.adb: Remove with clause on System.Garlic.Types since
-	the only entity that was referenced was Communication_Error.
+        * s-garlic.ads: Move Communication_Error from System.Garlic.Types
+        to here to prevent an elaboration circularity in
+        System.Garlic.Utils.
 
-	* s-rpc.adb: Use System.Garlic.Communication_Error rather than the 
-	former System.Garlic.Types.Communication_Error.
+        * s-garuti.adb: Remove with clause on System.Garlic.Types since
+        the only entity that was referenced was Communication_Error.
 
-	* s-garstr.adb: Rename Copy into Deep_Copy to have the name match
-	the actual operation.
+        * s-rpc.adb: Use System.Garlic.Communication_Error rather than the
+        former System.Garlic.Types.Communication_Error.
 
-	* s-rpc.adb: Ditto
-	Make sure that System.Garlic.Startup is elaborated before this
-	package to make sure that options get set correctly.
+        * s-garstr.adb: Rename Copy into Deep_Copy to have the name match
+        the actual operation.
 
-	* s-gartyp.ads, s-garstr.ads: Move type RPC_Receiver from
-	System.Garlic.Streams to System.Garlic.Types.
+        * s-rpc.adb: Ditto
+        Make sure that System.Garlic.Startup is elaborated before this
+        package to make sure that options get set correctly.
 
-	* s-garuni.ads, s-garuni.adb: Remove dependency on
-	System.Garlic.Streams.
+        * s-gartyp.ads, s-garstr.ads: Move type RPC_Receiver from
+        System.Garlic.Streams to System.Garlic.Types.
+
+        * s-garuni.ads, s-garuni.adb: Remove dependency on
+        System.Garlic.Streams.
 
 1998-06-15  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garter.adb: Do not try to terminate if a partition whose
-	termination policy is Local_Termination has not terminated yet,
-	because that means that the whole application cannot terminate at
-	this time.
+        * s-garter.adb: Do not try to terminate if a partition whose
+        termination policy is Local_Termination has not terminated yet,
+        because that means that the whole application cannot terminate at
+        this time.
 
-	* s-garhea.ads: Remove useless My_Partition_Name that is not used
-	outside System.Garlic.Heart.
-	(Blocking_Partition): new function
-	(Can_Have_A_Light_Runtime): new function
+        * s-garhea.ads: Remove useless My_Partition_Name that is not used
+        outside System.Garlic.Heart.
+        (Blocking_Partition): new function
+        (Can_Have_A_Light_Runtime): new function
 
-	* s-garhea.adb: Transmit the termination policy along with the
-	location of the partition; preliminary work for a light runtime.
-	Check that the callback to be called when a partition dies has
-	been set before calling it, thus avoiding a Constraint_Error at
-	run-time.
-	(Blocking_Partition): new function
-	(Can_Have_A_Light_Runtime): new function
+        * s-garhea.adb: Transmit the termination policy along with the
+        location of the partition; preliminary work for a light runtime.
+        Check that the callback to be called when a partition dies has
+        been set before calling it, thus avoiding a Constraint_Error at
+        run-time.
+        (Blocking_Partition): new function
+        (Can_Have_A_Light_Runtime): new function
 
-	* s-ganata.ads, s-ganata.adb: Define 'Read and 'Write operator on
-	type Name_Id. Make Name_Id a private type instead of a subtype of
-	Natural to be able to define stream operations.
+        * s-ganata.ads, s-ganata.adb: Define 'Read and 'Write operator on
+        type Name_Id. Make Name_Id a private type instead of a subtype of
+        Natural to be able to define stream operations.
 
-	* s-garfil.adb: Use conversion routines between Natural and
-	Name_Id.
+        * s-garfil.adb: Use conversion routines between Natural and
+        Name_Id.
 
-	* s-gartyp.ads, s-garhea.adb: Move definition of
-	Reconnection_Type, Shutdown_Type, Termination_Type and
-	Execution_Mode_Type from System.Garlic.Heart to
-	System.Garlic.Types.
-	Remove Unknown_Termination from available termination modes.
+        * s-gartyp.ads, s-garhea.adb: Move definition of
+        Reconnection_Type, Shutdown_Type, Termination_Type and
+        Execution_Mode_Type from System.Garlic.Heart to
+        System.Garlic.Types.
+        Remove Unknown_Termination from available termination modes.
 
-	* s-garopt.ads: Use types from System.Garlic.Types instead of
-	System.Garlic.Heart.
-	Remove dependency on System.Garlic.Heart.
-	Add pragma Elaborate_Body.
+        * s-garopt.ads: Use types from System.Garlic.Types instead of
+        System.Garlic.Heart.
+        Remove dependency on System.Garlic.Heart.
+        Add pragma Elaborate_Body.
 
-	* s-garopt.adb: Raise Program_Error instead of choosing
-	Unknown_Termination when the user specifies a bad value in the
-	environment variable.
+        * s-garopt.adb: Raise Program_Error instead of choosing
+        Unknown_Termination when the user specifies a bad value in the
+        environment variable.
 
-	* s-garrep.adb: Use types from System.Garlic.Types.
+        * s-garrep.adb: Use types from System.Garlic.Types.
 
 1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Update dependencies and remove
- 	s-rpcini.ad[bs].
+        * Makefile.am, Makefile.in: Update dependencies and remove
+        s-rpcini.ad[bs].
 
-	* s-rpc.adb, s-rpc.adb: Remove Initialize which is now included in
- 	the elaboration code. Remove Shutdown which is now an internal
- 	procedure.
+        * s-rpc.adb, s-rpc.adb: Remove Initialize which is now included in
+        the elaboration code. Remove Shutdown which is now an internal
+        procedure.
 
-	* s-gartyp.ads: Add a type Shutdow_Access.
+        * s-gartyp.ads: Add a type Shutdow_Access.
 
-	* s-garsta.adb: Remove any dependency from System.RPC.
+        * s-garsta.adb: Remove any dependency from System.RPC.
 
-	* s-garhea.ads, s-garhea.adb: Remove any dependency from
- 	System.RPC. Add a new procedure Register_RPC_Shutdown to allow
- 	System.RPC shutdown to be invoked when Heart.Shutdown is invoked.
+        * s-garhea.ads, s-garhea.adb: Remove any dependency from
+        System.RPC. Add a new procedure Register_RPC_Shutdown to allow
+        System.RPC shutdown to be invoked when Heart.Shutdown is invoked.
 
 1998-06-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb (Send): Detect calls for the local partition (in
-	presence of pragma All_Calls_Remote) and redirect them directly to
-	the Heart without consideration for protocols.
+        * s-garhea.adb (Send): Detect calls for the local partition (in
+        presence of pragma All_Calls_Remote) and redirect them directly to
+        the Heart without consideration for protocols.
 
-	* Makefile.am (install-data-local): Correct typo (CP_PRESERVE was
-	spelled CPPRESERVE).
+        * Makefile.am (install-data-local): Correct typo (CP_PRESERVE was
+        spelled CPPRESERVE).
 
 1998-06-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartcp.adb: Remove instanciation (unused).
+        * s-gartcp.adb: Remove instanciation (unused).
 
-	* s-garhea.adb: Remove Heart import (unused).
+        * s-garhea.adb: Remove Heart import (unused).
 
 1998-05-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am (inlining): Improve failure detection.
+        * Makefile.am (inlining): Improve failure detection.
 
 1998-05-14  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am (CLEANFILES): Remove config.h.
+        * Makefile.am (CLEANFILES): Remove config.h.
 
 1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5?gtplsp.ads: Use pragma Warnings to work around false warnings.
+        * 5?gtplsp.ads: Use pragma Warnings to work around false warnings.
 
-	* Makefile.am: Add prelimary support for cross-compilation.
-	Use new constants generation scheme compatible with most
-	platforms.
-	Regenerate dependencies.
+        * Makefile.am: Add prelimary support for cross-compilation.
+        Use new constants generation scheme compatible with most
+        platforms.
+        Regenerate dependencies.
 
-	* s-garfil.adb: Remove unused with of Interfaces.C.
+        * s-garfil.adb: Remove unused with of Interfaces.C.
 
-	* s-garrem.adb: Remove unused with of System.Garlic.Types.
+        * s-garrem.adb: Remove unused with of System.Garlic.Types.
 
-	* s-gartcp.adb: Remove unused with of System.Garlic.Name_Table.
+        * s-gartcp.adb: Remove unused with of System.Garlic.Name_Table.
 
-	* s-garthi.ads: Use pragma Warnings to work around a GNAT bug.
+        * s-garthi.ads: Use pragma Warnings to work around a GNAT bug.
 
-	* s-garuti.adb: Remove unused with of Interfaces.C.
+        * s-garuti.adb: Remove unused with of Interfaces.C.
 
-	* s-rpc.adb: Remove unused with of Ada.Unchecked_Conversion.
+        * s-rpc.adb: Remove unused with of Ada.Unchecked_Conversion.
 
-	* s-rpc.ads: Remove unused with of System.Storage_Elements.
+        * s-rpc.ads: Remove unused with of System.Storage_Elements.
 
-	* s-stratt.adb: Remove unused with of Interfaces.
+        * s-stratt.adb: Remove unused with of Interfaces.
 
 1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-parint.ads, s-parint.adb: Move s-painst into s-parint to
-	get a fake PCS in gnat.
+        * s-parint.ads, s-parint.adb: Move s-painst into s-parint to
+        get a fake PCS in gnat.
 
-	* Makefile.am, Makefile.in: Remove s-painst dependencies.
+        * Makefile.am, Makefile.in: Remove s-painst dependencies.
 
 1998-05-06  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* 5wgtplsp.adb: Use C_Recv and C_Send instead of C_Read and
-	C_Write. Fix problem of external names.
+        * 5wgtplsp.adb: Use C_Recv and C_Send instead of C_Read and
+        C_Write. Fix problem of external names.
 
-	* s-ganobl.adb, s-ganobl.ads, s-gartcp.adb: Switch every
- 	occurrence of 'Read' and 'Write' into 'Recv' and 'Send.
+        * s-ganobl.adb, s-ganobl.ads, s-gartcp.adb: Switch every
+        occurrence of 'Read' and 'Write' into 'Recv' and 'Send.
 
-	* s-garthi.ads: Reformat C_Recv spec.
+        * s-garthi.ads: Reformat C_Recv spec.
 
 1998-05-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* 5wgtplsp.adb: C_Read and C_Write are exported as "read" and
-	"write". In fact, they call C_Recv and C_Send with a fourth arg
-	equal to 0. This way, we don't have to change the code in s-gartcp.
+        * 5wgtplsp.adb: C_Read and C_Write are exported as "read" and
+        "write". In fact, they call C_Recv and C_Send with a fourth arg
+        equal to 0. This way, we don't have to change the code in s-gartcp.
 
 1998-04-29  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Fix a glitch concerning target
- 	inlining.
+        * Makefile.am, Makefile.in: Fix a glitch concerning target
+        inlining.
 
 1998-04-29  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads: Define Raise_Program_Error_For_E_4_18 which will
-	be called by GNAT if conditions defined in E.4(18) are not met
-	when using a RACW.
+        * s-parint.ads: Define Raise_Program_Error_For_E_4_18 which will
+        be called by GNAT if conditions defined in E.4(18) are not met
+        when using a RACW.
 
-	* s-parint.adb: Likewise.
+        * s-parint.adb: Likewise.
 
 1998-04-24  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-ganobl.adb: (Asynchronous.Read) When Nbytes = 0, use C_Select
-	to check whether there is something to read.
+        * s-ganobl.adb: (Asynchronous.Read) When Nbytes = 0, use C_Select
+        to check whether there is something to read.
 
 1998-04-24  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5pgtplsp.ads: Use the same file as SunOS but do not use Poll.
+        * 5pgtplsp.ads: Use the same file as SunOS but do not use Poll.
 
 1998-04-22  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5pgtplsp.ads: Change casing for imported WSAStartup.
+        * 5pgtplsp.ads: Change casing for imported WSAStartup.
 
-	* 5wgtplsp.ads: Likewise.
+        * 5wgtplsp.ads: Likewise.
 
 1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-ganobl.adb: Get Use_Poll from s-gtplsp.ads instead of
-	s-garthi.ads.
+        * s-ganobl.adb: Get Use_Poll from s-gtplsp.ads instead of
+        s-garthi.ads.
 
-	* s-garthi.ads: Move Use_Poll from here to s-gtplsp.ads when the
-	platform uses the non-blocking alternative.
+        * s-garthi.ads: Move Use_Poll from here to s-gtplsp.ads when the
+        platform uses the non-blocking alternative.
 
-	* 5?gtplsp.ads: Define Use_Poll when needed.
+        * 5?gtplsp.ads: Define Use_Poll when needed.
 
-	* 5wgtplsp.ads: Add a pragma Elaborate_Body to force body
-	elaboration.
+        * 5wgtplsp.ads: Add a pragma Elaborate_Body to force body
+        elaboration.
 
-	* 5wgtplsp.adb: Windows NT specific package body.
+        * 5wgtplsp.adb: Windows NT specific package body.
 
-	* Makefile.am (s-gtplsp.o): Specific trick needed to compile under 
-	Windows NT.
+        * Makefile.am (s-gtplsp.o): Specific trick needed to compile under
+        Windows NT.
 
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* 5lgarthi.ads, 5wgarthi.ads: Add Select sys call. Add a constant
- 	Use_Poll which should be set to false if "select" is prefered to
- 	"poll".
+        * 5lgarthi.ads, 5wgarthi.ads: Add Select sys call. Add a constant
+        Use_Poll which should be set to false if "select" is prefered to
+        "poll".
 
-	* s-ganobl.adb: Add implementation using "select". This
+        * s-ganobl.adb: Add implementation using "select". This
         implementation is activated when Use_Poll is false.
 
-	* Makefile.am, Makefile.in: Update dependencies.
-	
+        * Makefile.am, Makefile.in: Update dependencies.
+
 1998-04-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garopt.ads: Add Checksum variable.
+        * s-garopt.ads: Add Checksum variable.
 
-	* s-gartyp.ads: Add a new type Word (checksum).
+        * s-gartyp.ads: Add a new type Word (checksum).
 
-	* s-garopt.adb: Use String_Access from System.Garlic.Types rather
-	than the one from GNAT.OS_Lib.
+        * s-garopt.adb: Use String_Access from System.Garlic.Types rather
+        than the one from GNAT.OS_Lib.
 
 1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am: Use the target specific System.Garlic.Thin or the
-	generic one if there is no specialization.
+        * Makefile.am: Use the target specific System.Garlic.Thin or the
+        generic one if there is no specialization.
 
-	* s-garthi.ads: Renamed into 5lgarthi.ads.
+        * s-garthi.ads: Renamed into 5lgarthi.ads.
 
-	* 5wgarthi.ads: Windows NT specific file, provided by Pascal Obry.
+        * 5wgarthi.ads: Windows NT specific file, provided by Pascal Obry.
 
 1998-04-07  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5wgtplsp.ads: Add Winsock initialization provided by Pascal Obry.
+        * 5wgtplsp.ads: Add Winsock initialization provided by Pascal Obry.
 
 1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* 5wgarcon.ads: Install new version from Pascal Obry corresponding 
-	to mingwin32.
+        * 5wgarcon.ads: Install new version from Pascal Obry corresponding
+        to mingwin32.
 
 1998-04-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am (inlining): Use a form that is less likely to make
-	grep bomb because too long an argument line.
+        * Makefile.am (inlining): Use a form that is less likely to make
+        grep bomb because too long an argument line.
 
 1998-03-31  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* constants.sh: Use new constants.c program to compute constants,
-	since some of them are not defines but enums.
+        * constants.sh: Use new constants.c program to compute constants,
+        since some of them are not defines but enums.
 
-	* constants.c: New program, works for defines as well as enums.
+        * constants.c: New program, works for defines as well as enums.
 
 1998-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-gafizi.adb, s-gafizi.ads, s-gaphlo.adb, s-gaphlo.ads,
- 	s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
- 	s-garloo.adb, s-garloo.ads, s-garpro.ads, s-garrem.adb,
- 	s-garrep.adb, s-garrep.ads, s-garsta.adb, s-garstr.adb,
- 	s-garstr.ads, s-gartcp.adb, s-gartcp.ads, s-garter.adb,
- 	s-garter.ads, s-gartra.adb, s-gartra.ads, s-gartyp.ads,
- 	s-garuni.adb, s-garuni.ads, s-garuti.adb, s-gaseli.ads,
- 	s-parint.adb, s-parint.ads, s-rpc.adb, s-rpc.ads, s-rpcpoo.adb,
- 	s-rpcpoo.ads, s-parint.adb, s-rpstio.adb, s-rpstio.ads: Use
- 	Partition_ID, Params_Stream_Type and RPC_Receiver from
- 	System.Garlic.Types and System.Garlic.Streams to cut down a
- 	circular dependency which appears when a different system.rpc is
- 	used. Change pragma Elaborate_All into pragma Elaborate because it
- 	was overkilled and causes a circular dependency. This fixes
- 	cxe5003. And will help to fix cxe5002. Unfortunatly, cxe5002 needs
- 	pragma All_Calls_Remote.
+        * s-gafizi.adb, s-gafizi.ads, s-gaphlo.adb, s-gaphlo.ads,
+        s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
+        s-garloo.adb, s-garloo.ads, s-garpro.ads, s-garrem.adb,
+        s-garrep.adb, s-garrep.ads, s-garsta.adb, s-garstr.adb,
+        s-garstr.ads, s-gartcp.adb, s-gartcp.ads, s-garter.adb,
+        s-garter.ads, s-gartra.adb, s-gartra.ads, s-gartyp.ads,
+        s-garuni.adb, s-garuni.ads, s-garuti.adb, s-gaseli.ads,
+        s-parint.adb, s-parint.ads, s-rpc.adb, s-rpc.ads, s-rpcpoo.adb,
+        s-rpcpoo.ads, s-parint.adb, s-rpstio.adb, s-rpstio.ads: Use
+        Partition_ID, Params_Stream_Type and RPC_Receiver from
+        System.Garlic.Types and System.Garlic.Streams to cut down a
+        circular dependency which appears when a different system.rpc is
+        used. Change pragma Elaborate_All into pragma Elaborate because it
+        was overkilled and causes a circular dependency. This fixes
+        cxe5003. And will help to fix cxe5002. Unfortunatly, cxe5002 needs
+        pragma All_Calls_Remote.
 
-	* Makefile.am, Makefile.in, s-rpcuti.ads, s-rpcuti.adb: Unit longer
- 	needed.
-	
+        * Makefile.am, Makefile.in, s-rpcuti.ads, s-rpcuti.adb: Unit longer
+        needed.
+
 1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* Makefile.am: Change 2<letter>* into 5<letter>*.
+        * Makefile.am: Change 2<letter>* into 5<letter>*.
 
-	* 2<letter>*: renamed into 5<letter>*.
+        * 2<letter>*: renamed into 5<letter>*.
 
 1998-03-23  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-rpc.ads: Add comments.
+        * s-rpc.ads: Add comments.
 
 1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Add output infos. Update
-	dependencies. Fix a small bug of re-installation.
+        * Makefile.am, Makefile.in: Add output infos. Update
+        dependencies. Fix a small bug of re-installation.
 
 1998-03-22  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads (Register_Address, Get_Address): New functions.
+        * s-parint.ads (Register_Address, Get_Address): New functions.
 
-	* s-parint.adb (Register_Address, Get_Address): Likewise.
+        * s-parint.adb (Register_Address, Get_Address): Likewise.
 
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-painst.adb, s-painst.ads: New package that contains few
-	subprograms used in the partition main subprogram.
+        * s-painst.adb, s-painst.ads: New package that contains few
+        subprograms used in the partition main subprogram.
 
-	* s-garopt.adb, s-garopt.adb: Add Set_Task_Pool_Bounds. Used in
-	s-garela.
+        * s-garopt.adb, s-garopt.adb: Add Set_Task_Pool_Bounds. Used in
+        s-garela.
 
-	* Makefile.am, Makefile.in: Add s-painst.ad[bs].
+        * Makefile.am, Makefile.in: Add s-painst.ad[bs].
 
-	* s-parint.adb: Move Partition_RPC_Receiver from
-	Partition_Interface to Garlic.Head. Change needed for an ACVC.
+        * s-parint.adb: Move Partition_RPC_Receiver from
+        Partition_Interface to Garlic.Head. Change needed for an ACVC.
 
-	* s-garrem.adb, s-garrem.adb: Remove a parameter in
-	Full_Launch. This parameter was always a call to the same function 
-	(get_boot_server).
+        * s-garrem.adb, s-garrem.adb: Remove a parameter in
+        Full_Launch. This parameter was always a call to the same function
+        (get_boot_server).
 
 1998-03-09  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb: Surround with of System.Garlic.Linker_Options with 
-	pragma Warnings (Off) and (On) since we do not reference anything
-	from this package.
+        * s-garhea.adb: Surround with of System.Garlic.Linker_Options with
+        pragma Warnings (Off) and (On) since we do not reference anything
+        from this package.
 
-	* s-garela.ads: Remove unused entities.
+        * s-garela.ads: Remove unused entities.
 
-	* s-garela.adb: Remove useless with clause.
+        * s-garela.adb: Remove useless with clause.
 
 1998-03-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am: Fix problem with binary release. We build a first 
-	subprogram using GLADE library and when it fails, we rebuild all
-	the library units depending on System.Stream_Attributes.
+        * Makefile.am: Fix problem with binary release. We build a first
+        subprogram using GLADE library and when it fails, we rebuild all
+        the library units depending on System.Stream_Attributes.
 
-	* Makefile.in: Ditto.
+        * Makefile.in: Ditto.
 
 1998-03-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-ganobl.adb: Fix a termination problem. Task Selection was
-	blocked on an entry and no task to unblock it (Task
-	Sigio_Simulation was already dead). Now, these tasks keep going
-	until all the sockets are closed. Change C_Read, C_Write and
-	C_Close to trace active sockets.
+        * s-ganobl.adb: Fix a termination problem. Task Selection was
+        blocked on an entry and no task to unblock it (Task
+        Sigio_Simulation was already dead). Now, these tasks keep going
+        until all the sockets are closed. Change C_Read, C_Write and
+        C_Close to trace active sockets.
 
-	* s-ganobl.ads: Add a new procedure C_Close to track sockets in
-	use.
+        * s-ganobl.ads: Add a new procedure C_Close to track sockets in
+        use.
 
-	* s-gartcp.adb: Add several C_Close calls and set
-	TCP_Shutdown_Completed to true when TCP.Shutdown is executed in
-	order to let task Selection from System.Garlic.Non_Blocking know
-	that when the set of sockets in use is empty, this task can safely
-	terminate.
+        * s-gartcp.adb: Add several C_Close calls and set
+        TCP_Shutdown_Completed to true when TCP.Shutdown is executed in
+        order to let task Selection from System.Garlic.Non_Blocking know
+        that when the set of sockets in use is empty, this task can safely
+        terminate.
 
-	* s-gartcp.ads: Add a flag TCP_Shutdown_Completed.
+        * s-gartcp.ads: Add a flag TCP_Shutdown_Completed.
 
 1998-02-27  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads: Documentation update.
-	Add the Asynchronous field to RACW_Stub_Type to support multiple
-	RACW pointing on the same designated type with different
-	asynchronous status.
+        * s-parint.ads: Documentation update.
+        Add the Asynchronous field to RACW_Stub_Type to support multiple
+        RACW pointing on the same designated type with different
+        asynchronous status.
 
 1998-02-26  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads: Adapt declaration of RACW_Stub_Type and add
-	Get_Unique_Remote_Pointer to match the new expansion.
+        * s-parint.ads: Adapt declaration of RACW_Stub_Type and add
+        Get_Unique_Remote_Pointer to match the new expansion.
 
-	* s-parint.adb: Implement Get_Unique_Remote_Pointer using a hash
-	table to prevent memory leaks.
+        * s-parint.adb: Implement Get_Unique_Remote_Pointer using a hash
+        table to prevent memory leaks.
 
 1998-02-23  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* constants.sh: Generate a cleaner entry when a constant is not
-	available.
+        * constants.sh: Generate a cleaner entry when a constant is not
+        available.
 
-	* s-ganobl.adb: Use SVR4 streamio when BSDisms are not available.
+        * s-ganobl.adb: Use SVR4 streamio when BSDisms are not available.
 
-	* s-garthi.ads: Add entry for ioctl().
+        * s-garthi.ads: Add entry for ioctl().
 
 1998-02-21  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* constants.sh: Remove temporary file.
+        * constants.sh: Remove temporary file.
 
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Create System.Garlic.Linker_Options to
- 	include various pragma Linker_Options. This file is built using
- 	$(EXTRA_LIBS). Update dependencies.
+        * Makefile.am, Makefile.in: Create System.Garlic.Linker_Options to
+        include various pragma Linker_Options. This file is built using
+        $(EXTRA_LIBS). Update dependencies.
 
-	* s-garhea.adb: With System.Garlic.Linker_Options.
+        * s-garhea.adb: With System.Garlic.Linker_Options.
 
-	* s-ganobl.adb: Change Descriptors range from 127 to 63
- 	(workaround). GNAT-3.11w crashes on a packed array of boolean with
- 	index Descriptors.
+        * s-ganobl.adb: Change Descriptors range from 127 to 63
+        (workaround). GNAT-3.11w crashes on a packed array of boolean with
+        index Descriptors.
 
 1998-02-19  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garthi.ads: Capitalization fixes.
+        * s-garthi.ads: Capitalization fixes.
 
-	* s-garrep.adb: Likewise.
+        * s-garrep.adb: Likewise.
 
-	* s-gartcp.adb: Likewise.
+        * s-gartcp.adb: Likewise.
 
-	* s-garnam.adb: Likewise.
+        * s-garnam.adb: Likewise.
 
-	* s-rpc.adb: Likewise.
+        * s-rpc.adb: Likewise.
 
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gardeb.adb: Use GNAT.OS_Lib.String_Access and remove
- 	dependencies from System.Garlic.OS_Lib.
+        * s-gardeb.adb: Use GNAT.OS_Lib.String_Access and remove
+        dependencies from System.Garlic.OS_Lib.
 
-	* s-garopt.ads, s-garopt.adb: Ditto.
+        * s-garopt.ads, s-garopt.adb: Ditto.
 
-	* Makefile.am, Makefile.in: Remove s-gaosli.* from the Makefiles
-	and update dependencies.
+        * Makefile.am, Makefile.in: Remove s-gaosli.* from the Makefiles
+        and update dependencies.
 
 1998-02-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am, Makefile.in: Remove s-gafino.ad[bs]. No longer
- 	needed.
+        * Makefile.am, Makefile.in: Remove s-gafino.ad[bs]. No longer
+        needed.
 
 1998-02-18  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-garfil.adb: Comment out code that prevents GARLIC from
-	compiling.
-	
+        * s-garfil.adb: Comment out code that prevents GARLIC from
+        compiling.
+
 1998-02-18  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garuti.adb: Use GNAT.OS_Lib to get Errno instead of
-	System.Garlic.OS_Lib.
+        * s-garuti.adb: Use GNAT.OS_Lib to get Errno instead of
+        System.Garlic.OS_Lib.
 
-	* s-ganobl.adb: Likewise.
+        * s-ganobl.adb: Likewise.
 
-	* s-garnam.adb: Likewise.
+        * s-garnam.adb: Likewise.
 
-	* s-gaosli.ads: Replace s-gaosli.ads.in now that C_Errno is gone.
+        * s-gaosli.ads: Replace s-gaosli.ads.in now that C_Errno is gone.
 
 1998-02-18  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-garfil.adb: Comment out code that prevents GARLIC from
-	compiling.
-	
+        * s-garfil.adb: Comment out code that prevents GARLIC from
+        compiling.
+
 1998-02-16  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-rpcpoo.adb: Move with clause from s-rpcpoo.ads to here.
+        * s-rpcpoo.adb: Move with clause from s-rpcpoo.ads to here.
 
-	* s-garter.adb: Remove useless with clauses.
+        * s-garter.adb: Remove useless with clauses.
 
-	* s-gafizi.ads: Likewise.
+        * s-gafizi.ads: Likewise.
 
-	* s-rpc.adb: Likewise.
+        * s-rpc.adb: Likewise.
 
-	* s-rpcpoo.ads: Likewise.
+        * s-rpcpoo.ads: Likewise.
 
-	* s-garuni.adb: Likewise.
+        * s-garuni.adb: Likewise.
 
-	* s-gafizi.adb: Use pragma Warnings to remove bogus warnings.
+        * s-gafizi.adb: Use pragma Warnings to remove bogus warnings.
 
-	* s-garhea.ads: Likewise.
+        * s-garhea.ads: Likewise.
 
-	* s-gardeb.adb: Likewise.
+        * s-gardeb.adb: Likewise.
 
-	* s-gafino.adb: Likewise.
+        * s-gafino.adb: Likewise.
 
-	* s-garuni.adb: Likewise.
+        * s-garuni.adb: Likewise.
 
-	* s-parint.adb: Likewise.
+        * s-parint.adb: Likewise.
 
 1998-02-15  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-rpc.adb: Remove unused variables.
+        * s-rpc.adb: Remove unused variables.
 
-	* s-rpstio.adb: Likewise.
+        * s-rpstio.adb: Likewise.
 
-	* s-gartcp.adb: Likewise.
-	
-	* s-stratt.adb: Likewise.
+        * s-gartcp.adb: Likewise.
 
-	* s-garhea.adb: Use pragma Warnings to remove bogus warning about
-	unused entities.
+        * s-stratt.adb: Likewise.
 
-	* s-garsta.adb: Likewise.
+        * s-garhea.adb: Use pragma Warnings to remove bogus warning about
+        unused entities.
+
+        * s-garsta.adb: Likewise.
 
 1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gartyp.ads: Expose the type of Portable_Address so that it is
-	possible to obtain its value using the Image attribute.
+        * s-gartyp.ads: Expose the type of Portable_Address so that it is
+        possible to obtain its value using the Image attribute.
 
 1998-01-19  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gartyp.ads: New type Portable_Address whose goal is to provide 
-	an exchangeable address type.
+        * s-gartyp.ads: New type Portable_Address whose goal is to provide
+        an exchangeable address type.
 
-	* s-gartyp.adb: New package body with conversion functions for
-	Portable_Address.
+        * s-gartyp.adb: New package body with conversion functions for
+        Portable_Address.
 
 1998-01-15  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-ganata.adb: Use slice assignments to allow for compiler
-	optimization.
+        * s-ganata.adb: Use slice assignments to allow for compiler
+        optimization.
 
 1998-01-08  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-gartab.adb, s-gartab.ads: Add debugging information and minor
- 	reformatting.
+        * s-gartab.adb, s-gartab.ads: Add debugging information and minor
+        reformatting.
 
-	* s-garrep.adb: Fix bug in Garlic.Replay where Has_Arrived called
- 	into Engine was reading a shutdown message, starting shutdown
- 	process and invoking Shutdown_Keeper.Signal. The problem was that
- 	all this code was in a ATC aborted by
- 	Shutdown_Keeper.Signal. There fore, the application was never
- 	terminated because aborted during termination.
+        * s-garrep.adb: Fix bug in Garlic.Replay where Has_Arrived called
+        into Engine was reading a shutdown message, starting shutdown
+        process and invoking Shutdown_Keeper.Signal. The problem was that
+        all this code was in a ATC aborted by
+        Shutdown_Keeper.Signal. There fore, the application was never
+        terminated because aborted during termination.
 
-	* s-gafino.adb, s-gafino.ads, s-gafino.adb, s-gafino.ads: Remove
- 	Free and Get_Name procedures (no longer useful).
+        * s-gafino.adb, s-gafino.ads, s-gafino.adb, s-gafino.ads: Remove
+        Free and Get_Name procedures (no longer useful).
 
-	* s-ganata.adb: Minor reformatting.
+        * s-ganata.adb: Minor reformatting.
 
-	* s-garfil.adb, s-garfil.ads: Get partition name for debugging
- 	message instead of partition ids, because partition ids are
- 	dynamic, names are static. Define new function Free and add new
-	parameter Name to Register.
+        * s-garfil.adb, s-garfil.ads: Get partition name for debugging
+        message instead of partition ids, because partition ids are
+        dynamic, names are static. Define new function Free and add new
+        parameter Name to Register.
 
 1998-01-06  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gartab.adb: Remove loops and use array assignment to allow for 
-	compiler optimization.
-	(Simple.Allocate): Index was incorrectly calculated when
-	First_Index was not the successor of Null_Index.
-	(Complex.Allocate): Add ??? comments
+        * s-gartab.adb: Remove loops and use array assignment to allow for
+        compiler optimization.
+        (Simple.Allocate): Index was incorrectly calculated when
+        First_Index was not the successor of Null_Index.
+        (Complex.Allocate): Add ??? comments
 
-	* s-garsta.adb: Change Is_Boot_Partition into Set_Is_Boot_Partition
+        * s-garsta.adb: Change Is_Boot_Partition into Set_Is_Boot_Partition
 
-	* Makefile.am: Remove s-rpcdum.ads when cleaning
+        * Makefile.am: Remove s-rpcdum.ads when cleaning
 
-	* s-garfil.adb: Do not crash when compiling, barf at run-time if
-	necessary instead with an exit(1).
+        * s-garfil.adb: Do not crash when compiling, barf at run-time if
+        necessary instead with an exit(1).
 
 1998-01-05  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garfil.adb, s-garfil.ads: Complete rewritting of filters. Use
- 	System.Garlic.Table to improve readibility and complexity of this
- 	unit. Partition names are not exchanged at this level any
- 	more. Remove Print_Params abstract procedure and add Free_Params
- 	abstract procedure. 
+        * s-garfil.adb, s-garfil.ads: Complete rewritting of filters. Use
+        System.Garlic.Table to improve readibility and complexity of this
+        unit. Partition names are not exchanged at this level any
+        more. Remove Print_Params abstract procedure and add Free_Params
+        abstract procedure.
 
-	* s-gafizi.ads, s-gafizi.adb, s-gafino.ads, s-gafino.adb: Use new
-	implementation of System.Garlic.Filters.
+        * s-gafizi.ads, s-gafizi.adb, s-gafino.ads, s-gafino.adb: Use new
+        implementation of System.Garlic.Filters.
 
-	* s-ganata.adb, s-ganata.ads: Change Name_Id range to avoid
- 	erroneous casts and add debugging info.
+        * s-ganata.adb, s-ganata.ads: Change Name_Id range to avoid
+        erroneous casts and add debugging info.
 
-	* s-garhea.adb: Allow to dump incoming or outgoing streams. Store
- 	partition name in the partition map. When partitions register,
- 	their name is sent to the boot server. The boot partition case is
- 	a little bit tricky as its location is already defined.
+        * s-garhea.adb: Allow to dump incoming or outgoing streams. Store
+        partition name in the partition map. When partitions register,
+        their name is sent to the boot server. The boot partition case is
+        a little bit tricky as its location is already defined.
 
-	* s-garsta.adb: Force proper initialization of partition map for
- 	boot server. Basically, some fields were not initialized but some
- 	others were.
+        * s-garsta.adb: Force proper initialization of partition map for
+        boot server. Basically, some fields were not initialized but some
+        others were.
 
-	* s-garstr.ads, s-garstr.adb: Add new procedure Dump to dump a
- 	stream. Signature similar to Print_Debug_Info.
+        * s-garstr.ads, s-garstr.adb: Add new procedure Dump to dump a
+        stream. Signature similar to Print_Debug_Info.
 
-	* s-gartcp.adb: Add partition name into initial message during
- 	boot phase.
+        * s-gartcp.adb: Add partition name into initial message during
+        boot phase.
 
-	* s-parint.adb: Fix some bugs (infinite loops through message
- 	passing).
+        * s-parint.adb: Fix some bugs (infinite loops through message
+        passing).
 
 1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-gartyp.ads: New file containing preelaborated types. The only
-	one currently is String_Access.
+        * s-gartyp.ads: New file containing preelaborated types. The only
+        one currently is String_Access.
 
-	* s-garuti.ads, s-garopt.ads, s-garopt.adb, s-garhea.ads, s-garhea.adb,
-	 s-gaphlo.ads, s-gaphlo.adb, s-ganata.adb, s-garuni.ads, s-garnam.ads,
-	 s-garnam.adb: use String_Access from s-gartyp.ads
+        * s-garuti.ads, s-garopt.ads, s-garopt.adb, s-garhea.ads, s-garhea.adb,
+         s-gaphlo.ads, s-gaphlo.adb, s-ganata.adb, s-garuni.ads, s-garnam.ads,
+         s-garnam.adb: use String_Access from s-gartyp.ads
 
-	* Makefile.am: Add s-gartyp.{ads,o,ali}
-	Add a new "fast" target using gnatmake instead of dependencies
+        * Makefile.am: Add s-gartyp.{ads,o,ali}
+        Add a new "fast" target using gnatmake instead of dependencies
 
-	* header.txt: Updated for (c) 1996-1998
+        * header.txt: Updated for (c) 1996-1998
 
 1997-12-30  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* constants.sh: Do not include linux/fcntl.h, this is useless and
- 	makes the build of s-garcon.ads fail.
+        * constants.sh: Do not include linux/fcntl.h, this is useless and
+        makes the build of s-garcon.ads fail.
 
 1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garnam.adb: Use Mutex from System.Garlic.Utils
+        * s-garnam.adb: Use Mutex from System.Garlic.Utils
 
-	* s-ganata.adb: Qualify parameters of table Nodes
-	Remove useless use Ascii clause
+        * s-ganata.adb: Qualify parameters of table Nodes
+        Remove useless use Ascii clause
 
-	* s-garuti.ads: (Mutex_Type.Wait): remove useless default
-	parameter on private entry.
-	Add pragma Elaborate_Body
+        * s-garuti.ads: (Mutex_Type.Wait): remove useless default
+        parameter on private entry.
+        Add pragma Elaborate_Body
 
-	* s-garuti.adb: (Mutex_Type.Wait): accord with the spec
-	Remove redundant with Ada.Task_Identification (duplicated from the 
-	spec).
-	(Not_Null_Version): simplified and integrated into Different
+        * s-garuti.adb: (Mutex_Type.Wait): accord with the spec
+        Remove redundant with Ada.Task_Identification (duplicated from the
+        spec).
+        (Not_Null_Version): simplified and integrated into Different
 
-	* s-ganata.ads: Defer constant Null_Name and First_Name until the
-	private part.
+        * s-ganata.ads: Defer constant Null_Name and First_Name until the
+        private part.
 
-	* s-garhea.ads: Change Is_Boot_Partition into
-	Set_Is_Boot_Partition.
+        * s-garhea.ads: Change Is_Boot_Partition into
+        Set_Is_Boot_Partition.
 
-	* s-garhea.adb: Idem
+        * s-garhea.adb: Idem
 
-	* s-garsta.adb: Use it
+        * s-garsta.adb: Use it
 
 1997-12-14  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* s-garuti.adb, s-garuti.ads: Rename Semaphore_Type into
- 	Mutex_Type (because it is a mutex and not a semaphore). Rename
- 	Critical_Section into Adv_Mutex_Type because it is a specific
- 	implementation of a mutex. It allows recursion. Improve also the
- 	implementation of these mutexes.
+        * s-garuti.adb, s-garuti.ads: Rename Semaphore_Type into
+        Mutex_Type (because it is a mutex and not a semaphore). Rename
+        Critical_Section into Adv_Mutex_Type because it is a specific
+        implementation of a mutex. It allows recursion. Improve also the
+        implementation of these mutexes.
 
-	* s-gartab.adb, s-gartab.ads: Use Global_Mutex from Utils. Change
- 	package Concurrent into package Complex. Change package Sequential
- 	into Simple. Complex does not depend from Simple anymore. Complex
- 	exports its table, data can be read directly from this
- 	table. Change most of the subprogram names into more explicit
- 	ones.
+        * s-gartab.adb, s-gartab.ads: Use Global_Mutex from Utils. Change
+        package Concurrent into package Complex. Change package Sequential
+        into Simple. Complex does not depend from Simple anymore. Complex
+        exports its table, data can be read directly from this
+        table. Change most of the subprogram names into more explicit
+        ones.
 
-	* s-garhea.adb, s-garhea.ads: Export Partition_Data and add a new
- 	field Name to store the name of a partition. Exchange Name during
- 	the usual location registration messages. Change
- 	Get_Partition_Location into Get_Partition_Data. "with" and "use"
- 	Physical_Location to simplify coding. Fix hack concerning replay
- 	and remove warning about this hack. Remove procedure
- 	Replay_Handle_Internal (no longer needed). Remove procedure
- 	Register (never used). Clean up in debugging messages.
+        * s-garhea.adb, s-garhea.ads: Export Partition_Data and add a new
+        field Name to store the name of a partition. Exchange Name during
+        the usual location registration messages. Change
+        Get_Partition_Location into Get_Partition_Data. "with" and "use"
+        Physical_Location to simplify coding. Fix hack concerning replay
+        and remove warning about this hack. Remove procedure
+        Replay_Handle_Internal (no longer needed). Remove procedure
+        Register (never used). Clean up in debugging messages.
 
-	* s-gaphlo.adb, s-gaphlo.ads: Change Location into
-	Location_Type. Add a new constant Null_Location.
+        * s-gaphlo.adb, s-gaphlo.ads: Change Location into
+        Location_Type. Add a new constant Null_Location.
 
-	* s-ganata.adb: Rewrite Get (more efficient).
+        * s-ganata.adb: Rewrite Get (more efficient).
 
-	* s-ganata.adb, s-ganata.ads, s-gaphlo.adb, s-gaphlo.ads,
- 	s-garhea.adb, s-garhea.ads, s-garsta.adb, s-gartab.adb,
- 	s-gartab.ads, s-gartcp.adb, s-garuni.ads, s-garuti.adb,
- 	s-garuti.ads, s-gastha.adb, s-gastha.ads, s-parint.adb,
- 	s-rpstio.adb, s-rpstio.ads: Modified because of the previous
- 	changes.
-	
+        * s-ganata.adb, s-ganata.ads, s-gaphlo.adb, s-gaphlo.ads,
+        s-garhea.adb, s-garhea.ads, s-garsta.adb, s-gartab.adb,
+        s-gartab.ads, s-gartcp.adb, s-garuni.ads, s-garuti.adb,
+        s-garuti.ads, s-gastha.adb, s-gastha.ads, s-parint.adb,
+        s-rpstio.adb, s-rpstio.ads: Modified because of the previous
+        changes.
+
 1997-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-parint.ads: Add RACW_Stub_Type and RACW_Stub_Type_Access for
-	use by the new stubs mechanisms for RACW.
+        * s-parint.ads: Add RACW_Stub_Type and RACW_Stub_Type_Access for
+        use by the new stubs mechanisms for RACW.
 
 1997-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-gartab.adb, s-gartab.ads: Add a new function to associate an
- 	index of a component to a name when the index is already known.
+        * s-gartab.adb, s-gartab.ads: Add a new function to associate an
+        index of a component to a name when the index is already known.
 
 1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garter.adb: Minor reformatting.
+        * s-garter.adb: Minor reformatting.
 
 1997-12-10  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garrep.adb: Fix an improvement introduced previously.
+        * s-garrep.adb: Fix an improvement introduced previously.
 
-	* s-garter.adb: Change a "and" into an "and then".
+        * s-garter.adb: Change a "and" into an "and then".
 
 1997-12-10  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garter.adb: Use polling rather than "select delay then abort"
-	because of a bug in GNAT RTS which causes a lockup.
+        * s-garter.adb: Use polling rather than "select delay then abort"
+        because of a bug in GNAT RTS which causes a lockup.
 
 1997-12-09  Samuel Tardieu <sam@inf.enst.fr>
 
@@ -2010,593 +2016,593 @@
 
 1997-12-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garuti.adb, s-garuti.ads: Add critical section utilities.
+        * s-garuti.adb, s-garuti.ads: Add critical section utilities.
 
-	* s-ganata.adb: Implementation of an hash table.
+        * s-ganata.adb: Implementation of an hash table.
 
-	* s-garuni.adb, s-garuni.ads: Instanciation of Garlic.Table for
- 	Units.
+        * s-garuni.adb, s-garuni.ads: Instanciation of Garlic.Table for
+        Units.
 
-	* s-gartab.adb, s-gartab.ads: Implementation of two generic
- 	tables. Concurrent is a generic table which allows atomic
- 	operations on items in the table. Sequential table is a more
- 	classical generic table.
-	
-	* s-parint.adb: New RCI Name Server implementation. Use garlic
-	generic tables and hash table.
+        * s-gartab.adb, s-gartab.ads: Implementation of two generic
+        tables. Concurrent is a generic table which allows atomic
+        operations on items in the table. Sequential table is a more
+        classical generic table.
+
+        * s-parint.adb: New RCI Name Server implementation. Use garlic
+        generic tables and hash table.
 
 1997-12-08  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpc.ads: (Get_RPC_Receiver): new private function.
-        
+
         * s-rpc.adb: (Get_RPC_Receiver): new function.
         (Current_RPC_Receiver): new atomic variable holding the current
         RPC receiver.
         (Current_RPC_Receiver_Barrier): barrier to wait for the RPC
         receiver to be installed.
-        
+
         * s-rpcpoo.adb: Use Get_RPC_Receiver instead of Receiver_Map.
-        
+
         * s-rpcuti.ads: Remove useless Receiver_Map.
-        
+
         * s-garcac.ads, s-garcac.adb: Obsolete files.
-        
+
         * Makefile.am: Remove dependencies over s-garcac.*.
-        
+
 1997-12-04  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Remove GNAT 3.09 bug workaround.
-        
+
         * s-parint.adb: Typos.
-        
+
 1997-10-31  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpcpoo.adb: Increase task's storage size up to 3_000_000
         bytes.
-        
+
         * s-garuti.ads: Move To_Stream_Element_Array and
         To_Params_Stream_Type into System.Garlic.Streams.
-        
+
         * s-garuti.adb: Idem.
-        
+
         * s-garter.adb: Remove pragma Storage_Size on task.
-        
+
         * s-gartcp.adb: Use dynamic allocation of streams.
-        
+
         * s-garrep.adb: Remove pragma Storage_Size on task.
-        
+
         * s-garhea.adb: Use dynamic allocation of streams.
-        
+
         * s-garfil.ads, s-garfil.adb, s-gafizi.ads, s-gafizi.adb,
         s-gafino.ads, s-gafino.adb: Use dynamic allocation of streams.
-        
+
         * Makefile.am: Update dependencies. Add System.Garlic.Streams and
         System.Garlic.Storage_Handling.
-        
+
 1997-10-29  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-garuti.adb, s-garuti.ads: Add new function Different to test
         if two version ids are different. If one of the two version ids is
         a string of blank characters, then the two version ids are identical.
-        
+
 1997-10-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.adb: Set System.Standard_Library.Local_Partition_ID.
-        
+
         * s-ganobl.adb: Add warnings.
-        
+
 1997-10-17  Laurent Pautet <pautet@esmeralda.enst.fr>
-        
+
         * s-garela.ads, s-garela.adb: Add procedure Initialize to remove
         elaboration code.
-        
+
         * s-garsta.adb: Invoke Elaboration.Initialize after
         Options.Initialize.
-        
+
         * s-garthi.ads: Add some procedures and types for IPC messages.
-        
+
 1997-10-16  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garter.adb: Refine termination algorithm by using
         System.Tasking.Utilities.
-        
+
 1997-10-15  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-garser.adb.in: Update caused by previous changes.
-        
+
         * Makefile.in, Makefile.am: Update dependencies.
-        
+
 1997-10-11  Laurent Pautet <pautet@dorine.enst.fr>
-        
+
         * s-gartra.adb, s-gartra.ads: Change some procedure names.  Open
         trace file in trace mode in Initialize. Close trace file in
         Shutdown (this file was never closed). Trace file name is always
         partition name . ptf (Partition Trace File). To be fixed later.
-        
+
         * s-garrep.adb, s-garrep.ads: Open trace file and start protocol
         engin in Set_Boot_Data. Close trace file in Shutdown. Move task
         into body. Move some procedures from System.Garlic.Trace into
         System.Garlic.Replay. WARNING: Termination has to be tested (pb on
         laptop).
-        
+
         * s-garopt.adb, s-garopt.ads: Add procedure Initialize which sets
         all the run-time options. Move all run-time options into spec.
         Remove all Get_* functions. Keep all Set_* procedures as modifying
         one of these variables could imply a modification of another
         variable. Add new procedure Set_Partition_Name and variable
         Partition_Name (taken from System.Garlic.Filters).
-        
+
         * s-garuti.ads: Define for once string_access and its free
         procedure for general purpose.
-        
+
         * s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garlic.ads,
         s-garsta.adb, s-gartcp.adb, s-garter.adb: Modify code according to
         the previous changes.
-        
+
 1997-10-09  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gaplsp.ads.in: Platform specific file to avoid local launching on
         Linux where it is broken.
-        
+
 1997-10-01  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.adb: Remove reference to the new variable
         System.Standard_Library.Local_Partition_ID to preserve
         compatibility with GNAT 3.10.
-        
+
 1997-09-30  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-stratt.adb: Change some type sizes to be more portable on
         alpha (Thin_Pointer).
-        
+
         * 2agtplsp.ads: Add alpha specific unit.
-        
+
         * 2lgtplsp.ads: Fix confusion between a/l codes.
-        
+
         * DALL, UNDALL: Add FILTER env. var.
-        
+
         * s-garnam.adb: Fix incorrect Unchecked_Conversion (alpha).
-        
+
         * s-garrem.adb: Fix problem with Starter Ada + Import Shell.
-        
+
 1997-09-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Changed the formal name of RCI_Info from Name to
         RCI_Name to match the non-distributed version.
-        
+
 1997-09-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.adb: Ditto
-        
+
 1997-09-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Added a new target s-garcac.o
-        
+
         * s-rpcuti.ads: Added Cache to the generic package name
-        
+
         * s-rpc.adb: Removed useless dependency on System.Garlic.Caching
-        
+
         * s-garcac.ads: Put the generic package into a sub-package to
         allow generation of an ALI file and solve elaboration
         problems.
-        
+
         * s-garcac.adb: Ditto
-        
+
         * s-garpoi.adb: Replaced Unchecked_Conversion by
         Ada.Unchecked_Conversion.
-        
+
 1997-09-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garnam.adb: Use type Interfaces.Unsigned_32 instead of
         Interfaces.C.Unsigned_Long. Fixes bug on Alpha.
-        
+
         * s-garthi.ads: Ditto
-        
+
 1997-09-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garrem.adb: Recognize special host names (imported from shell)
         that must not be resolved by the name resolver.
-        
+
 1997-09-13  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am (install-data-local): Compute path to libgnat.a
         using ${srcdir}/../Dist/config.sdefault instead of trying to
         guess the right path. Fixes bug when installing in a
         non-standard directory with a non-standard GNAT installation.
-        
+
 1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garrem.adb: Cover still more cases for localhost.
-        
+
 1997-09-07  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garrem.adb: If the remote host is the same as localhost, then
         do not use rsh but just use system() instead.
-        
+
 1997-09-05  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garnam.adb: (Is_Ip_Address): fixed bug reported by
         Roy T. Fielding concerning possible incorrect address resolution
         in presence of hostnames beginning by a digit.
-        
+
 1997-09-02  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garrem.ads: Added an Exchange_Launcher procedure as well as a
         Local_Launcher. Exported Rsh_Launcher in the spec.
-        
+
         * s-garrem.adb: Implemented what is described below.
-        
+
 1997-08-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpcpoo.adb: Use new flag to avoid starting the whole runtime
         when a partition has no RCI receiver and no RACW.
-        
+
 1997-08-29  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garopt.ads: Add a new flag Has_RCI_Pkg_Or_RACW_Var (default is
         true). This flag is set to false when no RCI is configured on this
         partition and when no RACW can possibly be declared.
-        
+
 1997-08-28  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am (GNATFLAGS): Removed -gnatdj.
-        
+
 1997-08-27  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garuti.ads: (Raise_With_Errno, Raise_Communication_Error): New
         procedures.
-        
+
         * s-gartcp.adb: Use them.
-        
+
         * Makefile.am: Makefile depends on Makefile.fil, not Makefile.in.
-        
+
 1997-08-14  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartra.adb: Added a constant.
-        
+
 1997-08-13  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartra.adb: Remove the length of each entry from the trace
         file since using 'Output and 'Input instead of 'Write and 'Read
         will make this automatically.
-        
+
 1997-08-12  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Use libtool to compile files and generate shared
         library as well. Extract duplicate symbols from libgnat.a.
-        
+
 1997-06-06  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-stratt.adb: Changed 2**8 - 1 into 16#FF# to prevent
         (letigimate) error on VMS.
-        
+
 1997-06-04  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gafizi.adb: Replaced pragma Elaborate by pragma Elaborate_All
         since it makes no sense to elaborate only one of the needed
         packages.
-        
+
 1997-05-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpcpoo.adb: Do not start handling a request until elaboration
         is terminated.
-        
+
         * s-rpc.ads: (Initialize): new private initialization procedure.
-        
+
         * s-rpc.adb: (Initialize): new procedure which installs the
         Public_Receiver.
         (Public_RPC_Receiver): do not check for end of elaboration here
         since it will block the protocol task.
-        
+
         * s-rpcini.adb: Initialize System.RPC.
-        
+
 1997-05-20  Laurent Pautet <pautet@dorine.enst.fr>
-        
+
         * s-rpstio.adb, s-rpstio.adb: Add to system.RPC.stream_io
         procedures Open and Close in order to have some controls on the
         stream in a concurrent application.
-        
+
 1997-05-18  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.adb: Puzzling bug signaled by Thomas Hautesserres fixed.
-        
+
 1997-05-14  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpcpoo.adb: Use values provided by System.Garlic.Options.
-        
+
         * s-garopt.ads: Changed constants with reasonable values *evil grin*
-        
+
 1997-05-14  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-garopt.ads: Add three variables to handle anonymous task pool.
-        
+
 1997-05-12  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * Makefile.am, Makefile.in: Add s-rpstio.o dependencies.
-        
+
 1997-05-11  Laurent Pautet <pautet@dorine.enst.fr>
-        
+
         * Makefile.zip: Don't rebuild zlib all the time.
-        
+
 1997-05-07  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpstio.ads: New procedure Initialize.
-        
+
         * s-rpstio.adb: New procedure Initialize to avoid doing suspect
         things at elaboration time. Removed the Elaborate_All clauses.
-        
+
         * s-rpcini.adb: Added call to Initialize procedure of Stream_IO.
-        
+
 1997-05-07  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-rpstio.adb, s-rpstio.ads, Makefile.am, Makefile.in, Makefile:
         Add message passing interface.
-        
+
 1997-05-06  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garsta.adb: Renum phases.
-        
+
         * s-garlic.ads: Added comments about additional phases.
-        
+
         * s-garsta.adb: Removed useless with and elaborate_all clauses.
-        
+
 1997-05-05  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garter.ads: Elaborate body as soon as possible because of the
         possible use of the protected type from outside.
-        
+
 1997-05-03  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.in: Added split to CLEANFILES.
-        
+
         * split.adb: Use System.IO rather than Ada.Text_IO to avoid
         problems with Ada.Text_IO depending on s-stratt.adb.
-        
+
 1997-05-02  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Use the split utility
-        
+
         * constants.sh: Ditto.
-        
+
         * split.adb: New utility to configure GLADE.
-        
+
         * s-garpri.ads: Made a pure package.
-        
+
 1997-05-02  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am (install-data-local): Changed sed into $(SED)
-        
+
 1997-05-02  Daniel Neri <d92-dne@nada.kth.se>
-        
+
         * constants.sh: Allow for very long ``uname -a'' lines which cause
         GNAT's style checks to barf on s-garcon.ads. The uname output is
         now wrapped with ``fmt'' (which hopefully is present on all
         important Unices).
-        
+
 1997-04-30  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garpri.ads: Added background creation priority.
-        
+
         * s-rpcpoo.adb: Added task pool. Low-priority background
         pre-allocation, reuse of tasks and destruction are implemented.
-        
+
         * s-rpc.adb: Enclose two potentially blocking operations with
         pragma Warnings to avoid warning.
-        
+
         * s-rpcpoo.ads: New routine Allocate_Task to enforce the pool
         abstraction.
-        
+
         * s-rpc.adb: Splitted System.RPC into 3 packages (System.RPC,
         System.RPC.Pool and System.RPC.Util). Do not use Anonymous_Task
         directly.
-        
+
 1997-04-23  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am (install-data-local): Make installed source read-only
         to anticipate gnatmake changes (right fix in the right place).
-        
+
 1997-04-22  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.in (install-data-local): Make installed sources
         read-only to anticipate gnatmake changes.
-        
+
 1997-04-07  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.zip: The previous one was totally uncompatible with
         VPATH handling.
-        
+
         * Makefile.am: Do not destroy the target directory before building
         the objects.
-        
+
         * constants.sh: Output aligned constants & use hexa instead of
         decimal.
-        
+
 1997-03-26  Laurent Pautet <pautet@esmeralda.enst.fr>
-        
+
         * Makefile.am, Makefile.in: Add s-garrep and s-gartra in
         COMMON_OBJECTS and COMMON_SOURCES. Rebuild source
         dependencies. Tag to_be_released.
-        
+
         * zlib: Add zlib dir and tag to_be_released. Warning: Need for
         a target 'distclean' and 'clean' in zlib Makefile and also a call
         to this target in Garlic Makefile.
-        
+
 1997-03-24  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-gartcp.adb: Modified Open_Code, Data_Code and Quit_Code to be
         indianess independant.
-        
+
 1997-03-21  Samuel Tardieu <sam@zaphod.enst.fr>
-        
+
         * Makefile.am: Updated for automake 1.1m.
-        
+
 1997-03-17  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-stratt.adb: Incorrect check for W_*F. U was not always equal
         to 0 because the first byte has a special treatment.
-        
+
 1997-03-12  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * Makefile.am: s-garela.o was missing. Not detected before because
         of a bug in gnatmake.
-        
+
         * mkdep: Missing space.
-        
+
 1997-03-08  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garrem.adb: Add -n to rsh. It won't break anything and at
         least, it may avoid dup2 to fail.
-        
+
 1997-03-07  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garrem.adb, s-garrem.ads: Add a parameter Launcher to most of
         the launching commands in order to change default "rsh" command
         which was hardcoded.
-        
+
         * s-garfil.ads: Add pragma Elaborate_Body to please GNAT with its
         new elaboration checks.
-        
+
 1997-03-05  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garhea.ads: Add a new opcode User_Message.
-        
+
         * s-parint.adb: Changed Public_RPC_Receiver into
         Public_Message_Receiver.
-        
+
 1997-03-05  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: Added missing pragma Elaborate_All (new checks in
         today's wavefront).
-        
+
         * s-gardeb.adb: Idem.
-        
+
         * s-garsta.adb: Idem.
-        
+
         * s-garter.adb: Idem.
-        
+
         * s-stratt.adb: Renames Unchecked_Conversion into
         Ada.Unchecked_Conversion. Comment out assertions because the
         current package may not depend on System.Assertions because of
         categorization pragma.
-        
+
 1997-02-28  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-garfil.ads, s-garfil.adb, s-gafino.adb: Move decalration of
         No_Fitler_name into System.Garlic.Filters private part.
-        
+
 1997-02-27  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-gafino.adb: Change Dummy_Name from "" to "none".
-        
+
         * s-garfil.adb, s-garfil.ads, s-gafino.adb: Change
         Set_Register_Filter into Set_Registration_Filter and add several
         default behaviour.
-        
+
 1997-02-26  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * Makefile.am: Reduce the effort of a third party to add a new
         filter. Clear almost everything that was dedicated to filters and
         add @FILTERFILE@ which indicates where to include global filter
         makefile.
-        
+
         * Makefile.am: Forgot to copy ada files sources and objects.
-        
+
 1997-02-24  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-garhea.ads: Add a new procedure Initialize.
-        
+
         * s-garhea.adb: Set Opcode size right from the beginning. This is
         used to avoid unnecessary buffer copies.
-        
+
         * s-garfil.adb: Use the previous knowledge to reduce unnecessary
         buffer copies.
-        
+
 1997-02-21  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * Makefile.am: Add zip filtering. Z library is now included in the
         release. By default, it is not installed but with
         --with-filters="zip", the Z library is included in garlic
         library and Z binding and filter are also included.
-        
-        
+
+
 1997-02-21  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-gafizi.adb, s-gafizi.ads: Add zip filtering.
-        
+
         * s-garhea.adb, s-garfil.adb, s-garfil.ads: Optimization of buffer
         copies.
-        
+
 1997-02-20  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-garfil.ads, s-garfil.adb, s-gafino.ads, s-gafino.adb: Add
         filtering. Only filter None has been included.
-        
+
         * s-garsta.adb: Add filtering packages elaboration and call
         System.Garlic.Filters.Initialize.
-        
+
         * s-garhea.adb: Set filtering hooks in Send and Data_Arrived.
         This is a draft. Need to avoid copy optimization.
-        
+
 1997-02-13  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-garter.adb: Add a new procedure Local_Termination to provide
         local termination facilities offered by Termination attribute
         (newly defined in Gnatdist). Wait for Get_Active_Task_Count to be
         1.
-        
+
         * s-garopt.ads, s-garopt.adb: Move Permanent into Termination.
         Permanent = True is equivalent to Termination = Deferred.  To
         specify on the command line, use --terminate <local, global,
         deferred>.
-        
+
         * s-garhea.ads : Add type Termination_Type.
-        
+
 1997-02-13  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.ads: New function to check for termination.
-        
+
         * s-garhea.adb: Ditto.
-        
+
         * s-gartcp.adb: Protect block to prevent a race condition during
         termination (see comment). This may or may not fix the problem,
         anyway this is not blocking for the release.
-        
+
         * Makefile.am: Don't compile s-ganobl.ad[bs] when not needed.
-        
+
         * 2wgarcon.ads: New file containing precomputed Windows constants
         (due to a bug in Cygnus' <sys/socket.h>, this file cannot be
         generated automatically without patching the header file).
-        
+
 1997-02-12  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Reinstalled the kludge.
-        
+
 1997-02-11  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: (Port_To_Network): New function.
         (Network_To_Port): New function.
         Use these two functions each time a port number is copied to or
         from a sin_* structure.
-        
+
 1997-02-10  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * 2xgtplsp.ads: New (untested) SNI version of this package.
-        
+
         * 2wgtplsp.ads: New (untested) Win32 version of this package.
-        
+
         * test_threads.adb: New file which tries to determine if
         thread-blocking IOs are available on the current target.
-        
+
 1997-02-07  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-parint.ads: Force body elaboration. Workaround to be removed
         as soon as elaboration of generic package instanciation is fixed.
-        
+
 1997-02-07  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * constants.sh: Added O_RDONLY and O_WRONLY to the list of
         constants.
-        
+
         * s-garrem.adb: Avoid using dup2() because of a bug in Linux
         threads library handling of this call along with non-overloaded
         functions: MIT pthreads library use an internal file table which
@@ -2612,64 +2618,64 @@
         correspond (because of the close() performed to simulate dup2())
         to the one assigned by the kernel itself. This causes such
         operations to fail with EBADF (bad file descriptor).
-        
+
 1997-02-06  Laurent Pautet <pautet@lglsun11.epfl.ch>
-        
+
         * s-parint.adb: More comments. Suppress
         Public_Receiver_Is_Installed because never used.
-        
+
 1997-02-06  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * constants.sh: Replaced gnatk8 by gnatkr.
-        
+
 1997-02-05  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: Removed every ATC in the TCP module by using 4
         characters operation codes which will unblock all the peers if
         needed after shutdown synchronization.
-        
+
 1997-02-04  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: Commented out an ATC which makes everything
         block. Without this ATC, termination may fail in some peculiar
         cases (see comment in file, prefixed with 'XXXXX').
-        
+
 1997-02-03  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Removed the kludge about Unit_Name. Since we are
         not close yet to work with 3.09, it is not necessary. If we
         decide to make a release which works with 3.09, then this kludge
         will be added again.
-        
+
 1997-01-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Minor reformating.
-        
+
 1997-01-28  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * ChangeLog: Removed spurious blank line introduced by the last
         check-in !
-        
+
         * s-parint.ads: Change '???' into 'XXXXX' which is our way of
         indicating portions of code that are either not quite perfect or
         likely to be modified in the future (workaround for
         example). Also capitalize the explanation, to be style
         conformant.
-        
+
 1997-01-22  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * constants.sh: Use the current build directory instead of /tmp as
         a temporary dir to prevent blow up due to /tmp being full (shit
         happens!).
-        
+
 1997-01-14  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-parint.adb: Get rid of Htable (overkilling).
-        
+
 1997-01-14  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garhea.adb: Barrier -> Barrier_Type in Garlic.Utils.
-        
+
         * s-parint.adb, s-parint.ads: It was not possible to query several
         client elaboration requests from the same partition when the first
         request was pending. Abortion of first RPC was unsafe and would
@@ -2677,288 +2683,288 @@
         now a little bit less complex than it was. Restarting a partition
         is now fully implemented (works on any partition, and not only on
         boot partition). Code is a little bit cleaner.
-        
+
 1997-01-13  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-garuti.ads, s-garuti.adb: No longer private to use it in
         s-parint. Add a new semaphore type (with useful procedures to deal
         with arrays).
-        
+
 1997-01-13  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-rpc.adb: Changed prototype of Public_RPC_Receiver to match the
         access type whenever taking the 'Access at registration time.
-        
+
         * s-parint.adb: Idem.
-        
+
 1997-01-09  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-parint.adb: Implementation of partition restarting. Add a new
         procedure Invalidate_Receiving_Stub used by the programmer to
         signal to GARLIC to invalidate RNS info on a given partition and
         to the client cache to invalidate the old value and to query a new
         one.
-        
+
         * s-garhea.ads, s-garhea.adb: Add a callback fonction to notify a
         partition error to System.RPC. Add a registration procedure to
         enable System.RPC to register its callback.
-        
+
         * s-rpc.adb: Provide a callback to be notified of partition
         error. This procedure unblocks pending RPCs with the dead
         partition. Requests table contains the partition id used for the
         associated RPC.
-        
+
 1996-12-20  Laurent Pautet <pautet@scapin.enst.fr>
-        
+
         * s-stratt.adb: Raise Data_Error if an integer cannot be mapped
         onto its equivalent XDR integer.
-        
+
 1996-12-19  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.ads: Added dummy functions for Shared_Passive (needed
         for the stub expansion).
-        
+
         * s-parint.adb: Idem.
-        
+
         * s-gartcp.adb: Removed a conversion between Interfaces.C.int and
         pointer types because of a possible clash on 64 bits machines.
-        
+
 1996-12-16  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-partyp.ads: Removed.
-        
+
         * rci_info.ads: Removed (included in s-parint.ads).
-        
+
         * rci_info.adb: Removed (included in s-parint.adb).
-        
+
         * s-parint.ads: Inclusion of RCI_Info generic package.
-        
+
         * s-parint.adb: Ditto.
-        
+
         * Makefile.am: Removed rci_info.ad[bs] from file list.
-        
+
 1996-11-30  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-garopt.adb: For sure, serial is not the default protocol.
-        
+
 1996-11-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garela.adb: Replaced by an empty package.
-        
+
         * s-garter.adb: On the boot server, launch the termination task
         only if this partition is not permanent. On other partitions,
         reject global termination if the partition is permanent.
-        
+
         * s-garopt.ads: Added support for the new 'Permanent attribute.
-        
+
         * s-garopt.adb: Ditto.
-        
+
 1996-11-28  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Adapted for new elaboration packages.
-        
+
         * two.py: Serial-line connector simulator (connects two sockets).
-        
+
         * serial.c: Serial-line simulator using sockets. Changed procedure
         names to match the ones used in Spif.
-        
+
         * s-gaseli.adb: Optimization. Changed procedure names to match the
         ones used in Spif.
-        
+
         * s-garhea.adb: Added debug entries.
-        
+
         * s-garela.adb: Removed useless faulty lines (do not work with
         serial protocol).
-        
+
         * s-rpc.adb: Handle task non-abortion (which is quite frequent :-)
         more elegantly than before. It also corrects a strange
         segmentation fault in GNAT runtime which appeared only when
         debugging was off (that is a fast succession of events, probably a
         race condition in protected objects and entry family handling).
-        
+
 1996-11-27  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-stratt.adb: Added pragma Suppress for range and overflow
         checks.
-        
+
         * s-gaseli.adb: Changed the protocol to make it simpler.
         Changed this stupid protocol one more time.
-        
+
 1996-11-26  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-ganobl.adb: Changed the safety delay to be 0.5 seconds.
-        
+
 1996-11-23  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: Added missing constant.
-        
+
 1996-11-21  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gartcp.adb: Protect against very early internal error which
         could propagate even when it's not fatal.
-        
+
         * s-rpc.adb: Do not wait on protected entry in a finalization
         procedure called during abortion. A flag showing that the result
         will have to be invalidated when it arrives is set instead, thus
         providing a much better respect of the semantic of abort (abort
         very quickly) instead of waiting for the answer. If the answer
         was there already, it's discarded.
-        
+
 1996-11-19  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-garela.adb: New package provided to set usual defaults.
-        
+
         * s-garopt.adb: Add Set_[...] (Default : [...]) corresponding to
         Get_[...] return [...] in order to set defaults during elaboration
         of a new package system.garlic.elaboration.
-        
+
         * s-gaprco.adb: Change System.Garlic.Config.Create into
         [...].Initialize.
-        
+
 1996-11-06  Laurent Pautet <pautet@inf.enst.fr>
-        
+
         * s-gartcp.adb: sin_family was no longer initialized AF_INET.
-        
+
 1996-10-29  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-ganobl.adb: Use s-gaosli's C_Errno.
-        
+
         * s-garnam.adb: Idem.
-        
+
         * constants.sh (constants): Removed useless constants.
-        
+
         * Makefile.am: No need for special
         dependencies with the new mkdep in fact, provided that the
         Makefile.in that is distributed contains these dependencies !
-        
+
         * s-garthi.ads: Removed dependency on System.Garlic.Constants.
-        
+
         * Makefile.am: Added s-gaosli.*.
-        
+
         * s-gaosli.ads: New file with Getenv.
-        
+
         * s-gaosli.adb: Idem.
-        
+
         * s-garopt.adb: Use System.Garlic.OS_Lib's Getenv.
-        
+
         * s-gardeb.adb: Idem.
-        
+
         * s-garthi.ads: Added interface to system's getenv() function.
-        
+
 1996-10-18  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * Makefile.*: Include s-gaprco.*, s-garloo.*
-        
+
 1996-10-17  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garsta.adb: Two typos.
-        
+
 1996-10-17  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-garloo.adb: Skip Header.
-        
+
         * s-garhea.adb, s-rpc.adb: Let send a message to myself.
-        
+
 1996-10-16  Laurent Pautet <pautet@quasimodo.enst.fr>
-        
+
         * s-gaprco.adb, s-gaprco.ads, s-garsta.adb: The body of this
         package should be built during GARLIC installation. It should
         contain a registration of all protocols provided in the DSA
         distribution.
-        
+
 1996-10-06  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-gsmasp.ads: New file.
-        
+
         * s-garser.ads: New file.
-        
+
 1996-09-30  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Would look for s-gtplsp.ads in the bad place.
-        
+
 1996-09-15  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.adb: Added an Emergency_Stop in the Shutdown procedure
         (see the procedure for explanation).
-        
+
 1996-09-12  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * mkdep: Change the way dependencies are generated. This one seems
         to be the good one.
-        
+
         * s-garter.adb: Don't check Get_Active_Task_Count during the
         second termination phase to avoid unexpected rejection of
         termination.
-        
+
 1996-09-11  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garhea.adb: Added the framework needed to free an unused
         Partition_ID.
-        
+
 1996-09-10  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Added s-stratt.adb and s-stratt.o to the list of
         installed files.
-        
+
         * s-garthi.ads: Added an (ugly) use type clause for
         Interfaces.C.int.
-        
+
 1996-09-06  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garter.adb: Added spec for Get_Active_Task_Count.
-        
+
         * s-garter.ads: Removed Get_Active_Task_Count from spec.
-        
+
 1996-09-02  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-stratt.ads: Added.
-        
+
         * s-rpc.ads: Removed the offending declaration.
-        
+
         * s-rpc.adb: Allow mixed Read and Write calls. Allocate Node
         packets during the first Write call.
-        
+
 1996-08-16  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-parint.adb: Added a pragma Elaborate_All for
         System.Garlic.Startup.
-        
+
 1996-08-13  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * Makefile.am: Added s-garpri.{ads,ali,o}.
-        
+
         * s-garpri.ads: New file defining static priorities.
-        
+
         * s-rpc.adb: Take priorities into accounts (transmit priorities
         from end to end and use static priorites for other tasks).
-        
+
         * s-garter.adb: Idem.
-        
+
         * s-gartcp.adb: Idem.
-        
+
         * s-ganobl.adb: Idem.
-        
+
 1996-08-12  Samuel Tardieu <sam@inf.enst.fr>
-        
+
         * s-garthi.ads: Fixed (it won't compile (from R. Dewar) in the
         newest GNAT release).
-        
+
         * s-gaphlo.ads: Use pointers instead of controlled objects for
         efficiency.
-        
+
         * s-gaphlo.adb: Idem.
-        
+
         * s-ganobl.adb: Added two "with abort" which were missing.
-        
+
         * s-rpc.adb: More debugging information.
-        
+
         * s-parint.adb: Idem.
-        
+
         * s-gartcp.adb: Idem.
-        
+
         * s-ganobl.adb: Idem.
-        
+
         * .cvsignore: Added s-gtplsp.ads into the ignore list.
-        
+
         * s-garhea.adb: Added a partition cache to improve response time.
-        
+

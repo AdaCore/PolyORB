@@ -78,7 +78,7 @@ package System.Garlic.Units is
          Next_Unit : Unit_Id;
          Partition : Types.Partition_ID;
          Receiver  : Interfaces.Unsigned_64;
-         Version   : Utils.String_Access;
+         Version   : Types.Version_Type;
          Status    : Unit_Status;
          Pending   : Boolean;
          Requests  : Request_List;
@@ -88,7 +88,7 @@ package System.Garlic.Units is
      (Next_Unit => Null_Unit_Id,
       Partition => Types.Null_PID,
       Receiver  => 0,
-      Version   => null,
+      Version   => Types.Null_Version,
       Status    => Undefined,
       Pending   => False,
       Requests  => Null_List);
