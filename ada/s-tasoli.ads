@@ -57,6 +57,16 @@ package System.Tasking_Soft_Links is
    type Get_Integer_Call is access function return Integer;
    type Set_Integer_Call is access procedure (Len : Integer);
 
+   --  Suppress checks on all these types, since we know corrresponding
+   --  values can never be null (the soft links are always initialized).
+
+   pragma Suppress (Access_Check, No_Param_Proc);
+   pragma Suppress (Access_Check, Addr_Param_Proc);
+   pragma Suppress (Access_Check, Get_Address_Call);
+   pragma Suppress (Access_Check, Set_Address_Call);
+   pragma Suppress (Access_Check, Get_Integer_Call);
+   pragma Suppress (Access_Check, Set_Integer_Call);
+
    --  Declarations for the no tasking versions of the required routines
 
    procedure Abort_Defer_NT;
@@ -141,6 +151,22 @@ package System.Tasking_Soft_Links is
 
    Get_Message_Addr : Get_Address_Call := Get_Message_Addr_NT'Access;
    Set_Message_Addr : Set_Address_Call := Set_Message_Addr_NT'Access;
+
+   ---------------------------
+   --  Master_Id Soft-Links --
+   ---------------------------
+
+   --  Soft-Links are used for procedures that manipulate  Master_Ids because
+   --  a Master_Id must be generated for access to limited class-wide types,
+   --  whose root may be extended with task components.
+
+   function Current_Master_NT return Integer;
+   procedure Enter_Master_NT;
+   procedure Complete_Master_NT;
+
+   Current_Master    : Get_Integer_Call :=  Current_Master_NT'Access;
+   Enter_Master      : No_Param_Proc    :=  Enter_Master_NT'Access;
+   Complete_Master   : No_Param_Proc    :=  Complete_Master_NT'Access;
 
    --------------------------------
    -- Secondary Stack Soft-Links --

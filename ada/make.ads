@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1997 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -72,10 +72,31 @@ package Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Check_Internal_Files  : Boolean  := False;
+      Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
+      In_Place_Mode         : Boolean  := False;
+      Initialize_Ali_Data   : Boolean  := True;
+      Max_Process           : Positive := 1);
+   --  Version of Compile_Sources for gnatdist, without the extra
+   --  Missing_Alis argument.  Fix gnatdist later. ???
+   --  Furthermore, Main_Unit here get's set False if Missing_Alis is
+   --  set. Probably this is all junk ???
+
+   procedure Compile_Sources
+     (Main_Source           : File_Name_Type;
+      Args                  : Argument_List;
+      First_Compiled_File   : out Name_Id;
+      Most_Recent_Obj_File  : out Name_Id;
+      Most_Recent_Obj_Stamp : out Time_Stamp_Type;
+      Main_Unit             : out Boolean;
+      Missing_Alis          : out Boolean;
+      Check_Readonly_Files  : Boolean  := False;
+      Dont_Execute          : Boolean  := False;
+      Force_Compilations    : Boolean  := False;
+      Keep_Going            : Boolean  := False;
+      In_Place_Mode         : Boolean  := False;
       Initialize_Ali_Data   : Boolean  := True;
       Max_Process           : Positive := 1);
    --  Compile_Sources will recursively compile all the sources needed by
@@ -102,20 +123,31 @@ package Make is
    --    Main_Unit is set to True if Main_Source can be a main unit.
    --    If Dont_Execute is False and First_Compiled_File /= No_Name
    --    the value of Main_Unit is always False.
+   --    Is this used any more??? It is certainly not used by gnatmake???
    --
-   --    Check_Internal_Files set it to True to compile GNAT predefined files.
-   --    When compiling GNAT predifined files the "-gnatg" flag is used.
+   --    Missing_Alis is set True if any of the constituent compilations
+   --    fails to generate an ali file.
+   --    Note from RBKD: This is probably obsolete junk ??? dating to the
+   --    time when compiling generics generated junk object files and no
+   --    ali file???
+   --
+   --    Check_Readonly_Files set it to True to compile source files
+   --    which library files are read-only. When compiling GNAT predefined
+   --    files the "-gnatg" flag is used.
    --
    --    Dont_Execute set it to True to find out the first source that needs
    --    to be recompiled, but without recompiling it. This file is saved
    --    in First_Compiled_File.
    --
    --    Force_Compilations forces all compilations no matter what but
-   --    recompiles GNAT predifined files only if Check_Internal_Files
+   --    recompiles read-only files only if Check_Readonly_Files
    --    is set.
    --
    --    Keep_Going when True keep compiling even in the presence of
    --    compilation errors.
+   --
+   --    In_Place_Mode when True save library/object files in their object
+   --    directory if they already exist; otherwise, in the source directory.
    --
    --    Initialize_Ali_Data set it to True when you want to intialize Ali
    --    data-structures. This is what you should do most of the time.
@@ -190,8 +222,6 @@ package Make is
    --     Note that there is no file listed under W unchecked_deallocation%s
    --     so no generic body should ever be explicitely compiled (unless the
    --     Main_Source at the start was a generic body).
-   --     Also if Check_Internal_Files is False, then no file corresponding
-   --     to a language defined unit is ever put into the Q.
    --
    --  4. Repeat steps 2 and 3 above until the Q is empty
    --
@@ -211,7 +241,7 @@ package Make is
    --  Flags in Package Opt Affecting Gnatmake
    --  ---------------------------------------
    --
-   --    Check_Internal_Files:     True  when -a present in command line
+   --    Check_Readonly_Files:     True  when -a present in command line
    --    Check_Object_Consistency: Set to True by Gnatmake
    --    Compile_Only:             True  when -c present in command line
    --    Force_Compilations:       True  when -f present in command line
@@ -220,7 +250,7 @@ package Make is
    --    List_Dependencies:        True  when -l present in command line
    --    Dont_Execute:             True  when -n present in command line
    --    Quiet_Output:             True  when -q present in command line
-   --    Smart_Compilations:       True  when -s present in command line
+   --    Minimal_Recompilation:    True  when -m present in command line
    --    Verbose_Mode:             True  when -v present in command line
 
 end Make;

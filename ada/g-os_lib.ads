@@ -203,19 +203,26 @@ pragma Elaborate_Body (OS_Lib);
 
    function File_Length (FD : File_Descriptor) return Long_Integer;
    pragma Import (C, File_Length, "file_length");
-   --  Get length of file from descriptor
+   --  Get length of file from file descriptor FD
 
    function File_Time_Stamp (Name : String) return OS_Time;
-   --  Get time stamp of file from name (use for unopened file)
+   --  Given the name of a file, Name, obtains and returns the time stamp.
+   --  This function can be used for an unopend file.
 
    function File_Time_Stamp (FD : File_Descriptor) return OS_Time;
-   --  Get time stamp of file from descriptor
+   --  Get time stamp of file from file descriptor FD
 
    function Is_Regular_File (Name : String) return Boolean;
-   --  The named file exists and is a regular file
+   --  Determines if the given string, Name, is the name of an existing
+   --  regular file. Returns True if so, False otherwise.
 
    function Is_Directory (Name : String) return Boolean;
-   --  The named file exists and is a directory
+   --  Determines if the given string, Name, is the name of a directory.
+   --  Returns True if so, False otherwise.
+
+   function Is_Writable_File (Name : String) return Boolean;
+   --  Determines if the given string, Name, is the name of an existing
+   --  file that is writable. Returns True if so, False otherwise.
 
    function Locate_Exec_On_Path
      (Exec_Name : String)

@@ -69,12 +69,12 @@ package body Debug is
    --  dz   Print source of package Standard
 
    --  dA
-   --  dB
+   --  dB   Output debug encoding of type names and variants
    --  dC
    --  dD
-   --  dE
+   --  dE   Apply elaboration checks to predefined units
    --  dF
-   --  dG   Compile generics
+   --  dG   Do not compile generics
    --  dH
    --  dI
    --  dJ
@@ -300,9 +300,16 @@ package body Debug is
    --       This switch forces output of the source recreated from the internal
    --       tree built for Standard.
 
-   --  dG   Compile generics. Normally generics are not compiled, this switch
-   --       causes them to be compiled and treated as first class citizens
-   --       from the point of view of binding, elaboration order choice etc.
+   --  dB   Output debug encodings for types and variants. See Exp_Dbug for
+   --       exact form of the generated output.
+
+   --  dE   Apply compile time elaboration checking for with relations between
+   --       predefined units. Normally no checks are made (it seems that at
+   --       least on the SGI, such checks run into trouble).
+
+   --  dG   Do not compile generics. Normally generics are compiled, this
+   --       switch is provided to cause GNAT to operate in a manner compatible
+   --       with earlier versions of GNAT which did not compile generics.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

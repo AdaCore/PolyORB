@@ -47,7 +47,9 @@ with GNAT.HTable;
 
 package body Osint is
 
-   --  Note on the use of Name_Find and Name_Enter in this package.
+   -------------------------------------
+   -- Use of Name_Find and Name_Enter --
+   -------------------------------------
 
    --  This package creates a number of source, ALI and object file names
    --  that are used to locate the actual file and for the purpose of
@@ -56,7 +58,7 @@ package body Osint is
    --  question are file names with a prefix directory (ie the files not
    --  in the current directory). File names without a prefix directory are
    --  entered with Name_Find because special values might be attached to
-   --  the various Info fields of the correspondingname table entry.
+   --  the various Info fields of the corresponding name table entry.
 
    -----------------------
    -- Local Subprograms --
@@ -109,7 +111,9 @@ package body Osint is
    --  the directory search order rules unless N is the name of the file
    --  just read with Next_Main_File, in which case just look in the
    --  Primary_Directory. Returns File_Name_Type of the full file name if
-   --  found, No_File if file not found.
+   --  found, No_File if file not found. Note that for the special case of
+   --  gnat.adc, only the compilation environment directory is searched,
+   --  i.e. the directory where the ali an object files are written
 
    ------------------------------
    -- Other Local Declarations --
@@ -407,7 +411,6 @@ package body Osint is
    --------------------------------
 
    procedure Create_Output_Library_Info is
-      --  ??? Needs to be coordinated with -o option
       Dot_Index : Natural;
 
    begin
@@ -425,8 +428,32 @@ package body Osint is
       --  Should be impossible to not have an extension
 
       if Dot_Index = 0 then
-         null;
          pragma Assert (False);
+         raise Program_Error;
+      end if;
+
+      --  Make sure that the output file name matches the source file name.
+      --  To compare them, remove filename directories and extensions.
+
+      if Output_Filename /= null then
+         declare
+            Name : String  := Name_Buffer (1 .. Dot_Index);
+            Len  : Natural := Dot_Index;
+
+         begin
+            Name_Buffer (1 .. Output_Filename'Length) := Output_Filename.all;
+
+            for J in reverse Output_Filename'Range loop
+               if Name_Buffer (J) = '.' then
+                  Dot_Index := J;
+                  exit;
+               end if;
+            end loop;
+
+            if Name /= Name_Buffer (Dot_Index - Len + 1 .. Dot_Index) then
+               Fail ("incorrect object file name");
+            end if;
+         end;
       end if;
 
       Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
@@ -463,17 +490,42 @@ package body Osint is
    -- Create_Xref_Output --
    ------------------------
 
-   procedure Create_Xref_Output (Global_Xref_File : Boolean) is
+   procedure Create_Xref_Output (Typ : Xfiltyp) is
+      Ptr : Natural;
+
    begin
       pragma Assert (In_Compiler);
 
-      --  For now, always use X.ref, since cannot reference Lib ???
-
-      if not Global_Xref_File then
+      if Typ /= Xglobal then
          Get_Name_String (Current_Main_File_Name);
-         Name_Buffer (Name_Len - 2 .. Name_Len - 1) := "xr";
+         Ptr := Name_Len;
+
+         while Ptr > 1 loop
+            if Name_Buffer (Ptr) = '.' then
+               Name_Len := Ptr - 1;
+               exit;
+
+            elsif Name_Buffer (Ptr) = ']'
+              or else Name_Buffer (Ptr) = '\'
+              or else Name_Buffer (Ptr) = '/'
+            then
+               exit;
+
+            else
+               Ptr := Ptr - 1;
+            end if;
+         end loop;
+
+         if Typ = Xbody then
+            Add_Str_To_Name_Buffer (".xrb");
+         else
+            Add_Str_To_Name_Buffer (".xrs");
+         end if;
+
          Name_Buffer (Name_Len + 1) := Ascii.NUL;
-      else
+
+
+      else -- Typ = Xglobal
          Name_Buffer (1 .. 5) := "X.ref";
          Name_Buffer (6) := Ascii.NUL;
          Name_Len := 5;
@@ -519,7 +571,6 @@ package body Osint is
       Exec_Suffix : String_Access;
 
    begin
-
       if Name = No_File then
          return No_File;
       end if;
@@ -638,7 +689,7 @@ package body Osint is
          Dir_Name := Src_Search_Directories.Table (Dir);
       else
          pragma Assert (False);
-         null;
+         raise Program_Error;
       end if;
 
       declare
@@ -652,7 +703,7 @@ package body Osint is
             return No_File;
 
          else
-            --  if the file is in the current directory then return N itself
+            --  If the file is in the current directory then return N itself
 
             if Dir_Name'Length = 0 then
                return N;
@@ -674,58 +725,61 @@ package body Osint is
       T : File_Type)
       return File_Name_Type
    is
-
-
-      --  Variables of Find_File
-
       Is_Main_File : constant Boolean := (N = Current_Main_File_Name);
-
-   --  Begin of Find_File
 
    begin
       Get_Name_String (N);
 
       declare
-         File_Name : constant String := Name_Buffer (1 .. Name_Len);
+         File_Name : String renames Name_Buffer (1 .. Name_Len);
          File      : File_Name_Type := No_File;
          Last_Dir  : Natural;
 
       begin
+         --  If we are looking for gnat.adc, look only in the current
+         --  directory, i.e. return input argument unchanged.
+
+         if File_Name = "gnat.adc" then
+            return N;
+
          --  If we are trying to find the current main file just look in the
          --  directory where the user said it was.
 
-         if Is_Main_File then
+         elsif Is_Main_File then
             return Locate_File (N, T, Primary_Directory, File_Name);
-         end if;
 
-         --  Otherwise, for other files the first place to look is in the
-         --  primary directory unless this has been disabled with -I-
+         --  Otherwise do standard search for source file
 
-         if Opt.Look_In_Primary_Dir then
-            File := Locate_File (N, T, Primary_Directory, File_Name);
-
-            if File /= No_File then
-               return File;
-            end if;
-         end if;
-
-         --  Finally look in the directories specified with switches -I/-aI/-aO
-
-         if T = Library then
-            Last_Dir := Lib_Search_Directories.Last;
          else
-            Last_Dir := Src_Search_Directories.Last;
-         end if;
+            --  First place to look is in the primary directory (i.e. the same
+            --  directory as the source) unless this has been disabled with -I-
 
-         for D in Primary_Directory + 1 .. Last_Dir loop
-            File := Locate_File (N, T, D, File_Name);
+            if Opt.Look_In_Primary_Dir then
+               File := Locate_File (N, T, Primary_Directory, File_Name);
 
-            if File /= No_File then
-               return File;
+               if File /= No_File then
+                  return File;
+               end if;
             end if;
-         end loop;
 
-         return No_File;
+            --  Finally look in directories specified with switches -I/-aI/-aO
+
+            if T = Library then
+               Last_Dir := Lib_Search_Directories.Last;
+            else
+               Last_Dir := Src_Search_Directories.Last;
+            end if;
+
+            for D in Primary_Directory + 1 .. Last_Dir loop
+               File := Locate_File (N, T, D, File_Name);
+
+               if File /= No_File then
+                  return File;
+               end if;
+            end loop;
+
+            return No_File;
+         end if;
       end;
    end Find_File;
 
@@ -774,16 +828,28 @@ package body Osint is
       return Smart_Find_File (N, Source);
    end Full_Source_Name;
 
+   -------------------------
+   -- Is_Readonly_Library --
+   -------------------------
+
+   function Is_Readonly_Library (File : in File_Name_Type) return Boolean is
+   begin
+      Get_Name_String (File);
+
+      pragma Assert (Name_Buffer (Name_Len - 3 .. Name_Len) = ".ali");
+
+      return not Is_Writable_File (Name_Buffer (1 .. Name_Len));
+   end Is_Readonly_Library;
+
    -------------------------------
    -- Matching_Full_Source_Name --
    -------------------------------
 
    function Matching_Full_Source_Name
-     (N : File_Name_Type;
-      T : Time_Stamp_Type)
+     (N    : File_Name_Type;
+      T    : Time_Stamp_Type)
       return File_Name_Type
    is
-
    begin
       Get_Name_String (N);
 
@@ -862,7 +928,7 @@ package body Osint is
       --  Procedure to make system specific adjustments to make GNAT
       --  run better.
 
-   --  Begin of Initialize
+   --  Start of processing for Initialize
 
    begin
       Program := P;
@@ -904,10 +970,6 @@ package body Osint is
 
       Software_Overflow_Checking := True;
       Suppress_Options.Overflow_Checks := True;
-
-      --  Similarly, the default is elaboration checks off
-
-      Suppress_Options.Elaboration_Checks := True;
 
       --  Reserve the first slot in the search paths table.  This is the
       --  directory of the main source file or main library file and is
@@ -1025,6 +1087,27 @@ package body Osint is
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
 
+      --  Make sure that the object file has the expected extension.
+
+      if Output_Filename /= null then
+         declare
+            S1 : String_Access := Get_Object_Suffix;
+            S2 : String_Ptr    := Output_Filename;
+            L1 : Natural := S1'Length;
+            L2 : Natural := S2'Length;
+
+         begin
+            if Distribution_Stub_Mode /= Generate_Caller_Stub_Body
+                 and then
+               Distribution_Stub_Mode /= Generate_Receiver_Stub_Body
+            then
+               if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1.all then
+                  Fail ("incorrect object file extension");
+               end if;
+            end if;
+         end;
+      end if;
+
    end Scan_Compiler_Args;
 
    -------------------------------
@@ -1032,6 +1115,8 @@ package body Osint is
    -------------------------------
 
    Search_Path_Pos : Integer;
+   --  Keeps track of current position in search path. Initialized by the
+   --  call to Get_Next_Dir_In_Path_Init, updated by Get_Next_Dir_In_Path.
 
    procedure Get_Next_Dir_In_Path_Init (Search_Path : String_Access) is
    begin
@@ -1096,8 +1181,6 @@ package body Osint is
          end if;
       end Add_Search_Dir;
 
-      --  Initialize variables
-
       Search_Dir  : String_Access;
       Search_Path : String_Access;
 
@@ -1125,7 +1208,7 @@ package body Osint is
          end loop;
       end loop;
 
-      --  The last place to look are the defaults.
+      --  The last place to look are the defaults
 
       Search_Path := String_Access (Include_Dir_Default_Name);
       Get_Next_Dir_In_Path_Init (Search_Path);
@@ -1310,13 +1393,14 @@ package body Osint is
 
       if In_Compiler or else In_Make then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
-      elsif In_Binder then
 
+      elsif In_Binder then
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
          Lib_Search_Directories.Table (Primary_Directory) := Dir_Name;
+
       else
          pragma Assert (False);
-         null;
+         raise Program_Error;
       end if;
 
       Name_Len := File_Name'Last - Fptr + 1;
@@ -1345,7 +1429,6 @@ package body Osint is
 
    begin
       pragma Assert (In_Compiler or else In_Make);
-
       return Main_File;
    end Next_Main_Source;
 
@@ -1376,7 +1459,6 @@ package body Osint is
       Result : String_Ptr;
 
    begin
-
       if Directory'Length = 0 then
          Result := new String'(Hostparm.Normalized_CWD);
 
@@ -1492,9 +1574,17 @@ package body Osint is
          Current_Full_Obj_Stamp := File_Stamp (Current_Full_Obj_Name);
 
          if Current_Full_Obj_Stamp (1) = ' ' then
-            if Fatal_Err then
+
+            --  When the library is readonly, always assume that
+            --  the object is consistent.
+
+            if Is_Readonly_Library (Current_Full_Lib_Name) then
+               Current_Full_Obj_Stamp := Current_Full_Lib_Stamp;
+
+            elsif Fatal_Err then
                Get_Name_String (Current_Full_Obj_Name);
                Fail ("Cannot find: ", Name_Buffer (1 .. Name_Len));
+
             else
                Current_Full_Obj_Stamp := Empty_Time_Stamp;
                return null;
@@ -1830,8 +1920,8 @@ package body Osint is
       --  Should be impossible to not have an extension
 
       if Dot_Index = 0 then
-         null;
          pragma Assert (False);
+         raise Program_Error;
       end if;
 
       --  Change *.ads to *.ats and *.adb to *.atb
@@ -1887,7 +1977,6 @@ package body Osint is
       Cindex2 : Integer := Command_Name'Last;
 
    begin
-
       Fill_Arg (Command_Name'Address, 0);
 
       --  The program name might be specified by a full path name. However,

@@ -124,6 +124,18 @@ package body Namet is
    pragma Inline (Hash);
    --  Compute hash code for name stored in Name_Buffer (length in Name_Len)
 
+   -----------------------------
+   -- Add_Char_To_Name_Buffer --
+   -----------------------------
+
+   procedure Add_Char_To_Name_Buffer (C : Character) is
+   begin
+      if Name_Len < Hostparm.Max_Name_Length then
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := C;
+      end if;
+   end Add_Char_To_Name_Buffer;
+
    ----------------------------
    -- Add_Nat_To_Name_Buffer --
    ----------------------------
@@ -134,8 +146,7 @@ package body Namet is
          Add_Nat_To_Name_Buffer (V / 10);
       end if;
 
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := Character'Val (Character'Pos ('0') + V rem 10);
+      Add_Char_To_Name_Buffer (Character'Val (Character'Pos ('0') + V rem 10));
    end Add_Nat_To_Name_Buffer;
 
    ----------------------------
@@ -144,8 +155,9 @@ package body Namet is
 
    procedure Add_Str_To_Name_Buffer (S : String) is
    begin
-      Name_Buffer (Name_Len + 1 .. Name_Len + S'Length) := S;
-      Name_Len := Name_Len + S'Length;
+      for J in S'Range loop
+         Add_Char_To_Name_Buffer (S (J));
+      end loop;
    end Add_Str_To_Name_Buffer;
 
    ----------
@@ -674,7 +686,11 @@ package body Namet is
    function Is_Internal_Name (Id : Name_Id) return Boolean is
    begin
       Get_Name_String (Id);
+      return Is_Internal_Name;
+   end Is_Internal_Name;
 
+   function Is_Internal_Name return Boolean is
+   begin
       for J in 1 .. Name_Len loop
          if Is_OK_Internal_Letter (Name_Buffer (J)) then
             return True;

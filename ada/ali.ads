@@ -135,6 +135,9 @@ package ALI is
       --  pragma was present or that this is a language defined unit.
       --  Otherwise set to first character (upper case) of policy name.
 
+      Float_Format : Character;
+      --  Set to float format (set to I if no float-format given)
+
    end record;
 
    No_Main_Priority : constant Int := -1;
@@ -193,6 +196,10 @@ package ALI is
       Elaborate_Body : Boolean;
       --  Indicates presence of EB parameter for a package which has a
       --  pragma Preelaborate_Body.
+
+      Has_RACW_Type : Boolean;
+      --  Indicates presence of RA parameter for a package that declares
+      --  at least one Remote Access to Class_Wide (RACW) type.
 
       Remote_Types : Boolean;
       --  Indicates presence of RT parameter for a package which has a
@@ -442,8 +449,8 @@ package ALI is
    --  Otherwise return the first file for which there is a mismatch.
    --  Note that in check source files mode (Check_Source_Files = True), the
    --  time stamp in the Source_Table should be the actual time stamp of the
-   --  source files. In smart compilation mode (Smart_Compilations = True),
-   --  no mismatch will be found if the file's timestamp has not changed.
+   --  source files. In minimal recompilation mode (Minimal_Recompilation set
+   --  to True, no mismatch is found if the file's timestamp has not changed.
 
    --------------------------------------------
    -- Subprograms for manipulating checksums --

@@ -446,6 +446,9 @@ package body ALI is
          Write_Name (F);
          Write_Str (" is incorrectly formatted");
          Write_Eol;
+         Write_Str
+           ("make sure you are using consistent versions of gcc/gnatbind");
+         Write_Eol;
 
          --  Find start of line
 
@@ -708,6 +711,28 @@ package body ALI is
          C := Getc;
       end loop Arg_Loop;
 
+      --  Check for obsolete Q line (queuing policy in 3.07 and previous)
+
+      if C = 'Q' then
+         Fatal_Error;
+      end if;
+
+      --  Acquire float format line if present
+
+      if C = 'F' then
+         Checkc (' ');
+         Skip_Space;
+         Float_Format := 'V';
+         ALIs.Table (Id).Float_Format := Getc;
+         Skip_Eol;
+         C := Getc;
+
+      --  Else set default IEEE format
+
+      else
+         ALIs.Table (Id).Float_Format := 'I';
+      end if;
+
       --  Acquire tasking policy line if present
 
       ALIs.Table (Id).Queuing_Policy          := ' ';
@@ -766,6 +791,7 @@ package body ALI is
          Unit.Table (Unit.Last).Shared_Passive := False;
          Unit.Table (Unit.Last).RCI            := False;
          Unit.Table (Unit.Last).Remote_Types   := False;
+         Unit.Table (Unit.Last).Has_RACW_Type  := False;
          Unit.Table (Unit.Last).Elaborate_Body := False;
          Unit.Table (Unit.Last).Version        := "00000000";
          Unit.Table (Unit.Last).First_With     := Withs.Last + 1;
@@ -852,6 +878,12 @@ package body ALI is
                   Check_At_End_Of_Field;
                   Unit.Table (Unit.Last).Remote_Types := True;
 
+               --  RA parameter (remote access to class wide type)
+
+               elsif C = 'A' then
+                  Check_At_End_Of_Field;
+                  Unit.Table (Unit.Last).Has_RACW_Type := True;
+
                else
                   Fatal_Error;
                end if;
@@ -894,7 +926,7 @@ package body ALI is
             Withs.Table (Withs.Last).Elaborate_All      := False;
             Withs.Table (Withs.Last).Elab_All_Desirable := False;
 
-            --  Generic case
+            --  Generic case with no object file available
 
             if At_Eol then
                Withs.Table (Withs.Last).Sfile := No_File;
@@ -944,7 +976,7 @@ package body ALI is
 
          end loop With_Loop;
 
-         Unit.Table (Unit.Last).Last_With  := Withs.Last;
+         Unit.Table (Unit.Last).Last_With := Withs.Last;
 
       end loop Unit_Loop;
 
@@ -1272,11 +1304,11 @@ package body ALI is
       for D in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
          Src := Source_Id (Get_Name_Table_Info (Sdep.Table (D).Sfile));
 
-         if Opt.Smart_Compilations
+         if Opt.Minimal_Recompilation
            and then Sdep.Table (D).Stamp /= Source.Table (Src).Stamp
          then
 
-            --  If smart compilation is in action, replace the stamp
+            --  If minimal recompilation is in action, replace the stamp
             --  of the source file in the table if checksums match.
             --  ??? It is probably worth updating the ALI file with a new
             --  field to avoid recomputing it each time.

@@ -117,9 +117,10 @@ package Namet is
 --  In the binder, the Byte field is unused, and the Int field is used in
 --  various ways depending on the name involved (see binder documentation).
 
-   Name_Buffer : String (1 .. Hostparm.Max_Name_Length);
+   Name_Buffer : String (1 .. Hostparm.Max_Name_Length + 1);
    --  This buffer is used to set the name to be stored in the table for the
    --  Name_Find call, and to retrieve the name for the Get_Name_String call.
+   --  The plus 1 in the length allows for cases of adding Ascii.Nul.
 
    Name_Len : Natural;
    --  Length of name stored in Name_Buffer. Used as an input parameter for
@@ -226,6 +227,11 @@ package Namet is
    --  underscore character). This call destroys the value of Name_Len and
    --  Name_Buffer (it loads these as for Get_Name_String).
 
+   function Is_Internal_Name return Boolean;
+   --  Like the form with an Id argument, except that the name to be tested is
+   --  passed in Name_Buffer and Name_Len (which are not affected by the call).
+   --  Name_Buffer (it loads these as for Get_Name_String).
+
    procedure Reset_Name_Table;
    --  This procedure is used when there are multiple source files to reset
    --  the name table info entries associated with current entries in the
@@ -233,6 +239,11 @@ package Namet is
    --  from one compilation to another, but we can't keep the entity info,
    --  since this refers to tree nodes, which are destroyed between each
    --  main source file.
+
+   procedure Add_Char_To_Name_Buffer (C : Character);
+   pragma Inline (Add_Char_To_Name_Buffer);
+   --  Add given character to the end of the string currently stored in the
+   --  Name_Buffer, incrementing Name_Len.
 
    procedure Add_Nat_To_Name_Buffer (V : Nat);
    --  Add decimal representation of given value to the end of the string

@@ -88,6 +88,32 @@ package body System.Tasking_Soft_Links is
       return Boolean'Pos (False);
    end Check_Abort_Status_NT;
 
+   ------------------------
+   -- Complete_Master_NT --
+   ------------------------
+
+   procedure Complete_Master_NT is
+   begin
+      null;
+   end Complete_Master_NT;
+
+   -----------------------
+   -- Current_Master_NT --
+   -----------------------
+
+   function Current_Master_NT return Integer is
+   begin
+      return 0;
+   end Current_Master_NT;
+
+   ---------------------
+   -- Enter_Master_NT --
+   ---------------------
+
+   procedure Enter_Master_NT is
+   begin
+      null;
+   end Enter_Master_NT;
 
    ------------------
    -- Task_Lock_NT --

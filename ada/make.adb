@@ -132,6 +132,7 @@ package body Make is
 
    procedure Inform (N : Name_Id := No_Name; Msg : String);
    --  Prints out the program name followed by a colon, N and S.
+   --  What is S??? What is Msg???
 
    No_Indent : constant Boolean := False;
    procedure Verbose_Msg
@@ -143,6 +144,7 @@ package body Make is
    --  If the verbose flag is set prints the corresponding message.
    --  If Ind is set to No_Indent (False) the message is not,
    --  otherwise it is.
+   --  What are the parameters here ???
 
    procedure Verbose_Msg
      (N1  : Name_Id;
@@ -155,6 +157,7 @@ package body Make is
       S2c : String);
    --  If the verbose flag is set prints the corresponding message.
    --  Created to print longer messages with time stamps information.
+   --  What are the parameters here ???
 
    -----------------------
    -- Gnatmake Routines --
@@ -202,12 +205,14 @@ package body Make is
    Gnatbind  : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gnatbind");
    Gnatlink  : String_Access := GNAT.OS_Lib.Locate_Exec_On_Path ("gnatlink");
 
-   Exec_Name_Flag  : constant String_Access := new String'("-o");
+   Output_Flag     : constant String_Access := new String'("-o");
    Comp_Flag       : constant String_Access := new String'("-c");
    Ada_Flag_1      : constant String_Access := new String'("-x");
    Ada_Flag_2      : constant String_Access := new String'("ada");
    GNAT_Flag       : constant String_Access := new String'("-gnatg");
    Dont_Check_Flag : constant String_Access := new String'("-x");
+
+   Object_Suffix   : constant String := Get_Object_Suffix.all;
 
    Display_Executed_Programs : Boolean := True;
    --  Set to True if name of commands should be output on stderr.
@@ -240,7 +245,7 @@ package body Make is
       S2  : String;
       T   : Make_Program_Type);
    --  Make invokes one of three programs (the compiler, the binder or the
-      --  linker). For the sake of convenience, some program specific switches
+   --  linker). For the sake of convenience, some program specific switches
    --  can be passed directly on the gnatmake commande line, hence they need
    --  to be recorded so that gnamake can pass them to the right program.
    --  In the above calls, S is a switch to be added, or S1 and S2 are two
@@ -292,7 +297,7 @@ package body Make is
 
          when None =>
             pragma Assert (False);
-            null;
+            raise Program_Error;
       end case;
    end Add_Switch;
 
@@ -341,7 +346,7 @@ package body Make is
 
          when others =>
             pragma Assert (False);
-            null;
+            raise Program_Error;
       end case;
 
    end Add_Switch;
@@ -636,17 +641,67 @@ package body Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Check_Internal_Files  : Boolean  := False;
+      Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
+      In_Place_Mode         : Boolean  := False;
       Initialize_Ali_Data   : Boolean  := True;
       Max_Process           : Positive := 1)
    is
-      function Compile (S : Name_Id) return Process_Id;
+      Missing_Alis : Boolean := False;
+
+   begin
+      Compile_Sources
+        (Main_Source,
+         Args,
+         First_Compiled_File,
+         Most_Recent_Obj_File,
+         Most_Recent_Obj_Stamp,
+         Main_Unit,
+         Missing_Alis,
+         Check_Readonly_Files,
+         Dont_Execute,
+         Force_Compilations,
+         Keep_Going,
+         In_Place_Mode,
+         Initialize_Ali_Data,
+         Max_Process);
+
+      --  The following is almost certainly bogus code. It probably relates
+      --  to the time when we used to generate junk object files and no
+      --  ali files when compiling generics ???
+
+      if Missing_Alis then
+         Main_Unit := False;
+      end if;
+   end Compile_Sources;
+
+   ---------------------
+   -- Compile_Sources --
+   ---------------------
+
+   procedure Compile_Sources
+     (Main_Source           : File_Name_Type;
+      Args                  : Argument_List;
+      First_Compiled_File   : out Name_Id;
+      Most_Recent_Obj_File  : out Name_Id;
+      Most_Recent_Obj_Stamp : out Time_Stamp_Type;
+      Main_Unit             : out Boolean;
+      Missing_Alis          : out Boolean;
+      Check_Readonly_Files  : Boolean  := False;
+      Dont_Execute          : Boolean  := False;
+      Force_Compilations    : Boolean  := False;
+      Keep_Going            : Boolean  := False;
+      In_Place_Mode         : Boolean  := False;
+      Initialize_Ali_Data   : Boolean  := True;
+      Max_Process           : Positive := 1)
+   is
+      function Compile (S : Name_Id; L : Name_Id) return Process_Id;
       --  Compiles S using Args above. If S is a GNAT predefined source
-      --  "-gnatg" is added to Args. Non blocking call. Returns The
-      --  Process_Id of the process spawned to execute the compile.
+      --  "-gnatg" is added to Args. Non blocking call. L correponds to the
+      --  expected library filename.  Process_Id of the process spawned to
+      --  execute the compile.
 
       type Compilation_Data is record
          Pid              : Process_Id;
@@ -783,6 +838,7 @@ package body Make is
          end loop;
 
          pragma Assert (False);
+         raise Program_Error;
       end Await_Compile;
 
       -------------------------
@@ -798,9 +854,9 @@ package body Make is
       -- Compile --
       -------------
 
-      function Compile (S : Name_Id) return Process_Id is
+      function Compile (S : Name_Id; L : Name_Id) return Process_Id is
 
-         Comp_Args : Argument_List (Args'First .. Args'Last + 5);
+         Comp_Args : Argument_List (Args'First .. Args'Last + 7);
          Comp_Last : Integer;
 
          function Ada_File_Name (Name : Name_Id) return Boolean;
@@ -840,10 +896,10 @@ package body Make is
          end if;
 
          --  The directory name needs to be stripped from the source file S
-         --  because Fname.Is_Internal_File_Name cannot deal with directory
+         --  because Fname.Is_Predefined_File_Name cannot deal with directory
          --  prefixes.
 
-         if Is_Internal_File_Name (Strip_Directory (S)) then
+         if Is_Predefined_File_Name (Strip_Directory (S)) then
             Comp_Last := Comp_Last + 1;
             Comp_Args (Comp_Last) := GNAT_Flag;
          end if;
@@ -857,6 +913,27 @@ package body Make is
             Comp_Args (Comp_Last) := Ada_Flag_1;
             Comp_Last := Comp_Last + 1;
             Comp_Args (Comp_Last) := Ada_Flag_2;
+         end if;
+
+         if L /= Strip_Directory (L) then
+
+            --  Build -o argument.
+
+            Get_Name_String (L);
+
+            for J in reverse 1 .. Name_Len loop
+               if Name_Buffer (J) = '.' then
+                  Name_Len := J + Object_Suffix'Length - 1;
+                  Name_Buffer (J .. Name_Len) := Object_Suffix;
+                  exit;
+               end if;
+            end loop;
+
+            Comp_Last := Comp_Last + 1;
+            Comp_Args (Comp_Last) := Output_Flag;
+            Comp_Last := Comp_Last + 1;
+            Comp_Args (Comp_Last) := new String'(Name_Buffer (1 .. Name_Len));
+
          end if;
 
          Get_Name_String (S);
@@ -976,7 +1053,6 @@ package body Make is
 
       Compilation_OK  : Boolean;
       Need_To_Compile : Boolean;
-      Missing_Alis    : Boolean := False;
 
       Pid  : Process_Id;
       Text : Text_Buffer_Ptr;
@@ -1010,9 +1086,10 @@ package body Make is
       Insert_Q (Main_Source);
       Mark (Main_Source);
 
-      First_Compiled_File    := No_File;
-      Most_Recent_Obj_File   := No_File;
-      Main_Unit              := False;
+      First_Compiled_File   := No_File;
+      Most_Recent_Obj_File  := No_File;
+      Main_Unit             := False;
+      Missing_Alis          := False;
 
       --  Keep looping until there is no more work to do (the Q is empty)
       --  and all the outstanding compilations have terminated
@@ -1048,12 +1125,31 @@ package body Make is
 
             if Full_Lib_File /= No_File and then
               In_Ada_Lib_Dir (Full_Lib_File) then
-               Verbose_Msg (Lib_File, "in Ada library", Ind => No_Indent);
+               Verbose_Msg
+                 (Lib_File, "is in an Ada library", Ind => No_Indent);
+
+            --  If the library file is a read-only library skip it
+
+            elsif Full_Lib_File /= No_File and then
+              not Check_Readonly_Files and then
+              Is_Readonly_Library (Full_Lib_File) then
+               Verbose_Msg
+                 (Lib_File, "is a read-only library", Ind => No_Indent);
 
             --  The source file that we are checking cannot be located
 
             elsif Full_Source_File = No_File then
                Record_Failure (Source_File, Found => False);
+
+            --  Source and library files can be located but are internal
+            --  files
+
+            elsif not Check_Readonly_Files
+              and then Full_Lib_File /= No_File
+              and then Is_Internal_File_Name (Source_File)
+            then
+               Verbose_Msg
+                 (Lib_File, "is an internal library", Ind => No_Indent);
 
             --  The source file that we are checking can be located
 
@@ -1096,10 +1192,37 @@ package body Make is
                      end if;
                   end if;
 
+                  if In_Place_Mode then
+
+                     --  If the library file was not found, then
+                     --  save the library file near the source file.
+
+                     if Full_Lib_File = No_File then
+                        Get_Name_String (Full_Source_File);
+
+                        for I in reverse 1 .. Name_Len loop
+                           if Name_Buffer (I) = '.' then
+                              Name_Buffer (I + 1 .. I + 3) := "ali";
+                              Name_Len := I + 3;
+                              exit;
+                           end if;
+                        end loop;
+
+                        Lib_File := Name_Find;
+
+                     --  If the library file was found, then
+                     --  save the library file in the same place.
+
+                     else
+                        Lib_File := Full_Lib_File;
+                     end if;
+
+                  end if;
+
                   --  Start the compilation and record it. We can do this
                   --  because there is at least one free process.
 
-                  Pid := Compile (Full_Source_File);
+                  Pid := Compile (Full_Source_File, Lib_File);
 
                   --  Make sure we could successfully start the compilation
 
@@ -1138,6 +1261,11 @@ package body Make is
                if Text /= null then
                   Ali := Scan_ALI (Lib_File, Text);
                   Record_Good_Ali (Ali);
+
+               --  This should probably just be Assert (False) now. It is
+               --  almost certainly junk code, dating from the time when
+               --  generics could produce junk objects (with no error
+               --  indication) but still did not generate an ali file ???
 
                else
                   Inform (Lib_File, "WARNING file not found after compile");
@@ -1181,10 +1309,10 @@ package body Make is
                   elsif Is_Marked (Sfile) then
                      Debug_Msg ("Skipping marked file:", Sfile);
 
-                  elsif not Check_Internal_Files
+                  elsif not Check_Readonly_Files
                     and then Is_Internal_File_Name (Sfile)
                   then
-                     Debug_Msg ("Skipping language defined file:", Sfile);
+                     Debug_Msg ("Skipping internal file:", Sfile);
 
                   else
                      Insert_Q (Sfile);
@@ -1203,11 +1331,6 @@ package body Make is
          raise Compilation_Failed;
       end if;
 
-      --  Make sure no link step is performed if we had missing ali files
-
-      if Missing_Alis then
-         Main_Unit := False;
-      end if;
    end Compile_Sources;
 
    -------------
@@ -1286,12 +1409,10 @@ package body Make is
    --------------------
 
    function In_Ada_Lib_Dir (File : in File_Name_Type) return Boolean is
-      B : Byte;
-      D : Name_Id;
+      D : constant Name_Id := Get_Directory (File);
+      B : constant Byte    := Get_Name_Table_Byte (D);
 
    begin
-      D := Get_Directory (File);
-      B := Get_Name_Table_Byte (D);
       return (B and Ada_Lib_Dir) /= 0;
    end In_Ada_Lib_Dir;
 
@@ -1327,13 +1448,13 @@ package body Make is
    begin
       --  Default initialization of the flags affecting gnatmake
 
-      Opt.Check_Internal_Files     := False;
+      Opt.Check_Readonly_Files     := False;
       Opt.Check_Object_Consistency := True;
       Opt.Compile_Only             := False;
       Opt.Dont_Execute             := False;
       Opt.Force_Compilations       := False;
       Opt.Quiet_Output             := False;
-      Opt.Smart_Compilations       := False;
+      Opt.Minimal_Recompilation    := False;
       Opt.Verbose_Mode             := False;
 
       --  Package initializations. The order of calls is important here.
@@ -1378,8 +1499,12 @@ package body Make is
       Main_Source_File : File_Name_Type;
       --  The actual source file corresponding to Main_Name
 
-      Is_Main_Unit : Boolean;
-      --  If True the Main_Source_File can be a main unit.
+      Has_Missing_Alis : Boolean;
+      --  Set True if there was a missing ali file (can this ever happen???)
+
+      Is_Main_Unit     : Boolean;
+      --  If True the Main_Source_File can be a main unit (is this used???
+      --  It is not used here for sure???)
 
       Main_Ali_File : File_Name_Type;
       --  The ali file corresponding to Main_Source_File
@@ -1438,7 +1563,7 @@ package body Make is
          --  Line for -a
 
          Write_Switch_Char;
-         Write_Str ("a       Consider all files, even GNAT internal files");
+         Write_Str ("a       Consider all files, even readonly ali files");
          Write_Eol;
 
          --  Line for -c
@@ -1453,6 +1578,13 @@ package body Make is
          Write_Str ("f       Force recompilations of non predefined units");
          Write_Eol;
 
+         --  Line for -i
+
+         Write_Switch_Char;
+         Write_Str ("i       In place. Replace existing ali file, ");
+         Write_Str ("or put it with source");
+         Write_Eol;
+
          --  Line for -jnnn
 
          Write_Switch_Char;
@@ -1463,6 +1595,12 @@ package body Make is
 
          Write_Switch_Char;
          Write_Str ("k       Keep going after compilation errors");
+         Write_Eol;
+
+         --  Line for -m
+
+         Write_Switch_Char;
+         Write_Str ("m       Minimal recompilation");
          Write_Eol;
 
          --  Line for -M
@@ -1487,12 +1625,6 @@ package body Make is
 
          Write_Switch_Char;
          Write_Str ("q       Be quiet/terse");
-         Write_Eol;
-
-         --  Line for -s
-
-         Write_Switch_Char;
-         Write_Str ("s       Smart recompilation");
          Write_Eol;
 
          --  Line for -v
@@ -1688,14 +1820,6 @@ package body Make is
          end if;
       end if;
 
-      --  Consider GNAT internal files only if -a switch is set.
-
-      if Fname.Is_Internal_File_Name (Main_Source_File)
-        and then not Opt.Check_Internal_Files
-      then
-         Fail ("use the -a switch to compile GNAT internal files");
-      end if;
-
       Display_Commands (not Opt.Quiet_Output);
 
       --  Here is where the make process is started
@@ -1723,7 +1847,7 @@ package body Make is
          --  executable program was specified.
 
          for J in Linker_Switches.First .. Linker_Switches.Last loop
-            if Linker_Switches.Table (J).all = Exec_Name_Flag.all then
+            if Linker_Switches.Table (J).all = Output_Flag.all then
                pragma Assert (J < Linker_Switches.Last);
 
                Name_Len := Linker_Switches.Table (J + 1)'Length;
@@ -1748,9 +1872,11 @@ package body Make is
             Most_Recent_Obj_File  => Youngest_Obj_File,
             Most_Recent_Obj_Stamp => Youngest_Obj_Stamp,
             Main_Unit             => Is_Main_Unit,
-            Check_Internal_Files  => Opt.Check_Internal_Files,
+            Missing_Alis          => Has_Missing_Alis,
+            Check_Readonly_Files  => Opt.Check_Readonly_Files,
             Dont_Execute          => Opt.Dont_Execute,
             Force_Compilations    => Opt.Force_Compilations,
+            In_Place_Mode         => Opt.In_Place_Mode,
             Keep_Going            => Opt.Keep_Going,
             Initialize_Ali_Data   => True,
             Max_Process           => Opt.Maximum_Processes);
@@ -1764,7 +1890,7 @@ package body Make is
             end if;
 
          elsif First_Compiled_File = No_File
-           and then (Opt.Compile_Only or else not Is_Main_Unit)
+           and then Opt.Compile_Only
            and then not Opt.Quiet_Output
          then
             Inform (Msg => "objects up to date.");
@@ -1774,10 +1900,12 @@ package body Make is
             Write_Eol;
          end if;
 
+         --  This block of code needs a comment ???
+
          if Opt.Dont_Execute
            or Opt.List_Dependencies
            or Opt.Compile_Only
-           or not Is_Main_Unit
+           or Has_Missing_Alis
          then
             return;
          end if;
@@ -1811,7 +1939,29 @@ package body Make is
          end if;
       end Recursive_Compilation_Step;
 
-      Main_Ali_File := Full_Lib_File_Name (Lib_File_Name (Main_Source_File));
+      declare
+         Ali_File : File_Name_Type;
+         Src_File : File_Name_Type;
+
+      begin
+         Src_File      := Strip_Directory (Main_Source_File);
+         Ali_File      := Lib_File_Name (Src_File);
+         Main_Ali_File := Full_Lib_File_Name (Ali_File);
+
+         --  When In_Place_Mode, the library file can be located in the
+         --  Main_Source_File directory which may not be present in the
+         --  library path. In this case, use the corresponding library file
+         --  name.
+
+         if Main_Ali_File = No_File and then Opt.In_Place_Mode then
+            Get_Name_String (Get_Directory (Full_Source_Name (Src_File)));
+            Get_Name_String_And_Append (Ali_File);
+            Main_Ali_File := Name_Find;
+            Main_Ali_File := Full_Lib_File_Name (Main_Ali_File);
+         end if;
+
+         pragma Assert (Main_Ali_File /= No_File);
+      end;
 
       Bind_Step : declare
          Args : Argument_List (Binder_Switches.First .. Binder_Switches.Last);
@@ -1919,6 +2069,7 @@ package body Make is
    -----------------
 
    procedure List_Depend is
+      Lib_Name  : Name_Id;
       Obj_Name  : Name_Id;
       Src_Name  : Name_Id;
 
@@ -1930,7 +2081,16 @@ package body Make is
       Set_Standard_Output;
 
       for A in ALIs.First .. ALIs.Last loop
-         Obj_Name := Object_File_Name (ALIs.Table (A).Afile);
+         Lib_Name := ALIs.Table (A).Afile;
+
+         --  If In_Place_Mode, then we have to provide the full library file
+         --  name.
+
+         if Opt.In_Place_Mode then
+            Lib_Name := Full_Lib_File_Name (Lib_Name);
+         end if;
+
+         Obj_Name := Object_File_Name (Lib_Name);
          Write_Name (Obj_Name);
          Write_Str (" :");
 
@@ -1941,27 +2101,23 @@ package body Make is
          for D in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
             Src_Name := Sdep.Table (D).Sfile;
 
-            if not Fname.Is_Internal_File_Name (Src_Name)
-              or else Opt.Check_Internal_Files
-            then
-               if not Opt.Quiet_Output then
-                  Src_Name := Full_Source_Name (Src_Name);
-               end if;
-
-               Get_Name_String (Src_Name);
-               Len := Name_Len;
-
-               if Line_Pos + Len + 1 > Line_Size then
-                  Write_Str (" \");
-                  Write_Eol;
-                  Line_Pos := 0;
-               end if;
-
-               Line_Pos := Line_Pos + Len + 1;
-
-               Write_Str (" ");
-               Write_Name (Src_Name);
+            if not Opt.Quiet_Output then
+               Src_Name := Full_Source_Name (Src_Name);
             end if;
+
+            Get_Name_String (Src_Name);
+            Len := Name_Len;
+
+            if Line_Pos + Len + 1 > Line_Size then
+               Write_Str (" \");
+               Write_Eol;
+               Line_Pos := 0;
+            end if;
+
+            Line_Pos := Line_Pos + Len + 1;
+
+            Write_Str (" ");
+            Write_Name (Src_Name);
          end loop;
 
          Write_Eol;
@@ -2017,7 +2173,8 @@ package body Make is
 
    procedure Mark_Dir_Path
      (Path : in String_Access;
-      Mark : in Lib_Mark_Type) is
+      Mark : in Lib_Mark_Type)
+   is
       Dir : String_Access;
 
    begin
@@ -2086,7 +2243,7 @@ package body Make is
 
             when others =>
                pragma Assert (False);
-               null;
+               raise Program_Error;
          end case;
 
       --  A special test is needed for the -o switch within a -largs
@@ -2178,12 +2335,12 @@ package body Make is
             Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Linker);
 
-         --  -s
+         --  -m
 
-         elsif Argv (2) = 's'
-           and then (Argv'Last = 2)
+         elsif Argv (2) = 'm'
+           and then Argv'Last = 2
          then
-            Opt.Smart_Compilations := True;
+            Opt.Minimal_Recompilation := True;
 
          --  By default all switches with more than one character
          --  or one character switches which are not in 'a' .. 'z'

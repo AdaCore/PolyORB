@@ -137,6 +137,9 @@ package Osint is
    --  is preserved. Return No_File if there is no directory part in the
    --  name.
 
+   function Is_Readonly_Library (File : File_Name_Type) return Boolean;
+   --  Check if this library file is a read-only file.
+
    function Strip_Directory (Name : File_Name_Type) return File_Name_Type;
    --  Strips the prefix directory name (if any) from Name. Returns the
    --  stripped name.
@@ -253,6 +256,11 @@ package Osint is
    --  Note that the name passed to this function is the simple file name,
    --  without any directory information. The implementation is responsible
    --  for searching for the file in the appropriate directories.
+   --
+   --  Note the special case that if the file name is gnat.adc, then the
+   --  search for the file is done ONLY in the directory corresponding to
+   --  the current compilation environment, i.e. in the same directory
+   --  where the ali and object files will be written.
 
    function Full_Source_Name return File_Name_Type;
    function Current_Source_File_Stamp return Time_Stamp_Type;
@@ -272,8 +280,8 @@ package Osint is
    --  called Source_File_Data (Cache => True). See below.
 
    function Matching_Full_Source_Name
-     (N : File_Name_Type;
-      T : Time_Stamp_Type)
+     (N    : File_Name_Type;
+      T    : Time_Stamp_Type)
       return File_Name_Type;
    --  Same semantics than Full_Source_Name but will search on the source
    --  path until a source file with time stamp matching T is found. If
@@ -363,8 +371,11 @@ package Osint is
    --  checks whether the object file corresponding to the Lib_File is
    --  consistent with it. The object file is inconsistent if the object
    --  does not exist or if it has an older time stamp than Lib_File.
-   --  In case of inconsistencies Read_Library_Info behaves as if it did
-   --  not find Lib_File (namely if Fatal_Err is False, null is returned).
+   --  This check is not performed when the Lib_File is "locked" (i.e.
+   --  read/only) because in this case the object file may be buried
+   --  in a library. In case of inconsistencies Read_Library_Info
+   --  behaves as if it did not find Lib_File (namely if Fatal_Err is
+   --  False, null is returned).
 
    function Full_Library_Info_Name return File_Name_Type;
    function Full_Object_File_Name return File_Name_Type;
@@ -482,12 +493,22 @@ package Osint is
    --  file name must be in Name_Buffer (without a terminating Nul character)
    --  before calling this routine. Name_Len indicates the length of the name.
 
-   procedure Create_Xref_Output (Global_Xref_File : Boolean);
-   --  Creates the xref output file. Global_Xref_File indicates if
-   --  all the xref information is stored in an unique file X.ref
-   --  (Global_Xref_File = True) or in separate .ref files whose name is
-   --  derived of name of the source file beeing compiled (i.e. the file
-   --  which was most recently returned by Next_Main_Source).
+   type Xfiltyp is (
+      Xbody,
+      --  File to be created is xxx.xrb, where xxx is the current main file
+      --  name, i.e. existing extension is replaced by xrb, or, if there
+      --  is no extension, the extension is added.
+
+      Xspec,
+      --  File to be created is xxx.xrs, where xxx is the current main file
+      --  name, i.e. existing extension is replaced by xrs, or, if there
+      --  is no extension, the extension is added.
+
+      Xglobal);
+      --  Global xref file (-x6 case), file name is always x.ref
+
+   procedure Create_Xref_Output (Typ : Xfiltyp);
+   --  Create xref file with name specified by Typ, as described above
 
    procedure Write_Xref_Info (Info : String; Eol : Boolean := True);
    --  Writes the contents of the referenced string to the Xref output file

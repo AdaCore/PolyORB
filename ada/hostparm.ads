@@ -69,7 +69,7 @@ pragma Pure (Hostparm);
    --  of file names in the library, must be at least Max_Line_Length, but
    --  can be larger.
 
-   Max_Instantiations : constant := 2000;
+   Max_Instantiations : constant := 4000;
    --  Maximum number of instantiations permitted (to stop runaway cases
    --  of nested instantiations). These situations probably only occur in
    --  specially concocted test cases.

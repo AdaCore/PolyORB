@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---        Copyright (C) 1992,1993,1994 Free Software Foundation, Inc.       --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,6 +28,7 @@
 
 with Types; use Types;
 package Sdefault is
+pragma Preelaborate (Sdefault);
 
    --  This package contains functions that return the default values for
    --  the include and object file directories.
