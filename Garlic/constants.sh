@@ -16,7 +16,7 @@ incfiles="stdio.h sys/types.h sys/socket.h errno.h netdb.h netinet/in.h signal.h
 
 # List of constants we need to know
 
-constants="IPPROTO_TCP TCP_NODELAY AF_INET SOCK_STREAM SOCK_DGRAM EINTR EAGAIN EWOULDBLOCK EINPROGRESS EALREADY EISCONN ECONNREFUSED FNDELAY FASYNC-FIOASYNC FNONBLOCK-O_NONBLOCK F_GETFL F_SETFL F_SETOWN-FIOSSAIOOWN SO_RCVBUF SO_REUSEADDR SOL_SOCKET SIGTERM SIGKILL O_RDWR HOST_NOT_FOUND TRY_AGAIN NO_RECOVERY NO_DATA NO_ADDRESS POLLIN POLLPRI POLLOUT POLLERR POLLHUP POLLNVAL"
+constants="TCP_NODELAY AF_INET SOCK_STREAM SOCK_DGRAM EINTR EAGAIN EWOULDBLOCK EINPROGRESS EALREADY EISCONN ECONNREFUSED FNDELAY FASYNC-FIOASYNC F_GETFL F_SETFL F_SETOWN-FIOSSAIOOWN SO_RCVBUF SO_REUSEADDR SOL_SOCKET SIGTERM SIGKILL O_RDWR HOST_NOT_FOUND TRY_AGAIN NO_RECOVERY NO_DATA NO_ADDRESS POLLIN POLLPRI POLLOUT POLLERR POLLHUP POLLNVAL"
 
 # Debug
 
@@ -53,11 +53,19 @@ for i in ${constants}; do
       echo "#ifdef $j" >> ${tmph}
       echo "{\"$j\",$j}," >> ${tmph}
       echo "#else" >> ${tmph}
+      echo "#ifdef $j" >> ${tmph}
       echo "{\"$j\",$k}," >> ${tmph}
+      echo "#else" >> ${tmph}
+      echo "{\"$j\",-1}," >> ${tmph}
+      echo "#endif" >> ${tmph}
       echo "#endif" >> ${tmph}
       ;;
   *)
+      echo "#ifdef $i" >> ${tmph}
       echo "{\"$i\",$i}," >> ${tmph}
+      echo "#else" >> ${tmph}
+      echo "{\"$i\",-1}," >> ${tmph}
+      echo "#endif" >> ${tmph}
       ;;
   esac
 done
