@@ -41,6 +41,8 @@ with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Termination;  use System.Garlic.Termination;
 
+pragma Elaborate_All (System.Garlic.Termination);
+
 package body System.RPC.Pool is
 
    use System.RPC.Util;
@@ -167,6 +169,7 @@ package body System.RPC.Pool is
 
    task Background_Creation is
       pragma Priority (Background_Creation_Priority);
+      pragma Storage_Size (300_000);
    end Background_Creation;
    --  This task will have a low priority and create tasks in the background
    --  when they are needed.

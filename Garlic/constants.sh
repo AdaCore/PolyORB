@@ -98,7 +98,7 @@ gcc -o ${tmpe} -fwritable-strings ${tmph}
 cat > ${fname} << EOF
 --  This package has been generated automatically on:
 EOF
-echo "--  `uname -a`" >> ${fname}
+./split "`uname -a`" >> ${fname}
 echo "--  Generation date: `date`" >> ${fname}
 cat >> ${fname} << EOF
 --  Any change you make here is likely to be lost !

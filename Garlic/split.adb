@@ -2,9 +2,9 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---             S Y S T E M . G A R L I C . P R I O R I T I E S              --
+--                                S P L I T                                 --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
@@ -33,34 +33,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package System.Garlic.Priorities is
+with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;      use Ada.Text_IO;
 
-   pragma Pure;
+procedure Split is
 
-   --  This package defines priority constants which will be used
-   --  throughout the whole PCS. If you change them and experiment better
-   --  results (and can explain why), please report it to the maintenance
-   --  team which will adjust future distributions.
-   --  All the priorities are defined as if the application's main program
-   --  was using System.Default_Priority as the base priority.
+   Column     : Natural  := 0;
+   Max_Column : constant := 50;
 
-   Background_Creation_Priority : constant Priority := Priority'First;
-   --  Priority at which background task creation will occur.
-
-   Master_Termination_Priority : constant Priority := Priority'First + 1;
-   --  The main termination algorithm needs to run only when no other
-   --  task is running and so runs at the lowest priority plus one
-   --  (the background creation task does not need to run if the termination
-   --  is detected).
-
-   RPC_Priority : constant Priority := Priority'Last;
-   --  The RPC may be considered as an internal mechanism which will take
-   --  place as soon as possible. However, since there is a good chance
-   --  RPCs are slowed down because of communication speed, this shouldn't
-   --  take too much time.
-
-   Polling_Priority : constant Priority := RPC_Priority;
-   --  When polling is being used, it needs to be executed as a high
-   --  priority.
-
-end System.Garlic.Priorities;
+begin
+   if Argument_Count /= 1 then
+      Put_Line (Current_Error, "Error, usage: split ""text""");
+      Set_Exit_Status (1);
+   else
+      for I in 1 .. Argument (1) 'Length loop
+         if Argument (1) (I) = ' ' and then Column >= Max_Column then
+            New_Line;
+            Column := 0;
+         else
+            if Column = 0 then
+               Put ("--  ");
+            end if;
+            Put (Argument (1) (I));
+            Column := Column + 1;
+         end if;
+      end loop;
+      if Column > 0 then
+         New_Line;
+      end if;
+   end if;
+end Split;

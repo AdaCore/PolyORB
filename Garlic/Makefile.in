@@ -295,7 +295,7 @@ mostlyclean distclean maintainer-clean
 %.ali: %.ads
 	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
-s-garcon.ads: ${CONSTANTS_SH}
+s-garcon.ads: ${CONSTANTS_SH} split
 	if test -f ${CONSTANTS_PLATFORM}; then \
 	  cp ${CONSTANTS_PLATFORM} s-garcon.ads; \
 	else \
@@ -304,6 +304,9 @@ s-garcon.ads: ${CONSTANTS_SH}
 
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
+
+split: ${srcdir}/split.adb
+	gnatmake -o split ${srcdir}/split.adb
 
 all-local: ${SOURCES} ${OBJECTS}
 

@@ -17,7 +17,10 @@ ZIPLIBOBJS = zlib/adler32.o zlib/compress.o zlib/crc32.o zlib/gzio.o \
 
 ZIPLIB = zlib/libz.a
 
-$(ZIPLIB): make-zipdir $(ZIPLIBOBJS)
+
+$(ZIPLIBOBJS): make-zipdir
+
+$(ZIPLIB): $(ZIPLIBOBJS)
 	$(AR) rc $(ZIPLIB) $(ZIPLIBOBJS)
 
 zlib/%.o: $(srcdir)/zlib/%.c

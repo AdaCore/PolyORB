@@ -121,7 +121,8 @@ package body System.Garlic.Termination is
    Time_To_Synchronize : constant Duration := 10.0;
    --  Constants which change the behaviour of this package.
 
-   Environment_Task : System.Tasking.Task_ID;
+   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
+   --  The environment task. Self will be set to it at elaboration time.
 
    -----------------------
    -- Activity_Detected --
@@ -349,6 +350,8 @@ package body System.Garlic.Termination is
 
          --  Wait for a given time.
 
+         pragma Debug (D (D_Debug, "Waiting for some time"));
+
          select
             Shutdown_Keeper.Wait;
             exit Main_Loop;
@@ -358,6 +361,10 @@ package body System.Garlic.Termination is
 
          --  If there is only one active task (me !), we can initiate
          --  the algorithm.
+
+         pragma Debug (D (D_Debug,
+                          "Checking for active tasks:" &
+                          Natural'Image (Get_Active_Task_Count)));
 
          if Get_Active_Task_Count = 1 then
             declare
@@ -510,12 +517,5 @@ package body System.Garlic.Termination is
       end Termination_Accepted;
 
    end Termination_Watcher;
-
-begin
-
-   --  We can here initialize the environment task which is the mother
-   --  of all the tasks in the system.
-
-   Environment_Task := System.Tasking.Self;
 
 end System.Garlic.Termination;

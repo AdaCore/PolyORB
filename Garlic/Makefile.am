@@ -114,7 +114,7 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb $(FILTERSOBJECTS)
+	s-garser.adb $(FILTERSOBJECTS) split
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
@@ -132,7 +132,7 @@ SUFFIXES = .adb .ads .ali .o .xrb
 %.ali: %.ads
 	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
-s-garcon.ads: ${CONSTANTS_SH}
+s-garcon.ads: ${CONSTANTS_SH} split
 	if test -f ${CONSTANTS_PLATFORM}; then \
 	  cp ${CONSTANTS_PLATFORM} s-garcon.ads; \
 	else \
@@ -141,6 +141,9 @@ s-garcon.ads: ${CONSTANTS_SH}
 
 s-gtplsp.ads: ${srcdir}/${TCP_PLATFORM}
 	cp ${srcdir}/${TCP_PLATFORM} s-gtplsp.ads
+
+split: ${srcdir}/split.adb
+	gnatmake -o split ${srcdir}/split.adb
 
 all-local: ${SOURCES} ${OBJECTS}
 

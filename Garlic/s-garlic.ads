@@ -35,7 +35,7 @@
 
 package System.Garlic is
 
-   pragma Pure (System.Garlic);
+   pragma Pure;
 
    --  GARLIC is organized around several modules, which form a coherent
    --  set:

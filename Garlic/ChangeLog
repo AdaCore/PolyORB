@@ -1,5 +1,13 @@
 Fri May  2 16:37:16 1997  Daniel Neri  <d92-dne@nada.kth.se>
 
+	* Makefile.am: Use the split utility
+
+	* constants.sh: Ditto.
+
+	* split.adb: New utility.
+
+	* s-garpri.ads: Made a pure package.
+
 	* constants.sh: Allow for very long ``uname -a'' lines which cause
  	GNAT's style checks to barf on s-garcon.ads. The uname output is
  	now wrapped with ``fmt'' (which hopefully is present on all
