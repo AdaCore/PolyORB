@@ -2957,12 +2957,16 @@ package body Exp_Dist is
 
       Append_List_To (Statements, Extra_Formal_Statements);
 
-      Get_Subprogram_Name (Defining_Unit_Name (Spec));
+      Get_Subprogram_Name (
+        Defining_Unit_Name (Specification (Nod)));
       Subp_Id := Make_String_Literal (Loc,
         Strval => String_From_Name_Buffer);
-      --  This was previously
-      --    Get_Name_String (Chars (Defining_Unit_Name (Spec)));
-      --  but although the DSA receiving stubs will make a caseless
+      --  Here, use Nod (the original visible subprogram declaration)
+      --  and not Spec to determine the "real" subprogram name,
+      --  because we might be generating stubs with an internal
+      --  name if we are calling an All_Calls_Remote unit.
+
+      --  Although the DSA receiving stubs will make a caseless
       --  comparison when receiving a call, the calling stubs
       --  will create requests with the exact casing of the
       --  defining unit name of the called subprogram, so
