@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST.UIPMC                --
+--    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U I P M C     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Setup socket for UIPMC
+
+--  $Id$
 
 package PolyORB.Setup.Access_Points.UIPMC is
 

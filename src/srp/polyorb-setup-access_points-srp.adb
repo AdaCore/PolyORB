@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S . S R P   --
+--      P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . S R P       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,24 +33,28 @@
 
 --  Setup for SRP access point.
 
+--  $Id$
+
 with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
 
-with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
+with PolyORB.Parameters;
 with PolyORB.Protocols;
+with PolyORB.Sockets;
 with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.TCP_Access_Points;
 
-package body PolyORB.Setup.TCP_Access_Points.SRP is
+package body PolyORB.Setup.Access_Points.SRP is
 
    use PolyORB.Filters;
    use PolyORB.ORB;
+   use PolyORB.Sockets;
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Utils.TCP_Access_Points;
 
@@ -72,7 +76,7 @@ package body PolyORB.Setup.TCP_Access_Points.SRP is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Configuration;
+      use PolyORB.Parameters;
    begin
       if Get_Conf ("access_points", "srp", True) then
 
@@ -100,4 +104,4 @@ begin
        Provides  => +"access_points",
        Init      => Initialize_Access_Points'Access));
 
-end PolyORB.Setup.TCP_Access_Points.SRP;
+end PolyORB.Setup.Access_Points.SRP;

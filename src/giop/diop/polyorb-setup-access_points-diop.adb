@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
--- P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S . D I O P  --
+--     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . D I O P      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Setup socket for DIOP
+
+--  $Id$
 
 with PolyORB.Binding_Data.DIOP;
 with PolyORB.Protocols.GIOP.DIOP;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S . S R P   --
+--      P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . S R P       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Set up SRP TCP Access points.
+
+--  $Id$
 
 package PolyORB.Setup.Access_Points.SRP is
 

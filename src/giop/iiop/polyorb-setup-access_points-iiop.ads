@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.TCP_ACCESS_POINTS.IIOP                    --
+--     P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . I I O P      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  Set up CORBA TCP Access points.
+
+--  $Id$
 
 package PolyORB.Setup.Access_Points.IIOP is
 
