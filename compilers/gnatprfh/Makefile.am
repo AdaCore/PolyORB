@@ -4,16 +4,8 @@ PROG=gnatprfh
 
 all-local: $(PROG)
 
-$(PROG): $(GNATFILES)
-	$(GNATMAKE) -a -m -I. -I$(srcdir) g-pehama.adb -o $@
-#          -cargs $(GNATFLAGS) -bargs $(BARGS) 
-# WAG:3.15 we must compile this executable using specific flags.
-
-GNATFILES=\
-$(srcdir)/g-pehage.adb\
-$(srcdir)/g-pehage.ads\
-$(srcdir)/g-pehama.adb\
-$(srcdir)/g-perhas.ads
+$(PROG): force
+	$(GNATMAKE) -m -I. -I$(srcdir) $@ -cargs $(GNATFLAGS) -bargs $(BARGS)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 

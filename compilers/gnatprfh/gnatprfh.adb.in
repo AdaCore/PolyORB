@@ -1,9 +1,9 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;      use Ada.Text_IO;
 
-with GNAT.Perfect_Hash.Generators; use GNAT.Perfect_Hash.Generators;
+with @GNAT_PERFECT_HASH_GENERATORS@; use @GNAT_PERFECT_HASH_GENERATORS@;
 
-procedure GNAT.Perfect_Hash.Main is
+procedure GNATPrfh is
 
    type String_Access is access String;
 
@@ -134,4 +134,4 @@ begin
    Compute (Position.all);
    Produce (Pkg_Name.all);
 
-end GNAT.Perfect_Hash.Main;
+end GNATPrfh;

@@ -39,6 +39,7 @@ AM_PROG_GNATMAKE
 AM_CROSS_PROG_GNATMAKE
 AM_HAS_GNAT_SOCKETS_COPY
 AM_HAS_GNAT_OS_LIB_CLOSE_WITH_STATUS
+AM_HAS_GNAT_PERFECT_HASH_GENERATORS
 AM_HAS_PRAGMA_PROFILE_RAVENSCAR
 AM_HAS_PRAGMA_PROFILE_WARNINGS
 AC_EXEEXT
@@ -457,6 +458,7 @@ AC_OUTPUT([
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
 	compilers/gnatprfh/g-oslicl.adb
+	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
 	compilers/iac/testsuite/Makefile
 	compilers/iac/platform.ads

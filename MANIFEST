@@ -14,10 +14,7 @@ compilers/gnatprfh/Makefile.am
 compilers/gnatprfh/Makefile.in
 compilers/gnatprfh/g-oslicl.adb.in
 compilers/gnatprfh/g-oslicl.ads
-compilers/gnatprfh/g-pehage.adb
-compilers/gnatprfh/g-pehage.ads
-compilers/gnatprfh/g-pehama.adb
-compilers/gnatprfh/g-perhas.ads
+compilers/gnatprfh/gnatprfh.adb.in
 compilers/idlac/Makefile.am
 compilers/idlac/Makefile.in
 compilers/idlac/README.Expansion
