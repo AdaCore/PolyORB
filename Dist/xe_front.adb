@@ -482,9 +482,13 @@ package body XE_Front is
 
    begin
       Info := Get_Name_Table_Info (Name (N));
-      if Info not in Int (ALI_Id'First) .. Int (ALI_Id'Last) then
-         return No_ALI_Id;
-      end if;
+      case Info is
+         when Int (ALI_Id'First) .. Int (ALI_Id'Last) =>
+            null;
+
+         when others =>
+            raise Program_Error;
+      end case;
       return ALI_Id (Info);
    end Get_ALI_Id;
 
@@ -496,11 +500,18 @@ package body XE_Front is
       Info : Int;
 
    begin
-      Info := Get_Name_Table_Info (N);
-      if Info in Int (Channel_Id'First) .. Int (Channel_Id'Last) then
-         return Channel_Id (Info);
-      end if;
-      return No_Channel_Id;
+      Info := Get_Name_Table_Info (Name (N));
+      case Info is
+         when Int (Channel_Id'First) .. Int (Channel_Id'Last) =>
+            null;
+
+         when 0 =>
+            Info := Int (No_Channel_Id);
+
+         when others =>
+            raise Program_Error;
+      end case;
+      return Channel_Id (Info);
    end Get_Channel_Id;
 
    ----------------------
@@ -591,18 +602,16 @@ package body XE_Front is
       Info : Int;
 
    begin
-      Get_Name_String (N);
-      if Name_Len <= 2
-        or else Name_Buffer (Name_Len - 1) /= '%'
-      then
-         raise Program_Error;
-      end if;
       Info := Get_Name_Table_Info (N);
       case Info is
          when Int (Unit_Id'First) .. Int (Unit_Id'Last) =>
             null;
-         when others =>
+
+         when 0 =>
             Info := Int (No_Unit_Id);
+
+         when others =>
+            raise Program_Error;
       end case;
       return Unit_Id (Info);
    end Get_Unit_Id;
@@ -1336,12 +1345,6 @@ package body XE_Front is
 
    procedure Set_Unit_Id (N : Name_Id; U : Unit_Id) is
    begin
-      Get_Name_String (N);
-      if Name_Len <= 2
-        or else Name_Buffer (Name_Len - 1) /= '%'
-      then
-         raise Program_Error;
-      end if;
       Set_Name_Table_Info (N, Int (U));
    end Set_Unit_Id;
 
@@ -1626,6 +1629,7 @@ package body XE_Front is
          Partitions.Table (P).Most_Recent := F;
          if Debug_Mode then
             Write_Program_Name;
+            Write_Str  (": ");
             Write_Name (Partitions.Table (P).Name);
             Write_Str  ("'s most recent stamp comes from ");
             Write_Name (F);
