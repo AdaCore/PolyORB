@@ -8,6 +8,7 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	polyorb-corba_p-server_tools.texi \
 	polyorb-corba_p-naming_tools.texi \
 	polyorb-rtcorba_p-setup.texi \
+	polyorb-setup-tasking-ravenscar.texi \
 	echo.texi \
 	echo-impl-spec.texi \
 	echo-impl-body.texi \
@@ -29,6 +30,9 @@ polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server
 
 polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
 	cp -f $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads .
+
+polyorb-setup-tasking-ravenscar.ads: $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads
+	cp -f $(top_srcdir)/src/polyorb-setup-tasking-ravenscar.ads .
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \

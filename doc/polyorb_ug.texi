@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#45 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#46 $
 
 @include version.texi
 
@@ -900,11 +900,11 @@ how tasks are used by the middleware to process incoming requests.
 @item @code{No_Tasking}: There is only one task in middleware,
 processing all requests.
 
-@item @code{Thread_Per_Sessions}: One task monitors communication
+@item @code{Thread_Per_Session}: One task monitors communication
 entities. One task is spawned for each active connection. This task
 handles all incoming requests on this connection.
 
-@item @code{Thread_Per_Sessions}: One task monitors communication
+@item @code{Thread_Per_Request}: One task monitors communication
 entities. One task is spawned for each incoming requests.
 
 @item @code{Thread_Pool}: A set of tasks cooperate to handle all
@@ -1282,6 +1282,12 @@ profile}.
 
 In this configuration, a PolyORB application may be compiled and
 linked with a tasking-capable Ada runtime or a Ravenscar Ada runtime.
+
+To configure tasking constructs used by PolyORB, one must instanciate
+the @code{PolyORB.Setup.Tasking.Ravenscar} package to setup tasks and
+protected objects used by PolyORB core.
+
+@include polyorb-setup-tasking-ravenscar.texi
 
 @c -------------------------------------------------------------------
 @subsection Compatibility with Ada runtimes
@@ -2580,7 +2586,7 @@ This set encompasses chapters 17-21.
 COM/DCOM.
 
 @noindent
-PolyORB provides no support for this chapter.
+PolyORB provides no support for these chapters.
 
 
 @item Chapter 21 describes @code{PortableInterceptor}.
