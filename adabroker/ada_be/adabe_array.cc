@@ -36,27 +36,40 @@ adabe_array::adabe_array(UTL_ScopedName *n, unsigned long ndims, UTL_ExprList *d
 {
 }
 
+////////////////////////////////////////////////////////////////
+//////////////             local_type            ///////////////    
+////////////////////////////////////////////////////////////////
+
 string
 adabe_array::local_type()
 {
+  // because the array is a local type
+  // we need a little work to compute
+  // his name :
   bool find = false;
   UTL_Scope *parent_scope = defined_in();
   UTL_ScopeActiveIterator parent_scope_activator(parent_scope,UTL_Scope::IK_decls);
   adabe_name *decl = dynamic_cast<adabe_name *>(parent_scope_activator.item());
+
+  // We must find the element for which it is defined:
   do
     {
       switch (decl->node_type())
 	{
 	case AST_Decl::NT_field:
 	case AST_Decl::NT_argument:
+	  // this array is an argument or a field
 	  if (dynamic_cast<AST_Field *>(decl)->field_type() == this)
 	    find = true;
 	  break;
 	case AST_Decl::NT_op:
+	  // this array is the return type of an operation
 	  if (dynamic_cast<AST_Operation *>(decl)->return_type() == this)
 	    find =true;
 	  break;
 	case AST_Decl::NT_typedef:
+	  // this array is defined in a typedef:
+	  // his name must be the one of this typedef
 	  if (dynamic_cast<AST_Typedef *>(decl)->base_type() == this)
 	    return decl->get_ada_local_name ();
 		       
@@ -66,17 +79,25 @@ adabe_array::local_type()
       parent_scope_activator.next();
       if (!find)
 	decl = dynamic_cast<adabe_name *>(parent_scope_activator.item());
-    }
+    } // We must do this loop until we have found which element
+      // defines the array
   while (!find && !(parent_scope_activator.is_done()));
+
+  // if we have found the element we add "_Array" to the name
+  // of the element to defines the name of the array
   if (find)
     return decl->get_ada_local_name() +"_Array";
 
   return "local_type";
 }
 
+////////////////////////////////////////////////////////////////
+//////////////       is_compute_name_needed      ///////////////    
+////////////////////////////////////////////////////////////////
+
 bool adabe_array::is_compute_name_needed()
-  // this function returns 0 if the arry is defined in a typedef
-  // and 1 in all other cases
+  // this function returns false if the array is defined in a typedef
+  // and true in all other cases
 {
   adabe_name *parent_node;
   UTL_Scope *parent_scope = defined_in();
@@ -90,15 +111,15 @@ bool adabe_array::is_compute_name_needed()
 	case AST_Decl::NT_field:
 	case AST_Decl::NT_argument:
 	  if (dynamic_cast<AST_Field *>(decl)->field_type() == this)
-	    return 1;
+	    return true;
 	  break;
 	case AST_Decl::NT_op:
 	  if (dynamic_cast<AST_Operation *>(decl)->return_type() == this)
-	    return 1;
+	    return true;
 	  break;
 	case AST_Decl::NT_typedef:
 	  if (dynamic_cast<AST_Typedef *>(decl)->base_type() == this)
-	    return 0;
+	    return false;
 	  break;
 		       
 	default:
@@ -106,22 +127,27 @@ bool adabe_array::is_compute_name_needed()
 	}
       parent_scope_activator.next();
     }
-  return 1;
+  return true;
 }
+
+////////////////////////////////////////////////////////////////
+//////////////            produce_ads            ///////////////    
+////////////////////////////////////////////////////////////////
 
 void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
   
   // if the array s defined in a typedef,
-  // no compute_ada_name is needed (hte name is forced)
+  // no compute_ada_name is needed (the name has been forced)
   if (is_compute_name_needed())
     compute_ada_name();
   
   body += "   type " + get_ada_local_name() + " is array (";
 
   
-  for (unsigned int i=0; i < n_dims(); i++)  // loops over the dimensions of the array
+  for (unsigned int i=0; i < n_dims(); i++)
+    // loops over the dimensions of the array
     {
       AST_Expression::AST_ExprValue* v = dims()[i]->ev();
       body += " 0..";  
@@ -172,9 +198,15 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 }
 
 
+////////////////////////////////////////////////////////////////
+//////////////        produce_marshal_ads        ///////////////    
+////////////////////////////////////////////////////////////////
+
 void
 adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 {
+  // we now need do declare the marshalling functions:
+  // Marshall, Unmarshall, Align_Size
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -194,6 +226,10 @@ adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 
   set_already_defined();
 }
+
+////////////////////////////////////////////////////////////////
+//////////////        produce_marshal_adb        ///////////////    
+////////////////////////////////////////////////////////////////
 
 void
 adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
@@ -230,18 +266,21 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   string unmarshall = "";
   string align_size = "";
 
+  // declaration of the function marshall
   marshall += "   procedure Marshall (A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
   marshall += "                       S : in out Netbufferedstream.Object'Class) is\n";
   marshall += "   begin\n";
 
+  // declaration of the function unmarshall
   unmarshall += "   procedure UnMarshall (A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
   unmarshall += "                         S : in out Netbufferedstream.Object'Class) is\n";
   unmarshall += "   begin\n";
 
+  // declaration of the function align size
   align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
   align_size += " ;\n";
@@ -250,9 +289,12 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
   align_size += "   begin\n";
+
+  // Two eventuallity must be considered:
   if (b->has_fixed_size())
     {
-      // if the size is fiwed, ther no problem
+      // if the size of the type in this array
+      // is fixed, ther no problem
       align_size += "      Tmp := Align_Size (A(1";
       for (unsigned int i = 1; i < n_dims() ; i++ )
 	{
@@ -264,7 +306,8 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
     } 
   else 
     {
-      // else, we must loop
+      // else, we must loop over all the types
+      // to compute the memory needed
       align_size += "      for I in 1..N loop\n";
     }
 
@@ -273,7 +316,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
     {
       char number[10];
       sprintf (number,"%d",i+1);
-
+      // we have now a loop over the diemension "number"
       marshall += spaces + "for I";
       marshall += number;
       marshall += " in A'range(";
@@ -346,20 +389,33 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   set_already_defined();
 }
 
+////////////////////////////////////////////////////////////////
+//////////////             dump_name             ///////////////    
+////////////////////////////////////////////////////////////////
+
 string adabe_array::dump_name(dep_list& with, string &previous) 
 {
   if (!is_imported(with))
     {
       if (!is_already_defined())
 	{
+	  // has this array already been defined ?
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this array is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // the array is defined in aother file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
+
+////////////////////////////////////////////////////////////////
+//////////////           marshal_name            ///////////////    
+////////////////////////////////////////////////////////////////
 
 string adabe_array::marshal_name(dep_list& with, string &previous) 
 {
@@ -367,12 +423,17 @@ string adabe_array::marshal_name(dep_list& with, string &previous)
     {
      if (!is_already_defined())
 	{
+	  // has this array already been defined ?
 	  string tmp = "";
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this array is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // the array is defined in aother file
+  // we need to use a full name
   return get_ada_full_name();	   
 }    
 

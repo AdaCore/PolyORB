@@ -27,69 +27,92 @@ IMPL_NARROW_METHODS1(adabe_exception, AST_Exception);
 IMPL_NARROW_FROM_DECL(adabe_exception);
 IMPL_NARROW_FROM_SCOPE(adabe_exception);
 
+//////////////////////////////////////////////////////////////////
+//////////////////////// produce_ads /////////////////////////////
+//////////////////////////////////////////////////////////////////
+
 void
 adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 {
+  // Adding two packages needed for
+  // the gestion of the exceptions
   with.add ("Corba.Exceptions");
   with.add ("Ada.Exceptions");
+
+  // first is used to determine if
+  // the exception had memebers or not
+  // at the end
   bool first = true;
-  compute_ada_name ();
-  
-  // beginning of the exception declaration ...
+    
+  // beginning of the exception declaration
 
   body+=  "   " + get_ada_local_name() + " : exception ;\n";
-  
   body += "   type " + get_ada_local_name() +"_Members is new Corba.IDL_Exception_Members with ";
   
-  // ...
+  // We must now map the members of
+  // this exception
   
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   while (!activator.is_done())
     {
       AST_Decl *d = activator.item();
-      activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_field:
 	  {
 	    adabe_name *adabe_field =  dynamic_cast<adabe_name *> (d);
-	    //	    adabe_name *adabe_type  =  dynamic_cast<adabe_name *> (adabe_field->base_type);
 	    if (first)
 	      {
+		// if it is the first, we must begin
+		// the record
 		body += "record\n" ;
 		first = false;
 	      }
+	    // like for the structures we call
+	    // the produce ads on the field
 	    adabe_field->produce_ads (with, body, previous);
 	    break;
 	  }
+	  
 	default:
-#ifdef DEBUG_EXCEPTION
-	  cerr << "node type is : " << d->node_type() << endl;
-#endif
+	  // throw an exception
 	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
-	}
-    }
+	} // of the switch
+      activator.next();
+    } // of the loop
   if (first)
     {
+      // the exception has no member
       body += "null record ;\n\n";
     }
   else
     {
+      // the exception has members
       body += "   end record ;\n\n";
     }
-  
+
+  // An exception need a RepositoryID that
+  // designate it
   body += "   ";
   body += get_ada_local_name();
   body += "_Repository_Id : Corba.String := Corba.To_Corba_String(\"";
   body += repositoryID();
   body += "\") ;\n";
+
+  // We need a function to get the memebers of the exception
   body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n\n\n";
 }
 
+//////////////////////////////////////////////////////////////////
+////////////////////     produce_adb      ////////////////////////
+//////////////////////////////////////////////////////////////////
+
 void
 adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
 {
+  // the excetion has only one operation to map:
+  // the one which gets his members
   body += "   procedure Get_Members(From: in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To: out " + get_ada_local_name() + "_Members) is\n";
   body += "   begin\n";
@@ -97,16 +120,26 @@ adabe_exception::produce_adb (dep_list& with,string &body, string &previous)
   body += "   end ;\n\n\n";
 }
 
+//////////////////////////////////////////////////////////////////
+////////////////       produce_skel_adb       ////////////////////
+//////////////////////////////////////////////////////////////////
+
 void
 adabe_exception::produce_skel_adb (dep_list &with, string &body)
 {
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   bool has_member = !activator.is_done();
 
+  // the full name of the interface
   string full_name = get_ada_full_name ();
+  // the name of the package containing the interface
   string pack = full_name.substr (0,full_name.find_last_of('.'));
 
+  // we need to add the package, in which the
+  // exception is defined
   with.add (pack);
+
+  // We now map the interface
   body += "            when except : ";
   body += get_ada_local_name ();
   body += " =>\n";
@@ -115,8 +148,10 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += get_ada_local_name ();
   body += "_Repository_Id ;\n";
   body += "                  Mesg_Size : Corba.Unsigned_Long ;\n";
+
   
   if (has_member) {
+    // signalising the presence of members
     body += "                  Member : ";
     body += get_ada_local_name ();
     body += "_Members ;\n";
@@ -131,6 +166,7 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += "                  Mesg_Size := Giop_S.Reply_Header_Size ;\n";
   body += "                  Mesg_Size := Align_Size (Repo_Id, Mesg_Size) ;\n";
   if (has_member) {
+    // if there are members, we must add them when computing the size
     body += "                  Mesg_Size := Align_Size (Member, Mesg_Size) ;\n";
   }  
   body += "                  -- Initialisation of the reply\n";
@@ -150,6 +186,9 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   body += "               end ;\n\n";
 }
 
+////////////////////////////////////////////////////////////////
+//////////////       produce_proxies_adb         ///////////////    
+////////////////////////////////////////////////////////////////
 void
 adabe_exception::produce_proxies_adb (dep_list &with, string &body)
 {
@@ -159,6 +198,8 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
   string full_name = get_ada_full_name ();
   string pack = full_name.substr (0,full_name.find_last_of('.'));
 
+  // Preparing the dispatch of the
+  // exception
   with.add (pack);
   body += "      if RepoId = \"";
   body += repositoryID ();
@@ -170,6 +211,9 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
   body += "         begin\n";
   if (has_member)
     {
+      // we need to raise a special exception:
+      // it can't be mapped directly into an
+      // ADA exception
       body += "            UnMarshall(member,Giop_Client) ;\n";
       body += "            Corba.Raise_Corba_Exception(";
       body += get_ada_local_name ();
@@ -178,6 +222,7 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
     }
   else
     {
+      // this time we can simply raise the exception
       body += "            raise ";
       body += get_ada_local_name ();
       body += " ;\n";
@@ -186,10 +231,16 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
   body += "      end if ;\n\n";
 }
 
+////////////////////////////////////////////////////////////////
+//////////////       produce_marshall_ads        ///////////////    
+////////////////////////////////////////////////////////////////
+
 void
 adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previous)
 {
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  // we must define marshall, unmarshall and align size
+  // only if there's an argument in the scope of the exception
   if (!activator.is_done())
     {
       body += "   procedure Marshall (A : in ";
@@ -212,28 +263,39 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
   set_already_defined ();
 }
 
+////////////////////////////////////////////////////////////////
+//////////////       produce_marshall_adb        ///////////////    
+////////////////////////////////////////////////////////////////
 void
 adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previous)
 {
+  // we must define marshall, unmarshall and align size
+  // only if there's an argument in the scope of the exception
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   if (!activator.is_done())
     {
+      // local strings used to compute the
+      // three different function in the
+      // same time
       string marshall = "";
       string unmarshall = "";
       string align_size = "";
-      
+
+      // declaration of the function marshal
       marshall += "   procedure Marshall(A : in ";
       marshall += get_ada_local_name();
       marshall += "_Members ;\n";
       marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
       marshall += "   begin\n";
-      
+
+      // declaration of the function unmarshall
       unmarshall += "   procedure UnMarshall(A : out ";
       unmarshall += get_ada_local_name();
       unmarshall += "_Members ;\n";
       unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
       unmarshall += "   begin\n";
-      
+
+      // declaration of the function align_size
       align_size += "   function Align_Size (A : in ";
       align_size += get_ada_local_name();
       align_size += "_Members ;\n";
@@ -244,6 +306,8 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       align_size += "   begin\n";
       align_size += "      for I in 1..N loop\n";
       
+      // we must now call the function
+      // over each field in the scope
       while (!activator.is_done())
 	{
 	  AST_Decl *d = activator.item();
@@ -276,16 +340,21 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
 string
 adabe_exception::dump_name(dep_list& with, string &previous) 
 {
-    if (!is_imported(with))
+  if (!is_imported(with))
     {
       if (!is_already_defined())
 	{
+	  // has this exception already been defined ?
 	  string tmp = "";
 	  produce_ads(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this exception is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // the exception is defined in aother file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
 
@@ -296,12 +365,17 @@ adabe_exception::marshal_name(dep_list& with,string &previous)
     {
       if (!is_already_defined())
 	{
+	  // has this exception already been defined ?
 	  string tmp = "";
 	  produce_marshal_adb(with, tmp, previous);
 	  previous += tmp;
 	}
+      // this exception is defined in this file, so
+      // a local name is enough
       return get_ada_local_name();
     }
+  // because the exception is defined in another file
+  // we need to use a full name
   return get_ada_full_name();	   
 }
 

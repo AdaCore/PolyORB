@@ -594,19 +594,10 @@ adabe_name::set_undefined()
 bool
 adabe_name::is_imported (dep_list& with)
 {
-  if (!in_main_file())
-    {
-    if ((string) local_name()->get_string() == "Object") 
-      {
-	with.add ("Corba.Object");
-	return 1;
-      }
-   else return 0;
-    }
+  if ((!in_main_file()) && (node_type() != AST_Decl::NT_interface)) return 0;
     // the predefined type are not in main file
     // but they are declared in th root and not imported
     // so the root must not be included in those cases
-    // the type "object" is imported
   
   if (this == adabe_global::adabe_current_file())
     // we are in athe scope that has defined the type
@@ -621,18 +612,23 @@ adabe_name::is_imported (dep_list& with)
     {
       bool temp;
       adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
-      if (inter->is_forwarded())
+      if ((string) local_name()->get_string() == "Object") 
 	{
-	  // if the interface is forwarded, the full
-	  // name of the file is the interface
-	  // name+"_forward"
-	  with.add (get_ada_full_name() + "_forward");
+	  with.add ("Corba.Object");
 	}
       else
-	{
-	  // else simply add the interface file
-	  with.add (get_ada_full_name());
-	}
+	if (inter->is_forwarded())
+	  {
+	    // if the interface is forwarded, the full
+	    // name of the file is the interface
+	    // name+"_forward"
+	    with.add (get_ada_full_name() + "_forward");
+	  }
+	else
+	  {
+	    // else simply add the interface file
+	    with.add (get_ada_full_name());
+	  }
       return 1;
     }
   if (NT == AST_Decl::NT_module)
@@ -667,18 +663,18 @@ adabe_name::is_marshal_imported (dep_list& with)
   // this function is the same as the previous one
   // except, that the added file is the same
   // with a ".marshal" at the end
-  if (!in_main_file())
+  if ((!in_main_file()) && (node_type() != AST_Decl::NT_interface))
     {
-    if ((string) local_name()->get_string() == "Object") 
-      return 1;
-    else return 0;
+      return 0;
     }
   if (this == adabe_global::adabe_current_file()) 
     return 0;
   AST_Decl::NodeType NT = node_type();
   if (NT == AST_Decl::NT_interface)
     {
-      with.add (get_ada_full_name()+".marshal");
+      if ((string) local_name()->get_string() == "Object")  return 1;
+      else
+	with.add (get_ada_full_name()+".marshal");
       return 1;
     }
   if (NT == AST_Decl::NT_module)
