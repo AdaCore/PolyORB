@@ -1,3 +1,16 @@
+
+2004-06-23  Saber Souli   <souli@enst.fr>
+	* backend-be_ada.adb : Fixed void operation handling bug.
+	Add an empty body for subprograms. Handle nested blocs. 
+
+	* backend-be_ada-generator.adb : Add Token_Type to handle ada
+	keyword and graphic characters. add  Generate_Qualified_Name (N :
+	Node_Id) to a full qualified name. Add
+	Generate_Subprogram_Implementation  : generate a subprogram
+	body. Add  Image function : returns the image of a Token_Type. Add
+	Write_Token : a procedure that print the image of a given
+	Token_Type. 
+
 2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* lexer.adb, lexer.ads: Add CORBA 3.0 keywords.
@@ -25,6 +38,7 @@
 
 	* scopes.adb: Do not reset scope to No_Node for forward entities
 	as they can be visited mater on and need to have a scope anyway.
+
 
 2004-06-22  Laurent Pautet  <pautet@dorine.enst.fr>
 

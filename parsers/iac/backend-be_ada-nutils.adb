@@ -351,6 +351,7 @@ package body Backend.BE_Ada.Nutils is
      (Specification : Node_Id;
       Declarations  : List_Id;
       Statements    : List_Id)
+
      return Node_Id
    is
       N : Node_Id;

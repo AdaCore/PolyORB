@@ -126,6 +126,7 @@ package body Backend.BE_Ada is
       if D_Tree then
          W_Node_Id (BE_Node (E));
       end if;
+      Generator.Initialize;
       Generator.Generate (BE_Node (E));
    end Generate;
 
@@ -341,22 +342,34 @@ package body Backend.BE_Ada is
    procedure Visit_Attribute_Declaration (E : Node_Id) is
       N : Node_Id;
       A : Node_Id;
+      P : Node_Id;
 
    begin
-      Set_Main_Spec;
 
       A := First_Entity (Declarators (E));
       while Present (A) loop
+         Set_Main_Spec;
          N := Make_Attribute_Getter_Spec
            (Name => IDL_Name (FEN.Identifier (A)),
             Type_Definition => Type_Spec (E));
          Append_Node_To_List (N, Visible_Part (Current_Package));
 
+         Set_Main_Body;
+         P := Make_Subprogram_Implementation
+           (N, No_List, No_List);
+         Append_Node_To_List (P, Statements (Current_Package));
+
          if not Is_Readonly (E) then
+            Set_Main_Spec;
             N := Make_Attribute_Setter_Spec
               (Name => IDL_Name (FEN.Identifier (A)),
                Type_Definition  => Type_Spec (E));
             Append_Node_To_List (N, Visible_Part (Current_Package));
+
+            Set_Main_Body;
+            P := Make_Subprogram_Implementation
+              (N, No_List, No_List);
+            Append_Node_To_List (P, Statements (Current_Package));
          end if;
 
          A := Next_Entity (A);
@@ -485,27 +498,35 @@ package body Backend.BE_Ada is
            (Make_Defining_Identifier (Declarator (N)),
             Make_Designator (Type_Spec (N)),
             FEN.Parameter_Mode (N));
-         M := M or FEN.Parameter_Mode (N);
+         if (FEN.Parameter_Mode (N) = Mode_Out)
+           or
+           (FEN.Parameter_Mode (N) = Mode_Inout)
+         then
+            M := Mode_Out;
+         end if;
          Append_Node_To_List (P, L);
          N := Next_Entity (N);
       end loop;
-      if FEN.Kind (Type_Spec (E)) = K_Void then
-         M := Mode_In;
-      else
-         M := Mode_Out;
+      if not (FEN.Kind (Type_Spec (E)) = K_Void) then
+         if M = Mode_In then
+            R := Make_Designator (Type_Spec (E));
+         else
+            P := Make_Parameter_Specification
+              (Make_Defining_Identifier (Returns_Parameter_Name),
+               Make_Designator (Type_Spec (E)),
+               Mode_Out);
+            Append_Node_To_List (P, L);
+         end if;
       end if;
-      if M = Mode_Out then
-         R := Make_Designator (Type_Spec (E));
-      else
-         P := Make_Parameter_Specification
-           (Make_Defining_Identifier (Returns_Parameter_Name),
-            Make_Designator (Type_Spec (E)),
-            Mode_Out);
-         Append_Node_To_List (P, L);
-      end if;
+      Set_Main_Spec;
       O := Make_Subprogram_Specification
         (Make_Defining_Identifier (E), L, R);
       Append_Node_To_List (O, Visible_Part (Current_Package));
+
+      Set_Main_Body;
+      P := Make_Subprogram_Implementation
+        (O, No_List, No_List);
+      Append_Node_To_List (P, Statements (Current_Package));
    end Visit_Operation_Declaration;
 
    -------------------------
