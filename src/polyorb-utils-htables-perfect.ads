@@ -44,28 +44,38 @@ package PolyORB.Utils.HTables.Perfect is
      (T      : out Table;
       Prime  : Natural;
       Max    : Natural);
+   --  Initialize the hash table and allocate some internal
    --  Prime is a prime number used by hash functions. Max is the max
    --  number of elements to store.
 
    procedure Finalize
      (T : in out Table);
+    --  Deallocate all the internal structures.
 
    function Lookup
-     (T   : Table;
-      Key : String)
-     return Item;
+     (T     : Table;
+      Key   : String;
+      Value : out Item;
+      OK    : out Boolean);
+   --  Find key in hash table.
    --  Key is the string to hash.
+   --  Value is Item associated with Key
+   --  When Key does not exist, OK is set to False.
+   --  If Key exists Ok is set to True
 
    procedure Insert
      (T     : Table;
       Key   : String;
       Value : Item);
+   --  Insert (Key, Value) in hash table.
    --  Key is the string to hash and Value its corresponding value.
+   --  If Key already exists, nothing is done
 
    procedure Delete
      (T   : Table;
       Key : String);
-   --  Key is the string to hash.
+   --  Delete key in hash table. In case of a non-existing Key, Delete
+   --  ignores deletion. Key is the string to hash.
 
 private
 
@@ -77,5 +87,10 @@ private
       HTable : Hash_Table;
       Items  : Item_Array_Ptr;
    end record;
+   -- Table is the agregation of an Hash_Table (non-generic) and
+   -- and an array (generic) which contains the Values associated
+   -- with the Keys. We can note that HTable.Elements.all and Items.all
+   -- have the same size. Indeed if a Key is stored in HTable.Elements.all(i)
+   -- then his value is stored in Items.all(i)
 
 end PolyORB.Utils.HTables.Perfect;

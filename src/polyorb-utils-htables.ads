@@ -40,6 +40,10 @@ private
 
    type String_Access is access all String;
 
+   type What_To_Do is (Reorder_SubTable,Reorder_Table,Do_Nothing,Insert_Item);
+   -- What_To_Do is en enum type used by Insert in order to indicates
+   -- what to do after
+
    type Element is record
       Key       : String_Access;
       Used      : Boolean;
@@ -95,10 +99,18 @@ private
       Elements  : Element_Array_Ptr;
       Subtables : Subtable_Array_Ptr;
    end record;
-   --  Info      contained the variable of the table
-   --  Elements  contained all the elements
-   --  SubTables contained the variable for all the sub-tables
-   --  XXXXX
+   --  Info      contained the variables of the table (see above for
+   --            details)
+   --  Elements  is the array where all the elements are stored
+   --  SubTables is the array which contains all the informations
+   --            specific to the sub_tables. His size is equal to
+   --            to Info.N_Sub_Tables. Each structure of the array
+   --            contains the parameters for the sub-table hash function
+   --            except the prime number stored in Info.Prime. In addition
+   --            it contains the limit of each sub-table in the table Elements.
+   --            We can notes that :
+   --            ...< Subtables.all(i).First < Subtables.all(i).Last
+   --            < Subtables.all(i+1).First < Subtables.all(i+1).Last < ...
 
    procedure Initialize
      (T      : out Hash_Table;
@@ -116,16 +128,30 @@ private
      (T         : Hash_Table;
       Key       : String;
       ST_Index  : out Natural;
-      ST_Offset : out Natural);
+      ST_Offset : out Natural;
+      OK        : out Boolean);
    --  Find key in hash table. Key is the string to hash. ST_Index
    --  corresponds to the subtable index and ST_Offset to the offset
-   --  in this subtable. When Key does not exist, ST_Index is set to ...
+   --  in this subtable. When Key does not exist, OK is set to False.
+   --  If Key exists Ok is set to True
 
    procedure Insert
-     (T   : Hash_Table;
-      Key : String);
+     (T         : Hash_Table;
+      Key       : String;
+      ST_Index  : out Natural;
+      ST_Offset : out Natural;
+      To_Do     : out What_To_Do);
+
    --  Insert key in hash table. In case of an already existing Key,
    --  Insert ignores insertion. Key is the string to hash.
+   --  ST_Index corresponds to the subtable index and ST_Offset to
+   --  the offset in this subtable of the inserted Key
+   --  To_Do indicates if :
+   --     -  a reorder of a sub-table or the table is
+   --        necessary or not after the insertion (Reorder_SubTable or
+   --        Reorder_Table)
+   --     -  an item associated with the key can be inserted (Insert_Item)
+   --     -  the key already exists (Nothing_To_Do)
 
    procedure Delete
      (T   : Hash_Table;
