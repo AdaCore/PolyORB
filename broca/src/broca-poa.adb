@@ -120,14 +120,7 @@ package body Broca.POA is
      (Skel : Skeleton)
      return CORBA.Object.Ref
    is
->>>> ORIGINAL broca-poa.adb#17
       use Broca.Sequences;
-      use Broca.Opaque;
-==== THEIRS broca-poa.adb#18
-      use Broca.Sequences;
-==== YOURS broca-poa.adb
-      use Broca.Opaque;
-<<<<
       use Broca.Sequences.Octet_Sequences;
 
       IOR_Encapsulation : aliased Encapsulation
