@@ -226,6 +226,7 @@ cos/ir/corba-repository_root-valuememberdef-impl.adb
 cos/ir/corba-repository_root-valuememberdef-impl.ads
 cos/ir/corba-repository_root-wstringdef-impl.adb
 cos/ir/corba-repository_root-wstringdef-impl.ads
+cos/ir/po_ir.adb
 cos/ir/polyorb-corba_p-ir_tools.adb
 cos/ir/polyorb-corba_p-ir_tools.ads
 cos/naming/File.idl
