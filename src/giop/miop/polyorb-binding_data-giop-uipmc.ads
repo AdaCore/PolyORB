@@ -84,10 +84,6 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
      (Buffer   : access Buffer_Type)
     return  Profile_Access;
 
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String;
-
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access;
-
    function Image (Prof : UIPMC_Profile_Type) return String;
 
    function Get_OA
@@ -118,8 +114,5 @@ private
    type UIPMC_Profile_Factory is new GIOP_Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
-
-   UIPMC_Corbaloc_Prefix : constant Types.String
-     := PolyORB.Types.To_PolyORB_String ("miop:");
 
 end PolyORB.Binding_Data.GIOP.UIPMC;

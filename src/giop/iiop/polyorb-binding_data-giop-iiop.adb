@@ -63,9 +63,14 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   IIOP_Corbaloc_Prefix : constant String := "iiop";
+
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for IIOP profiles.
+
+   function Profile_To_Corbaloc (P : Profile_Access) return String;
+   function Corbaloc_To_Profile (Str : String) return Profile_Access;
 
    ------------------
    -- Bind_Profile --
@@ -251,7 +256,7 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Profile_To_Corbaloc --
    -------------------------
 
-   function Profile_To_Corbaloc (P : Profile_Access) return Types.String is
+   function Profile_To_Corbaloc (P : Profile_Access) return String is
    begin
       pragma Debug (O ("IIOP Profile to corbaloc"));
       return Common_IIOP_DIOP_Profile_To_Corbaloc
@@ -262,24 +267,13 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    -- Corbaloc_To_Profile --
    -------------------------
 
-   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access is
-      Len : constant Integer := Length (IIOP_Corbaloc_Prefix);
-
+   function Corbaloc_To_Profile (Str : String) return Profile_Access is
+      Result : Profile_Access := new IIOP_Profile_Type;
    begin
-      if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = IIOP_Corbaloc_Prefix
-      then
-         declare
-            Result : Profile_Access := new IIOP_Profile_Type;
-
-         begin
-            Common_IIOP_DIOP_Corbaloc_To_Profile
-              (Str, Len, Result, IIOP_Profile_Type (Result.all).Address);
-            return Result;
-         end;
-      end if;
-
-      return null;
+      Common_IIOP_DIOP_Corbaloc_To_Profile
+        (Str, IIOP_Version_Major, IIOP_Version_Minor, Result,
+         IIOP_Profile_Type (Result.all).Address);
+      return Result;
    end Corbaloc_To_Profile;
 
    ------------

@@ -54,14 +54,15 @@ package PolyORB.Binding_Data.GIOP.INET is
    --  tagged components are unmarshalled only if Version_Minor >= 1.
 
    function Common_IIOP_DIOP_Profile_To_Corbaloc
-     (Profile : in Profile_Access;
-      Address : in Sockets.Sock_Addr_Type;
-      Prefix  : in Types.String)
-     return Types.String;
+     (Profile : Profile_Access;
+      Address : Sockets.Sock_Addr_Type;
+      Prefix  : String)
+     return String;
 
    procedure Common_IIOP_DIOP_Corbaloc_To_Profile
-     (Str           : in     Types.String;
-      Prefix_Length : in     Natural;
+     (Str           : String;
+      Default_Major : Types.Octet;
+      Default_Minor : Types.Octet;
       Profile       : in out Profile_Access;
       Address       :    out Sockets.Sock_Addr_Type);
    --  If subprogram found error then it free Profile and assign to
