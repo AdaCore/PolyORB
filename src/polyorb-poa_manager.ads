@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,7 @@
 with PolyORB.Exceptions;
 with PolyORB.Servants;
 with PolyORB.POA_Types;
+
 with PolyORB.Smart_Pointers;
 
 package PolyORB.POA_Manager is
@@ -46,13 +47,11 @@ package PolyORB.POA_Manager is
 
    --  Unit has no proper body: no elab control necessary.
 
-   type State is
-     (HOLDING, ACTIVE, DISCARDING, INACTIVE);
+   type State is (HOLDING, ACTIVE, DISCARDING, INACTIVE);
 
    type Ref is new Smart_Pointers.Ref with private;
 
-   type POAManager is abstract new Smart_Pointers.Entity
-     with private;
+   type POAManager is abstract new Smart_Pointers.Entity with private;
 
    type POAManager_Access is access all POAManager'Class;
 
@@ -83,18 +82,13 @@ package PolyORB.POA_Manager is
       Wait_For_Completion :        Boolean)
      is abstract;
 
-   function Get_State
-     (Self : POAManager)
-     return State
-      is abstract;
+   function Get_State (Self : POAManager) return State is abstract;
 
    -------------------------------------------------------------
    -- Procedures and functions specific to the implementation --
    -------------------------------------------------------------
 
-   procedure Create
-     (M : access POAManager)
-      is abstract;
+   procedure Create (M : access POAManager) is abstract;
 
    procedure Register_POA
      (Self : access POAManager;
@@ -116,9 +110,6 @@ private
 
    type Ref is new Smart_Pointers.Ref with null record;
 
-   type POAManager is abstract new Smart_Pointers.Entity with record
-      Current_State : State;
-      Managed_POAs  : POAList_Access;
-   end record;
+   type POAManager is abstract new Smart_Pointers.Entity with null record;
 
 end PolyORB.POA_Manager;
