@@ -446,8 +446,7 @@ package body Ada_Be.Mappings.CORBA is
 
    function Calling_Stubs_Type
      (Self : access CORBA_Mapping_Type;
-      Node : Idl_Fe.Types.Node_Id)
-     return String
+      Node : Idl_Fe.Types.Node_Id) return String
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -455,10 +454,13 @@ package body Ada_Be.Mappings.CORBA is
    begin
       if Abst (Node) then
          return "Abstract_Ref";
-      elsif Local (Node) then
+
+      elsif Kind (Node) = K_Interface and then Local (Node) then
          return "Local_Ref";
+
       elsif Is_Well_Known_Node (Node) then
          return Fetch_Calling_Stubs_Type_Name (Node);
+
       else
          return "Ref";
       end if;
