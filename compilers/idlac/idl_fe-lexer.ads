@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#4 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#5 $
 
 with Errors;
 
@@ -211,7 +211,7 @@ package Idl_Fe.Lexer is
    --  but with a different case on some letters, or at last EQUAL if it is
    --  the same word.
    --
-   --  CORVA V2.3, 3.2.3
+   --  CORBA V2.3, 3.2.3
    --  When comparing two identifiers to see if they collide :
    --    - Upper- and lower-case letters are treated as the same letter. (...)
    --    - all characters are significant

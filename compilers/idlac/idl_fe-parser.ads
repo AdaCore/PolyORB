@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#7 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#8 $
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -162,7 +162,7 @@ private
    --------------------------
 
    --
-   --  CORVA V3.0, 3.4
+   --  CORBA V3.0, 3.4
    --
 
    --  Rule 2

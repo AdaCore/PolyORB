@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#15 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#16 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -1411,9 +1411,9 @@ package body Idl_Fe.Lexer is
 
    end Lexer_State;
 
-   ----------------
-   -- Preprocess --
-   ----------------
+   ---------------------
+   -- Preprocess_File --
+   ---------------------
 
    procedure Preprocess_File (Filename : in String) is
       use GNAT.Command_Line;
