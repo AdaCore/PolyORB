@@ -2057,9 +2057,11 @@ package body Exp_Dist is
 
       Ras_Type  : constant Entity_Id := Defining_Identifier (N);
       Fat_Type  : constant Entity_Id := Equivalent_Type (Ras_Type);
+      --  Ras_Type is the access to subprogram type while Fat_Type points to
+      --  the record type corresponding to a remote access to subprogram type.
+
       RACW_Type : constant Entity_Id :=
         Underlying_RACW_Type (Ras_Type);
-
       Desig     : constant Entity_Id :=
         Etype (Designated_Type (RACW_Type));
 
@@ -2067,10 +2069,9 @@ package body Exp_Dist is
         Stubs_Table.Get (Desig);
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
-      --  Ras_Type is the access to subprogram type while Fat_Type points to
-      --  the record type corresponding to a remote access to subprogram type.
-
-      Proc : Entity_Id;
+      Proc : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          Chars => Make_TSS_Name (Ras_Type, TSS_RAS_Access));
       Proc_Spec : Node_Id;
 
       --  Formal parameters
@@ -2100,7 +2101,7 @@ package body Exp_Dist is
       --  Common local variables
 
       Proc_Decls        : List_Id;
-      Proc_Statements   : constant List_Id := New_List;
+      Proc_Statements   : List_Id;
 
       Subp_Ref : constant Entity_Id :=
         Make_Defining_Identifier (Loc, Name_R);
@@ -2138,7 +2139,7 @@ package body Exp_Dist is
              Expression => Value);
       end Set_Field;
 
-   --  Start of processing for Add_RAS_Access_Attribute
+   --  Start of processing for Add_RAS_Access_TSS
 
    begin
       Proc_Decls := New_List (
@@ -2183,22 +2184,19 @@ package body Exp_Dist is
       Set_Etype (Stub_Ptr, Stub_Elements.Stub_Type_Access);
       --  Build_Get_Unique_RP_Call needs this information.
 
-      --  Initialize the fields of the record type with the appropriate data
-
       --  Get_RAS_Ref (Pkg, Subp, R);
 
-      Append_To (Proc_Statements,
+      Proc_Statements := New_List (
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Get_RAS_Ref), Loc),
           Parameter_Associations => New_List (
             New_Occurrence_Of (Package_Name, Loc),
             New_Occurrence_Of (Subp_Id, Loc),
-            New_Occurrence_Of (Subp_Ref, Loc))));
+            New_Occurrence_Of (Subp_Ref, Loc))),
 
       --  Get_Local_Address (R, L, A);
 
-      Append_To (Proc_Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Get_Local_Address), Loc),
@@ -2271,10 +2269,6 @@ package body Exp_Dist is
             Unchecked_Convert_To (Fat_Type,
               New_Occurrence_Of (Stub_Ptr, Loc))));
 
-      Proc :=
-        Make_Defining_Identifier (Loc,
-          Chars => Make_TSS_Name (Ras_Type, TSS_RAS_Access));
-
       Proc_Spec :=
         Make_Function_Specification (Loc,
           Defining_Unit_Name       => Proc,
@@ -2323,7 +2317,6 @@ package body Exp_Dist is
               Statements => Proc_Statements)));
 
       Set_TSS (Fat_Type, Proc);
-
    end Add_RAS_Access_TSS;
 
    -----------------------------
@@ -5125,14 +5118,14 @@ package body Exp_Dist is
       New_Identifier : Entity_Id;
 
    begin
-      if New_Name = No_Name
-        and then Nkind (Spec) in N_Subprogram_Specification
-      then
+      if New_Name = No_Name then
+         pragma Assert (Nkind (Spec) = N_Function_Specification
+                or else Nkind (Spec) = N_Procedure_Specification);
+
          Name_For_New_Spec := Chars (Defining_Unit_Name (Spec));
       else
          Name_For_New_Spec := New_Name;
       end if;
-      pragma Assert (Name_For_New_Spec /= No_Name);
 
       if Present (Parameter_Specifications (Spec)) then
 
@@ -5199,26 +5192,29 @@ package body Exp_Dist is
          end loop;
       end if;
 
-      if Nkind (Spec) = N_Function_Specification
-        or else Nkind (Spec) = N_Access_Function_Definition
-      then
-         return
-           Make_Function_Specification (Loc,
-             Defining_Unit_Name       =>
-               Make_Defining_Identifier (Loc,
-                 Chars => Name_For_New_Spec),
-             Parameter_Specifications => Parameters,
-             Subtype_Mark             =>
-               New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
+      case Nkind (Spec) is
 
-      else
-         return
-           Make_Procedure_Specification (Loc,
-             Defining_Unit_Name       =>
-               Make_Defining_Identifier (Loc,
-                 Chars => Name_For_New_Spec),
-             Parameter_Specifications => Parameters);
-      end if;
+         when N_Function_Specification | N_Access_Function_Definition =>
+            return
+              Make_Function_Specification (Loc,
+                Defining_Unit_Name       =>
+                  Make_Defining_Identifier (Loc,
+                    Chars => Name_For_New_Spec),
+                Parameter_Specifications => Parameters,
+                Subtype_Mark             =>
+                  New_Occurrence_Of (Entity (Subtype_Mark (Spec)), Loc));
+
+         when N_Procedure_Specification | N_Access_Procedure_Definition =>
+            return
+              Make_Procedure_Specification (Loc,
+                Defining_Unit_Name       =>
+                  Make_Defining_Identifier (Loc,
+                    Chars => Name_For_New_Spec),
+                Parameter_Specifications => Parameters);
+
+         when others =>
+            raise Program_Error;
+      end case;
 
    end Copy_Specification;
 
