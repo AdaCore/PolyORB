@@ -192,10 +192,10 @@ If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.ibp.fr/pub/gnu/).
 
-GLADE History.
+Glade History.
 --------------
 
-GLADE has been jointly developed by Ada Core Technologies and a
+Glade has been jointly developed by Ada Core Technologies and a
 research team from the Ecole Nat. Sup. de Telecommunication (Paris &
 Brittany). The ENST team comprises:
   Yvon Kermarrec (yvon.kermarrec@enst-bretagne.fr),
@@ -204,10 +204,10 @@ Brittany). The ENST team comprises:
   Samuel Tardieu (sam@inf.enst.fr).
 
 
-GLADE Contributions.
+Glade Contributions.
 --------------------
 
-GLADE filtering is part of a free contribution from
+Glade filtering is part of a free contribution from
 Prof. A. Strohmeier, T. Wolf and J. Kienzle (EPFL, Lausanne,
 Switzerland).
 
