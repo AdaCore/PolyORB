@@ -241,7 +241,7 @@ private
 
    type Basic_RT_Obj_Adapter is new PolyORB.RT_POA.RT_Obj_Adapter
      with record
-        Non_RT_POA : PolyORB.POA.Obj_Adapter_Access;
+        Non_RT_POA : PolyORB.POA_Types.Obj_Adapter_Ref;
 
      end record;
 
