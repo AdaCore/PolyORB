@@ -444,6 +444,13 @@ package body Exp_Dist is
    --  store it in a hash table for later retrieval by
    --  Get_Subprogram_Identifier.
 
+   procedure Reserve_NamingContext_Methods;
+   --  Mark the method names for interface NamingContext as
+   --  already used in the overload table, so no clashes
+   --  occur with user code (RCIs implement the NamingContext
+   --  interface to allow their methods to be accessed as
+   --  objects (RAS)).
+
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
       Package_Spec : Node_Id)
@@ -582,6 +589,7 @@ package body Exp_Dist is
       --  do the correct dispatching.
 
       Overload_Counter_Table.Reset;
+      Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
@@ -2803,6 +2811,7 @@ package body Exp_Dist is
       --  to the right subprogram.
 
       Overload_Counter_Table.Reset;
+      Reserve_NamingContext_Methods;
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
 
@@ -5437,6 +5446,14 @@ package body Exp_Dist is
             List_Containing (Declaration_Node (Full_View)));
       end if;
    end Remote_Types_Tagged_Full_View_Encountered;
+
+   procedure Reserve_NamingContext_Methods is
+      Str_Resolve : constant String := "resolve";
+   begin
+      Name_Buffer (1 .. Str_Resolve'Length) := Str_Resolve;
+      Name_Len := Str_Resolve'Length;
+      Overload_Counter_Table.Set (Name_Find, 1);
+   end Reserve_NamingContext_Methods;
 
    -------------------
    -- Scope_Of_Spec --

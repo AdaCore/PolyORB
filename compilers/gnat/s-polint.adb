@@ -60,16 +60,12 @@ package body System.PolyORB_Interface is
 
    --  During elaboration, each RCI package and each distributed
    --  object type registers a Receiving_Stub entry.
-   --
-   --  The All_Receiving_Stubs list is subsequently traversed
-   --  during PolyORB's initialization, so the proper structures
-   --  are created within the middleware and the naming service.
 
    type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
    type RCI_Subp_Info_Array_Access is
      access all RCI_Subp_Info_Array;
 
-   type Receiving_Stub is record
+   type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
       --  Indicates whetger this info is relative to a
       --  RACW type or a RCI.
@@ -328,8 +324,17 @@ package body System.PolyORB_Interface is
          declare
             EMsg : Execute_Request renames Execute_Request (Msg);
          begin
-            pragma Assert (Self.Handler /= null);
-            Self.Handler.all (EMsg.Req);
+            if Self.Impl_Info.Kind = Pkg_Stub and then
+              PolyORB.Types.To_Standard_String (EMsg.Req.Operation)
+              = "resolve"
+            then
+               null;
+               --  XXX TBD server side of handling NamingContext
+               --  methods for RCIs.
+            else
+               pragma Assert (Self.Handler /= null);
+               Self.Handler.all (EMsg.Req);
+            end if;
 
             return Executed_Request'(Req => EMsg.Req);
          end;
@@ -653,8 +658,7 @@ package body System.PolyORB_Interface is
    begin
       pragma Assert (Name (Name'Last) = ASCII.NUL);
       Receiver.Handler := Handler;
-
-      Append
+      Prepend
         (All_Receiving_Stubs,
          Receiving_Stub'
            (Kind                => Obj_Stub,
@@ -664,6 +668,8 @@ package body System.PolyORB_Interface is
             Version             => null,
             Subp_Info           => null,
             Is_All_Calls_Remote => False));
+      Receiver.Impl_Info := Private_Info_Access
+        (Value (First (All_Receiving_Stubs)));
    end Register_Obj_Receiving_Stub;
 
    ---------------------------------
@@ -681,7 +687,7 @@ package body System.PolyORB_Interface is
       use Receiving_Stub_Lists;
    begin
       Receiver.Handler := Handler;
-      Append
+      Prepend
         (All_Receiving_Stubs,
          Receiving_Stub'
            (Kind                => Pkg_Stub,
@@ -691,6 +697,8 @@ package body System.PolyORB_Interface is
             Subp_Info           => RCI_Subp_Info_Array_Access
               (Subp_Info),
             Is_All_Calls_Remote => Is_All_Calls_Remote));
+      Receiver.Impl_Info := Private_Info_Access
+        (Value (First (All_Receiving_Stubs)));
    end Register_Pkg_Receiving_Stub;
 
    -----------------------

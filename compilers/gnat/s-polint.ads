@@ -75,6 +75,9 @@ package System.PolyORB_Interface is
    type Request_Handler_Access is access
      procedure (R : Request_Access);
 
+   type Private_Info is abstract tagged null record;
+   type Private_Info_Access is access all Private_Info'Class;
+
    type Servant is new PolyORB.Objects.Servant with record
       Handler        : Request_Handler_Access;
       --  The dispatching routine.
@@ -86,6 +89,8 @@ package System.PolyORB_Interface is
       Obj_TypeCode   : PolyORB.Any.TypeCode.Object;
       --  The TypeCode to be used for references to objects
       --  of this type.
+
+      Impl_Info      : Private_Info_Access;
    end record;
    type Servant_Access is access all Servant'Class;
 
