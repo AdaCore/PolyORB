@@ -26,8 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.OS_Lib;               use GNAT.OS_Lib;
 with GNAT.Table;
+
 with XE_Front;    use XE_Front;
 with XE_Flags;    use XE_Flags;
 with XE_IO;       use XE_IO;
@@ -562,7 +564,7 @@ package body XE_List is
 
       function File_Name (N : Natural) return File_Name_Type is
       begin
-         return Id (Parser.Field (N));
+         return Id (Format_Pathname (Parser.Field (N), UNIX));
       end File_Name;
 
    begin
