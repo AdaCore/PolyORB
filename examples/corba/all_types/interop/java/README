@@ -1,19 +1,20 @@
 README for the PolyORB CORBA interoperability tests
 ---------------------------------------------------
 
-$Id: //droopi/main/examples/corba/all_types/interop/java/README#3 $
+$Id: //droopi/main/examples/corba/all_types/interop/java/README#4 $
 
 * Compatibility
 
 PolyORB has been (partially) successfully tested with
  - OpenORB 1.3.0
- - Jonathan 3.0 alpha
+ - Jonathan 3.0 alpha 10
 
 * Compilation
 
-To compile these examples, you need to edit the makefile to setup:
- - Java SDK and JRE;
- - Path to ORB jar files.
+To compile these examples, you need to edit the makefile
+Makefile.<your_ORB> to setup: 
+- Java SDK and JRE; 
+- Path to ORB jar files.
 
 Currently, the sources only compile for Jonathan, compiling for
 OpenORB requires little adaptation of implementation files.
@@ -22,11 +23,8 @@ OpenORB requires little adaptation of implementation files.
 
 Type
 
-make run_dynserver to run the DSI server;
-make run_dynclient to run the DII client;
-make run_server    to run the static server;
-make run_client    to run the static client.
-
+make run_dynserver -f Makefile.<your_ORB> to run the DSI server;
+make run_dynclient -f Makefile.<your_ORB> to run the DII client;
 
 The object IOR is stored in the `IOR` file and read _from this file_
 by clients.
