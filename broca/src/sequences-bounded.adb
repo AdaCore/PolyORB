@@ -51,7 +51,7 @@
 
 with Ada.Unchecked_Deallocation;
 
-package body CORBA.Sequences.Bounded is
+package body Sequences.Bounded is
 
    ------------
    -- Length --
@@ -177,7 +177,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if Right_Length < Max_Length then
 
                   Result.Content (1 .. Max_Length - Right_Length) :=
@@ -194,7 +194,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Left_Length < Max_Length then
 
                   Result.Content (1 .. Left_Length) :=
@@ -208,7 +208,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -252,7 +252,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if Right_Length < Max_Length then
 
                   Result.Content (1 .. Max_Length - Right_Length) :=
@@ -270,7 +270,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Left_Length < Max_Length then
 
                   Result.Content (1 .. Left_Length) :=
@@ -285,7 +285,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -329,7 +329,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if Right_Length < Max_Length then
 
                   Result.Content (1 .. Max_Length - Right_Length) :=
@@ -347,7 +347,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Left_Length < Max_Length then
 
                   Result.Content (1 .. Left_Length) := Left;
@@ -361,7 +361,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -403,17 +403,17 @@ package body CORBA.Sequences.Bounded is
 
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Result.Length := Max_Length;
                Result.Content (1 .. Max_Length - 1) :=
                  Left.Content (2 .. Max_Length);
                Result.Content (Max_Length) := Right;
                return Result;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                return Left;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -454,17 +454,17 @@ package body CORBA.Sequences.Bounded is
 
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                return Right;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Result.Length := Max_Length;
                Result.Content (1) := Left;
                Result.Content (2 .. Max_Length) :=
                  Right.Content (1 .. Max_Length - 1);
                return Result;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -504,7 +504,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if New_Length < Max_Length then
 
                   Source.Content (1 .. Max_Length - New_Length) :=
@@ -521,7 +521,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Source_Length < Max_Length then
 
                   Source.Content (Source_Length + 1 .. Max_Length) :=
@@ -533,7 +533,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -572,7 +572,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if New_Length < Max_Length then
 
                   Source.Content (1 .. Max_Length - New_Length) :=
@@ -591,7 +591,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Source_Length < Max_Length then
 
                   Source.Content (Source_Length + 1 .. Max_Length) :=
@@ -601,7 +601,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -636,15 +636,15 @@ package body CORBA.Sequences.Bounded is
 
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Source.Content (1 .. Max_Length - 1) :=
                  Source.Content (2 .. Max_Length);
                Source.Content (Max_Length) := New_Item;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                null; -- do nothing
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1025,7 +1025,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Result.Content (Max_Length - (Source_Length - High) + 1 ..
                                Max_Length) :=
                  Source.Content (High + 1 .. Source_Length);
@@ -1047,7 +1047,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Result.Content (1 .. Low - 1) :=
                  Source.Content (1 .. Low - 1);
                if Drop_Length > Source_Length - High then
@@ -1064,7 +1064,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1117,7 +1117,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Source.Content (Max_Length - (Source_Length - High) + 1 ..
                                Max_Length) :=
                  Source.Content (High + 1 .. Source_Length);
@@ -1139,7 +1139,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Drop_Length > Source_Length - High then
 
                   Source.Content (Low .. Max_Length) :=
@@ -1154,7 +1154,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1197,7 +1197,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Result.Content
                  (Max_Length - Source_Length + Before .. Max_Length) :=
                  Source.Content (Before .. Source_Length);
@@ -1220,7 +1220,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Result.Content (1 .. Before - 1) :=
                  Source.Content (1 .. Before - 1);
                if Drop_Length > (Source_Length - (Before - 1)) then
@@ -1239,7 +1239,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1284,7 +1284,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Source.Content
                  (Max_Length - Source_Length + Before .. Max_Length) :=
                  Source.Content (Before .. Source_Length);
@@ -1307,7 +1307,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Drop_Length > (Source_Length - (Before - 1)) then
 
                   Source.Content (Before .. Max_Length) :=
@@ -1324,7 +1324,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1387,7 +1387,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if New_Length >= Max_Length then
 
                   Result.Content (1 .. Max_Length) :=
@@ -1406,14 +1406,14 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Result.Content (1 .. Position - 1) :=
                  Source.Content (1 .. Position - 1);
                Result.Content (Position .. Max_Length) :=
                  New_Item (New_Item'First .. New_Item'Last - Drop_Length);
                return Result;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1456,7 +1456,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if New_Length > Max_Length then
 
                   Source.Content (1 .. Max_Length) :=
@@ -1473,11 +1473,11 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Source.Content (Position .. Max_Length) :=
                  New_Item (New_Item'First .. New_Item'Last - Drop_Length);
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1595,7 +1595,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if Npad >= Max_Length then
 
                   Result.Content := (others => Pad);
@@ -1610,13 +1610,13 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Result.Content (1 .. Source_Length) :=
                  Source.Content (1 .. Source_Length);
                Result.Content (Source_Length + 1 .. Max_Length) :=
                  (others => Pad);
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1655,7 +1655,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                if Npad > Max_Length then
 
                   Source.Content := (others => Pad);
@@ -1672,11 +1672,11 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Source.Content (Source_Length + 1 .. Max_Length) :=
                  (others => Pad);
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1719,14 +1719,14 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Result.Content (1 .. Max_Length - Source_Length) :=
                  (others => Pad);
                Result.Content
                  (Max_Length - Source_Length + 1 .. Max_Length) :=
                  Source.Content (1 .. Source_Length);
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Npad >= Max_Length then
 
                   Result.Content := (others => Pad);
@@ -1739,7 +1739,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1780,7 +1780,7 @@ package body CORBA.Sequences.Bounded is
          Source.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                for J in 1 .. Max_Length - Source_Length loop
                   Source.Content (J) := Pad;
                end loop;
@@ -1788,7 +1788,7 @@ package body CORBA.Sequences.Bounded is
                  (Max_Length - Source_Length + 1 .. Max_Length) :=
                  Temp (1 .. Source_Length);
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                if Npad >= Max_Length then
 
                   Source.Content := (others => Pad);
@@ -1801,7 +1801,7 @@ package body CORBA.Sequences.Bounded is
 
                end if;
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -1981,7 +1981,7 @@ package body CORBA.Sequences.Bounded is
          Result.Length := Max_Length;
          case Drop is
 
-            when CORBA.Sequences.Left =>
+            when Sequences.Left =>
                Indx := Max_Length;
                while Indx - Item_Length >= 1 loop
 
@@ -1993,7 +1993,7 @@ package body CORBA.Sequences.Bounded is
                Result.Content (1 .. Indx) :=
                  Item (Item'Last - Indx + 1 .. Item'Last);
 
-            when CORBA.Sequences.Right =>
+            when Sequences.Right =>
                Indx := 1;
                while Indx + Item_Length <= Max_Length + 1 loop
 
@@ -2004,7 +2004,7 @@ package body CORBA.Sequences.Bounded is
                Result.Content (Indx .. Max_Length) :=
                  Item (Item'First .. Item'First + Max_Length - Indx);
 
-            when CORBA.Sequences.Error =>
+            when Sequences.Error =>
                raise Length_Error;
 
          end case;
@@ -2032,5 +2032,5 @@ package body CORBA.Sequences.Bounded is
 
    end Replicate;
 
-end CORBA.Sequences.Bounded;
+end Sequences.Bounded;
 

@@ -1303,19 +1303,19 @@ package body Ada_Be.Idl2Ada is
                  := Bound (S_Node);
             begin
                if B_Node /= No_Node then
-                  Add_With (CU, "CORBA.Sequences.Bounded",
+                  Add_With (CU, "Sequences.Bounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new CORBA.Sequences.Bounded");
+                  PL (CU, "  new Sequences.Bounded");
                   PL (CU, "    ("
                       & Ada_Type_Name (Sequence_Type (S_Node))
                       & ", " & Img (Integer_Value (B_Node))
                       & ");");
                else
-                  Add_With (CU, "CORBA.Sequences.Unbounded",
+                  Add_With (CU, "Sequences.Unbounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new CORBA.Sequences.Unbounded");
+                  PL (CU, "  new Sequences.Unbounded");
                   PL (CU, "    ("
                       & Ada_Type_Name (Sequence_Type (S_Node))
                       & ");");
@@ -1801,6 +1801,7 @@ package body Ada_Be.Idl2Ada is
                          Elab_Control => Elaborate_All);
                Add_With (CU, "Broca.GIOP");
                Add_With (CU, "Broca.Object");
+               Add_With (CU, "Broca.Exceptions");
 
                NL (CU);
                PL (CU, O_Name
