@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with Ada.Unchecked_Deallocation;
 
 with AWS.Resources.Files;

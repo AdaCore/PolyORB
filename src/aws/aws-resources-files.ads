@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with Ada.Streams.Stream_IO;
 
 package AWS.Resources.Files is

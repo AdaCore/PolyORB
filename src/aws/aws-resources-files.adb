@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with AWS.OS_Lib;
 
 package body AWS.Resources.Files is

@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with Ada.Calendar;
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Maps.Constants;

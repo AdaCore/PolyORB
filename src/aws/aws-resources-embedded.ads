@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with Ada.Streams;
 
 package AWS.Resources.Embedded is

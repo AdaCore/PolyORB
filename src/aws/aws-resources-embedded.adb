@@ -30,6 +30,8 @@
 
 --  $Id$
 
+--  @@@ uses ada.calendar
+
 with Table_Of_Strings_And_Static_Values_G;
 
 package body AWS.Resources.Embedded is
