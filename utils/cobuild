@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#4 $
+# $Id: //droopi/main/utils/cobuild#5 $
 
 PROJECT=DROOPI
 
@@ -112,7 +112,7 @@ export CHANGE
   sleep 10
 
   echo "---------- Building"
-  [ -x ./support/reconfig ] && ./support/reconfig
+  #[ -x ./support/reconfig ] && ./support/reconfig
   cd $OUTDIR
   mkdir build > /dev/null 2>&1 || true
   mkdir install > /dev/null 2>&1 || true
