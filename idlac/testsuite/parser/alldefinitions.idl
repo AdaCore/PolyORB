@@ -288,42 +288,210 @@ const fixed<2,3> const72 = 12d;
 typedef long type8;
 struct struct1 { long l; };
 union union1 switch (boolean) { default : long l; };
-enum enum1 { blue, red, green };
+enum enum1 { e1, e2 };
 native native1;
 
 // Rule 43
+typedef long type9;
+
 // Rule 44
+typedef long type10;
+typedef enum enum2 { e3, e4 } type11;
+
 // Rule 45
+typedef long type12;
+typedef string type13;
+module module10 {
+  typedef long type;
+};
+typedef type10 type14;
+typedef module10::type type15;
+typedef ::module10::type type16;
+
 // Rule 46
+typedef float type17;
+typedef long type18;
+typedef char type19;
+typedef wchar type20;
+typedef boolean type21;
+typedef octet type22;
+typedef any type23;
+typedef Object type24;
+typedef ValueBase type25;
+
 // Rule 47
+typedef sequence<long> type26;
+typedef string type27;
+typedef wstring type28;
+typedef fixed<3,4> type29;
+
 // Rule 48
+typedef struct struct2 { long l; } type30;
+typedef union union2 switch (boolean) { default : long l; } type31;
+typedef enum enum3 { e5, e6 } type32;
+
 // Rule 49
+typedef long type33;
+typedef long type34, type35;
+typedef long type36, type37, type38;
+
 // Rule 50
+typedef long type39;
+typedef long type40[5];
+
 // Rule 51
+typedef long type41;
+
 // Rule 52
+typedef long type42[5];
+
 // Rule 53
+typedef float type43;
+typedef double type44;
+typedef long double type45;
+
 // Rule 54
+typedef short type46;
+typedef unsigned short type47;
+
 // Rule 55
+typedef short type48;
+typedef long type49;
+typedef long long type50;
+
 // Rule 56
+typedef short type51;
+
 // Rule 57
+typedef long type52;
+
 // Rule 58
+typedef long long type53;
+
 // Rule 59
+typedef unsigned short type54;
+typedef unsigned long type55;
+typedef unsigned long long type56;
+
 // Rule 60
+typedef unsigned short type57;
+
 // Rule 61
+typedef unsigned long type58;
+
 // Rule 62
+typedef unsigned long long type59;
+
 // Rule 63
+typedef char type60;
+
 // Rule 64
+typedef wchar type61;
+
 // Rule 65
+typedef boolean type62;
+
 // Rule 66
+typedef octet type63;
+
 // Rule 67
+typedef any type64;
+
 // Rule 68
+typedef Object type65;
+
 // Rule 69
+typedef struct struct3 { char c; } type66;
+
 // Rule 70
+struct struct4 { 
+   char c; 
+};
+struct struct5 { 
+   char c; 
+   string s; 
+};
+
 // Rule 71
+struct struct6 { 
+   char c; 
+};
+
 // Rule 72
+union union3 switch (boolean) {
+  case TRUE : short s;
+  default : long l; 
+};
+
 // Rule 73
+union union4 switch (short) { 
+  case 0 : short s;
+  default : long l; 
+};
+union union5 switch (char) { 
+  case 'c' : short s;
+  default : long l; 
+};
+union union6 switch (boolean) { 
+  case TRUE : short s;
+  default : long l; 
+};
+union union7 switch (enum enum4 {e7, e8}) { 
+  case e7 : short s;
+  default : long l; 
+};
+module module11 {
+  typedef boolean type;
+};
+union union8 switch (module11::type) { 
+  case TRUE : short s;
+  default : long l; 
+};
+
 // Rule 74
+union union9 switch (short) { 
+  case 0 : short s;
+};
+union union10 switch (short) { 
+  case 0 : short r;
+  case 1 : short s;
+};
+union union11 switch (short) { 
+  case 0 : short r;
+  case 1 : short s;
+  case 2 : short t;
+};
+union union12 switch (short) { 
+  default : short s;
+};
+union union13 switch (short) { 
+  case 0 : short r;
+  default : short s;
+};
+union union14 switch (short) { 
+  case 0 : short r;
+  case 1 : short s;
+  default : short t;
+};
+union union15 switch (short) { 
+  default : short r;
+  case 1 : short s;
+};
+
 // Rule 75
+union union16 switch (short) { 
+  case 0 : short s;
+};
+union union17 switch (short) { 
+  case 0 :
+  case 1 : short s;
+};
+union union18 switch (short) { 
+  case 0 :
+  case 1 :
+  case 2 : short s;
+};
+
 // Rule 76
 // Rule 77
 // Rule 78

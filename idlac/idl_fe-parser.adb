@@ -3533,6 +3533,8 @@ package body Idl_Fe.Parser is
                                      Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Simple_Type_Spec : enter"));
+      pragma Debug (O ("Parse_Simple_Type_Spec : token is " &
+                       Idl_Token'Image (Get_Token)));
       case Get_Token is
          when T_Float
            | T_Double
@@ -4441,7 +4443,7 @@ package body Idl_Fe.Parser is
                --  The <scoped_name> in the <switch_type_spec> production
                --  must be a previously defined integer, char, boolean
                --  or enum type.
-               case Kind (Value (Res)) is
+               case Kind (S_Type (Res)) is
                   when K_Short
                     | K_Long
                     | K_Long_Long
@@ -4513,12 +4515,6 @@ package body Idl_Fe.Parser is
                        ("default clause already appeared.",
                         Idl_Fe.Errors.Error,
                         Loc);
-                  else
-                     Idl_Fe.Errors.Parser_Error
-                       ("useless clause : default " &
-                        "already appeared.",
-                        Idl_Fe.Errors.Warning,
-                        Loc);
                   end if;
                else
                   if Is_In_List (Labels (Case_Clause), No_Node) then
@@ -4541,8 +4537,11 @@ package body Idl_Fe.Parser is
    procedure Parse_Case (Result : out Node_Id;
                          Switch_Type : in Node_Id;
                          Success : out Boolean) is
+      Default_Label : Boolean := False;
+      Loc : Idl_Fe.Errors.Location;
    begin
       pragma Debug (O ("Parse_Case : enter"));
+      Loc := Get_Token_Location;
       case Get_Token is
          when T_Case
            | T_Default =>
@@ -4577,9 +4576,18 @@ package body Idl_Fe.Parser is
                Go_To_End_Of_Case_Label;
             else
                Set_Labels (Result, Append_Node (Labels (Result), Case_Label));
+               if Case_Label = No_Node then
+                  Default_Label := True;
+               end if;
             end if;
          end;
       end loop;
+      if Default_Label and then Get_Length (Labels (Result)) > 1 then
+         Idl_Fe.Errors.Parser_Error ("Some labels are use less since you " &
+                                     "one of them is the default clause",
+                                     Idl_Fe.Errors.Warning,
+                                     Loc);
+      end if;
       pragma Debug (O ("Parse_case : all label parsed"));
       declare
          Node1 : Node_Id;
@@ -4848,7 +4856,6 @@ package body Idl_Fe.Parser is
       end if;
       Result := Make_Sequence;
       Set_Location (Result, Get_Previous_Token_Location);
-      Next_Token;
       Next_Token;
       declare
          Node : Node_Id;

@@ -286,9 +286,9 @@ package body Idl_Fe.Display_Tree is
 
          when K_Wide_String =>
             if Bound (N) = no_node then
-               Put_Line ("string (unbounded)");
+               Put_Line ("wide string (unbounded)");
             else
-               Put_Line ("string bounds :");
+               Put_Line ("wide string bounds :");
                Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
@@ -343,7 +343,7 @@ package body Idl_Fe.Display_Tree is
 
          when K_Case =>
             Put_Line ("case");
-            Disp_Indent (N_Indent, "labels:");
+            Disp_Indent (N_Indent, "labels (*null* means default) :");
             Disp_List (Labels (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (Case_Type (N), N_Indent + Offset, Full);
@@ -492,8 +492,8 @@ package body Idl_Fe.Display_Tree is
 
          when K_Fixed =>
             Put_Line ("fixed");
-            Disp_Tree (Digits_Nb (N), N_Indent + Offset, Full);
-            Disp_Tree (Scale (N), N_Indent + Offset, Full);
+            Disp_Tree (Digits_Nb (N), N_Indent, Full);
+            Disp_Tree (Scale (N), N_Indent, Full);
 
          when K_Native =>
             Put_Line ("native:");

@@ -1,6 +1,6 @@
 #idl_fe.lexer
-idl_fe.parser
-idl_fe.types
+#idl_fe.parser
+#idl_fe.types
 
 
 
