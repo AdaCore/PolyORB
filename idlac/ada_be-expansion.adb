@@ -1,9 +1,10 @@
-with Idl_Fe.Types; use Idl_Fe.Types;
-with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Types;          use Idl_Fe.Types;
+with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
-with Idl_Fe.Errors; use Idl_Fe.Errors;
+with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
+with Idl_Fe.Errors;         use Idl_Fe.Errors;
 
-with Ada_Be.Identifiers; use Ada_Be.Identifiers;
+with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
 pragma Elaborate (Ada_Be.Debug);
 
