@@ -36,8 +36,22 @@ with XE_Utils;                   use XE_Utils;
 
 package body XE_IO is
 
+   Program_Name : Name_Id := No_Name;
+
    Current_FD : File_Descriptor := Standout;
    --  File descriptor for current output
+
+   ------------------------------
+   -- Local Directory Routines --
+   ------------------------------
+
+   function Is_Directory_Separator (C : Character) return Boolean;
+
+   function Format_Pathname
+     (Path  : File_Name_Type;
+      Style : Path_Style)
+     return  File_Name_Type;
+   --  See GNAT.Directory_Operations.Format_Pathname
 
    ----------------
    -- Temp Files --
@@ -137,12 +151,15 @@ package body XE_IO is
       if Dname = No_Directory_Name then
          return;
       end if;
+
       Get_Name_String (Dname);
+
       if Is_Directory (Name_Buffer (1 .. Name_Len)) then
          return;
       end if;
+
       for J in 2 .. Name_Len loop
-         if Name_Buffer (J) = Directory_Separator
+         if Is_Directory_Separator (Name_Buffer (J))
            and then not Is_Directory (Name_Buffer (1 .. J - 1))
          then
             Make_Dir (Name_Buffer (1 .. J - 1));
@@ -221,15 +238,16 @@ package body XE_IO is
       pragma Assert (D1 /= No_File_Name);
 
       if D2 = No_File_Name then
-         return D1;
+         return Format_Pathname (D1, UNIX);
       end if;
 
       Get_Name_String (D1);
-      if Name_Buffer (Name_Len) /= Dir_Separator then
-         Add_Char_To_Name_Buffer (Dir_Separator);
+      if not Is_Directory_Separator (Name_Buffer (Name_Len)) then
+         Add_Char_To_Name_Buffer ('/');
       end if;
       Get_Name_String_And_Append (D2);
-      return Name_Find;
+
+      return Format_Pathname (Name_Find, UNIX);
    end Dir;
 
    ---------
@@ -245,12 +263,15 @@ package body XE_IO is
 
       Name_Len := 0;
       Add_Str_To_Name_Buffer (D1.all);
+
       if D2 = No_File_Name then
-         return Name_Find;
+         return Format_Pathname (Name_Find, UNIX);
       end if;
-      Add_Char_To_Name_Buffer (Directory_Separator);
+
+      Add_Char_To_Name_Buffer ('/');
       Get_Name_String_And_Append (D2);
-      return Name_Find;
+
+      return Format_Pathname (Name_Find, UNIX);
    end Dir;
 
    ---------------------
@@ -296,6 +317,21 @@ package body XE_IO is
          Next_Column := 1;
       end if;
    end Flush_Buffer;
+
+   ---------------------
+   -- Format_Pathname --
+   ---------------------
+
+   function Format_Pathname
+     (Path  : File_Name_Type;
+      Style : Path_Style)
+     return  File_Name_Type is
+   begin
+      Get_Name_String (Path);
+      Set_Str_To_Name_Buffer
+        (Format_Pathname (Name_Buffer (1 .. Name_Len), Style));
+      return Name_Find;
+   end Format_Pathname;
 
    -----------
    -- Image --
@@ -356,9 +392,19 @@ package body XE_IO is
       return Is_Directory (Name_Buffer (1 .. Name_Len));
    end Is_Directory;
 
-   -----------------------------
+   ----------------------------
+   -- Is_Directory_Separator --
+   ----------------------------
+
+   function Is_Directory_Separator (C : Character) return Boolean is
+   begin
+      return C = Directory_Separator
+        or else C = '/';
+   end Is_Directory_Separator;
+
+   ------------------------
    -- Is_Predefined_File --
-   -----------------------------
+   ------------------------
 
    function Is_Predefined_File (Fname : File_Name_Type) return Boolean is
    begin
@@ -444,6 +490,21 @@ package body XE_IO is
       end if;
       Write_Eol;
    end Message;
+
+   -------------------
+   -- Normalize_CWD --
+   -------------------
+
+   function Normalize_CWD (F : File_Name_Type) return File_Name_Type is
+   begin
+      Get_Name_String (F);
+      if Name_Buffer (1) = '.'
+        and then Name_Buffer (2) = Directory_Separator
+      then
+         return Strip_Directory (F);
+      end if;
+      return F;
+   end Normalize_CWD;
 
    ---------------
    -- Read_File --
@@ -630,6 +691,25 @@ package body XE_IO is
       return Id (Strip_Directory (Get_Name_String (Fname)));
    end Strip_Directory;
 
+   -----------------------
+   -- Strip_Exec_Suffix --
+   -----------------------
+
+   function Strip_Exec_Suffix (Fname : File_Name_Type) return File_Name_Type is
+      Exe : constant String := Get_Executable_Suffix.all;
+      Len : constant Natural := Exe'Length;
+
+   begin
+      Get_Name_String (Fname);
+      if Len > 0
+        and then Name_Len > Len
+        and then Name_Buffer (Name_Len - Len + 1 .. Name_Len) = Exe
+      then
+         Name_Len := Name_Len - Len;
+      end if;
+      return Name_Find;
+   end Strip_Exec_Suffix;
+
    ------------------
    -- Strip_Suffix --
    ------------------
@@ -662,8 +742,8 @@ package body XE_IO is
          return Fname;
       end if;
       Set_Str_To_Name_Buffer (Get_Current_Dir);
-      if Name_Buffer (Name_Len) /= Dir_Separator then
-         Add_Char_To_Name_Buffer (Dir_Separator);
+      if Name_Buffer (Name_Len) /= Directory_Separator then
+         Add_Char_To_Name_Buffer (Directory_Separator);
       end if;
       Get_Name_String_And_Append (Fname);
       return Name_Find;
@@ -760,10 +840,15 @@ package body XE_IO is
    ------------------------
 
    procedure Write_Program_Name is
+      use GNAT.Directory_Operations;
+      use Ada.Command_Line;
+
    begin
-      Write_Str
-        (GNAT.Directory_Operations.Base_Name
-         (Ada.Command_Line.Command_Name));
+      if No (Program_Name) then
+         Program_Name := Strip_Exec_Suffix (Id (Base_Name (Command_Name)));
+      end if;
+
+      Write_Name (Program_Name);
    end Write_Program_Name;
 
    -----------------

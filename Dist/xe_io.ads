@@ -85,6 +85,12 @@ package XE_IO is
    --  Strips the suffix (the last '.' and whatever comes after it) from Name.
    --  Returns the stripped name.
 
+   function Strip_Exec_Suffix (Fname : File_Name_Type) return File_Name_Type;
+   --  When suffix is an executable suffix, strip it
+
+   function Normalize_CWD (F : File_Name_Type) return File_Name_Type;
+   --  Remove any leading CWD (./)
+
    function To_Afile (Fname : File_Name_Type) return File_Name_Type;
    function To_Ofile (Fname : File_Name_Type) return File_Name_Type;
    --  Strip suffix and add resp. ALI suffix or object suffix
