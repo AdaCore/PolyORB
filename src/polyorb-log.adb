@@ -38,6 +38,17 @@ with System;
 
 package body PolyORB.Log is
 
+   procedure Output
+     (Initialized    : in out Boolean;
+      Facility_Level : in out Log_Level;
+      Facility       : access String;
+      Message        : access String;
+      Level          : Log_Level := Debug);
+   --  Common code shared by all instances of Facility_Log:
+   --  * if Initialized is not True, look up log level for Facility,
+   --    cache it in Facility_Level, and set Initialized to True.
+   --  * then in all cases, output Message if Level >= Facility_Level.
+
    -------------------
    -- Get_Log_Level --
    -------------------
@@ -73,19 +84,11 @@ package body PolyORB.Log is
       ------------
 
       procedure Output
-        (Message : in String;
+        (Message : String;
          Level   : Log_Level := Debug) is
       begin
-         if not Initialized then
-            Facility_Level := Get_Log_Level (Facility);
-            if Facility_Level /= Unknown then
-               Initialized := True;
-            end if;
-         end if;
-
-         if Level >= Facility_Level then
-            Internals.Put_Line (Facility & ": " & Message);
-         end if;
+         Log.Output (Initialized, Facility_Level, Facility'Unrestricted_Access,
+           Message'Unrestricted_Access, Level);
       end Output;
 
    end Facility_Log;
@@ -116,5 +119,28 @@ package body PolyORB.Log is
       end Put_Line;
 
    end Internals;
+
+   ------------
+   -- Output --
+   ------------
+
+   procedure Output
+     (Initialized    : in out Boolean;
+      Facility_Level : in out Log_Level;
+      Facility       : access String;
+      Message        : access String;
+      Level          : Log_Level := Debug) is
+   begin
+      if not Initialized then
+         Facility_Level := Get_Log_Level (Facility.all);
+         if Facility_Level /= Unknown then
+            Initialized := True;
+         end if;
+      end if;
+
+      if Level >= Facility_Level then
+         Internals.Put_Line (Facility.all & ": " & Message.all);
+      end if;
+   end Output;
 
 end PolyORB.Log;
