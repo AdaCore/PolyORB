@@ -504,8 +504,12 @@ package body XE_Check is
          Loc : Name_Id;
       begin
          for L in Locations.First .. Locations.Last loop
-            if Locations.Table (L).Major = No_Name then
-               Name_Len := 0;
+
+            --  Locations.Table (L).Major is never set to No_Name
+            --  since it is at least initialized to Get_Def_*_Name.
+
+            Get_Name_String (Locations.Table (L).Major);
+            if Name_Len = 0 then
                Add_Str_To_Name_Buffer ("://");
                if Locations.Table (L).Minor /= No_Name then
                   Get_Name_String_And_Append (Locations.Table (L).Minor);
