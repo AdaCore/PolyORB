@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -44,10 +44,27 @@ package body PolyORB.Utils.UDP_Access_Points is
    use PolyORB.Binding_Data;
    use PolyORB.Sockets;
 
-   procedure Initialize_Socket
-     (API : in out UDP_Access_Point_Info);
+   procedure Initialize_Socket (API : in out UDP_Access_Point_Info);
+   pragma Inline (Initialize_Socket);
    --  Shared part between Initialize_Unicast_Socket and
    --  Initialize_Multicast_Socket.
+
+   -----------------------
+   -- Initialize_Socket --
+   -----------------------
+
+   procedure Initialize_Socket (API : in out UDP_Access_Point_Info) is
+   begin
+      Create_Socket
+        (API.Socket, Family_Inet, Socket_Datagram);
+
+      --  Allow reuse of local addresses
+
+      Set_Socket_Option
+        (API.Socket,
+         Socket_Level,
+         (Reuse_Address, True));
+   end Initialize_Socket;
 
    ---------------------------------
    -- Initialize_Multicast_Socket --
@@ -91,24 +108,6 @@ package body PolyORB.Utils.UDP_Access_Points is
       end if;
    end Initialize_Multicast_Socket;
 
-   -----------------------
-   -- Initialize_Socket --
-   -----------------------
-
-   procedure Initialize_Socket
-     (API : in out UDP_Access_Point_Info)
-   is
-   begin
-      Create_Socket
-        (API.Socket, Family_Inet, Socket_Datagram);
-
-      --  Allow reuse of local addresses.
-      Set_Socket_Option
-        (API.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
-   end Initialize_Socket;
-
    -------------------------------
    -- Initialize_Unicast_Socket --
    -------------------------------
@@ -121,9 +120,11 @@ package body PolyORB.Utils.UDP_Access_Points is
 
    begin
       --  Create Socket
+
       Initialize_Socket (API);
 
       --  Find a free port, search begin at Port_Hint
+
       API.Address.Addr := Any_Inet_Addr;
       API.Address.Port := Port_Hint;
       loop
@@ -145,6 +146,7 @@ package body PolyORB.Utils.UDP_Access_Points is
       end loop;
 
       --  Create Profile Factory
+
       if API.PF /= null then
          Create_Factory
            (API.PF.all,
