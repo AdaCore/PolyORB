@@ -30,6 +30,9 @@
 
 --  $Id$
 
+--  This is a partial implementation of the Representation function
+--  for the SOAP protocol personality of PolyORB.
+
 with PolyORB.Any; use PolyORB.Any;
 
 package SOAP.Types is
@@ -41,8 +44,9 @@ package SOAP.Types is
    --  Returns O value image.
 
    function XML_Image (O : in NamedValue) return String;
-   --  Returns O value encoded for use by the Payload object or Response
-   --  object.
+   --  Returns O value encoded for use by the Payload object
+   --  or Response object. This is notionally the Marshall_From_Any
+   --  representation operation.
 
    function XML_Type (O : in NamedValue) return String;
    --  Returns the XML type for the object.
