@@ -69,6 +69,8 @@ package body System.Garlic.Non_Blocking is
    --  At most 128 file descriptors are available. This is used to limit
    --  the size of entry families.
 
+   Initialized : Natural := 0;
+
    type Desc_Set is array (Descriptors) of Boolean;
 
    protected Asynchronous is
@@ -696,14 +698,12 @@ package body System.Garlic.Non_Blocking is
 
          if R_Mask then
             Rfds := 2 ** Integer (Socket);
-            pragma Debug (D ("Select recv :" & Socket'Img));
          else
             Rfds := 0;
          end if;
 
          if S_Mask then
             Sfds := 2 ** Integer (Socket);
-            pragma Debug (D ("Select send :" & Socket'Img));
          else
             Sfds := 0;
          end if;
@@ -714,7 +714,6 @@ package body System.Garlic.Non_Blocking is
                               Sfds'Unchecked_Access,
                               null,
                               Timeout'Unchecked_Access);
-         pragma Debug (D ("Select return : " & Dummy'Img));
 
          if Dummy = Failure then
             R_Mask := False;
@@ -723,6 +722,10 @@ package body System.Garlic.Non_Blocking is
             R_Mask := Rfds /= 0;
             S_Mask := Sfds /= 0;
          end if;
+         pragma Debug (D ("C_Select (F: " & Socket'Img &
+                          ", R: " & R_Mask'Img &
+                          ", S: " & S_Mask'Img &
+                          ") = "  & Dummy'Img));
       end if;
    end Check;
 
@@ -762,13 +765,16 @@ package body System.Garlic.Non_Blocking is
 
    procedure Initialize is
    begin
-      pragma Debug (D ("Initialize thread blocking IO unit"));
-      if Selection = null then
-         Selection := new Selection_Type;
+      if Initialized = 0 then
+         pragma Debug (D ("Initialize thread blocking IO unit"));
+         if Selection = null then
+            Selection := new Selection_Type;
+         end if;
+         if Sigio_Simulation = null then
+            Sigio_Simulation := new Sigio_Simulation_Type;
+         end if;
       end if;
-      if Sigio_Simulation = null then
-         Sigio_Simulation := new Sigio_Simulation_Type;
-      end if;
+      Initialized := Initialized + 1;
    end Initialize;
 
    --------------------
@@ -855,15 +861,18 @@ package body System.Garlic.Non_Blocking is
 
    procedure Shutdown is
    begin
-      Sigio.Shutdown;
-      for D in Descriptors loop
-         if Asynchronous.Is_Open (D) then
-            Asynchronous.Close (D);
+      Initialized := Initialized - 1;
+      if Initialized = 0 then
+         Sigio.Shutdown;
+         for D in Descriptors loop
+            if Asynchronous.Is_Open (D) then
+               Asynchronous.Close (D);
+            end if;
+         end loop;
+         if Sigio_Simulation /= null then
+            Sigio_Simulation.Shutdown;
+            Selection.Shutdown;
          end if;
-      end loop;
-      if Sigio_Simulation /= null then
-         Sigio_Simulation.Shutdown;
-         Selection.Shutdown;
       end if;
    end Shutdown;
 
