@@ -35,7 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.ORB;
-with PolyORB.Request_QoS;
+with PolyORB.Request_QoS.Priority;
 
 package body PolyORB.Lanes is
 
@@ -287,7 +287,7 @@ package body PolyORB.Lanes is
       Hint_Priority :        External_Priority := Invalid_Priority)
    is
       use PolyORB.Request_QoS;
-      use PolyORB.Request_QoS.QoS_Parameter_Lists;
+      use PolyORB.Request_QoS.Priority;
 
       RJ : PolyORB.ORB.Request_Job renames PolyORB.ORB.Request_Job (J.all);
 
@@ -295,25 +295,27 @@ package body PolyORB.Lanes is
       --  XXX should find a way to do this in O (1)
 
       declare
-         Parameter : constant QoS_Parameter
+         Parameter : constant QoS_Parameter_Access
            := Extract_Request_Parameter (Static_Priority, RJ.Request);
 
       begin
-         if Parameter.Kind /= None then
-            Add_Reply_QoS (RJ.Request, Parameter);
-            --  XXX May be we do that only if Kind = Static_Priority ???
-         end if;
-
-         if Parameter.Kind = Static_Priority then
+         if Parameter /= null then
             pragma Debug (O ("About to queue a job at priority"
-                             & Parameter.OP'Img));
+                             & QoS_Static_Priority (Parameter.all).OP'Img));
 
             for K in L.Set'Range loop
                pragma Debug (O ("Testing lane, priority"
                                 & L.Set (K).all.ORB_Priority'Img));
 
-               if L.Set (K).all.Ext_Priority = Parameter.EP then
+               if L.Set (K).all.Ext_Priority
+                 = QoS_Static_Priority (Parameter.all).EP
+               then
+                  Add_Reply_QoS
+                    (RJ.Request,
+                     Static_Priority,
+                     new QoS_Parameter'Class'(Parameter.all));
                   Queue_Job (L.Set (K), J);
+
                   return;
                end if;
             end loop;

@@ -47,6 +47,8 @@ package body PolyORB.Protocols.GIOP.Common is
    use PolyORB.Log;
    use PolyORB.Representations.CDR;
    use PolyORB.Representations.CDR.Common;
+   use PolyORB.Request_QoS;
+   use PolyORB.Request_QoS.Service_Contexts;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.giop.common");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -525,9 +527,10 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------
 
    procedure Common_Reply_Received
-     (Sess         : access GIOP_Session;
-      Request_Id   : in     Types.Unsigned_Long;
-      Reply_Status : in     Reply_Status_Type)
+     (Sess             : access GIOP_Session;
+      Request_Id       : in     Types.Unsigned_Long;
+      Reply_Status     : in     Reply_Status_Type;
+      Service_Contexts : in     QoS_GIOP_Service_Contexts_Parameter_Access)
    is
       use PolyORB.Any;
       use PolyORB.Components;
@@ -555,6 +558,12 @@ package body PolyORB.Protocols.GIOP.Common is
       if not Success then
          raise GIOP_Error;
       end if;
+
+      Add_Reply_QoS
+        (Current_Req.Req,
+         GIOP_Service_Contexts,
+         QoS_Parameter_Access (Service_Contexts));
+      Rebuild_Reply_QoS_Parameters (Current_Req.Req);
 
       case Reply_Status is
          when No_Exception =>

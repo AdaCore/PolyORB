@@ -26,7 +26,8 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-representations-cdr-giop_1_0.ads \
 	polyorb-representations-cdr-giop_1_1.ads \
 	polyorb-representations-cdr-giop_1_2.ads \
-	polyorb-representations-cdr-giop_utils.ads
+	polyorb-representations-cdr-giop_utils.ads \
+	polyorb-request_qos-code_sets.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-giop_p.ads \

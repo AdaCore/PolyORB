@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . R E Q U E S T _ Q O S . P R I O R I T Y          --
+--        P O L Y O R B . R E Q U E S T _ Q O S . C O D E _ S E T S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -33,28 +33,20 @@
 
 --  $Id$
 
-with PolyORB.Annotations;
-with PolyORB.Tasking.Priorities;
+with PolyORB.GIOP_P.Code_Sets;
 
-package PolyORB.Request_QoS.Priority is
+package PolyORB.Request_QoS.Code_Sets is
 
-   pragma Elaborate_Body;
+   pragma Elaborate_Body (Code_Sets);
 
-   package PTP renames PolyORB.Tasking.Priorities;
-
-   use PolyORB.Annotations;
-   use PolyORB.Tasking.Priorities;
-
-   type QoS_Static_Priority is new QoS_Parameter (Static_Priority) with record
-      OP : PTP.ORB_Priority;
-      EP : PTP.External_Priority;
+   type QoS_GIOP_Code_Sets_Parameter is
+     new QoS_Parameter (GIOP_Code_Sets) with
+   record
+      Char_Data  : PolyORB.GIOP_P.Code_Sets.Code_Set_Id;
+      Wchar_Data : PolyORB.GIOP_P.Code_Sets.Code_Set_Id;
    end record;
 
-   type Thread_Priority_Note is new Note with record
-      Priority : External_Priority;
-   end record;
+   type QoS_GIOP_Code_Sets_Parameter_Access is
+     access all QoS_GIOP_Code_Sets_Parameter;
 
-   Default_Note : constant Thread_Priority_Note
-     := Thread_Priority_Note'(Note with Priority => Invalid_Priority);
-
-end PolyORB.Request_QoS.Priority;
+end PolyORB.Request_QoS.Code_Sets;

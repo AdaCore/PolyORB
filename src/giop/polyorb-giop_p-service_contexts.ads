@@ -36,42 +36,18 @@
 --  $Id$
 
 with PolyORB.Buffers;
-with PolyORB.GIOP_P.Code_Sets;
-with PolyORB.Request_QoS;
-with PolyORB.Types;
+with PolyORB.Request_QoS.Service_Contexts;
 
 package PolyORB.GIOP_P.Service_Contexts is
 
-   type Code_Set_Context is record
-      Char_Data  : Code_Sets.Code_Set_Id;
-      Wchar_Data : Code_Sets.Code_Set_Id;
-   end record;
-
-   type Code_Set_Context_Access is access all Code_Set_Context;
-
-   --  XXX For now, the data used to build the service contexts is
-   --  carried by the QoS parameters associated with a request. This
-   --  may be not sufficient for other service contexts to be
-   --  implemented.
+   package PRSC renames PolyORB.Request_QoS.Service_Contexts;
 
    procedure Marshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type;
-      QoS    : in     PolyORB.Request_QoS.QoS_Parameter_Lists.List;
-      CS     : in     Code_Set_Context_Access);
+      SCP    : in     PRSC.QoS_GIOP_Service_Contexts_Parameter_Access);
 
    procedure Unmarshall_Service_Context_List
      (Buffer : access Buffers.Buffer_Type;
-      QoS    :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List;
-      CS     :    out Code_Set_Context_Access);
-
-   --  List of supported Service Contexts
-
-   CodeSets        : constant PolyORB.Types.Unsigned_Long;
-   RTCorbaPriority : constant PolyORB.Types.Unsigned_Long;
-
-private
-
-   CodeSets        : constant PolyORB.Types.Unsigned_Long := 1;
-   RTCorbaPriority : constant PolyORB.Types.Unsigned_Long := 10;
+      SCP    :    out PRSC.QoS_GIOP_Service_Contexts_Parameter_Access);
 
 end PolyORB.GIOP_P.Service_Contexts;

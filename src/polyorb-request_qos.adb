@@ -49,11 +49,6 @@ package body PolyORB.Request_QoS is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Free is
-     new Ada.Unchecked_Deallocation (QoS_Parameter, QoS_Parameter_Access);
-
-   use PolyORB.Request_QoS.QoS_Parameter_Lists;
-
    Call_Back_Array : array (QoS_Kind'Range) of Fetch_QoS_CB;
 
    type QoS_Note is new Note with record
@@ -63,33 +58,53 @@ package body PolyORB.Request_QoS is
 
    procedure Destroy (N : in out QoS_Note);
 
+   Empty : constant QoS_Parameters := (others => null);
+
    Default_Note : constant QoS_Note := QoS_Note'(Note with Empty, Empty);
 
    -------------------
    -- Add_Reply_QoS --
    -------------------
 
-   procedure Add_Reply_QoS (Req : PR.Request_Access; QoS : QoS_Parameter) is
+   procedure Add_Reply_QoS
+     (Req  : in PR.Request_Access;
+      Kind : in QoS_Kind;
+      QoS  : in QoS_Parameter_Access)
+   is
       Note : QoS_Note;
-      Iter : Iterator;
 
    begin
+      pragma Assert (QoS = null or else QoS.Kind = Kind);
+
       Get_Note (Req.Notepad, Note, Default_Note);
 
-      Iter := First (Note.Reply_QoS);
-      while not Last (Iter) loop
-         if Value (Iter).all.Kind = QoS.Kind then
-            Free (Value (Iter).all);
-            Value (Iter).all := new QoS_Parameter'(QoS);
-            Set_Note (Req.Notepad, Note);
-            return;
-         end if;
-         Next (Iter);
-      end loop;
+      Release (Note.Reply_QoS (Kind));
+      Note.Reply_QoS (Kind) := QoS;
 
-      Append (Note.Reply_QoS, new QoS_Parameter'(QoS));
       Set_Note (Req.Notepad, Note);
    end Add_Reply_QoS;
+
+   ---------------------
+   -- Add_Request_QoS --
+   ---------------------
+
+   procedure Add_Request_QoS
+     (Req  : in PR.Request_Access;
+      Kind : in QoS_Kind;
+      QoS  : in QoS_Parameter_Access)
+   is
+      Note : QoS_Note;
+
+   begin
+      pragma Assert (QoS = null or else QoS.Kind = Kind);
+
+      Get_Note (Req.Notepad, Note, Default_Note);
+
+      Release (Note.Request_QoS (Kind));
+      Note.Request_QoS (Kind) := QoS;
+
+      Set_Note (Req.Notepad, Note);
+   end Add_Request_QoS;
 
    -------------
    -- Destroy --
@@ -97,41 +112,44 @@ package body PolyORB.Request_QoS is
 
    procedure Destroy (N : in out QoS_Note) is
    begin
-      Deallocate (N.Request_QoS);
-      Deallocate (N.Reply_QoS);
-      --  XXX Are we deallocate parameters itself? It is stored by reference,
-      --  not value.
+      for J in QoS_Kind loop
+         Release (N.Request_QoS (J));
+         Release (N.Reply_QoS (J));
+      end loop;
    end Destroy;
+
+   -----------------------------
+   -- Extract_Reply_Parameter --
+   -----------------------------
+
+   function Extract_Reply_Parameter
+     (Kind : in QoS_Kind;
+      Req  : in PolyORB.Requests.Request_Access)
+      return QoS_Parameter_Access
+   is
+      Note : QoS_Note;
+
+   begin
+      Get_Note (Req.Notepad, Note, Default_Note);
+
+      return Note.Reply_QoS (Kind);
+   end Extract_Reply_Parameter;
 
    -------------------------------
    -- Extract_Request_Parameter --
    -------------------------------
 
    function Extract_Request_Parameter
-     (Kind : QoS_Kind;
-      Req  : PolyORB.Requests.Request_Access)
-     return QoS_Parameter
+     (Kind : in QoS_Kind;
+      Req  : in PolyORB.Requests.Request_Access)
+      return QoS_Parameter_Access
    is
-
       Note : QoS_Note;
-      It : Iterator;
 
    begin
       Get_Note (Req.Notepad, Note, Default_Note);
 
-      if Note /= Default_Note then
-         It := First (Note.Request_QoS);
-
-         while not Last (It) loop
-            if Value (It).all.Kind = Kind then
-               return Value (It).all.all;
-            end if;
-
-            Next (It);
-         end loop;
-      end if;
-
-      return QoS_Parameter'(Kind => PolyORB.Request_QoS.None);
+      return Note.Request_QoS (Kind);
    end Extract_Request_Parameter;
 
    ---------------
@@ -139,13 +157,10 @@ package body PolyORB.Request_QoS is
    ---------------
 
    function Fetch_QoS
-     (Ref : PolyORB.References.Ref)
-     return QoS_Parameter_Lists.List
+     (Ref : in PolyORB.References.Ref)
+      return QoS_Parameters
    is
-      use PolyORB.Request_QoS.QoS_Parameter_Lists;
-
-      Result : QoS_Parameter_Lists.List;
-
+      Result      : QoS_Parameters;
       A_Parameter : QoS_Parameter_Access;
    begin
       pragma Debug (O ("Fetch_Qos: enter"));
@@ -157,7 +172,8 @@ package body PolyORB.Request_QoS is
 
             A_Parameter := Call_Back_Array (J) (Ref);
             if A_Parameter /= null then
-               Append (Result, A_Parameter);
+               pragma Assert (J = A_Parameter.Kind);
+               Result (A_Parameter.Kind) := A_Parameter;
             end if;
          end if;
       end loop;
@@ -166,11 +182,57 @@ package body PolyORB.Request_QoS is
       return Result;
    end Fetch_QoS;
 
+   -------------------
+   -- Get_Reply_QoS --
+   -------------------
+
+   function Get_Reply_QoS
+     (Req : in PR.Request_Access)
+      return QoS_Parameters
+   is
+      Note : QoS_Note;
+   begin
+      Get_Note (Req.Notepad, Note, Default_Note);
+      return Note.Reply_QoS;
+   end Get_Reply_QoS;
+
+   ---------------------
+   -- Get_Request_QoS --
+   ---------------------
+
+   function Get_Request_QoS
+     (Req : in PR.Request_Access)
+      return QoS_Parameters
+   is
+      Note : QoS_Note;
+   begin
+      Get_Note (Req.Notepad, Note, Default_Note);
+      return Note.Request_QoS;
+   end Get_Request_QoS;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (QoS : in QoS_Parameters) return String is
+      Result : PolyORB.Types.String := To_PolyORB_String ("");
+
+   begin
+      for J in QoS'Range loop
+         if QoS (J) /= null then
+            Result := Result
+              & To_PolyORB_String (QoS_Kind'Image (QoS (J).Kind) & ",");
+         end if;
+      end loop;
+
+      return To_Standard_String (Result);
+   end Image;
+
    --------------
    -- Register --
    --------------
 
-   procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB) is
+   procedure Register (Kind : in QoS_Kind; CB : in Fetch_QoS_CB) is
    begin
       pragma Debug (O ("Registering call back for "
                        & QoS_Kind'Image (Kind)));
@@ -179,32 +241,55 @@ package body PolyORB.Request_QoS is
       Call_Back_Array (Kind) := CB;
    end Register;
 
-   -----------
-   -- Image --
-   -----------
+   -------------
+   -- Release --
+   -------------
 
-   function Image (QoS : QoS_Parameter_Lists.List) return String is
-      use PolyORB.Request_QoS.QoS_Parameter_Lists;
+   procedure Release (QoS : in out QoS_Parameter_Access) is
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+        (QoS_Parameter'Class, QoS_Parameter_Access);
+   begin
+      if QoS /= null then
+         Release_Contents (QoS);
+         Free (QoS);
+      end if;
+   end Release;
 
-      Result : PolyORB.Types.String := To_PolyORB_String ("");
+   ----------------------
+   -- Release_Contents --
+   ----------------------
 
-      It : Iterator := First (QoS);
+   procedure Release_Contents (QoS : access QoS_Parameter) is
+      pragma Unreferenced (QoS);
+   begin
+      null;
+   end Release_Contents;
+
+   -------------------
+   -- Set_Reply_QoS --
+   -------------------
+
+   procedure Set_Reply_QoS
+     (Req : in PR.Request_Access;
+      QoS : in QoS_Parameters)
+   is
+      Note : QoS_Note;
 
    begin
-      while not Last (It) loop
-         Result := Result
-           & To_PolyORB_String (QoS_Kind'Image (Value (It).all.Kind) & ",");
-         Next (It);
-      end loop;
-
-      return To_Standard_String (Result);
-   end Image;
+      Get_Note (Req.Notepad, Note, Default_Note);
+      Note.Reply_QoS := QoS;
+      Set_Note (Req.Notepad, Note);
+   end Set_Reply_QoS;
 
    ---------------------
    -- Set_Request_QoS --
    ---------------------
 
-   procedure Set_Request_QoS (Req : PR.Request_Access; QoS : QoS_Parameters) is
+   procedure Set_Request_QoS
+     (Req : in PR.Request_Access;
+      QoS : in QoS_Parameters)
+   is
       Note : QoS_Note;
 
    begin
@@ -212,31 +297,5 @@ package body PolyORB.Request_QoS is
       Note.Request_QoS := QoS;
       Set_Note (Req.Notepad, Note);
    end Set_Request_QoS;
-
-   -------------------
-   -- Get_Reply_QoS --
-   -------------------
-
-   function Get_Reply_QoS (Req : PR.Request_Access) return QoS_Parameters is
-      Note : QoS_Note;
-
-   begin
-      Get_Note (Req.Notepad, Note, Default_Note);
-
-      return Note.Reply_QoS;
-   end Get_Reply_QoS;
-
-   ---------------------
-   -- Get_Request_QoS --
-   ---------------------
-
-   function Get_Request_QoS (Req : PR.Request_Access) return QoS_Parameters is
-      Note : QoS_Note;
-
-   begin
-      Get_Note (Req.Notepad, Note, Default_Note);
-
-      return Note.Request_QoS;
-   end Get_Request_QoS;
 
 end PolyORB.Request_QoS;

@@ -39,78 +39,88 @@
 
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Tasking.Priorities;
-with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Request_QoS is
 
-   package PR  renames PolyORB.Requests;
-   package PTP renames PolyORB.Tasking.Priorities;
+   package PR renames PolyORB.Requests;
 
    --  List of supported QoS policies
 
    type QoS_Kind is
-     (None,
-      Static_Priority);
+     (Static_Priority,
+      GIOP_Code_Sets,
+      GIOP_Service_Contexts);
 
    --  Definition of QoS parameters
 
-   type QoS_Parameter (Kind : QoS_Kind) is record
-      case Kind is
-         when None =>
-            null;
+   type QoS_Parameter (Kind : QoS_Kind) is abstract tagged null record;
 
-         when Static_Priority =>
-            OP : PTP.ORB_Priority;
-            EP : PTP.External_Priority;
-            --  XXX these components need to have explicit names
-            --  and documentation.
-      end case;
+   type QoS_Parameter_Access is access all QoS_Parameter'Class;
 
-   end record;
+   procedure Release_Contents (QoS : access QoS_Parameter);
 
-   type QoS_Parameter_Access is access all QoS_Parameter;
+   procedure Release (QoS : in out QoS_Parameter_Access);
 
-   package QoS_Parameter_Lists is
-      new PolyORB.Utils.Chained_Lists (QoS_Parameter_Access);
-
-   subtype QoS_Parameters is QoS_Parameter_Lists.List;
-   --  XXX should rethink this container, what about a static array ?
+   type QoS_Parameters is array (QoS_Kind) of QoS_Parameter_Access;
 
    function Fetch_QoS
-     (Ref : PolyORB.References.Ref)
-     return QoS_Parameter_Lists.List;
+     (Ref : in PolyORB.References.Ref)
+     return QoS_Parameters;
    --  Return the list of the QoS parameters to be applied when
    --  sending a request to the target denoted by Ref. This functions
    --  iterated over the different call-backs.
 
-   function Extract_Request_Parameter
-     (Kind : QoS_Kind;
-      Req  : PR.Request_Access)
-     return QoS_Parameter;
-   --  Return QoS parameter of type Kind from QoS, or a QoS_Parameter
-   --  of kind None if no parameter matches Kind.
+   procedure Set_Request_QoS
+     (Req : in PR.Request_Access;
+      QoS : in QoS_Parameters);
 
-   procedure Set_Request_QoS (Req : PR.Request_Access; QoS : QoS_Parameters);
+   procedure Add_Request_QoS
+     (Req  : in PR.Request_Access;
+      Kind : in QoS_Kind;
+      QoS  : in QoS_Parameter_Access);
+   --  Add (replace if exists) passed QoS to the list of request QoSs.
 
-   function Get_Request_QoS (Req : PR.Request_Access) return QoS_Parameters;
-
-   procedure Add_Reply_QoS (Req : PR.Request_Access; QoS : QoS_Parameter);
+   procedure Add_Reply_QoS
+     (Req  : in PR.Request_Access;
+      Kind : in QoS_Kind;
+      QoS  : in QoS_Parameter_Access);
    --  Add (replace if exists) passed QoS to the list of reply QoSs.
 
-   function Get_Reply_QoS (Req : PR.Request_Access) return QoS_Parameters;
+   function Extract_Request_Parameter
+     (Kind : in QoS_Kind;
+      Req  : in PR.Request_Access)
+     return QoS_Parameter_Access;
+   --  Return QoS parameter of type Kind from request QoS, or a null
+   --  if no parameter matches Kind.
+
+   function Extract_Reply_Parameter
+     (Kind : in QoS_Kind;
+      Req  : in PR.Request_Access)
+     return QoS_Parameter_Access;
+   --  Return QoS parameter of type Kind from reply QoS, or a null
+   --  if no parameter matches Kind.
 
    type Fetch_QoS_CB is access function
-     (Ref : PolyORB.References.Ref)
+     (Ref : in PolyORB.References.Ref)
      return QoS_Parameter_Access;
    --  This call-back function retrieves one QoS_Parameter to be
    --  applied when sending a request to the target denoted by Ref.
    --  Return null if QoS parameter is not applicable for Ref.
 
-   procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB);
+   procedure Register (Kind : in QoS_Kind; CB : in Fetch_QoS_CB);
    --  Register one call-back function attached to QoS_Kind Kind
 
-   function Image (QoS : QoS_Parameter_Lists.List) return String;
+   function Image (QoS : in QoS_Parameters) return String;
    --  For debugging purposes. Return an image of QoS
+
+private
+
+   function Get_Request_QoS (Req : in PR.Request_Access) return QoS_Parameters;
+
+   function Get_Reply_QoS (Req : in PR.Request_Access) return QoS_Parameters;
+
+   procedure Set_Reply_QoS
+     (Req : in PR.Request_Access;
+      QoS : in QoS_Parameters);
 
 end PolyORB.Request_QoS;

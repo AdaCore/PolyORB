@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---         P O L Y O R B . R E Q U E S T _ Q O S . P R I O R I T Y          --
+--                  POLYORB.REQUEST_QOS.SERVICE_CONTEXTS                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -33,28 +33,69 @@
 
 --  $Id$
 
-with PolyORB.Annotations;
-with PolyORB.Tasking.Priorities;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
-package PolyORB.Request_QoS.Priority is
+package PolyORB.Request_QoS.Service_Contexts is
 
-   pragma Elaborate_Body;
+   subtype Service_Id is Types.Unsigned_Long;
 
-   package PTP renames PolyORB.Tasking.Priorities;
+   --  List of supported Service Contexts
 
-   use PolyORB.Annotations;
-   use PolyORB.Tasking.Priorities;
+   CodeSets        : constant Service_Id;
+   RTCorbaPriority : constant Service_Id;
 
-   type QoS_Static_Priority is new QoS_Parameter (Static_Priority) with record
-      OP : PTP.ORB_Priority;
-      EP : PTP.External_Priority;
+   type Encapsulation_Access is
+      access all PolyORB.Representations.CDR.Common.Encapsulation;
+
+   type Service_Context is record
+      Context_Id   : Service_Id;
+      Context_Data : Encapsulation_Access;
    end record;
 
-   type Thread_Priority_Note is new Note with record
-      Priority : External_Priority;
+   package Service_Context_Lists is
+     new Utils.Chained_Lists (Service_Context, "=", True);
+
+   type QoS_GIOP_Service_Contexts_Parameter is
+     new QoS_Parameter (GIOP_Service_Contexts) with
+   record
+      Service_Contexts : Service_Context_Lists.List;
    end record;
 
-   Default_Note : constant Thread_Priority_Note
-     := Thread_Priority_Note'(Note with Priority => Invalid_Priority);
+   type QoS_GIOP_Service_Contexts_Parameter_Access is
+     access all QoS_GIOP_Service_Contexts_Parameter'Class;
 
-end PolyORB.Request_QoS.Priority;
+   procedure Release_Contents
+     (QoS : access QoS_GIOP_Service_Contexts_Parameter);
+
+   procedure Rebuild_Request_Service_Contexts (Req : in PR.Request_Access);
+   --  Reconstruct list of GIOP Service Contexts from the list of
+   --  QoS Parameters.
+
+   procedure Rebuild_Reply_Service_Contexts (Req : in PR.Request_Access);
+   --  Reconstruct list of GIOP Service Contexts from the list of
+   --  QoS Parameters.
+
+   procedure Rebuild_Request_QoS_Parameters (Req : in PR.Request_Access);
+   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
+
+   procedure Rebuild_Reply_QoS_Parameters (Req : in PR.Request_Access);
+   --  Reconstruct list of QoS Parameters from list of GIOP Service Contexts.
+
+   type To_Service_Context is
+      access function (QoS : in QoS_Parameter_Access) return Service_Context;
+
+   type To_QoS_Parameter is
+      access function (SC : in Service_Context) return QoS_Parameter_Access;
+
+   procedure Register (QoS : in QoS_Kind; Converter : in To_Service_Context);
+
+   procedure Register (Id : in Service_Id; Converter : in To_QoS_Parameter);
+
+private
+
+   CodeSets        : constant Service_Id := 1;
+   RTCorbaPriority : constant Service_Id := 10;
+
+end PolyORB.Request_QoS.Service_Contexts;

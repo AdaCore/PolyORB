@@ -33,9 +33,12 @@
 
 with PolyORB.Buffers;
 with PolyORB.References;
+with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Types;
 
 package PolyORB.Protocols.GIOP.Common is
+
+   package PRQSC renames PolyORB.Request_QoS.Service_Contexts;
 
    -----------------------
    -- Generic Marshsall --
@@ -136,9 +139,11 @@ package PolyORB.Protocols.GIOP.Common is
    ---------------------------
 
    procedure Common_Reply_Received
-     (Sess         : access GIOP_Session;
-      Request_Id   : in     Types.Unsigned_Long;
-      Reply_Status : in     Reply_Status_Type);
+     (Sess             : access GIOP_Session;
+      Request_Id       : in     Types.Unsigned_Long;
+      Reply_Status     : in     Reply_Status_Type;
+      Service_Contexts : in
+        PRQSC.QoS_GIOP_Service_Contexts_Parameter_Access);
 
    --  Helper routines to replace Error Kind
 

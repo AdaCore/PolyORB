@@ -102,6 +102,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-requests.ads \
 		polyorb-request_qos.ads \
 		polyorb-request_qos-priority.ads \
+		polyorb-request_qos-service_contexts.ads \
 		polyorb-rt_poa-basic_rt_poa.ads \
 		polyorb-rt_poa_policies-priority_model_policy.ads \
 		polyorb-rt_poa_policies-thread_pool_policy.ads \
