@@ -84,10 +84,6 @@ GNATFLAGS = @GNATFLAGS@
 GNATLS = @GNATLS@
 GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
-ISTHRBIO = @ISTHRBIO@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
-LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
 LINKTEST = @LINKTEST@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
@@ -100,13 +96,7 @@ RM = @RM@
 RSH_CMD = @RSH_CMD@
 RSH_OPT = @RSH_OPT@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
-S_GARTHI_ADB = @S_GARTHI_ADB@
-S_GARTHI_ADS = @S_GARTHI_ADS@
-S_GTPLSP_ADB = @S_GTPLSP_ADB@
-S_GTPLSP_ADS = @S_GTPLSP_ADS@
 TAR = @TAR@
-TCP_INCLUDED = @TCP_INCLUDED@
-TCP_PLATFORM_SOURCES = @TCP_PLATFORM_SOURCES@
 UNZIP = @UNZIP@
 VERSION = @VERSION@
 
@@ -151,7 +141,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
