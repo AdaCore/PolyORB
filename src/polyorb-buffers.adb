@@ -979,7 +979,7 @@ package body PolyORB.Buffers is
       ------------------
 
       procedure Extract_Data
-        (Iovec_Pool :     Iovec_Pool_Type;
+        (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque_Pointer;
          Offset     :     Stream_Element_Offset;
          Size       :     Stream_Element_Count)
@@ -991,17 +991,27 @@ package body PolyORB.Buffers is
          pragma Import (Ada, Vecs);
 
          Offset_Remainder : Storage_Offset := Storage_Offset (Offset);
-         Index            : Natural := Vecs'First;
+         Last_Index       : Positive renames Iovec_Pool.Last_Extract_Iovec;
+         Last_Offset      : Storage_Offset
+                              renames Iovec_Pool.Last_Extract_Iovec_Offset;
       begin
-         while Offset_Remainder >= Vecs (Index).Iov_Len loop
-            Offset_Remainder := Offset_Remainder - Vecs (Index).Iov_Len;
-            Index := Index + 1;
+         if Offset_Remainder < Last_Offset then
+            Last_Index  := 1;
+            Last_Offset := 0;
+         else
+            Offset_Remainder := Offset_Remainder - Last_Offset;
+         end if;
+
+         while Offset_Remainder >= Vecs (Last_Index).Iov_Len loop
+            Offset_Remainder := Offset_Remainder - Vecs (Last_Index).Iov_Len;
+            Last_Offset      := Last_Offset      + Vecs (Last_Index).Iov_Len;
+            Last_Index       := Last_Index       + 1;
          end loop;
 
          pragma Assert (Offset_Remainder + Storage_Offset (Size)
-           <= Vecs (Index).Iov_Len);
+                          <= Vecs (Last_Index).Iov_Len);
 
-         Data := Vecs (Index).Iov_Base + Offset_Remainder;
+         Data := Vecs (Last_Index).Iov_Base + Offset_Remainder;
       end Extract_Data;
 
       ----------
@@ -1056,6 +1066,8 @@ package body PolyORB.Buffers is
 
          Iovec_Pool.Last := 0;
          Iovec_Pool.Length := Iovec_Pool.Prealloc_Array'Length;
+         Iovec_Pool.Last_Extract_Iovec := 1;
+         Iovec_Pool.Last_Extract_Iovec_Offset := 0;
       end Release;
 
       ---------------------

@@ -392,7 +392,7 @@ private
       --  extended towards the end of the chunk if necessary.
 
       procedure Extract_Data
-        (Iovec_Pool :     Iovec_Pool_Type;
+        (Iovec_Pool : in out Iovec_Pool_Type;
          Data       : out Opaque.Opaque_Pointer;
          Offset     :     Ada.Streams.Stream_Element_Offset;
          Size       :     Ada.Streams.Stream_Element_Count);
@@ -477,6 +477,14 @@ private
          --  last allocated element of the chunk. In this
          --  second case, Last_Chunk is set to an access
          --  that designates the storage chunk.
+
+         Last_Extract_Iovec        : Positive := 1;
+         Last_Extract_Iovec_Offset : System.Storage_Elements.Storage_Offset
+                                       := 0;
+         --  In order to speed up data extraction in the usual case,
+         --  the index of the iovec from which data was extracted in
+         --  the last call to Extract_Data, and the offset of the
+         --  first element in that iovec, are cached in these components.
       end record;
 
    end Iovec_Pools;
