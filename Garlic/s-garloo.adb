@@ -6,6 +6,8 @@ with System.Garlic.Heart;
 
 package body System.Garlic.Loopback is
 
+   use type System.RPC.Partition_ID;
+
    ------------
    -- Create --
    ------------
