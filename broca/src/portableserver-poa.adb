@@ -516,12 +516,11 @@ package body Portableserver.POA is
       Reference : CORBA.Object.Ref'Class) return ObjectId
    is
 
-      POA : constant Broca.POA.POA_Object_Ptr
-        := To_POA (Self);
+      POA : constant Broca.POA.POA_Object_Ptr := To_POA (Self);
       Skel : Broca.POA.Skeleton_Ptr;
 
    begin
-      Skel := Broca.POA.To_Skeleton (Reference);
+      Skel := Broca.POA.Ref_To_Skeleton (Reference);
       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;
@@ -539,12 +538,11 @@ package body Portableserver.POA is
      return Servant
    is
 
-      POA  : constant Broca.POA.POA_Object_Ptr
-        := To_POA (Self);
+      POA  : constant Broca.POA.POA_Object_Ptr := To_POA (Self);
       Skel : Broca.POA.Skeleton_Ptr;
 
    begin
-      Skel := Broca.POA.To_Skeleton (Reference);
+      Skel := Broca.POA.Ref_To_Skeleton (Reference);
       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;

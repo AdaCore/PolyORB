@@ -117,15 +117,52 @@ package Broca.Server is
    procedure Unregister_POA
      (POA : Broca.POA.Ref);
 
-   --  This procedure builds an IOR and returns a properly
-   --  externalised object reference.
-   --  KEY is only the key for the POA, not the full object key.
+   --  Coding of object key:
+   --  An object key is a sequence of octets, whose length LENGTH is known.
+   --   0 ..  3: boot time or 0 if persistent POA.
+   --   4 ..  7: poa index in all_POAs
+   --   8 .. 11: date of the entry
+   --  12 .. 15: N_POA
+   --  (*) number of POAs in the POA path name, can be 0 if POA is
+   --  TRANSIENT.  The POA path name starts after the RootPOA, ie for
+   --  an object of the RootPOA, its path name is empty.
+   --  alignment on long boundary.
+   --  for 1 .. N_POA
+   --     0 .. X: poa name, as a CORBA string
+   --  ? .. ?: key given by the POA, the length is known.
+
+   --  Marshall procedure are called only by Build_IOR.
+   --  The POA must be locked to prevent any destruction.
+
+   procedure Marshall
+     (Buffer : access Buffers.Buffer_Type;
+      POA    : in Broca.POA.Ref);
+
+   --  Unmarshall an object_key. POA is the last POA that was reached.
+   --  It can be different from the POA of the object, if a adapter
+   --  activator has to be called but the state of the POA associated
+   --  with the activator was not active. If POA is an intermediate
+   --  POA, then KEY.POS is 0.
+   --
+   --  After the call, POA, if not null, has been link_lock.lock_R.
+   --  POA_STATE is the state of the POA.
+
+   procedure Unmarshall
+     (Buffer    : access Buffers.Buffer_Type;
+      POA       : out Broca.POA.Ref;
+      POA_State : out Broca.POA.Processing_State_Type);
+
    function Build_IOR
      (Type_Id : CORBA.RepositoryId;
-      POA : Broca.POA.Ref;
-      Key : Broca.Buffers.Encapsulation)
+      POA     : Broca.POA.Ref;
+      Key     : Broca.Buffers.Encapsulation)
      return CORBA.Object.Ref;
+   --  This procedure builds an IOR and returns a properly
+   --  externalised object reference. KEY is only the key for the
+   --  POA, not the full object key.
 
 private
+
    type Server_Id_Type is new Natural;
+
 end Broca.Server;

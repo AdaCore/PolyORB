@@ -86,6 +86,10 @@ package body Broca.Server_Tools is
         (Root_POA, CORBA.Object.Ref (R));
    end Reference_To_Servant;
 
+   --------------------------
+   -- Servant_To_Reference --
+   --------------------------
+
    procedure Servant_To_Reference
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class) renames Initiate_Servant;

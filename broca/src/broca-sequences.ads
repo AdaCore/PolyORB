@@ -53,6 +53,10 @@ package Broca.Sequences is
      (Data : CORBA_Octet_Array)
      return Octet_Array;
 
+   function To_Octet_Array
+     (Data : Octet_Sequence)
+     return Octet_Array;
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access Octet_Sequences.Sequence);

@@ -277,6 +277,10 @@ package body Broca.GIOP is
    procedure Free is new
      Ada.Unchecked_Deallocation (Broca.Opaque.Octet_Array, Octet_Array_Ptr);
 
+   -------------
+   -- Release --
+   -------------
+
    procedure Release (H : in out Request_Handler) is
    begin
       Release (H.Buffer);
@@ -487,8 +491,11 @@ package body Broca.GIOP is
 
          Release (Handler);
       end;
-
    end Send_Request_Send;
+
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -497,12 +504,20 @@ package body Broca.GIOP is
       Marshall (Buffer, MsgType_To_Octet (Value));
    end Marshall;
 
+   --------------
+   -- Marshall --
+   --------------
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Value  : in ReplyStatusType) is
    begin
       Marshall (Buffer, ReplyStatusType_To_Unsigned_Long (Value));
    end Marshall;
+
+   --------------
+   -- Marshall --
+   --------------
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -511,6 +526,10 @@ package body Broca.GIOP is
       Marshall (Buffer, LocateStatusType_To_Unsigned_Long (Value));
    end Marshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
    function Unmarshall
      (Buffer : access Buffer_Type)
      return MsgType is
@@ -518,12 +537,20 @@ package body Broca.GIOP is
       return Octet_To_MsgType (Unmarshall (Buffer));
    end Unmarshall;
 
+   ----------------
+   -- Unmarshall --
+   ----------------
+
    function Unmarshall
      (Buffer : access Buffer_Type)
      return ReplyStatusType is
    begin
       return Unsigned_Long_To_ReplyStatusType (Unmarshall (Buffer));
    end Unmarshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
 
    function Unmarshall
      (Buffer : access Buffer_Type)

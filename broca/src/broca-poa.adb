@@ -31,9 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.Sequences;
 with Broca.Exceptions;
+with Broca.Object;
 with Broca.Refs;
-with Broca.CDR;
+with Broca.IOP;
+with Broca.CDR;     use Broca.CDR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Server;
 
@@ -64,48 +67,8 @@ package body Broca.POA is
      (Buffer : access Buffer_Type;
       Value  : Skeleton) is
    begin
-      Broca.CDR.Marshall
-        (Buffer,
-         Skeleton_To_Ref (Value));
+      Broca.CDR.Marshall (Buffer, Skeleton_To_Ref (Value));
    end Marshall;
-
-   -----------------
-   -- To_Skeleton --
-   -----------------
-
-   --  XXX Rename to Skeleton_Of and make it
-   --  consistent with Object_Of.
-
-   function To_Skeleton
-     (Ref : CORBA.Object.Ref'Class)
-     return Skeleton_Ptr
-   is
-      use CORBA.Impl;
-
-      Res : constant Object_Ptr
-        := CORBA.Object.Object_Of (Ref);
-
-   begin
-      --  FIXME: Creating uncontrolled reference to
-      --    a reference-counted object.
-      if Res = null or else Res.all not in Skeleton'Class then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-
-      return Skeleton_Ptr (Res);
-   end To_Skeleton;
-
-   ---------------------
-   -- Skeleton_To_Ref --
-   ---------------------
-
-   function Skeleton_To_Ref
-     (Skel : Skeleton)
-     return CORBA.Object.Ref is
-   begin
-      return Broca.Server.Build_IOR
-        (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
-   end Skeleton_To_Ref;
 
    -------------------
    -- POA_Object_Of --
@@ -116,6 +79,62 @@ package body Broca.POA is
       return POA_Object_Ptr (Object_Of (The_Ref));
    end POA_Object_Of;
 
+   ---------------------
+   -- Ref_To_Skeleton --
+   ---------------------
+
+   function Ref_To_Skeleton
+     (Ref : CORBA.Object.Ref'Class)
+     return Skeleton_Ptr
+   is
+      use CORBA.Impl;
+
+      Obj : constant Object_Ptr := CORBA.Object.Object_Of (Ref);
+
+   begin
+      --  FIXME: Creating uncontrolled reference to
+      --    a reference-counted object.
+      if Obj = null then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      if Obj.all in Skeleton'Class then
+         return Skeleton_Ptr (Obj);
+      end if;
+
+      if Obj.all not in Object.Object_Type'Class then
+         Broca.Exceptions.Raise_Bad_Param;
+      end if;
+
+      declare
+         use Broca.IOP;
+         use Broca.Sequences;
+         use Broca.Server;
+         use Broca.Sequences.Octet_Sequences;
+
+         X : Object.Object_Ptr := Object.Object_Ptr (Obj);
+         P : Profile_Ptr := X.Profiles (X.Profiles'First);
+         E : aliased Encapsulation := To_Octet_Array (Get_Object_Key (P.all));
+
+         Key       : aliased Buffer_Type;
+         POA       : POA_Object_Ptr;
+         POA_Ref   : Broca.POA.Ref;
+         POA_State : Processing_State_Type;
+
+      begin
+         Decapsulate (E'Access, Key'Access);
+         Server.Unmarshall (Key'Access, POA_Ref, POA_State);
+         POA := POA_Object_Of (POA_Ref);
+
+         declare
+            E : aliased Encapsulation := Unmarshall (Key'Access);
+
+         begin
+            return Key_To_Skeleton (POA, E'Unchecked_Access);
+         end;
+      end;
+   end Ref_To_Skeleton;
+
    ---------
    -- Set --
    ---------
@@ -125,8 +144,18 @@ package body Broca.POA is
       The_Object : POA_Object_Ptr) is
    begin
       Broca.Refs.Set
-        (Broca.Refs.Ref (The_Ref),
-         Broca.Refs.Ref_Ptr (The_Object));
+        (Broca.Refs.Ref (The_Ref), Broca.Refs.Ref_Ptr (The_Object));
    end Set;
+
+   ---------------------
+   -- Skeleton_To_Ref --
+   ---------------------
+
+   function Skeleton_To_Ref
+     (Skel : Skeleton)
+     return CORBA.Object.Ref is
+   begin
+      return Server.Build_IOR (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
+   end Skeleton_To_Ref;
 
 end Broca.POA;

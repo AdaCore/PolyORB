@@ -475,9 +475,15 @@ package body Broca.RootPOA is
      (Self : access Object; Oid : ObjectId)
      return Skeleton_Ptr;
 
+   function Key_To_Skeleton
+     (Self : access Object;
+      Key  : Object_Key_Ptr)
+     return Skeleton_Ptr;
+
    function Slot_Index_To_ObjectId
      (Slot : Slot_Index)
      return ObjectId;
+
    function ObjectId_To_Slot_Index
      (Oid : ObjectId)
      return Slot_Index;
@@ -818,7 +824,7 @@ package body Broca.RootPOA is
       --  The servant is now active
       if Self.Servant_Policy = RETAIN then
          Self.Object_Map (Slot).Skeleton := Obj;
-         Self.Object_Map (Slot).State := Active;
+         Self.Object_Map (Slot).State    := Active;
          Build_Key_For_Slot (Key'Access, Self, Slot);
       else
          Build_Key_For_ObjectId (Key'Access, Oid);
@@ -1010,6 +1016,33 @@ package body Broca.RootPOA is
 
       return Self.Object_Map (Slot).Skeleton;
    end Id_To_Skeleton;
+
+   function Key_To_Skeleton
+     (Self : access Object;
+      Key  : Object_Key_Ptr)
+     return Skeleton_Ptr
+   is
+      use Broca.Opaque;
+
+      Slot : Slot_Index;
+
+   begin
+      if Self.Object_Map /= null then
+         for I in Self.Object_Map'Range loop
+            if Self.Object_Map (I).Skeleton /= null
+              and then Self.Object_Map (I).Skeleton.Object_Key.all = Key.all
+            then
+               Slot := I;
+               exit;
+            end if;
+         end loop;
+      end if;
+      if Slot = Bad_Slot then
+         raise PortableServer.POA.ObjectNotActive;
+      end if;
+
+      return Self.Object_Map (Slot).Skeleton;
+   end Key_To_Skeleton;
 
    subtype Slot_Index_Data is
      IDL_SEQUENCE_Octet.Element_Array
@@ -1217,6 +1250,8 @@ package body Broca.RootPOA is
       --  See 9.3.7
       Self.Requests_Lock.Lock_R;
       pragma Debug (O ("GIOP_Invoke: Got Read lock on request."));
+      pragma Debug (O ("GIOP_Invoke: Servant Policy is "
+                       & Self.Servant_Policy'Img));
 
       Decapsulate (Key, Key_Buffer'Access);
 
