@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -323,7 +323,20 @@ adabe_operation::produce_adb (dep_list & with,
       "               raise Program_Error;\n";
     }
   body +=
-    "            when Broca.Giop.Sr_User_Exception =>\n"
+    "            when Broca.Giop.Sr_User_Exception =>\n";
+  UTL_ExceptlistActiveIterator except_iterator (exceptions ());
+
+  // check all the exceptions which can be raised
+  while (!except_iterator.is_done ())
+    {
+      AST_Decl *d = except_iterator.item ();
+
+      // call the produce_proxy_adb of the exception (not virtual)
+      // tmp will contain the production for the exception
+      dynamic_cast<adabe_exception *>(d)->produce_proxy_adb (with, body);
+      except_iterator.next ();
+    }
+  body +=
     "               raise Program_Error;\n"
     "            when Broca.Giop.Sr_Forward =>\n"
     "               null;\n"
@@ -1053,22 +1066,27 @@ adabe_operation::produce_impl_adb (dep_list & with,
 #endif
 
   // If there is one or several possible exceptions.
-  if (user_exceptions) {
-    body += "\n         exception\n";
-    while (!except_iterator.is_done ())
-      {
-	string tmp = "";
-	AST_Decl *d = except_iterator.item ();
-
-	// Dispatch them and catch them at the end.
-	dynamic_cast<adabe_exception *>(d)->produce_skel_adb (with, tmp);
-	body += tmp;
-	except_iterator.next ();
-      }
-  }
+  if (user_exceptions)
+    {
+      body +=
+	"\n"
+	"         exception\n";
+      while (!except_iterator.is_done ())
+	{
+	  string tmp = "";
+	  AST_Decl *d = except_iterator.item ();
+	  
+	  // Dispatch them and catch them at the end.
+	  dynamic_cast<adabe_exception *>(d)->produce_impl_adb (with, tmp);
+	  body += tmp;
+	  except_iterator.next ();
+	}
+    }
     
-  body += "         end;\n";
-  body += "      end if;\n\n";
+  body +=
+    "         end;\n"
+    "      end if;\n"
+    "\n";
 }
 
 /*

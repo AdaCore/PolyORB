@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -46,16 +46,16 @@ adabe_exception::produce_ads (dep_list & with,
 			      string   & previous)
 {
   // Add two packages needed to handle exceptions.
-  with.add ("AdaBroker.Exceptions");
   with.add ("Ada.Exceptions");
 
   // first is used to determine whether an exception has members or not.
   bool first = true;
     
   // Beginning of the exception declaration.
-  body += "   " + get_ada_local_name () + " : exception;\n\n";
-  body += "   type " + get_ada_local_name () +"_Members is\n";
-  body += "      new CORBA.IDL_Exception_Members with ";
+  body +=
+    "   " + get_ada_local_name () + " : exception;\n\n"
+    "   type " + get_ada_local_name () + "_Members is new "
+    "CORBA.IDL_Exception_Members with\n";
   
   // Map the members of this exception.
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
@@ -70,7 +70,7 @@ adabe_exception::produce_ads (dep_list & with,
 	    if (first)
 	      {
 		// Use "record" for the first member.
-		body += "record\n";
+		body += "   record\n";
 		first = false;
 	      }
 	    // Like structures, call the produce ads on the field.
@@ -97,16 +97,18 @@ adabe_exception::produce_ads (dep_list & with,
     }
 
   // An exception needs a RepositoryID that designate it.
-  body += "   " + get_ada_local_name ();
-  body += "_Repository_Id : CORBA.String\n";
-  body += "      := CORBA.To_CORBA_String (\"";
-  body += repositoryID ();
-  body += "\");\n\n";
+  //   body += "   " + get_ada_local_name ();
+  //   body += "_Repository_Id : CORBA.String\n";
+  //   body += "      := CORBA.To_CORBA_String (\"";
+  //   body += repositoryID ();
+  //   body += "\");\n\n";
 
   // We need a function to get the members of an exception.
-  body += "   procedure Get_Members\n";
-  body += "     (From : in Ada.Exceptions.Exception_Occurrence;\n";
-  body += "      To   : out " + get_ada_local_name () + "_Members);\n\n";
+  body += 
+    "   procedure Get_Members\n"
+    "     (From : in Ada.Exceptions.Exception_Occurrence;\n"
+    "      To   : out " + get_ada_local_name () + "_Members);\n"
+    "\n";
 }
 
 //////////////////////////////////////////////////////////////////
@@ -118,22 +120,28 @@ adabe_exception::produce_adb (dep_list & with,
 			      string   & body,
 			      string   & previous)
 {
+  with.add ("Broca.Exceptions");
+
   // The exception has only one operation to map: Get_Members.
-  body += "   procedure Get_Members\n";
-  body += "     (From : in Ada.Exceptions.Exception_Occurrence;\n";
-  body += "      To   : out " + get_ada_local_name () + "_Members) is\n";
-  body += "   begin\n";
-  body += "      To := " + get_ada_local_name () + "_Members\n";
-  body += "         (AdaBroker.Exceptions.Get_Members (From));\n";
-  body += "   end Get_Members;\n\n";
+  body +=
+    "   procedure Get_Members\n"
+    "     (From : in Ada.Exceptions.Exception_Occurrence;\n"
+    "      To   : out " + get_ada_local_name () + "_Members) is\n"
+    "   begin\n"
+    "      Broca.Exceptions.User_Get_Members (From, To);\n"
+//     "      To := " + get_ada_local_name () + "_Members\n"
+//     "         (Broca.Exceptions.User_Get_Members (From));\n"
+    "   end Get_Members;\n"
+    "\n";
 }
 
 //////////////////////////////////////////////////////////////////
-////////////////       produce_skel_adb       ////////////////////
+////////////////       produce_impl_adb       ////////////////////
 //////////////////////////////////////////////////////////////////
-
+//  This method is called by adabe_operation::produce_impl_adb to create
+//  the code to transform a raised Ada exception into a marshalled exception.
 void
-adabe_exception::produce_skel_adb (dep_list & with,
+adabe_exception::produce_impl_adb (dep_list & with,
 				   string   & body)
 {
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
@@ -149,54 +157,66 @@ adabe_exception::produce_skel_adb (dep_list & with,
   with.add (pack);
 
   // We now map the interface
-  body += "            when E : ";
-  body += get_ada_local_name ();
-  body += " =>\n";
-  body += "               declare\n";
-  body += "                  RepoID : CORBA.String\n";
-  body += "                     := ";
-  body += get_ada_local_name ();
-  body += "_Repository_Id;\n";
-  body += "                  Size   : CORBA.Unsigned_Long;\n";
-
+  body += 
+    "            when E : " +  get_ada_local_name () + " =>\n"
+    "               declare\n"
+    "                  use " + pack + ".Stream;\n"
+    "                  RepoID : String\n"
+    "                     := \"" + repositoryID () + "\";\n";
   
-  if (has_member) {
-    // Declare members.
-    body += "                  Member : ";
-    body += get_ada_local_name ();
-    body += "_Members;\n";
-  }
-  body += "               begin\n";
-  if (has_member) {
-    body += "                  ";
-    body += pack;
-    body += ".Get_Members (E, Member);\n";
-  }
-  body += "                  -- Compute size of reply\n";
-  body += "                  Size := AdaBroker.GIOP_S.Reply_Header_Size;\n";
-  body += "                  Size := Align_Size (RepoID, Size);\n";
-  if (has_member) {
-    // If there are members, add them when computing the size
-    body += "                  Size := Align_Size (Member, Size);\n";
-  }  
-  body += "                  -- Initialize reply\n";
-  body += "                  AdaBroker.GIOP_S.Initialize_Reply\n";
-  body += "                    (Orls,\n";
-  body += "                     AdaBroker.GIOP.User_Exception,\n";
-  body += "                     Size);\n";
+  if (has_member)
+    {
+      // Declare members.
+      body += 
+	"                  Member : " + get_ada_local_name () + "_Members;\n";
+    }
+  body += 
+    "               begin\n";
+  if (has_member)
+    {
+      body += 
+	"                  " + pack + ".Get_Members (E, Member);\n";
+    }
+  body += 
+    "                  --  Compute size of reply\n"
+    "                  Stream.Pos := Broca.Giop.Message_Header_Size;\n"
+    "                  --  service context\n"
+    "                  Marshall_Size_Unsigned_Long (Stream);\n"
+    "                  --  request id\n"
+    "                  Marshall_Size_Unsigned_Long (Stream);\n"
+    "                  --  reply status\n"
+    "                  Marshall_Size_Unsigned_Long (Stream);\n"
 
-  body += "                  -- Marshall exception\n";
-
-  body += "                  Marshall (RepoID, Orls);\n";
-  if (has_member) {
-    body += "                  Marshall (Member, Orls);\n";
-  }
-  body += "                  -- Inform ORB\n";
-  body += "                  AdaBroker.GIOP_S.Reply_Completed (Orls);\n";
-
-  body += "                  Dispatch_Returns := True;\n";
-  body += "                  return;\n";
-  body += "               end;\n\n";
+    "                  Marshall_Size (Stream, RepoID);\n";
+  if (has_member)
+    {
+      // If there are members, add them when computing the size
+      body += "                  Marshall_Size (Stream, Member);\n";
+    }  
+  body +=
+    "                  Reply_Size :=\n"
+    "                     Stream.Pos - Broca.Giop.Message_Header_Size;\n"
+    "                  Increase_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"
+    "\n"
+    "                  Broca.Giop.Create_Giop_Header\n"
+    "                     (Stream, Broca.Giop.Reply,\n"
+    "                      CORBA.Unsigned_Long (Reply_Size));\n"
+    "\n"
+    "                  --  service context\n"
+    "                  Marshall (Stream, CORBA.Unsigned_Long (0));\n"
+    "                  --  request id\n"
+    "                  Marshall (Stream, Request_Id);\n"
+    "                  --  reply status\n"
+    "                  Marshall (Stream, Broca.Giop.User_Exception);\n"
+    "\n"
+    "                  --  Marshall exception\n"
+    "                  Marshall (Stream, RepoID);\n";
+  if (has_member)
+    body +=
+      "                  Marshall (Stream, Member);\n";
+  body += 
+    "                  return;\n"
+    "               end;\n";
 }
 
 ////////////////////////////////////////////////////////////////
@@ -204,44 +224,22 @@ adabe_exception::produce_skel_adb (dep_list & with,
 ////////////////////////////////////////////////////////////////
 void
 adabe_exception::produce_proxy_adb (dep_list & with,
-				     string   & body)
+				    string   & body)
 {
-  UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
-  bool has_member = !activator.is_done ();
-
   string full_name = get_ada_full_name ();
   string pack = full_name.substr (0, full_name.find_last_of ('.'));
 
+  with.add (pack + ".Stream");
+
   // Prepare the dispatch of the exception.
-  with.add (pack);
-  body += "      if RepoID = \"";
+  body +=
+    "               if Marshall_Compare\n"
+    "                   (Handler.Buffer, \"";
   body += repositoryID ();
-  body += "\" then \n";
-  body += "         declare\n";
-  body += "            Member : ";
-  body += get_ada_local_name ();
-  body += "_Members;\n";
-  body += "         begin\n";
-  if (has_member)
-    {
-      // We need to raise a special exception : it can't be mapped
-      // directly to an Ada exception.
-      body += "            Unmarshall (Member, GIOP_Client);\n";
-      body += "            AdaBroker.Exceptions.Raise_CORBA_Exception\n";
-      body += "               (";
-      body += get_ada_local_name ();
-      body += "'Identity,\n";
-      body += "                Member);\n";
-    }
-  else
-    {
-      // This time, we can simply raise the exception.
-      body += "            raise ";
-      body += get_ada_local_name ();
-      body += ";\n";
-    }
-  body += "         end;\n";
-  body += "      end if;\n\n";
+  body += "\")\n"
+    "               then\n"
+    "                  " + pack + ".Stream.Unmarshall_And_Raise_" + get_ada_local_name () + " (Handler.Buffer);\n"
+    "               end if;\n";
 }
 
 ////////////////////////////////////////////////////////////////
@@ -253,11 +251,26 @@ adabe_exception::produce_stream_ads (dep_list & with,
 				     string   & body,
 				     string   & previous)
 {
+  string full_name = get_ada_full_name ();
+  string pack = full_name.substr (0, full_name.find_last_of ('.'));
+
+  with.add (pack);
+  with.add ("Broca.Marshalling");
+  with.add ("Broca.Types");
+
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
   // We must define marshall, unmarshall and align size only if
   // there's an argument in the scope of the exception.
   if (!activator.is_done ())
-    gen_marshalling_declarations (body, get_ada_local_name ());
+    gen_marshalling_declarations (body, get_ada_local_name () + "_Members");
+
+  body +=
+    "   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
+    "      (Stream : in out Broca.Types.Buffer_Descriptor);\n"
+    "\n"
+    "   procedure Raise_" + get_ada_local_name () + "\n"
+    "      (Bod : " + get_ada_local_name () + "_Members);\n";
+
   set_already_defined ();
 }
 
@@ -282,7 +295,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // declaration of the function marshall.
       marshall += 
 	"   procedure Marshall\n"
-	"     (Stream : in out Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -290,7 +303,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // Declaration of the function unmarshall.
       unmarshall +=
 	"   procedure Unmarshall\n"
-	"     (Stream : in out Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
 	"      Res : out " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -298,7 +311,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
       // Declaration of the function align_size.
       marshall_size +=
 	"   procedure Marshall_Size\n"
-	"     (Stream : in out Buffer_Descriptor;\n"
+	"     (Stream : in out Broca.Types.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
 	"   begin\n";
@@ -324,11 +337,37 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	}
       marshall   += "   end Marshall;\n\n";
       unmarshall += "   end Unmarshall;\n\n";
-      marshall_size += "    end Marshall_Size;\n";
+      marshall_size += "   end Marshall_Size;\n\n";
       
       body += marshall;
       body += unmarshall;
       body += marshall_size;
+
+      with.add ("Broca.Exceptions");
+
+      body +=
+	"   procedure Unmarshall_And_Raise_" + get_ada_local_name () + "\n"
+	"      (Stream : in out Broca.Types.Buffer_Descriptor)\n"
+	"   is\n"
+	"      Bod : Broca.Exceptions.IDL_Exception_Members_Acc;\n"
+	"   begin\n"
+	"      Bod := new " + get_ada_local_name () + "_Members;\n"
+	"      Broca.Marshalling.Unmarshall_Skip_String (Stream);\n"
+	"      Unmarshall (Stream, " 
+	+ get_ada_local_name () + "_Members (Bod.all));\n"
+	"      Broca.Exceptions.User_Raise_Exception\n"
+	"         (" + get_ada_local_name () + "'Identity, Bod);\n"
+	"   end Unmarshall_And_Raise_" + get_ada_local_name () + ";\n"
+	"\n"
+	"   procedure Raise_" + get_ada_local_name () + "\n"
+	"      (Bod : " + get_ada_local_name () + "_Members)\n"
+	"   is\n"
+	"      Members : Broca.Exceptions.IDL_Exception_Members_Acc;\n"
+	"   begin\n"
+	"      Members := new " + get_ada_local_name () + "_Members'(Bod);\n"
+	"      Broca.Exceptions.User_Raise_Exception\n"
+	"         (" + get_ada_local_name () + "'Identity, Members);\n"
+	"   end Raise_" +  get_ada_local_name () + ";\n";
     }
   set_already_defined ();
 }

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -626,10 +626,8 @@ adabe_module::produce_stream_ads (dep_list & with,
 {
   bool first = true;
   body += "use type CORBA.Unsigned_Long; \n";
-  with.add ("AdaBroker.GIOP_C");
   with.add ("CORBA");
-  with.add ("AdaBroker.NetBufferedStream");
-  with.add ("AdaBroker.MemBufferedStream");
+
   body += "package " + get_ada_full_name () + ".Stream is\n";
   
   // For each declaration in the node produce the code
@@ -724,8 +722,7 @@ adabe_module::produce_stream_adb (dep_list & with,
 {
 
   bool first = true;
-  with.add ("AdaBroker.NetBufferedStream");
-  with.add ("AdaBroker.MemBufferedStream");
+
   UTL_ScopeActiveIterator module_activator (this, UTL_Scope::IK_decls);
   body += "package body " + get_ada_full_name () + ".Stream is\n";
   while (!module_activator.is_done ())

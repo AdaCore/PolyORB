@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -891,11 +891,13 @@ adabe_interface::produce_stream_ads (dep_list & with,
 
   if (is_empty)
     body += "pragma Warnings (Off, " + get_ada_full_name () + ".Stream);\n"; 
+#if 0
   else
     {
       // Add some useful packages to the with clauses.
       with.add ("CORBA");
     }
+#endif
 
   // end of the package
   body += "end " + get_ada_full_name () + ".Stream;\n"; 
@@ -918,10 +920,7 @@ adabe_interface::produce_stream_adb (dep_list & with,
   adabe_global::set_adabe_current_file (this);
 
   // Add some packages to the with clauses.
-  with.add ("CORBA.Object");
-  with.add ("CORBA.Object.OmniORB");
-  with.add ("AdaBroker.NetBufferedStream");
-  with.add ("AdaBroker.MemBufferedStream");
+  // with.add ("CORBA.Object");
   
   // Header of the package
   body += "package body ";

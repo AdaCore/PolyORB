@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -394,7 +394,7 @@ public:
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
   virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_skel_adb(dep_list &with, string &body);
+  virtual void produce_impl_adb(dep_list &with, string &body);
   virtual void produce_proxy_adb(dep_list &with, string &body);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);

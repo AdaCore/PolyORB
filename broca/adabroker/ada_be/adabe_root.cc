@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -485,10 +485,7 @@ adabe_root::produce () {
       
       // some files must be added : !!!!!
       marshal_header_previous += "use type CORBA.Unsigned_Long; \n";
-      marshal_header_with.add ("AdaBroker.GIOP_C");
       marshal_header_with.add ("CORBA");
-      marshal_header_with.add ("AdaBroker.NetBufferedStream");
-      marshal_header_with.add ("AdaBroker.MemBufferedStream");
 
       marshal_header_previous += "Package " + get_ada_full_name () + ".marshal is\n";
 		  
@@ -629,8 +626,6 @@ adabe_root::produce () {
       string marshal_body_body          = "";
       dep_list marshal_body_with;
     
-      marshal_body_with.add ("AdaBroker.NetBufferedStream");
-      marshal_body_with.add ("AdaBroker.MemBufferedStream");
       marshal_body_previous = "Package body " + get_ada_full_name () + ".marshal is \n";
 
       while (!marshal_body_activator.is_done ())
@@ -704,6 +699,8 @@ adabe_root::produce () {
 		    string marshal_interface_previous = "";
 		    string marshal_interface_body = "";
 		    dep_list marshal_interface_with;
+
+		    marshal_interface_with.add ("Broca.Marshalling");
 
 		    // computing the mapping of the interface
 		    interface->produce_stream_adb (marshal_interface_with, marshal_interface_body,

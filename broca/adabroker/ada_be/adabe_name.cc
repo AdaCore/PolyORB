@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.1 $
+//                            $Revision: 1.2 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -855,16 +855,17 @@ adabe_name::repositoryID () const
   // Check the pragmas attached to this node to see if
   // pragma ID is defined to override the default repositoryID.
   UTL_String* id;
-  if ((id = internal_search_pragma ((AST_Decl*)this,"ID")) != 0) 
+  if ((id = internal_search_pragma ((AST_Decl*)this, "ID")) != 0) 
     {
-    return id->get_string ();
+      return id->get_string ();
     }
-  else if ((id = internal_search_pragma ((AST_Decl*)this,"version")) != 0) 
+  else if ((id = internal_search_pragma ((AST_Decl*)this, "version")) != 0) 
     {
       // Check if pragma version is defined to override the
       // version number in the default repositoryID.
       char* p = strrchr (pd_repositoryID,':') + 1;
-      char* result = new char[(p-pd_repositoryID)+strlen (id->get_string ())+1];
+      char* result =
+	new char[(p-pd_repositoryID) + strlen (id->get_string ())+1];
       strncpy (result, pd_repositoryID, p-pd_repositoryID);
       result[p-pd_repositoryID] = '\0';
       strcat (result, id->get_string ());
