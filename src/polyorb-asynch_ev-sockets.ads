@@ -45,22 +45,23 @@ package PolyORB.Asynch_Ev.Sockets is
    type Socket_Event_Monitor is new Asynch_Ev_Monitor with private;
 
    procedure Create (AEM : out Socket_Event_Monitor);
+
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean);
+      AES     :        Asynch_Ev_Source_Access;
+      Success :    out Boolean);
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES : Asynch_Ev_Source_Access);
+      AES :        Asynch_Ev_Source_Access);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
-      Timeout : Duration)
+      Timeout :        Duration)
      return AES_Array;
 
    procedure Abort_Check_Sources

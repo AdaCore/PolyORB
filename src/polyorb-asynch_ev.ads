@@ -41,10 +41,10 @@ package PolyORB.Asynch_Ev is
 
    pragma Elaborate_Body;
 
-   --  Some environment components can produce events in an asynchronous
+   --  Some environment components can produce events in an
    --  asynchronous fashion, i.e. independently of middleware actions
-   --  currently in progress. A typical example of such components is a
-   --  connection to the outside world.
+   --  currently in progress. A typical example of such components is
+   --  a connection from the outside world.
 
    --  Such components are represented within PolyORB as Asynch_Ev_Source
    --  objects. These objects are registered in collections called
@@ -54,6 +54,7 @@ package PolyORB.Asynch_Ev is
    --  events have occured on any of their member Asynch_Ev_Sources.
 
    type Asynch_Ev_Monitor is abstract tagged limited private;
+
    type Asynch_Ev_Monitor_Access is
      access all Asynch_Ev_Monitor'Class;
 
@@ -62,10 +63,12 @@ package PolyORB.Asynch_Ev is
    --  A function that allocates an instance of a concrete AEM type.
 
    type Asynch_Ev_Source is abstract tagged limited private;
+
    type Asynch_Ev_Source_Access is
      access all Asynch_Ev_Source'Class;
 
-   function Notepad_Of (AES : Asynch_Ev_Source_Access)
+   function Notepad_Of
+     (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  An Asynch_Ev_Source is an annotable object (cf. PolyORB.Annotations),
@@ -73,31 +76,35 @@ package PolyORB.Asynch_Ev is
    --  to process events that occur on it.
    --  This functions returns an access to AES' Notepad attribute.
 
-   function AEM_Factory_Of (AES : Asynch_Ev_Source)
-     return AEM_Factory is abstract;
+   function AEM_Factory_Of
+     (AES : Asynch_Ev_Source)
+     return AEM_Factory
+      is abstract;
    pragma Inline (AEM_Factory_Of);
    --  Return a factory capable of creating an AEM that can monitor AES.
 
-   procedure Create (AEM : out Asynch_Ev_Monitor)
-     is abstract;
-   --  Initialize.
-
-   procedure Destroy (AEM : in out Asynch_Ev_Monitor)
+   procedure Create
+     (AEM : out Asynch_Ev_Monitor)
       is abstract;
-   --  Finalize.
+   --  Initialize AEM.
+
+   procedure Destroy
+     (AEM : in out Asynch_Ev_Monitor)
+      is abstract;
+   --  Finalize AEM.
 
    procedure Register_Source
      (AEM     : access Asynch_Ev_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean)
-     is abstract;
+      AES     :        Asynch_Ev_Source_Access;
+      Success :    out Boolean)
+      is abstract;
    --  Try to register AES for monitoring by AEM.
    --  On exit, Success is True iff AEM accepts AES for monitoring.
 
    procedure Unregister_Source
      (AEM : in out Asynch_Ev_Monitor;
-      AES : Asynch_Ev_Source_Access)
-     is abstract;
+      AES :        Asynch_Ev_Source_Access)
+      is abstract;
    --  Remove AES from the set of sources monitored by AEM.
 
    procedure Unregister_Source
@@ -113,7 +120,7 @@ package PolyORB.Asynch_Ev is
 
    function Check_Sources
      (AEM     : access Asynch_Ev_Monitor;
-      Timeout : Duration)
+      Timeout :        Duration)
      return AES_Array
       is abstract;
    --  Wait for events on sources monitored by AEM.
@@ -127,7 +134,7 @@ package PolyORB.Asynch_Ev is
 
    procedure Abort_Check_Sources
      (AEM : Asynch_Ev_Monitor)
-     is abstract;
+      is abstract;
    --  Send an abort signal to AEM.
 
 private
