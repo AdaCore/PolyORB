@@ -83,14 +83,19 @@ echo "Generating IDL tree accessors"
  && gnatchop -w xxx && rm -f xxx)
 
 echo "Doing the necessary date modifications"
-find . -name configure.in -exec touch {} \;
-sleep 1
-find . -name aclocal.m4 -exec touch {} \;
-sleep 1
-find . -name Makefile.in -exec touch {} \;
-sleep 1
-find . -name configure -exec touch {} \;
-sleep 1
-find . -name stamp-h.in -exec touch {} \;
-sleep 1
-find . -name config.h.in -exec touch {} \;
+for f in \
+  configure.in	\
+  aclocal.m4	\
+  Makefile.in	\
+  configure	\
+  stamp-h.in	\
+  config.h.in
+do
+  find . -name $f | while read ff
+  do
+    chmod +w $ff
+    touch $ff
+    chmod -w $ff
+  done
+  sleep 1
+done
