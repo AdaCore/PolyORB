@@ -1,3 +1,8 @@
+2000-09-21  Laurent Pautet  <pautet@arlequin>
+
+	* MANIFEST: Add the missing gnat files needed to deal with source
+	file names. Add new garlic DSM storage files.
+
 2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* MANIFEST: Move storage supports like DFS into the Storages
