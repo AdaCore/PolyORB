@@ -301,8 +301,9 @@ package body Prj.Proc is
 
                declare
                   String_Node : Project_Node_Id :=
-                    First_Expression_In_List (The_Current_Term);
-                  Value       : Variable_Value;
+                                  First_Expression_In_List (The_Current_Term);
+
+                  Value : Variable_Value;
 
                begin
                   if String_Node /= Empty_Node then
@@ -352,6 +353,7 @@ package body Prj.Proc is
                            Pkg               => Pkg,
                            First_Term        => Tree.First_Term (String_Node),
                            Kind              => Single);
+
                         String_Elements.Increment_Last;
                         String_Elements.Table (Last).Next :=
                           String_Elements.Last;
@@ -528,7 +530,8 @@ package body Prj.Proc is
 
                               declare
                                  The_List : String_List_Id :=
-                                   The_Variable.Value.Values;
+                                              The_Variable.Value.Values;
+
                               begin
                                  while The_List /= Nil_String loop
                                     String_Elements.Increment_Last;
@@ -578,6 +581,22 @@ package body Prj.Proc is
 
                   Value := Prj.Ext.Value_Of (Name, Default);
 
+                  if Value = No_String then
+                     if Error_Report = null then
+                        Error_Msg
+                          ("undefined external reference",
+                           Location_Of (The_Current_Term));
+
+                     else
+                        Error_Report
+                          ("""" & Get_Name_String (Name) &
+                           """ is an undefined external reference");
+                     end if;
+
+                     Value := Empty_String;
+
+                  end if;
+
                   case Kind is
 
                      when Undefined =>
@@ -621,7 +640,6 @@ package body Prj.Proc is
          The_Term := Next_Term (The_Term);
 
       end loop;
-
       return Result;
    end Expression;
 
@@ -697,7 +715,6 @@ package body Prj.Proc is
       else
          return Result;
       end if;
-
    end Package_From;
 
    -------------
@@ -710,7 +727,6 @@ package body Prj.Proc is
       Report_Error      : Put_Line_Access)
    is
    begin
-
       Error_Report := Report_Error;
 
       --  Make sure there is no projects in the data structure
@@ -775,9 +791,11 @@ package body Prj.Proc is
                   The_New_Package : Package_Element;
 
                   Project_Of_Renamed_Package : constant Project_Node_Id :=
-                    Project_Of_Renamed_Package_Of (Current_Item);
+                                                 Project_Of_Renamed_Package_Of
+                                                   (Current_Item);
+
                begin
-                  The_New_Package.Name     := Name_Of (Current_Item);
+                  The_New_Package.Name := Name_Of (Current_Item);
 
                   if Pkg /= No_Package then
                      The_New_Package.Next :=
@@ -794,6 +812,7 @@ package body Prj.Proc is
                   if Project_Of_Renamed_Package /= Empty_Node then
 
                      --  Renamed package
+
                      declare
                         Project_Name : constant Name_Id :=
                                          Name_Of
@@ -837,9 +856,9 @@ package body Prj.Proc is
 
                null;
 
-            when N_Attribute_Declaration |
+            when N_Attribute_Declaration      |
                  N_Typed_Variable_Declaration |
-                 N_Variable_Declaration =>
+                 N_Variable_Declaration       =>
 
                   pragma Assert (Expression_Of (Current_Item) /= Empty_Node,
                                  "no expression for an object declaration");
@@ -859,54 +878,72 @@ package body Prj.Proc is
                   The_Variable : Variable_Id := No_Variable;
 
                   Current_Item_Name : constant Name_Id :=
-                    Name_Of (Current_Item);
+                                        Name_Of (Current_Item);
 
                begin
                   if Kind_Of (Current_Item) = N_Typed_Variable_Declaration then
 
-                     declare
-                        Current_String : Project_Node_Id :=
-                          First_Literal_String (String_Type_Of (Current_Item));
+                     if String_Equal (New_Value.Value, Empty_String) then
+                        Error_Msg_Name_1 := Name_Of (Current_Item);
 
-                     begin
-                        while Current_String /= Empty_Node
-                          and then
-                            not String_Equal
-                                  (String_Value_Of (Current_String),
-                                   New_Value.Value)
-                        loop
-                           Current_String :=
-                             Next_Literal_String (Current_String);
-                        end loop;
+                        if Error_Report = null then
+                           Error_Msg
+                             ("no value defined for %",
+                              Location_Of (Current_Item));
 
-                        if Current_String = Empty_Node then
-                           String_To_Name_Buffer (New_Value.Value);
-                           Error_Msg_Name_1 := Name_Find;
-                           Error_Msg_Name_2 := Name_Of (Current_Item);
-
-                           if Error_Report = null then
-                              Error_Msg
-                                ("value { is illegal for typed string %",
-                                 Location_Of (Current_Item));
-
-                           else
-                              Error_Report
-                                ("value """ &
-                                 Get_Name_String (Error_Msg_Name_1) &
-                                 """ is illegal for typed string """ &
-                                 Get_Name_String (Error_Msg_Name_2) &
-                                 """");
-                           end if;
+                        else
+                           Error_Report
+                             ("no value defined for " &
+                              Get_Name_String (Error_Msg_Name_1));
                         end if;
-                     end;
+
+                     else
+                        declare
+                           Current_String : Project_Node_Id :=
+                                              First_Literal_String
+                                                (String_Type_Of
+                                                  (Current_Item));
+
+                        begin
+                           while Current_String /= Empty_Node
+                             and then not String_Equal
+                                            (String_Value_Of (Current_String),
+                                             New_Value.Value)
+                           loop
+                              Current_String :=
+                                Next_Literal_String (Current_String);
+                           end loop;
+
+                           if Current_String = Empty_Node then
+                              String_To_Name_Buffer (New_Value.Value);
+                              Error_Msg_Name_1 := Name_Find;
+                              Error_Msg_Name_2 := Name_Of (Current_Item);
+
+                              if Error_Report = null then
+                                 Error_Msg
+                                   ("value { is illegal for typed string %",
+                                    Location_Of (Current_Item));
+
+                              else
+                                 Error_Report
+                                   ("value """ &
+                                    Get_Name_String (Error_Msg_Name_1) &
+                                    """ is illegal for typed string """ &
+                                    Get_Name_String (Error_Msg_Name_2) &
+                                    """");
+                              end if;
+                           end if;
+                        end;
+                     end if;
                   end if;
 
-                  if
-                    Kind_Of (Current_Item) /= N_Attribute_Declaration
+                  if Kind_Of (Current_Item) /= N_Attribute_Declaration
                     or else
                       Associative_Array_Index_Of (Current_Item) = No_String
                   then
                      --  Usual case
+
+                     --  Code below really needs more comments ???
 
                      if Kind_Of (Current_Item) = N_Attribute_Declaration then
                         if Pkg /= No_Package then
@@ -1102,8 +1139,7 @@ package body Prj.Proc is
                        and then Package_Node_Of (Variable_Node) = Empty_Node
                      then
                         Var_Id := Projects.Table (The_Project).Decl.Variables;
-                        while
-                          Var_Id /= No_Variable
+                        while Var_Id /= No_Variable
                           and then
                             Variable_Elements.Table (Var_Id).Name /= Name
                         loop
@@ -1187,11 +1223,13 @@ package body Prj.Proc is
    ---------------------
 
    procedure Recursive_Check (Project : Project_Id) is
-      Data : Project_Data;
+      Data                  : Project_Data;
       Imported_Project_List : Project_List := Empty_Project_List;
+
    begin
       --  Do nothing if Project is No_Project, or Project has already
       --  been marked as checked.
+
       if Project /= No_Project
         and then not Projects.Table (Project).Checked
       then
@@ -1212,7 +1250,7 @@ package body Prj.Proc is
               Project_Lists.Table (Imported_Project_List).Next;
          end loop;
 
-         --  Mark Project as checked
+         --  Mark project as checked
 
          Projects.Table (Project).Checked := True;
 
@@ -1236,7 +1274,7 @@ package body Prj.Proc is
       From_Project_Node : Project_Node_Id;
       Modified_By       : Project_Id)
    is
-      With_Clause    : Project_Node_Id;
+      With_Clause : Project_Node_Id;
 
    begin
       if From_Project_Node = Empty_Node then
@@ -1324,7 +1362,7 @@ package body Prj.Proc is
                From_Project_Node => From_Project_Node,
                Pkg               => No_Package,
                Item              => First_Declarative_Item_Of
-                                                      (Declaration_Node));
+                                      (Declaration_Node));
 
          end;
       end if;

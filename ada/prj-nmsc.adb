@@ -1041,6 +1041,167 @@ package body Prj.Nmsc is
          end;
       end;
 
+      --  Library Dir, Name, Version and Kind
+
+      declare
+         Attributes : constant Prj.Variable_Id := Data.Decl.Attributes;
+
+         Lib_Dir : Prj.Variable_Value :=
+                     Prj.Util.Value_Of (Snames.Name_Library_Dir, Attributes);
+
+         Lib_Name : Prj.Variable_Value :=
+                      Prj.Util.Value_Of (Snames.Name_Library_Name, Attributes);
+
+         Lib_Version : Prj.Variable_Value :=
+                         Prj.Util.Value_Of
+                           (Snames.Name_Library_Version, Attributes);
+
+         The_Lib_Kind : Prj.Variable_Value :=
+                          Prj.Util.Value_Of
+                            (Snames.Name_Library_Kind, Attributes);
+
+      begin
+         pragma Assert (Lib_Dir.Kind = Single);
+
+         if Lib_Dir.Value = Empty_String then
+
+            if Current_Verbosity = High then
+               Write_Line ("No library directory");
+            end if;
+
+         else
+            --  Find path name, check that it is a directory
+
+            Stringt.String_To_Name_Buffer (Lib_Dir.Value);
+
+            declare
+               Dir_Id : constant Name_Id := Name_Find;
+
+            begin
+               Data.Library_Dir :=
+                 Locate_Directory (Dir_Id, Data.Directory);
+
+               if Data.Library_Dir = No_Name then
+                  Error_Msg ("not an existing directory",
+                             Lib_Dir.Location);
+
+               elsif Data.Library_Dir = Data.Object_Directory then
+                  Error_Msg
+                    ("library directory cannot be the same " &
+                     "as object directory",
+                     Lib_Dir.Location);
+                  Data.Library_Dir := No_Name;
+
+               else
+                  if Current_Verbosity = High then
+                     Write_Str ("Library directory =""");
+                     Write_Str (Get_Name_String (Data.Library_Dir));
+                     Write_Line ("""");
+                  end if;
+               end if;
+            end;
+         end if;
+
+         pragma Assert (Lib_Name.Kind = Single);
+
+         if Lib_Name.Value = Empty_String then
+            if Current_Verbosity = High then
+               Write_Line ("No library name");
+            end if;
+
+         else
+            Stringt.String_To_Name_Buffer (Lib_Name.Value);
+
+            if not Is_Letter (Name_Buffer (1)) then
+               Error_Msg ("must start with a letter",
+                          Lib_Name.Location);
+
+            else
+               Data.Library_Name := Name_Find;
+
+               for Index in 2 .. Name_Len loop
+                  if not Is_Alphanumeric (Name_Buffer (Index)) then
+                     Data.Library_Name := No_Name;
+                     Error_Msg ("only letters and digits are allowed",
+                                Lib_Name.Location);
+                     exit;
+                  end if;
+               end loop;
+
+               if Data.Library_Name /= No_Name
+                 and then Current_Verbosity = High then
+                  Write_Str ("Library name = """);
+                  Write_Str (Get_Name_String (Data.Library_Name));
+                  Write_Line ("""");
+               end if;
+            end if;
+         end if;
+
+         Data.Library :=
+           Data.Library_Dir /= No_Name
+             and then
+           Data.Library_Name /= No_Name;
+
+         if Data.Library then
+            if Current_Verbosity = High then
+               Write_Line ("This is a library project file");
+            end if;
+
+            pragma Assert (Lib_Version.Kind = Single);
+
+            if Lib_Version.Value = Empty_String then
+               if Current_Verbosity = High then
+                  Write_Line ("No library version specified");
+               end if;
+
+            else
+               Stringt.String_To_Name_Buffer (Lib_Version.Value);
+               Data.Lib_Internal_Name := Name_Find;
+            end if;
+
+            pragma Assert (The_Lib_Kind.Kind = Single);
+
+            if The_Lib_Kind.Value = Empty_String then
+               if Current_Verbosity = High then
+                  Write_Line ("No library kind specified");
+               end if;
+
+            else
+               Stringt.String_To_Name_Buffer (The_Lib_Kind.Value);
+
+               declare
+                  Kind_Name : constant String :=
+                                Ada.Characters.Handling.To_Lower
+                                  (Name_Buffer (1 .. Name_Len));
+
+                  OK : Boolean := True;
+
+               begin
+                  if Kind_Name = "static" then
+                     Data.Library_Kind := Static;
+
+                  elsif Kind_Name = "dynamic" then
+                     Data.Library_Kind := Dynamic;
+
+                  elsif Kind_Name = "relocatable" then
+                     Data.Library_Kind := Relocatable;
+
+                  else
+                     Error_Msg
+                       ("illegal value for Library_Kind",
+                        The_Lib_Kind.Location);
+                     OK := False;
+                  end if;
+
+                  if Current_Verbosity = High and then OK then
+                     Write_Str ("Library kind = ");
+                     Write_Line (Kind_Name);
+                  end if;
+               end;
+            end if;
+         end if;
+      end;
+
       if Current_Verbosity = High then
          Show_Source_Dirs (Project);
       end if;
@@ -1149,7 +1310,7 @@ package body Prj.Nmsc is
                Write_Eol;
             end if;
 
-            --  Let's check Casing
+            --  Check Casing
 
             declare
                Casing_String : constant Variable_Value :=
@@ -1232,7 +1393,7 @@ package body Prj.Nmsc is
                Write_Line (""".");
             end if;
 
-            --  Let's check Body_Append
+            --  Check Body_Append
 
             declare
                Body_Append : constant Variable_Value :=
@@ -1271,7 +1432,7 @@ package body Prj.Nmsc is
                Write_Line (""".");
             end if;
 
-            --  Let's check Separate_Append
+            --  Check Separate_Append
 
             declare
                Separate_Append : constant Variable_Value :=
@@ -1326,10 +1487,12 @@ package body Prj.Nmsc is
                                     Data.Decl.Attributes);
 
          begin
-            pragma Assert (Sources.Kind = List,
-                          "Source_Files is not a list");
-            pragma Assert (Source_List_File.Kind = Single,
-                           "Source_List_File is not a single string");
+            pragma Assert
+              (Sources.Kind = List,
+               "Source_Files is not a list");
+            pragma Assert
+              (Source_List_File.Kind = Single,
+               "Source_List_File is not a single string");
 
             if not Sources.Default then
                if not Source_List_File.Default then
@@ -1361,7 +1524,6 @@ package body Prj.Nmsc is
                            Location         => Element.Location,
                            Current_Source   => Current_Source);
                         Current := Element.Next;
-
                      end;
                   end loop;
                end;
@@ -1433,6 +1595,10 @@ package body Prj.Nmsc is
 
             procedure Add (Id : Name_Id);
             --  Add a name to the buffer
+
+            ---------
+            -- Add --
+            ---------
 
             procedure Add (C : Character) is
             begin
@@ -1950,7 +2116,7 @@ package body Prj.Nmsc is
          end if;
 
       else
-         --  Put the file name in the list of sources of the project.
+         --  Put the file name in the list of sources of the project
 
          String_Elements.Increment_Last;
          Get_Name_String (File_Name);

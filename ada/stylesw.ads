@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -246,7 +246,7 @@ package Stylesw is
 
    procedure Set_Style_Check_Options (Options : String);
    --  Like the above procedure, except that the call is simply ignored if
-   --  there are any error conditionsw, this is for example appopriate for
+   --  there are any error conditions, this is for example appopriate for
    --  calls where the string is known to be valid, e.g. because it was
    --  obtained by Save_Style_Check_Options.
 
@@ -259,6 +259,6 @@ package Stylesw is
    procedure Save_Style_Check_Options (Options : out Style_Check_Options);
    --  Sets Options to represent current selection of options. This
    --  set can be restored by first calling Reset_Style_Check_Options,
-   --  and then calling Set_Style_Check_Options with the Optionsl string.
+   --  and then calling Set_Style_Check_Options with the Options string.
 
 end Stylesw;

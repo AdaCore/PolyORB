@@ -55,16 +55,21 @@ package body Einfo is
    -- Usage of Fields in Defining Entity Nodes --
    ----------------------------------------------
 
-   --  The first five of these fields are defined in Sinfo, since they in
-   --  the base part of the node. The access routines for these fields and
+   --  Four of these fields are defined in Sinfo, since they in are the
+   --  base part of the node. The access routines for these fields and
    --  the corresponding set procedures are defined in Sinfo. These fields
    --  are present in all entities.
 
    --    Chars                           Name1
    --    Next_Entity                     Node2
    --    Scope                           Node3
-   --    Homonym                         Node4
    --    Etype                           Node5
+
+   --    The fifth field is also in the base part of the node, but it
+   --    carries some additional semantic checks and its subprograms are
+   --    more properly defined in Einfo.
+
+   --    Homonym                         Node4
 
    --   Remaining fields are present only in extended nodes (i.e. entities)
 
@@ -1163,6 +1168,11 @@ package body Einfo is
       pragma Assert (Ekind (Id) = E_Variable);
       return Node8 (Id);
    end Hiding_Loop_Variable;
+
+   function Homonym (Id : E) return E is
+   begin
+      return Node4 (Id);
+   end Homonym;
 
    function In_Package_Body (Id : E) return B is
    begin
@@ -3000,6 +3010,11 @@ package body Einfo is
       Set_Node8 (Id, V);
    end Set_Hiding_Loop_Variable;
 
+   procedure Set_Homonym (Id : E; V : E) is
+   begin
+      pragma Assert (Id /= V);
+      Set_Node4 (Id, V);
+   end Set_Homonym;
    procedure Set_In_Package_Body (Id : E; V : B := True) is
    begin
       Set_Flag48 (Id, V);

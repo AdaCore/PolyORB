@@ -2844,6 +2844,7 @@ package body Errout is
       P := N;
       loop
          P := Parent (P);
+         exit when No (P);
          Set_Error_Posted (P);
          exit when Nkind (P) not in N_Subexpr;
       end loop;

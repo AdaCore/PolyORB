@@ -681,60 +681,14 @@ package Opt is
    --  GNAT
    --  Set to True if a valid pragma Use_VADS_Size is processed
 
-   type Validity_Checking_Type is (None, Default, Copies, Tests, Exprs);
-   Validity_Checking : Validity_Checking_Type := Default;
-   --  GNAT
-   --  Indicates level of checking of scalars for invalid values (i.e. values
-   --  outside the range of a subtype caused by uninitialized variables, as
-   --  discussed in (RM 13.9.1(9-11)).
-   --
-   --    None = No validity checking
-   --
-   --      No special checks for invalid values are performed. This means
-   --      that references to uninitialized variables can cause erroneous
-   --      behavior from constructs like case statements and subscripted
-   --      array assignments. Given that the RM allows these operations
-   --      to be implementation defined, it is arguable whether this mode
-   --      meets the letter of the RM, but it certainly does not meet the
-   --      spirit of the requirement!
-   --
-   --    Default = standard RM required validity checking
-   --
-   --      This is the default level of validity checking. In this mode
-   --      checks are made to prevent erroneous behavior in accordance
-   --      with the above RM reference. Notably extra checks may be needed
-   --      for case statements and subscripted array assignments.
-   --
-   --    Copies = check copies and array subscripts
-   --
-   --      In this mode, in addition to the checks made in default mode, the
-   --      right side of every assignment is checked for validity, so that
-   --      it is impossible to assign invalid values. The RM specifically
-   --      allows such assignments, but in this mode, invalid values can
-   --      never be assigned, and an attempt to perform such an assignment
-   --      immediately raises Constraint_Error. This behavior is allowed
-   --      (but not required) by the RM. In addition to actual assignment
-   --      statements, initializing expressions in object declarations are
-   --      checked, as well as scalar parameters. Finally all subscripts in
-   --      indexed components are checked.
-   --
-   --    Tests = check conditional tests
-   --
-   --      In addition to all checks made in Full mode, expressions used
-   --      for conditional tests in IF, WHILE, and EXIT statements are also
-   --      checked for validity.
-   --
-   --    Exprs = check expressions
-   --
-   --      In this mode, the value yielded by any evaluated expression is
-   --      checked for validity (this includes all previous cases described
-   --      above since these are all cases of expressions).
-
-   subtype Copy_And_Subscript_Checks is
-     Validity_Checking_Type range Copies .. Tests;
-   --  This is used to see if specific checks are required for copies and
-   --  subscript checks. Note that Expr is not included, because if Expr
-   --  is set, we get full checks in any case.
+   Validity_Checks_On  : Boolean := True;
+   --  This flag determines if validity checking is on or off. The initial
+   --  state is on, and the required default validity checks are active. The
+   --  actual set of checks that is performed if Validity_Checks_On is set
+   --  is defined by the switches in package Sem_Val. The Validity_Checks_On
+   --  switch is controlled by pragma Validity_Checks (On | Off), and also
+   --  some generated compiler code (typically code that has to do with
+   --  validity check generation) is compiled with this switch set to False.
 
    Verbose_Mode : Boolean := False;
    --  GNAT, GNATBIND

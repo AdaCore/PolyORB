@@ -83,7 +83,6 @@ package body Prj.Env is
    ----------------------
 
    function Ada_Include_Path (Project : Project_Id) return String_Access is
-      Seen : Project_List := Empty_Project_List;
 
       procedure Add (Project : Project_Id);
       --  Add all the source directories of a project to the path,
@@ -102,80 +101,52 @@ package body Prj.Env is
          --  If Seen is empty, then the project cannot have been
          --  visited.
 
-         if Seen = Empty_Project_List then
-            Project_Lists.Increment_Last;
-            Seen := Project_Lists.Last;
-            Project_Lists.Table (Seen) :=
-              (Project => Project, Next => Empty_Project_List);
+         if not Projects.Table (Project).Seen then
+            Projects.Table (Project).Seen := True;
 
-         else
             declare
-               Current : Project_Element := Project_Lists.Table (Seen);
+               Data : Project_Data := Projects.Table (Project);
+               List : Project_List := Data.Imported_Projects;
+
+               Current : String_List_Id := Data.Source_Dirs;
+               Source_Dir : String_Element;
 
             begin
-               --  For each project in Seen
+               --  Add to path all source directories of this project
 
-               loop
-                  --  If it is the same project, then nothing to do
-
-                  if Current.Project = Project then
-                     return;
+               while Current /= Nil_String loop
+                  if Ada_Path_Length > 0 then
+                     Add_To_Path (Path => (1 => Path_Separator));
                   end if;
 
-                  exit when Current.Next = Empty_Project_List;
-                  Current := Project_Lists.Table (Current.Next);
+                  Source_Dir := String_Elements.Table (Current);
+                  String_To_Name_Buffer (Source_Dir.Value);
+
+                  declare
+                     New_Path : constant String :=
+                       Name_Buffer (1 .. Name_Len);
+                  begin
+                     Add_To_Path (New_Path);
+                  end;
+
+                  Current := Source_Dir.Next;
                end loop;
 
-               --  The project is not in Seen, add it
+               --  Call Add to the project being modified, if any
 
-               Project_Lists.Increment_Last;
-               Current.Next := Project_Lists.Last;
-               Project_Lists.Table (Project_Lists.Last) :=
-                 (Project => Project, Next => Empty_Project_List);
+               if Data.Modifies /= No_Project then
+                  Add (Data.Modifies);
+               end if;
+
+               --  Call Add for each imported project, if any
+
+               while List /= Empty_Project_List loop
+                  Add (Project_Lists.Table (List).Project);
+                  List := Project_Lists.Table (List).Next;
+               end loop;
             end;
          end if;
 
-         declare
-            Data : Project_Data := Projects.Table (Project);
-            List : Project_List := Data.Imported_Projects;
-
-            Current : String_List_Id := Data.Source_Dirs;
-            Source_Dir : String_Element;
-
-         begin
-            --  Add to path all source directories of this project
-
-            while Current /= Nil_String loop
-               if Ada_Path_Length > 0 then
-                  Add_To_Path (Path => (1 => Path_Separator));
-               end if;
-
-               Source_Dir := String_Elements.Table (Current);
-               String_To_Name_Buffer (Source_Dir.Value);
-
-               declare
-                  New_Path : constant String :=
-                    Name_Buffer (1 .. Name_Len);
-               begin
-                  Add_To_Path (New_Path);
-               end;
-
-               Current := Source_Dir.Next;
-            end loop;
-
-            --  Call Add to the project being modified, if any
-
-            if Data.Modifies /= No_Project then
-               Add (Data.Modifies);
-            end if;
-
-            --  Call Add for each imported project, if any
-
-            while List /= Empty_Project_List loop
-               Add (Project_Lists.Table (List).Project);
-               List := Project_Lists.Table (List).Next;
-            end loop;
-         end;
       end Add;
 
    --  Start of processing for Ada_Include_Path
@@ -186,6 +157,11 @@ package body Prj.Env is
 
       if Projects.Table (Project).Include_Path = null then
          Ada_Path_Length := 0;
+
+         for Index in 1 .. Projects.Last loop
+            Projects.Table (Index).Seen := False;
+         end loop;
+
          Add (Project);
          Projects.Table (Project).Include_Path :=
            new String'(Ada_Path_Buffer (1 .. Ada_Path_Length));
@@ -198,8 +174,10 @@ package body Prj.Env is
    -- Ada_Objects_Path --
    ----------------------
 
-   function Ada_Objects_Path (Project : Project_Id) return String_Access is
-      Seen : Project_List := Empty_Project_List;
+   function Ada_Objects_Path
+     (Project             : Project_Id;
+      Including_Libraries : Boolean := True)
+     return String_Access is
 
       procedure Add (Project : Project_Id);
       --  Add all the object directory of a project to the path,
@@ -215,74 +193,67 @@ package body Prj.Env is
 
       procedure Add (Project : Project_Id) is
       begin
-         --  If Seen is empty, then the project cannot have been visited.
 
-         if Seen = Empty_Project_List then
-            Project_Lists.Increment_Last;
-            Seen := Project_Lists.Last;
-            Project_Lists.Table (Seen) :=
-              (Project => Project, Next => Empty_Project_List);
+         --  If this project has not been seen yet
 
-         else
+         if not Projects.Table (Project).Seen then
+            Projects.Table (Project).Seen := True;
+
             declare
-               Current : Project_Element := Project_Lists.Table (Seen);
+               Data : Project_Data := Projects.Table (Project);
+               List : Project_List := Data.Imported_Projects;
 
             begin
-               --  For each project in Seen
+               --  Add to path the object directory of this project
+               --  except if we don't include library project and
+               --  this is a library project.
 
-               loop
-                  --  If it is the same project, then nothing to do
-
-                  if Current.Project = Project then
-                     return;
+               if (Data.Library and then Including_Libraries)
+                 or else
+                 (Data.Object_Directory /= No_Name
+                   and then
+                   (not Including_Libraries or else not Data.Library))
+               then
+                  if Ada_Path_Length > 0 then
+                     Add_To_Path (Path => (1 => Path_Separator));
                   end if;
 
-                  exit when Current.Next = Empty_Project_List;
-                  Current := Project_Lists.Table (Current.Next);
-               end loop;
+                  --  For a library project, att the library directory
 
-               --  The project is not in Seen, add it
+                  if Data.Library then
+                     declare
+                        New_Path : constant String :=
+                          Get_Name_String (Data.Library_Dir);
+                     begin
+                        Add_To_Path (New_Path);
+                     end;
+                  else
 
-               Project_Lists.Increment_Last;
-               Current.Next := Project_Lists.Last;
-               Project_Lists.Table (Project_Lists.Last) :=
-                 (Project => Project, Next => Empty_Project_List);
-            end;
-         end if;
-
-         declare
-            Data : Project_Data := Projects.Table (Project);
-            List : Project_List := Data.Imported_Projects;
-
-         begin
-            --  Add to path the object directory of this project
-
-            if Data.Object_Directory /= No_Name then
-               if Ada_Path_Length > 0 then
-                  Add_To_Path (Path => (1 => Path_Separator));
+                     --  For a non library project, add the object directory
+                     declare
+                        New_Path : constant String :=
+                          Get_Name_String (Data.Object_Directory);
+                     begin
+                        Add_To_Path (New_Path);
+                     end;
+                  end if;
                end if;
 
-               declare
-                  New_Path : constant String :=
-                    Get_Name_String (Data.Object_Directory);
-               begin
-                  Add_To_Path (New_Path);
-               end;
-            end if;
+               --  Call Add to the project being modified, if any
 
-            --  Call Add to the project being modified, if any
+               if Data.Modifies /= No_Project then
+                  Add (Data.Modifies);
+               end if;
 
-            if Data.Modifies /= No_Project then
-               Add (Data.Modifies);
-            end if;
+               --  Call Add for each imported project, if any
 
-            --  Call Add for each imported project, if any
+               while List /= Empty_Project_List loop
+                  Add (Project_Lists.Table (List).Project);
+                  List := Project_Lists.Table (List).Next;
+               end loop;
+            end;
 
-            while List /= Empty_Project_List loop
-               Add (Project_Lists.Table (List).Project);
-               List := Project_Lists.Table (List).Next;
-            end loop;
-         end;
+         end if;
       end Add;
 
    --  Start of processing for Ada_Objects_Path
@@ -293,6 +264,11 @@ package body Prj.Env is
 
       if Projects.Table (Project).Objects_Path = null then
          Ada_Path_Length := 0;
+
+         for Index in 1 .. Projects.Last loop
+            Projects.Table (Index).Seen := False;
+         end loop;
+
          Add (Project);
          Projects.Table (Project).Objects_Path :=
            new String'(Ada_Path_Buffer (1 .. Ada_Path_Length));

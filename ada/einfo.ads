@@ -1465,11 +1465,10 @@ package Einfo is
 --       or is referenced without being set.
 
 --    Homonym (Node4)
---       Present in all entities. Contains a link to chain entities that are
---       homonyms and that are declared in the same or enclosing scopes.
---       (Homonyms in the same scope are overloaded). Since this field is
---       in the base part of the entity, the access routines for this field
---       are in Sinfo.
+--       Present in all entities. Link for list of entities that have the
+--       same source name and that are declared in the same or enclosing
+--       scopes. Homonyms in the same scope are overloaded. Used for name
+--       resolution and for the generation of debugging information.
 
 --    Implementation_Base_Type (synthesized)
 --       Applies to all types. Similar to Base_Type, but never returns a
@@ -4842,6 +4841,7 @@ package Einfo is
    function Has_Unchecked_Union                (Id : E) return B;
    function Has_Unknown_Discriminants          (Id : E) return B;
    function Has_Volatile_Components            (Id : E) return B;
+   function Homonym                            (Id : E) return E;
    function Hiding_Loop_Variable               (Id : E) return E;
    function In_Package_Body                    (Id : E) return B;
    function In_Private_Part                    (Id : E) return B;
@@ -5298,6 +5298,7 @@ package Einfo is
    procedure Set_Has_Unknown_Discriminants     (Id : E; V : B := True);
    procedure Set_Has_Volatile_Components       (Id : E; V : B := True);
    procedure Set_Hiding_Loop_Variable          (Id : E; V : E);
+   procedure Set_Homonym                       (Id : E; V : E);
    procedure Set_In_Package_Body               (Id : E; V : B := True);
    procedure Set_In_Private_Part               (Id : E; V : B := True);
    procedure Set_In_Use                        (Id : E; V : B := True);
@@ -5764,6 +5765,7 @@ package Einfo is
    pragma Inline (Has_Unknown_Discriminants);
    pragma Inline (Has_Volatile_Components);
    pragma Inline (Hiding_Loop_Variable);
+   pragma Inline (Homonym);
    pragma Inline (In_Package_Body);
    pragma Inline (In_Private_Part);
    pragma Inline (In_Use);
@@ -6108,6 +6110,7 @@ package Einfo is
    pragma Inline (Set_Has_Unknown_Discriminants);
    pragma Inline (Set_Has_Volatile_Components);
    pragma Inline (Set_Hiding_Loop_Variable);
+   pragma Inline (Set_Homonym);
    pragma Inline (Set_In_Package_Body);
    pragma Inline (Set_In_Private_Part);
    pragma Inline (Set_In_Use);

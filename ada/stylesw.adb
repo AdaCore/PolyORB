@@ -75,6 +75,8 @@ package body Stylesw is
          end if;
       end Add;
 
+   --  Start of processing for Save_Style_Check_Options
+
    begin
       for K in Options'Range loop
          Options (K) := ' ';

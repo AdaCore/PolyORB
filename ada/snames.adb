@@ -176,6 +176,7 @@ package body Snames is
      "unsuppress#" &
      "use_vads_size#" &
      "warnings#" &
+     "validity_checks#" &
      "abort_defer#" &
      "all_calls_remote#" &
      "annotate#" &
@@ -578,6 +579,11 @@ package body Snames is
      "source_files#" &
      "source_list_file#" &
      "switches#" &
+     "library_dir#" &
+     "library_name#" &
+     "library_kind#" &
+     "library_version#" &
+     "library_elaboration#" &
      "gnatmake#" &
      "gnatls#" &
      "gnatxref#" &

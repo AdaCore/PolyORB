@@ -33,6 +33,7 @@
 with Debug;    use Debug;
 with Osint;    use Osint;
 with Opt;      use Opt;
+with Validsw;  use Validsw;
 with Stylesw;  use Stylesw;
 with Types;    use Types;
 
@@ -766,6 +767,8 @@ package body Switch is
                Suppress_Options.Storage_Checks       := True;
                Suppress_Options.Tag_Checks           := True;
 
+               Validity_Checks_On := False;
+
             --  Processing for P switch
 
             when 'P' =>
@@ -862,41 +865,33 @@ package body Switch is
             when 'V' =>
                Ptr := Ptr + 1;
 
-               case Switch_Chars (Ptr) is
-                  when 'n' | '0' =>
-                     Validity_Checking := None;
+               if Ptr > Max then
+                  raise Bad_Switch;
 
-                  when 'd' | '1' =>
-                     Validity_Checking := Default;
+               else
+                  declare
+                     OK  : Boolean;
 
-                  when 'c' | '2' =>
-                     Validity_Checking := Copies;
+                  begin
+                     Set_Validity_Check_Options
+                       (Switch_Chars (Ptr .. Max), OK, Ptr);
 
-                  when 't' | '3' =>
-                     Validity_Checking := Tests;
-
-                  when 'e' | '4' =>
-                     Validity_Checking := Exprs;
-
-                  --  For now allow 'f' as synonym for 'c' to be compatible
-                  --  with GNAT version 3.14a which used f for full (when
-                  --  this was the highest level)
-
-                  when 'f' =>
-                     Validity_Checking := Copies;
-
-                  when others =>
-                     raise Bad_Switch;
-               end case;
-
-               Ptr := Ptr + 1;
+                     if not OK then
+                        raise Bad_Switch;
+                     end if;
+                  end;
+               end if;
 
             --  Processing for w switch
 
             when 'w' =>
+               Ptr := Ptr + 1;
 
-               while Ptr < Max loop
-                  Ptr := Ptr + 1;
+               if Ptr > Max then
+                  raise Bad_Switch;
+               end if;
+
+               while Ptr <= Max loop
                   C := Switch_Chars (Ptr);
 
                   case C is
@@ -992,6 +987,8 @@ package body Switch is
                      when others =>
                         raise Bad_Switch;
                   end case;
+
+                  Ptr := Ptr + 1;
                end loop;
 
                return;

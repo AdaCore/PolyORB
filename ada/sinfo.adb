@@ -1312,16 +1312,6 @@ package body Sinfo is
       return Node2 (N);
    end High_Bound;
 
-   function Homonym
-      (N : Node_Id) return Node_Id is
-   begin
-      pragma Assert (False
-        or else NT (N).Nkind = N_Defining_Character_Literal
-        or else NT (N).Nkind = N_Defining_Identifier
-        or else NT (N).Nkind = N_Defining_Operator_Symbol);
-      return Node4 (N);
-   end Homonym;
-
    function Identifier
       (N : Node_Id) return Node_Id is
    begin
@@ -3665,17 +3655,6 @@ package body Sinfo is
         or else NT (N).Nkind = N_Signed_Integer_Type_Definition);
       Set_Node2_With_Parent (N, Val);
    end Set_High_Bound;
-
-   procedure Set_Homonym
-      (N : Node_Id; Val : Node_Id) is
-   begin
-      pragma Assert (False
-        or else NT (N).Nkind = N_Defining_Character_Literal
-        or else NT (N).Nkind = N_Defining_Identifier
-        or else NT (N).Nkind = N_Defining_Operator_Symbol);
-      pragma Assert (N /= Val);
-      Set_Node4 (N, Val); -- semantic field, no parent set
-   end Set_Homonym;
 
    procedure Set_Identifier
       (N : Node_Id; Val : Node_Id) is

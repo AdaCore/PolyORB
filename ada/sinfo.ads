@@ -1027,11 +1027,6 @@ package Sinfo is
    --     introduced by these use clauses have priority over global ones,
    --     and outer entities must be explicitly hidden/restored on exit.
 
-   --  Homonym (Node4-Sem)
-   --    Present in defining identifiers, defining character literals and
-   --    defining operator symbols (i.e. in all entities). Within a given
-   --    scope, homonyms are chained using this field. See Einfo for details.
-
    --  Implicit_With (Flag17-Sem)
    --    This flag is set in the N_With_Clause node that is implicitly
    --    generated for runtime units that are loaded by the expander, and
@@ -1730,7 +1725,6 @@ package Sinfo is
       --  Chars (Name1) contains the Name_Id for the identifier
       --  Next_Entity (Node2-Sem)
       --  Scope (Node3-Sem)
-      --  Homonym (Node4-Sem)
       --  Etype (Node5-Sem)
 
       -----------------------------
@@ -2027,7 +2021,6 @@ package Sinfo is
       --  Chars (Name1) contains the Name_Id for the identifier
       --  Next_Entity (Node2-Sem)
       --  Scope (Node3-Sem)
-      --  Homonym (Node4-Sem)
       --  Etype (Node5-Sem)
 
       ------------------------------------
@@ -3816,7 +3809,6 @@ package Sinfo is
       --  Chars (Name1) contains the Name_Id for the operator symbol
       --  Next_Entity (Node2-Sem)
       --  Scope (Node3-Sem)
-      --  Homonym (Node4-Sem)
       --  Etype (Node5-Sem)
 
       ----------------------------
@@ -6291,12 +6283,19 @@ package Sinfo is
       --  N_Binary_Op, N_Op, N_Subexpr, N_Has_Etype
       --  N_Has_Entity, N_Has_Chars, N_Op_Boolean
       N_Op_And,
+
+      --  N_Binary_Op, N_Op, N_Subexpr, N_Has_Etype
+      --  N_Has_Entity, N_Has_Chars, N_Op_Boolean,
+      --  N_Op_Compare
       N_Op_Eq,
       N_Op_Ge,
       N_Op_Gt,
       N_Op_Le,
       N_Op_Lt,
       N_Op_Ne,
+
+      --  N_Binary_Op, N_Op, N_Subexpr, N_Has_Etype
+      --  N_Has_Entity, N_Has_Chars, N_Op_Boolean
       N_Op_Or,
       N_Op_Xor,
 
@@ -6612,6 +6611,10 @@ package Sinfo is
      N_Op_Xor;
    --  Binary operators which take operands of a boolean type, and yield
    --  a result of a boolean type.
+
+   subtype N_Op_Compare is Node_Kind range
+     N_Op_Eq ..
+     N_Op_Ne;
 
    subtype N_Op_Shift is Node_Kind range
      N_Op_Rotate_Left ..
@@ -7070,9 +7073,6 @@ package Sinfo is
 
    function High_Bound
      (N : Node_Id) return Node_Id;    -- Node2
-
-   function Homonym
-     (N : Node_Id) return Node_Id;    -- Node4
 
    function Identifier
      (N : Node_Id) return Node_Id;    -- Node1
@@ -7821,9 +7821,6 @@ package Sinfo is
    procedure Set_High_Bound
      (N : Node_Id; Val : Node_Id);            -- Node2
 
-   procedure Set_Homonym
-     (N : Node_Id; Val : Node_Id);            -- Node4
-
    procedure Set_Identifier
      (N : Node_Id; Val : Node_Id);            -- Node1
 
@@ -8325,7 +8322,6 @@ package Sinfo is
    pragma Inline (Has_Wide_Character);
    pragma Inline (Hidden_By_Use_Clause);
    pragma Inline (High_Bound);
-   pragma Inline (Homonym);
    pragma Inline (Identifier);
    pragma Inline (Implicit_With);
    pragma Inline (Includes_Infinities);
@@ -8572,7 +8568,6 @@ package Sinfo is
    pragma Inline (Set_Has_Wide_Character);
    pragma Inline (Set_Hidden_By_Use_Clause);
    pragma Inline (Set_High_Bound);
-   pragma Inline (Set_Homonym);
    pragma Inline (Set_Identifier);
    pragma Inline (Set_Implicit_With);
    pragma Inline (Set_Includes_Infinities);

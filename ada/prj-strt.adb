@@ -116,10 +116,11 @@ package body Prj.Strt is
       Current_Package : Project_Node_Id);
    --  Parse an attribute reference. Current token is an apostrophe.
 
-   procedure Terms (Term            : out Project_Node_Id;
-                    Expr_Kind       : in out Variable_Kind;
-                    Current_Project : Project_Node_Id;
-                    Current_Package : Project_Node_Id);
+   procedure Terms
+     (Term            : out Project_Node_Id;
+      Expr_Kind       : in out Variable_Kind;
+      Current_Project : Project_Node_Id;
+      Current_Package : Project_Node_Id);
    --  Recursive procedure to parse one term or several terms concatenated
    --  using "&".
 
@@ -150,11 +151,7 @@ package body Prj.Strt is
    begin
       Reference :=  Default_Project_Node (Of_Kind => N_Attribute_Reference);
       Set_Location_Of (Reference, To => Token_Ptr);
-
-      --  Scan past apostrophe
-
-      Scan;
-
+      Scan; -- past apostrophe
       Expect (Tok_Identifier, "Identifier");
 
       if Token = Tok_Identifier then
@@ -298,8 +295,8 @@ package body Prj.Strt is
    procedure Parse_Choice_List (First_Choice : out Project_Node_Id) is
       Current_Choice : Project_Node_Id := Empty_Node;
       Next_Choice    : Project_Node_Id := Empty_Node;
-      Choice_String  : String_Id := No_String;
-      Found          : Boolean := False;
+      Choice_String  : String_Id       := No_String;
+      Found          : Boolean         := False;
 
    begin
       First_Choice :=
@@ -313,8 +310,9 @@ package body Prj.Strt is
          Set_Location_Of (Current_Choice, To => Token_Ptr);
          Choice_String := Strval (Token_Node);
          Set_String_Value_Of (Current_Choice, To => Choice_String);
+
          Found := False;
-         for Choice in First_Choice_Id .. Choices.Last loop
+         for Choice in Choice_First .. Choices.Last loop
             if String_Equal (Choices.Table (Choice).The_String,
                              Choice_String)
             then
@@ -403,6 +401,7 @@ package body Prj.Strt is
                   Error_Msg ("duplicate value in type", Token_Ptr);
                   exit;
                end if;
+
                Current := Next_Literal_String (Current);
             end loop;
          end;
@@ -411,6 +410,7 @@ package body Prj.Strt is
 
          if Token /= Tok_Comma then
             exit;
+
          else
             Next_String :=
               Default_Project_Node (Of_Kind       => N_Literal_String,
@@ -477,7 +477,7 @@ package body Prj.Strt is
                when 1 =>
                   for Index in Package_First .. Package_Attributes.Last loop
                      if Package_Attributes.Table (Index).Name =
-                       The_Names (1).Name
+                                                      The_Names (1).Name
                      then
                         First_Attribute :=
                           Package_Attributes.Table (Index).First_Attribute;
@@ -488,8 +488,7 @@ package body Prj.Strt is
                   if First_Attribute /= Empty_Attribute then
                      The_Package := First_Package_Of (Current_Project);
                      while The_Package /= Empty_Node
-                       and then
-                       Name_Of (The_Package) /= The_Names (1).Name
+                       and then Name_Of (The_Package) /= The_Names (1).Name
                      loop
                         The_Package := Next_Package_In_Project (The_Package);
                      end loop;
@@ -502,6 +501,7 @@ package body Prj.Strt is
                   else
                      First_Attribute := Attribute_First;
                      The_Package     := Empty_Node;
+
                      declare
                         The_Project_Name_And_Node :
                           constant Tree_Private_Part.Project_Name_And_Node :=
@@ -511,8 +511,7 @@ package body Prj.Strt is
                         use Tree_Private_Part;
 
                      begin
-                        if
-                          The_Project_Name_And_Node =
+                        if The_Project_Name_And_Node =
                                    Tree_Private_Part.No_Project_Name_And_Node
                         then
                            Error_Msg ("unknown project",
@@ -544,8 +543,7 @@ package body Prj.Strt is
 
                      else
                         The_Package := First_Package_Of (The_Project);
-                        while
-                          The_Package /= Empty_Node
+                        while The_Package /= Empty_Node
                           and then Name_Of (The_Package) /= The_Names (2).Name
                         loop
                            The_Package :=
@@ -597,6 +595,8 @@ package body Prj.Strt is
             when 1 =>
                Set_Name_Of (Variable, To => The_Names (1).Name);
 
+            --  Header comment needed ???
+
             when 2 =>
                Set_Name_Of (Variable, To => The_Names (2).Name);
                The_Package := First_Package_Of (Current_Project);
@@ -610,10 +610,12 @@ package body Prj.Strt is
                if The_Package /= Empty_Node then
                   Specified_Package := The_Package;
                   The_Project := Empty_Node;
+
                else
                   declare
                      With_Clause : Project_Node_Id :=
-                       First_With_Clause_Of (Current_Project);
+                                     First_With_Clause_Of (Current_Project);
+
                   begin
                      while With_Clause /= Empty_Node loop
                         The_Project := Project_Node_Of (With_Clause);
@@ -643,6 +645,8 @@ package body Prj.Strt is
                      end if;
                   end;
                end if;
+
+            --  Header comment needed ???
 
             when 3 =>
                Set_Name_Of (Variable, To => The_Names (3).Name);
@@ -741,7 +745,6 @@ package body Prj.Strt is
               (Variable, To => String_Type_Of (Current_Variable));
          end if;
       end if;
-
    end Parse_Variable_Reference;
 
    ---------------------------------
@@ -862,7 +865,6 @@ package body Prj.Strt is
             Scan;
 
          when Tok_Identifier =>
-
             Current_Location := Token_Ptr;
             Parse_Variable_Reference
               (Variable        => Reference,
@@ -885,7 +887,6 @@ package body Prj.Strt is
             end if;
 
          when Tok_Project =>
-
             Current_Location := Token_Ptr;
             Scan;
             Expect (Tok_Apostrophe, "'");
