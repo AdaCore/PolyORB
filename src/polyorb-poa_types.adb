@@ -177,9 +177,30 @@ package body PolyORB.POA_Types is
      (Oid : Object_Id)
      return Types.String
    is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+      Index : Stream_Element_Offset;
+
+      Creator : PolyORB.Types.String;
+      Id      : PolyORB.Types.String;
+      Error   : PolyORB.Exceptions.Error_Container;
+
    begin
-      return U_Oid.Id;
+      Index := Oid'First;
+
+      Get_String
+        (Stream_Element_Array (Oid), Index, Creator, Error);
+
+      if PolyORB.Exceptions.Found (Error) then
+         raise Constraint_Error;
+      end if;
+
+      Get_String
+        (Stream_Element_Array (Oid), Index, Id, Error);
+
+      if PolyORB.Exceptions.Found (Error) then
+         raise Constraint_Error;
+      end if;
+
+      return Id;
    end Get_Name;
 
    ---------------
