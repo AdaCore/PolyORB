@@ -141,10 +141,14 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          pragma Debug (O ("Hint is not null"));
 
          declare
-            U_Hint : constant Unmarshalled_Oid := Oid_To_U_Oid (Hint);
+            U_Hint : Unmarshalled_Oid;
 
          begin
-            if not U_Hint.System_Generated then
+            Oid_To_U_Oid (Hint.all, U_Hint, Error);
+
+            if not U_Hint.System_Generated
+              or else Found (Error)
+            then
                Throw (Error,
                       Bad_Param_E,
                       System_Exception_Members'(Minor => 0,
@@ -198,5 +202,44 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       U_Oid := The_Entry.Oid.all;
       pragma Debug (O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
+
+   -----------------------------------
+   -- Reconstruct_Object_Identifier --
+   -----------------------------------
+
+   procedure Reconstruct_Object_Identifier
+     (Self  :        System_Id_Policy;
+      OA    :        Obj_Adapter_Access;
+      Oid   :        Object_Id;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); -- WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Unreferenced (Error);
+      pragma Warnings (On); -- WAG:3.15
+
+   begin
+      U_Oid := PolyORB.POA_Types.Oid_To_U_Oid (Oid);
+
+   end Reconstruct_Object_Identifier;
+
+   -----------------------
+   -- Object_Identifier --
+   -----------------------
+
+   procedure Object_Identifier
+     (Self   :     System_Id_Policy;
+      Oid    :     Object_Id_Access;
+      Result : out Object_Id_Access)
+   is
+      pragma Warnings (Off); -- WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); -- WAG:3.15
+
+   begin
+      Result := Oid;
+   end Object_Identifier;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

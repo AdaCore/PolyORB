@@ -56,4 +56,16 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Reconstruct_Object_Identifier
+     (Self  :        System_Id_Policy;
+      OA    :        Obj_Adapter_Access;
+      Oid   :        Object_Id;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Object_Identifier
+     (Self   :     System_Id_Policy;
+      Oid    :     Object_Id_Access;
+      Result : out Object_Id_Access);
+
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

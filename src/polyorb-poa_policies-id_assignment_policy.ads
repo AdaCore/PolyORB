@@ -47,6 +47,20 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
       Hint   :        Object_Id_Access;
       U_Oid  :    out Unmarshalled_Oid;
       Error  : in out PolyORB.Exceptions.Error_Container)
-   is abstract;
+      is abstract;
+
+   procedure Reconstruct_Object_Identifier
+     (Self  :        IdAssignmentPolicy;
+      OA    :        Obj_Adapter_Access;
+      Oid   :        Object_Id;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Object_Identifier
+     (Self   :     IdAssignmentPolicy;
+      Oid    :     Object_Id_Access;
+      Result : out Object_Id_Access)
+      is abstract;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy;

@@ -142,4 +142,56 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       pragma Debug (O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
 
+   -----------------------------------
+   -- Reconstruct_Object_Identifier --
+   -----------------------------------
+
+   procedure Reconstruct_Object_Identifier
+     (Self  :        User_Id_Policy;
+      OA    :        Obj_Adapter_Access;
+      Oid   :        Object_Id;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); -- WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Error);
+      pragma Warnings (On); -- WAG:3.15
+
+      use PolyORB.POA_Policies.Lifespan_Policy;
+      use PolyORB.Types;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access
+        := PolyORB.POA.Obj_Adapter_Access (OA);
+   begin
+
+      U_Oid := PolyORB.POA_Types.Create_Id
+        (Name             =>
+           To_PolyORB_String (PolyORB.Objects.To_String (Oid)),
+         System_Generated => False,
+         Persistency_Flag =>
+           Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
+         Creator          => POA.Absolute_Address);
+
+   end Reconstruct_Object_Identifier;
+
+   -----------------------
+   -- Object_Identifier --
+   -----------------------
+
+   procedure Object_Identifier
+     (Self   :     User_Id_Policy;
+      Oid    :     Object_Id_Access;
+      Result : out Object_Id_Access)
+   is
+      pragma Warnings (Off); -- WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); -- WAG:3.15
+
+   begin
+      Result := new Object_Id'
+        (PolyORB.Objects.To_Oid
+         (PolyORB.Types.To_Standard_String (Oid_To_U_Oid (Oid).Id)));
+   end Object_Identifier;
+
 end PolyORB.POA_Policies.Id_Assignment_Policy.User;
