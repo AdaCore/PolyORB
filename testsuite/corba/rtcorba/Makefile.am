@@ -14,5 +14,5 @@ SUBDIRS= rtcurrent rtorb rtpoa
 CLEANFILES = config-stamp
 
 depend:
-        cd src && ${MAKE} depend
+	cd src && ${MAKE} depend
 
