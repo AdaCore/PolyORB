@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 
-with GNAT.Os_Lib;
+with System.Garlic.OS_Lib;
 with System.IO;
 
 package body System.Garlic.Debug is
@@ -56,8 +56,10 @@ package body System.Garlic.Debug is
      (others => (others => False));
    --  Map of flags.
 
+   type String_Access is access String;
+
    Banner_Map : array (Debug_Key range 1 .. Max_Debugs)
-     of GNAT.Os_Lib.String_Access;
+     of String_Access;
    --  Map of banners.
 
    Assertions_Turned_On : Boolean := False;
@@ -199,8 +201,7 @@ package body System.Garlic.Debug is
       Message : in String;
       Key     : in Debug_Key)
    is
-      use type GNAT.Os_Lib.String_Access;
-      Banner : GNAT.Os_Lib.String_Access;
+      Banner : String_Access;
       Flag   : Boolean;
    begin
       if Key /= Not_Debugging then
@@ -225,9 +226,7 @@ package body System.Garlic.Debug is
       Banner   : String)
       return Debug_Key
    is
-      use type GNAT.Os_Lib.String_Access;
-      Value : constant GNAT.Os_Lib.String_Access :=
-        GNAT.Os_Lib.Getenv (Variable);
+      Value : constant String_Access := new String'(OS_Lib.Getenv (Variable));
       C     : Character;
       L     : Debug_Level;
    begin

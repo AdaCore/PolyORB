@@ -1,9 +1,16 @@
 Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garthi.ads: Added interface to system's getenv() function.
+	* Makefile.am: Added s-gaosli.*.
 
-	* s-garopt.adb: Added and use private Getenv function which uses
-	  underlying getenv() call.
+	* s-gaosli.ads: New file with Getenv.
+
+	* s-gaosli.adb: Idem.
+
+	* s-garopt.adb: Use System.Garlic.OS_Lib's Getenv.
+
+	* s-gardeb.adb: Idem.
+
+	* s-garthi.ads: Added interface to system's getenv() function.
 
 Fri Oct 18 14:12:03 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 

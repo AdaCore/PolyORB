@@ -34,8 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line;         use Ada.Command_Line;
-with Interfaces.C.Strings;
 with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
 with System.Garlic.Thin;       use System.Garlic.Thin;
 
 package body System.Garlic.Options is
@@ -48,9 +48,6 @@ package body System.Garlic.Options is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
    --  Debugging stuff.
-
-   function Getenv (Name : String) return String;
-   --  getenv()
 
    ------------------------
    -- Get_Boot_Server --
@@ -156,24 +153,5 @@ package body System.Garlic.Options is
          pragma Debug (D (D_Exception, "(get_nolaunch) Get lost ..."));
          raise;
    end Get_Nolaunch;
-
-   ------------
-   -- Getenv --
-   ------------
-
-   function Getenv (Name : String)
-      return String
-   is
-      use Interfaces.C.Strings;
-      C_Name   :          chars_ptr := New_String (Name);
-      C_Result : constant chars_ptr := C_Getenv (C_Name);
-   begin
-      Free (C_Name);
-      if C_Result = Null_Ptr then
-         return "";
-      else
-         return Value (C_Result);
-      end if;
-   end Getenv;
 
 end System.Garlic.Options;
