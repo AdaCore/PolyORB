@@ -33,10 +33,8 @@
 
 --  $Id$
 
-with PolyORB.Types;
 with PolyORB.Binding_Data;
-
-with Ada.Unchecked_Deallocation;
+with PolyORB.Types;
 
 package PolyORB.References.URI is
 
@@ -51,10 +49,8 @@ package PolyORB.References.URI is
 
    subtype URI_Type is PolyORB.References.Ref;
 
-   type String_Access is access String;
-   type String_Array is array (Integer range <>) of String_Access;
-
-   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
+   type String_Array is array (Integer range <>)
+     of PolyORB.Utils.Strings.String_Ptr;
 
    procedure Free (SA : in out String_Array);
    --  Free a String_Array
