@@ -251,7 +251,6 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "end;");
       DI (CU);
-      PL (CU, "end if;");
    end Gen_Is_A;
 
    ----------------------------
@@ -341,7 +340,11 @@ package body Ada_Be.Idl2Ada.Skel is
    begin
       pragma Assert ((NK = K_Interface) or else (NK = K_ValueType));
       NL (CU);
+      PL (CU, "else");
+      II (CU);
       PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Operation;");
+      DI (CU);
+      PL (CU, "end if;");
       DI (CU);
       PL (CU, "end Invoke;");
 
@@ -437,7 +440,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                NL (CU);
                PL (CU,
-                   "if Operation = """
+                   "elsif Operation = """
                    & Idl_Operation_Id (Node)
                    & """ then");
                II (CU);
@@ -488,8 +491,6 @@ package body Ada_Be.Idl2Ada.Skel is
                if Is_Function then
                   PL (CU, Justify (T_Result, Max_Len)
                       & " : " & Ada_Type_Name (O_Type) & ";");
-                  PL (CU, Justify (T_Argument & T_Result, Max_Len)
-                      & " : CORBA.Any;");
                end if;
 
                Add_With (CU, "CORBA.Context");
@@ -789,7 +790,6 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
                PL (CU, "end;");
                DI (CU);
-               PL (CU, "end if;");
             end;
 
          when others =>

@@ -200,6 +200,8 @@ package body Ada_Be.Source_Streams is
    is
       Div : Diversion_Data renames CU.Diversions (D);
       Empty_Diversion : Diversion_Data;
+      pragma Warnings (Off, Empty_Diversion);
+      --  Use default initialization.
    begin
       if not Diversions_Allocation (D) then
          raise Program_Error;

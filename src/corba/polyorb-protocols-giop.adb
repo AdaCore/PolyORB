@@ -503,7 +503,7 @@ package body PolyORB.Protocols.GIOP is
 
       --  Object key
       Object_Key := Objects.Object_Id
-        (Stream_Element_Array' (Unmarshall (Buffer)));
+        (Stream_Element_Array'(Unmarshall (Buffer)));
    end Unmarshall_Locate_Request;
 
    -----------------------------
@@ -1825,7 +1825,7 @@ package body PolyORB.Protocols.GIOP is
       Cancel_Request_Message (S, Current_Req.Req);
 
       --  Sending the message
-      Emit_No_Reply (Lower (S), Data_Out' (Out_Buf => S.Buffer_Out));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
 
    end Abort_Request;
 

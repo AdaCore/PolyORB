@@ -204,7 +204,8 @@ package body PolyORB.Sequences.Unbounded is
       Length : constant Natural := Right'Length;
       Index  : Natural := 1;
       Result : Sequence;
-
+      pragma Warnings (Off, Result);
+      --  Default initialization.
    begin
       if Left = 0 or else Right'Length = 0 then
          return Result;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#32 $
+--  $Id: //droopi/main/src/polyorb-any.adb#33 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -799,12 +799,12 @@ package body PolyORB.Any is
          C_Ptr : Cell_Ptr := Self.Parameters;
       begin
          if C_Ptr = null then
-            Self.Parameters := new Cell' (Param, null);
+            Self.Parameters := new Cell'(Param, null);
          else
             while C_Ptr.Next /= null loop
                C_Ptr := C_Ptr.Next;
             end loop;
-            C_Ptr.Next := new Cell' (Param, null);
+            C_Ptr.Next := new Cell'(Param, null);
          end if;
       end Add_Parameter;
 
@@ -1482,7 +1482,7 @@ package body PolyORB.Any is
    function To_Any (Item : in Short) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_Short' (Value => new Short' (Item)));
+      Set_Value (Result, new Content_Short'(Value => new Short'(Item)));
       Set_Type (Result, TypeCode.TC_Short);
       return Result;
    end To_Any;
@@ -1490,7 +1490,7 @@ package body PolyORB.Any is
    function To_Any (Item : in Long) return Any is
       Result : Any;
    begin
-      Set_Value (Result, new Content_Long' (Value => new Long' (Item)));
+      Set_Value (Result, new Content_Long'(Value => new Long'(Item)));
       Set_Type (Result, TypeCode.TC_Long);
       return Result;
    end To_Any;
@@ -1499,7 +1499,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Long_Long'
-                 (Value => new Long_Long' (Item)));
+                 (Value => new Long_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Long_Long);
       return Result;
    end To_Any;
@@ -1508,7 +1508,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_UShort'
-                 (Value => new Unsigned_Short' (Item)));
+                 (Value => new Unsigned_Short'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Short);
       return Result;
    end To_Any;
@@ -1518,7 +1518,7 @@ package body PolyORB.Any is
    begin
       pragma Debug (O ("To_Any (ULong) : enter"));
       Set_Value (Result, new Content_ULong'
-                 (Value => new Unsigned_Long' (Item)));
+                 (Value => new Unsigned_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long);
       pragma Debug (O ("To_Any (ULong) : end"));
       return Result;
@@ -1528,7 +1528,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_ULong_Long'
-                 (Value => new Unsigned_Long_Long' (Item)));
+                 (Value => new Unsigned_Long_Long'(Item)));
       Set_Type (Result, TypeCode.TC_Unsigned_Long_Long);
       return Result;
    end To_Any;
@@ -1537,7 +1537,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Float'
-                 (Value => new Types.Float' (Item)));
+                 (Value => new Types.Float'(Item)));
       Set_Type (Result, TypeCode.TC_Float);
       return Result;
    end To_Any;
@@ -1546,7 +1546,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Double'
-                 (Value => new Double' (Item)));
+                 (Value => new Double'(Item)));
       Set_Type (Result, TypeCode.TC_Double);
       return Result;
    end To_Any;
@@ -1555,7 +1555,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Long_Double'
-                 (Value => new Long_Double' (Item)));
+                 (Value => new Long_Double'(Item)));
       Set_Type (Result, TypeCode.TC_Long_Double);
       return Result;
    end To_Any;
@@ -1564,7 +1564,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Boolean'
-                 (Value => new Boolean' (Item)));
+                 (Value => new Boolean'(Item)));
       Set_Type (Result, TypeCode.TC_Boolean);
       return Result;
    end To_Any;
@@ -1573,7 +1573,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Char'
-                 (Value => new Char' (Item)));
+                 (Value => new Char'(Item)));
       Set_Type (Result, TypeCode.TC_Char);
       return Result;
    end To_Any;
@@ -1582,7 +1582,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Wchar'
-                 (Value => new Wchar' (Item)));
+                 (Value => new Wchar'(Item)));
       Set_Type (Result, TypeCode.TC_Wchar);
       return Result;
    end To_Any;
@@ -1591,7 +1591,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Octet'
-                 (Value => new Octet' (Item)));
+                 (Value => new Octet'(Item)));
       Set_Type (Result, TypeCode.TC_Octet);
       return Result;
    end To_Any;
@@ -1600,7 +1600,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_Any'
-                 (Value => new Any' (Item)));
+                 (Value => new Any'(Item)));
       Set_Type (Result, TypeCode.TC_Any);
       return Result;
    end To_Any;
@@ -1609,7 +1609,7 @@ package body PolyORB.Any is
       Result : Any;
    begin
       Set_Value (Result, new Content_TypeCode'
-                 (Value => new TypeCode.Object' (Item)));
+                 (Value => new TypeCode.Object'(Item)));
       Set_Type (Result, TypeCode.TC_TypeCode);
       return Result;
    end To_Any;
@@ -1623,7 +1623,7 @@ package body PolyORB.Any is
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_String'
-                 (Value => new PolyORB.Types.String' (Item)));
+                 (Value => new PolyORB.Types.String'(Item)));
       Set_Type (Result, Tco);
       pragma Debug (O ("To_Any (String) : end"));
       return Result;
@@ -1637,7 +1637,7 @@ package body PolyORB.Any is
       TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
       --  the string is supposed to be unbounded
       Set_Value (Result, new Content_Wide_String'
-                 (Value => new Types.Wide_String' (Item)));
+                 (Value => new Types.Wide_String'(Item)));
       Set_Type (Result, Tco);
       return Result;
    end To_Any;
@@ -1894,7 +1894,7 @@ package body PolyORB.Any is
          Content_Octet_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Octet'(Value => new Octet' (Value));
+           new Content_Octet'(Value => new Octet'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -1914,7 +1914,7 @@ package body PolyORB.Any is
          Content_Short_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Short'(Value => new Short' (Value));
+           new Content_Short'(Value => new Short'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
       pragma Debug (O ("Set_Any_Value : the any value is "
@@ -1942,7 +1942,7 @@ package body PolyORB.Any is
          Content_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long'(Value => new Types.Long' (Value));
+           new Content_Long'(Value => new Types.Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -1962,7 +1962,7 @@ package body PolyORB.Any is
          Content_Long_Long_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long_Long'(Value => new Types.Long_Long' (Value));
+           new Content_Long_Long'(Value => new Types.Long_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -1982,7 +1982,7 @@ package body PolyORB.Any is
          Content_UShort_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_UShort'(Value => new Unsigned_Short' (Value));
+           new Content_UShort'(Value => new Unsigned_Short'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2002,7 +2002,7 @@ package body PolyORB.Any is
          Content_ULong_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_ULong'(Value => new Unsigned_Long' (Value));
+           new Content_ULong'(Value => new Unsigned_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2024,7 +2024,7 @@ package body PolyORB.Any is
       else
          Any_Value.The_Value.all :=
            new Content_ULong_Long'(Value =>
-                                     new Unsigned_Long_Long' (Value));
+                                     new Unsigned_Long_Long'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2044,7 +2044,7 @@ package body PolyORB.Any is
          Content_Boolean_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Boolean'(Value => new Boolean' (Value));
+           new Content_Boolean'(Value => new Boolean'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2064,7 +2064,7 @@ package body PolyORB.Any is
          Content_Char_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Char'(Value => new Char' (Value));
+           new Content_Char'(Value => new Char'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2084,7 +2084,7 @@ package body PolyORB.Any is
          Content_Wchar_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Wchar'(Value => new Wchar' (Value));
+           new Content_Wchar'(Value => new Wchar'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2104,7 +2104,7 @@ package body PolyORB.Any is
          Content_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_String'(Value => new PolyORB.Types.String' (Value));
+           new Content_String'(Value => new PolyORB.Types.String'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2124,7 +2124,7 @@ package body PolyORB.Any is
          Content_Wide_String_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Wide_String'(Value => new Types.Wide_String' (Value));
+           new Content_Wide_String'(Value => new Types.Wide_String'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2144,7 +2144,7 @@ package body PolyORB.Any is
          Content_Float_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Float'(Value => new Types.Float' (Value));
+           new Content_Float'(Value => new Types.Float'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2164,7 +2164,7 @@ package body PolyORB.Any is
          Content_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Double'(Value => new Double' (Value));
+           new Content_Double'(Value => new Double'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2185,7 +2185,7 @@ package body PolyORB.Any is
          Content_Long_Double_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Long_Double'(Value => new Types.Long_Double' (Value));
+           new Content_Long_Double'(Value => new Types.Long_Double'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2205,7 +2205,7 @@ package body PolyORB.Any is
          Content_TypeCode_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_TypeCode'(Value => new TypeCode.Object' (Value));
+           new Content_TypeCode'(Value => new TypeCode.Object'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2225,7 +2225,7 @@ package body PolyORB.Any is
          Content_Any_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all :=
-           new Content_Any'(Value => new Any' (Value));
+           new Content_Any'(Value => new Any'(Value));
       end if;
       Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
@@ -2661,7 +2661,7 @@ package body PolyORB.Any is
                        return Any_Content_Ptr is
    begin
       return new Content_Octet'
-        (Value => new Octet' (Content_Octet_Ptr (Object).Value.all));
+        (Value => new Octet'(Content_Octet_Ptr (Object).Value.all));
    end Duplicate;
 
    -----------------
@@ -2671,7 +2671,7 @@ package body PolyORB.Any is
                        return Any_Content_Ptr is
    begin
       return new Content_Short'
-        (Value => new Short' (Content_Short_Ptr (Object).Value.all));
+        (Value => new Short'(Content_Short_Ptr (Object).Value.all));
    end Duplicate;
 
    -----------------
@@ -2682,7 +2682,7 @@ package body PolyORB.Any is
    begin
       pragma Debug (O ("Duplicate (Long) : enter & end"));
       return new Content_Long'
-        (Value => new Types.Long' (Content_Long_Ptr (Object).Value.all));
+        (Value => new Types.Long'(Content_Long_Ptr (Object).Value.all));
    end Duplicate;
 
    -----------------

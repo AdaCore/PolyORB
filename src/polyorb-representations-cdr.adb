@@ -2289,6 +2289,8 @@ package body PolyORB.Representations.CDR is
      return PolyORB.Any.NamedValue
    is
       NV  :  PolyORB.Any.NamedValue;
+      pragma Warnings (Off, NV);
+      --  Default initialization.
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
