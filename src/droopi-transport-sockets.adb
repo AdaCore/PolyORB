@@ -45,6 +45,12 @@ package body Droopi.Transport.Sockets is
       TE := New_TE;
    end Accept_Connection;
 
+   function Address_Of (SAP : Socket_Access_Point)
+     return Sock_Addr_Type is
+   begin
+      return Get_Socket_Name (SAP.Socket);
+   end Address_Of;
+
    function Create_Event_Source
      (TE : Socket_Endpoint)
      return Asynch_Ev_Source_Access is

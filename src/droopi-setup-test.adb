@@ -4,6 +4,7 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Droopi.Binding_Data.Test;
 with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
@@ -106,7 +107,7 @@ begin
      (ORB    => The_ORB,
       TAP    => SAP,
       Chain  => new Protocols.Echo.Echo_Protocol,
-      PF     => null);
+      PF     => new Droopi.Binding_Data.Test.Test_Profile_Factory);
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.
 

@@ -2,36 +2,39 @@
 
 --  $Id$
 
+with Droopi.Transport.Sockets;
+--  The TEST protocol is defined upon TCP/IP.
+
 package body Droopi.Binding_Data.Test is
 
    use Droopi.Objects;
 
-   procedure Initialize (P : in out Local_Profile_Type) is
+   procedure Initialize (P : in out Test_Profile_Type) is
    begin
       P.Object_Id := null;
    end Initialize;
 
-   procedure Adjust (P : in out Local_Profile_Type) is
+   procedure Adjust (P : in out Test_Profile_Type) is
    begin
       if P.Object_Id /= null then
          P.Object_Id := new Object_Id'(P.Object_Id.all);
       end if;
    end Adjust;
 
-   procedure Finalize (P : in out Local_Profile_Type) is
+   procedure Finalize (P : in out Test_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;
 
    function Get_Object_Key
-     (Profile : Test_Profile)
+     (Profile : Test_Profile_Type)
      return Objects.Object_Id is
    begin
-      return Profile.Oid.all;
+      return Profile.Object_Id.all;
    end Get_Object_Key;
 
    procedure Bind_Profile
-     (Profile : Test_Profile;
+     (Profile : Test_Profile_Type;
       TE      : out Transport.Transport_Endpoint_Access;
       Session : out Components.Component_Access) is
    begin
@@ -39,44 +42,37 @@ package body Droopi.Binding_Data.Test is
    end Bind_Profile;
 
    function Get_Profile_Tag
-     (Profile : Test_Profile)
+     (Profile : Test_Profile_Type)
      return Profile_Tag is
    begin
-      raise Not_Implemented;
-      return Get_Profile_Tag (Profile);
+      return Tag_Test;
    end Get_Profile_Tag;
 
    function Get_Profile_Preference
-     (Profile : Test_Profile)
+     (Profile : Test_Profile_Type)
      return Profile_Preference is
    begin
-      raise Not_Implemented;
-      return Get_Profile_Reference (Profile);
-   end Get_Profile_Reference;
-
-   procedure Destroy (Profile : in out Profile_Type) is
-   begin
-      Free (Profile.Oid);
-   end Destroy;
-
-   type Test_Profile_Factory is new Profile_Factory with private;
+      return Preference_Default;
+   end Get_Profile_Preference;
 
    function Create_Profile
-     (PF  : access Profile_Factory;
+     (PF  : access Test_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
-     return Profile_Access is
+     return Profile_Access
+   is
+      use Droopi.Transport.Sockets;
+
+      Result : constant Profile_Access
+        := new Test_Profile_Type;
+
+      TResult : Test_Profile_Type
+        renames Test_Profile_Type (Result.all);
    begin
-      return new Test_Profile'
-        (Oid => new Object_Id'(Oid),
-         Address => TAP_Address (TAP));
+      TResult.Object_Id := new Object_Id'(Oid);
+      TResult.Address   := Address_Of
+        (Socket_Access_Point (TAP.all));
+      return  Result;
    end Create_Profile;
 
-private
-
-   type Test_Profile is new Test_Profile with null record;
-
-   type Test_Profile_Factory is new Profile_Factory
-      with null record;
-
-end Droopi.Binding_Data;
+end Droopi.Binding_Data.Test;

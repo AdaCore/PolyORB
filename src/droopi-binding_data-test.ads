@@ -31,12 +31,10 @@ package Droopi.Binding_Data.Test is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   procedure Destroy (Profile : in out Test_Profile_Type);
-
    type Test_Profile_Factory is new Profile_Factory with private;
 
    function Create_Profile
-     (PF  : access Profile_Factory;
+     (PF  : access Test_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access;
@@ -44,11 +42,11 @@ package Droopi.Binding_Data.Test is
 private
 
    type Test_Profile_Type is new Profile_Type with record
-      Address : Sockets.Sock_Addr_Type;
-      Oid : Object_Id_Access;
+      Address   : Sockets.Sock_Addr_Type;
+      Object_Id : Objects.Object_Id_Access;
    end record;
 
    type Test_Profile_Factory is new Profile_Factory
       with null record;
 
-end Droopi.Binding_Data;
+end Droopi.Binding_Data.Test;
