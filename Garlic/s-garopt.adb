@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -290,14 +290,19 @@ package body System.Garlic.Options is
       end if;
 
       if Boot_Location = null then
-         if (Is_Boot_Server and then not Nolaunch)
-           or else Default_Protocol_Name'Length = 0
-         then
-            Set_Boot_Location ("tcp");
-         else
-            Set_Boot_Location (Default_Protocol_Name & "://" &
-                               Default_Protocol_Data);
-         end if;
+         declare
+            No_Default_Protocol_Name : constant Boolean :=
+                                         Default_Protocol_Name'Length = 0;
+         begin
+            if (Is_Boot_Server and then not Nolaunch)
+              or else No_Default_Protocol_Name
+            then
+               Set_Boot_Location ("tcp");
+            else
+               Set_Boot_Location (Default_Protocol_Name & "://" &
+                                  Default_Protocol_Data);
+            end if;
+         end;
       end if;
 
       if Self_Location = null then
