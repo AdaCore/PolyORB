@@ -1,3 +1,16 @@
+2001-02-08  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-garopt.adb, s-garopt.ads: Add options to configure remote
+	shell command and options dynamically with the command line or the
+	env. variables, or statically in the elaboration code with
+	gnatdist. Add internal option to enable/disable local launch. This
+	allows to prevent launching partitions with spawn. This way, the
+	remote partition executes through a specific remote shell under
+	rlimit.
+
+	* 5egarrem.adb: Launch remote partitions with current remote shell
+	command and options. Enable/disable local launch.
+	
 2001-02-05  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-garhea.adb: Suspend request execution as long as request
