@@ -69,7 +69,8 @@ package body MOMA.Messages.MMaps is
       Result : MMap;
    begin
       Set_Type (Result, Map_M);
-      --  XXX should initialize other fields as well ???
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Map_Message;
 

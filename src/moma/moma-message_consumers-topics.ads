@@ -1,4 +1,4 @@
-with MOMA.Destinations.Topics;
+with MOMA.Destinations;
 
 package MOMA.Message_Consumers.Topics is
 
@@ -11,7 +11,7 @@ package MOMA.Message_Consumers.Topics is
    -------------------------
    --  Get_Topic Function --
    -------------------------
-   function Get_Topic return MOMA.Destinations.Topics.Topic;
+   function Get_Topic return MOMA.Destinations.Destination;
 
    ----------------------------
    --  Get_No_Local Function --

@@ -65,11 +65,8 @@ package body MOMA.Sessions.Queues is
       Queue_Name : MOMA.Types.String)
       return MOMA.Destinations.Destination
    is
-      Dest_Queue : MOMA.Destinations.Destination;
    begin
-      Set_Name (Dest_Queue, Queue_Name);
-      Set_Ref  (Dest_Queue, Get_Ref (Connection));
-      return Dest_Queue;
+      return Create (Queue_Name, Get_Ref (Connection));
    end Create_Queue;
 
    --------------------

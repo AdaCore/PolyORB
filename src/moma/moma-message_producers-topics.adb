@@ -4,7 +4,7 @@ package body MOMA.Message_Producers.Topics is
    -- Get_Topic --
    ---------------
 
-   function Get_Topic return MOMA.Destinations.Topics.Topic is
+   function Get_Topic return MOMA.Destinations.Destination is
    begin
       pragma Warnings (Off);
       return Get_Topic;

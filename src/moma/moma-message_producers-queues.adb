@@ -33,8 +33,6 @@
 --  $Id$
 
 with MOMA.Messages;
---  with MOMA.Connections.Queues;
---  with MOMA.Destinations.Queues;
 with MOMA.Messages.MExecutes;
 with MOMA.Types;
 
@@ -51,7 +49,6 @@ package body MOMA.Message_Producers.Queues is
 
    use MOMA.Messages;
    use MOMA.Messages.MExecutes;
-   --  use MOMA.Connections.Queues;
    use MOMA.Types;
 
    use PolyORB.Any;

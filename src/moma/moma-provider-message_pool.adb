@@ -233,13 +233,21 @@ package body MOMA.Provider.Message_Pool is
       Temp : constant String := Integer'Image (Self.Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
       --  Dummy Key construction, should be analyzed from message
+
+      Rcvd_Message : MOMA.Messages.Message'Class := From_Any (Message);
+      Id : constant String
+        := To_Standard_String (Get_Message_Id (Rcvd_Message));
    begin
-      pragma Debug (O ("Got new message " & Image (Message)
-                       & " with Key " & Key));
-
-      Self.Message_Id := Self.Message_Id + 1;
-
-      MOMA.Provider.Warehouse.Register (Self.W, Key, Message);
+      if Id = "moma" then
+         pragma Debug (O ("Got new message " & Image (Message)
+                          & " with Id " & Key));
+         Self.Message_Id := Self.Message_Id + 1;
+         MOMA.Provider.Warehouse.Register (Self.W, Key, Message);
+      else
+         pragma Debug (O ("Got new message " & Image (Message)
+                          & " with Id " & Id));
+         MOMA.Provider.Warehouse.Register (Self.W, Id, Message);
+      end if;
    end Publish;
 
    ---------
@@ -253,19 +261,21 @@ package body MOMA.Provider.Message_Pool is
       Result : PolyORB.Any.Any;
       Temp : constant String := Integer'Image (Self.Last_Read_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
+      Id : constant String := To_Standard_String (Message_Id);
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Message_Id);
-      pragma Warnings (On);
-      --  XXX We only implement dummy message pool
-      --  should be done with a FIFO when available
+      if Id = "" then
+         Result := MOMA.Provider.Warehouse.Lookup (Self.W, Key);
+         MOMA.Provider.Warehouse.Unregister (Self.W, Key);
+         Self.Last_Read_Id := Self.Last_Read_Id + 1;
 
-      Result := MOMA.Provider.Warehouse.Lookup (Self.W, Key);
-      MOMA.Provider.Warehouse.Unregister (Self.W, Key);
-      Self.Last_Read_Id := Self.Last_Read_Id + 1;
+         pragma Debug (O ("Sending back message " & Image (Result)
+                          & " with id " & Key));
+      else
+         Result := MOMA.Provider.Warehouse.Lookup (Self.W, Key);
+         pragma Debug (O ("Sending back message " & Image (Result)
+                          & " with id " & Key));
 
-      pragma Debug (O ("Sending back message " & Image (Result)
-                       & " with Key " & Key));
+      end if;
       return Result;
    end Get;
 

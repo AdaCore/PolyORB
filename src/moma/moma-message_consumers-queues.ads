@@ -34,14 +34,13 @@
 
 with Ada.Real_Time; use Ada.Real_Time;
 
-with MOMA.Destinations.Queues;
 with MOMA.Messages;
 
 package MOMA.Message_Consumers.Queues is
 
    type Queue is new Message_Consumer with null record;
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue;
+   function Get_Queue return MOMA.Destinations.Queue;
 
    function Receive (Self : Queue) return MOMA.Messages.Message'Class;
 

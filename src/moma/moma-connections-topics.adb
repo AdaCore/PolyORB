@@ -39,7 +39,7 @@ package body MOMA.Connections.Topics is
    ---------------------
 
    function Create_Consumer
-     (Topic : Destinations.Topics.Topic;
+     (Topic : Destinations.Destination;
       Message_Selector : String)
       return Message_Consumers.Topics.Topic
    is
@@ -54,7 +54,7 @@ package body MOMA.Connections.Topics is
    -----------------------------
 
    function Create_Durable_Consumer
-     (Topic : Destinations.Topics.Topic;
+     (Topic : Destinations.Destination;
       Message_Selector : String)
       return Message_Consumers.Topics.Topic
    is

@@ -69,7 +69,8 @@ package body MOMA.Messages.MExecutes is
       Result : MExecute;
    begin
       Set_Type (Result, Execute_M);
-      --  XXX should initialize other fields as well ???
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Execute_Message;
 

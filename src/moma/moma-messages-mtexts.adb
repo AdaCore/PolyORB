@@ -69,7 +69,8 @@ package body MOMA.Messages.MTexts is
       Result : MText;
    begin
       Set_Type (Result, Text_M);
-      --  XXX should initialize other fields as well ???
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Text_Message;
 

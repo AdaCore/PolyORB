@@ -32,7 +32,7 @@
 
 --  $Id$
 
-with MOMA.Destinations.Topics;
+with MOMA.Destinations;
 with MOMA.Sessions.Topics;
 with MOMA.Message_Consumers.Topics;
 
@@ -40,7 +40,7 @@ package MOMA.Connections.Topics is
 
    type Topic is new Connection with null record;
 
-   function Create_Consumer (Topic : MOMA.Destinations.Topics.Topic;
+   function Create_Consumer (Topic : MOMA.Destinations.Destination;
                              Message_Selector : String)
                              return MOMA.Message_Consumers.Topics.Topic;
 
@@ -49,7 +49,7 @@ package MOMA.Connections.Topics is
                             Ackowledge_Mode : MOMA.Types.Acknowledge_Type)
                             return MOMA.Sessions.Topics.Topic;
 
-   function Create_Durable_Consumer  (Topic : MOMA.Destinations.Topics.Topic;
+   function Create_Durable_Consumer  (Topic : MOMA.Destinations.Destination;
                                       Message_Selector : String)
                                       return Message_Consumers.Topics.Topic;
 

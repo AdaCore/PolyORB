@@ -32,20 +32,29 @@
 
 --  $Id$
 
-with MOMA.Types;
+with MOMA.Destinations;
 with MOMA.Messages.MAnys;
 with MOMA.Messages.MBytes;
 with MOMA.Messages.MMaps;
 with MOMA.Messages.MTexts;
+with MOMA.Types;
 
 with PolyORB.Initialization;
+--  with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
 package body MOMA.Messages is
 
+   use MOMA.Destinations;
    use MOMA.Types;
+
    use PolyORB.Any;
+   --  use PolyORB.Log;
+
+   --  package L is new PolyORB.Log.Facility_Log ("moma.messages");
+   --  procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+   --    renames L.Output;
 
    -----------------
    -- Acknowledge --
@@ -64,6 +73,116 @@ package body MOMA.Messages is
    begin
       null;
    end Clear_Body;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Self : PolyORB.Any.Any) return Message'Class
+   is
+      use MOMA.Messages.MAnys;
+      use MOMA.Messages.MBytes;
+      use MOMA.Messages.MMaps;
+      use MOMA.Messages.MTexts;
+
+      Pos : MOMA.Types.Short;
+
+      Type_Of_Message : Message_Type;
+      Message_Id      : MOMA.Types.String;
+      Correlation_Id  : MOMA.Types.String;
+      Destination     : MOMA.Destinations.Destination;
+      Reply_To        : MOMA.Destinations.Destination;
+      Is_Persistent   : MOMA.Types.Boolean;
+      Is_Redelivered  : MOMA.Types.Boolean;
+      Payload         : Any;
+   begin
+      Pos := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_Short,
+                                Unsigned_Long (0)));
+      Type_Of_Message := Message_Type'Val (Pos);
+
+      Message_Id := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_String,
+                                Unsigned_Long (1)));
+
+      Correlation_Id := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_String,
+                                Unsigned_Long (2)));
+
+      Destination := From_Any
+        (Get_Aggregate_Element (Self,
+                                TC_MOMA_Destination,
+                                Unsigned_Long (3)));
+
+      Reply_To := From_Any
+        (Get_Aggregate_Element (Self,
+                                TC_MOMA_Destination,
+                                Unsigned_Long (4)));
+
+      Is_Persistent := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_Boolean,
+                                Unsigned_Long (5)));
+
+      Is_Redelivered := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_Boolean,
+                                Unsigned_Long (6)));
+
+      Payload := From_Any
+        (Get_Aggregate_Element (Self,
+                                TypeCode.TC_Any,
+                                Unsigned_Long (7)));
+
+      if Type_Of_Message = Any_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MAnys.MAny := Create_Any_Message;
+         begin
+            Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Correlation_Id (Rcvd_Message, Correlation_Id);
+            Set_Destination (Rcvd_Message, Destination);
+            Set_Reply_To (Rcvd_Message, Reply_To);
+            Set_Persistent (Rcvd_Message, Is_Persistent);
+            Set_Redelivered (Rcvd_Message, Is_Redelivered);
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Byte_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
+         begin
+            Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Map_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MMaps.MMap := Create_Map_Message;
+         begin
+            Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      elsif Type_Of_Message = Text_M then
+         declare
+            Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
+         begin
+            Set_Message_Id (Rcvd_Message, Message_Id);
+            Set_Payload (Rcvd_Message, Payload);
+            return Rcvd_Message;
+         end;
+
+      end if;
+      raise Program_Error;
+      --  Should not come to this point.
+
+   end From_Any;
 
    ------------------
    -- Get_Property --
@@ -273,6 +392,74 @@ package body MOMA.Messages is
       Self.Payload := Payload;
    end Set_Payload;
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Self : Message)
+                   return String is
+   begin
+      return "<Message_Id: "
+             & To_Standard_String (Self.Message_Id)
+             & ",Correlation_Id: "
+             & To_Standard_String (Self.Correlation_Id)
+             & ",Destination: "
+             & Image (Self.Destination)
+             & ",Reply_To: "
+             & Image (Self.Reply_To)
+             & ",Is_Persistent: "
+             & Boolean'Image (Self.Is_Persistent)
+             & ",Is_Redelivered: "
+             & Boolean'Image (Self.Is_Redelivered)
+             & ",Content : "
+             & Image (Self.Payload) & ">";
+   end Image;
+
+   --------------------------------
+   -- Set_Default_Message_Header --
+   --------------------------------
+
+   procedure Set_Default_Message_Header (Self : in out Message) is
+   begin
+      Set_Message_Id     (Self, To_MOMA_String ("moma"));
+      Set_Correlation_Id (Self, To_MOMA_String ("moma"));
+      Set_Destination    (Self, Create);
+      Set_Reply_To       (Self, Create);
+      --  Set_Priority       (Self, Priority);
+      --  Set_Timestamp      (Self, Timestamp);
+      --  Set_Expiration     (Self, Expiration);
+      Set_Persistent     (Self, True);
+      Set_Redelivered    (Self, True);
+
+   end Set_Default_Message_Header;
+
+   ------------------------
+   -- Set_Message_Header --
+   ------------------------
+
+   procedure Set_Message_Header
+     (Self            : in out Message;
+      Message_Id      : MOMA.Types.String;
+      Correlation_Id  : MOMA.Types.String;
+      Destination     : MOMA.Destinations.Destination;
+      Reply_To        : MOMA.Destinations.Destination;
+      Priority        : MOMA.Types.Priority;
+      Timestamp       : Ada.Real_Time.Time;
+      Expiration      : Ada.Real_Time.Time;
+      Is_Persistent   : MOMA.Types.Boolean;
+      Is_Redelivered  : MOMA.Types.Boolean) is
+   begin
+      Set_Message_Id     (Self, Message_Id);
+      Set_Correlation_Id (Self, Correlation_Id);
+      Set_Destination    (Self, Destination);
+      Set_Reply_To       (Self, Reply_To);
+      Set_Priority       (Self, Priority);
+      Set_Timestamp      (Self, Timestamp);
+      Set_Expiration     (Self, Expiration);
+      Set_Persistent     (Self, Is_Persistent);
+      Set_Redelivered    (Self, Is_Redelivered);
+   end Set_Message_Header;
+
    --------------------
    -- Set_Message_Id --
    --------------------
@@ -337,7 +524,8 @@ package body MOMA.Messages is
    -- To_Any --
    ------------
 
-   function To_Any (Self : Message) return PolyORB.Any.Any
+   function To_Any (Self : Message)
+                    return PolyORB.Any.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Message);
 
@@ -346,74 +534,16 @@ package body MOMA.Messages is
                              (Short
                               (Message_Type'Pos (Self.Type_Of_Message))));
 
+      Add_Aggregate_Element (Result, To_Any (Self.Message_Id));
+      Add_Aggregate_Element (Result, To_Any (Self.Correlation_Id));
+      Add_Aggregate_Element (Result, To_Any (Self.Destination));
+      Add_Aggregate_Element (Result, To_Any (Self.Reply_To));
+      Add_Aggregate_Element (Result, To_Any (Self.Is_Persistent));
+      Add_Aggregate_Element (Result, To_Any (Self.Is_Redelivered));
       Add_Aggregate_Element (Result, To_Any (Self.Payload));
 
       return Result;
    end To_Any;
-
-   --------------
-   -- From_Any --
-   --------------
-
-   function From_Any (Self : PolyORB.Any.Any) return Message'Class
-   is
-      use MOMA.Messages.MAnys;
-      use MOMA.Messages.MBytes;
-      use MOMA.Messages.MMaps;
-      use MOMA.Messages.MTexts;
-
-      Index  : Any;
-      Type_Of_Message : Message_Type;
-      Pos : MOMA.Types.Short;
-      Payload : Any;
-   begin
-      Index := Get_Aggregate_Element (Self,
-                                      TypeCode.TC_Short,
-                                      Unsigned_Long (0));
-      Pos := PolyORB.Any.From_Any (Index);
-      Type_Of_Message := Message_Type'Val (Pos);
-
-      Payload := From_Any (Get_Aggregate_Element (Self,
-                                                  TypeCode.TC_Any,
-                                                  Unsigned_Long (1)));
-
-      if Type_Of_Message = Any_M then
-         declare
-            Rcvd_Message : MOMA.Messages.MAnys.MAny := Create_Any_Message;
-         begin
-            Set_Payload (Rcvd_Message, Payload);
-            return Rcvd_Message;
-         end;
-
-      elsif Type_Of_Message = Byte_M then
-         declare
-            Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
-         begin
-            Set_Payload (Rcvd_Message, Payload);
-            return Rcvd_Message;
-         end;
-
-      elsif Type_Of_Message = Map_M then
-         declare
-            Rcvd_Message : MOMA.Messages.MMaps.MMap := Create_Map_Message;
-         begin
-            Set_Payload (Rcvd_Message, Payload);
-            return Rcvd_Message;
-         end;
-
-      elsif Type_Of_Message = Text_M then
-         declare
-            Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
-         begin
-            Set_Payload (Rcvd_Message, Payload);
-            return Rcvd_Message;
-         end;
-
-      end if;
-      raise Program_Error;
-      --  Should not come to this point.
-
-   end From_Any;
 
    ----------------
    -- Initialize --
@@ -436,6 +566,30 @@ package body MOMA.Messages is
       TypeCode.Add_Parameter (TC_MOMA_Message,
                               To_Any (To_PolyORB_String ("type")));
 
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_String));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("message_id")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_String));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("correlation_id")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_MOMA_Destination));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("destination")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_MOMA_Destination));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("reply_to")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Boolean));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("is_persistent")));
+
+      TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Boolean));
+      TypeCode.Add_Parameter (TC_MOMA_Message,
+                              To_Any (To_PolyORB_String ("is_redelivered")));
+
       TypeCode.Add_Parameter (TC_MOMA_Message, To_Any (TC_Any));
       TypeCode.Add_Parameter (TC_MOMA_Message,
                               To_Any (To_PolyORB_String ("payload")));
@@ -449,9 +603,9 @@ begin
    begin
       Register_Module
         (Module_Info'
-         (Name      => +"MOMA.Message",
+         (Name      => +"MOMA.Messages",
           Conflicts => Empty,
-          Depends   => +"soft_links",
+          Depends   => +"MOMA.Destinations",
           Provides  => Empty,
           Init      => Initialize'Access));
    end;

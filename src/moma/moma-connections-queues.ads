@@ -33,7 +33,6 @@
 --  $Id$
 
 with MOMA.Destinations;
-with MOMA.Destinations.Queues;
 with MOMA.Message_Consumers.Queues;
 
 package MOMA.Connections.Queues is
@@ -42,7 +41,7 @@ package MOMA.Connections.Queues is
 
    type Queue_Access is access all Queue;
 
-   function Create_Consumer (Queue : Destinations.Queues.Queue;
+   function Create_Consumer (Queue : Destinations.Queue;
                              Message_Selector : String)
                             return Message_Consumers.Queues.Queue;
 
