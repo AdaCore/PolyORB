@@ -39,23 +39,23 @@ with Ada.Real_Time;
 with Ada.Tags;
 
 with PolyORB.Annotations;
-with PolyORB.Initialization;
+with PolyORB.Binding_Data;
+with PolyORB.Binding_Data.Local;
 with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
+with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Soft_Links;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
-with PolyORB.Utils.Strings;
-
-with PolyORB.Binding_Data;
 with PolyORB.Types;
-with PolyORB.References;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.ORB is
 
@@ -597,9 +597,13 @@ package body PolyORB.ORB is
 
    function Is_Profile_Local
      (ORB : access ORB_Type;
-      P   : Binding_Data.Profile_Access)
+      P   : access Binding_Data.Profile_Type'Class)
      return Boolean is
    begin
+      if P.all in Binding_Data.Local.Local_Profile_Type then
+         return True;
+      end if;
+
       Enter (ORB.ORB_Lock.all);
       declare
          TAPs : constant TAP_Seqs.Element_Array

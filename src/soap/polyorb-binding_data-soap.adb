@@ -256,7 +256,8 @@ package body PolyORB.Binding_Data.SOAP is
 
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
-      P : Profile_Access) return Boolean
+      P  : access Profile_Type'Class)
+      return Boolean
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
    begin

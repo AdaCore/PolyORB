@@ -38,18 +38,18 @@ package PolyORB.POA_Config.Proxies is
 
    pragma Elaborate_Body;
 
-   type Proxies_Configuration is new Configuration_Type with private;
+   type Configuration is new Configuration_Type with private;
 
    procedure Initialize
-     (C : Proxies_Configuration);
+     (C : Configuration);
 
    function Default_Policies
-     (C : Proxies_Configuration)
+     (C : Configuration)
      return PolyORB.POA_Policies.PolicyList;
 
 private
 
-   type Proxies_Configuration is new Configuration_Type
+   type Configuration is new Configuration_Type
      with null record;
 
 end PolyORB.POA_Config.Proxies;

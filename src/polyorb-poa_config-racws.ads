@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . P O A _ C O N F I G . P R O X I E S            --
+--             P O L Y O R B . P O A _ C O N F I G . R A C W S              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,4 +36,14 @@
 
 with PolyORB.POA_Config.Proxies;
 
-package PolyORB.POA_Config.RACWs renames PolyORB.POA_Config.Proxies;
+package PolyORB.POA_Config.RACWs is
+
+   pragma Elaborate_Body;
+
+   type RACWs_Configuration is new Configuration_Type with private;
+
+private
+
+   type RACWs_Configuration is new Proxies.Configuration with null record;
+
+end PolyORB.POA_Config.RACWs;

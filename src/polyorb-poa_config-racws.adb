@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . P O A _ C O N F I G . P R O X I E S            --
+--             P O L Y O R B . P O A _ C O N F I G . R A C W S              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,66 +30,39 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A POA configuration for the Proxy-objects-subPOA.
+--  A POA configuration for RACW-objects-subPOAs.
 
 --  $Id$
 
-with PolyORB.POA_Policies;
-with PolyORB.POA_Policies.Id_Assignment_Policy.User;
-with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
-with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
-with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
-with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
-with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-with PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.Strings.Lists;
 
-package body PolyORB.POA_Config.Proxies is
+pragma Warnings (Off);
+with System.PolyORB_Interface;
+--  Internal GNAT unit.
+pragma Warnings (On);
 
-   use PolyORB.POA_Policies;
+package body PolyORB.POA_Config.RACWs is
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   My_Default_Policies : PolicyList;
-   Initialized : Boolean := False;
-
-   procedure Initialize
-     (C : Configuration)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warnings (On);
+   procedure Initialize;
+   procedure Initialize is
    begin
-      if Initialized then
-         return;
-      end if;
-
-      declare
-         use PolyORB.POA_Policies.Policy_Sequences;
-         P : constant Element_Array
-           := (Policy_Access (Id_Assignment_Policy.User.Create),
-               Policy_Access (Id_Uniqueness_Policy.Multiple.Create),
-               Policy_Access (Implicit_Activation_Policy.No_Activation.Create),
-               Policy_Access (Lifespan_Policy.Persistent.Create),
-               Policy_Access
-               (Request_Processing_Policy.Use_Default_Servant.Create),
-               Policy_Access (Servant_Retention_Policy.Non_Retain.Create),
-               Policy_Access (Thread_Policy.ORB_Ctrl.Create));
-      begin
-         My_Default_Policies := To_Sequence (P);
-         Initialized := True;
-      end;
+      System.PolyORB_Interface.RACW_POA_Config
+        := new RACWs_Configuration;
    end Initialize;
 
-   function Default_Policies
-     (C : Configuration)
-     return PolyORB.POA_Policies.PolicyList is
-   begin
-      if not Initialized then
-         Initialize (C);
-      end if;
-      return My_Default_Policies;
-   end Default_Policies;
+   use PolyORB.Initialization;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Strings.Lists;
 
-end PolyORB.POA_Config.Proxies;
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"poa_config.racws",
+       Conflicts => Empty,
+       Depends => Empty,
+       Provides => Empty,
+       Init => Initialize'Access));
+
+end PolyORB.POA_Config.RACWs;

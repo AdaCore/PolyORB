@@ -76,7 +76,7 @@ package PolyORB.Binding_Data.Test is
 
    function Is_Local_Profile
      (PF : access Test_Profile_Factory;
-      P : Profile_Access)
+      P  : access Profile_Type'Class)
      return Boolean;
 
    function Image (Prof : Test_Profile_Type) return String;

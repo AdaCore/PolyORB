@@ -115,7 +115,7 @@ package body PolyORB.CORBA_P.Server_Tools is
    --------------------------
 
    Proxies_POA_Configuration :
-     PolyORB.POA_Config.Proxies.Proxies_Configuration;
+     PolyORB.POA_Config.Proxies.Configuration;
 
    procedure Initiate_Proxies_POA is
       use PolyORB.POA_Manager;

@@ -88,13 +88,14 @@ package PolyORB.Binding_Data.IIOP is
 
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
-      TAP : Transport.Transport_Access_Point_Access;
-      Oid : Objects.Object_Id)
+      TAP :        Transport.Transport_Access_Point_Access;
+      Oid :        Objects.Object_Id)
      return Profile_Access;
 
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
-      P : Profile_Access) return Boolean;
+      P  : access Profile_Type'Class)
+      return Boolean;
 
    procedure Marshall_IIOP_Profile_Body
      (Buf     : access Buffer_Type;

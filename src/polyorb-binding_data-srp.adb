@@ -134,6 +134,7 @@ package body PolyORB.Binding_Data.SRP is
       pragma Warnings (Off);
       pragma Unreferenced (TAP);
       pragma Warnings (On);
+
       TResult.Object_Id := new Object_Id'(Oid);
       TResult.Address   := PF.Address;
       return  Result;
@@ -141,7 +142,8 @@ package body PolyORB.Binding_Data.SRP is
 
    function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
-      P : Profile_Access) return Boolean is
+      P  : access Profile_Type'Class)
+      return Boolean is
    begin
       return P.all in SRP_Profile_Type
         and then SRP_Profile_Type (P.all).Address = PF.Address;

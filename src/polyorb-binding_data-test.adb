@@ -146,7 +146,8 @@ package body PolyORB.Binding_Data.Test is
 
    function Is_Local_Profile
      (PF : access Test_Profile_Factory;
-      P : Profile_Access) return Boolean is
+      P  : access Profile_Type'Class)
+      return Boolean is
    begin
       return P.all in Test_Profile_Type
         and then Test_Profile_Type (P.all).Address = PF.Address;

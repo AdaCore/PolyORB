@@ -202,7 +202,7 @@ package PolyORB.ORB is
 
    function Is_Profile_Local
      (ORB : access ORB_Type;
-      P   : Binding_Data.Profile_Access)
+      P   : access Binding_Data.Profile_Type'Class)
      return Boolean;
    --  True iff P designates an object managed by this ORB.
 

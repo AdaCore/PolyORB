@@ -33,7 +33,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#8 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#9 $
 
 with Ada.Finalization;
 
@@ -137,7 +137,7 @@ package PolyORB.Binding_Data is
 
    function Is_Local_Profile
      (PF : access Profile_Factory;
-      P : Profile_Access)
+      P  : access Profile_Type'Class)
      return Boolean is abstract;
    --  True iff P designates an object that can be contacted
    --  at the access point associated with PF.

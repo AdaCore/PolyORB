@@ -31,10 +31,9 @@ package body RCI is
    end Method3;
 
    function Tekitoa (Self : Real_Obj) return String is
-      Msg : constant String := "I am " & Self.Name.all;
    begin
-      Put_Line (Msg);
-      return Msg;
+      Put_Line ("I am " & Self.Name.all);
+      return Self.Name.all;
    end Tekitoa;
 
    procedure My_Proc (X : in Integer; Y : in out Predicate; Z : out Trit) is

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#18 $
+--  $Id: //droopi/main/src/polyorb-any.ads#19 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -122,7 +122,6 @@ package PolyORB.Any is
    type Visibility is new Types.Short;
    PRIVATE_MEMBER : constant Visibility;
    PUBLIC_MEMBER : constant Visibility;
-
 
    package TypeCode is
 
@@ -258,8 +257,10 @@ package PolyORB.Any is
       function Concrete_Base_Type (Self : in Object)
                                    return Object;
 
-      --  Not in spec  --
-      -------------------
+      -----------------
+      -- Not in spec --
+      -----------------
+
       --  returns the type of a given member associated with an
       --  union typecode for a given label. The index is the index
       --  of the member among the members associated with Label. The
@@ -317,7 +318,8 @@ package PolyORB.Any is
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
-      --  more complex ones. Creates "empty" typecodes
+      --  Complex typecodes. These functions create "empty" typecodes;
+      --  it is the caller's responsibility to add the proper parameters.
       function TC_Principal          return TypeCode.Object;
       function TC_Struct             return TypeCode.Object;
       function TC_Union              return TypeCode.Object;
@@ -333,15 +335,20 @@ package PolyORB.Any is
       function TC_Native             return TypeCode.Object;
       function TC_Abstract_Interface return TypeCode.Object;
 
-      --  returns the number of parameters of Self
-      function Parameter_Count (Self : in Object)
-                                return Types.Unsigned_Long;
+      function Parameter_Count
+        (Self : in Object) return Types.Unsigned_Long;
+      --  Returns the number of parameters in typecode Self.
 
    private
-      --       --  implementation defined
-      --       Out_Of_Bounds_Index : exception;  --  FIXME : remove it ?
 
-      --  list of parameters (which are some any)
+      -----------------------------------------------------
+      -- A list of typecode parameters (which are Any's) --
+      -----------------------------------------------------
+
+      --  NOTE: Cannot be easily converted to an instance of
+      --  PolyORB.Utils.Lists, because at this point, Any is
+      --  still the public view of a private type.
+
       type Cell;
       type Cell_Ptr is access all Cell;
       type Cell is record
@@ -349,12 +356,10 @@ package PolyORB.Any is
          Next : Cell_Ptr;
       end record;
 
-      --  type code implementation
-      type Object is
-         record
-            Kind : TCKind := Tk_Void;
-            Parameters : Cell_Ptr := null;
-         end record;
+      type Object is record
+         Kind : TCKind := Tk_Void;
+         Parameters : Cell_Ptr := null;
+      end record;
 
       ---------------------------
       -- Encoding of TypeCodes --
@@ -490,7 +495,8 @@ package PolyORB.Any is
      renames TypeCode.TC_String;
    function TC_Wide_String        return TypeCode.Object
      renames TypeCode.TC_Wide_String;
-   --  function TC_Object is in CORBA.Object.
+   function TC_Object             return TypeCode.Object
+     renames TypeCode.TC_Object;
 
    -----------
    --  Any  --
