@@ -34,20 +34,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with System.Garlic.Exceptions;
 with System.Garlic.Protocols;
 with System.Garlic.Streams;
 with System.Garlic.Types;
-with System.Garlic.Utils;
-
---  These ones should not be needed, but the binder needs them to get a
---  correct dependencies order ???
-
-with System.Tasking.Initialization;
-pragma Elaborate_All (System.Tasking.Initialization);
-pragma Warnings (Off, System.Tasking.Initialization);
-with System.Tasking.Protected_Objects;
-pragma Elaborate_All (System.Tasking.Protected_Objects);
-pragma Warnings (Off, System.Tasking.Protected_Objects);
 
 package System.Garlic.Heart is
 
@@ -91,21 +81,16 @@ package System.Garlic.Heart is
 
    procedure Get_My_Partition_ID
      (PID   :    out Types.Partition_ID;
-      Error : in out Utils.Error_Type);
+      Error : in out Exceptions.Error_Type);
    --  Return the Partition_ID of the current partition. If the
    --  Partition_ID isn't known yet the function will block until
    --  the server gives it to us.
 
-   procedure Set_My_Partition_ID (Error : in out Utils.Error_Type);
+   procedure Set_My_Partition_ID (Error : in out Exceptions.Error_Type);
    --  Used when the current partition id has been computed
 
    procedure Wait_For_My_Partition_ID;
    --  Wait for the partition id to be computed
-
-   function Can_Have_A_Light_Runtime return Boolean;
-   --  Return True if this partition is suitable for having a light runtime.
-   --  The result is built from several checks concerning the termination
-   --  policy and some other static parameters.
 
    ----------------------
    -- Remote partition --
@@ -155,7 +140,7 @@ package System.Garlic.Heart is
       Opcode    : in External_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  A procedure which will get the requests. Except for group requests,
    --  a request is stored in Query and if needed, the request answer is
    --  stored in Reply. For group request, see Garlic.Group special
@@ -168,7 +153,7 @@ package System.Garlic.Heart is
       Unfiltered : out Streams.Stream_Element_Access;
       Filtered   : in  Streams.Stream_Element_Access;
       Offset     : in Ada.Streams.Stream_Element_Offset;
-      Error      : in out Utils.Error_Type);
+      Error      : in out Exceptions.Error_Type);
    --  Called by a protocol to signal that something has
    --  arrived. Filtered has not been unfiltered yet. Offset
    --  represents the number of bytes that should not been
@@ -186,7 +171,7 @@ package System.Garlic.Heart is
       Opcode    : in Any_Opcode;
       Query     : access Streams.Params_Stream_Type;
       Reply     : access Streams.Params_Stream_Type;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  A procedure which will get the requests. Except for group requests,
    --  a request is stored in Query and if needed, the request answer is
    --  stored in Reply. For group request, see Garlic.Group special
@@ -196,7 +181,7 @@ package System.Garlic.Heart is
      (Partition  : in Types.Partition_ID;
       Opcode     : in Any_Opcode;
       Unfiltered : in Streams.Stream_Element_Access;
-      Error      : in out Utils.Error_Type);
+      Error      : in out Exceptions.Error_Type);
    --  The stream has been already analyzed. PID and Opcode are known. The
    --  stream is also unfiltered. Execute the request handler corresponding
    --  to Opcode.
@@ -211,14 +196,14 @@ package System.Garlic.Heart is
      (Partition : in Types.Partition_ID;
       Opcode    : in Any_Opcode;
       Params    : access Streams.Params_Stream_Type;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
    --  Send something to a remote partition after calling the appropriate
    --  filter.
 
    procedure Send_Boot_Server
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type;
-      Error  : out Utils.Error_Type);
+      Error  : out Exceptions.Error_Type);
    --  Send something to boot server. When this partition is no longer
    --  available, then try to find a boot mirror. When no boot mirror is
    --  available, signal an error.
