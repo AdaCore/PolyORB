@@ -38,7 +38,6 @@ package CORBA.Repository_Root.UnionDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
@@ -54,6 +53,11 @@ package CORBA.Repository_Root.UnionDef.Impl is
    --  of the member to TC_Void
    procedure Initialize_Members (Self : access Object;
                                  Seq : in UnionMemberSeq);
+
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
 
    function get_discriminator_type
      (Self : access Object)

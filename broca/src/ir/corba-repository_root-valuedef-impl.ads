@@ -34,7 +34,6 @@ package CORBA.Repository_Root.ValueDef.Impl is
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Supported_Interfaces : CORBA.Repository_Root.InterfaceDefSeq;

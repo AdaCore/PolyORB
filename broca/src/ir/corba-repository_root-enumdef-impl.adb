@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root.EnumDef.Skel;
 
@@ -44,7 +45,6 @@ package body CORBA.Repository_Root.EnumDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Members : Corba.Repository_Root.EnumMemberSeq) is
    begin
@@ -55,10 +55,22 @@ package body CORBA.Repository_Root.EnumDef.Impl is
                             Name,
                             Version,
                             Defined_In,
-                            IDL_Type,
                             IDLType_View);
       Self.Members := Members;
    end Init;
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return CORBA.ORB.Typecode.Create_Enum_Tc (Get_Id (Self),
+                                                Get_Name (Self),
+                                                Self.Members);
+   end get_type;
 
    function get_members
      (Self : access Object)

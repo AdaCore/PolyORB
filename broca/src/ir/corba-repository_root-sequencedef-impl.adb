@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.ORB.Typecode;
+
 with Corba.Repository_Root; use Corba.Repository_Root;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -18,20 +20,28 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Bound : CORBA.Unsigned_Long;
                    Element_Type_Def : CORBA.Repository_Root.IDLType.Ref) is
    begin
       IDLType.Impl.Init (IDLType.Impl.Object_Ptr (Self),
                          Real_Object,
-                         Def_Kind,
-                         IDL_Type);
+                         Def_Kind);
       Self.Bound := Bound;
       Self.Element_Type_Def := Element_Type_Def;
    end Init;
 
 
-
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return CORBA.ORB.TypeCode.Create_Sequence_Tc (Self.Bound,
+                                                    Get_Element_Type (Self));
+   end get_type;
 
 
    function get_bound

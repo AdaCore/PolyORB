@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.TypedefDef.Impl;
@@ -50,7 +51,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
@@ -64,7 +64,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                            Name,
                            Version,
                            Defined_In,
-                           IDL_Type,
                            IDLType_View);
      Container.Impl.Init (Container_View,
                           Real_Object,
@@ -102,6 +101,19 @@ package body CORBA.Repository_Root.StructDef.Impl is
       end loop;
       Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
    end Initialize_Members;
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return  CORBA.ORB.Typecode.Create_Struct_Tc (Get_Id (Self),
+                                                   Get_Name (Self),
+                                                   Self.Members);
+   end get_type;
 
    ----------------
    --   members  --

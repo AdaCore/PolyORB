@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.ORB.Typecode;
+
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ArrayDef.Skel;
@@ -17,17 +19,28 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Length : CORBA.Unsigned_Long;
                    Element_Type_Def : CORBA.Repository_Root.IDLType.Ref) is
    begin
       IDLType.Impl.Init (IDLType.Impl.Object_Ptr (Self),
                          Real_Object,
-                         Def_Kind,
-                         IDL_Type);
+                         Def_Kind);
       Self.Length := Length;
       Self.Element_Type_Def := Element_Type_Def;
    end Init;
+
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return CORBA.ORB.TypeCode.Create_Array_Tc (Self.length,
+                                                 Get_Element_Type (Self));
+   end get_type;
 
 
    function get_length

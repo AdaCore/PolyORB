@@ -5,7 +5,6 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
-with CORBA.ORB.TypeCode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
@@ -171,7 +170,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       StringDef.Impl.Init (Obj,
                            IRObject.Impl.Object_Ptr (Obj),
                            Dk_String,
-                           CORBA.ORB.TypeCode.Create_String_Tc (Bound),
                            Bound);
       --  create the ref
       StringDef.Set (Result,
@@ -193,7 +191,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       WstringDef.Impl.Init (Obj,
                             IRObject.Impl.Object_Ptr (Obj),
                             Dk_Wstring,
-                            CORBA.ORB.TypeCode.Create_Wstring_Tc (Bound),
                             Bound);
       --  create the ref
       WstringDef.Set (Result,
@@ -218,8 +215,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       SequenceDef.Impl.Init (Obj,
                              IRObject.Impl.Object_Ptr (Obj),
                              Dk_Sequence,
-                             CORBA.ORB.TypeCode.Create_Sequence_Tc (Bound,
-                                                                    Element),
                              Bound,
                              Element_Type);
       --  create the ref
@@ -245,8 +240,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       ArrayDef.Impl.Init (Obj,
                           IRObject.Impl.Object_Ptr (Obj),
                           Dk_Array,
-                          CORBA.ORB.TypeCode.Create_Array_Tc (length,
-                                                              Element),
                           length,
                           Element_Type);
       --  create the ref
@@ -270,8 +263,6 @@ package body CORBA.Repository_Root.Repository.Impl is
       FixedDef.Impl.Init (Obj,
                           IRObject.Impl.Object_Ptr (Obj),
                           Dk_Fixed,
-                          CORBA.ORB.TypeCode.Create_Fixed_Tc (IDL_digits,
-                                                              Scale),
                           IDL_digits,
                           Scale);
       --  create the ref

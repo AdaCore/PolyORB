@@ -21,10 +21,21 @@ package body CORBA.Repository_Root.PrimitiveDef.Impl is
    begin
       IDLType.Impl.Init (IDLType.Impl.Object_Ptr (Self),
                          Real_Object,
-                         Def_Kind,
-                         IDL_Type);
+                         Def_Kind);
       Self.Kind := Kind;
+      Self.IDL_Type := IDL_Type;
    end Init;
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return Self.IDL_Type;
+   end get_type;
 
 
    function get_kind

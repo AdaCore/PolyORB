@@ -20,8 +20,12 @@ package CORBA.Repository_Root.StringDef.Impl is
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Bound : CORBA.Unsigned_Long);
+
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
 
    function get_bound
      (Self : access Object)

@@ -19,9 +19,13 @@ package CORBA.Repository_Root.FixedDef.Impl is
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDL_Digits : CORBA.Unsigned_Short;
                    Scale : CORBA.Short);
+
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
 
    function get_digits
      (Self : access Object)

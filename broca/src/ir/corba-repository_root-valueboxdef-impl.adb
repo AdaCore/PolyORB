@@ -4,8 +4,10 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Skel;
 
 package body CORBA.Repository_Root.ValueBoxDef.Impl is
@@ -45,7 +47,6 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Original_Type_Def : CORBA.Repository_Root.IDLType.Ref) is
    begin
@@ -56,10 +57,26 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
                             Name,
                             Version,
                             Defined_In,
-                            IDL_Type,
                             IDLType_View);
       Self.Original_Type_Def := Original_Type_Def;
    end Init;
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr
+         (IDLType.Object_Of (Self.Original_Type_Def)));
+   begin
+      return  CORBA.ORB.Typecode.Create_Value_Box_Tc (Get_Id (Self),
+                                                      Get_Name (Self),
+                                                      Orig_TC);
+   end get_type;
+
 
    function get_original_type_def
      (Self : access Object)

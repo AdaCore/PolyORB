@@ -25,8 +25,7 @@ package CORBA.Repository_Root.IDLType.Impl is
    procedure Init (Self : access Object;
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
-                   Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object);
+                   Def_Kind : CORBA.Repository_Root.DefinitionKind);
 
    function get_type
      (Self : access Object)
@@ -35,8 +34,9 @@ package CORBA.Repository_Root.IDLType.Impl is
 private
 
    type Object is
-     new CORBA.Repository_Root.IRObject.Impl.Object with record
-        IDL_Type : CORBA.TypeCode.Object;
-   end record;
+     new CORBA.Repository_Root.IRObject.Impl.Object with null record;
+     --  the Type attribute is computed dynamically in each child,
+     --  because it can be changed by setting specific attributes after
+     --  the beginning.
 
 end CORBA.Repository_Root.IDLType.Impl;

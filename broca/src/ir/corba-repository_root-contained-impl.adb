@@ -320,63 +320,24 @@ package body CORBA.Repository_Root.Contained.Impl is
       return Self.Defined_In;
    end get_defined_in;
 
+
    function get_defined_in
      (Self : access Object)
      return CORBA.RepositoryId
    is
-      Cont : Container.Impl.Object_Ptr;
+      Cont : Container.Impl.Object_Ptr
+        := Container.Impl.To_Object (Self.Defined_In);
+      use Container.Impl;
    begin
-      Cont := Container.Impl.To_Object (Self.Defined_In);
-      case Container.Impl.Get_Def_Kind (Cont) is
-         when Dk_Repository =>
-            return  CORBA.Null_RepositoryId;
-         when  Dk_Struct     =>
-              declare
-                 Interm : Structdef.Impl.Object_Ptr :=
-                   Structdef.Impl.Object_Ptr (Container.Impl.Get_Real_Object (Cont));
-              begin
-                 return Structdef.Impl.Get_Id (Interm);
-              end;
-         when  Dk_Union      =>
-            declare
-               Interm : Uniondef.Impl.Object_Ptr :=
-                 Uniondef.Impl.Object_Ptr (Container.Impl.Get_Real_Object (Cont));
-            begin
-               return Uniondef.Impl.Get_Id (Interm);
-            end;
-         when Dk_Exception  =>
-            declare
-               Interm : Exceptiondef.Impl.Object_Ptr :=
-                 Exceptiondef.Impl.Object_Ptr (Cont);
-            begin
-               return Get_Id (Exceptiondef.Impl.Get_Contained_View (Interm));
-            end;
-         when Dk_Module     =>
-            declare
-               Interm : Moduledef.Impl.Object_Ptr :=
-                 Moduledef.Impl.Object_Ptr (Cont);
-            begin
-               return Get_Id (Moduledef.Impl.Get_Contained_View (Interm));
-            end;
-         when Dk_Value      =>
-            declare
-               Interm : Valuedef.Impl.Object_Ptr :=
-                 Valuedef.Impl.Object_Ptr (Cont);
-            begin
-               return Get_Id (Valuedef.Impl.Get_Contained_View (Interm));
-            end;
-         when Dk_Interface  =>
-            declare
-               Interm : Interfacedef.Impl.Object_Ptr :=
-                 Interfacedef.Impl.Object_Ptr (Cont);
-            begin
-               return Get_Id (Interfacedef.Impl.Get_Contained_View (Interm));
-            end;
-         when others =>
-            Broca.Exceptions.Raise_Internal;
-            return CORBA.Null_RepositoryId;
-      end case;
+
+      if Get_Def_Kind (Cont) =  Dk_Repository then
+         return  CORBA.Null_RepositoryId;
+      end if;
+
+      return
+        Get_Id (To_Contained (Get_Real_Object (Cont)));
    end Get_Defined_In;
+
 
    function get_absolute_name
      (Self : access Object)

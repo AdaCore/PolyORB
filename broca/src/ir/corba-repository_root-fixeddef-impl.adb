@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.ORB.Typecode;
+
 with Corba.Repository_Root; use Corba.Repository_Root;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -14,17 +16,27 @@ package body CORBA.Repository_Root.FixedDef.Impl is
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDL_Digits : CORBA.Unsigned_Short;
                    Scale : CORBA.Short) is
    begin
       IDLType.Impl.Init (IDLType.Impl.Object_Ptr (Self),
                          Real_Object,
-                         Def_Kind,
-                         IDL_Type);
+                         Def_Kind);
       Self.Idl_Digits := IDL_Digits;
       Self.Scale := Scale;
    end Init;
+
+   ----------------
+   --  get_type  --
+   ----------------
+   function get_type
+     (Self : access Object)
+      return CORBA.TypeCode.Object
+   is
+   begin
+      return CORBA.ORB.TypeCode.Create_Fixed_Tc (Self.IDL_Digits,
+                                                 Self.Scale);
+   end get_type;
 
    function get_digits
      (Self : access Object)

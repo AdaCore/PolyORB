@@ -21,6 +21,11 @@ package CORBA.Repository_Root.NativeDef.Impl is
    function To_Forward (Obj : Object_Ptr)
                         return NativeDef_Forward.Ref;
 
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
+
 private
 
    type Object is

@@ -21,7 +21,6 @@ package body CORBA.Repository_Root.TypedefDef.Impl is
                   Name : CORBA.Identifier;
                   Version : CORBA.Repository_Root.VersionSpec;
                   Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                  IDL_Type : CORBA.TypeCode.Object;
                   IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr) is
    begin
       Contained.Impl.Init (Contained.Impl.Object_Ptr(Self),
@@ -33,8 +32,7 @@ package body CORBA.Repository_Root.TypedefDef.Impl is
                            Defined_In);
       IDLType.Impl.Init (IDLType_View,
                          Real_Object,
-                         Def_Kind,
-                         IDL_Type);
+                         Def_Kind);
       Self.IDLType_View := IDLType_View;
    end Init;
 

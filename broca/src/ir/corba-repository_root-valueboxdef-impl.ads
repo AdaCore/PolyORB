@@ -33,9 +33,13 @@ package CORBA.Repository_Root.ValueBoxDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Original_Type_Def : CORBA.Repository_Root.IDLType.Ref);
+
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
 
    function get_original_type_def
      (Self : access Object)

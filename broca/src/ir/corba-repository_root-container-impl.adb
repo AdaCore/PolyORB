@@ -830,9 +830,6 @@ package body CORBA.Repository_Root.Container.Impl is
                               Name,
                               Version,
                               To_Forward (Object_Ptr (Self)),
-                              CORBA.ORB.Typecode.Create_Struct_Tc (Id,
-                                                                   Name,
-                                                                   Members),
                               IDLType_Obj,
                               Contained.Impl.Contained_Seq.Null_Sequence,
                               Container_Obj,
@@ -858,8 +855,6 @@ package body CORBA.Repository_Root.Container.Impl is
      return CORBA.Repository_Root.UnionDef_Forward.Ref
    is
       Result : CORBA.Repository_Root.UnionDef_Forward.Ref;
-      Disc_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
-        (IDLType.Impl.To_Object (Discriminator_Type));
       Obj : UnionDef.Impl.Object_Ptr := new UnionDef.Impl.Object;
       Container_Obj : Object_Ptr := new Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
@@ -874,10 +869,6 @@ package body CORBA.Repository_Root.Container.Impl is
                              Name,
                              Version,
                              To_Forward (Object_Ptr (Self)),
-                             CORBA.ORB.Typecode.Create_Union_Tc (Id,
-                                                                 Name,
-                                                                 Disc_TC,
-                                                                 Members),
                              IDLType_Obj,
                              Contained.Impl.Contained_Seq.Null_Sequence,
                              Container_Obj,
@@ -915,9 +906,6 @@ package body CORBA.Repository_Root.Container.Impl is
                             Name,
                             Version,
                             To_Forward (Object_Ptr (Self)),
-                            CORBA.ORB.Typecode.Create_Enum_Tc (Id,
-                                                               Name,
-                                                               Members),
                             IDLType_Obj,
                             Members);
 
@@ -939,8 +927,6 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref
    is
-      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
-        (IDLType.Impl.To_Object (Original_Type));
       Obj : AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
@@ -954,9 +940,6 @@ package body CORBA.Repository_Root.Container.Impl is
                              Name,
                              Version,
                              To_Forward (Object_Ptr (Self)),
-                             CORBA.ORB.Typecode.Create_Alias_Tc (Id,
-                                                                 Name,
-                                                                 Orig_TC),
                              IDLType_Obj,
                              IDLType.Convert_Forward.To_Ref (Original_Type));
 
@@ -994,8 +977,6 @@ package body CORBA.Repository_Root.Container.Impl is
                                  Version,
                                  To_Forward (Object_Ptr (Self)),
                                  Contained.Impl.Contained_Seq.Null_Sequence,
-                                 CORBA.ORB.Typecode.Create_Interface_Tc (Id,
-                                                                         Name),
                                  Cont_Obj,
                                  IDLType_Obj,
                                  Base_Interfaces,
@@ -1027,11 +1008,6 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
-      Val : CORBA.ValueModifier;
-      Base_TC : CORBA.TypeCode.Object :=  ValueDef.Impl.Get_Type
-        (ValueDef.Impl.To_Object (Base_Value));
-      package VMS renames IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
-
    begin
       --  is the new structure allowed?
       if Check_Structure (Self, Dk_Value) then
@@ -1041,15 +1017,6 @@ package body CORBA.Repository_Root.Container.Impl is
            (Is_Abstract and Is_Truncatable) then
             --  Spec is not precise...
             Broca.Exceptions.Raise_Bad_Param(2);
-         end if;
-         if Is_Custom then
-            Val := VTM_CUSTOM;
-         elsif Is_Abstract then
-            Val := VTM_ABSTRACT;
-         elsif Is_Truncatable then
-            Val := VTM_TRUNCATABLE;
-         else
-            Val := VTM_NONE;
          end if;
 
          --  initialization of the object
@@ -1061,12 +1028,6 @@ package body CORBA.Repository_Root.Container.Impl is
                              Version,
                              To_Forward (Object_Ptr (Self)),
                              Contained.Impl.Contained_Seq.Null_Sequence,
-                             CORBA.ORB.Typecode.Create_Value_Tc
-                             (Id,
-                              Name,
-                              Val,
-                              Base_TC,
-                              ValueMemberSeq (VMS.Null_Sequence)),
                              Cont_Obj,
                              IDLType_Obj,
                              Supported_Interfaces,
@@ -1094,8 +1055,6 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref
    is
-      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
-        (IDLType.Impl.To_Object (Original_Type_Def));
       Obj : ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
@@ -1109,10 +1068,6 @@ package body CORBA.Repository_Root.Container.Impl is
                                 Name,
                                 Version,
                                 To_Forward (Object_Ptr (Self)),
-                                CORBA.ORB.Typecode.Create_Value_Box_Tc
-                                (Id,
-                                 Name,
-                                 Orig_TC),
                                 IDLType_Obj,
                                 IDLType.Convert_Forward.To_Ref
                                 (Original_Type_Def));
@@ -1185,8 +1140,6 @@ package body CORBA.Repository_Root.Container.Impl is
                               Name,
                               Version,
                               To_Forward (Object_Ptr (Self)),
-                              CORBA.ORB.Typecode.Create_Native_Tc (Id,
-                                                                   Name),
                               IDLType_Obj);
 
          --  add it to the contents field of this container
@@ -1199,3 +1152,5 @@ package body CORBA.Repository_Root.Container.Impl is
    end create_native;
 
 end CORBA.Repository_Root.Container.Impl;
+
+

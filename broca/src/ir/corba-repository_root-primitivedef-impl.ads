@@ -23,6 +23,11 @@ package CORBA.Repository_Root.PrimitiveDef.Impl is
                    IDL_Type : CORBA.TypeCode.Object;
                    Kind : CORBA.Repository_Root.PrimitiveKind);
 
+   --  overload the get_type from IDLType
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
+
    function get_kind
      (Self : access Object)
      return CORBA.Repository_Root.PrimitiveKind;
@@ -32,6 +37,7 @@ private
    type Object is
      new CORBA.Repository_Root.IDLType.Impl.Object with record
         Kind : CORBA.Repository_Root.PrimitiveKind;
+        IDL_Type : CORBA.TypeCode.Object;
    end record;
 
 end CORBA.Repository_Root.PrimitiveDef.Impl;

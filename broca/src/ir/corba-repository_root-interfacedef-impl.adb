@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -32,7 +33,6 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Base_Interfaces : CORBA.Repository_Root.InterfaceDefSeq;
@@ -51,8 +51,7 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
                            Defined_In);
       IDLType.Impl.Init (IDLType_View,
                          Real_Object,
-                         Def_Kind,
-                          IDL_Type);
+                         Def_Kind);
       Self.Contained_View := Contained_View;
       Self.IDLType_View := IDLType_View;
       Self.Is_Abstract := Is_Abstract;
@@ -363,12 +362,9 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_type
-
-      return Result;
+      return CORBA.ORB.Typecode.Create_Interface_Tc (Get_Id (Self),
+                                                     Get_Name (Self));
    end get_type;
 
    ---------------------------

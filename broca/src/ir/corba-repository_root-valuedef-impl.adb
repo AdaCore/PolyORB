@@ -4,6 +4,8 @@
 ----------------------------------------------
 
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
+with CORBA.AbstractBase;
 
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.OperationDef;
@@ -33,7 +35,6 @@ package body CORBA.Repository_Root.ValueDef.Impl is
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Supported_Interfaces : CORBA.Repository_Root.InterfaceDefSeq;
@@ -57,8 +58,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
                             Defined_In);
        IDLType.Impl.Init (IDLType_View,
                           Real_Object,
-                          Def_Kind,
-                          IDL_Type);
+                          Def_Kind);
        Self.Contained_View := Contained_View;
        Self.IDLType_View := IDLType_View;
        Self.Supported_Interfaces := Supported_Interfaces;
@@ -517,12 +517,35 @@ package body CORBA.Repository_Root.ValueDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
+      Val : CORBA.ValueModifier;
+      Base_TC : CORBA.TypeCode.Object;
+      package VMS renames IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+      use CORBA.AbstractBase;
    begin
+      if CORBA.AbstractBase.Ref (Self.Base_Value) /= Nil_Ref then
+         Base_TC := ValueDef.Impl.Get_Type
+           (ValueDef.Impl.Object_Ptr
+            (ValueDef.Object_Of (Self.Base_Value)));
+      else
+         Base_TC := CORBA.TC_Void;
+      end if;
 
-      --  Insert implementation of get_type
-
-      return Result;
+      if Self.Is_Custom then
+         Val := VTM_CUSTOM;
+      elsif Self.Is_Abstract then
+         Val := VTM_ABSTRACT;
+      elsif Self.Is_Truncatable then
+         Val := VTM_TRUNCATABLE;
+      else
+         Val := VTM_NONE;
+      end if;
+      return CORBA.ORB.Typecode.Create_Value_Tc
+        (Get_Id (Self),
+         Get_Name (Self),
+         Val,
+         Base_TC,
+         -- FIXME >>>>>>>> calculate the valuememberseq...
+         ValueMemberSeq (VMS.Null_Sequence));
    end get_type;
 
    ---------------------------
