@@ -1,3 +1,10 @@
+1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Create a new configuration option:
+ 	--with-sanity=dir. This allows to save partition pids in a given
+ 	directory. This option helps to control non-terminating partitions
+ 	when regression tests are running. It affects s-gaplsp.ads.in.
+
 1998-07-27  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in: Typo in configure.in (TCP.Non_Blocking

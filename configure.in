@@ -34,7 +34,15 @@ AC_ARG_ENABLE(debug,
 AC_SUBST(GNATFLAGS)
 AC_SUBST(LINKTEST)
 #
-# Include or not launching facilities
+# Check rts sanity (for maintainer mode)
+#
+AC_ARG_WITH(sanity,
+[  --with-sanity=dir       Directory to store rts sanity files],
+[RTS_SANITY_DIR="${withval}"],
+[RTS_SANITY_DIR=""])
+AC_SUBST(RTS_SANITY_DIR)
+#
+# Launching facilities
 #
 AC_ARG_WITH(launching,
 [  --without-launching     Don't include launching facilities],
