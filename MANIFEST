@@ -333,6 +333,8 @@ src/corba/corba-fixed_point.adb
 src/corba/corba-fixed_point.ads
 src/corba/corba-forward.adb
 src/corba/corba-forward.ads
+src/corba/corba-helper.adb
+src/corba/corba-helper.ads
 src/corba/corba-impl.adb
 src/corba/corba-impl.ads
 src/corba/corba-nvlist.adb
