@@ -107,8 +107,6 @@ package PolyORB.Binding_Data.SOAP is
 
 private
 
-   Tag_SOAP  : constant Profile_Tag :=  16#7fffff01#;
-
    type SOAP_Profile_Type is new Profile_Type with record
       Address       : Sockets.Sock_Addr_Type;
       Target_URL    : Types.String;

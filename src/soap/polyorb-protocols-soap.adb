@@ -442,7 +442,7 @@ package body PolyORB.Protocols.SOAP  is
 
 
       else
-         Fault_Code := Version_Missmatch;
+         Fault_Code := Version_Mismatch;
          Fault_RC := RC_No;
          Fault_String := XML_Null_String;
       end if;
@@ -536,7 +536,7 @@ package body PolyORB.Protocols.SOAP  is
          end if;
       else
          pragma Debug
-                (O ("Response's Version Missmatch"));
+                (O ("Response Version Mismatch"));
          return;
       end if;
 

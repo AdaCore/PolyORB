@@ -74,11 +74,10 @@ with PolyORB.Protocols.GIOP;
 with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
 
---  SOAP (not yet);
+--  SOAP
 with PolyORB.Binding_Data.SOAP;
+with PolyORB.Filters.HTTP;
 with PolyORB.Protocols.SOAP;
-pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
-pragma Warnings (Off, PolyORB.Protocols.SOAP);
 
 --  Utility.
 with PolyORB.References.IOR;
@@ -175,6 +174,26 @@ package body PolyORB.Setup.Test is
 
    SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
 
+   --  The 'SOAP' access point.
+
+   SOAP_Access_Point : Decorated_Access_Point
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
+
+   HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
+   SOAP_Protocol : aliased Protocols.SOAP.SOAP_Protocol;
+   --  XXX
+   --  It is not a very satisfying thing to have to chain
+   --  HTTP_Filter and SOAP_Protocol explicitly on the server
+   --  side. On the client side, this is done in Binding_Data.SOAP
+   --  (as an effect of binding a SOAP object reference).
+   --  Since Binding_Data encapsulates the association of a protocol
+   --  with a complete transport stack, it should also provide
+   --  the corresponding server-side primitive (eg as a constant
+   --  filter chain created at initialisation.)
+
    procedure Initialize_Test_Server
      (SL_Init : Parameterless_Procedure;
       TP : ORB.Tasking_Policy_Access) is
@@ -259,7 +278,22 @@ package body PolyORB.Setup.Test is
       --  Register socket with ORB object, associating a protocol
       --  to the transport service access point.
 
-      Put_Line (" done.");
+      ---------------------------------------------
+      -- Create server (listening) socket - SOAP --
+      ---------------------------------------------
+
+      Put ("Creating SOAP access point... ");
+      Initialize_Socket (SOAP_Access_Point, 8008);
+      Chain_Factories
+        ((0 => HTTP_Filter'Unchecked_Access,
+          1 => SOAP_Protocol'Unchecked_Access));
+      Register_Access_Point
+        (ORB    => The_ORB,
+         TAP    => SOAP_Access_Point.SAP,
+         Chain  => HTTP_Filter'Unchecked_Access,
+         PF     => SOAP_Access_Point.PF);
+      --  Register socket with ORB object, associating a protocol
+      --  to the transport service access point.
    end Initialize_Test_Access_Points;
 
    procedure Initialize_Test_Object is

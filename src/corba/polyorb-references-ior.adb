@@ -84,25 +84,31 @@ package body PolyORB.References.IOR is
          CORBA.String'(CORBA.To_CORBA_String (Type_Id_Of (Value.Ref))));
       Marshall (Buffer, Types.Unsigned_Long (Length (Callbacks)));
 
-      pragma Debug (O ("Marshall Profile : Enter"));
+      pragma Debug (O ("Marshall: enter"));
 
       for N in Profs'Range loop
          for I in 1 .. Length (Callbacks) loop
-            if Element_Of (Callbacks, I).Tag =
-               Get_Profile_Tag (Profs (N).all) then
-               Marshall (Buffer, Types.Unsigned_Long (Get_Profile_Tag
-                         (Profs (N).all)));
+            if Profs (N) = null then
+               O ("Null profile #" & N'Img, Warning);
+            else
+               declare
+                  T : constant Profile_Tag
+                    := Get_Profile_Tag (Profs (N).all);
+               begin
+                  if T = Element_Of (Callbacks, I).Tag then
+                     Marshall (Buffer, Types.Unsigned_Long (T));
 
-               Element_Of (Callbacks, I).
-                         Marshall_Profile_Body (Buffer, Profs (N));
-               Counter := Counter + 1;
+                     Element_Of
+                       (Callbacks, I).Marshall_Profile_Body
+                       (Buffer, Profs (N));
+                     Counter := Counter + 1;
+                  end if;
+               end;
             end if;
          end loop;
       end loop;
 
-
       pragma Debug (O ("Marshall Profile : Leave"));
-
    end Marshall;
 
    ----------------

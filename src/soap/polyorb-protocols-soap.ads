@@ -51,10 +51,10 @@ package PolyORB.Protocols.SOAP is
    use PolyORB.Binding_Data;
    use PolyORB.Protocols.HTTP;
 
-   Version_Missmatch    : constant Natural;
-   Must_Understand      : constant Natural;
-   Invalid_Request      : constant Natural;
-   Application_Faulted  : constant Natural;
+   Version_Mismatch    : constant Natural;
+   Must_Understand     : constant Natural;
+   Invalid_Request     : constant Natural;
+   Application_Faulted : constant Natural;
 
    type SOAP_Protocol is new Protocol with private;
 
@@ -171,10 +171,10 @@ private
    end record;
 
    type SOAP_Message is record
-      Envelope_Field  : XML_Component_Access;
-      Header_Field      : XML_Component_Access;
-      Body_Field          : XML_Component_Access;
-      Method_NS          : XML_String := XML_Null_String;
+      Envelope_Field : XML_Component_Access;
+      Header_Field   : XML_Component_Access;
+      Body_Field     : XML_Component_Access;
+      Method_NS      : XML_String := XML_Null_String;
    end record;
 
 
@@ -190,10 +190,10 @@ private
       HTTP_Session  : HTTP_Session_Access;
    end record;
 
-   Version_Missmatch    : constant Natural := 100;
-   Must_Understand      : constant Natural := 200;
-   Invalid_Request      : constant Natural := 300;
-   Application_Faulted  : constant Natural := 400;
+   Version_Mismatch    : constant Natural := 100;
+   Must_Understand     : constant Natural := 200;
+   Invalid_Request     : constant Natural := 300;
+   Application_Faulted : constant Natural := 400;
 
 
    RC_Yes : constant XML_String := To_PolyORB_String ("Yes");
