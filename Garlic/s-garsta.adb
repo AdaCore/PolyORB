@@ -37,7 +37,6 @@ with Ada.Exceptions;                  use Ada.Exceptions;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
-with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Filters;
 with System.Garlic.Group;             use System.Garlic.Group;
 pragma Elaborate_All (System.Garlic.Group);
