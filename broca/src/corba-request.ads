@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
 with CORBA.AbstractBase;
 with CORBA.NVList;
 with CORBA.ExceptionList;
@@ -41,13 +40,6 @@ with CORBA.Context;
 package CORBA.Request is
 
    type Object is private;
-
-   procedure Add_Arg
-     (Self      : in out Object;
-      Arg_Type  : in     CORBA.TypeCode.Object;
-      Value     : in     System.Address;
-      Len       : in     Long;
-      Arg_Flags : in     Flags);
 
    procedure Add_Arg
      (Self : in out Object;

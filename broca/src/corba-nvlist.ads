@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-
 with CORBA.AbstractBase;
 with CORBA.Impl;
 
@@ -49,14 +47,6 @@ package CORBA.NVList is
    type Object_Ptr is access all Object;
 
    procedure Finalize (Obj : in out Object);
-
-   procedure Add_Item
-     (Self       :    Ref;
-      Item_Name  : in Identifier;
-      Item_Type  : in CORBA.TypeCode.Object;
-      Value      : in System.Address;
-      Len        : in Long;
-      Item_Flags : in Flags);
 
    procedure Add_Item
      (Self       :    Ref;

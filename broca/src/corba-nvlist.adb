@@ -63,21 +63,6 @@ package body CORBA.NVList is
    procedure Add_Item
      (Self       :    Ref;
       Item_Name  : in Identifier;
-      Item_Type  : in CORBA.TypeCode.Object;
-      Value      : in System.Address;
-      Len        : in Long;
-      Item_Flags : in Flags) is
-   begin
-      null;
-   end Add_Item;
-
-   --------------
-   -- Add_Item --
-   --------------
-
-   procedure Add_Item
-     (Self       :    Ref;
-      Item_Name  : in Identifier;
       Item       : in CORBA.Any;
       Item_Flags : in Flags) is
       Argument :  CORBA.Any;
