@@ -484,6 +484,7 @@ package body Ada_Be.Idl2Ada is
 
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+      Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
 
       if Intf_Repo then
          IR_Info.Gen_Body_Postlude (S.IR_Info (Unit_Body));
@@ -1036,6 +1037,7 @@ package body Ada_Be.Idl2Ada is
 
       if Skel_Required then
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
+         Add_Elaborate_Body (S.Skel (Unit_Spec), S.Skel (Unit_Body));
       end if;
 
       if Intf_Repo then
