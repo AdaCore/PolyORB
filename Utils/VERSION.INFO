@@ -18,7 +18,7 @@ gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
 #
 # files hold the list of files in which substitutions will occur
 #
-files="README INSTALL Doc/install_guide.txt"
+files="README INSTALL Dist/xe_usage.adb Doc/install_guide.txt"
 
 #
 # Do the job
