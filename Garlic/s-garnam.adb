@@ -34,10 +34,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Interfaces.C; use Interfaces.C;
-with Interfaces.C.Strings; use Interfaces.C.Strings;
+with Interfaces.C;            use Interfaces.C;
+with Interfaces.C.Strings;    use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
-with System.Garlic.OS_Lib; use System.Garlic.OS_Lib;
+with System.Garlic.OS_Lib;    use System.Garlic.OS_Lib;
+with System.Garlic.Utils;     use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
 
@@ -52,24 +53,21 @@ package body System.Garlic.Naming is
 
    function Allocate (Size : Positive := Default_Buffer_Size)
      return char_array_access;
-   --  Allocate a buffer.
+   --  Allocate a buffer
 
    function Parse_Entry (Host : Hostent)
      return Host_Entry;
-   --  Parse an entry.
+   --  Parse an entry
 
    procedure Raise_Naming_Error
      (Errno   : in C.Int;
       Message : in String);
-   --  Raise the exception Naming_Error with an appropriate error message.
+   --  Raise the exception Naming_Error with an appropriate error message
 
-   protected Gethost_In_Progress is
-      entry Lock;
-      procedure Unlock;
-   private
-      Locked : Boolean := False;
-   end Gethost_In_Progress;
-   --  We have to protect this.
+   Get_Host_Mutex : Mutex_Type;
+   --  This protected object will be used to protect calls to gethostbyname,
+   --  since this function is not reentrant and returns statically allocated
+   --  data.
 
    ----------------
    -- Address_Of --
@@ -138,32 +136,6 @@ package body System.Garlic.Naming is
       end loop;
    end Finalize;
 
-   -------------------------
-   -- Gethost_In_Progress --
-   -------------------------
-
-   protected body Gethost_In_Progress is
-
-      ----------
-      -- Lock --
-      ----------
-
-      entry Lock when not Locked is
-      begin
-         Locked := True;
-      end Lock;
-
-      ------------
-      -- Unlock --
-      ------------
-
-      procedure Unlock is
-      begin
-         Locked := False;
-      end Unlock;
-
-   end Gethost_In_Progress;
-
    ---------------
    -- Host_Name --
    ---------------
@@ -206,7 +178,7 @@ package body System.Garlic.Naming is
       is
          Im : constant String := Address_Component'Image (A);
       begin
-         return Im (2 .. Im'Last);
+         return Im (Im'First + 1 .. Im'Last);
       end Image;
 
    begin
@@ -224,17 +196,17 @@ package body System.Garlic.Naming is
       Res    : Hostent_Access;
       C_Name : chars_ptr := New_String (Name);
    begin
-      Gethost_In_Progress.Lock;
+      Get_Host_Mutex.Enter;
       Res := C_Gethostbyname (C_Name);
       Free (C_Name);
       if Res = null then
-         Gethost_In_Progress.Unlock;
+         Get_Host_Mutex.Leave;
          Raise_Naming_Error (C_Errno, Name);
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Gethost_In_Progress.Unlock;
+         Get_Host_Mutex.Leave;
          return Result;
       end;
    end Info_Of;
@@ -253,18 +225,18 @@ package body System.Garlic.Naming is
       C_Addr  : constant chars_ptr := Convert (Temp'Unchecked_Access);
       Res     : Hostent_Access;
    begin
-      Gethost_In_Progress.Lock;
+      Get_Host_Mutex.Enter;
       Res := C_Gethostbyaddr (C_Addr,
                               C.Int (Temp'Size / CHAR_BIT),
                               Af_Inet);
       if Res = null then
-         Gethost_In_Progress.Unlock;
+         Get_Host_Mutex.Leave;
          Raise_Naming_Error (C_Errno, Image (Addr));
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Gethost_In_Progress.Unlock;
+         Get_Host_Mutex.Leave;
          return Result;
       end;
    end Info_Of;
