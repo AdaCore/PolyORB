@@ -89,8 +89,6 @@ cos/time/test_time.adb
 cos/time/test_time.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
-exampels/calculator/Makefile.am
-exampels/calculator/Makefile.in
 examples/Makefile.am
 examples/Makefile.common
 examples/Makefile.in
@@ -112,6 +110,8 @@ examples/all_types/dynclient.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
 examples/all_types/server.adb
+examples/calculator/Makefile.am
+examples/calculator/Makefile.in
 examples/calculator/calculators-calculator_plus-impl.adb
 examples/calculator/calculators-calculator_plus-impl.ads
 examples/calculator/calculators-simple_calculator-impl.adb
