@@ -112,9 +112,9 @@ package System.Garlic.Tasking is
 
    procedure Set_Priority (P : in Natural);
 
-   function Get_Task_Stamp return Float;
+--    function Get_Task_Stamp return Float;
 
-   procedure Set_Task_Stamp (S : in Float);
+--    procedure Set_Task_Stamp (S : in Float);
 
    --  We export Mutex_PO because the abortable part of a select ...
    --  then abort construct must be an entry call.

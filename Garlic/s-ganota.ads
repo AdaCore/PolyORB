@@ -109,9 +109,9 @@ package System.Garlic.No_Tasking is
 
    procedure Set_Priority (P : in Natural);
 
-   function Get_Task_Stamp return Float;
+--    function Get_Task_Stamp return Float;
 
-   procedure Set_Task_Stamp (S : in Float);
+--    procedure Set_Task_Stamp (S : in Float);
 
 private
 

@@ -131,7 +131,7 @@ private
    type Allocate_Task_Procedure is access procedure
      (Partition : in System.Garlic.Types.Partition_ID;
       Session   : in System.RPC.Session_Type;
-      Stamp     : in System.Garlic.Types.Stamp_Type;
+      --  Stamp     : in System.Garlic.Types.Stamp_Type;
       Params    : in System.Garlic.Streams.Params_Stream_Access;
       Async     : in Boolean);
 

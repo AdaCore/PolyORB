@@ -85,7 +85,7 @@ package body System.RPC is
          PID    : Types.Partition_ID;
          Result : Streams.Stream_Element_Access;
          Status : Session_Status;
-         Stamp  : System.Garlic.Types.Stamp_Type;
+         --  Stamp  : System.Garlic.Types.Stamp_Type;
       end record;
 
    subtype Valid_Session_Type is
@@ -207,8 +207,8 @@ package body System.RPC is
       Error   : aliased Error_Type;
 
    begin
-      pragma Debug (System.Garlic.Soft_Links.Set_Stamp (Types.No_Stamp));
-      pragma Debug (D (Stamp_Image ("rpc initiate")));
+      --  pragma Debug (System.Garlic.Soft_Links.Set_Stamp (Types.No_Stamp));
+      --  pragma Debug (D (Stamp_Image ("rpc initiate")));
       --  Initialize stamp. As a convention, when set_stamp parameter
       --  is no stamp and when task stamp is no stamp, we initialize
       --  task stamp to clock.
@@ -247,8 +247,8 @@ package body System.RPC is
          System.Garlic.Soft_Links.Adjust (Handler);
       end;
 
-      pragma Debug (D (Stamp_Image ("rpc complete")));
-      pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
+      --  pragma Debug (D (Stamp_Image ("rpc complete")));
+      --  pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
       --  Reset task stamp to no stamp as the request has been
       --  processed. By convention, task stamp differs from no stamp.
    end Do_RPC;
@@ -348,7 +348,7 @@ package body System.RPC is
                Allocate_Pool_Task
                  (Partition,
                   Session,
-                  Soft_Links.Get_Stamp,
+                  --  Soft_Links.Get_Stamp,
                   Params_Copy,
                   Asynchronous);
             end;
@@ -361,8 +361,8 @@ package body System.RPC is
                Callers (Header.Session).Status := Completed;
                Callers (Header.Session).Result :=
                  Streams.To_Stream_Element_Access (Query);
-               Callers (Header.Session).Stamp  :=
-                 System.Garlic.Soft_Links.Get_Stamp;
+               --  Callers (Header.Session).Stamp  :=
+               --    System.Garlic.Soft_Links.Get_Stamp;
             end if;
             System.Garlic.Soft_Links.Update (Callers_Watcher);
             System.Garlic.Soft_Links.Leave_Critical_Section;

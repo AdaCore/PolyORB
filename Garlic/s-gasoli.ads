@@ -269,21 +269,21 @@ package System.Garlic.Soft_Links is
 
    type Float_Parameter_Procedure is access procedure (F : in Float);
 
-   procedure Register_Set_Stamp (P : in Float_Parameter_Procedure);
+--   procedure Register_Set_Stamp (P : in Float_Parameter_Procedure);
 
-   procedure Set_Stamp (S : in Float);
-   --  Set task stamp to S except if task stamp and S are set no
-   --  stamp. In this case, initialize task stamp with clock.
+--    procedure Set_Stamp (S : in Float);
+--    --  Set task stamp to S except if task stamp and S are set no
+--    --  stamp. In this case, initialize task stamp with clock.
 
    type Return_Float_Function is access function return Float;
 
-   procedure Register_Get_Stamp (F : Return_Float_Function);
+--    procedure Register_Get_Stamp (F : Return_Float_Function);
 
-   function Get_Stamp return Float;
-   --  Return absolute stamp
+--    function Get_Stamp return Float;
+--    --  Return absolute stamp
 
-   function Stamp_Image (M : String) return String;
-   --  Return a string with the absolute stamp, the relative stamp and
-   --  then the message M.
+--    function Stamp_Image (M : String) return String;
+--    --  Return a string with the absolute stamp, the relative stamp and
+--    --  then the message M.
 
 end System.Garlic.Soft_Links;

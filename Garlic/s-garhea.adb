@@ -363,17 +363,17 @@ package body System.Garlic.Heart is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
-      procedure Reset_Stamp;
+      --  procedure Reset_Stamp;
       --  Set stamp to no stamp when current stamp differs from no
       --  stamp.
 
-      procedure Reset_Stamp is
-         Stamp : constant Stamp_Type := Soft_Links.Get_Stamp;
-      begin
-         if Stamp /= No_Stamp then
-            Soft_Links.Set_Stamp (No_Stamp);
-         end if;
-      end Reset_Stamp;
+      --       procedure Reset_Stamp is
+      --          Stamp : constant Stamp_Type := Soft_Links.Get_Stamp;
+      --       begin
+      --          if Stamp /= No_Stamp then
+      --             Soft_Links.Set_Stamp (No_Stamp);
+      --          end if;
+      --       end Reset_Stamp;
 
    begin
 
@@ -389,7 +389,7 @@ package body System.Garlic.Heart is
             Throw (Error, "Handle_Any_Request: invalid operation");
       end case;
 
-      pragma Debug (Reset_Stamp);
+      --  pragma Debug (Reset_Stamp);
    end Handle_Any_Request;
 
    ---------------------

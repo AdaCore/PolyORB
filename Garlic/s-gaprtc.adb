@@ -115,14 +115,14 @@ package body System.Garlic.Protocols.Tcp is
    No_Tasking_Receive_Selector : Selector_Type;
    --  Selector for Receive (no-tasking case).
 
-   procedure Read_Stamp
-     (Peer   : in Socket_Type;
-      Error  : in out Error_Type);
-   procedure Write_Stamp
-     (Data   : access Stream_Element_Array;
-      First  : in out Stream_Element_Count);
-   --  In debug mode, a stamp is associated to a RPC in order to make
-   --  performance tests. These primitives aloow to transmit the stamp.
+--    procedure Read_Stamp
+--      (Peer   : in Socket_Type;
+--       Error  : in out Error_Type);
+--    procedure Write_Stamp
+--      (Data   : access Stream_Element_Array;
+--       First  : in out Stream_Element_Count);
+--    --  In debug mode, a stamp is associated to a RPC in order to make
+--    --  performance tests. These primitives aloow to transmit the stamp.
 
    procedure Read_Banner
      (Peer   : in Socket_Type;
@@ -622,22 +622,22 @@ package body System.Garlic.Protocols.Tcp is
       end if;
    end Read_SEC;
 
-   ----------------
-   -- Read_Stamp --
-   ----------------
+--    ----------------
+--    -- Read_Stamp --
+--    ----------------
 
-   procedure Read_Stamp
-     (Peer   : in Socket_Type;
-      Error  : in out Error_Type)
-   is
-      Data : aliased Stream_Element_Array := (1 .. Stamp_Size => 0);
-   begin
-      Receive (Peer, Data'Access, Error);
-      if not Found (Error) then
-         Soft_Links.Set_Stamp (From_SEA (Data));
-         D (Soft_Links.Stamp_Image ("read stamp from message"));
-      end if;
-   end Read_Stamp;
+--    procedure Read_Stamp
+--      (Peer   : in Socket_Type;
+--       Error  : in out Error_Type)
+--    is
+--       Data : aliased Stream_Element_Array := (1 .. Stamp_Size => 0);
+--    begin
+--       Receive (Peer, Data'Access, Error);
+--       if not Found (Error) then
+--           Soft_Links.Set_Stamp (From_SEA (Data));
+--          D (Soft_Links.Stamp_Image ("read stamp from message"));
+--        end if;
+--    end Read_Stamp;
 
    -------------
    -- Receive --
@@ -791,7 +791,7 @@ package body System.Garlic.Protocols.Tcp is
          return;
       end if;
 
-      pragma Debug (Read_Stamp (Peer, Error));
+--      pragma Debug (Read_Stamp (Peer, Error));
 
       pragma Debug (D ("Recv" & Length'Img & " bytes from peer " &
                        Image (Peer) & " (pid =" & PID'Img & ")"));
@@ -1008,7 +1008,7 @@ package body System.Garlic.Protocols.Tcp is
 
       --  Write length at the beginning of the data, then the header.
 
-      pragma Debug (Write_Stamp (Data, First));
+      --  pragma Debug (Write_Stamp (Data, First));
 
       First := First - SEC_Size;
       Data (First .. First + SEC_Size - 1)
@@ -1281,17 +1281,17 @@ package body System.Garlic.Protocols.Tcp is
       return No_Sock_Addr;
    end Value;
 
-   -----------------
-   -- Write_Stamp --
-   -----------------
+--    -----------------
+--    -- Write_Stamp --
+--    -----------------
 
-   procedure Write_Stamp
-     (Data  : access Stream_Element_Array;
-      First : in out Stream_Element_Count) is
-   begin
-      First := First - Stamp_Size;
-      Data (First .. First + Stamp_Size - 1) := To_SEA (Soft_Links.Get_Stamp);
-      D (Soft_Links.Stamp_Image ("write stamp into message"));
-   end Write_Stamp;
+--    procedure Write_Stamp
+--      (Data  : access Stream_Element_Array;
+--       First : in out Stream_Element_Count) is
+--    begin
+--       First := First - Stamp_Size;
+--     Data (First .. First + Stamp_Size - 1) := To_SEA (Soft_Links.Get_Stamp);
+--       D (Soft_Links.Stamp_Image ("write stamp into message"));
+--    end Write_Stamp;
 
 end System.Garlic.Protocols.Tcp;

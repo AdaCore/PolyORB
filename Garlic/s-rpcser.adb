@@ -98,7 +98,7 @@ package body System.RPC.Server is
    procedure Allocate_Task
      (Partition : in System.Garlic.Types.Partition_ID;
       Session   : in System.RPC.Session_Type;
-      Stamp     : in System.Garlic.Types.Stamp_Type;
+      --  Stamp     : in System.Garlic.Types.Stamp_Type;
       Params    : in System.Garlic.Streams.Params_Stream_Access;
       Async     : in Boolean);
    --  Start a new anonymous task to handle the request
@@ -147,7 +147,7 @@ package body System.RPC.Server is
       Partition : Types.Partition_ID;
       Stop      : System.Garlic.Tasking.Mutex_PO_Access;
       Params    : Streams.Params_Stream_Access;
-      Stamp     : System.Garlic.Types.Stamp_Type;
+      --  Stamp     : System.Garlic.Types.Stamp_Type;
       Async     : Boolean;
       Next      : Task_Identifier_Access;
       Prev      : Task_Identifier_Access;
@@ -220,7 +220,7 @@ package body System.RPC.Server is
    procedure Allocate_Task
      (Partition : in Types.Partition_ID;
       Session   : in Session_Type;
-      Stamp     : in System.Garlic.Types.Stamp_Type;
+      --  Stamp     : in System.Garlic.Types.Stamp_Type;
       Params    : in Streams.Params_Stream_Access;
       Async     : in Boolean)
    is
@@ -257,7 +257,7 @@ package body System.RPC.Server is
             Identifier.Session   := Session;
             Identifier.Partition := Partition;
             Identifier.Params    := Params;
-            Identifier.Stamp     := Stamp;
+            --  Identifier.Stamp     := Stamp;
             Identifier.Async     := Async;
 
             Identifier.Handler.Execute;
@@ -315,7 +315,7 @@ package body System.RPC.Server is
             terminate;
          end select;
 
-         Soft_Links.Set_Stamp (Self.Stamp);
+         --  Soft_Links.Set_Stamp (Self.Stamp);
 
          exit when Aborted;
 
@@ -404,7 +404,7 @@ package body System.RPC.Server is
 
          pragma Debug (D ("Job finished, queuing"));
 
-         pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
+         --  pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
 
          --  Set RPC handler back to its initial priority.
 

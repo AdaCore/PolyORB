@@ -1,3 +1,11 @@
+2004-03-10  Laurent Pautet  <pautet@vienna.act-europe.fr>
+
+	* s-ganota.adb, s-ganota.adb, s-ganota.ads, s-gaprtc.adb,
+	s-garhea.adb, s-gartas.adb, s-gartas.ads, s-gasoli.adb
+	s-gasoli.ads, s-rpc.adb, s-rpc.ads, s-rpcser.adb: Temporary remove
+	the request monitoring in order to prevent build failures. Looking
+	for a better solution to D309-004.
+
 2004-02-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* s-garter.adb: Serialize the positive termination results in
