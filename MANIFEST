@@ -471,6 +471,8 @@ ada/urealp.adb
 ada/urealp.ads
 ada/usage.adb
 ada/usage.ads
+ada/validsw.adb
+ada/validsw.ads
 ada/widechar.adb
 ada/widechar.ads
 configure.in
