@@ -1,5 +1,8 @@
 2003-11-06  Laurent Pautet  <pautet@enst.fr>
 
+	* xe_build.adb: Initialize XE_Stubs.
+	Part of work for CA22-003.
+
 	* xe_utils.ads, xe_utils.adb: Move functions specific to GARLIC
 	communication subsystem from XE_Utils to XE_Stubs in order
 	to have only one such specific package.
