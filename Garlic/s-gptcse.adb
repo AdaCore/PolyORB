@@ -1,10 +1,8 @@
 with Ada.Exceptions;                      use Ada.Exceptions;
 
-with Interfaces;                          use Interfaces;
-with Interfaces.C;
-
 with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Priorities;
+with GNAT.Sockets;                        use GNAT.Sockets;
 with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Protocols.Tcp;         use System.Garlic.Protocols.Tcp;
 with System.Garlic.Types;                 use System.Garlic.Types;
@@ -14,15 +12,13 @@ package body System.Garlic.Protocols.Tcp.Server is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GPTCSE", "(s-gptcse): ");
 
-   use type C.int;
-
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
    procedure Allocate_Connector
-     (Peer : in Interfaces.C.int;
+     (Peer : in Socket_Type;
       PID  : in Types.Partition_ID);
 
    procedure Allocate_Acceptor
@@ -42,7 +38,7 @@ package body System.Garlic.Protocols.Tcp.Server is
    task type Connect_Handler is
       pragma Priority (Priorities.RPC_Priority);
       entry Initialize
-        (My_Peer : C.int;
+        (My_Peer : Socket_Type;
          My_PID  : Partition_ID;
          My_Self : Connect_Access);
    end Connect_Handler;
@@ -79,7 +75,7 @@ package body System.Garlic.Protocols.Tcp.Server is
    exception
       when E : others =>
          pragma Warnings (Off, E);
-         pragma Debug (D ("Accept Handler: " & Exception_Name (E)));
+         pragma Debug (D ("Accept Handler: exception " & Exception_Name (E)));
          pragma Debug (D ("Accept Handler: " & Exception_Information (E)));
          null;
    end Accept_Handler;
@@ -103,7 +99,7 @@ package body System.Garlic.Protocols.Tcp.Server is
    ------------------------
 
    procedure Allocate_Connector
-     (Peer : in Interfaces.C.int;
+     (Peer : in Socket_Type;
       PID  : in Types.Partition_ID)
    is
       Connector : Connect_Access;
@@ -120,13 +116,13 @@ package body System.Garlic.Protocols.Tcp.Server is
    task body Connect_Handler is
       Self   : Connect_Access;
       PID    : Partition_ID;
-      Peer   : C.int;
+      Peer   : Socket_Type;
 
    begin
       loop
          select
             accept Initialize
-              (My_Peer : C.int;
+              (My_Peer : Socket_Type;
                My_PID  : Partition_ID;
                My_Self : Connect_Access)
             do
@@ -147,7 +143,8 @@ package body System.Garlic.Protocols.Tcp.Server is
    exception
       when E : others =>
          pragma Warnings (Off, E);
-         pragma Debug (D ("Connector Handler: " & Exception_Name (E)));
+         pragma Debug (D ("Connector Handler: exception" &
+                          Exception_Name (E)));
          pragma Debug (D ("Connector Handler: " & Exception_Information (E)));
          null;
    end Connect_Handler;
