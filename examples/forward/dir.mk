@@ -1,7 +1,7 @@
 
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) server
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) server chicken.ads egg.ads
 	gnatmake -gnatf -gnata -m -i client $(FLAGS)
 
 
@@ -17,3 +17,9 @@ chicken_eggSK.cc : chicken_egg.idl
 
 chicken_egg.o: chicken_eggSK.cc chicken_egg.hh 
 	$(CXX) -c $(CXXFLAGS) -o $@ $<
+
+egg.ads: egg.idl
+	omniidl2 -bada egg.idl
+
+chicken.ads: chicken.idl
+	omniidl2 -bada chicken.idl

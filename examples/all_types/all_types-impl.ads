@@ -62,7 +62,7 @@ package all_types.Impl is
 
    function echo12(Self : access Object; arg : in Corba.Object.Ref) return Corba.Object.Ref ;
 
-
+   function Get_Myself(Self : access Object) return Ref ;
 
 
 private

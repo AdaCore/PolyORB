@@ -168,6 +168,10 @@ package body all_types.Impl is
       return Arg ;
    end ;
 
+   function Get_Myself(Self : access Object) return Ref is
+   begin
+      return To_Ref(Self.all) ;
+   end ;
 
 
 

@@ -1,7 +1,7 @@
 
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND)
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) weapon.ads
 	gnatmake -gnatf -gnata -i client.adb $(FLAGS)
 	gnatmake -gnatf -gnata -i server.adb $(FLAGS)
 
@@ -21,7 +21,8 @@ clean::
 ada:
 	omniidl2 -b ada classes.idl
 
-
+weapon.ads: classes.idl
+	omniidl2 -bada classes.idl
 
 
 

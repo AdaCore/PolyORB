@@ -6,12 +6,16 @@
 
 Installation :
 --------------
-- run make in AdaBroker/omniidl2 to compile omniidl2
+- create a symbolic link in AdaBroker, pointing to omniORB_2.7.0
+( if you use another version of omniORB, update the config.mk file
+in AdaBroker/config
 
+- run make in AdaBroker/omniidl2 to compile omniidl2
+- run make in AdaBroker/
 
 Usage :
 -------
-- omniidl2 -bada myinterface.idl creates several files :
+-> omniidl2 -bada myinterface.idl creates several files :
 
 - myinterface.ads, myinterface.adb : these files contain
 the mapping for user defined types (client and server side)
@@ -28,6 +32,7 @@ contain utilities for the server-side implementation.
 
 - myinterface-marshal.ads, marshal-marshal.adb : they contain
 subprograms to marshall types according to the GIOP protocol.
+
 
 
 ENST 1999

@@ -1,7 +1,7 @@
 
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
-all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND)
+all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) echo.ads
 	gnatmake -gnatf -gnata -m -i client $(FLAGS)
 	gnatmake -gnatf -gnata -m -i server $(FLAGS)
 
@@ -16,3 +16,6 @@ GENERATED_FILES += $(IDL_INTERFACE)_idl_file-marshal.ad*
 
 clean::
 	rm *.o *.ali *~ server client $(GENERATED_FILES)
+
+echo.ads: echo.idl
+	omniidl2 -bada echo.idl

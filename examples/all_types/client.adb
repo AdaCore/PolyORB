@@ -566,6 +566,20 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
+   -- get_myself
+   declare
+      All1, All2 : All_Types.Ref ;
+   begin
+      Put_Line ("####### Test of Get_Myself #######") ;
+      All1 := Get_Myself(MyAll_Types) ;
+      Put_Line("Got myself once") ;
+      All2 := Get_Myself(All1) ;
+      Put_Line("Got myself twice : OK") ;
+   end ;
+
+   Put_Line ("") ;
+   Put_Line ("") ;
+
 end Client ;
 
 
