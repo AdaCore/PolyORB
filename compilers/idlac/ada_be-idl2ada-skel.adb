@@ -67,6 +67,12 @@ package body Ada_Be.Idl2Ada.Skel is
       Is_Delegate : in     Boolean);
    --  Generate server-side support for the Get_Interface operation
 
+   procedure Gen_Get_Domain_Managers
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean);
+   --  Generate server-side support for the Get_Domain_Managers operation
+
    procedure Gen_Body_Common_Start
      (CU          : in out Compilation_Unit;
       Node        : in     Node_Id;
@@ -138,6 +144,7 @@ package body Ada_Be.Idl2Ada.Skel is
                Gen_Body_Common_Start (CU, Node, Is_Delegate);
                Gen_Is_A (CU, Node, Is_Delegate);
                Gen_Get_Interface (CU, Node, Is_Delegate);
+               Gen_Get_Domain_Managers (CU, Node, Is_Delegate);
                Gen_Invoke (CU, Node);
             end if;
 
@@ -263,6 +270,41 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "return;");
       DI (CU);
    end Gen_Get_Interface;
+
+   -----------------------------
+   -- Gen_Get_Domain_Managers --
+   -----------------------------
+
+   procedure Gen_Get_Domain_Managers
+     (CU          : in out Compilation_Unit;
+      Node        : in     Node_Id;
+      Is_Delegate : in     Boolean)
+   is
+      pragma Unreferenced (Is_Delegate);
+
+      NK : constant Node_Kind := Kind (Node);
+
+   begin
+      pragma Assert ((NK = K_Interface)
+                     or else (NK = K_ValueType));
+
+      Add_With (CU, "PolyORB.CORBA_P.Domain_Management");
+
+      NL (CU);
+      PL (CU, "elsif Operation = ""_domain_managers"" then");
+      II (CU);
+
+      NL (CU);
+      PL (CU, "CORBA.ServerRequest.Arguments (Request, " & T_Arg_List & ");");
+      NL (CU);
+      PL (CU, "CORBA.ServerRequest.Set_Result");
+      PL (CU, "  (Request,");
+      PL (CU, "   PolyORB.CORBA_P.Domain_Management.Get_Domain_Managers");
+      PL (CU, "   (Self));");
+      NL (CU);
+      PL (CU, "return;");
+      DI (CU);
+   end Gen_Get_Domain_Managers;
 
    ----------------------------
    --  Gen_Body_Common_Start --
