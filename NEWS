@@ -4,6 +4,11 @@ Changes since GLADE 1.03
 New Functionnalities
 --------------------
 
+  * Full heterogeneous support
+    In GLADE 1.03, heterogeneous support was only available for 32
+    bits machines or for 64 bits machines only. Now, it is possible to 
+    mix 32 and 64-bits machines in the same GLADE application.
+
   * RACW in Remote_Types
     It is now possible to declare remote access to class-wide types in 
     Remote_Types packages (this was already possible in
@@ -63,7 +68,8 @@ Bug fixes
   * GLADE now supports RACW whose designated type has primitive
     operations with controlling arguments that are not of access mode.
 
-  * No more Storage_Size pragmas are needed on user tasks
+  * No more Storage_Size pragmas are needed on user tasks, unless they 
+    would be needed in the non-distributed application.
 
   * GNATDIST now checks that RCI children of a RCI package are configured
     on the same partition.
