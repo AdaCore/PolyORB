@@ -118,7 +118,7 @@ adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
 corba.ali: corba.ads corba.adb corba-exceptions.ads
 
 corba-boa.ali : corba-boa.ads corba-boa.adb corba-object.ads omniobject.ads \
-corba.ads
+corba.ads omniropeandkey.ads
 
 corba-command_line.ali : corba-command_line.ads corba-command_line.adb \
 corba.ads
@@ -134,7 +134,7 @@ iop.ads corba.ads
 
 corba-orb.ali : corba-orb.ads corba-orb.adb corba-object.ads \
 corba-object.ads corba-boa.ads omniobject.ads corba-command_line.ads \
-adabroker_debug.ads corba.ads
+adabroker_debug.ads corba.ads omniropeandkey.ads
 
 corba-sequences-bounded.ali: corba-sequences-bounded.ads \
 corba-sequences-bounded.adb corba-sequences.ads corba.ads

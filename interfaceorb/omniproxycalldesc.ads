@@ -47,22 +47,18 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
-
+with Ada.Finalization ;
 with Corba ;
 with Giop_C ;
 
 package omniProxyCallDesc is
 
-   type Object is abstract tagged private ;
+   type Object is abstract new Ada.Finalization.Limited_Controlled with private ;
    -- type of an omniProxyCallDesc object
 
 
-   type Object_Ptr is access all Object ;
-   -- type pointer on type Object
-
-
-   procedure Init (Self : in out Object ;
-                   Has_Exceptions : Corba.Boolean := False ) ;
+   procedure Set_User_Exceptions (Self : in out Object ;
+                                  Has_Exceptions : Corba.Boolean) ;
    -- Set the boolean Pd_Has_User_Exception
 
 
@@ -71,13 +67,9 @@ package omniProxyCallDesc is
    -- returns the name of the subprogram
 
 
-   procedure Free(Self : in out Object) is abstract ;
-   -- frees all the members of the omniProxyCallDesc
-
-
-   function Aligned_Size(Self : in Object ;
-                         Size_In: in Corba.Unsigned_Long )
-                         return Corba.Unsigned_Long is abstract ;
+   function Align_Size(Self : in Object ;
+                       Size_In: in Corba.Unsigned_Long )
+                       return Corba.Unsigned_Long is abstract ;
    -- This function computes the size needed to marshall the arguments
    -- of the subprogram
 
@@ -104,7 +96,7 @@ package omniProxyCallDesc is
 
 private
 
-   type Object is abstract tagged record
+   type Object is abstract new Ada.Finalization.Limited_Controlled with record
       Pd_Has_User_Exception : Corba.Boolean ;
    end record ;
    -- implementation of the private type Object

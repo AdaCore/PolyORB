@@ -52,10 +52,10 @@ with Ada.Exceptions ;
 
 package body omniProxyCallDesc is
 
-   -- Init
-   -------
-   procedure Init (Self : in out Object ;
-                   Has_Exceptions : Corba.Boolean := False ) is
+   -- Set_User_exceptions
+   ----------------------
+   procedure Set_User_exceptions (Self : in out Object ;
+                                  Has_Exceptions : Corba.Boolean ) is
    begin
       Self.Pd_Has_User_Exception := Has_Exceptions ;
    end ;
@@ -89,4 +89,6 @@ package body omniProxyCallDesc is
    end ;
 
 end omniproxyCallDesc ;
+
+
 
