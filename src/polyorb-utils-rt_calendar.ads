@@ -33,6 +33,7 @@
 
 --  $Id$
 
+--  This package is to be used through PolyORB.Calendar.
 --  WARNING: This package relies on Ada.Real_Time, which will load the
 --  ada tasking libraries
 

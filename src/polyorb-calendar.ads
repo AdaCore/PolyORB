@@ -32,8 +32,12 @@
 ------------------------------------------------------------------------------
 
 --  PolyORB.Calendar provides a uniform API to manipulate time, close
---  to Ada.Calendar. It is compatible with the No Tasking, Full
---  Tasking and Ravenscar profiles.
+--  to Ada.Calendar. Hence, expect to get the same precision in time,
+--  not more.  It is compatible with the No Tasking, Full Tasking and
+--  Ravenscar profiles.
+
+
+
 
 --  $Id$
 

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Wrapper for Ada.Calendar, to be used through PolyORB.Calendar.
+
 with Ada.Calendar;
 
 with PolyORB.Calendar;
