@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -37,7 +37,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 package body AdaBroker.Debug is
 
-   Filename : constant String := "adabroker.deb";
+   Filename : constant String := "adabroker.opt";
 
    type String_Ptr is access String;
 

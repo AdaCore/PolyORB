@@ -56,7 +56,7 @@ Features :
 
 - Ada Tasking works on Solaris but not on Linux.
 
-- If you need to debug AdaBroker, you can create a file adabroker.deb in
+- If you need to debug AdaBroker, you can create a file adabroker.opt in
   your current directory. This file should contain lines with package
   names you want to debug. For instance, corba.orb will enable debug
   messages from package CORBA.ORB. If you want to debug C++ files, you
