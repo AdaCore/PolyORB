@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Log;
 
 package body PolyORB.Servants is
@@ -75,8 +75,8 @@ package body PolyORB.Servants is
       Msg :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
       use PolyORB.POA_Policies.Thread_Policy;
+      use PolyORB.Servants.Interface;
 
    begin
       if Msg in Execute_Request then

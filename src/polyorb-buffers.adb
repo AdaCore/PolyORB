@@ -742,8 +742,7 @@ package body PolyORB.Buffers is
                      --  Cannot grow last chunk: leave Data
                      --  unchanged.
                      pragma Debug
-                       (O ("Cannot satisfy growth request "
-                           & "of size"
+                       (O ("Cannot satisfy growth request of size"
                            & Stream_Element_Offset'Image (Size)));
                      null;
                   end if;
@@ -845,8 +844,7 @@ package body PolyORB.Buffers is
          if Require > Iovec_Pool.Length then
             declare
                New_Array : constant Iovec_Array_Access
-                 := new Iovec_Array
-                 (1 .. Allocate);
+                 := new Iovec_Array (1 .. Allocate);
 
                Old_Array_Address : constant System.Address
                  := Iovecs_Address (Iovec_Pool);

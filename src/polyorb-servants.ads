@@ -45,7 +45,7 @@ package PolyORB.Servants is
 
    type Servant_Access is access all Servant'Class;
    --  A Servant is a Component that supports the messages
-   --  defined in PolyORB.Objects.Interface. This type may
+   --  defined in PolyORB.Servants.Interface. This type may
    --  be further derived by personality-specific units.
 
    function Handle_Message

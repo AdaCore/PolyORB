@@ -673,7 +673,6 @@ src/polyorb-object_maps-system.adb
 src/polyorb-object_maps-system.ads
 src/polyorb-object_maps-user.adb
 src/polyorb-object_maps-user.ads
-src/polyorb-objects-interface.ads
 src/polyorb-objects.adb
 src/polyorb-objects.ads
 src/polyorb-opaque-chunk_pools.adb
@@ -783,6 +782,7 @@ src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
 src/polyorb-servants.adb
 src/polyorb-servants.ads
+src/polyorb-servants-interface.ads
 src/polyorb-setup-client.adb.in
 src/polyorb-setup-client.ads
 src/polyorb-setup-no_tasking_server.adb

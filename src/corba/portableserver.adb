@@ -44,8 +44,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Objects.Interface;
-with PolyORB.Servants;
+with PolyORB.Servants.Interface;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -97,7 +96,7 @@ package body PortableServer is
       Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
    begin
       pragma Debug (O ("Execute_Servant: enter"));

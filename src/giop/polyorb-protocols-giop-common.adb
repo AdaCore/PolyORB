@@ -36,7 +36,7 @@ with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Representations.CDR;
 
 package body PolyORB.Protocols.GIOP.Common is
@@ -382,7 +382,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.Any;
       use PolyORB.ORB;
       use PolyORB.Components;
-      use PolyORB.Objects;
       use Pend_Req_Seq;
 
       Req          : Pending_Request_Access;
@@ -428,7 +427,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Req.Req.Requesting_Component,
-               Objects.Interface.Executed_Request'
+               Servants.Interface.Executed_Request'
                (Req => Req.Req));
 
          when System_Exception =>
@@ -438,7 +437,7 @@ package body PolyORB.Protocols.GIOP.Common is
               (Sess.Buffer_In, Req.Req.Exception_Info);
             Emit_No_Reply
               (Component_Access (ORB),
-               Objects.Interface.Executed_Request'
+               Servants.Interface.Executed_Request'
                (Req => Req.Req));
 
          when User_Exception =>
@@ -516,7 +515,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Objects.Interface.Executed_Request'
+                  Servants.Interface.Executed_Request'
                   (Req => Req.Req));
             end;
 

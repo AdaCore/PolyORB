@@ -58,9 +58,9 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
+with PolyORB.Servants.Interface;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
@@ -251,7 +251,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       Components.Emit_No_Reply
         (R.Requesting_Component,
-         Objects.Interface.Executed_Request'(Req => R));
+         Servants.Interface.Executed_Request'(Req => R));
    end Process_Reply;
 
    procedure Handle_Unmarshall_Arguments

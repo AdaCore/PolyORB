@@ -39,16 +39,16 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 with PolyORB.Types;
 
 package body PolyORB.Test_Object_POA is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Objects.Interface;
    use PolyORB.Requests;
+   use PolyORB.Servants.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("corba.test_object");
    procedure Output (Message : in Standard.String; Level : Log_Level := Debug)

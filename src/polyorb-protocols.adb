@@ -40,8 +40,8 @@ with Ada.Tags;
 with PolyORB.Filters.Interface;
 with PolyORB.If_Descriptors;
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
 with PolyORB.Protocols.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Types;
 
 package body PolyORB.Protocols is
@@ -49,8 +49,8 @@ package body PolyORB.Protocols is
    use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
-   use PolyORB.Objects.Interface;
    use PolyORB.Protocols.Interface;
+   use PolyORB.Servants.Interface;
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . O B J E C T S . I N T E R F A C E             --
+--           P O L Y O R B . S E R V A N T S . I N T E R F A C E            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,7 @@ with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Requests;
 
-package PolyORB.Objects.Interface is
+package PolyORB.Servants.Interface is
 
    type Execute_Request is new Components.Message with record
       Req : Requests.Request_Access;
@@ -59,4 +59,4 @@ package PolyORB.Objects.Interface is
    --  emitted asynchronously to the requesting component if
    --  Null_Message was returned as the reply for Execute_Request.
 
-end PolyORB.Objects.Interface;
+end PolyORB.Servants.Interface;

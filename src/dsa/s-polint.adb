@@ -54,7 +54,7 @@ with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
@@ -523,7 +523,7 @@ package body System.PolyORB_Interface is
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
       Result : PolyORB.Components.Null_Message;
    begin

@@ -49,10 +49,10 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.References.Binding;
+with PolyORB.Servants.Interface;
 with PolyORB.Setup;
 with PolyORB.Tasking.Threads;
 with PolyORB.Task_Info;
@@ -909,7 +909,7 @@ package body PolyORB.ORB is
                Catch (Error);
 
                Emit_No_Reply (J.Requestor,
-                              Objects.Interface.Executed_Request'
+                              Servants.Interface.Executed_Request'
                               (Req => J.Request));
                return;
             end if;
@@ -936,7 +936,7 @@ package body PolyORB.ORB is
                              & " Executed_Request message"));
 
                Emit_No_Reply (J.Requestor,
-                              Objects.Interface.Executed_Request'
+                              Servants.Interface.Executed_Request'
                               (Req => J.Request));
             end if;
          end;
@@ -947,7 +947,7 @@ package body PolyORB.ORB is
          declare
             Result : constant Components.Message'Class :=
               Emit (Surrogate,
-                    Objects.Interface.Execute_Request'
+                    Servants.Interface.Execute_Request'
                     (Req => J.Request,
                      Pro => Pro));
          begin
@@ -1041,7 +1041,7 @@ package body PolyORB.ORB is
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
       Result : Components.Null_Message;
    begin
