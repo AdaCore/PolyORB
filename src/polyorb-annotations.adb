@@ -38,7 +38,6 @@
 --  $Id$
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Annotations is
 
@@ -127,19 +126,9 @@ package body PolyORB.Annotations is
    -- Destroy --
    -------------
 
-   procedure Destroy (NP : in out Notepad)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Note'Class, Note_Access);
-
-      It : Iterator := First (NP);
+   procedure Destroy (NP : in out Notepad) is
    begin
-      while not Last (It) loop
-         Free (Value (It).all);
-         Next (It);
-      end loop;
-
-      Destroy (NP);
+      Deallocate (NP);
    end Destroy;
 
 end PolyORB.Annotations;
