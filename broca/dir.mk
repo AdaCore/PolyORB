@@ -1,4 +1,4 @@
-SUBDIRS = adabroker src examples doc
+SUBDIRS = adabroker src doc examples
 
 all::
 	@$(MakeSubdirs)
