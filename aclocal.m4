@@ -1,4 +1,4 @@
-dnl aclocal.m4 generated automatically by aclocal 1.1m
+dnl aclocal.m4 generated automatically by aclocal 1.1n
 
 # Do all the work for Automake.  This macro actually does too much --
 # some checks are only needed if your package does certain things.
@@ -7,16 +7,17 @@ dnl aclocal.m4 generated automatically by aclocal 1.1m
 # serial 1
 
 dnl Usage:
-dnl AM_INIT_AUTOMAKE(package,version)
+dnl AM_INIT_AUTOMAKE(package,version, [no-define])
 
 AC_DEFUN(AM_INIT_AUTOMAKE,
 [AC_REQUIRE([AM_PROG_INSTALL])
 PACKAGE=[$1]
 AC_SUBST(PACKAGE)
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
 VERSION=[$2]
 AC_SUBST(VERSION)
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION")
+ifelse([$3],,
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION"))
 AM_SANITY_CHECK
 AC_ARG_PROGRAM
 dnl FIXME This is truly gross.
@@ -43,9 +44,9 @@ AC_SUBST(INSTALL_SCRIPT)dnl
 
 AC_DEFUN(AM_SANITY_CHECK,
 [AC_MSG_CHECKING([whether build environment is sane])
-echo timestamp > conftestfile
 # Just in case
 sleep 1
+echo timestamp > conftestfile
 # Do `set' in a subshell so we don't clobber the current shell's
 # arguments.  Must try -L first in case configure is actually a
 # symlink; some systems play weird games with the mod time of symlinks
@@ -73,7 +74,9 @@ dnl AM_MISSING_PROG(NAME, PROGRAM, DIRECTORY)
 dnl The program must properly implement --version.
 AC_DEFUN(AM_MISSING_PROG,
 [AC_MSG_CHECKING(for working $2)
-if $2 --version > /dev/null 2>&1; then
+# Run test in a subshell; some versions of sh will print an error if
+# an executable is not found, even if stderr is redirected.
+if ($2 --version) > /dev/null 2>&1; then
    $1=$2
    AC_MSG_RESULT(found)
 else
@@ -81,4 +84,19 @@ else
    AC_MSG_RESULT(missing)
 fi
 AC_SUBST($1)])
+
+# Check to see if we're running under Cygwin32, without using
+# AC_CANONICAL_*.  If so, set output variable EXEEXT to ".exe".
+# Otherwise set it to "".
+
+dnl AM_CYGWIN32()
+AC_DEFUN(AM_CYGWIN32,
+[AC_MSG_CHECKING(for Cygwin32 environment)
+AC_EGREP_CPP(lose, [
+#ifdef __CYGWIN32__
+lose
+#endif], [EXEEXT=.exe
+AC_MSG_RESULT(yes)], [EXEEXT=
+AC_MSG_RESULT(no)])
+AC_SUBST(EXEEXT)])
 

@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1m from Makefile.am
+# Makefile.in generated automatically by automake 1.1n from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -46,6 +46,13 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+
+NORMAL_INSTALL = true
+PRE_INSTALL = true
+POST_INSTALL = true
+NORMAL_UNINSTALL = true
+PRE_UNINSTALL = true
+POST_UNINSTALL = true
 build_alias = @build_alias@
 build_triplet = @build@
 host_alias = @host_alias@
@@ -55,11 +62,11 @@ target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
 CERRNO = @CERRNO@
+EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATFLAGS = @GNATFLAGS@
 GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
@@ -128,7 +135,7 @@ maintainer-clean-recursive:
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
 tags-recursive:
-	list="$(SUBDIRS)"; for subdir in $$list; do \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  (cd $$subdir && $(MAKE) tags); \
 	done
 
@@ -140,11 +147,11 @@ ID: $(HEADERS) $(SOURCES)
 TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES)
 	tags=; \
 	here=`pwd`; \
-	list="$(SUBDIRS)"; for subdir in $$list; do \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
 	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
 	done; \
 	test -z "$(ETAGS_ARGS)$(SOURCES)$(HEADERS)$$tags" \
-	  || cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $(SOURCES) $(HEADERS) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -189,9 +196,6 @@ distdir: $(DISTFILES)
 	rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 755 $(distdir)
-	here=`pwd`; distdir=`cd $(distdir) && pwd` \
-	  && cd $(srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(srcdir) --output-dir=$$distdir --foreign
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
@@ -214,10 +218,10 @@ installcheck: installcheck-recursive
 all-am: Makefile
 
 install-exec: install-exec-recursive
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 
 install-data: install-data-recursive
-	$(NORMAL_INSTALL)
+	@$(NORMAL_INSTALL)
 
 install: install-recursive
 	@:
