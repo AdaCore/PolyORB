@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#12 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#13 $
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
@@ -52,9 +52,6 @@ package body PortableServer.POAManager is
    --  reference points to a non null POAM, the type of the referenced
    --  object (else BAD_PARAM is raised).  Check that the POAM is
    --  active (else AdapterInactive is raised).
-
-   function To_Active_POA_Manager (Self : Ref) return POAManager_Access;
-   --  Same as above spec. Ensure that the designated POAM is active.
 
    -----------------
    -- Get_Members --
@@ -85,6 +82,7 @@ package body PortableServer.POAManager is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
       pragma Warnings (On); --  WAG:3.15
+
    begin
       raise AdapterInactive;
    end Raise_AdapterInactive;
@@ -95,7 +93,6 @@ package body PortableServer.POAManager is
 
    procedure Raise_From_Error
      (Error : in out PolyORB.Exceptions.Error_Container) is
-
    begin
       pragma Assert (Is_Error (Error));
 
@@ -103,7 +100,8 @@ package body PortableServer.POAManager is
          when AdapterInactive_E =>
             declare
                Member : constant AdapterInactive_Members
-                 := AdapterInactive_Members (Error.Member.all);
+                 := AdapterInactive_Members'(CORBA.IDL_Exception_Members
+                                             with null record);
             begin
                Free (Error.Member);
                Raise_AdapterInactive (Member);
@@ -118,7 +116,8 @@ package body PortableServer.POAManager is
    -- To_POA_Manager --
    --------------------
 
-   function To_POA_Manager (Self : Ref)
+   function To_POA_Manager
+     (Self : Ref)
      return POAManager_Access
    is
       Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
@@ -132,22 +131,6 @@ package body PortableServer.POAManager is
       return POAManager_Access (Res);
    end To_POA_Manager;
 
-   ---------------------------
-   -- To_Active_POA_Manager --
-   ---------------------------
-
-   function To_Active_POA_Manager (Self : Ref)
-                                  return POAManager_Access
-   is
-      Res : constant POAManager_Access := To_POA_Manager (Self);
-   begin
-      if Get_State (Res.all) = INACTIVE then
-         raise AdapterInactive;
-      end if;
-
-      return Res;
-   end To_Active_POA_Manager;
-
    --------------
    -- Activate --
    --------------
@@ -155,9 +138,7 @@ package body PortableServer.POAManager is
    procedure Activate
      (Self : in Ref)
    is
-      POA_Manager : constant POAManager_Access
-        := To_Active_POA_Manager (Self);
-
+      POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
 
    begin
@@ -176,9 +157,7 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA_Manager : constant POAManager_Access
-        := To_Active_POA_Manager (Self);
-
+      POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
 
    begin
@@ -197,9 +176,7 @@ package body PortableServer.POAManager is
      (Self                : in Ref;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA_Manager : constant POAManager_Access
-        := To_Active_POA_Manager (Self);
-
+      POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
       Error : Error_Container;
 
    begin
@@ -219,8 +196,7 @@ package body PortableServer.POAManager is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA_Manager : constant POAManager_Access
-        := To_Active_POA_Manager (Self);
+      POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
 
    begin
       Deactivate (POA_Manager, Etherealize_Objects, Wait_For_Completion);
@@ -234,8 +210,7 @@ package body PortableServer.POAManager is
      (Self : in Ref)
      return State
    is
-      POA_Manager : constant POAManager_Access
-        := To_POA_Manager (Self);
+      POA_Manager : constant POAManager_Access := To_POA_Manager (Self);
 
    begin
       return Get_State (POA_Manager.all);
