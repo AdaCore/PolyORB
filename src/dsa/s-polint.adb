@@ -1056,7 +1056,11 @@ begin
        Depends => +"orb"
          & "corba.initial_references"
          & "access_points?"
+         & "tcp_access_points.soap?"
+         & "tcp_access_points.iiop?"
          & "poa_config.racws?",
        Provides => Empty,
        Init => Initialize'Access));
+   --  XXX We should not need to know about ap.soap
+   --  and ap.iiop: they should both simply provide access_points.
 end System.PolyORB_Interface;

@@ -1226,7 +1226,12 @@ begin
      (Module_Info'
       (Name => +"orb",
        Conflicts => Empty,
-       Depends => +"soft_links" & "orb.tasking_policy",
+       Depends => +"soft_links" & "orb.tasking_policy"
+         & "binding_data.soap?"
+         & "binding_data.srp?"
+         & "binding_data.iiop?",
        Provides => Empty,
        Init => Initialize'Access));
+   --  XXX should not depend explicitly on the various binding_data.*:
+   --  they should all provide "binding_data"
 end PolyORB.ORB;
