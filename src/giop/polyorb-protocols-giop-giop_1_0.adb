@@ -45,6 +45,7 @@ with PolyORB.Obj_Adapters;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.Representations.CDR;
+with PolyORB.Request_QoS;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -91,7 +92,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Resp_Exp   :    out Boolean;
       Object_Key :    out PolyORB.Objects.Object_Id_Access;
       Operation  :    out Types.String;
-      Principal  :    out Types.String);
+      Principal  :    out Types.String;
+      QoS        :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List);
 
    -----------------------------------
    -- Internal function declaration --
@@ -174,13 +176,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
             if Sess.Role /= Client then
                raise GIOP_Error;
             end if;
-            Unmarshall_Service_Context_List (Sess.Buffer_In);
             declare
                Request_Id   : constant Types.Unsigned_Long :=
                  Unmarshall (Sess.Buffer_In);
                Reply_Status : constant Reply_Status_Type :=
                  Unmarshall (Sess.Buffer_In);
+               QoS : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
+
             begin
+               Unmarshall_Service_Context_List (Sess.Buffer_In, QoS);
+
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
             end;
 
@@ -249,6 +254,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Def_Args    : Component_Access;
       Target      : References.Ref;
       Req         : Request_Access;
+      QoS         : PolyORB.Request_QoS.QoS_Parameter_Lists.List;
 
       Result      : Any.NamedValue;
       --  Dummy NamedValue for Create_Request;
@@ -268,7 +274,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          Resp_Exp,
          Object_Key,
          Operation,
-         Principal);
+         Principal,
+         QoS);
 
       if Resp_Exp then
          Req_Flags := Sync_With_Target;
@@ -322,6 +329,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
          Dependent_Binding_Object =>
            Smart_Pointers.Entity_Ptr
          (S.Dependent_Binding_Object));
+
+      PolyORB.Request_QoS.Set_QoS (Req, QoS);
 
       Set_Note
         (Req.Notepad,
@@ -473,7 +482,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+        (Buffer,
+         PolyORB.Request_QoS.Get_QoS (R.Req));
       Marshall (Buffer, R.Request_Id);
       Marshall (Buffer, Resp_Exp);
       Marshall (Buffer, Stream_Element_Array (Oid.all));
@@ -607,15 +618,17 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Resp_Exp          :    out Types.Boolean;
       Object_Key        :    out PolyORB.Objects.Object_Id_Access;
       Operation         :    out Types.String;
-      Principal         :    out Types.String)
+      Principal         :    out Types.String;
+      QoS               :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List)
    is
       use Representations.CDR;
       use PolyORB.Types;
+
    begin
 
       --  Service context
 
-      Unmarshall_Service_Context_List (Buffer);
+      Unmarshall_Service_Context_List (Buffer, QoS);
 
       --  Request id
 
@@ -652,6 +665,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem_1_0;
       S       : access Session'Class;
+      R       : Request_Access;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
    is
       pragma Warnings (Off);
@@ -661,7 +675,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Sess    : GIOP_Session renames GIOP_Session (S.all);
       Ctx     : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
    begin
-      Marshall_Service_Context_List (Buffer);
+      Marshall_Service_Context_List
+        (Buffer,
+         PolyORB.Request_QoS.Get_QoS (R));
       Marshall (Buffer, Ctx.Request_Id);
       Marshall (Buffer, Ctx.Reply_Status);
    end Marshall_GIOP_Header_Reply;

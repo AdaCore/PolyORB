@@ -283,6 +283,7 @@ private
    procedure Marshall_GIOP_Header_Reply
      (Implem  : access GIOP_Implem;
       S       : access Session'Class;
+      R       : Request_Access;
       Buffer  : access PolyORB.Buffers.Buffer_Type)
       is abstract;
 

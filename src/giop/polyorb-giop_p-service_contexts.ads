@@ -31,16 +31,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Support package for GIOP Service Contexts
+
 --  $Id$
 
 with PolyORB.Buffers;
+with PolyORB.Request_QoS;
+with PolyORB.Types;
 
 package PolyORB.GIOP_P.Service_Contexts is
 
+   --  XXX For now, the data used to build the service contexts is
+   --  carried by the QoS parameters associated with a request. This
+   --  may be not sufficient for other service contexts to be
+   --  implemented.
+
    procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
+     (Buffer : access Buffers.Buffer_Type;
+      QoS    : in     PolyORB.Request_QoS.QoS_Parameter_Lists.List);
 
    procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
+     (Buffer : access Buffers.Buffer_Type;
+      QoS    :    out PolyORB.Request_QoS.QoS_Parameter_Lists.List);
+
+   --  List of supported Service Contexts
+
+   RTCorbaPriority : constant PolyORB.Types.Unsigned_Long;
+
+private
+
+   RTCorbaPriority : constant PolyORB.Types.Unsigned_Long := 10;
 
 end PolyORB.GIOP_P.Service_Contexts;
