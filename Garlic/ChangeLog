@@ -1,3 +1,9 @@
+1999-11-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garpoi.ads, s-garpoi.adb, s-garadd.ads, s-garadd.adb: Initial
+	  version of mechanism that will be used to avoid transmitting
+	  pointers over the net.
+
 1999-09-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garter.adb: Remove livelock. We must delay when the algorithm
