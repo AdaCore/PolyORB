@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -109,6 +109,23 @@ package PolyORB.GIOP_P.Tagged_Components is
      (List : in out Tagged_Component_List;
       C    :        Tagged_Component_Access);
    --  Add a component in a tagged component list
+
+   procedure Replace
+     (List : in out Tagged_Component_List;
+      C1   :        Tagged_Component_Access;
+      C2   :        Tagged_Component_Access);
+   --  Replace component C1 with component C2. C1 and C2 must have the
+   --  same tag.
+
+   procedure Remove
+     (List : in out Tagged_Component_List;
+      C    :        Tagged_Component_Access);
+   --  Remove C from List
+
+   function Deep_Copy
+     (List : Tagged_Component_List)
+     return Tagged_Component_List;
+   --  Return a deep copy of List
 
    -------------------------
    -- Register components --

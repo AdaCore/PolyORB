@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -303,6 +303,66 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       Append (List, C);
    end Add;
+
+   -------------
+   -- Replace --
+   -------------
+
+   procedure Replace
+     (List : in out Tagged_Component_List;
+      C1   :        Tagged_Component_Access;
+      C2   :        Tagged_Component_Access)
+   is
+   begin
+      pragma Assert (C1.Tag /= C2.Tag);
+
+      for J in 1 .. Length (List) loop
+         if Get_Component (List, Tag_Value (J)) = C1 then
+            Remove (List, C1, False);
+            Append (List, C2);
+         end if;
+      end loop;
+   end Replace;
+
+   ------------
+   -- Remove --
+   ------------
+
+   procedure Remove
+     (List : in out Tagged_Component_List;
+      C    :        Tagged_Component_Access)
+   is
+   begin
+      Remove (List, C, False);
+   end Remove;
+
+   ---------------
+   -- Deep_Copy --
+   ---------------
+
+   function Deep_Copy
+     (List : Tagged_Component_List)
+     return Tagged_Component_List
+   is
+      Result : Tagged_Component_List;
+      Iter : Iterator := First (List);
+
+   begin
+      while not Last (Iter) loop
+
+         declare
+            C  : constant Tagged_Component_Access := Value (Iter).all;
+            CC : constant Tagged_Component_Access
+              := new Tagged_Component'Class'(C.all);
+
+         begin
+            Append (Result, CC);
+         end;
+         Next (Iter);
+      end loop;
+
+      return Result;
+   end Deep_Copy;
 
    -----------------------
    -- Unknown Component --
