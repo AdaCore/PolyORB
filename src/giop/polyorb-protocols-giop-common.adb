@@ -418,9 +418,9 @@ package body PolyORB.Protocols.GIOP.Common is
                   Send_Request (Sess.Implem, Sess, Req, Error);
                else
                   Throw (Error,
-                    Inv_Objref_E,
+                    Object_Not_Exist_E,
                     System_Exception_Members'(
-                      Minor     => 0, --  ??? Is this right?
+                      Minor     => 1,
                       Completed => Completed_No));
                end if;
 
