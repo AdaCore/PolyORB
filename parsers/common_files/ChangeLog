@@ -1,3 +1,9 @@
+2004-08-04  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* utils.adb, utils.ads: Slightly modify Capitalize to change any
+	leading character or successor of an underscore into its
+	corresponding uppercase character (do not modify anything else).
+
 2004-07-02  Ngoc Minh Vo  <nvo@siloe.enst.fr>
 
 	* output.ads, output.adb:

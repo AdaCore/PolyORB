@@ -18,10 +18,6 @@ package body Utils is
             if S (I) in 'a' .. 'z' then
                S (I) := Character'Val (Character'Pos (S (I)) + Up_To_Low);
             end if;
-         else
-            if S (I) in 'A' .. 'Z' then
-               S (I) := Character'Val (Character'Pos (S (I)) - Up_To_Low);
-            end if;
          end if;
          if S (I) = '_' then
             Up := True;
