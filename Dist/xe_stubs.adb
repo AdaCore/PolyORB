@@ -837,6 +837,20 @@ procedure XE_Stubs is
       end if;
       Dwrite_Eol (FD);
 
+      --  If a protocol has been specified, then use it (with its data
+      --  if present).
+
+      if Protocol_Name /= No_Name then
+         Dwrite_Str  (FD, "   Set_Boot_Server (""");
+         Dwrite_Name (FD, Protocol_Name);
+         if Protocol_Data /= No_Name then
+            Dwrite_Str  (FD, "://");
+            Dwrite_Name (FD, Protocol_Data);
+         end if;
+         Dwrite_Str  (FD, """);");
+         Dwrite_Eol  (FD);
+      end if;
+
       --  Footer.
       Dwrite_Str  (FD, "end ");
       Dwrite_Name (FD, Elaboration_Full_Name);
