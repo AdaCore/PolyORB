@@ -237,6 +237,26 @@ package body Ada_Be.Idl2Ada is
    is
       In_Scope : Scope_State_Access := null;
    begin
+      if Code_Generation_Suppressed (Mapping, Node) then
+         declare
+            It     : Node_Iterator;
+            S_Node : Node_Id;
+         begin
+            Init (It, Contents (Node));
+            while not Is_End (It) loop
+               Get_Next_Node (It, S_Node);
+               if Is_Gen_Scope (S_Node)
+                 and then Generate_Scope_In_Child_Package (Mapping, S_Node)
+               then
+                  Gen_Scope
+                    (S_Node, Implement, Intf_Repo, To_Stdout, Current_Scope);
+               end if;
+            end loop;
+
+            return;
+         end;
+      end if;
+
       if not Generate_Scope_In_Child_Package (Mapping, Node) then
          In_Scope := Current_Scope;
       end if;

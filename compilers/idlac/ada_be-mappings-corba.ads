@@ -94,6 +94,13 @@ package Ada_Be.Mappings.CORBA is
    --  (a K_Interface or K_ValueType).
    --  This is not the fully qualified name.
 
+   function Code_Generation_Suppressed
+     (Mapping : access CORBA_Mapping_Type;
+      Node    : in     Idl_Fe.Types.Node_Id)
+     return Boolean;
+   --  Return True iff code generation for Node should be suppressed
+   --  because of non-standard or Ada Language Mapping specific rules.
+
 private
 
    type CORBA_Mapping_Type is new Mapping_Type with null record;

@@ -259,6 +259,79 @@ package body Ada_Be.Mappings.CORBA is
       --  as a formal parameter named Self.
    end Self_For_Operation;
 
+   --------------------------------
+   -- Code_Generation_Suppressed --
+   --------------------------------
+
+   function Code_Generation_Suppressed
+     (Mapping : access CORBA_Mapping_Type;
+      Node    : in     Node_Id)
+      return Boolean
+   is
+      pragma Unreferenced (Mapping);
+
+      function Have_Prefix
+        (Name   : in String;
+         Prefix : in String)
+         return Boolean;
+      --  Return True iff Name has Prefix
+
+      -----------------
+      -- Have_Prefix --
+      -----------------
+
+      function Have_Prefix
+        (Name   : in String;
+         Prefix : in String)
+         return Boolean
+      is
+         Length : constant Natural := Prefix'Length;
+      begin
+         if Name'Length < Length then
+            return False;
+         end if;
+
+         if Name (Name'First .. Name'First + Length - 1) /= Prefix then
+            return False;
+         end if;
+
+         if Name'Length = Length then
+            return True;
+         end if;
+
+         if Name (Name'First + Length) = '.' then
+            return True;
+         end if;
+
+         return False;
+      end Have_Prefix;
+
+   begin
+      pragma Assert (Kind (Node) = K_Ben_Idl_File
+        or else Kind (Node) = K_Module
+        or else Kind (Node) = K_Interface);
+
+      declare
+         Name : constant String := Ada_Full_Name (Node);
+
+      begin
+         if Have_Prefix (Name, "CORBA") then
+            --  By default all CORBA modules are predefined, except
+            --  for the following:
+
+            --  CORBA.Repository_Root
+
+            if Have_Prefix (Name, "CORBA.Repository_Root") then
+               return False;
+            end if;
+
+            return True;
+         end if;
+      end;
+
+      return False;
+   end Code_Generation_Suppressed;
+
    -------------------
    -- Map_Type_Name --
    -------------------

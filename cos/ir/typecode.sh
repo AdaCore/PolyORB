@@ -10,5 +10,3 @@ pragma Warnings (Off);' \
          -e 's/IDL_SEQUENCE_CORBA_Repository_Root_/IDL_Sequence_CORBA_/g' < $file > $file.new
   mv $file.new $file
 done
-${RM} -f corba.* corba-helper* corba-typecode* ir_idl_file*
-#${RM} corba-stream.ad?
