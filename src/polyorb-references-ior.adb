@@ -42,7 +42,7 @@ with PolyORB.Log;
 with PolyORB.Representations.CDR;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
-with PolyORB.Utils.Strings;
+--  with PolyORB.Utils.Strings;
 
 package body PolyORB.References.IOR is
 
@@ -331,18 +331,16 @@ package body PolyORB.References.IOR is
       use PolyORB.Buffers;
       use PolyORB.Utils.Strings;
 
-      S : Types.String := Str;
-      Success : Boolean;
+      Len    : constant Integer := Length (IOR_Prefix);
    begin
       pragma Debug (O ("Try to decode IOR"));
-      Check_And_Remove_Header (S, IOR_Prefix, Success);
-
-      if Success then
+      if Length (Str) > Len
+        and then To_String (Str) (1 .. Len) = IOR_Prefix then
          pragma Debug (O ("IOR Header ok"));
          declare
             Octets : aliased Stream_Element_Array
               := To_Stream_Element_Array
-              (To_Standard_String (S));
+              (To_Standard_String (Str) (Len + 1 .. Length (Str)));
          begin
             return Opaque_To_Object (Octets'Access);
          end;

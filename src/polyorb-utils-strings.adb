@@ -32,11 +32,8 @@
 ------------------------------------------------------------------------------
 
 --  General-purpose string pointer.
---  Some useful functions for Polyorbloc.
 
 --  $Id$
-
-with Ada.Strings.Unbounded;
 
 package body PolyORB.Utils.Strings is
 
@@ -50,84 +47,5 @@ package body PolyORB.Utils.Strings is
    begin
       return new Standard.String'(S);
    end "+";
-
-   -------------------------------------
-   -- Extract_String_Before_Delimiter --
-   -------------------------------------
-
-   procedure Extract_String_Before_Delimiter
-     (Str   : in out Types.String;
-      Delim : in     String;
-      Value :    out Types.String)
-   is
-      use Ada.Strings.Unbounded;
-
-      use PolyORB.Types;
-
-      K : constant Natural := Index (Unbounded_String (Str), Delim);
-   begin
-      if K = 0 or Length (Str) < K + Delim'Last then
-         Value := Types.String (Null_Unbounded_String);
-         return;
-      end if;
-      Value := To_PolyORB_String (Slice (Unbounded_String (Str), 1, K - 1));
-      Delete (Unbounded_String (Str), 1, K + Delim'Last - 1);
-   end Extract_String_Before_Delimiter;
-
-   ------------------------------
-   -- Insert_Str_And_Delimiter --
-   ------------------------------
-
-   procedure Insert_Str_And_Delimiter
-     (Str   : in out Types.String;
-      Value : in     Types.String;
-      Delim : in     String)
-   is
-      use Ada.Strings.Unbounded;
-
-      use PolyORB.Types;
-
-   begin
-      if Index (Unbounded_String (Value), Delim) = 0 then
-         Append (Str, Value & Delim);
-      end if;
-   end Insert_Str_And_Delimiter;
-
-   procedure Insert_Str_And_Delimiter
-     (Str   : in out Types.String;
-      Value : in     String;
-      Delim : in     String)
-   is
-      use PolyORB.Types;
-
-   begin
-      Insert_Str_And_Delimiter
-        (Str,
-         To_PolyORB_String (Value),
-         Delim);
-   end Insert_Str_And_Delimiter;
-
-   -----------------------------
-   -- Check_And_Remove_Header --
-   -----------------------------
-
-   procedure Check_And_Remove_Header
-     (Str     : in out Types.String;
-      Value   : in     Types.String;
-      Success :    out Boolean)
-   is
-      use Ada.Strings.Unbounded;
-
-      use PolyORB.Types;
-
-   begin
-      Success := False;
-      if Index (Unbounded_String (Str), To_Standard_String (Value)) = 1 then
-         Success := True;
-         Str := To_PolyORB_String
-           (To_String (Str)
-            (Length (Value) + 1 .. Length (Str)));
-      end if;
-   end Check_And_Remove_Header;
 
 end PolyORB.Utils.Strings;
