@@ -9,34 +9,12 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Corba ;
 with Giop_C ;
 with Omniproxycalldesc ;
-with Proxyobjectfactory ;
-with Rope ;
-with Iop ;
 
 package Echo.Proxies is
 
-
-   --------------------------------------------------
-   ----           object factory                 ----
-   --------------------------------------------------
-   type ObjectFactory is new Proxyobjectfactory.Object with null record ;
-
-   function New_Proxy_Object(Self : in ObjectFactory ;
-                             R : in Rope.object ;
-                             Key : in Corba.Octet ;
-                             Key_Size : in Corba.Unsigned_Long ;
-                             Profiles : in Iop.Tagged_Profile_List ;
-                             Release : in Corba.Boolean)
-                             return Echo.Ref ;
-
-   function Nil(Self : in ObjectFactory) return Echo.Ref ;
-
-   function Is_A(Self : in ObjectFactory ;
-                 Base_RepoID : in String) return Corba.Boolean  ;
-
-   Static_Factory : constant ObjectFactory := (Proxyobjectfactory.Object with null record) ;
 
    --------------------------------------------------
    ----        function EchoString               ----
@@ -45,6 +23,9 @@ package Echo.Proxies is
    type EchoString_Proxy is new OmniProxyCallDesc.Object with private ;
 
    function Create(Arg : Corba.String ) return EchoString_Proxy ;
+
+   function Operation (Self : in EchoString_Proxy)
+                       return CORBA.String ;
 
    procedure Free(Self : in out EchoString_Proxy) ;
 
@@ -59,7 +40,7 @@ package Echo.Proxies is
                                        Giop_Client: in Giop_C.Object) ;
 
    function Get_Result (Self : in EchoString_Proxy)
-                    return CORBA.String;
+                        return CORBA.String;
 
 
 private
@@ -70,4 +51,5 @@ private
    end record ;
 
 end Echo.Proxies ;
+
 

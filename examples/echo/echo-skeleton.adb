@@ -14,19 +14,6 @@ with Omniropeandkey ;
 package body Echo.Skeleton is
 
 
-   -- Init
-   -------
-   procedure Adabroker_Init (Self : in out Echo.Impl.Object ;
-                             K : in OmniORB.ObjectKey) is
-      L : OmniRopeAndKey.Object;
-   begin
-      raise Constraint_Error ;
-      -- Init(L,Rope.Null_Rope,K,...);
-      -- PROBLEME sur K : le type n'est pas le bon. En C, on trouve ici
-      -- un cast plus que sauvage...
-      -- To Be continued
-   end;
-
    -- Dipatch
    ----------
    procedure AdaBroker_Dispatch (Self : in out Echo.Impl.Object ;

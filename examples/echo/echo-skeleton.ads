@@ -17,14 +17,10 @@ with Echo.Impl ;
 package Echo.Skeleton is
 
 
-   procedure Adabroker_Init (Self : in out Echo.Impl.Object ;
-                             K : in OmniORB.ObjectKey) ;
-
    procedure AdaBroker_Dispatch (Self : in out Echo.Impl.Object ;
-                                Orls : in Giop_S.Object ;
-                                Orl_Op : in Corba.String ;
-                                Orl_Response_Expected : in Corba.Boolean ;
-                                Returns : out Corba.Boolean ) ;
-
+                                 Orls : in Giop_S.Object ;
+                                 Orl_Op : in Corba.String ;
+                                 Orl_Response_Expected : in Corba.Boolean ;
+                                 Returns : out Corba.Boolean ) ;
 
 end Echo.Skeleton ;

@@ -43,3 +43,5 @@ private
    Nil_Ref : aliased Ref := (Corba.Object.Nil_Ref with null record) ;
 
 End Weapon;
+
+

@@ -9,13 +9,16 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Omniobject ;
+
 package Echo.Impl is
 
    --------------------------------------------------
    ----                spec                      ----
    --------------------------------------------------
 
-   type Object is new Corba.Object.Object with private ;
+   type Object is new Omniobject.Implemented_Object with private ;
+   type Object_Ptr is access all Object'Class ;
 
    function EchoString(Self : access Object;
                        Message : in Corba.String) return Corba.String ;
@@ -24,8 +27,7 @@ package Echo.Impl is
 
 private
 
-
-   type Object is new Corba.Object.Object with null record ;
+   type Object is new Omniobject.Implemented_Object with null record ;
 
 
 End Echo.Impl ;

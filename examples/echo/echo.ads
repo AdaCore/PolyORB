@@ -18,6 +18,9 @@ package Echo is
    --------------------------------------------------
 
    type Ref is new Corba.Object.Ref with null record ;
+   type Ref_Ptr is access all Ref ;
+
+   Nil_Ref : aliased constant Ref ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
@@ -29,18 +32,19 @@ package Echo is
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
+   Repository_Id : Corba.String := Corba.To_Corba_String("IDL:Echo:1.0")  ;
+   function Get_Repository_Id(Self : in Ref) return Corba.String ;
 
-   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                      Result: out Corba.Object.Ref'Class) ;
+   function Is_A(The_Ref: in Ref; Repo_Id: in Corba.String) return Corba.Boolean ;
+   function Is_A(Repo_Id: in Corba.String) return Corba.Boolean ;
 
-
-   Interface_Repository_Id : constant String := "IDL:Echo:1.0" ;
+   function Get_Nil_Ref(Self: in Ref) return Ref ;
 
 private
 
-   Nil_Ref : constant Ref := (Corba.Object.Nil_Ref with null record) ;
+   Nil_Ref : aliased constant Ref := (Corba.Object.Nil_Ref with null record) ;
 
-End Echo ;
+End Echo;
 
 
 

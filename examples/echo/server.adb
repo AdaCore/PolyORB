@@ -13,10 +13,15 @@ with Corba, Corba.Orb, Corba.Boa ;
 with Text_IO ; use Text_Io ;
 
 procedure server is
-   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;
-   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init("omniORB2_BOA") ;
+   Orb : Corba.Orb.Object  ;
+   Boa : Corba.Boa.Object ;
 begin
+   Put_Line("starting server") ;
 
-   Put_Line("ok") ;
+   Orb := Corba.Orb.Orb_Init("omniORB2") ;
+   Put_Line("ORB initialized") ;
+
+   Boa := Corba.Orb.Boa_Init("omniORB2_BOA") ;
+   Put_Line("BOA initialized") ;
 
 end ;

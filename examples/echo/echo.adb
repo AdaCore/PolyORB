@@ -10,10 +10,12 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
-with Ada.Tags, Ada.exceptions ;
+with Ada.exceptions ;
 with Omniproxycallwrapper ;
 with Echo.Proxies ;
 with Corba.Object ; use Corba.Object ;
+with Corba ;
+use type Corba.String ;
 
 package body Echo is
 
@@ -24,12 +26,21 @@ package body Echo is
    -- To_Ref
    ---------
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref is
-      Dynamic_Ref : Corba.Object.Ref'Class
-        := Get_Dynamic_Ref(The_Ref) ;
+      Dynamic_Type : Corba.Object.Ref'Class
+        := Get_Dynamic_Type(The_Ref) ;
       Result : Ref ;
+      Repo_id : Corba.String := Get_Repository_Id(Result) ;
    begin
-      AdaBroker_Cast_To_Parent(Dynamic_Ref,Result) ;
-      return Result ;
+      if Is_A(Dynamic_Type, Repo_Id) then
+         return  (Corba.Object.Ref(The_Ref) with null record)  ;
+      end if ;
+
+   Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                  "  Cannot cast "
+                        & Corba.To_Standard_String(Get_Repository_Id(The_Ref))
+                                  & Corba.CRLF
+                                  & "  into "
+                                  & Corba.To_Standard_String(Repo_Id)) ;
    end ;
 
 
@@ -42,7 +53,14 @@ package body Echo is
       Opcd : Echo.Proxies.EchoString_Proxy ;
       Result : Corba.String ;
    begin
-      Assert_Ref_Not_Nil(Self) ;
+      if Is_Nil(Self) then
+         declare
+            Ex_Bd : Corba.Ex_Body := (0, Corba.Completed_No) ;
+            begin
+               null ;
+--               Corba.Raise_Corba_Exception(Corba.Inv_Objref'Identity,Ex_Bd);
+            end ;
+      end if ;
       Opcd := Echo.Proxies.Create(Message) ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
       Result := Echo.Proxies.Get_Result(Opcd) ;
@@ -51,44 +69,52 @@ package body Echo is
    end ;
 
 
+
+
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
    --------------------------------------------------
 
-   -- AdaBroker_Cast_To_Parent
-   ---------------------------
-   procedure AdaBroker_Cast_To_Parent(Real_Ref: in Ref;
-                                      Result: out Corba.Object.Ref'Class) is
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
    begin
-      -- I am the result !
-      if Result in Ref then
-         declare
-            Tmp_Result : Corba.Object.Ref'Class := Real_Ref ;
-         begin
-            Result := Tmp_Result ;
-            return ;
-         end ;
-      end if ;
-
-      --try my first parent
-      declare
-         Tmp_Result : Corba.Object.Ref ;
-      begin
-         Tmp_Result := Corba.Object.Ref(Real_Ref) ;
-         Corba.Object.AdaBroker_Cast_To_Parent(Tmp_Result, Result) ;
-         return ;
-      exception
-         when Constraint_Error => null ;
-      end ;
-
-      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
-                                     "Echo.To_Ref :"
-                                     & Corba.CRLF
-                                     & "  Cannot cast Echo.Ref"
-                                     & Corba.CRLF
-                                     & "  into "
-                                     & Ada.Tags.External_Tag(Result'tag)) ;
+      return Nil_Ref ;
    end ;
+
+   -- Get_Repository_Id
+   --------------------
+   function Get_Repository_Id(Self : in Ref) return Corba.String is
+   begin
+      return  Repository_Id ;
+   end ;
+
+
+   -- Is_A
+   -------
+   function Is_A(The_Ref: in Ref;
+                 Repo_Id: in Corba.String )
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Repo_Id
+              or Corba.Object.Is_A(Repo_Id) ) ;
+   end ;
+
+   -- Is_A
+   -------
+   function Is_A(Repo_Id: in Corba.String )
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Repo_Id
+              or Corba.Object.Is_A(Repo_Id) ) ;
+   end ;
+
+
+
+begin
+
+   Corba.Object.Register(Repository_Id, Nil_Ref'Access) ;
+   Corba.Object.Create_Proxy_Object_Factory(Repository_Id) ;
 
 
 End Echo ;
