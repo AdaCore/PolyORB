@@ -134,7 +134,7 @@ package body  DROOPI.Representations.HTTP is
          Stream_Data (I) := Character'Pos (Data (K));
          I := I + 1;
       end loop;
-      return Base64_Encode (Stream_Data);
+      return Encode_Stream (Stream_Data);
    end Encode_String;
 
    -------------------
@@ -171,6 +171,7 @@ package body  DROOPI.Representations.HTTP is
          if C in 'A' .. 'Z' then
             return Character'Pos (C) - Character'Pos ('A');
          elsif C in 'a' .. 'z' then
+
             return Character'Pos (C) - Character'Pos ('a') + 26;
          elsif C in '0' .. '9' then
             return Character'Pos (C) - Character'Pos ('0') + 52;
