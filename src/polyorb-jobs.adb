@@ -36,16 +36,27 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Jobs is
 
-   procedure Free (X : in out Job_Access)
-   is
-      procedure Job_Free is new Ada.Unchecked_Deallocation
-        (Job'Class, Job_Access);
-   begin
-      Job_Free (X);
-   end Free;
+   --  Internal subprograms
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Queue_Element, Queue_Element_Access);
+
+   -------------
+   -- Any_Job --
+   -------------
+
+   function Any_Job (J : access Job'Class) return Boolean
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (J);
+      pragma Warnings (On);
+   begin
+      return True;
+   end Any_Job;
+
+   ------------------
+   -- Create_Queue --
+   ------------------
 
    function Create_Queue return Job_Queue_Access
    is
@@ -56,6 +67,64 @@ package body PolyORB.Jobs is
 
       return Q;
    end Create_Queue;
+
+   ---------------
+   -- Fetch_Job --
+   ---------------
+
+   function Fetch_Job
+     (Q        : access Job_Queue;
+      Selector :        Job_Selector := Any_Job'Access)
+      return Job_Access
+   is
+      This : Queue_Element_Access := Q.First;
+      Prev : Queue_Element_Access := null;
+      Result : Job_Access := null;
+   begin
+      while This /= null loop
+         if Selector (This.Job) then
+            if Prev /= null then
+               Prev.Next := This.Next;
+            else
+               Q.First := This.Next;
+            end if;
+
+            if This = Q.Last then
+               Q.Last := Prev;
+            end if;
+            Result := This.Job;
+            Free (This);
+            exit;
+         end if;
+         Prev := This;
+         This := This.Next;
+      end loop;
+      return Result;
+   end Fetch_Job;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (X : in out Job_Access) is
+      procedure Do_Free is new Ada.Unchecked_Deallocation
+        (Job'Class, Job_Access);
+   begin
+      Do_Free (X);
+   end Free;
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (Q : access Job_Queue) return Boolean is
+   begin
+      return Q.First = null;
+   end Is_Empty;
+
+   ---------------
+   -- Queue_Job --
+   ---------------
 
    procedure Queue_Job
      (Q : access Job_Queue;
@@ -73,27 +142,5 @@ package body PolyORB.Jobs is
          Q.Last := E;
       end if;
    end Queue_Job;
-
-   function Is_Empty (Q : access Job_Queue) return Boolean is
-   begin
-      return Q.First = null;
-   end Is_Empty;
-
-   function Fetch_Job (Q : access Job_Queue) return Job_Access is
-      First  : Queue_Element_Access := Q.First;
-      Result : Job_Access := null;
-   begin
-      if First /= null then
-         Result := First.Job;
-         Q.First := First.Next;
-         if Q.First = null then
-            Q.Last := null;
-         end if;
-
-         Free (First);
-      end if;
-
-      return Result;
-   end Fetch_Job;
 
 end PolyORB.Jobs;

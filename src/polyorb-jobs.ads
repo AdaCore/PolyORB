@@ -59,6 +59,14 @@ package PolyORB.Jobs is
    -- Job_Queue --
    ---------------
 
+   type Job_Selector is access
+     function (J : access Job'Class) return Boolean;
+   --  A predicate on jobs, used by clients of Job_Queue
+   --  to select a job that matches some criterion.
+
+   function Any_Job (J : access Job'Class) return Boolean;
+   --  A job selector that is always true.
+
    type Job_Queue is limited private;
    type Job_Queue_Access is access all Job_Queue;
    --  A queue of pending jobs.
@@ -74,9 +82,13 @@ package PolyORB.Jobs is
    function Is_Empty (Q : access Job_Queue) return Boolean;
    --  True if, and only if, Q contains no pending Job.
 
-   function Fetch_Job (Q : access Job_Queue) return Job_Access;
-   --  Returns a pending Job and remove it from Q.
-   --  null is return if Q is empty.
+   function Fetch_Job
+     (Q        : access Job_Queue;
+      Selector :        Job_Selector := Any_Job'Access)
+      return Job_Access;
+   --  Returns a pending Job that matches Selector (i.e.
+   --  such that Selector.all (Job) is true), and remove
+   --  it from Q. Null is returned if no matching job exists.
 
    --  The caller must ensure that all primitive operations
    --  of Job_Queue are called only from within a critical
@@ -93,6 +105,9 @@ private
    ----------------------------------------------
    -- Job_Queue, implemented as a simple FIFO. --
    ----------------------------------------------
+
+   --  XXX should be reimplemented in terms of
+   --  PolyORB.Utils.Chained_Lists.
 
    type Queue_Element;
    type Queue_Element_Access is access Queue_Element;
