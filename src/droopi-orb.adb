@@ -7,36 +7,10 @@ with Droopi.Channels;
 package body Droopi.ORB is
 
    use Droopi.Jobs;
+   use Droopi.Protocols;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
    use Droopi.ORB.Task_Policies;
-
-   type ORB is new Root_ORB with record
-      Tasking_Policy : Task_Policies.Tasking_Policy_Access;
-   end record;
-
-   --  Overridden primitive operations of ORB:
-
-   procedure Handle_Event (O : access ORB; AS : Active_Socket);
-
-   function Work_Pending (O : access ORB) return Boolean;
-
-   procedure Perform_Work (O : access ORB);
-
-   procedure Run
-     (O              : access ORB;
-      Exit_Condition : Exit_Condition_Access := null;
-      May_Poll       : Boolean := False);
-
-   procedure Shutdown
-     (O : access ORB;
-      Wait_For_Completion : Boolean := True);
-
-   procedure Insert_Socket
-     (O  : access ORB;
-      AS : Active_Socket);
-
-   procedure Delete_Socket (O : access ORB; S : Socket_Type);
 
    ------------------------------
    -- Server object operations --
@@ -50,20 +24,25 @@ package body Droopi.ORB is
             --  A new connection.
 
             declare
-               New_AS : Active_Socket
-                 := (Kind     => Communication_Sk,
-                     Socket   => No_Socket,
-                     Session  => Protocols.Create_Session
-                       (AS.Protocol),
-                     Protocol => AS.Protocol);
+               New_AS : Active_Socket;
                Addr : Sock_Addr_Type;
             begin
+               New_AS := (Kind     => Communication_Sk,
+                          Socket   => No_Socket,
+                          Session  => null,
+                          Protocol => AS.Protocol);
+               if New_AS.Protocol /= null then
+                  New_AS.Session := Create_Session (New_AS.Protocol);
+               end if;
+
                Accept_Socket
                  (Server  => AS.Socket,
                   Socket  => New_AS.Socket,
                   Address => Addr);
                --  The call to Accept_Socket must not block,
                --  and must return a valid socket.
+
+               pragma Assert (AS.Socket /= No_Socket);
 
                Handle_New_Connection
                  (O.Tasking_Policy, ORB_Access (O), New_AS);
@@ -104,8 +83,11 @@ package body Droopi.ORB is
       end case;
    end Handle_Event;
 
-   function Create_ORB return ORB_Access is
-      O : constant ORB_Access := new ORB;
+   function Create_ORB
+     (Tasking_Policy : Tasking_Policy_Access)
+     return ORB_Access
+   is
+      O : constant ORB_Access := new ORB (Tasking_Policy);
    begin
       Create (O.Idle_Tasks);
 

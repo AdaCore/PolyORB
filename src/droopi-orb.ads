@@ -6,17 +6,34 @@ with Sequences.Unbounded;
 
 with Droopi.Jobs;
 with Droopi.Protocols;
+with Droopi.Requests;
 with Droopi.Soft_Links;
 with Droopi.Sockets;
 
 package Droopi.ORB is
 
+   ----------------------------------
+   -- Abstract tasking policy type --
+   ----------------------------------
+
+   --  A tasking policy is a set of associations between
+   --  certain events and the resources used to process them.
+   --  These associations take the form of subprograms
+   --  that take the event as input, create a job for
+   --  its processing, and either create a new task for
+   --  the execution of this job, or schedule it for execution
+   --  by a general-purpose ORB task.
+
+   type Tasking_Policy_Type is abstract tagged limited private;
+   type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
+
    ---------------------
    -- A server object --
    ---------------------
 
-   type Root_ORB is abstract tagged limited private;
-   type ORB_Access is access all Root_ORB'Class;
+   type ORB (Tasking_Policy : access Tasking_Policy_Type'Class)
+      is limited private;
+   type ORB_Access is access all ORB;
 
    ------------------------
    -- A decorated socket --
@@ -39,27 +56,43 @@ package Droopi.ORB is
       end case;
    end record;
 
-   procedure Handle_Event (O : access Root_ORB; AS : Active_Socket)
-     is abstract;
+   procedure Handle_Event (O : access ORB; AS : Active_Socket);
    --  Process events that have occurred on active socket AS, managed
    --  by server O.
 
    package Sock_Seqs is new Sequences.Unbounded (Active_Socket);
    subtype Sock_Seq is Sock_Seqs.Sequence;
 
+   procedure Handle_New_Connection
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access;
+      AS  : Active_Socket) is abstract;
+   --  Create the necessary processing resources for newly-created
+   --  communication channel C, and start dialog.
+
+   procedure Handle_Request
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access;
+      R   : Droopi.Requests.Request) is abstract;
+   --  Create the necessary processing resources for the execution
+   --  of request R, and start this execution.
+
    ------------------------------
    -- Server object operations --
    ------------------------------
 
-   function Create_ORB return ORB_Access;
-   --  Create a new ORB and initialize it.
+   function Create_ORB
+     (Tasking_Policy : Tasking_Policy_Access)
+     return ORB_Access;
+   --  Create a new ORB with the given Tasking_Policy and
+   --  initialize it.
 
    type Exit_Condition_Access is access all Boolean;
 
    procedure Run
-     (O              : access Root_ORB;
+     (O              : access ORB;
       Exit_Condition : Exit_Condition_Access := null;
-      May_Poll       : Boolean := False) is abstract;
+      May_Poll       : Boolean := False);
    --  Execute the ORB until:
    --    - Exit_Condition.all becomes true
    --      (if Exit_Condition /= null), or
@@ -73,50 +106,52 @@ package Droopi.ORB is
    --  If May_Poll, then this task may suspend itself to wait
    --  for external events.
 
-   function Work_Pending (O : access Root_ORB) return Boolean
-     is abstract;
-   --  Return True if, and only if, some Root_ORB processing is
+   function Work_Pending (O : access ORB) return Boolean;
+   --  Return True if, and only if, some ORB processing is
    --  pending.
 
-   procedure Perform_Work (O : access Root_ORB) is abstract;
-   --  Perform one elementary Root_ORB action and return.
+   procedure Perform_Work (O : access ORB);
+   --  Perform one elementary ORB action and return.
 
    procedure Shutdown
-     (O                   : access Root_ORB;
-      Wait_For_Completion : Boolean := True) is abstract;
-   --  Shut down Root_ORB O. If Wait_For_Completion is True, do
+     (O                   : access ORB;
+      Wait_For_Completion : Boolean := True);
+   --  Shut down ORB O. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 
    procedure Insert_Socket
-     (O  : access Root_ORB;
-      AS : Active_Socket) is abstract;
+     (O  : access ORB;
+      AS : Active_Socket);
    --  Insert socket S with kind K in the set of sockets monitored by O.
 
    procedure Delete_Socket
-     (O : access Root_ORB;
-      S : Sockets.Socket_Type) is abstract;
+     (O : access ORB;
+      S : Sockets.Socket_Type);
    --  Delete socket S from the set of sockets monitored by O.
 
 private
 
-   type Root_ORB is abstract tagged limited record
+   type Tasking_Policy_Type is abstract tagged limited null record;
+
+   type ORB (Tasking_Policy : access Tasking_Policy_Type'Class)
+   is limited record
 
       ------------------
       -- Server state --
       ------------------
 
       Shutdown   : Boolean := False;
-      --  Set to True when Root_ORB shutdown has been requested.
+      --  Set to True when ORB shutdown has been requested.
 
       Job_Queue  : Jobs.Job_Queue_Access;
-      --  The queue of jobs to be processed by Root_ORB tasks.
+      --  The queue of jobs to be processed by ORB tasks.
 
       Idle_Tasks : Soft_Links.Barrier_Access;
-      --  Idle Root_ORB task wait on this barrier.
+      --  Idle ORB task wait on this barrier.
 
       ORB_Sockets : Sock_Seq;
       --  The set of transport endpoints to be monitored
-      --  by Root_ORB tasks.
+      --  by ORB tasks.
 
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting

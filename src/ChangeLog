@@ -1,3 +1,15 @@
+2001-01-25  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Setup.Test: Test setup procedure for a minimal
+	non-tasking server.
+
+	* Droopi.ORB: Removed pragma Elaborate_Body because the following
+	elaboration sequence must be used:
+	  Droopi.ORB (spec)
+	  Droopi.ORB.Task_Policies (spec)
+	  Droopi.ORB.Task_Policies (body)
+	  Droopi.ORB (body).
+
 2001-01-24  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.ORB: Type Root_ORB is abstract, because its implementation
