@@ -3,6 +3,16 @@
 	* s-garter.adb: Change use of global critical section into use of
  	specific mutex to avoid deadlocks.
 
+1999-08-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.adb: Implement yet another termination algorithm, much
+	more efficient than the two previous ones. This one can terminate
+	in only one wave in some cases, two waves in the worst case.
+
+	* s-garhea.adb: Call Activity_Detected only when sending
+	Remote_Call related messages. Part of the brand new termination
+	algorithm.
+
 1999-07-29  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garpar.ads, s-garpar.adb: Export Dump_Partition_Table so that
