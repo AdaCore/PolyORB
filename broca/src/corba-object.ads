@@ -56,6 +56,8 @@ package CORBA.Object is
    --  CORBA 2.3
    type Ref is new CORBA.AbstractBase.Ref with private;
 
+
+
    function Object_To_String (Obj : Ref) return CORBA.String;
    --  Returns the IOR corresponding to this object it is called by
    --  CORBA.ORB.Object_To_String see CORBA specification for details
@@ -97,6 +99,8 @@ package CORBA.Object is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
 
+   Nil_Ref : constant Ref;
+
 private
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
@@ -115,5 +119,8 @@ private
    function Duplicate
      (Object : access Content_ObjRef)
      return Any_Content_Ptr;
+
+   Nil_Ref : constant Ref
+     := (CORBA.AbstractBase.Nil_Ref with null record);
 
 end CORBA.Object;

@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.ORB.Typecode;
+with CORBA.Object;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -273,12 +274,16 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       IDL_access : in CORBA.Repository_Root.Visibility)
      return CORBA.Repository_Root.ValueMemberDef.Ref
    is
-      Result : CORBA.Repository_Root.ValueMemberDef.Ref;
-      Obj : ValueMemberDef.Impl.Object_Ptr := new ValueMemberDef.Impl.Object;
    begin
-      if Check_Structure (Self, Dk_ValueMember) and
-        Check_Id (Self, Id) and
-        Check_Name (Self, Name) then
+      if not Check_Structure (Self, Dk_ValueMember) or
+        not Check_Id (Self, Id) or
+        not Check_Name (Self, Name) then
+         return (CORBA.Object.Nil_Ref with null record);
+      end if;
+      declare
+         Result : CORBA.Repository_Root.ValueMemberDef.Ref;
+         Obj : ValueMemberDef.Impl.Object_Ptr := new ValueMemberDef.Impl.Object;
+      begin
          --  initialization of the object
          ValueMemberDef.Impl.Init (Obj,
                                    IRObject.Impl.Object_Ptr (Obj),
@@ -296,11 +301,11 @@ package body CORBA.Repository_Root.ValueDef.Impl is
            (Container.Impl.Object_Ptr (Self),
             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      end if;
-      --  activate it
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
-                                           Result);
-      return Result;
+         --  activate it
+         Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                              Result);
+         return Result;
+      end;
    end create_value_member;
 
 
@@ -313,34 +318,38 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       mode : in CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
-      Result : CORBA.Repository_Root.AttributeDef.Ref;
-      Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
    begin
-       if Check_Structure (Self, Dk_Attribute) and
-        Check_Id (Self, Id) and
-        Check_Name (Self, Name) then
-      --  initialization of the object
-          AttributeDef.Impl.Init (Obj,
-                                  IRObject.Impl.Object_Ptr (Obj),
-                                  Dk_Attribute,
-                                  Id,
-                              Name,
-                                  Version,
-                                  Container.Impl.To_Forward
-                                  (Container.Impl.Object_Ptr (Self)),
-                                  IDL_Type_1,
-                                  Mode);
+       if not Check_Structure (Self, Dk_Attribute) or
+        not Check_Id (Self, Id) or
+        not Check_Name (Self, Name) then
+         return (CORBA.Object.Nil_Ref with null record);
+      end if;
+      declare
+         Result : CORBA.Repository_Root.AttributeDef.Ref;
+         Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
+      begin
+         --  initialization of the object
+         AttributeDef.Impl.Init (Obj,
+                                 IRObject.Impl.Object_Ptr (Obj),
+                                 Dk_Attribute,
+                                 Id,
+                                 Name,
+                                 Version,
+                                 Container.Impl.To_Forward
+                                 (Container.Impl.Object_Ptr (Self)),
+                                 IDL_Type_1,
+                                 Mode);
 
-          --  add it to the contents field of this container
-          Container.Impl.Append_To_Contents
-            (Container.Impl.Object_Ptr (Self),
-             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
-       end if;
-       --  activate it
-       Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+         --  add it to the contents field of this container
+         Container.Impl.Append_To_Contents
+           (Container.Impl.Object_Ptr (Self),
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  activate it
+         Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
                                             Result);
 
-       return Result;
+         return Result;
+      end;
    end create_attribute;
 
 
@@ -356,12 +365,16 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       contexts : in CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
-      Result : CORBA.Repository_Root.OperationDef.Ref;
-      Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
    begin
-      if Check_Structure (Self, Dk_Operation) and
-        Check_Id (Self, Id) and
-        Check_Name (Self, Name) then
+      if not Check_Structure (Self, Dk_Operation) or
+        not Check_Id (Self, Id) or
+        not Check_Name (Self, Name) then
+         return (CORBA.Object.Nil_Ref with null record);
+      end if;
+      declare
+         Result : CORBA.Repository_Root.OperationDef.Ref;
+         Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
+      begin
          --  initialization of the object
          OperationDef.Impl.Init (Obj,
                                  IRObject.Impl.Object_Ptr (Obj),
@@ -382,12 +395,12 @@ package body CORBA.Repository_Root.ValueDef.Impl is
            (Container.Impl.Object_Ptr (Self),
             Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      end if;
-      --  activate it
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
-                                           Result);
+         --  activate it
+         Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                              Result);
 
-      return Result;
+         return Result;
+      end;
    end create_operation;
 
    --------------------------------
