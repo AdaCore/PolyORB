@@ -1,180 +1,192 @@
 //File: CosNotifyFilter.idl
 //Part of the Notification Service
+//OMG File: 04-10-12
 
 #ifndef _COS_NOTIFY_FILTER_IDL_
 #define _COS_NOTIFY_FILTER_IDL_
-#pragma prefix "omg.org"
 
+#ifdef _PRE_3_0_COMPILER_ 
 #include <CosNotifyComm.idl>
-#include <CORBA_TypeCode.idl>
+#include <orb.idl>
+#pragma prefix "omg.org"
+#else
+import ::CORBA;
+import ::CosNotifyComm;
+#endif // _PRE_3_0_COMPILER_
+
 module CosNotifyFilter {
 
-	typedef long ConstraintID;
+#ifndef _PRE_3_0_COMPILER_
+typeprefix CosNotifyFilter "omg.org";
+#endif // _PRE_3_0_COMPILER_
 
-	struct ConstraintExp {
-		CosNotification::EventTypeSeq event_types;
-		string constraint_expr;
-	};
+typedef long ConstraintID;
 
-	typedef sequence<ConstraintID> ConstraintIDSeq;
-	typedef sequence<ConstraintExp> ConstraintExpSeq;
+struct ConstraintExp {
+	CosNotification::EventTypeSeq event_types;
+	string constraint_expr;
+};
 
-	struct ConstraintInfo {
-		ConstraintExp constraint_expression;
-		ConstraintID constraint_id;
-	};
+typedef sequence<ConstraintID> ConstraintIDSeq;
+typedef sequence<ConstraintExp> ConstraintExpSeq;
 
-	typedef sequence<ConstraintInfo> ConstraintInfoSeq;
+struct ConstraintInfo {
+	ConstraintExp constraint_expression;
+	ConstraintID constraint_id;
+};
 
-	struct MappingConstraintPair {
-		ConstraintExp constraint_expression;
-		any result_to_set;
-	};
+typedef sequence<ConstraintInfo> ConstraintInfoSeq;
 
-	typedef sequence<MappingConstraintPair> MappingConstraintPairSeq;
+struct MappingConstraintPair {
+	ConstraintExp constraint_expression;
+	any result_to_set;
+};
 
-	struct MappingConstraintInfo {
-		ConstraintExp constraint_expression;
-		ConstraintID constraint_id;
+typedef sequence<MappingConstraintPair> MappingConstraintPairSeq;
+
+struct MappingConstraintInfo {
+	ConstraintExp constraint_expression;
+	ConstraintID constraint_id;
 		any value;
-	};
+};
 
-	typedef sequence<MappingConstraintInfo> MappingConstraintInfoSeq;
+typedef sequence<MappingConstraintInfo> MappingConstraintInfoSeq;
 
-	typedef long CallbackID;
-	typedef sequence<CallbackID> CallbackIDSeq;
+typedef long CallbackID;
+typedef sequence<CallbackID> CallbackIDSeq;
 
-	exception UnsupportedFilterableData {}; 
-	exception InvalidGrammar {};
-	exception InvalidConstraint {ConstraintExp constr;};
-	exception DuplicateConstraintID {ConstraintID id;};
+exception UnsupportedFilterableData {}; 
+exception InvalidGrammar {};
+exception InvalidConstraint {ConstraintExp constr;};
+exception DuplicateConstraintID {ConstraintID id;};
 
-	exception ConstraintNotFound {ConstraintID id;};
-	exception CallbackNotFound {};
+exception ConstraintNotFound {ConstraintID id;};
+exception CallbackNotFound {};
 
-	exception InvalidValue {ConstraintExp constr; any value;};
+exception InvalidValue {ConstraintExp constr; any value;};
 
-	interface Filter { 
+interface Filter { 
 
-		readonly attribute string constraint_grammar; 
+readonly attribute string constraint_grammar; 
 
-		ConstraintInfoSeq add_constraints (
-				in ConstraintExpSeq constraint_list)
-			raises (InvalidConstraint);
+ConstraintInfoSeq add_constraints (
+		in ConstraintExpSeq constraint_list)
+	raises (InvalidConstraint);
 
-		void modify_constraints (
-				in ConstraintIDSeq del_list,
-				in ConstraintInfoSeq modify_list)
-			raises (InvalidConstraint, ConstraintNotFound);
+void modify_constraints (
+		in ConstraintIDSeq del_list,
+		in ConstraintInfoSeq modify_list)
+	raises (InvalidConstraint, ConstraintNotFound);
 
-		ConstraintInfoSeq get_constraints(
-				in ConstraintIDSeq id_list)
-			raises (ConstraintNotFound);
+ConstraintInfoSeq get_constraints(
+		in ConstraintIDSeq id_list)
+	raises (ConstraintNotFound);
 
-		ConstraintInfoSeq get_all_constraints();
+ConstraintInfoSeq get_all_constraints();
 
-		void remove_all_constraints();
+void remove_all_constraints();
 
-		void destroy();
+void destroy();
 
-		boolean match ( in any filterable_data )
-			raises (UnsupportedFilterableData);
+boolean match ( in any filterable_data )
+	raises (UnsupportedFilterableData);
 
-		boolean match_structured (
-			in CosNotification::StructuredEvent filterable_data )
-			raises (UnsupportedFilterableData);
+boolean match_structured (
+		in CosNotification::StructuredEvent filterable_data )
+	raises (UnsupportedFilterableData);
 
-		boolean match_typed (
-			in CosNotification::PropertySeq filterable_data )
-			raises (UnsupportedFilterableData);
 
-		CallbackID attach_callback (
-				in CosNotifyComm::NotifySubscribe callback);
+boolean match_typed (
+		in CosNotification::PropertySeq filterable_data )
+	raises (UnsupportedFilterableData);
 
-		void detach_callback ( in CallbackID callback)
-			raises ( CallbackNotFound );
+CallbackID attach_callback (
+		in CosNotifyComm::NotifySubscribe callback);
 
-		CallbackIDSeq get_callbacks();
+void detach_callback ( in CallbackID callback)
+	raises ( CallbackNotFound );
 
-	}; // Filter 
+CallbackIDSeq get_callbacks();
 
-	interface MappingFilter {
+}; // Filter 
 
-		readonly attribute string constraint_grammar;
+interface MappingFilter {
 
-	        readonly attribute CORBA::TypeCode value_type;
+readonly attribute string constraint_grammar;
 
-		readonly attribute any default_value;
+readonly attribute CORBA::TypeCode value_type;
 
-		MappingConstraintInfoSeq add_mapping_constraints (
-				in MappingConstraintPairSeq pair_list)
-			raises (InvalidConstraint, InvalidValue);
+readonly attribute any default_value;
 
-		void modify_mapping_constraints (
-				in ConstraintIDSeq del_list,
-				in MappingConstraintInfoSeq modify_list)
-			raises (InvalidConstraint, InvalidValue,
-						ConstraintNotFound);
+MappingConstraintInfoSeq add_mapping_constraints (
+		in MappingConstraintPairSeq pair_list)
+	raises (InvalidConstraint, InvalidValue);
 
-		MappingConstraintInfoSeq get_mapping_constraints (
-				in ConstraintIDSeq id_list)
-			raises (ConstraintNotFound);
+void modify_mapping_constraints (
+		in ConstraintIDSeq del_list,
+		in MappingConstraintInfoSeq modify_list)
+	raises (InvalidConstraint, InvalidValue,
+		ConstraintNotFound);
 
-		MappingConstraintInfoSeq get_all_mapping_constraints();
+MappingConstraintInfoSeq get_mapping_constraints (
+		in ConstraintIDSeq id_list)
+	raises (ConstraintNotFound);
 
-		void remove_all_mapping_constraints();
+MappingConstraintInfoSeq get_all_mapping_constraints();
 
-		void destroy();
+void remove_all_mapping_constraints();
 
-		boolean match ( in any filterable_data,
-				out any result_to_set )
-			raises (UnsupportedFilterableData);
+void destroy();
 
-		boolean match_structured (
-			in CosNotification::StructuredEvent filterable_data,
-				out any result_to_set)
-			raises (UnsupportedFilterableData);
+boolean match ( in any filterable_data,
+		out any result_to_set )
+	raises (UnsupportedFilterableData);
 
-		boolean match_typed (
-			in CosNotification::PropertySeq filterable_data,
-				out any result_to_set)
-			raises (UnsupportedFilterableData);
+boolean match_structured (
+		in CosNotification::StructuredEvent filterable_data,
+		out any result_to_set)
+	raises (UnsupportedFilterableData);
 
-	}; // MappingFilter
+boolean match_typed (
+		in CosNotification::PropertySeq filterable_data,
+		out any result_to_set)
+	raises (UnsupportedFilterableData);
 
-	interface FilterFactory {
+}; // MappingFilter
 
-		Filter create_filter (
-				in string constraint_grammar)
-			raises (InvalidGrammar);
+interface FilterFactory {
 
-		MappingFilter create_mapping_filter (
-				in string constraint_grammar,
-				in any default_value)
-			raises(InvalidGrammar);
+Filter create_filter (
+		in string constraint_grammar)
+	raises (InvalidGrammar);
 
-	}; // FilterFactory
+MappingFilter create_mapping_filter (
+		in string constraint_grammar,
+		in any default_value)
+	raises(InvalidGrammar);
 
-	typedef long FilterID;
-	typedef sequence<FilterID> FilterIDSeq;
+}; // FilterFactory
 
-	exception FilterNotFound {};
+typedef long FilterID;
+typedef sequence<FilterID> FilterIDSeq;
 
-	interface FilterAdmin {
+exception FilterNotFound {};
 
-		FilterID add_filter ( in Filter new_filter );
+interface FilterAdmin {
 
-		void remove_filter ( in FilterID filter )
-			raises ( FilterNotFound );
+FilterID add_filter ( in Filter new_filter );
 
-		Filter get_filter ( in FilterID filter )
-			raises ( FilterNotFound );
+void remove_filter ( in FilterID filter )
+	raises ( FilterNotFound );
 
-		FilterIDSeq get_all_filters();
+Filter get_filter ( in FilterID filter )
+	raises ( FilterNotFound );
 
-		void remove_all_filters();
+FilterIDSeq get_all_filters();
 
-	}; // FilterAdmin
+void remove_all_filters();
+
+}; // FilterAdmin
 
 }; // CosNotifyFilter
 
