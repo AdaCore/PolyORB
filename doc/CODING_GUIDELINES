@@ -2,6 +2,9 @@
 
 --  $Id$
 
+First read the file CONTRIBUTING for legal instructions for
+contributors.
+
 The Ada 95 Quality & Style Guide is included by reference.
 
 Code layout should follow the usual GNAT practice.
