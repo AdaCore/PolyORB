@@ -99,10 +99,10 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tcp_access_points.corba",
-       Conflicts => String_Lists.Empty,
-       Depends => +"orb",
-       Provides => String_Lists.Empty,
-       Init => Initialize_Access_Points'Access));
+      (Name      => +"tcp_access_points.corba",
+       Conflicts => Empty,
+       Depends   => +"orb",
+       Provides  => +"access_points",
+       Init      => Initialize_Access_Points'Access));
 
 end PolyORB.Setup.TCP_Access_Points.IIOP;

@@ -1453,16 +1453,9 @@ begin
        & "naming.Helper"
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"
-       & "tcp_access_points.soap?"
-       & "tcp_access_points.corba?"
-       & "tcp_access_points.srp?"
-       & "protocols.giop.giop_1_0?"
-       & "protocols.giop.giop_1_1?"
-       & "protocols.giop.giop_1_2?",
+       & "access_points"
+       & "protocols",
        Provides => Empty,
        Init => Initialize'Access));
-
-   --  XXX should depend on virtual module 'access_points' and
-   --  'protocols' only.
 
 end System.PolyORB_Interface;
