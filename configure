@@ -1124,7 +1124,7 @@ else
   case "${target}" in
   sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
-  i?86-*-linux)        PLATFORM_SPECIFIC=a;;
+  i?86-*-linux*)       PLATFORM_SPECIFIC=a;;
   i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
   mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;
