@@ -150,6 +150,7 @@ begin
    Blocked_Task.Start (MySema);
    for I in 1 .. 10 loop
       Blocking_Task.Release;
+      delay 0.1;
    end loop;
    declare
       N : Natural := 0;
