@@ -1,12 +1,12 @@
-#ifndef EGG
-#define EGG
+#ifndef CHICKEN
+#define CHICKEN
 
-interface Egg ;
+interface Chicken ;
 
-#include "chicken.idl"
+#include "egg.idl"
 
-interface Egg {
-  Chicken hatch() ;
+interface Chicken {
+  Egg lay() ;
 
 
 };
