@@ -88,6 +88,8 @@ package body PolyORB.Initialization is
       M : Module;
    begin
       if Initialized then
+         pragma Debug (O ("Initialization already done, cannot register "
+                          & Info.Name.all));
          raise Program_Error;
          --  If we call Register_Module after Initialization is done,
          --  then there is a deep problem.
