@@ -1,3 +1,10 @@
+Fri May  2 16:37:16 1997  Daniel Neri  <d92-dne@nada.kth.se>
+
+	* constants.sh: Allow for very long ``uname -a'' lines which cause
+ 	GNAT's style checks to barf on s-garcon.ads. The uname output is
+ 	now wrapped with ``fmt'' (which hopefully is present on all
+ 	important Unices).
+
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garpri.ads: Added background creation priority.
