@@ -1,3 +1,9 @@
+2000-12-14  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-garsoc.adb, s-garsoc.ads: New thick binding for socket that is
+	intended to be portable for JVM and native platforms (NT and
+	Unix).
+
 2000-12-11  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-parint.adb, s-garsto.adb: GNAT.HTable is not thread-safe.
