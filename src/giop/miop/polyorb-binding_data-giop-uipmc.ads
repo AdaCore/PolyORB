@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . U I P M C           --
+--      P O L Y O R B . B I N D I N G _ D A T A . G I O P . U I P M C       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 2003-2004 Free Software Foundation, Inc.         --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,31 +34,23 @@
 --  Binding data concrete implementation for UIPMC.
 
 with PolyORB.Buffers;
-with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.MIOP_P.Groups;
 with PolyORB.Sockets;
 with PolyORB.Types;
 
-package PolyORB.Binding_Data.UIPMC is
+package PolyORB.Binding_Data.GIOP.UIPMC is
 
    use PolyORB.Buffers;
 
    MIOP_Error : exception;
 
-   type UIPMC_Profile_Type is new Profile_Type with private;
-   type UIPMC_Profile_Factory is new Profile_Factory with private;
-
-   procedure Release    (P : in out UIPMC_Profile_Type);
+   type UIPMC_Profile_Type is new GIOP_Profile_Type with private;
+   type UIPMC_Profile_Factory is new GIOP_Profile_Factory with private;
 
    function Create_Profile
      (PF  : access UIPMC_Profile_Factory;
       Oid :        Objects.Object_Id)
      return Profile_Access;
-
-   function Is_Local_Profile
-     (PF : access UIPMC_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean;
 
    procedure Bind_Profile
      (Profile :     UIPMC_Profile_Type;
@@ -66,9 +58,12 @@ package PolyORB.Binding_Data.UIPMC is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container);
 
-   function Get_Profile_Tag
-     (Profile : UIPMC_Profile_Type)
-     return Profile_Tag;
+   function Is_Local_Profile
+     (PF : access UIPMC_Profile_Factory;
+      P  : access Profile_Type'Class)
+     return Boolean;
+
+   function Get_Profile_Tag (Profile : UIPMC_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
    function Get_Profile_Preference
@@ -89,13 +84,9 @@ package PolyORB.Binding_Data.UIPMC is
      (Buffer   : access Buffer_Type)
     return  Profile_Access;
 
-   function Profile_To_Corbaloc
-     (P : Profile_Access)
-     return Types.String;
+   function Profile_To_Corbaloc (P : Profile_Access) return Types.String;
 
-   function Corbaloc_To_Profile
-     (Str : Types.String)
-     return Profile_Access;
+   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access;
 
    function Image (Prof : UIPMC_Profile_Type) return String;
 
@@ -107,26 +98,28 @@ package PolyORB.Binding_Data.UIPMC is
 private
 
    --  Default TTL value
+
    Default_TTL : constant Natural := 15;
 
    --  UIPMC version
+
    UIPMC_Version_Major : constant Types.Octet := 1;
    UIPMC_Version_Minor : constant Types.Octet := 0;
 
-   type UIPMC_Profile_Type is new Profile_Type with record
-      --  Tagged Component containing group information
-      G_I        : PolyORB.MIOP_P.Groups.Group_Info_Access;
+   type UIPMC_Profile_Type is new GIOP_Profile_Type with record
+
       --  Socket information
-      Address    : Sockets.Sock_Addr_Type;
-      --  Tagged components list
-      Components : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
+
+      Address : Sockets.Sock_Addr_Type;
+
+      G_I : PolyORB.MIOP_P.Groups.Group_Info_Access;
    end record;
 
-   type UIPMC_Profile_Factory is new Profile_Factory with record
+   type UIPMC_Profile_Factory is new GIOP_Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
 
    UIPMC_Corbaloc_Prefix : constant Types.String
      := PolyORB.Types.To_PolyORB_String ("miop:");
 
-end PolyORB.Binding_Data.UIPMC;
+end PolyORB.Binding_Data.GIOP.UIPMC;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . D I O P             --
+--       P O L Y O R B . B I N D I N G _ D A T A . G I O P . D I O P        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,43 +33,36 @@
 
 --  Binding data concrete implementation for DIOP.
 
-with Ada.Streams;
-
+with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.Binding_Objects;
 with PolyORB.Filters;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Parameters;
-with PolyORB.Protocols;
-with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.DIOP;
-with PolyORB.Representations.CDR;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Transport.Datagram.Sockets_Out;
-with PolyORB.Utils.Sockets;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Binding_Data.DIOP is
+package body PolyORB.Binding_Data.GIOP.DIOP is
 
-   use Ada.Streams;
-
+   use PolyORB.Binding_Data.GIOP.INET;
+   use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.Log;
    use PolyORB.Objects;
-   use PolyORB.GIOP_P.Tagged_Components;
    use PolyORB.References.IOR;
    use PolyORB.References.Corbaloc;
-   use PolyORB.Representations.CDR;
    use PolyORB.Transport.Datagram;
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Transport.Datagram.Sockets_Out;
    use PolyORB.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.diop");
+   package L is
+      new PolyORB.Log.Facility_Log ("polyorb.binding_data.giop.diop");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -77,24 +70,13 @@ package body PolyORB.Binding_Data.DIOP is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for DIOP profiles.
 
-   -------------
-   -- Release --
-   -------------
-
-   procedure Release (P : in out DIOP_Profile_Type)
-   is
-   begin
-      Free (P.Object_Id);
-      Release_Contents (P.Components);
-   end Release;
-
    ------------------
    -- Bind_Profile --
    ------------------
 
    --  Factories
 
-   Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
+   Pro : aliased PolyORB.Protocols.GIOP.DIOP.DIOP_Protocol;
    DIOP_Factories : constant Filters.Factory_Array
      := (0 => Pro'Access);
 
@@ -112,7 +94,6 @@ package body PolyORB.Binding_Data.DIOP is
       use PolyORB.Protocols.GIOP.DIOP;
       use PolyORB.ORB;
       use PolyORB.Sockets;
-
 
       Sock        : Socket_Type;
       Remote_Addr : constant Sock_Addr_Type := Profile.Address;
@@ -148,13 +129,8 @@ package body PolyORB.Binding_Data.DIOP is
    -- Get_Profile_Tag --
    ---------------------
 
-   function Get_Profile_Tag
-     (Profile : DIOP_Profile_Type)
-     return Profile_Tag
-   is
-      pragma Warnings (Off);
+   function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag is
       pragma Unreferenced (Profile);
-      pragma Warnings (On);
 
    begin
       return Tag_DIOP;
@@ -168,9 +144,7 @@ package body PolyORB.Binding_Data.DIOP is
      (Profile : DIOP_Profile_Type)
      return Profile_Preference
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Profile);
-      pragma Warnings (On);
 
    begin
       return Preference;
@@ -185,9 +159,7 @@ package body PolyORB.Binding_Data.DIOP is
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (ORB);
-      pragma Warnings (On);
 
    begin
       PF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
@@ -208,9 +180,11 @@ package body PolyORB.Binding_Data.DIOP is
       TResult : DIOP_Profile_Type
         renames DIOP_Profile_Type (Result.all);
    begin
-      TResult.Object_Id  := new Object_Id'(Oid);
-      TResult.Address    := PF.Address;
-      TResult.Components := Null_Tagged_Component_List;
+      TResult.Version_Major := DIOP_Version_Major;
+      TResult.Version_Minor := DIOP_Version_Minor;
+      TResult.Object_Id     := new Object_Id'(Oid);
+      TResult.Address       := PF.Address;
+      TResult.Components    := Null_Tagged_Component_List;
       return Result;
    end Create_Profile;
 
@@ -238,46 +212,9 @@ package body PolyORB.Binding_Data.DIOP is
      (Buf     : access Buffer_Type;
       Profile :        Profile_Access)
    is
-      use PolyORB.Utils.Sockets;
-
-      DIOP_Profile : DIOP_Profile_Type renames DIOP_Profile_Type (Profile.all);
-      Profile_Body : Buffer_Access := new Buffer_Type;
    begin
-      pragma Debug (O ("Marshall_DIOP_Profile_body: enter"));
-
-      --  A TAG_INTERNET_IOP Profile Body is an encapsulation
-
-      Start_Encapsulation (Profile_Body);
-
-      --  Version
-      Marshall (Profile_Body, DIOP_Profile.Version_Major);
-      Marshall (Profile_Body, DIOP_Profile.Version_Minor);
-
-      pragma Debug
-        (O ("  Version = " & DIOP_Profile.Version_Major'Img & "."
-            & DIOP_Profile.Version_Minor'Img));
-
-      --  Marshalling of a Socket
-      Marshall_Socket (Profile_Body, DIOP_Profile.Address);
-      pragma Debug (O ("  Address = " & Sockets.Image (DIOP_Profile.Address)));
-
-      --  Marshalling the object id
-
-      Marshall
-        (Profile_Body, Stream_Element_Array
-         (DIOP_Profile.Object_Id.all));
-
-      --  Marshalling the tagged components
-
-      Marshall_Tagged_Component (Profile_Body, DIOP_Profile.Components);
-
-      --  Marshalling the Profile_Body into IOR
-
-      Marshall (Buf, Encapsulate (Profile_Body));
-      Release (Profile_Body);
-
-      pragma Debug (O ("Marshall_DIOP_Profile_body: leave"));
-
+      Common_Marshall_Profile_Body
+        (Buf, Profile, DIOP_Profile_Type (Profile.all).Address, True);
    end Marshall_DIOP_Profile_Body;
 
    ----------------------------------
@@ -285,52 +222,14 @@ package body PolyORB.Binding_Data.DIOP is
    ----------------------------------
 
    function Unmarshall_DIOP_Profile_Body
-     (Buffer       : access Buffer_Type)
-     return Profile_Access
+     (Buffer : access Buffer_Type)
+      return Profile_Access
    is
-      use PolyORB.Utils.Sockets;
-
       Result  : constant Profile_Access := new DIOP_Profile_Type;
-      TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
-
-      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-      Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
 
    begin
-      pragma Debug (O ("Unmarshall_DIOP_Profile_body: enter"));
-
-      --  A TAG_INTERNET_IOP Profile Body is an encapsulation
-
-      Decapsulate (Profile_Body'Access, Profile_Buffer);
-
-      TResult.Version_Major := Unmarshall (Profile_Buffer);
-      TResult.Version_Minor := Unmarshall (Profile_Buffer);
-
-      pragma Debug
-        (O ("  Version = " & TResult.Version_Major'Img & "."
-            & TResult.Version_Minor'Img));
-
-      --  Unmarshalling the socket
-
-      Unmarshall_Socket (Profile_Buffer, TResult.Address);
-
-      pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
-
-      --  Unarshalling the object id
-
-      declare
-         Str : aliased constant Stream_Element_Array :=
-           Unmarshall (Profile_Buffer);
-      begin
-         TResult.Object_Id := new Object_Id'(Object_Id (Str));
-         if TResult.Version_Minor /= 0 then
-            TResult.Components := Unmarshall_Tagged_Component
-              (Profile_Buffer);
-         end if;
-      end;
-      Release (Profile_Buffer);
-
-      pragma Debug (O ("Unmarshall_DIOP_Profile_body: leave"));
+      Common_Unmarshall_Profile_Body
+        (Buffer, Result, DIOP_Profile_Type (Result.all).Address, True, False);
 
       return Result;
    end Unmarshall_DIOP_Profile_Body;
@@ -339,15 +238,10 @@ package body PolyORB.Binding_Data.DIOP is
    -- Image --
    -----------
 
-   function Image
-     (Prof : DIOP_Profile_Type)
-     return String
-   is
-      use PolyORB.Sockets;
-
+   function Image (Prof : DIOP_Profile_Type) return String is
    begin
       return "Address : "
-        & Image (Prof.Address)
+        & PolyORB.Sockets.Image (Prof.Address)
         & ", Object_Id : "
         & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
@@ -356,97 +250,32 @@ package body PolyORB.Binding_Data.DIOP is
    -- Profile_To_Corbaloc --
    -------------------------
 
-   function Profile_To_Corbaloc
-     (P : Profile_Access)
-     return Types.String
-   is
-      use PolyORB.Sockets;
-      use PolyORB.Types;
-      use PolyORB.Utils;
-
-      DIOP_Profile : DIOP_Profile_Type renames DIOP_Profile_Type (P.all);
+   function Profile_To_Corbaloc (P : Profile_Access) return Types.String is
    begin
       pragma Debug (O ("DIOP Profile to corbaloc"));
-      return DIOP_Corbaloc_Prefix &
-        Trimmed_Image (Integer (DIOP_Version_Major)) & "." &
-        Trimmed_Image (Integer (DIOP_Version_Minor)) & "@" &
-        Image (DIOP_Profile.Address.Addr) & ":" &
-        Trimmed_Image (Integer (DIOP_Profile.Address.Port)) & "/" &
-        To_String (P.Object_Id.all);
+      return Common_IIOP_DIOP_Profile_To_Corbaloc
+        (P, DIOP_Profile_Type (P.all).Address, DIOP_Corbaloc_Prefix);
    end Profile_To_Corbaloc;
 
    -------------------------
    -- Corbaloc_To_Profile --
    -------------------------
 
-   function Corbaloc_To_Profile
-     (Str : Types.String)
-     return Profile_Access
-   is
-      use PolyORB.Types;
-      use PolyORB.Utils;
-      use PolyORB.Utils.Sockets;
-
-      Len    : constant Integer := Length (DIOP_Corbaloc_Prefix);
+   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access is
+      Len : constant Integer := Length (DIOP_Corbaloc_Prefix);
    begin
       if Length (Str) > Len
-        and then To_String (Str) (1 .. Len) = DIOP_Corbaloc_Prefix then
+        and then To_String (Str) (1 .. Len) = DIOP_Corbaloc_Prefix
+      then
          declare
-            Result  : constant Profile_Access := new DIOP_Profile_Type;
-            TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
-            S       : constant String
-              := To_Standard_String (Str) (Len + 1 .. Length (Str));
-            Index   : Integer := S'First;
-            Index2  : Integer;
+            Result : Profile_Access := new DIOP_Profile_Type;
          begin
-            pragma Debug (O ("DIOP corbaloc to profile: enter"));
-            Index2 := Find (S, Index, '.');
-            if Index2 = S'Last + 1 then
-               return null;
-            end if;
-            TResult.Version_Major
-              := Types.Octet'Value (S (Index .. Index2 - 1));
-            Index := Index2 + 1;
-
-            Index2 := Find (S, Index, '@');
-            if Index2 = S'Last + 1 then
-               return null;
-            end if;
-            TResult.Version_Minor
-              := Types.Octet'Value (S (Index .. Index2 - 1));
-            Index := Index2 + 1;
-
-            Index2 := Find (S, Index, ':');
-            if Index2 = S'Last + 1 then
-               return null;
-            end if;
-            pragma Debug (O ("Address = " & S (Index .. Index2 - 1)));
-            TResult.Address.Addr := String_To_Addr
-              (To_PolyORB_String (S (Index .. Index2 - 1)));
-            Index := Index2 + 1;
-
-            Index2 := Find (S, Index, '/');
-            if Index2 = S'Last + 1 then
-               return null;
-            end if;
-            pragma Debug (O ("Port = " & S (Index .. Index2 - 1)));
-            TResult.Address.Port :=
-              PolyORB.Sockets.Port_Type'Value (S (Index .. Index2 - 1));
-            Index := Index2 + 1;
-
-            TResult.Object_Id := new Object_Id'(To_Oid (S (Index .. S'Last)));
-
-            if TResult.Object_Id = null then
-               return null;
-            end if;
-
-            pragma Debug (O ("Oid = " & Image (TResult.Object_Id.all)));
-
-            TResult.Components := Null_Tagged_Component_List;
-            pragma Debug (O ("DIOP corbaloc to profile: leave"));
+            Common_IIOP_DIOP_Corbaloc_To_Profile
+              (Str, Len, Result, DIOP_Profile_Type (Result.all).Address);
             return Result;
          end;
       end if;
+
       return null;
    end Corbaloc_To_Profile;
 
@@ -458,9 +287,8 @@ package body PolyORB.Binding_Data.DIOP is
      (Profile : DIOP_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB));
@@ -472,8 +300,7 @@ package body PolyORB.Binding_Data.DIOP is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
         (Section => "diop",
@@ -507,4 +334,4 @@ begin
        Provides  => +"binding_factories",
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.Binding_Data.DIOP;
+end PolyORB.Binding_Data.GIOP.DIOP;

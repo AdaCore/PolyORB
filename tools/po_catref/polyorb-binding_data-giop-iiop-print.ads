@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D I O P . P R I N T       --
+--                  POLYORB.BINDING_DATA.GIOP.IIOP.PRINT                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,69 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Common;
-with Output;
+package PolyORB.Binding_Data.GIOP.IIOP.Print is
 
-with PolyORB.Binding_Data.Print;
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+   procedure Print_IIOP_Profile (Prof : Profile_Access);
 
-with PolyORB.GIOP_P.Tagged_Components.Print;
-with PolyORB.Utils.Strings;
-
-package body PolyORB.Binding_Data.DIOP.Print is
-
-   ------------------------
-   -- Print_DIOP_Profile --
-   ------------------------
-
-   procedure Print_DIOP_Profile (Prof : Profile_Access) is
-      use Common;
-      use Output;
-
-      use PolyORB.Utils;
-
-      use PolyORB.GIOP_P.Tagged_Components.Print;
-
-      DIOP_Prof : DIOP_Profile_Type renames DIOP_Profile_Type (Prof.all);
-
-   begin
-      Inc_Indent;
-
-      Put_Line ("DIOP Version",
-                Trimmed_Image (Integer (DIOP_Prof.Version_Major))
-                & "." & Trimmed_Image (Integer (DIOP_Prof.Version_Minor)));
-
-      Output_Address_Information (DIOP_Prof.Address);
-
-      Output_Tagged_Components (DIOP_Prof.Components);
-
-      Dec_Indent;
-   end Print_DIOP_Profile;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      PolyORB.Binding_Data.Print.Register
-        (Tag_DIOP, Print_DIOP_Profile'Access);
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"polyorb.binding_data.diop.print",
-       Conflicts => PolyORB.Initialization.String_Lists.Empty,
-       Depends   => PolyORB.Initialization.String_Lists.Empty,
-       Provides  => PolyORB.Initialization.String_Lists.Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
-end PolyORB.Binding_Data.DIOP.Print;
+end PolyORB.Binding_Data.GIOP.IIOP.Print;

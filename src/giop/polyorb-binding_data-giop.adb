@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . D I O P . P R I N T       --
+--            P O L Y O R B . B I N D I N G _ D A T A . G I O P             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,8 +31,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Binding_Data.DIOP.Print is
+package body PolyORB.Binding_Data.GIOP is
 
-   procedure Print_DIOP_Profile (Prof : Profile_Access);
+   use PolyORB.GIOP_P.Tagged_Components;
 
-end PolyORB.Binding_Data.DIOP.Print;
+   use PolyORB.Objects;
+   use PolyORB.Types;
+
+   -------------------
+   -- Get_Component --
+   -------------------
+
+   function Get_Component
+     (P : in GIOP_Profile_Type;
+      C : in Tag_Value)
+      return Tagged_Component_Access
+   is
+   begin
+      return Get_Component (P.Components, C);
+   end Get_Component;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (P : in out GIOP_Profile_Type) is
+   begin
+      Free (P.Object_Id);
+      Release_Contents (P.Components);
+   end Release;
+
+end PolyORB.Binding_Data.GIOP;

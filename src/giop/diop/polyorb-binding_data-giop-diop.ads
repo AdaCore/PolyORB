@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . D I O P             --
+--       P O L Y O R B . B I N D I N G _ D A T A . G I O P . D I O P        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -34,18 +34,15 @@
 --  Binding data concrete implementation for DIOP.
 
 with PolyORB.Buffers;
-with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.Sockets;
 with PolyORB.Types;
 
-package PolyORB.Binding_Data.DIOP is
+package PolyORB.Binding_Data.GIOP.DIOP is
 
    use PolyORB.Buffers;
 
-   type DIOP_Profile_Type is new Profile_Type with private;
-   type DIOP_Profile_Factory is new Profile_Factory with private;
-
-   procedure Release    (P : in out DIOP_Profile_Type);
+   type DIOP_Profile_Type is new GIOP_Profile_Type with private;
+   type DIOP_Profile_Factory is new GIOP_Profile_Factory with private;
 
    function Create_Profile
      (PF  : access DIOP_Profile_Factory;
@@ -63,9 +60,7 @@ package PolyORB.Binding_Data.DIOP is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Exceptions.Error_Container);
 
-   function Get_Profile_Tag
-     (Profile : DIOP_Profile_Type)
-     return Profile_Tag;
+   function Get_Profile_Tag (Profile : DIOP_Profile_Type) return Profile_Tag;
    pragma Inline (Get_Profile_Tag);
 
    function Get_Profile_Preference
@@ -83,16 +78,12 @@ package PolyORB.Binding_Data.DIOP is
       Profile :        Profile_Access);
 
    function Unmarshall_DIOP_Profile_Body
-     (Buffer   : access Buffer_Type)
-    return  Profile_Access;
+     (Buffer : access Buffer_Type)
+    return Profile_Access;
 
-   function Profile_To_Corbaloc
-     (P : Profile_Access)
-     return Types.String;
+   function Profile_To_Corbaloc (P : Profile_Access) return Types.String;
 
-   function Corbaloc_To_Profile
-     (Str : Types.String)
-     return Profile_Access;
+   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access;
 
    function Image (Prof : DIOP_Profile_Type) return String;
 
@@ -104,23 +95,22 @@ package PolyORB.Binding_Data.DIOP is
 private
 
    --  DIOP version
+
    DIOP_Version_Major : constant Types.Octet := 1;
    DIOP_Version_Minor : constant Types.Octet := 0;
 
-   type DIOP_Profile_Type is new Profile_Type with record
-      Version_Major : Types.Octet := DIOP_Version_Major;
-      Version_Minor : Types.Octet := DIOP_Version_Minor;
+   type DIOP_Profile_Type is new GIOP_Profile_Type with record
+
       --  Socket information
+
       Address       : Sockets.Sock_Addr_Type;
-      --  Tagged components list
-      Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
    end record;
 
-   type DIOP_Profile_Factory is new Profile_Factory with record
+   type DIOP_Profile_Factory is new GIOP_Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
 
    DIOP_Corbaloc_Prefix : constant Types.String
      := PolyORB.Types.To_PolyORB_String ("diop:");
 
-end PolyORB.Binding_Data.DIOP;
+end PolyORB.Binding_Data.GIOP.DIOP;

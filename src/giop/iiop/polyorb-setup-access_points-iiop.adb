@@ -33,7 +33,7 @@
 
 --  Setup for IIOP access point.
 
-with PolyORB.Binding_Data.IIOP;
+with PolyORB.Binding_Data.GIOP.IIOP;
 with PolyORB.Protocols.GIOP;
 with PolyORB.Protocols.GIOP.IIOP;
 
@@ -65,7 +65,7 @@ package body PolyORB.Setup.Access_Points.IIOP is
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
          SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
+         PF      => new PolyORB.Binding_Data.GIOP.IIOP.IIOP_Profile_Factory);
 
    Sli : aliased Slicer_Factory;
    Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;

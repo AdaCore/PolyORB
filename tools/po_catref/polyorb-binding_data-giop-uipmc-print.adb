@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . B I N D I N G _ D A T A . U I P M C . P R I N T      --
+--                  POLYORB.BINDING_DATA.GIOP.UIPMC.PRINT                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,8 +31,71 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Binding_Data.UIPMC.Print is
+with Common;
+with Output;
 
-   procedure Print_UIPMC_Profile (Prof : Profile_Access);
+with PolyORB.Binding_Data.Print;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-end PolyORB.Binding_Data.UIPMC.Print;
+with PolyORB.GIOP_P.Tagged_Components.Print;
+with PolyORB.MIOP_P.Groups;
+with PolyORB.Utils.Strings;
+
+package body PolyORB.Binding_Data.GIOP.UIPMC.Print is
+
+   -------------------------
+   -- Print_UIPMC_Profile --
+   -------------------------
+
+   procedure Print_UIPMC_Profile (Prof : Profile_Access) is
+      use Common;
+      use Output;
+
+      use PolyORB.MIOP_P.Groups;
+
+      use PolyORB.GIOP_P.Tagged_Components.Print;
+
+      UIPMC_Prof : UIPMC_Profile_Type renames UIPMC_Profile_Type (Prof.all);
+
+   begin
+      Inc_Indent;
+
+      Output_Address_Information (UIPMC_Prof.Address);
+
+      Put_Line ("Group info",
+                PolyORB.MIOP_P.Groups.Image (UIPMC_Prof.G_I.all));
+
+      Output_Address_Information (UIPMC_Prof.Address);
+
+      Output_Tagged_Components (UIPMC_Prof.Components);
+
+      Dec_Indent;
+   end Print_UIPMC_Profile;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Binding_Data.Print.Register
+        (Tag_UIPMC, Print_UIPMC_Profile'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"polyorb.binding_data.uipmc.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => PolyORB.Initialization.String_Lists.Empty,
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
+end PolyORB.Binding_Data.GIOP.UIPMC.Print;

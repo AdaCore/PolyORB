@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . I I O P . P R I N T       --
+--       P O L Y O R B . B I N D I N G _ D A T A . G I O P . I N E T        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,8 +31,40 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.Binding_Data.IIOP.Print is
+--  Common utilities for GIOP instances that rely on IP sockets.
 
-   procedure Print_IIOP_Profile (Prof : Profile_Access);
+with PolyORB.Buffers;
+with PolyORB.Sockets;
 
-end PolyORB.Binding_Data.IIOP.Print;
+package PolyORB.Binding_Data.GIOP.INET is
+
+   procedure Common_Marshall_Profile_Body
+     (Buffer             : access Buffers.Buffer_Type;
+      Profile            : in     Profile_Access;
+      Address            : in     Sockets.Sock_Addr_Type;
+      Marshall_Object_Id : in     Boolean);
+
+   procedure Common_Unmarshall_Profile_Body
+     (Buffer                       : access Buffers.Buffer_Type;
+      Profile                      : in     Profile_Access;
+      Address                      : in out Sockets.Sock_Addr_Type;
+      Unmarshall_Object_Id         : in     Boolean;
+      Unmarshall_Tagged_Components : in     Boolean);
+   --  If True always unmarshall tagged component, if False then the
+   --  tagged components are unmarshalled only if Version_Minor >= 1.
+
+   function Common_IIOP_DIOP_Profile_To_Corbaloc
+     (Profile : in Profile_Access;
+      Address : in Sockets.Sock_Addr_Type;
+      Prefix  : in Types.String)
+     return Types.String;
+
+   procedure Common_IIOP_DIOP_Corbaloc_To_Profile
+     (Str           : in     Types.String;
+      Prefix_Length : in     Natural;
+      Profile       : in out Profile_Access;
+      Address       :    out Sockets.Sock_Addr_Type);
+   --  If subprogram found error then it free Profile and assign to
+   --  Profile null value.
+
+end PolyORB.Binding_Data.GIOP.INET;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---    P O L Y O R B . S E T U P . A C C E S S _ P O I N T S . U I P M C     --
+--                  POLYORB.BINDING_DATA.GIOP.IIOP.PRINT                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--           Copyright (C) 1-2004 Free Software Foundation, Inc.            --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,78 +31,59 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for UIPMC
+with Common;
+with Output;
 
-with PolyORB.Binding_Data.GIOP.UIPMC;
-with PolyORB.Filters;
-with PolyORB.Filters.Fragmenter;
-with PolyORB.Filters.MIOP.MIOP_In;
+with PolyORB.Binding_Data.Print;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.ORB;
-with PolyORB.Parameters;
-with PolyORB.Protocols;
-with PolyORB.Protocols.GIOP.UIPMC;
-with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.GIOP_P.Tagged_Components.Print;
 with PolyORB.Utils.Strings;
-with PolyORB.Utils.UDP_Access_Points;
 
-package body PolyORB.Setup.Access_Points.UIPMC is
+package body PolyORB.Binding_Data.GIOP.IIOP.Print is
 
-   use PolyORB.Filters;
-   use PolyORB.Filters.Fragmenter;
-   use PolyORB.Filters.MIOP.MIOP_In;
-   use PolyORB.ORB;
-   use PolyORB.Sockets;
-   use PolyORB.Transport.Datagram.Sockets_In;
-   use PolyORB.Utils.UDP_Access_Points;
+   ------------------------
+   -- Print_IIOP_Profile --
+   ------------------------
 
-   UIPMC_Access_Point : UDP_Access_Point_Info
-     := (Socket  => No_Socket,
-         Address => No_Sock_Addr,
-         SAP     => new Socket_In_Access_Point,
-         PF      => new PolyORB.Binding_Data.GIOP.UIPMC.UIPMC_Profile_Factory);
+   procedure Print_IIOP_Profile (Prof : Profile_Access) is
+      use Common;
+      use Output;
 
-   Fra : aliased Fragmenter_Factory;
-   Min : aliased MIOP_In_Factory;
-   Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
-   UIPMC_Factories : aliased Filters.Factory_Array
-     := (0 => Fra'Access, 1 => Min'Access, 2 => Pro'Access);
+      use PolyORB.Utils;
 
-   ------------------------------
-   -- Initialize_Access_Points --
-   ------------------------------
+      use PolyORB.GIOP_P.Tagged_Components.Print;
 
-   procedure Initialize_Access_Points;
+      IIOP_Prof : IIOP_Profile_Type renames IIOP_Profile_Type (Prof.all);
 
-   procedure Initialize_Access_Points
-   is
-      use PolyORB.Parameters;
-
-      Addr : constant String
-        := Get_Conf
-        ("miop", "polyorb.miop.multicast_addr",
-         Default_Multicast_Group);
-      Port : constant Port_Type
-        := Port_Type (Get_Conf
-                      ("miop", "polyorb.miop.multicast_port",
-                       Default_Port));
    begin
-      if Get_Conf ("access_points", "uipmc", True) then
+      Inc_Indent;
 
-         Initialize_Multicast_Socket
-           (UIPMC_Access_Point, Inet_Addr (Addr), Port);
+      Put_Line ("IIOP Version",
+                Trimmed_Image (Integer (IIOP_Prof.Version_Major))
+                & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
 
-         Register_Access_Point
-           (ORB    => The_ORB,
-            TAP    => UIPMC_Access_Point.SAP,
-            Chain  => UIPMC_Factories'Access,
-            PF     => UIPMC_Access_Point.PF);
-      end if;
+      Output_Address_Information (IIOP_Prof.Address);
 
-   end Initialize_Access_Points;
+      Output_Object_Information (IIOP_Prof.Object_Id.all);
+
+      Output_Tagged_Components (IIOP_Prof.Components);
+
+      Dec_Indent;
+   end Print_IIOP_Profile;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Binding_Data.Print.Register
+        (Tag_Internet_IOP, Print_IIOP_Profile'Access);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -111,10 +92,10 @@ package body PolyORB.Setup.Access_Points.UIPMC is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"access_points.uipmc",
-       Conflicts => String_Lists.Empty,
-       Depends   => +"orb" & "sockets",
-       Provides  => String_Lists.Empty,
+      (Name      => +"polyorb.binding_data.iiop.print",
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => PolyORB.Initialization.String_Lists.Empty,
+       Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
-       Init      => Initialize_Access_Points'Access));
-end PolyORB.Setup.Access_Points.UIPMC;
+       Init      => Initialize'Access));
+end PolyORB.Binding_Data.GIOP.IIOP.Print;

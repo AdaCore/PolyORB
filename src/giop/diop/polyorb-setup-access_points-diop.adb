@@ -33,7 +33,7 @@
 
 --  Setup socket for DIOP
 
-with PolyORB.Binding_Data.DIOP;
+with PolyORB.Binding_Data.GIOP.DIOP;
 with PolyORB.Protocols.GIOP.DIOP;
 
 with PolyORB.Filters;
@@ -62,7 +62,7 @@ package body PolyORB.Setup.Access_Points.DIOP is
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
          SAP     => new Socket_In_Access_Point,
-         PF      => new Binding_Data.DIOP.DIOP_Profile_Factory);
+         PF      => new PolyORB.Binding_Data.GIOP.DIOP.DIOP_Profile_Factory);
 
    Fra : aliased Fragmenter_Factory;
    Pro : aliased Protocols.GIOP.DIOP.DIOP_Protocol;

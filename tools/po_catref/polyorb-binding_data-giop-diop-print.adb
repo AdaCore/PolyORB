@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . B I N D I N G _ D A T A . U I P M C . P R I N T      --
+--                  POLYORB.BINDING_DATA.GIOP.DIOP.PRINT                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -39,39 +39,37 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.GIOP_P.Tagged_Components.Print;
-with PolyORB.MIOP_P.Groups;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Binding_Data.UIPMC.Print is
+package body PolyORB.Binding_Data.GIOP.DIOP.Print is
 
-   -------------------------
-   -- Print_UIPMC_Profile --
-   -------------------------
+   ------------------------
+   -- Print_DIOP_Profile --
+   ------------------------
 
-   procedure Print_UIPMC_Profile (Prof : Profile_Access) is
+   procedure Print_DIOP_Profile (Prof : Profile_Access) is
       use Common;
       use Output;
 
-      use PolyORB.MIOP_P.Groups;
+      use PolyORB.Utils;
 
       use PolyORB.GIOP_P.Tagged_Components.Print;
 
-      UIPMC_Prof : UIPMC_Profile_Type renames UIPMC_Profile_Type (Prof.all);
+      DIOP_Prof : DIOP_Profile_Type renames DIOP_Profile_Type (Prof.all);
 
    begin
       Inc_Indent;
 
-      Output_Address_Information (UIPMC_Prof.Address);
+      Put_Line ("DIOP Version",
+                Trimmed_Image (Integer (DIOP_Prof.Version_Major))
+                & "." & Trimmed_Image (Integer (DIOP_Prof.Version_Minor)));
 
-      Put_Line ("Group info",
-                PolyORB.MIOP_P.Groups.Image (UIPMC_Prof.G_I.all));
+      Output_Address_Information (DIOP_Prof.Address);
 
-      Output_Address_Information (UIPMC_Prof.Address);
-
-      Output_Tagged_Components (UIPMC_Prof.Components);
+      Output_Tagged_Components (DIOP_Prof.Components);
 
       Dec_Indent;
-   end Print_UIPMC_Profile;
+   end Print_DIOP_Profile;
 
    ----------------
    -- Initialize --
@@ -82,7 +80,7 @@ package body PolyORB.Binding_Data.UIPMC.Print is
    procedure Initialize is
    begin
       PolyORB.Binding_Data.Print.Register
-        (Tag_UIPMC, Print_UIPMC_Profile'Access);
+        (Tag_DIOP, Print_DIOP_Profile'Access);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -92,10 +90,10 @@ package body PolyORB.Binding_Data.UIPMC.Print is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"polyorb.binding_data.uipmc.print",
+      (Name      => +"polyorb.binding_data.diop.print",
        Conflicts => PolyORB.Initialization.String_Lists.Empty,
        Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => PolyORB.Initialization.String_Lists.Empty,
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.Binding_Data.UIPMC.Print;
+end PolyORB.Binding_Data.GIOP.DIOP.Print;

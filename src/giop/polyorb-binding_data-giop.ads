@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . B I N D I N G _ D A T A . I I O P . P R I N T       --
+--            P O L Y O R B . B I N D I N G _ D A T A . G I O P             --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---           Copyright (C) 1-2004 Free Software Foundation, Inc.            --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,71 +31,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Common;
-with Output;
+with PolyORB.GIOP_P.Tagged_Components;
 
-with PolyORB.Binding_Data.Print;
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+package PolyORB.Binding_Data.GIOP is
 
-with PolyORB.GIOP_P.Tagged_Components.Print;
-with PolyORB.Utils.Strings;
+   type GIOP_Profile_Type is abstract new Profile_Type with private;
+   type GIOP_Profile_Factory is abstract new Profile_Factory with private;
 
-package body PolyORB.Binding_Data.IIOP.Print is
+   procedure Release (P : in out GIOP_Profile_Type);
 
-   ------------------------
-   -- Print_IIOP_Profile --
-   ------------------------
+   function Get_Component
+     (P : in GIOP_Profile_Type;
+      C : in PolyORB.GIOP_P.Tagged_Components.Tag_Value)
+      return PolyORB.GIOP_P.Tagged_Components.Tagged_Component_Access;
 
-   procedure Print_IIOP_Profile (Prof : Profile_Access) is
-      use Common;
-      use Output;
+private
 
-      use PolyORB.Utils;
+   type GIOP_Profile_Type is abstract new Profile_Type with record
+      Version_Major : Types.Octet;
+      Version_Minor : Types.Octet;
 
-      use PolyORB.GIOP_P.Tagged_Components.Print;
+      --  Tagged components list
 
-      IIOP_Prof : IIOP_Profile_Type renames IIOP_Profile_Type (Prof.all);
+      Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
+   end record;
 
-   begin
-      Inc_Indent;
+   type GIOP_Profile_Factory is abstract new Profile_Factory with null record;
 
-      Put_Line ("IIOP Version",
-                Trimmed_Image (Integer (IIOP_Prof.Version_Major))
-                & "." & Trimmed_Image (Integer (IIOP_Prof.Version_Minor)));
-
-      Output_Address_Information (IIOP_Prof.Address);
-
-      Output_Object_Information (IIOP_Prof.Object_Id.all);
-
-      Output_Tagged_Components (IIOP_Prof.Components);
-
-      Dec_Indent;
-   end Print_IIOP_Profile;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      PolyORB.Binding_Data.Print.Register
-        (Tag_Internet_IOP, Print_IIOP_Profile'Access);
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"polyorb.binding_data.iiop.print",
-       Conflicts => PolyORB.Initialization.String_Lists.Empty,
-       Depends   => PolyORB.Initialization.String_Lists.Empty,
-       Provides  => PolyORB.Initialization.String_Lists.Empty,
-       Implicit  => False,
-       Init      => Initialize'Access));
-end PolyORB.Binding_Data.IIOP.Print;
+end PolyORB.Binding_Data.GIOP;

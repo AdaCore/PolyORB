@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . B I N D I N G _ D A T A . U I P M C            --
+--      P O L Y O R B . B I N D I N G _ D A T A . G I O P . U I P M C       --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,25 +33,21 @@
 
 --  Binding data concrete implementation for MIOP.
 
+with PolyORB.Binding_Data.GIOP.INET;
 with PolyORB.Binding_Objects;
 with PolyORB.Exceptions;
-with PolyORB.Filters;
 with PolyORB.Filters.MIOP.MIOP_Out;
 with PolyORB.GIOP_P.Tagged_Components;
 with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
-
 with PolyORB.Log;
 with PolyORB.MIOP_P.Tagged_Components;
 with PolyORB.MIOP_P.Groups;
 with PolyORB.ORB;
 with PolyORB.Obj_Adapters;
 with PolyORB.Parameters;
-with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP.UIPMC;
 with PolyORB.References.Corbaloc;
 with PolyORB.References.IOR;
-with PolyORB.Representations.CDR;
 with PolyORB.Servants;
 with PolyORB.Servants.Group_Servants;
 with PolyORB.Transport.Datagram.Sockets_Out;
@@ -61,19 +57,20 @@ with PolyORB.Utils.Sockets;
 
 with PolyORB.Setup.UIPMC;
 
-package body PolyORB.Binding_Data.UIPMC is
+package body PolyORB.Binding_Data.GIOP.UIPMC is
 
+   use PolyORB.Binding_Data.GIOP.INET;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.MIOP_P.Groups;
    use PolyORB.References.Corbaloc;
    use PolyORB.References.IOR;
-   use PolyORB.Representations.CDR;
    use PolyORB.Transport.Datagram.Sockets_Out;
    use PolyORB.Transport.Datagram.Sockets_In;
    use PolyORB.Types;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.uipmc");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.binding_data.giop.uipmc");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -81,26 +78,14 @@ package body PolyORB.Binding_Data.UIPMC is
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for UIPMC profiles.
 
-   -------------
-   -- Release --
-   -------------
-
-   procedure Release (P : in out UIPMC_Profile_Type)
-   is
-      use PolyORB.GIOP_P.Tagged_Components;
-   begin
-      Free (P.Object_Id);
-      Release_Contents (P.Components);
-   end Release;
-
    ------------------
    -- Bind_Profile --
    ------------------
 
-   Mou : aliased Filters.MIOP.MIOP_Out.MIOP_Out_Factory;
-   Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
+   Mou : aliased PolyORB.Filters.MIOP.MIOP_Out.MIOP_Out_Factory;
+   Pro : aliased PolyORB.Protocols.GIOP.UIPMC.UIPMC_Protocol;
 
-   MIOP_Factories : constant Filters.Factory_Array
+   MIOP_Factories : constant PolyORB.Filters.Factory_Array
      := (0 => Mou'Access, 1 => Pro'Access);
 
    procedure Bind_Profile
@@ -170,9 +155,7 @@ package body PolyORB.Binding_Data.UIPMC is
      (Profile : UIPMC_Profile_Type)
      return Profile_Tag
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Profile);
-      pragma Warnings (On);
 
    begin
       return Tag_UIPMC;
@@ -186,9 +169,7 @@ package body PolyORB.Binding_Data.UIPMC is
      (Profile : UIPMC_Profile_Type)
      return Profile_Preference
    is
-      pragma Warnings (Off);
       pragma Unreferenced (Profile);
-      pragma Warnings (On);
 
    begin
       return Preference;
@@ -203,9 +184,8 @@ package body PolyORB.Binding_Data.UIPMC is
       TAP :     Transport.Transport_Access_Point_Access;
       ORB :     Components.Component_Access)
    is
-      pragma Warnings (Off);
       pragma Unreferenced (ORB);
-      pragma Warnings (On);
+
    begin
       PF.Address := Address_Of (Socket_In_Access_Point (TAP.all));
    end Create_Factory;
@@ -229,6 +209,7 @@ package body PolyORB.Binding_Data.UIPMC is
       GS         : PolyORB.Servants.Servant_Access;
       Error      : Error_Container;
       Oid_Access : Object_Id_Access := new Object_Id'(Oid);
+
    begin
       Find_Servant
         (Obj_Adapter_Access (PolyORB.Setup.UIPMC.UIPMC_GOA),
@@ -256,17 +237,18 @@ package body PolyORB.Binding_Data.UIPMC is
          TC_G_I : TC_Group_Info_Access := new TC_Group_Info;
 
       begin
-         TResult.Object_Id := Oid_Access;
-         TResult.Address := PF.Address;
-         TResult.Components := Null_Tagged_Component_List;
+         TResult.Version_Major := UIPMC_Version_Major;
+         TResult.Version_Minor := UIPMC_Version_Minor;
+         TResult.Object_Id     := Oid_Access;
+         TResult.Address       := PF.Address;
+         TResult.Components    := Null_Tagged_Component_List;
 
          TC_G_I.G_I := To_Group_Info (Oid_Access);
          TResult.G_I := TC_G_I.G_I'Access;
 
          --  Add specific tagged component of type Tag_Group
 
-         Add (TResult.Components,
-              Tagged_Component_Access (TC_G_I));
+         Add (TResult.Components, Tagged_Component_Access (TC_G_I));
          return Result;
       end;
 
@@ -282,6 +264,7 @@ package body PolyORB.Binding_Data.UIPMC is
       return Boolean
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
+
    begin
       return P.all in UIPMC_Profile_Type
         and then UIPMC_Profile_Type (P.all).Address = PF.Address;
@@ -295,43 +278,9 @@ package body PolyORB.Binding_Data.UIPMC is
      (Buf     : access Buffer_Type;
       Profile :        Profile_Access)
    is
-      use PolyORB.GIOP_P.Tagged_Components;
-      use PolyORB.Utils.Sockets;
-
-      UIPMC_Profile : UIPMC_Profile_Type
-        renames UIPMC_Profile_Type (Profile.all);
-
-      Profile_Body : Buffer_Access := new Buffer_Type;
    begin
-      pragma Debug (O ("Marshall_UIPMC_Profile_body: enter"));
-
-      --  A TAG_UIPMC Profile Body is an encapsulation.
-
-      Start_Encapsulation (Profile_Body);
-
-      --  Version
-
-      Marshall (Profile_Body, UIPMC_Version_Major);
-      Marshall (Profile_Body, UIPMC_Version_Minor);
-
-      --  Marshalling of a Socket
-
-      Marshall_Socket (Profile_Body, UIPMC_Profile.Address);
-
-      pragma Debug (O ("  Address = "
-                       & Sockets.Image (UIPMC_Profile.Address)));
-
-      --  Marshall tagged components.
-
-      Marshall_Tagged_Component (Profile_Body, UIPMC_Profile.Components);
-
-      --  Marshall the Profile_Body into IOR.
-
-      Marshall (Buf, Encapsulate (Profile_Body));
-      Release (Profile_Body);
-
-      pragma Debug (O ("Marshall_UIPMC_Profile_body: leave"));
-
+      Common_Marshall_Profile_Body
+        (Buf, Profile, UIPMC_Profile_Type (Profile.all).Address, False);
    end Marshall_UIPMC_Profile_Body;
 
    -----------------------------------
@@ -344,38 +293,30 @@ package body PolyORB.Binding_Data.UIPMC is
    is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
-      use PolyORB.Utils.Sockets;
 
       Result  : Profile_Access := new UIPMC_Profile_Type;
       TResult : UIPMC_Profile_Type renames UIPMC_Profile_Type (Result.all);
 
-      Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
-      Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       Temp_Ref       : Tagged_Component_Access;
-      Temp           : Types.Octet;
+
    begin
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: enter"));
-      Decapsulate (Profile_Body'Access, Profile_Buffer);
 
-      Temp := Unmarshall (Profile_Buffer);
-      if Temp /= UIPMC_Version_Major then
+      Common_Unmarshall_Profile_Body
+        (Buffer, Result, TResult.Address, False, True);
+
+      if TResult.Version_Major /= UIPMC_Version_Major then
          raise MIOP_Error;
       end if;
 
-      Temp := Unmarshall (Profile_Buffer);
-      if Temp /= UIPMC_Version_Minor then
+      if TResult.Version_Minor /= UIPMC_Version_Minor then
          --  XXX for TAO compatibility, minor version is not check
          --  TAO send profile with UIPMC minor version set to 2 !?
-         pragma Debug (O ("Wrong UIPMC minor version :" & Temp'Img, Warning));
+         pragma Debug (O ("Wrong UIPMC minor version :"
+                            & TResult.Version_Minor'Img, Warning));
          null;
          --  raise MIOP_Error;
       end if;
-
-      Unmarshall_Socket (Profile_Buffer, TResult.Address);
-
-      pragma Debug (O ("  Address = " & Sockets.Image (TResult.Address)));
-
-      TResult.Components := Unmarshall_Tagged_Component (Profile_Buffer);
 
       Temp_Ref := Get_Component (TResult.Components, Tag_Group);
       if Temp_Ref = null then
@@ -386,9 +327,8 @@ package body PolyORB.Binding_Data.UIPMC is
 
       TResult.Object_Id := To_Object_Id (TResult.G_I.all);
 
-      Release (Profile_Buffer);
-
       pragma Debug (O ("Unmarshall_UIPMC_Profile_body: leave"));
+
       return Result;
    end Unmarshall_UIPMC_Profile_Body;
 
@@ -396,10 +336,7 @@ package body PolyORB.Binding_Data.UIPMC is
    -- Profile_To_Corbaloc --
    -------------------------
 
-   function Profile_To_Corbaloc
-     (P : Profile_Access)
-     return Types.String
-   is
+   function Profile_To_Corbaloc (P : Profile_Access) return Types.String is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Sockets;
@@ -411,6 +348,7 @@ package body PolyORB.Binding_Data.UIPMC is
 
       TC_G_I : constant Tagged_Component_Access
         := Get_Component (UIPMC_Profile.Components, Tag_Group);
+
    begin
       pragma Debug (O ("UIPMC Profile to corbaloc"));
 
@@ -427,8 +365,8 @@ package body PolyORB.Binding_Data.UIPMC is
          end if;
 
          return UIPMC_Corbaloc_Prefix & To_PolyORB_String
-           (Trimmed_Image (Integer (UIPMC_Version_Major)) & "."
-            & Trimmed_Image (Integer (UIPMC_Version_Minor)) & "@"
+           (Trimmed_Image (Integer (UIPMC_Profile.Version_Major)) & "."
+            & Trimmed_Image (Integer (UIPMC_Profile.Version_Minor)) & "@"
             & S & "/"
             & Image (UIPMC_Profile.Address.Addr) & ":"
             & Trimmed_Image (Integer (UIPMC_Profile.Address.Port)));
@@ -439,10 +377,7 @@ package body PolyORB.Binding_Data.UIPMC is
    -- Corbaloc_To_Profile --
    -------------------------
 
-   function Corbaloc_To_Profile
-     (Str : Types.String)
-     return Profile_Access
-   is
+   function Corbaloc_To_Profile (Str : Types.String) return Profile_Access is
       use PolyORB.GIOP_P.Tagged_Components;
       use PolyORB.MIOP_P.Tagged_Components;
       use PolyORB.Types;
@@ -450,6 +385,7 @@ package body PolyORB.Binding_Data.UIPMC is
       use PolyORB.Utils.Sockets;
 
       Len : constant Integer := Length (UIPMC_Corbaloc_Prefix);
+
    begin
       if Length (Str) > Len
         and then To_String (Str) (1 .. Len) = UIPMC_Corbaloc_Prefix then
@@ -469,10 +405,9 @@ package body PolyORB.Binding_Data.UIPMC is
             if Index2 = S'Last + 1 then
                return null;
             end if;
-
-            if Types.Octet'Value (S (Index .. Index2 - 1))
-              /= UIPMC_Version_Major
-            then
+            TResult.Version_Major :=
+              Types.Octet'Value (S (Index .. Index2 - 1));
+            if TResult.Version_Major /= UIPMC_Version_Major then
                return null;
             end if;
             Index := Index2 + 1;
@@ -481,10 +416,9 @@ package body PolyORB.Binding_Data.UIPMC is
             if Index2 = S'Last + 1 then
                return null;
             end if;
-
-            if Types.Octet'Value (S (Index .. Index2 - 1))
-              /= UIPMC_Version_Minor
-            then
+            TResult.Version_Minor :=
+              Types.Octet'Value (S (Index .. Index2 - 1));
+            if TResult.Version_Minor /= UIPMC_Version_Minor then
                return null;
             end if;
             Index := Index2 + 1;
@@ -525,6 +459,7 @@ package body PolyORB.Binding_Data.UIPMC is
             return Result;
          end;
       end if;
+
       return null;
    end Corbaloc_To_Profile;
 
@@ -532,10 +467,7 @@ package body PolyORB.Binding_Data.UIPMC is
    -- Image --
    -----------
 
-   function Image
-     (Prof : UIPMC_Profile_Type)
-     return String
-   is
+   function Image (Prof : UIPMC_Profile_Type) return String is
       use PolyORB.Servants.Group_Servants;
       use PolyORB.Sockets;
 
@@ -560,9 +492,8 @@ package body PolyORB.Binding_Data.UIPMC is
      (Profile : UIPMC_Profile_Type)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Profile);
-      pragma Warnings (On); --  WAG:3.15
+
    begin
       return PolyORB.Smart_Pointers.Entity_Ptr
         (PolyORB.Setup.UIPMC.UIPMC_GOA);
@@ -574,13 +505,13 @@ package body PolyORB.Binding_Data.UIPMC is
 
    procedure Initialize;
 
-   procedure Initialize
-   is
+   procedure Initialize is
       Preference_Offset : constant String
         := PolyORB.Parameters.Get_Conf
         (Section => "miop",
          Key     => "polyorb.binding_data.uipmc.preference",
          Default => "0");
+
    begin
       Preference := Preference_Default + Profile_Preference'Value
         (Preference_Offset);
@@ -608,4 +539,4 @@ begin
        Provides  => +"binding_factories",
        Implicit  => False,
        Init      => Initialize'Access));
-end PolyORB.Binding_Data.UIPMC;
+end PolyORB.Binding_Data.GIOP.UIPMC;
