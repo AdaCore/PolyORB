@@ -50,27 +50,25 @@ package PolyORB.Tasking.Mutexes is
    --  Mutual exclusion locks (mutexes)  prevent  multiple  threads
    --  from  simultaneously  executing  critical  sections  of code
    --  which access shared data (that is, mutexes are used to seri-
-   --  alize  the  execution of threads).
+   --  alize the execution of threads). While a thread is in the
+   --  critical section protected by a mutex, it is designated as
+   --  the owner of that mutex.
 
    procedure Enter (M : in out Mutex_Type)
       is abstract;
-   --  A call to Enter locks the mutex object referenced by mp. If
-   --  the mutex is already locked, the calling thread blocks until the
-   --  mutex is freed; this will return with the mutex object
-   --  referenced by mp in the locked state with the calling thread as
-   --  its owner. If the current owner of a mutex tries to relock the
-   --  mutex, it will result in deadlock.
+   --  A call to Enter locks mutex object M. If M is already locked,
+   --  the caller is blocked until it gets unlocked. On exit from Enter,
+   --  M is locked, and the caller is the owner.
+   --  If the current owner of a mutex tries to enter it again, a
+   --  deadlock occurs.
 
    procedure Leave (M : in out Mutex_Type)
       is abstract;
-   --  Leave is called by the owner of the mutex object referenced by
-   --  mp to release it. The mutex must be locked and the calling
-   --  thread must be the one that last locked the mutex (the owner).
-   --  If there are threads blocked on the mutex object referenced by
-   --  mp when Leave is called, the mp is freed, and the scheduling
-   --  policy will determine which thread gets the mutex. If the
-   --  calling thread is not the owner of the lock, the behavior of the
-   --  program is undefined.
+   --  Release M. M must be locked, and the caller must be the owner.
+   --  The scheduling policy determines which blocked thread is waken
+   --  up next and obtains the mutex.
+   --  It is erroneous for any process other than the owner of a mutex
+   --  to invoke Release.
 
    -------------------
    -- Mutex_Factory --
