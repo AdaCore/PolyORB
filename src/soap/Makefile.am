@@ -49,7 +49,17 @@ install-data-local:
 	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 
-depend: all
-	$(srcdir)/../support/mkdep $(srcdir)
+depend-local: all
+	$(srcdir)/../../support/mkdep $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
+polyorb-binding_data-soap.lo:polyorb-binding_data-soap.adb polyorb-binding_data-soap.ads polyorb-filters-http.ads polyorb-protocols-http.ads polyorb-protocols-soap.ads polyorb-representations-soap.ads polyorb-utils-http.ads polyorb-utils-http_messages.ads 
+polyorb-filters-http.lo:polyorb-filters-http.adb polyorb-filters-http.ads 
+polyorb-protocols-http.lo:polyorb-protocols-http.adb polyorb-protocols-http.ads polyorb-utils-http.ads polyorb-utils-http_messages.ads 
+polyorb-protocols-soap.lo:polyorb-binding_data-soap.ads polyorb-protocols-http.ads polyorb-protocols-soap.adb polyorb-protocols-soap.ads polyorb-representations-soap-any.ads polyorb-representations-soap.ads polyorb-utils-http.ads polyorb-utils-http_messages.ads 
+polyorb-representations-http.lo:polyorb-representations-http.adb polyorb-representations-http.ads 
+polyorb-representations-soap-any.lo:polyorb-representations-soap-any.adb polyorb-representations-soap-any.ads polyorb-representations-soap.ads 
+polyorb-representations-soap-name_spaces.lo:polyorb-protocols-http.ads polyorb-protocols-soap.ads polyorb-representations-soap-name_spaces.adb polyorb-representations-soap-name_spaces.ads polyorb-representations-soap.ads polyorb-utils-http_messages.ads 
+polyorb-representations-soap.lo:polyorb-representations-soap.adb polyorb-representations-soap.ads 
+polyorb-utils-http.lo:polyorb-utils-http.adb polyorb-utils-http.ads 
+polyorb-utils-http_messages.lo:polyorb-protocols-http.ads polyorb-utils-http_messages.adb polyorb-utils-http_messages.ads 
