@@ -46,7 +46,6 @@ with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -61,7 +60,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.ORB.Interface;
    use PolyORB.Protocols;
    use PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Semaphores;
    use PolyORB.Tasking.Threads;
    use PolyORB.Transport;
@@ -71,16 +69,14 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   A_S   : Session_Access := null;
-   --  This variable is used to initialize the threads local variable.
-   --  it is used to replace the 'accept' statement.
+   type Session_Runnable is new Runnable with record
+      A_S   : Session_Access := null;
+   end record;
 
-   Session_Mutex : Mutex_Access;
-   Session_Taken : Condition_Access;
-   --  Synchornisation of task initialization.
+   type Session_Runnable_Controller is
+     new Runnable_Controller with null record;
 
-   procedure Session_Thread;
-   --  Main loop executed by session threads.
+   procedure Run (R : access Session_Runnable);
 
    ----------
    -- Free --
@@ -120,10 +116,12 @@ package body PolyORB.ORB.Thread_Per_Session is
 
       use PolyORB.Components;
 
-      ET : End_Thread_Job_Access;
       S  : Filters.Filter_Access := null;
+
    begin
+
       --  Find an access to the session
+
       declare
          Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (TE));
       begin
@@ -133,10 +131,12 @@ package body PolyORB.ORB.Thread_Per_Session is
          end loop;
       end;
 
-      --  Create and queue a 'End_Thread_Job'
-      ET := new End_Thread_Job;
+      --  Create and queue a End_Thread_Job
+
       declare
-         N   : constant Notepad_Access := Get_Task_Info (Session_Access (S));
+         ET : constant End_Thread_Job_Access := new End_Thread_Job;
+         N  : constant Notepad_Access := Get_Task_Info (Session_Access (S));
+
          STI : Session_Thread_Info;
       begin
          Get_Note (N.all, STI);
@@ -184,10 +184,14 @@ package body PolyORB.ORB.Thread_Per_Session is
 
       S    : Filters.Filter_Access := null;
       Temp : Filters.Filter_Access := Filters.Filter_Access (Upper (C.TE));
+      R    : constant Runnable_Access := new Session_Runnable;
+      T : Thread_Access;
+
    begin
       pragma Debug (O ("New server connection."));
 
-      --  Determine ORB session attached to this connection.
+      --  Determine ORB session attached to this connection
+
       while Temp /= null loop
          S := Temp;
          Temp := Filters.Filter_Access (Upper (Temp));
@@ -198,13 +202,15 @@ package body PolyORB.ORB.Thread_Per_Session is
       if S = null then
          null;
          pragma Debug (O ("Session access isn't defined yet .."));
+         --  XXX What does this mean ? Is it an error ?
       end if;
 
-      Enter (Session_Mutex);
-      A_S := Session_Access (S);
-      Create_Task (Session_Thread'Access);
-      Wait (Session_Taken, Session_Mutex);
-      Leave (Session_Mutex);
+      Session_Runnable (R.all).A_S := Session_Access (S);
+
+      T := Run_In_Task
+        (Get_Thread_Factory,
+         R => R,
+         C => new Session_Runnable_Controller);
 
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -249,16 +255,26 @@ package body PolyORB.ORB.Thread_Per_Session is
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
-      pragma Unreferenced (This_Task);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
 
+      package PTI  renames PolyORB.Task_Info;
+
    begin
 
-      raise Program_Error;
-
       --  In Thread_Per_Session policy, only one task is executing
-      --  ORB.Run. Thus blocking the task is an erroneous execution.
+      --  ORB.Run. However, it can be set to idle while another thread
+      --  modifies ORB internals.
+
+      pragma Debug (O ("Thread "
+                       & Image (PTI.Id (This_Task))
+                       & " is going idle."));
+
+      Wait (PTI.Condition (This_Task), PTI.Mutex (This_Task));
+
+      pragma Debug (O ("Thread "
+                       & Image (PTI.Id (This_Task))
+                       & " is leaving Idle state"));
 
    end Idle;
 
@@ -299,14 +315,13 @@ package body PolyORB.ORB.Thread_Per_Session is
       null;
    end Run;
 
-   --------------------
-   -- Session_Thread --
-   --------------------
+   ---------
+   -- Run --
+   ---------
 
-   procedure Session_Thread
+   procedure Run (R : access Session_Runnable)
    is
       Sem : Semaphore_Access     := null;
-      S   : Session_Access       := null;
       L   : Request_Queue_Access := null;
       N   : Notepad_Access       := null;
       Q   : Request_Info;
@@ -314,22 +329,19 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("Session Thread number "
                        & Image (Current_Task)
                        & " is starting"));
-      --  Thread initialization.
-      S := A_S;
+
+      --  Runnable initialization
+
       Create (Sem);
       L := new Request_Queue;
       N := new Notepad;
       Set_Note (N.all,
                 Session_Thread_Info'(Note with Request_Semaphore => Sem,
                                      Request_List => L));
-      Set_Task_Info (S, N);
+      Set_Task_Info (R.A_S, N);
 
-      --  Signal end of thread initialization.
-      Enter (Session_Mutex);
-      Signal (Session_Taken);
-      Leave (Session_Mutex);
+      --  Runnable main loop
 
-      --  Session thread main loop.
       loop
          pragma Debug (O ("Thread number"
                           & Image (Current_Task)
@@ -355,7 +367,8 @@ package body PolyORB.ORB.Thread_Per_Session is
                           & " has executed Job"));
       end loop;
 
-      --  Thread finalization.
+      --  Runnable finalization
+
       pragma Debug (O ("Finalizing thread " & Image (Current_Task)));
       Request_Queues.Deallocate (L.all);
       Free (L);
@@ -366,7 +379,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                        & " stopped"));
-   end Session_Thread;
+   end Run;
 
    ----------------
    -- Initialize --
@@ -377,8 +390,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Initialize is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
-      Create (Session_Mutex);
-      Create (Session_Taken);
    end Initialize;
 
    use PolyORB.Initialization;
@@ -390,8 +401,7 @@ begin
      (Module_Info'
       (Name      => +"orb.thread_per_session",
        Conflicts => +"no_tasking",
-       Depends   => +"tasking.mutexes"
-       & "tasking.condition_variables",
+       Depends   => +"tasking.condition_variables",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
        Init      => Initialize'Access));
