@@ -14,7 +14,8 @@ gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.o
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
-CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb xe_sysdep.adb sdefault.adb
+CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)\
+             xe_defs.adb xe_sysdep.adb sdefault.adb
 
 force: 
 
