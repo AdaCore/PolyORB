@@ -16,22 +16,22 @@ module CosNaming {
 
   interface NamingContext {
       exception CannotProceed {
-	  NamingContext cxt;
-	  Name rest_of_name;
-	};
+          NamingContext cxt;
+          Name rest_of_name;
+        };
       void bind (in Name n, in Object obj)
-	raises (CannotProceed);
+        raises (CannotProceed);
       void list 
-	(in unsigned long how_many, 
-	 out BindingList bl, 
-	 out BindingIterator bi);
+        (in unsigned long how_many, 
+         out BindingList bl, 
+         out BindingIterator bi);
       // Other declarations not shown
     };
   
   interface BindingIterator {
       boolean next_n 
-	(in unsigned long how_many,
-	 out BindingList bl);
+        (in unsigned long how_many,
+         out BindingList bl);
       // Other declarations not shown
     };
 };
