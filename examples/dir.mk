@@ -1,5 +1,13 @@
-SUBDIRS = echo all_types all_exceptions multiple_inheritance all_functions \
-forward naming_service tasking dii_echo dii_args dii_all_types
+SUBDIRS = echo all_types
 
 all::
 	@$(MakeSubdirs)
+
+export::
+	@$(MakeSubdirs)
+
+clean::
+	@$(MakeSubdirs)
+	$(RM) generic/*.ali generic/*.o generic/*~
+	$(RM) *.ali *.o
+
