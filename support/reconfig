@@ -1,6 +1,12 @@
 #! /bin/sh
 
 EDIT_CONFIGURE_IN=false
+NAWK=`which nawk 2> /dev/null`
+if [ -x "${NAWK} ]; then
+  : nawk found
+else
+  NAWK=awk
+fi
 
 set -e
 
@@ -26,7 +32,7 @@ if ${EDIT_CONFIGURE_IN}
 then
   echo "Editing configure.in"
   mv configure.in configure.in.orig
-  awk '
+  ${NAWK} '
     BEGIN { st = 0; nf = 0; }
     FILENAME == "MANIFEST" {
       manifest[nf++] = $0;
