@@ -286,10 +286,10 @@ sections.
 @menu
 * Architecture of a Distributed Ada95 Application::  
 * Categorization Pragmas::      
+* Pragma Declared Pure::        
 * Pragma Remote_Call_Interface::  
 * Pragma Remote_Types::         
 * Pragma Shared_Passive::       
-* Overview of Pragma Pure::     
 * More About Categorization Pragmas::  
 * Partition Communication Subsystem::  
 * Most Features in One Example::  
@@ -359,7 +359,7 @@ remote call.
  
 @image{xe-arch.fig}
 
-@node Categorization Pragmas, Pragma Remote_Call_Interface, Architecture of a Distributed Ada95 Application, The Distributed Systems Annex
+@node Categorization Pragmas, Pragma Declared Pure, Architecture of a Distributed Ada95 Application, The Distributed Systems Annex
 @section Categorization Pragmas
 
 Library units can be categorized according to the role they play in a
@@ -388,10 +388,20 @@ introduced in Ada95. Therefore, task types and general protected types
 are not allowed in the following Ada library units.
 
 
-@node Pragma Remote_Call_Interface, Pragma Remote_Types, Categorization Pragmas, The Distributed Systems Annex
+@node Pragma Declared Pure, Pragma Remote_Call_Interface, Categorization Pragmas, The Distributed Systems Annex
+@section Pragma Declared Pure
+
+This pragma is not specific to the Distributed Systems Annex. A pure
+package can be withed in the specification of any of the other
+categorized packages. A pure package is a preelaborable package that
+does not contain the declaration of any variable or named access
+type. It is particularly useful to define types, constants and
+subprograms shared by several categorized packages. Remember that normal
+packages cannot be withed in categorized package declarations. A pure
+package can be duplicated on several partitions.
+
+@node Pragma Remote_Call_Interface, Pragma Remote_Types, Pragma Declared Pure, The Distributed Systems Annex
 @section Pragma Remote_Call_Interface
-
-
 
 @menu
 * Overview of Pragma Remote_Call_Interface::  
@@ -598,7 +608,7 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node Pragma Shared_Passive, Overview of Pragma Pure, Pragma Remote_Types, The Distributed Systems Annex
+@node Pragma Shared_Passive, More About Categorization Pragmas, Pragma Remote_Types, The Distributed Systems Annex
 @section Pragma Shared_Passive
 
 
@@ -647,18 +657,7 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node Overview of Pragma Pure, More About Categorization Pragmas, Pragma Shared_Passive, The Distributed Systems Annex
-@section Overview of Pragma Pure
-
-This pragma is not specific to the Distributed Systems Annex. But a pure
-package can be withed in the specification of any of the other
-categorized packages. A pure package is a preelaborable package that
-does not contain the declaration of any variable or named access
-type. It is particularly useful to define types, constants and
-subprograms shared by several categorized packages. Remember that normal
-packages cannot be withed in categorized package declarations.
-
-@node More About Categorization Pragmas, Partition Communication Subsystem, Overview of Pragma Pure, The Distributed Systems Annex
+@node More About Categorization Pragmas, Partition Communication Subsystem, Pragma Shared_Passive, The Distributed Systems Annex
 @section More About Categorization Pragmas
 
 
@@ -826,16 +825,14 @@ Remote_Types, Shared_Passive and Pure units.
 
 @menu
 * Marshalling and Unmarshalling Operations::  
-* Consistency of a Distributed System::  
-* Remote Call Abortion::        
 * Incorrect Remote Dispatching::  
 * Partition Ids::               
 * Concurrent Remote Calls::     
-* Partition Elaboration::       
-* Partition Termination::       
+* Consistency and Elaboration::  
+* Abortion and Termination::    
 @end menu
 
-@node Marshalling and Unmarshalling Operations, Consistency of a Distributed System, Partition Communication Subsystem, Partition Communication Subsystem
+@node Marshalling and Unmarshalling Operations, Incorrect Remote Dispatching, Partition Communication Subsystem, Partition Communication Subsystem
 @subsection Marshalling and Unmarshalling Operations
 
 The PCS marshalls and unmarshalls users data into a stream of type
@@ -888,13 +885,7 @@ into astream makes no sense when it is going to be transmitted to
 another partition (different memory spaces). To transmit non remote
 access types see @ref{Transmitting Dynamic Structure}.
 
-@node Consistency of a Distributed System, Remote Call Abortion, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
-@subsection Consistency of a Distributed System
-
-@node Remote Call Abortion, Incorrect Remote Dispatching, Consistency of a Distributed System, Partition Communication Subsystem
-@subsection Remote Call Abortion
-
-@node Incorrect Remote Dispatching, Partition Ids, Remote Call Abortion, Partition Communication Subsystem
+@node Incorrect Remote Dispatching, Partition Ids, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
 @subsection Incorrect Remote Dispatching
 
 @node Partition Ids, Concurrent Remote Calls, Incorrect Remote Dispatching, Partition Communication Subsystem
@@ -909,15 +900,43 @@ Partition_ID at a given time. A Partition_ID may or may not be
 attributed statically (at compile or link time). A Partition_ID may or
 may not be related to the physical location of the partition.
 
-@node Concurrent Remote Calls, Partition Elaboration, Partition Ids, Partition Communication Subsystem
+@node Concurrent Remote Calls, Consistency and Elaboration, Partition Ids, Partition Communication Subsystem
 @subsection Concurrent Remote Calls
 
-@node Partition Elaboration, Partition Termination, Concurrent Remote Calls, Partition Communication Subsystem
-@subsection Partition Elaboration
+@node Consistency and Elaboration, Abortion and Termination, Concurrent Remote Calls, Partition Communication Subsystem
+@subsection Consistency and Elaboration
 
-@node Partition Termination,  , Partition Elaboration, Partition Communication Subsystem
-@subsection Partition Termination
- 
+A library unit is consistent if the same version of its declaration is
+used throughout. It is a bounded error to elaborate a partition of a
+distributed program that contains a compilation unit that depends on a
+different version of the declaration of a shared passive or RCI library
+unit than that included in the partition to which the shared passive or
+RCI library unit was assigned.  As a result of this error, Program_Error
+can be raised in one or both partitions during elaboration.
+
+U'Version yields a string that identifies the version of the unit
+declaration and any unit declaration on which it depends. U'Version_Body
+yields a string that identifies the version of the unit body.
+
+After elaborating the library units, but prior to invoking the main
+subprogram, the PCS checks the RCI unit versions and then accept any
+incoming RPC. To guarantee that it is safe to call receiving stubs, any
+incoming RPC is kept pending until the partition completes its
+elaboration.
+
+@node Abortion and Termination,  , Consistency and Elaboration, Partition Communication Subsystem
+@subsection Abortion and Termination
+
+If a construct containing a remote call is aborted, the remote
+subprogram call is cancelled. Whether the execution of the remote
+subprogram is immediately aborted as a result of the cancellation is
+implementation defined.
+
+An active partition terminates when its environment task terminates. In
+other terms, a partition cannot terminate when the Ada program cannot
+terminate. The standard termination mechanism applies, but can be
+extended with extra rules.
+
 @node Most Features in One Example,  , Partition Communication Subsystem, The Distributed Systems Annex
 @section Most Features in One Example
 
@@ -984,8 +1003,7 @@ distributed programs.
 
 @menu
 * Introduction to GLADE::       
-* Architecture of GLADE PCS::   
-* How to Configure a Distributed Application with Gnatdist::  
+* How to Configure a Distributed Application::  
 * Gnatdist Command Line Options::  
 * Gnatdist Behind the Scenes::  
 * The Configuration Language::  
@@ -996,7 +1014,7 @@ distributed programs.
 * Remote Shell Notes::          
 @end menu
 
-@node Introduction to GLADE, Architecture of GLADE PCS, Getting Started With GLADE, Getting Started With GLADE
+@node Introduction to GLADE, How to Configure a Distributed Application, Getting Started With GLADE, Getting Started With GLADE
 @section Introduction to GLADE
 
 An Ada 95 distributed application comprises a number of partitions
@@ -1024,68 +1042,33 @@ executables, one for each partition. It also takes care of launching the
 different partitions (default) and to pass arguments specific to each
 partition.
 
-@node Architecture of GLADE PCS, How to Configure a Distributed Application with Gnatdist, Introduction to GLADE, Getting Started With GLADE
-@section Architecture of GLADE PCS
-
-When a partition starts executing, one of the first steps of elaboration
-consists in a registration to a partition id server and possibly to a
-RCI name server. These two servers are located on a boot server.
-
-The partition id server is used to allocate an unique partition id when
-a new partition registers. It also replies to information queries from
-other partition ids on a given partition. This information includes the
-ip address, the port on which the partition is waiting for requests and
-all its configuration parameters (termination policy, reconnection
-policy, filters, ...).
-
-The RCI name server is used to register newly elaborated RCI
-packages. This occurs once the partition has been allocated a partition
-id. The partition registers its RCI packages with their names, their
-version ids, etc.
-
-These servers can be replicated on boot mirrors in order to prevent this
-single point of failure. But a partition has always to connect to a boot
-server or a boot mirror to get a minimal information on the other
-existing partition.
-
-The boot server is the first boot mirror of the system. A new partition
-declared as a boot mirror joins the group of boot mirrors. The group of
-boot mirrors consists in a ring and any request from a new partition to
-a boot mirror is sent on the ring through a token. A request can turn
-one or two times in the ring before being approved.
-
-When the boot server dies, a new boot server is elected among the
-remaining boot mirrors. A boot server is responsible for the global
-termination detection. That's why a new boot server has to be elected.
-
-@node How to Configure a Distributed Application with Gnatdist, Gnatdist Command Line Options, Architecture of GLADE PCS, Getting Started With GLADE
-@section How to Configure a Distributed Application with Gnatdist
+@node How to Configure a Distributed Application, Gnatdist Command Line Options, Introduction to GLADE, Getting Started With GLADE
+@section How to Configure a Distributed Application
 
 @itemize @bullet
 
 @item
 Write a non-distributed Ada application to get familiar with the GLADE
 environment. Use the categorization pragmas to specify the packages that
-can be called remotely. The Shared_Passive categorization pragma is not
-yet implemented. The Remote_Call_Interface and Remote_Types
-categorization pragmas are.
+can be called remotely.
 
 @item
 When this non-distributed application is working, write a configuration
 file that maps the user categorized packages onto partitions. Don't forget
-to specify the main procedure of his distributed application (see
-below).
+to specify the main procedure of the distributed application (see
+@ref{Partition Attribute Main}).
 
 @item
 Type `gnatdist configuration-file'.
 
 @item
 Start the distributed application by invoking the start-up shell script
-or Ada program (depending on the "pragma Starter" option, see below).
+or Ada program (depending on the "pragma Starter" option, see
+@ref{Pragma Starter}).
 
 @end itemize
 
-@node Gnatdist Command Line Options, Gnatdist Behind the Scenes, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE
+@node Gnatdist Command Line Options, Gnatdist Behind the Scenes, How to Configure a Distributed Application, Getting Started With GLADE
 @section Gnatdist Command Line Options
 
 @smallexample
@@ -1093,10 +1076,9 @@ gnatdist [switches] configuration-file [list-of-partitions]
 @end smallexample
 
 The switches of gnatdist are, for the time being, exactly the same as
-for gnatmake.  Read the gnatinfo.txt file from the GNAT distribution for
-info on these switches. By default gnatdist outputs a configuration
-report and the actions performed. The switch -n allows gnatdist to skip
-the first stage of recompilation of the non-distributed application.
+for gnatmake. By default gnatdist outputs a configuration report and the
+actions performed.The switch -n allows gnatdist to skip the first stage
+of recompilation of the non-distributed application.
 
 All configuration files should end with the `.cfg' suffix. There may be
 several configuration files for the same distributed application, as the
@@ -1123,14 +1105,14 @@ skipped by using the -n option.
 @item
 Stubs are compiled into object modules (a stub is the software that
 allows a partition running on machine A to communicate with a partition
-running on machine B).  Several timestamp checks are performed to avoid
+running on machine B). Several timestamp checks are performed to avoid
 useless recompilation.
 
 @item
-gnatdist performs a number of consistency checks, for instance it
-checks that all packages marked as remote call interfaces (RCI, see
-LRM annex E) are mapped onto partitions. It also checks that an
-RCI package is mapped onto only one partition.
+gnatdist performs a number of consistency checks, for instance it checks
+that all packages marked as remote call interface (RCI) and shared
+passive (SP) are mapped onto partitions. It also checks that a RCI or SP
+package is mapped onto only one partition.
 
 @item
 Finally, the executables for each partition in the program are
@@ -1158,8 +1140,9 @@ environment variables.
 * Partition Declaration::       
 * Partition Attribute Main::    
 * Pragma Starter::              
-* Partition Attribute Host::    
 * Pragma Boot_Server::          
+* Partition Attribute Host::    
+* Pragma Import::               
 * Partition Attribute Storage_Dir::  
 * Partition Attribute Command_Line::  
 * Partition Attribute Termination::  
@@ -1168,7 +1151,7 @@ environment variables.
 * Partition and Channel Attribute Filter::  
 * Pragma Version::              
 * Partition Attribute Task_Pool::  
-* An Example with Most of the Configuration Language Features::  
+* A Complete Example::          
 @end menu
 
 @node Language Keywords, Configuration Declaration, The Configuration Language, The Configuration Language
@@ -1256,30 +1239,12 @@ ENUMERATION_OF_ADA_UNITS ::= (@{ADA_UNIT @{, ADA_UNIT@}@});
 @node Partition Attribute Main, Pragma Starter, Partition Declaration, The Configuration Language
 @subsection Partition Attribute Main
 
-Basically, the distributed system annex helps a user in building a
-distributed application from a non-distributed application. The user
-can design, implement and test his application in a non-distributed
-environment, and then should be able to switch from his
-non-distributed case to a distributed case. This two-phase design
-approach has several advantages.
-
-For this reason, the configuration language provides a way to declare
-the main procedure of the non-distributed application.
-
-@smallexample
-procedure MAIN_UNIT is in PARTITION;
-@end smallexample
-
-In this case, the partition in which the main procedure has been
-mapped will include in its code a call to this main procedure. Other
-partitions will have a null body as a main procedure. But the user can
-also modify this behavior by providing an alternate main procedure.
-
-@smallexample
-@b{procedure} MAIN_PROCEDURE;
-
-@b{for} PARTITION'Main @b{use} MAIN_PROCEDURE;
-@end smallexample
+Basically, the distributed system annex helps an user in building a
+distributed application from a non-distributed application. The user can
+design, implement and test his application in a non-distributed
+environment, and then should be able to switch from his non-distributed
+case to a distributed case. This two-phase design approach has several
+advantages.
 
 In a non-distributed case, the user executes only one main executable
 possibly with a name corresponding to the main unit name of his
@@ -1289,7 +1254,28 @@ starting the entire distributed application. For this reason, the user
 can start his application the same way he used to do in the
 non-distributed case.
 
-@node Pragma Starter, Partition Attribute Host, Partition Attribute Main, The Configuration Language
+For this reason, the configuration language provides a way to declare
+the main procedure of the non-distributed application.
+
+@smallexample
+procedure MAIN_UNIT is in PARTITION;
+@end smallexample
+
+In this case, the partition in which the main procedure has been mapped
+is called the main partition. It includes in its code a call to this
+main procedure. The main partition has a specific role as the boot
+server is located on it (see @ref{GLADE Internals}).
+
+The other partitions have a null body as a main procedure. But the user
+can also modify this behavior by providing an alternate main procedure.
+
+@smallexample
+@b{procedure} MAIN_PROCEDURE;
+
+@b{for} PARTITION'Main @b{use} MAIN_PROCEDURE;
+@end smallexample
+
+@node Pragma Starter, Pragma Boot_Server, Partition Attribute Main, The Configuration Language
 @subsection Pragma Starter
 
 As a default, the main executable is a full Ada starter procedure. That
@@ -1323,7 +1309,20 @@ installation.
 
 @end itemize
 
-@node Partition Attribute Host, Pragma Boot_Server, Pragma Starter, The Configuration Language
+@node Pragma Boot_Server, Partition Attribute Host, Pragma Starter, The Configuration Language
+@subsection Pragma Boot_Server
+
+When a partition starts executing, one of the first steps consists in a
+connection to a boot server (see @ref{Architecture of GLADE PCS}).
+
+@smallexample
+PRAGMA ::=
+   @b{pragma} Boot_Server
+     (Protocol_Name => String,
+      Protocol_Data => String);
+@end smallexample
+
+@node Partition Attribute Host, Pragma Import, Pragma Boot_Server, The Configuration Language
 @subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical
@@ -1354,26 +1353,37 @@ string parameter which corresponds to a partition name. It also returns
 a string parameter which corresponds to an host-name. The function
 that returns the host-name can be an Ada function (default) or a shell
 script. A pragma Import is used to import a function defined in Ada or
-in Shell.  
+in Shell (see @ref{Pragma Import}).  
 
-This function is called before launching the partition. Therefore, in
-case of load balancing, the function can return the most appropriate
-host from among a set of hosts.
+This function is called by the GLADE PCS of the main partition before
+launching the partition. Therefore, in case of load balancing, the
+function can return the most appropriate host from among a set of hosts.
 
-@node Pragma Boot_Server, Partition Attribute Storage_Dir, Partition Attribute Host, The Configuration Language
-@subsection Pragma Boot_Server
+@node Pragma Import, Partition Attribute Storage_Dir, Partition Attribute Host, The Configuration Language
+@subsection Pragma Import
 
-When a partition starts executing, one of the first steps consists in a
-connection to a boot server (see @ref{Architecture of GLADE PCS}).
+Two kinds of subprogram are allowed in the configuration language.
 
 @smallexample
-PRAGMA ::=
-   @b{pragma} Boot_Server
-     (Protocol_Name => String,
-      Protocol_Data => String);
+@b{procedure} MAIN_SUBPROGRAM;
+
+@b{function} FUNCTION_NAME
+  (PARAMETER_NAME : [@b{in}] String)
+   @b{return} String;
 @end smallexample
 
-@node Partition Attribute Storage_Dir, Partition Attribute Command_Line, Pragma Boot_Server, The Configuration Language
+The function can be an Ada function (default) or a shell script. To
+import a shell script, the pragma Import can be used:
+
+@smallexample
+@b{pragma} Import (FUNCTION_NAME, Shell, "SCRIPT_NAME");
+@end smallexample
+
+In this case, the GLADE PCS invokes the shell script with the partition
+name as command line argument. The shell script is supposed to return
+an hostname (see @ref{Partition Attribute Host}).
+
+@node Partition Attribute Storage_Dir, Partition Attribute Command_Line, Pragma Import, The Configuration Language
 @subsection Partition Attribute Storage_Dir
 
 There are several other attributes that can be applied to a
@@ -1604,7 +1614,7 @@ REPRESENTATION_CLAUSE ::=
 pragma Version (True | False);
 @end smallexample
 
-@node Partition Attribute Task_Pool, An Example with Most of the Configuration Language Features, Pragma Version, The Configuration Language
+@node Partition Attribute Task_Pool, A Complete Example, Pragma Version, The Configuration Language
 @subsection Partition Attribute Task_Pool
 
 @smallexample
@@ -1614,8 +1624,8 @@ REPRESENTATION_CLAUSE ::=
 TASK_POOL_SIZE_ARRAY := (POOL_MIN_SIZE, POOL_HIGH_SIZE, POOL_MAX_SIZE);
 @end smallexample
 
-@node An Example with Most of the Configuration Language Features,  , Partition Attribute Task_Pool, The Configuration Language
-@subsection An Example with Most of the Configuration Language Features
+@node A Complete Example,  , Partition Attribute Task_Pool, The Configuration Language
+@subsection A Complete Example
 
 Every keyword and construct defined in the configuration language have
 been used in the following sample configuration file.
@@ -1821,8 +1831,8 @@ variable and then the configuration attribute or pragma.
 * Command Line Option --nolaunch::  
 * Command Line Option --detach::  
 * Command Line Option --slave::  
-* Trace Command Line Option::   
-* Replay Command Line Option::  
+* Command Line Option --trace::  
+* Command Line Option --replay::  
 @end menu
 
 @node Command Line Option --boot_server, Command Line Option --nolaunch, Partition Command Line Options, Partition Command Line Options
@@ -1992,7 +2002,7 @@ to be removed.
 @item DETACH @tab @code{--}detach @tab None
 @end multitable
 
-@node Command Line Option --slave, Trace Command Line Option, Command Line Option --detach, Partition Command Line Options
+@node Command Line Option --slave, Command Line Option --trace, Command Line Option --detach, Partition Command Line Options
 @subsection Command Line Option --slave
 
 This feature is not supposed to be used by the user. When
@@ -2006,8 +2016,8 @@ partition anymore.
 @item SLAVE @tab @code{--}slave @tab None
 @end multitable
 
-@node Trace Command Line Option, Replay Command Line Option, Command Line Option --slave, Partition Command Line Options
-@subsection Trace Command Line Option
+@node Command Line Option --trace, Command Line Option --replay, Command Line Option --slave, Partition Command Line Options
+@subsection Command Line Option --trace
 
 GLADE has a facility for trace / replay based debugging. If trace mode
 is turned on, GLADE will record all messages received by a partition
@@ -2034,8 +2044,8 @@ using the @code{--}trace_file option, on the other hand, if the user doesn't
 want the trace file to be created/read in the home directory, the
 absolute path will have to be included in the desired name.
 
-@node Replay Command Line Option,  , Trace Command Line Option, Partition Command Line Options
-@subsection Replay Command Line Option
+@node Command Line Option --replay,  , Command Line Option --trace, Partition Command Line Options
+@subsection Command Line Option --replay
 
 In order to replay a partition whose execution has been previously
 traced, the command line argument @code{--}replay is required. In addition,
@@ -2094,14 +2104,50 @@ consistency and remote launching are provided via GARLIC specific
 features. Some of these features are not configurable by the user.
 
 @menu
+* Architecture of GLADE PCS::   
 * Heterogeneous System::        
+* Partition Ids::               
 * Concurrent Remote Calls::     
 * Priority Inheritance::        
 * Remote Call Abortion::        
 * User Filter Implementation::  
 @end menu
 
-@node Heterogeneous System, Concurrent Remote Calls, GLADE Internals, GLADE Internals
+@node Architecture of GLADE PCS, Heterogeneous System, GLADE Internals, GLADE Internals
+@subsection Architecture of GLADE PCS
+
+When a partition starts executing, one of the first steps of elaboration
+consists in a registration to a partition id server and possibly to a
+RCI name server. These two servers are located on a boot server.
+
+The partition id server is used to allocate an unique partition id when
+a new partition registers. It also replies to information queries from
+other partition ids on a given partition. This information includes the
+ip address, the port on which the partition is waiting for requests and
+all its configuration parameters (termination policy, reconnection
+policy, filters, ...).
+
+The RCI name server is used to register newly elaborated RCI
+packages. This occurs once the partition has been allocated a partition
+id. The partition registers its RCI packages with their names, their
+version ids, etc.
+
+These servers can be replicated on boot mirrors in order to prevent this
+single point of failure. But a partition has always to connect to a boot
+server or a boot mirror to get a minimal information on the other
+existing partition.
+
+The boot server is the first boot mirror of the system. A new partition
+declared as a boot mirror joins the group of boot mirrors. The group of
+boot mirrors consists in a ring and any request from a new partition to
+a boot mirror is sent on the ring through a token. A request can turn
+one or two times in the ring before being approved.
+
+When the boot server dies, a new boot server is elected among the
+remaining boot mirrors. A boot server is responsible for the global
+termination detection. That's why a new boot server has to be elected.
+
+@node Heterogeneous System, Partition Ids, Architecture of GLADE PCS, GLADE Internals
 @subsection Heterogeneous System
 
 The GNAT environment provides default attributes except for non remote
@@ -2119,7 +2165,7 @@ performance purposes or to use another protocol to marshall and
 unmarshall predefined types, he can replace @t{s-stratt.adb} by his own
 implementation.
 
-@node
+@node Partition Ids, Concurrent Remote Calls, Heterogeneous System, GLADE Internals
 @subsection Partition Ids
 
 The Partition_ID is allocated dynamically, at run-time. Each partition
@@ -2131,7 +2177,7 @@ to recompile or relink all the partitions when a new partition is added
 to the system. The Partition_ID is not tight in any way to a specific
 protocol or to a specific location.
 
-@node Concurrent Remote Calls, Priority Inheritance, Heterogeneous System, GLADE Internals
+@node Concurrent Remote Calls, Priority Inheritance, Partition Ids, GLADE Internals
 @subsection Concurrent Remote Calls
 
 When multiple remote subprogram calls occur on the same partition, they
