@@ -2,11 +2,11 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----     This package is the equivalent in Ada of the C            ----
-----   package Ada_omniRopeAndKey.                                 ----
+----     This package is wrapped around the C class                ----
+----   Ada_OmniRopeAndKey declared in Ada_OmniRopeAndKey.          ----
 ----     It provides the same functions as this package plus       ----
-----   the Ada version of each one if the arguments types are      ----
-----   different.                                                  ----
+----   the Ada version of thouse where arguments types are         ----
+----   to be change.                                               ----
 ----     It includes a Init function since a Ada class has no      ----
 ----   constructor.                                                ----
 ----                                                               ----
@@ -14,51 +14,99 @@
 ----                  package body omniRopeAndKey                  ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/17/99                                          ----
+----   date    : 02/18/99                                          ----
 ----                                                               ----
 ----                                                               ----
 -----------------------------------------------------------------------
 
 
-with Corba, Rope ;
+with Interfaces.C ;
 with Interfaces.CPP ;
+with Interfaces.C.Strings ;
+with System ;
+with Rope ;
+with Corba ;
 
 package OmniRopeAndKey is
 
    type Object is tagged record
-      Pd_R : Rope.Object_Ptr;
-      Pd_KeySize : Corba.Unsigned_Long ;
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record;
 
-   type Object_Ptr is access all Object ;
-
    pragma CPP_Class (Object) ;
    pragma CPP_Vtable (Object,Table,1) ;
+   -- This object is wrapped around Ada_OmniRopeAndKey
+   -- (see Ada_OmniRopeAndKey.h)
 
-   function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"");
+   type Object_Ptr is access all Object ;
+   -- just to give a name to pointers on Object
 
-   procedure Init (This : in out Object'Class ;
+
+   procedure C_INIT (Self : in out Object'Class ;
+                     R : System.Address ;
+                     K : System.Address ;
+                     Ksize : Interfaces.C.Unsigned_Long) ;
+   pragma Import (C,C_INIT,"Init__18Ada_OmniRopeAndKeyP4RopePUcUl") ;
+   -- wrapper around  Ada_OmniRopeAndKey function Init
+   -- (see Ada_OmniRopeAndKey.hh)
+
+   procedure Init (Self : in out Object'Class ;
                    R : in Rope.Object ;
                    K : in CORBA.Octet ;
                    Ksize : in CORBA.Unsigned_Long);
-   -- wrapper around inline omniRopeAndKey(Rope *r,
-   --                              _CORBA_Octet *k, _CORBA_ULong ksize)
-   -- in omniInternal.h L 234
+   -- Ada equivalent of C function C_Init
 
-   function Get_Key (This : in Object'Class) return CORBA.Octet;
-   -- wrapper around inline _CORBA_Octet* key()
-   -- in omniInternal.h L 250
 
---   function Get_Rope (This : in Object'Class) return Rope.Object;
-   -- corresponds to inline Rope* rope() const { return pd_r; }
-   -- in omniInternal.h L 248
+   procedure Init (Self : in out Object'Class) ;
+   pragma Import (C,Init,"Init__18Ada_OmniRopeAndKey") ;
+   -- wrapper around  Ada_OmniRopeAndKey function Init
+   -- (see Ada_OmniRopeAndKey.hh)
+   -- No Ada equivalent since there is no arguments
 
-   function Key_Size (This : in Object'Class) return CORBA.Unsigned_Long ;
-   -- corresponds to inline _CORBA_ULong  keysize() const { return pd_keysize; }
-   -- in omniInternal.h L 259
+
+   function C_Get_Rope (Self : in Object'Class) return System.Address ;
+   pragma Import (C,C_Get_Rope,"rope__18Ada_OmniRopeAndKey") ;
+   -- wrapper around  Ada_OmniRopeAndKey function rope
+   -- (see Ada_OmniRopeAndKey.hh)
+
+   function Get_Rope (Self : in Object'Class) return Rope.Object;
+   -- Ada equivalent of C function C_Get_Rope
+
+
+   function C_Get_Key (Self : in Object'Class) return System.Address;
+   pragma Import (C,C_Get_Key,"key__18Ada_OmniRopeAndKey") ;
+   -- wrapper around  Ada_OmniRopeAndKey function key
+   -- (see Ada_OmniRopeAndKey.hh)
+
+   function Get_Key (Self : in Object'Class) return CORBA.Octet;
+   -- Ada equivalent of C function C_Get_Key
+
+
+   function C_Key_Size (Self : in Object'Class) return Interfaces.C.Unsigned_Long ;
+   pragma Import (C,C_Key_Size,"keysize__18Ada_OmniRopeAndKey") ;
+   -- wrapper around  Ada_OmniRopeAndKey function keysize
+   -- (see Ada_OmniRopeAndKey.hh)
+
+   function Key_Size (Self : in Object'Class) return CORBA.Unsigned_Long ;
+   -- Ada equivalent of C function C_Key_Size
+
+
+private
+
+   function Constructor return Object'Class;
+   pragma CPP_Constructor (Constructor);
+   pragma Import (CPP,Constructor,"__14omniRopeAndKey");
+   -- wrapped around the C constructor of Rope
+
+   procedure C_Raise_Ada_Exception (Self : in Object'Class ;
+                                    Msg : in Interfaces.C.Strings.Chars_Ptr) ;
+   pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__18Ada_OmniRopeAndKeyPCc") ;
+   -- This function allows C code to raise Ada exception
+   -- (see Ada_OmniRopeAndKey.hh)
+
+   procedure Raise_Ada_Exception (Self : in Object'Class ;
+                                  Msg : in String) ;
+   -- Ada equivalent of C function C_Raise_Ada_Exception
 
 end OmniRopeAndKey ;
 
