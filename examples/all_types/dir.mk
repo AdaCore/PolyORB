@@ -2,8 +2,8 @@
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
  
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND) all_types.ads
-	gnatmake -g -gnatf -gnata -i client.adb $(FLAGS)
-	gnatmake -g -gnatf -gnata -i server.adb $(FLAGS)
+	gnatmake -g -gnatf -gnata -i client.adb -I.. $(FLAGS)
+	gnatmake -g -gnatf -gnata -i server.adb -I.. $(FLAGS)
 
 IDL_INTERFACE = all_types
 
