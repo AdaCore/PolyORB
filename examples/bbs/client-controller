@@ -68,16 +68,19 @@ trap 'echo kill $ab_names_pid $serverp_pid $Revolutedp_pids;
 
 echo "001 Starting name server..."
 
+touch $output/ab_names.out
 POLYORB_CONF=$ab_names_conf $ab_names > $output/ab_names.out 2> /dev/null &
 ab_names_pid=$!
-sleep 1
+while ! grep POLYORB_CORBA_NAMING_IOR $output/ab_names.out; do
+  sleep 5
+done
 . $output/ab_names.out
 export POLYORB_CORBA_NAMING_IOR
 
 echo "002 Starting server partition..."
 POLYORB_CONF=$serverp_conf $serverp > $output/serverp.out 2>&1 &
 serverp_pid=$!
-sleep 1
+sleep 5
 
 clinumber=0
 while [ "$clinumber" -lt "$nmax" ]; do
@@ -102,10 +105,17 @@ while [ "$clinumber" -lt "$nmax" ]; do
   clinumber=`expr $clinumber + 1`
 done
 
-while [ "`grep -L Ready $cliouts`" != "" ]; do
-  echo "200 Waiting for clients to become ready."
+echo "200 Waiting for clients to become ready."
+retries=0
+while [ "`grep -L Ready $cliouts`" != "" -a "$retries" -lt 60 ]; do
+  retries=`expr $retries + 1`
   sleep 2
 done
+if [ "$retries" -ge 60 ]; then
+  echo "222 Timed out"
+  $0 -k
+  exit 1
+fi
 
 echo "201 GO!"
 date
