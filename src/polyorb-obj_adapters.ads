@@ -47,7 +47,8 @@ with PolyORB.Types;
 
 package PolyORB.Obj_Adapters is
 
-   type Obj_Adapter is abstract new Smart_Pointers.Entity with private;
+   type Obj_Adapter is abstract
+     new Smart_Pointers.Non_Controlled_Entity with private;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    procedure Create (OA : access Obj_Adapter) is abstract;
@@ -193,7 +194,7 @@ package PolyORB.Obj_Adapters is
 
 private
 
-   type Obj_Adapter is abstract new Smart_Pointers.Entity with
+   type Obj_Adapter is abstract new Smart_Pointers.Non_Controlled_Entity with
       record
          ORB     : Components.Component_Access;
          --  The ORB the OA is attached to. Needs to be cast into an ORB_Access
