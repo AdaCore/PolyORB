@@ -864,9 +864,6 @@ package body Exp_Dist is
          return;
       end if;
 
-      --  Build callers, receivers for every primitive operations and a RPC
-      --  receiver for this type.
-
       if not Is_RAS then
          Build_RPC_Receiver_Body (
            RPC_Receiver => RPC_Receiver,
@@ -875,6 +872,9 @@ package body Exp_Dist is
            Stmts        => RPC_Receiver_Statements,
            Decl         => RPC_Receiver_Decl);
       end if;
+
+      --  Build callers, receivers for every primitive operations and a RPC
+      --  receiver for this type.
 
       if Present (Primitive_Operations (Designated_Type)) then
 
@@ -1443,7 +1443,9 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
-      Pkg_RPC_Receiver            : Node_Id;
+      Pkg_RPC_Receiver            : constant Entity_Id :=
+                                      Make_Defining_Identifier (Loc,
+                                        New_Internal_Name ('H'));
       Pkg_RPC_Receiver_Object     : Node_Id;
 
       Pkg_RPC_Receiver_Body       : Node_Id;
@@ -1511,9 +1513,6 @@ package body Exp_Dist is
       --      elaboration part, whose job is to register the receiving
       --      part of this RCI package on the name server. This is done
       --      by calling System.Partition_Interface.Register_Receiving_Stub
-
-      Pkg_RPC_Receiver :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('H'));
 
       --  The RPC receiver subprogram
 
@@ -2744,19 +2743,19 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (RPC_Receiver);
 
-      Pkg_RPC_Receiver_Spec : Node_Id;
-      Pkg_RPC_Receiver_Decls       : List_Id;
+      RPC_Receiver_Spec  : Node_Id;
+      RPC_Receiver_Decls : List_Id;
    begin
       Request := Make_Defining_Identifier (Loc, Name_R);
 
-      Pkg_RPC_Receiver_Spec :=
+      RPC_Receiver_Spec :=
         Build_RPC_Receiver_Specification (
           RPC_Receiver      => RPC_Receiver,
           Request_Parameter => Request);
 
       Subp_Id := Make_Defining_Identifier (Loc, Name_P);
 
-      Pkg_RPC_Receiver_Decls := New_List (
+      RPC_Receiver_Decls := New_List (
         Make_Object_Declaration (Loc,
           Defining_Identifier => Subp_Id,
           Constant_Present    => True,
@@ -2777,8 +2776,8 @@ package body Exp_Dist is
 
       Decl :=
         Make_Subprogram_Body (Loc,
-          Specification              => Pkg_RPC_Receiver_Spec,
-          Declarations               => Pkg_RPC_Receiver_Decls,
+          Specification              => RPC_Receiver_Spec,
+          Declarations               => RPC_Receiver_Decls,
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stmts));
