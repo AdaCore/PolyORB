@@ -643,6 +643,14 @@ package body PolyORB.Protocols.GIOP is
             --  should not happen.
       end case;
 
+      --  Marshall request body
+
+      if Ses.Minor_Version >= 2 then
+         Pad_Align (Buffer_Out, 8);
+         --  For GIOP 1.2 and higher, request bodies are
+         --  aligned on an 8-byte boundary.
+      end if;
+
       Marshall_Argument_List
         (Buffer_Out, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
 
@@ -1433,6 +1441,13 @@ package body PolyORB.Protocols.GIOP is
 
       pragma Debug (O ("Request_Received: Unmarshalled request header,"
         & " Request_Id: " & Types.Unsigned_Long'Image (Request_Id)));
+
+      if Ses.Minor_Version >= 2 then
+         Align_Position (Ses.Buffer_In, 8);
+         --  For GIOP 1.2 and higher, request bodies are
+         --  aligned on an 8-byte boundary.
+      end if;
+
 
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
