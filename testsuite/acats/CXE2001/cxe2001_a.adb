@@ -1,4 +1,4 @@
-
+pragma Style_Checks (Off);
 -----------------------------------------------------------------------------
 --
 -- main procedure for partition A (and the test)
