@@ -1,3 +1,12 @@
+2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Let the user choose the default optimization he wants
+	for gnatdist, the default being no optimization at all.
+	Fix bogus help strings.
+	Check for adagcc as well (in addition to gnatgcc and gcc) as this
+	is a common name for the GNAT compiler.
+	Add support for FreeBSD instead of barfing with an error.
+
 2000-05-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* README (Introduction): Add a special note to indicate that the

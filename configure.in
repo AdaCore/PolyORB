@@ -36,6 +36,14 @@ AC_ARG_ENABLE(debug,
 AC_SUBST(GNATFLAGS)
 AC_SUBST(LINKTEST)
 #
+# Check for optimization flags
+#
+AC_ARG_WITH(optimization,
+[  --with-optimization=X   Use X as default optimization for gnatdist (O0)],
+[GNATDISTOPT="$withval"],
+[GNATDISTOPT="O0"])
+AC_SUBST(GNATDISTOPT)
+#
 # Launching facilities
 #
 AC_ARG_WITH(launching,
@@ -85,6 +93,7 @@ AC_ARG_WITH(platform,
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
   i?86-*-solaris2*)    PLATFORM_SPECIFIC=s;;  
   *-linux*)            PLATFORM_SPECIFIC=l;;
+  *-freebsd*)          PLATFORM_SPECIFIC=f;;
   *-opennt*)           PLATFORM_SPECIFIC=p;;
   alpha*-*-osf*)       PLATFORM_SPECIFIC=a;;
   i?86-*-cygwin32*)    PLATFORM_SPECIFIC=w;;
@@ -102,6 +111,7 @@ AC_SUBST(PLATFORM_SPECIFIC)
    u) PSNAME="SunOS";;
    a) PSNAME="OSF";;
    l) PSNAME="Linux";;
+   f) PSNAME="FreeBSD";;
    p) PSNAME="Open NT";;
    w) PSNAME="Windows NT";;
    g) PSNAME="SGI";;
@@ -136,7 +146,7 @@ AC_SUBST(SUPPORTS_LOCAL_LAUNCH)
 #
 AC_MSG_CHECKING(which remote shell command to use)
 AC_ARG_WITH(rshcmd,
- [  --with-rshcmd=command    Select a remote shell command],
+ [  --with-rshcmd=command   Set alternate remote shell command],
  [RSH_CMD="${withval}"],
  [case "${target}" in
    hppa*-hp-hpux*)      RSH_CMD="remsh";;
@@ -149,7 +159,7 @@ AC_MSG_RESULT($RSH_CMD)
 #
 AC_MSG_CHECKING(which remote shell options to use)
 AC_ARG_WITH(rshopt,
- [  --with-rshopt=command    Select a remote shell command],
+ [  --with-rshopt=command   Set remote shell options],
  [RSH_OPT="${withval}"],
  [case "${target}" in
    hppa*-hp-hpux*)      RSH_OPT="-n";;
