@@ -35,9 +35,10 @@
 
 with GNAT.IO;
 with Interfaces.C.Strings;
-with System.Garlic.Constants; use System.Garlic.Constants;
-with System.Garlic.Naming;    use System.Garlic.Naming;
-with System.Garlic.Thin; use System.Garlic.Thin;
+with System.Garlic.Constants;         use System.Garlic.Constants;
+with System.Garlic.Naming;            use System.Garlic.Naming;
+with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
+with System.Garlic.Thin;              use System.Garlic.Thin;
 with System.RPC;
 
 package body System.Garlic.Remote is
