@@ -182,11 +182,11 @@ s-gtplsp.o: $(TCP_PLATFORM_SOURCES)
 constants_nodef: $(srcdir)/constants.c config.h
 	$(CC) -o constants_nodef -I. -UCONSTANT_NAME $(srcdir)/constants.c
 
-b_gaprco$(EXEEXT): b_gaprco.adb
+b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
 	@${GNATMAKE} b_gaprco -o b_gaprco$(EXEEXT)
 
 s-gaprco.adb: b_gaprco$(EXEEXT)
-	@b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
+	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
 
 s-garcon.ads: $(CONSTANTS_SH)
 	if test -f $(CONSTANTS_PLATFORM); then\

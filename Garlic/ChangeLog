@@ -1,3 +1,9 @@
+2000-07-13  Samuel Tardieu <sam@inf.enst.fr>
+
+	* Makefile.am: Do not assume that the current directory is in the
+	PATH. Do not assume that the build directory is the source
+	directory.
+
 2000-07-10  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-gprese.ads: Typo.
