@@ -129,14 +129,13 @@ package body Disp is
 --             end if;
 
          when K_Forward_ValueType =>
---             if N_Forward_Interface (N).Forward /= null then
---                Put_Line ("forward interface "
---                          & Get_Name (N_Forward_Interface (N).Forward.all));
---             else
---                Put_Line ("forward interface (not declared!!) "
---                          & Get_Name (N_Forward_Interface (N)));
---             end if;
-            Put_Line ("ValueType_Forward");
+            if N_Forward_ValueType (N).Forward /= null then
+               Put_Line ("forward interface "
+                         & Get_Name (N_Forward_ValueType (N).Forward.all));
+            else
+               Put_Line ("forward interface (never declared!!) "
+                         & Get_Name (N_Forward_ValueType (N)));
+            end if;
 
          when K_Boxed_ValueType =>
             Put_Line ("Boxed_ValueType");

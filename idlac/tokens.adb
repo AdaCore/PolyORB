@@ -309,6 +309,7 @@ package body Tokens is
            | LC_O_Oblique_Stroke .. LC_U_Diaeresis
            | LC_German_Sharp_S
            | LC_Y_Diaeresis
+           | Low_Line
            | '0' .. '9'
            | ''' =>
             return True;

@@ -29,4 +29,9 @@ valuetype toto
 
 /* Test of rule Value5 & Value6 */
 valuetype toto {};
-valuetype titi supports toto
+//valuetype titi supports toto
+
+/* Test of rule Value7 */
+valuetype toto;
+valuetype forward_value;
+valuetype forward_value;

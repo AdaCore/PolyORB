@@ -16,10 +16,9 @@
 --  MA 02111-1307, USA.
 --
 
-
 with Ada.Unchecked_Deallocation;
-with GNAT.Case_Util;
 with Tokens;
+with GNAT.Case_Util;
 with Errors;
 
 package body Types is
@@ -310,10 +309,11 @@ package body Types is
    ----------------------------------
    --  Find_Identifier_Definition  --
    ----------------------------------
-   function Find_Identifier_Definition return Identifier_Definition_Acc is
+   function Find_Identifier_Definition (Name : String)
+                                        return Identifier_Definition_Acc is
       Index : Uniq_Id;
    begin
-      Index := Check_Identifier_Index (Tokens.Get_Lexer_String);
+      Index := Check_Identifier_Index (Name);
       if Index /= Nil_Uniq_Id then
          return Id_Table.Table (Index).Definition;
       else
@@ -324,10 +324,10 @@ package body Types is
    ----------------------------
    --  Find_Identifier_Node  --
    ----------------------------
-   function Find_Identifier_Node return N_Named_Acc is
+   function Find_Identifier_Node (Name : String) return N_Named_Acc is
       Definition : Identifier_Definition_Acc;
    begin
-      Definition := Find_Identifier_Definition;
+      Definition := Find_Identifier_Definition (Name);
       if Definition = null then
          return null;
       else
@@ -353,12 +353,13 @@ package body Types is
    ----------------------
    --  Add_Identifier  --
    ----------------------
-   function Add_Identifier (Node : access N_Named'Class)
+   function Add_Identifier (Node : access N_Named'Class;
+                            Name : String)
                             return Boolean is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
-      Index := Create_Identifier_Index (Tokens.Get_Lexer_String);
+      Index := Create_Identifier_Index (Name);
       Definition := Id_Table.Table (Index).Definition;
       --  Checks if the identifier is not being redefined in the same
       --  scope.
@@ -368,7 +369,7 @@ package body Types is
       end if;
       --  Creates a new definition.
       Definition := new Identifier_Definition;
-      Definition.Name := new String'(Tokens.Get_Lexer_String);
+      Definition.Name := new String'(Name);
       Definition.Id := Index;
       Definition.Node := N_Named_Acc (Node);
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;

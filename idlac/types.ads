@@ -216,12 +216,13 @@ package Types is
    --  Find the current identifier definition.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_Definition return Identifier_Definition_Acc;
+   function Find_Identifier_Definition (Name : String)
+                                        return Identifier_Definition_Acc;
 
    --  Find the node corresponding to the current identifier.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_Node return N_Named_Acc;
+   function Find_Identifier_Node (Name : String) return N_Named_Acc;
 
    --  Change the definition (associed node) of CELL.
    --  only used in the case of a forward interface definition
@@ -233,7 +234,8 @@ package Types is
    --  Node is the node where the identifier is defined.
    --  Returns true if successfull, false if the identifier was
    --  already in this scope.
-   function Add_Identifier (Node : access N_Named'Class) return Boolean;
+   function Add_Identifier (Node : access N_Named'Class;
+                            Name : String) return Boolean;
 
 
 private

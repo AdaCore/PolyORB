@@ -124,6 +124,7 @@ package Tree is
    --  Forward declaration of an interface.
    type N_Forward_ValueType is new N_Named with record
       Forward : N_ValueType_Acc;
+      Abst : Boolean;
    end record;
    function Get_Kind (N : N_Forward_ValueType) return Node_Kind;
 

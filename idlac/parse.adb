@@ -387,12 +387,14 @@ package body Parse is
                   Types.Set_Location (Result.all,
                                       Get_Previous_Token_Location);
                   --  try to add the identifier to the scope
-                  if not Types.Add_Identifier (Result) then
+                  if not Types.Add_Identifier (Result,
+                                               Get_Token_String) then
                      --  there is a name collision with the module name
                      declare
                         Loc : Errors.Location;
                      begin
-                        Loc := Types.Get_Location (Find_Identifier_Node.all);
+                        Loc := Types.Get_Location
+                          (Find_Identifier_Node (Get_Token_String).all);
                         Errors.Parser_Error
                           ("This module name is already defined in" &
                            " this scope : " &
@@ -756,8 +758,8 @@ package body Parse is
          Set_Location (Result.all, Get_Previous_Token_Location);
       end if;
       --  try to find a previous definition
-      Definition := Find_Identifier_Definition;
-      --  Is there a previous definition and in the same scope !
+      Definition := Find_Identifier_Definition (Get_Token_String);
+      --  Is there a previous definition and in the same scope ?
       if Definition /= null
         and then Definition.Parent_Scope = Get_Current_Scope then
          --  There was probably a forward declaration
@@ -782,10 +784,11 @@ package body Parse is
       else
          --  no previous definition
          Result.Forward := null;
-         if not Add_Identifier (Result) then
+         if not Add_Identifier (Result,
+                                Get_Token_String) then
             raise Errors.Internal_Error;
          end if;
-         Definition := Find_Identifier_Definition;
+         Definition := Find_Identifier_Definition (Get_Token_String);
       end if;
       Next_Token;
       if Get_Token = T_Colon then
@@ -838,6 +841,7 @@ package body Parse is
       end loop;
       --  consumes the right Cbracket
       Next_Token;
+      Success := True;
       return;
    end Parse_End_Value_Dcl;
 
@@ -847,9 +851,46 @@ package body Parse is
    procedure Parse_End_Value_Forward_Dcl (Result : out N_Forward_ValueType_Acc;
                                           Success : out Boolean;
                                           Abst : in Boolean) is
+      Definition : Identifier_Definition_Acc;
    begin
-      Result := null;
-      Success := False;
+      Result := new N_Forward_ValueType;
+      Result.Abst := Abst;
+      if Abst then
+         Set_Location (Result.all, Get_Previous_Previous_Token_Location);
+      else
+         Set_Location (Result.all, Get_Previous_Token_Location);
+      end if;
+      --  try to find a previous definition
+      Definition := Find_Identifier_Definition (Get_Token_String);
+      --  Is there a previous definition and in the same scope ?
+      if Definition /= null
+        and then Definition.Parent_Scope = Get_Current_Scope then
+         --  There was probably a previous forward declaration
+         if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+            --  nothing to do : this new forward declaration is useless
+            Errors.Parser_Error
+              ("This valuetype was already declared forward : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Warning,
+               Get_Token_Location);
+         else
+            Errors.Parser_Error
+            ("The identifier used for this valuetype is already "
+             & "defined in the same scope : " &
+             Errors.Display_Location (Get_Location (Definition.Node.all)),
+             Errors.Error,
+             Get_Token_Location);
+         end if;
+      else
+         --  no previous forward
+         if not Add_Identifier (Result,
+                                Get_Token_String) then
+            raise Errors.Internal_Error;
+         end if;
+      end if;
+      --  consumes the identifier
+      Next_Token;
+      Success := True;
       return;
    end Parse_End_Value_Forward_Dcl;
 
@@ -2066,7 +2107,7 @@ package body Parse is
       Next_Token;
       --  Expect an identifier
       if Get_Token = T_Identifier then
-         Definition := Find_Identifier_Definition;
+         Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope !
          if Definition /= null
            and then Definition.Parent_Scope = Get_Current_Scope then
@@ -2080,7 +2121,8 @@ package body Parse is
                declare
                   Loc : Errors.Location;
                begin
-                  Loc := Types.Get_Location (Find_Identifier_Node.all);
+                  Loc := Types.Get_Location
+                    (Find_Identifier_Node (Get_Token_String).all);
                   Errors.Parser_Error
                     ("This interface name is already declared in" &
                      " this scope : " &
@@ -2096,10 +2138,11 @@ package body Parse is
          else
             Fd_Res := null;
             Res.Forward := null;
-            if not Add_Identifier (Res) then
+            if not Add_Identifier (Res,
+                                   Get_Token_String) then
                raise Errors.Internal_Error;
             end if;
-            Definition := Find_Identifier_Definition;
+            Definition := Find_Identifier_Definition (Get_Token_String);
          end if;
       else
          Errors.Parser_Error
@@ -2122,7 +2165,7 @@ package body Parse is
                  ("forward declaration already defined in" &
                   " this scope : " &
                   Errors.Display_Location (Loc),
-                  Errors.Error,
+                  Errors.Warning,
                   Get_Token_Location);
                Success := True;
                Result := null;
