@@ -216,7 +216,12 @@ package body XE_Stubs is
                   --  We have RACW types in this partition.So, we
                   --  need all the PCS features in this partition.
 
-                  if Units.Table (U).Has_RACW_Type then
+                  if Units.Table (U).Has_RACW then
+                     if Debug_Mode then
+                        Message ("configured unit ", Name (U),
+                                 " implies no light PCS for partition ",
+                                 Partitions.Table (P).Name);
+                     end if;
                      Set_Light_PCS (P, False);
                   end if;
 
@@ -447,6 +452,32 @@ package body XE_Stubs is
          Dwrite_Call (File, 2, "Set_Self_Location", Quote (Name_Find));
       end if;
 
+      --  Compute the data location string (eventually composed of
+      --  several locations separated by commas).
+
+      Name_Len := 0;
+      Location := Get_Storage (PID);
+      while Location /= Null_LID loop
+         if Name_Len = 0 then
+            Get_Name_String
+              (Locations.Table (Location).Major);
+         else
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Major);
+         end if;
+         if Locations.Table (Location).Minor /= No_Name then
+            Add_Str_To_Name_Buffer ("://");
+            Get_Name_String_And_Append
+              (Locations.Table (Location).Minor);
+         end if;
+         Location := Locations.Table (Location).Next;
+         if Location /= Null_LID then
+            Add_Char_To_Name_Buffer (' ');
+         end if;
+      end loop;
+      if Name_Len /= 0 then
+         Dwrite_Call (File, 2, "Set_Data_Location", Quote (Name_Find));
+      end if;
 
       --  If we have no Ada starter (None or Shell), then it is equivalent
       --  to having --nolaunch on the command line.
@@ -1005,6 +1036,9 @@ package body XE_Stubs is
          return;
       end if;
 
+      --  Withed storage support units and initialize them (maybe
+      --  several times).
+
       Empty := True;
 
       Dwrite_Line (File, 0, "package body ", Storage_Config_Name, " is");
@@ -1016,7 +1050,6 @@ package body XE_Stubs is
                Partition : PID_Type := Get_PID (Name (Callers.Table (C)));
                Location  : LID_Type;
                Major     : Name_Id;
-               Minor     : Name_Id;
             begin
                Empty := False;
                Location := Get_Storage (Partition);
@@ -1024,8 +1057,7 @@ package body XE_Stubs is
                   Location := Def_Data_Location;
                end if;
                Major := Locations.Table (Location).Major;
-               Minor := Locations.Table (Location).Minor;
-               Dwrite_Call (File, 2, SG_Initialize (Major), Quote (Minor));
+               Dwrite_Call (File, 2, SG_Initialize (Major));
             end;
          end if;
       end loop;
@@ -1033,11 +1065,9 @@ package body XE_Stubs is
       if Empty then
          declare
             Major : Name_Id;
-            Minor : Name_Id;
          begin
             Major := Locations.Table (Def_Data_Location).Major;
-            Minor := Locations.Table (Def_Data_Location).Minor;
-            Dwrite_Call (File, 2, SG_Initialize (Major), Quote (Minor));
+            Dwrite_Call (File, 2, SG_Initialize (Major));
          end;
       end if;
 
