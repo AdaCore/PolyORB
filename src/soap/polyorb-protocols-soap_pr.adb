@@ -241,18 +241,25 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  instead of a normal reply!!
 
       declare
-         use PolyORB.Any;
-
          Res : NamedValue;
+
       begin
          Extract_First (List_Of (Return_Args).all, Res);
-         PolyORB.Requests.Set_Result (R, Res.Argument);
+
+         if TypeCode.Kind (Get_Type (R.Result.Argument)) = Tk_Void then
+            R.Result :=
+              (Name      => PolyORB.Types.To_PolyORB_String ("result"),
+               Argument  => Res.Argument,
+               Arg_Modes => ARG_OUT);
+         else
+            Copy_Any_Value (R.Result.Argument, Res.Argument);
+         end if;
       end;
       --  Some applicative personnalities, like AWS, do not specify
       --  the type of the result they are expecting; other do, like
-      --  Corba. So we use Set_Result, which can either copy the any
-      --  data if the type of the namedvalue is specified, or simply
-      --  set the namedvalue if its type is not specified.
+      --  CORBA. So we either copy the any data if the type of the
+      --  namedvalue is specified, or simply set the namedvalue if its
+      --  type is not specified.
 
       --  XXX We should consider changing this, by moving this kind of
       --  mechanism into the neutral layer. Thus, protocol
