@@ -10,22 +10,21 @@ with Types;  use Types;
 
 package body Backend.BE_A.Generator is
 
-   procedure Generate_Package_Declaration (N : Node_Id);
-   procedure Generate_Package_Specification (N : Node_Id);
-   procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Component_Declaration (N : Node_Id);
+   procedure Generate_Defining_Identifier (E : Node_Id);
+   procedure Generate_Derived_Type_Definition (N : Node_Id);
+   procedure Generate_Enumeration_Type (E : Node_Id);
+   procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
-   procedure Generate_Derived_Type_Definition (N : Node_Id);
-   procedure Generate_Record_Type_Definition (N : Node_Id);
-   procedure Generate_Record_Definition (N : Node_Id);
-   procedure Generate_Component_Declaration (N : Node_Id);
-   procedure Generate_Subprogram_Specification (N : Node_Id);
-   procedure Generate_Enumeration_Type_Definition (N : Node_Id);
-   procedure Generate_Defining_Identifier (E : Node_Id);
-
+   procedure Generate_Package_Declaration (N : Node_Id);
+   procedure Generate_Package_Implementation (N : Node_Id);
+   procedure Generate_Package_Specification (N : Node_Id);
    procedure Generate_Parameter (E : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
-   procedure Generate_Enumeration_Type (E : Node_Id);
+   procedure Generate_Record_Definition (N : Node_Id);
+   procedure Generate_Record_Type_Definition (N : Node_Id);
+   procedure Generate_Subprogram_Specification (N : Node_Id);
    procedure Generate_Type_Spec (E : Node_Id);
 
    --------------
@@ -92,6 +91,15 @@ package body Backend.BE_A.Generator is
       Write_Line (";");
    end Generate_Component_Declaration;
 
+   ----------------------------------
+   -- Generate_Defining_Identifier --
+   ----------------------------------
+
+   procedure Generate_Defining_Identifier (E : Node_Id) is
+   begin
+      Write_Name (Name (E));
+   end Generate_Defining_Identifier;
+
    --------------------------------------
    -- Generate_Derived_Type_Definition --
    --------------------------------------
@@ -106,6 +114,28 @@ package body Backend.BE_A.Generator is
       Write_Str (" with");
       Generate (Record_Extension_Part (N));
    end Generate_Derived_Type_Definition;
+
+   -------------------------------
+   -- Generate_Enumeration_Type --
+   -------------------------------
+
+   procedure Generate_Enumeration_Type (E : Node_Id) is
+      N : Node_Id;
+
+   begin
+      Write_Indentation;
+      Write_Str ("(");
+      N := First_Node (Enumeration_Literals (E));
+      while Present (N) loop
+         Generate_Defining_Identifier (N);
+         N := Next_Node (N);
+         if Present (N) then
+            Write_Str (",");
+            Write_Indentation;
+         end if;
+      end loop;
+      Write_Str (")");
+   end Generate_Enumeration_Type;
 
    ------------------------------------------
    -- Generate_Enumeration_Type_Definition --
@@ -126,59 +156,6 @@ package body Backend.BE_A.Generator is
       Write_Str (")");
    end Generate_Enumeration_Type_Definition;
 
-   -------------------------------------
-   -- Generate_Record_Type_Definition --
-   -------------------------------------
-
-   procedure Generate_Record_Type_Definition (N : Node_Id) is
-      R : Node_Id;
-
-   begin
-      if Is_Abstract_Type (N) then
-         Write_Str ("abstract ");
-      end if;
-      if Is_Tagged_Type (N) then
-         Write_Str ("tagged ");
-      end if;
-      if Is_Limited_Type (N) then
-         Write_Str ("limited ");
-      end if;
-      R := Record_Definition (N);
-      if Present (R) then
-         Generate (R);
-      else
-         Write_Str (" null record");
-      end if;
-   end Generate_Record_Type_Definition;
-
-   --------------------------------
-   -- Generate_Record_Definition --
-   --------------------------------
-
-   procedure Generate_Record_Definition (N : Node_Id) is
-      L : constant List_Id := Component_List (N);
-      C : Node_Id;
-
-   begin
-      if Is_Empty (L) then
-         Write_Str ("null record");
-      else
-         Increment_Indentation;
-         Write_Indentation;
-         Write_Line ("record");
-         Increment_Indentation;
-         C := First_Node (L);
-         while Present (C) loop
-            Generate (C);
-            C := Next_Node (C);
-         end loop;
-         Decrement_Indentation;
-         Write_Indentation;
-         Write_Line ("end record");
-         Decrement_Indentation;
-      end if;
-   end Generate_Record_Definition;
-
    ------------------------------------
    -- Generate_Full_Type_Declaration --
    ------------------------------------
@@ -192,6 +169,20 @@ package body Backend.BE_A.Generator is
       Generate  (Type_Definition (N));
    end Generate_Full_Type_Declaration;
 
+   --------------------------------
+   -- Generate_IDL_Unit_Packages --
+   --------------------------------
+
+   procedure Generate_IDL_Unit_Packages (N : Node_Id) is
+      P : Node_Id := First_Node (Packages (N));
+
+   begin
+      while Present (P) loop
+         Generate (P);
+         P := Next_Node (P);
+      end loop;
+   end Generate_IDL_Unit_Packages;
+
    ----------------------------------
    -- Generate_Package_Declaration --
    ----------------------------------
@@ -201,6 +192,16 @@ package body Backend.BE_A.Generator is
       Generate (Package_Specification (N));
       Generate (Package_Implementation (N));
    end Generate_Package_Declaration;
+
+   -------------------------------------
+   -- Generate_Package_Implementation --
+   -------------------------------------
+
+   procedure Generate_Package_Implementation (N : Node_Id) is
+      pragma Unreferenced (N);
+   begin
+      null;
+   end Generate_Package_Implementation;
 
    ------------------------------------
    -- Generate_Package_Specification --
@@ -241,63 +242,6 @@ package body Backend.BE_A.Generator is
       Write_Name (Name (Defining_Identifier (Package_Declaration (N))));
       Write_Line (";");
    end Generate_Package_Specification;
-
-   -------------------------------------
-   -- Generate_Package_Implementation --
-   -------------------------------------
-
-   procedure Generate_Package_Implementation (N : Node_Id) is
-      pragma Unreferenced (N);
-   begin
-      null;
-   end Generate_Package_Implementation;
-
-   ----------------------------------------
-   -- Generate_IDL_Unit_Packages --
-   ----------------------------------------
-
-   procedure Generate_IDL_Unit_Packages (N : Node_Id) is
-      P : Node_Id := First_Node (Packages (N));
-
-   begin
-      while Present (P) loop
-         Generate (P);
-         P := Next_Node (P);
-      end loop;
-   end Generate_IDL_Unit_Packages;
-
-   ---------------------------------------
-   -- Generate_Subprogram_Specification --
-   ---------------------------------------
-
-   procedure Generate_Subprogram_Specification (N : Node_Id) is
-      P : List_Id;
-      T : Node_Id;
-
-   begin
-      T := Return_Type (N);
-      Write_Indentation;
-      if Present (T) then
-         Write_Str ("function ");
-      else
-         Write_Str ("procedure ");
-      end if;
-      Write_Name (Name (Defining_Identifier (N)));
-      Write_Eol;
-      Increment_Indentation;
-      P := Parameter_Profile (N);
-      if not Is_Empty (P) then
-         Generate_Parameter_List (P);
-      end if;
-      T := Return_Type (N);
-      if Present (T) then
-         Write_Eol;
-         Write_Indentation;
-         Write_Str ("return ");
-         Generate_Type_Spec (T);
-      end if;
-      Decrement_Indentation;
-   end Generate_Subprogram_Specification;
 
    ------------------------
    -- Generate_Parameter --
@@ -342,36 +286,91 @@ package body Backend.BE_A.Generator is
       Write_Str (")");
    end Generate_Parameter_List;
 
-   -------------------------------
-   -- Generate_Enumeration_Type --
-   -------------------------------
+   --------------------------------
+   -- Generate_Record_Definition --
+   --------------------------------
 
-   procedure Generate_Enumeration_Type (E : Node_Id) is
-      N : Node_Id;
+   procedure Generate_Record_Definition (N : Node_Id) is
+      L : constant List_Id := Component_List (N);
+      C : Node_Id;
 
    begin
+      if Is_Empty (L) then
+         Write_Str ("null record");
+      else
+         Increment_Indentation;
+         Write_Indentation;
+         Write_Line ("record");
+         Increment_Indentation;
+         C := First_Node (L);
+         while Present (C) loop
+            Generate (C);
+            C := Next_Node (C);
+         end loop;
+         Decrement_Indentation;
+         Write_Indentation;
+         Write_Line ("end record");
+         Decrement_Indentation;
+      end if;
+   end Generate_Record_Definition;
+
+   -------------------------------------
+   -- Generate_Record_Type_Definition --
+   -------------------------------------
+
+   procedure Generate_Record_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+
+   begin
+      if Is_Abstract_Type (N) then
+         Write_Str ("abstract ");
+      end if;
+      if Is_Tagged_Type (N) then
+         Write_Str ("tagged ");
+      end if;
+      if Is_Limited_Type (N) then
+         Write_Str ("limited ");
+      end if;
+      R := Record_Definition (N);
+      if Present (R) then
+         Generate (R);
+      else
+         Write_Str (" null record");
+      end if;
+   end Generate_Record_Type_Definition;
+
+   ---------------------------------------
+   -- Generate_Subprogram_Specification --
+   ---------------------------------------
+
+   procedure Generate_Subprogram_Specification (N : Node_Id) is
+      P : List_Id;
+      T : Node_Id;
+
+   begin
+      T := Return_Type (N);
       Write_Indentation;
-      Write_Str ("(");
-      N := First_Node (Enumeration_Literals (E));
-      while Present (N) loop
-         Generate_Defining_Identifier (N);
-         N := Next_Node (N);
-         if Present (N) then
-            Write_Str (",");
-            Write_Indentation;
-         end if;
-      end loop;
-      Write_Str (")");
-   end Generate_Enumeration_Type;
-
-   ----------------------------------
-   -- Generate_Defining_Identifier --
-   ----------------------------------
-
-   procedure Generate_Defining_Identifier (E : Node_Id) is
-   begin
-      Write_Name (Name (E));
-   end Generate_Defining_Identifier;
+      if Present (T) then
+         Write_Str ("function ");
+      else
+         Write_Str ("procedure ");
+      end if;
+      Write_Name (Name (Defining_Identifier (N)));
+      Write_Eol;
+      Increment_Indentation;
+      P := Parameter_Profile (N);
+      if not Is_Empty (P) then
+         Generate_Parameter_List (P);
+      end if;
+      T := Return_Type (N);
+      if Present (T) then
+         Write_Eol;
+         Write_Indentation;
+         Write_Str ("return ");
+         Generate_Type_Spec (T);
+      end if;
+      Decrement_Indentation;
+   end Generate_Subprogram_Specification;
 
    ------------------------
    -- Generate_Type_Spec --
