@@ -1,14 +1,28 @@
 with CORBA.Object;
+with CosNaming;
 
 package Naming_Tools is
 
    --  This package allows an object to be chosen either by its IOR or by
    --  its name in the naming service.
 
-   function Locate (IOR_Or_Name : String) return CORBA.Object.Ref;
+   subtype NameComponent_Array is
+     CosNaming.IDL_SEQUENCE_CosNaming_NameComponent.Element_Array;
+
+   function Locate
+     (Name : NameComponent_Array)
+     return CORBA.Object.Ref;
+   --  Locate an object given its name, given as an array of name components.
+
+   function Locate
+     (IOR_Or_Name : String)
+     return CORBA.Object.Ref;
    --  Locate an object by IOR or name. If the string does not start with
-   --  "IOR:", the name will be parsed (components are separated with /,
-   --  starting with the root naming service) and looked up.
+   --  "IOR:", the name will be parsed before it is looked up.
+   --  For the purpose of this parsing, components are separated with /,
+   --  starting with the root naming service. For each component, the id
+   --  and kind are separated with a period (the kind is expected not
+   --  to contain a period); no period means an empty kind).
 
    procedure Register
      (Name   : in String;

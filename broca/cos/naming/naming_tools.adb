@@ -5,7 +5,31 @@ use CosNaming, CosNaming.NamingContext, CosNaming.NamingContext.Helper;
 
 package body Naming_Tools is
 
-   function Split (Path : String) return Name;
+   function Split_Path (Path : String) return NameComponent_Array;
+   --  Split a sequence of name component specifications separated
+   --  with '/' characters into a name component array.
+
+   function Split_Component (Component : String) return NameComponent;
+   --  Split a name component specification of the form ID '.' KIND
+   --  (where KIND contains no periods) into a NameComponent.
+
+   ------------
+   -- Locate --
+   ------------
+
+   function Locate
+     (Name : NameComponent_Array)
+     return CORBA.Object.Ref
+   is
+      RNS  : constant NamingContext.Ref :=
+        To_Ref (CORBA.ORB.Resolve_Initial_References
+                (CORBA.ORB.To_Corba_String ("NamingService")));
+      N    : constant CosNaming.Name
+        := CosNaming.To_Sequence (Name);
+   begin
+      return resolve (RNS, N);
+   end Locate;
+
 
    ------------
    -- Locate --
@@ -23,14 +47,7 @@ package body Naming_Tools is
          end;
       end if;
 
-      declare
-         RNS  : constant NamingContext.Ref :=
-           To_Ref (CORBA.ORB.Resolve_Initial_References
-                   (CORBA.ORB.To_Corba_String ("NamingService")));
-         N    : constant Name := Split (IOR_Or_Name);
-      begin
-         return resolve (RNS, N);
-      end;
+      return Locate (Split_Path (IOR_Or_Name));
    end Locate;
 
    --------------
@@ -58,25 +75,44 @@ package body Naming_Tools is
       end if;
    end Register;
 
-   -----------
-   -- Split --
-   -----------
+   ----------------
+   -- Split_Path --
+   ----------------
 
-   function Split (Path : String) return Name is
+   function Split_Path (Path : String) return NameComponent_Array
+   is
+      use CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
+
       Slash : constant Natural := Index (Path, "/", Ada.Strings.Backward);
       N     : Name;
-      NC    : NameComponent;
    begin
-      NC.Kind := To_CORBA_String ("");
       if Slash = 0 then
-         NC.Id   := To_CORBA_String (Path);
+         return (1 => Split_Component (Path));
       else
-         N     := Split (Path (Path'First .. Slash - 1));
-         NC.Id := To_CORBA_String (Path (Slash + 1 .. Path'Last));
+         return Split_Path (Path (Path'First .. Slash - 1))
+           & Split_Component (Path (Slash + 1 .. Path'Last));
       end if;
-      Append (N, NC);
-      return N;
-   end Split;
+   end Split_Path;
+
+   ---------------------
+   -- Split_Component --
+   ---------------------
+
+   function Split_Component (Component : String) return NameComponent is
+      Period : constant Natural := Index (Component, ".", Ada.Strings.Backward);
+   begin
+      if Period = 0 then
+         return NameComponent'
+           (Id   => To_CORBA_String (Component),
+            Kind => To_CORBA_String (""));
+      else
+         return NameComponent'
+           (Id   => To_CORBA_String
+            (Component (Component'First .. Period - 1)),
+            Kind => To_CORBA_String
+            (Component (Period + 1 .. Component'Last)));
+      end if;
+   end Split_Component;
 
    ----------------
    -- Unregister --
