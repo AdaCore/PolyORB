@@ -888,17 +888,45 @@ package body Tokens is
                                Last);
                Col := Last;
                Current_State.Line_Number := New_Line_Number;
-                  Skip_Spaces;
-               if View_Next_Char = Quotation then
-                  Skip_Char;
-                  Set_Mark;
-                  Go_To_End_Of_String;
-                  Errors.Free (Current_State.File_Name);
-                  Current_State.File_Name
-                    := new String'(Get_Marked_Text);
-               end if;
+               Skip_Spaces;
+               case View_Next_Char is
+                  when Quotation =>
+                     --  there is a filename
+                     Skip_Char;
+                     Set_Mark;
+                     Go_To_End_Of_String;
+                     Errors.Free (Current_State.File_Name);
+                     Current_State.File_Name
+                       := new String'(Get_Marked_Text);
+                     Skip_Spaces;
+                     while View_Next_Char /= Lf loop
+                        --  there is a flag
+                        case Next_Char is
+                           when '1' =>
+                              --  start of a new file
+                              Current_State.Line_Number :=
+                                Current_State.Line_Number - 1;
+                           when '2' =>
+                              --  return to a file
+                              null;
+                           when '3' | '4' =>
+                              --  not taken into account
+                              null;
+                           when others =>
+                              --  the preprocessor should not
+                              --  give anything else
+                              raise Errors.Internal_Error;
+                        end case;
+                        Skip_Spaces;
+                     end loop;
+                  when Lf =>
+                     --  end of preprocessor directive
+                     null;
+                  when others =>
+                     --  the preprocessor should not give anything else
+                     raise Errors.Internal_Error;
+               end case;
             end;
-            Skip_Line;
          when Lf =>
             --  This is an end of line.
             return False;
