@@ -129,8 +129,9 @@ package body System.Garlic.Termination is
 
    procedure Handle_Request
      (Partition : in Partition_ID;
-      Opcode : in External_Opcode;
-      Params    : access Params_Stream_Type);
+      Opcode    : in External_Opcode;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Receive a message from Garlic
 
    type Termination_Code is
@@ -232,9 +233,8 @@ package body System.Garlic.Termination is
    procedure Initiate_Synchronization is
       Id     : Stamp                 := Termination_Watcher.Get_Stamp;
       Count  : Natural               := 0;
-      Last   : constant Partition_ID := Last_Allocated_PID;
    begin
-      for PID in Valid_Partition_ID'First .. Last loop
+      for PID in Partitions.Table'Range loop
          if Partitions.Table (PID).Allocated
            and then Termination_Policy (PID) /= Local_Termination
            and then PID /= Self_PID
@@ -256,7 +256,7 @@ package body System.Garlic.Termination is
       end loop;
       pragma Debug (D (D_Debug, "Sent" & Count'Img & " messages"));
       Termination_Watcher.Messages_Sent (Count);
-      for PID in Valid_Partition_ID'First .. Last loop
+      for PID in Partitions.Table'Range loop
          if Partitions.Table (PID).Allocated
            and then Termination_Policy (PID) /= Local_Termination
            and then PID /= Self_PID
@@ -311,19 +311,20 @@ package body System.Garlic.Termination is
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
       Termination_Operation : Termination_Code;
       Id                    : Stamp;
    begin
-      Termination_Code'Read (Params, Termination_Operation);
+      Termination_Code'Read (Query, Termination_Operation);
 
       if not Termination_Operation'Valid then
          pragma Debug (D (D_Debug, "Received invalid termination operation"));
          raise Constraint_Error;
       end if;
 
-      Stamp'Read (Params, Id);
+      Stamp'Read (Query, Id);
       if not Id'Valid then
          pragma Debug (D (D_Debug, "Received invalid stamp"));
          raise Constraint_Error;
@@ -444,7 +445,7 @@ package body System.Garlic.Termination is
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               for PID in Valid_Partition_ID'First .. Last_Allocated_PID loop
+               for PID in Partitions.Table'Range loop
                   if Partitions.Table (PID).Allocated
                     and then PID /= Self_PID
                   then

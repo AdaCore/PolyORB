@@ -89,6 +89,9 @@ package body System.Garlic.Heart is
    Partition_Error_Notification : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies
 
+   function Allocate_PID return Types.Partition_ID;
+   --  Allocate a new partition ID
+
    procedure Dump_Partition_Info
      (PID  : in Partition_ID;
       Info : in Partition_Info);
@@ -110,13 +113,15 @@ package body System.Garlic.Heart is
    procedure Handle_External
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type);
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Public operations
 
    procedure Handle_Internal
      (Partition : in Partition_ID;
       Opcode    : in Internal_Opcode;
-      Params    : access Params_Stream_Type);
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Internal operations
 
    function Opcode_Read (Opcode : Stream_Element) return Any_Opcode;
@@ -127,7 +132,8 @@ package body System.Garlic.Heart is
 
    procedure Partition_Request_Handler
      (Partition : in Partition_ID;
-      Params    : access Params_Stream_Type);
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Handle Partition_Service operations
 
    procedure Partition_RPC_Receiver
@@ -433,7 +439,8 @@ package body System.Garlic.Heart is
    procedure Handle_External
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
       Handle : Request_Handler;
    begin
@@ -446,7 +453,7 @@ package body System.Garlic.Heart is
       Handle := Handlers (Opcode);
       pragma Assert (Handle /= null);
 
-      Handle (Partition, Opcode, Params);
+      Handle (Partition, Opcode, Query, Reply);
    exception
       when E : others =>
          pragma Warnings (Off, E);
@@ -462,7 +469,8 @@ package body System.Garlic.Heart is
    procedure Handle_Internal
      (Partition : in Partition_ID;
       Opcode    : in Internal_Opcode;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
    begin
       Soft_Links.Activity_Detected;
@@ -472,7 +480,7 @@ package body System.Garlic.Heart is
             null;
 
          when Partition_Operation =>
-            Partition_Request_Handler (Partition, Params);
+            Partition_Request_Handler (Partition, Query, Reply);
 
          when Shutdown_Operation =>
             pragma Debug
@@ -509,25 +517,6 @@ package body System.Garlic.Heart is
       Self_PID := Null_PID;
       Boot_PID := Last_PID;
    end Initialize;
-
-   ------------------------
-   -- Last_Allocated_PID --
-   ------------------------
-
-   function Last_Allocated_PID return Partition_ID is
-      P : Partition_ID := Null_PID;
-      V : Version_Id;
-   begin
-      Partitions.Enter;
-      for PID in reverse Partitions.Table'Range loop
-         if Partitions.Table (PID).Allocated then
-            P := PID;
-            exit;
-         end if;
-      end loop;
-      Partitions.Leave (V);
-      return P;
-   end Last_Allocated_PID;
 
    --------------
    -- Location --
@@ -580,7 +569,8 @@ package body System.Garlic.Heart is
 
    procedure Partition_Request_Handler
      (Partition : in Partition_ID;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
       Request : Request_Type;
       PID     : Partition_ID;
@@ -593,8 +583,8 @@ package body System.Garlic.Heart is
          Self_PID_Barrier.Wait;
       end if;
 
-      Partition_ID'Read (Params, PID);
-      Request := Request_Type'Input (Params);
+      Partition_ID'Read (Query, PID);
+      Request := Request_Type'Input (Query);
 
       pragma Debug
         (D (D_Warning,
@@ -852,22 +842,23 @@ package body System.Garlic.Heart is
       Opcode     : in Any_Opcode;
       Unfiltered : in Stream_Element_Access)
    is
-      Stream : aliased Params_Stream_Type (Unfiltered.all'Length);
+      Query : aliased Params_Stream_Type (Unfiltered.all'Length);
+      Reply : aliased Params_Stream_Type (0);
    begin
       --  Dump the stream for debugging purpose
 
       pragma Debug (D (D_Dump, "Dumping incoming stream"));
       pragma Debug (Dump (D_Dump, Unfiltered, Private_Debug_Key));
 
-      To_Params_Stream_Type (Unfiltered.all, Stream'Access);
+      To_Params_Stream_Type (Unfiltered.all, Query'Access);
 
       --  Depending on the opcode, dispatch to the public or internal routines.
 
       case Opcode is
          when Internal_Opcode =>
-            Handle_Internal (Partition, Opcode, Stream'Access);
+            Handle_Internal (Partition, Opcode, Query'Access, Reply'Access);
          when External_Opcode   =>
-            Handle_External (Partition, Opcode, Stream'Access);
+            Handle_External (Partition, Opcode, Query'Access, Reply'Access);
          when Invalid_Operation =>
             raise Program_Error;
       end case;
@@ -1027,16 +1018,16 @@ package body System.Garlic.Heart is
       Request   : in Request_Type;
       Partition : in Partition_ID)
    is
-      Params : aliased Params_Stream_Type (0);
+      Query : aliased Params_Stream_Type (0);
    begin
       pragma Debug
         (D (D_Warning,
             "send to partition" & Target'Img &
             " a request " & Request.Kind'Img &
             " on partition" & Partition'Img));
-      Partition_ID'Write (Params'Access, Partition);
-      Request_Type'Output (Params'Access, Request);
-      Send (Target, Partition_Operation, Params'Access);
+      Partition_ID'Write (Query'Access, Partition);
+      Request_Type'Output (Query'Access, Request);
+      Send (Target, Partition_Operation, Query'Access);
    end Send;
 
    -----------------------
@@ -1121,7 +1112,7 @@ package body System.Garlic.Heart is
    begin
       Shutdown_In_Progress := True;
       if Options.Boot_Partition then
-         for PID in Valid_Partition_ID'First .. Last_Allocated_PID loop
+         for PID in Partitions.Table'Range loop
             if Partitions.Table (PID).Allocated
               and then Termination_Policy (PID) /= Local_Termination
               and then PID /= Self_PID

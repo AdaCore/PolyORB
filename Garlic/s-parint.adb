@@ -88,7 +88,8 @@ package body System.Partition_Interface is
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type);
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Global message receiver
 
    type Hash_Index is range 0 .. 100;
@@ -354,19 +355,20 @@ package body System.Partition_Interface is
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
       R : Request_Type;
       U : Unit_Id;
    begin
-      Request_Id'Read (Params, R.Command);
+      Request_Id'Read (Query, R.Command);
 
       case R.Command is
          when Set_Unit =>
-            U := Units.Get_Index (Unit_Name'Input (Params));
-            Partition_ID'Read (Params, R.Partition);
-            Interfaces.Unsigned_64'Read (Params, R.Receiver);
-            R.Version := new String'(String'Input (Params));
+            U := Units.Get_Index (Unit_Name'Input (Query));
+            Partition_ID'Read (Query, R.Partition);
+            Interfaces.Unsigned_64'Read (Query, R.Receiver);
+            R.Version := new String'(String'Input (Query));
 
             pragma Debug
               (D (D_RNS,
@@ -375,7 +377,7 @@ package body System.Partition_Interface is
                   " from "  & Partition'Img));
 
          when Get_Unit =>
-            U := Units.Get_Index (Unit_Name'Input (Params));
+            U := Units.Get_Index (Unit_Name'Input (Query));
             R.Partition := Partition;
 
             pragma Debug
@@ -385,7 +387,7 @@ package body System.Partition_Interface is
                   " from "  & Partition'Img));
 
          when Invalidate =>
-            Partition_ID'Read (Params, R.Partition);
+            Partition_ID'Read (Query, R.Partition);
             U := Partition_RCI_List (R.Partition);
 
             pragma Debug

@@ -120,7 +120,8 @@ package body System.RPC is
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Streams.Params_Stream_Type);
+      Query     : access Streams.Params_Stream_Type;
+      Reply     : access Streams.Params_Stream_Type);
    --  Receive data
 
    procedure Shutdown;
@@ -339,16 +340,17 @@ package body System.RPC is
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Streams.Params_Stream_Type)
+      Query     : access Streams.Params_Stream_Type;
+      Reply     : access Streams.Params_Stream_Type)
    is
-      Header : constant RPC_Header := RPC_Header'Input (Params);
+      Header : constant RPC_Header := RPC_Header'Input (Query);
    begin
 
       case Header.Kind is
          when RPC_Query | APC_Query =>
             declare
                Params_Copy  : Streams.Params_Stream_Access :=
-                 new Streams.Params_Stream_Type (Params.Initial_Size);
+                 new Streams.Params_Stream_Type (Query.Initial_Size);
                RPC          : RPC_Id := RPC_Id'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Query;
             begin
@@ -356,7 +358,7 @@ package body System.RPC is
                  (D (D_Debug,
                      "RPC or APC request received from partition" &
                      Partition'Img));
-               Streams.Deep_Copy (Params.all, Params_Copy);
+               Streams.Deep_Copy (Query.all, Params_Copy);
                if not Asynchronous then
                   RPC := Header.RPC;
                   pragma Debug
@@ -377,7 +379,7 @@ package body System.RPC is
             else
                Callers (Header.RPC).Status := Completed;
                Callers (Header.RPC).Result
-                 := Streams.To_Stream_Element_Access (Params);
+                 := Streams.To_Stream_Element_Access (Query);
             end if;
             Update (Callers_Watcher);
             Leave (Callers_Mutex);

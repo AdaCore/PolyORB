@@ -161,7 +161,8 @@ package body System.Garlic.Filters is
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type);
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type);
    --  Handle a remote request Get_Params and Set_Params. When needed, use
    --  registration filter.
 
@@ -314,7 +315,8 @@ package body System.Garlic.Filters is
    procedure Handle_Request
      (Partition : in Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Params_Stream_Type)
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type)
    is
       --  We may have to filter the original stream. We will interpret the
       --  message once the stream has been filtered. That's why the job is
@@ -367,7 +369,7 @@ package body System.Garlic.Filters is
 
    begin
       if Register.Filter /= null then
-         S1 := To_Stream_Element_Access (Params);
+         S1 := To_Stream_Element_Access (Query);
          S2 := Filter_Incoming
            (Register.Filter.all,
             Register.Incoming.Local,
@@ -382,7 +384,7 @@ package body System.Garlic.Filters is
          end;
 
       else
-         Internal_Handler (Params);
+         Internal_Handler (Query);
       end if;
    end Handle_Request;
 

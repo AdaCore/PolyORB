@@ -1,3 +1,11 @@
+1998-09-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garrep.adb: Fix bugs.
+
+	* s-garfil.adb, s-garhea.adb, s-garhea.ads, s-garter.adb,
+ 	s-parint.adb, s-rpc.adb, s-rpstio.adb: Change Request_Handler
+	signature to include a reply to a request.
+
 1998-09-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garhea.adb, s-garhea.ads: Boot_PID is no longer a

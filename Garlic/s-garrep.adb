@@ -61,6 +61,7 @@ package body System.Garlic.Replay is
 
    task type Engine_Type;
    type Engine_Type_Access is access Engine_Type;
+   Engine : Engine_Type_Access;
    --  Reads and delivers the messages from the trace file
 
    ------------
@@ -150,17 +151,18 @@ package body System.Garlic.Replay is
       Default  : in Utils.String_Access := null;
       Bootmode : in Boolean := False)
    is
-      Engine    : Engine_Type_Access;
    begin
       --  Replay protocol is always loaded because its activation
       --  is determined at run-time. It should be activated here when
       --  we are sure that the boot server is replay.
 
-      if Options.Execution_Mode = Replay_Mode then
+      if Options.Execution_Mode = Replay_Mode
+        and then Engine = null
+      then
 
          --  Boot data provides a way to give an alternate trace file name
 
-         if Default /= null  then
+         if Default /= null and then Default'Length /= 0 then
             Set_Trace_File_Name (Default.all);
          end if;
 

@@ -80,7 +80,8 @@ package body System.RPC.Stream_IO is
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Garlic.Streams.Params_Stream_Type);
+      Query     : access Garlic.Streams.Params_Stream_Type;
+      Reply     : access Garlic.Streams.Params_Stream_Type);
 
    -----------
    -- Close --
@@ -116,13 +117,13 @@ package body System.RPC.Stream_IO is
             Streams (Partition).Available := Create;
             Streams (Partition).Critical  := Create;
             if First_Partition = Partition_ID'Last
-              or else
-              First_Partition > Partition then
+              or else First_Partition > Partition
+            then
                First_Partition := Partition;
             end if;
             if Last_Partition = Partition_ID'First
-              or else
-              Last_Partition < Partition then
+              or else Last_Partition < Partition
+            then
                Last_Partition := Partition;
             end if;
 
@@ -157,7 +158,8 @@ package body System.RPC.Stream_IO is
       pragma Debug (D (D_Debug, "Open stream" & Partition'Img));
 
       if Mode = Out_Mode
-        and then Partition = Any_Partition then
+        and then Partition = Any_Partition
+      then
          pragma Debug (D (D_Exception, "Can't write to all partitions"));
          raise Stream_Error;
       end if;
@@ -237,8 +239,9 @@ package body System.RPC.Stream_IO is
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Garlic.Streams.Params_Stream_Type) is
-      SEA : Stream_Element_Array (1 .. Params.Count);
+      Query     : access Garlic.Streams.Params_Stream_Type;
+      Reply     : access Garlic.Streams.Params_Stream_Type) is
+      SEA : Stream_Element_Array (1 .. Query.Count);
       Len : Stream_Element_Offset;
       Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));
    begin
@@ -246,7 +249,7 @@ package body System.RPC.Stream_IO is
       pragma Debug (D (D_Debug, "Receive - Lock stream" & Partition'Img));
       Enter (Str.Critical);
 
-      Garlic.Streams.Read (Params.all, SEA, Len);
+      Garlic.Streams.Read (Query.all, SEA, Len);
       Garlic.Streams.Write (Str.Incoming, SEA);
 
       pragma Debug (D (D_Debug, "Receive - Unlock stream" & Partition'Img));

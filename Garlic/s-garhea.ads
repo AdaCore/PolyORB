@@ -174,7 +174,8 @@ package System.Garlic.Heart is
       access procedure
      (Partition : in Types.Partition_ID;
       Opcode    : in External_Opcode;
-      Params    : access Streams.Params_Stream_Type);
+      Query     : access Streams.Params_Stream_Type;
+      Reply     : access Streams.Params_Stream_Type);
    --  A procedure which will get the requests
 
    procedure Send
@@ -207,16 +208,5 @@ package System.Garlic.Heart is
      (Partition  : in Types.Partition_ID;
       Opcode     : in Any_Opcode;
       Unfiltered : in Streams.Stream_Element_Access);
-
-   ----------------
-   -- PID server --
-   ----------------
-
-   function Allocate_PID return Types.Partition_ID;
-   --  Allocate a new partition ID
-
-   function Last_Allocated_PID return Types.Partition_ID;
-   --  This function is used by the Termination mechanism which needs
-   --  to address all the partitions.
 
 end System.Garlic.Heart;
