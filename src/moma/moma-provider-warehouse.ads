@@ -78,12 +78,12 @@ package MOMA.Provider.Warehouse is
       Default : PolyORB.Any.Any)
      return PolyORB.Any.Any;
    --  As above, but Default is returned for non-registered keys,
-   --  insted of raising an exception.
+   --  instead of raising an exception.
 
    procedure Set_Persistence (W : in out Warehouse;
                               Persistence : MOMA.Types.Persistence_Mode);
    --  Set persistency flag for this warehouse,
-   --  Note : this override any flag set for a message if set to a mode
+   --  Note : this overrides any flag set for a message if set to a mode
    --  allowing persistence.
 
    --  XXX Warning : not safe in case of multiple message pools !!!!

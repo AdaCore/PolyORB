@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected dictionnary of Any, indexed by Strings.
+--  A dynamic, protected dictionary of Any, indexed by Strings.
 
 --  $Id$
 
