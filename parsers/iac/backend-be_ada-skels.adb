@@ -104,8 +104,6 @@ package body Backend.BE_Ada.Skels is
 
       Invoke_Elsif_Statements : List_Id;
 
-      function Add_Underscore (N : Name_Id) return Name_Id;
-
       function Gen_Invoke_Part (S : Node_Id) return Node_Id;
       procedure Invoke_Declaration (L : List_Id);
       function Invoke_Spec return Node_Id;
@@ -114,17 +112,6 @@ package body Backend.BE_Ada.Skels is
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
-
-      --------------------
-      -- Add_Underscore --
-      --------------------
-
-      function Add_Underscore (N : Name_Id) return Name_Id is
-      begin
-         Set_Str_To_Name_Buffer ("_");
-         Get_Name_String_And_Append (N);
-         return Name_Find;
-      end Add_Underscore;
 
       ---------------------
       -- Gen_Invoke_Part --
@@ -166,9 +153,7 @@ package body Backend.BE_Ada.Skels is
                   Actual_Parameter_Part =>
                     Make_List_Id (Make_Literal
                                   (New_String_Value (Param_Name, False))));
-               Set_Str_To_Name_Buffer ("Arg_Name_U_");
-               Get_Name_String_And_Append (Param_Name);
-               New_Name := Name_Find;
+               New_Name := Add_Prefix_To_Name ("Arg_Name_U_", Param_Name);
                Append_Node_To_List (Make_Designator (New_Name), P);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (New_Name),
@@ -192,9 +177,7 @@ package body Backend.BE_Ada.Skels is
                  (Defining_Identifier   => RE (RE_Get_Empty_Any_0),
                   Actual_Parameter_Part =>
                     Make_List_Id (C));
-               Set_Str_To_Name_Buffer ("Argument_U_");
-               Get_Name_String_And_Append (Param_Name);
-               New_Name := Name_Find;
+               New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
                Append_Node_To_List (Make_Designator (New_Name), P);
                N := Make_Object_Declaration
                  (Defining_Identifier => Make_Defining_Identifier (New_Name),
@@ -229,9 +212,7 @@ package body Backend.BE_Ada.Skels is
             loop
                if  BEN.Parameter_Mode (Param) = Mode_In then
                   Param_Name := BEN.Name (Defining_Identifier (Param));
-                  Set_Str_To_Name_Buffer ("Argument_U_");
-                  Get_Name_String_And_Append (Param_Name);
-                  New_Name := Name_Find;
+                  New_Name := Add_Prefix_To_Name ("Argument_U_", Param_Name);
 
                   if Is_Base_Type (BEN.FE_Node (Parameter_Type (Param))) then
                      C := RE (RE_From_Any_0);
@@ -277,8 +258,8 @@ package body Backend.BE_Ada.Skels is
             Op_Equal,
             Make_Literal
             (New_String_Value
-             (Add_Underscore
-              (BEN.Name (Defining_Identifier (S))), False)));
+             (Add_Suffix_To_Name
+              ("_", BEN.Name (Defining_Identifier (S))), False)));
          N := Make_Block_Statement
            (Declarative_Part => Declarative_Part,
             Statements       => Statements);
@@ -434,7 +415,7 @@ package body Backend.BE_Ada.Skels is
             Op_Equal,
             Make_Literal
             (New_String_Value
-             (Add_Underscore (SN (S_Is_A)), False)));
+             (Add_Prefix_To_Name ("_", SN (S_Is_A)), False)));
          N := Make_If_Statement
            (C,
             Then_Statements,

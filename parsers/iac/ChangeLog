@@ -1,3 +1,9 @@
+2004-08-11    Saber Souli <souli@enst.fr>
+
+	* backend-be_ada-skels.adb: Remove useless subprogram Add_Underscore, use Add_Suffix_To_Name instead. Use Add_Prefix_To_Name.
+
+	* backend-be_ada-idl_to_ada.adb:Modify Map_IDL_Unit (do not generate implementation package and skels for abstact interface).  
+
 2004-08-10  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nutils.ads: Correct selector name from P_Implecit

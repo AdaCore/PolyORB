@@ -438,29 +438,34 @@ package body Backend.BE_Ada.IDL_To_Ada is
 
       if Kind (Entity) = K_Interface_Declaration then
 
-         --  Skeleton package
+         if not FEN.Is_Abstract_Interface (Entity) then
+            --  No skel or impl packages are generated for
+            --  abstract interfaces.
 
-         Set_Str_To_Name_Buffer ("Skel");
-         N := Make_Defining_Identifier (Name_Find);
-         Set_Parent_Unit_Name (N, I);
-         D := Make_Package_Declaration (N);
-         Set_IDL_Unit (D, P);
-         Set_Corresponding_Node (N, D);
-         Set_Parent (D, M);
-         Set_Skeleton_Package (P, D);
-         Append_Node_To_List (D, L);
+            --  Skeleton package
 
-         --  Implementation package
+            Set_Str_To_Name_Buffer ("Skel");
+            N := Make_Defining_Identifier (Name_Find);
+            Set_Parent_Unit_Name (N, I);
+            D := Make_Package_Declaration (N);
+            Set_IDL_Unit (D, P);
+            Set_Corresponding_Node (N, D);
+            Set_Parent (D, M);
+            Set_Skeleton_Package (P, D);
+            Append_Node_To_List (D, L);
 
-         Set_Str_To_Name_Buffer ("Impl");
-         N := Make_Defining_Identifier (Name_Find);
-         Set_Parent_Unit_Name (N, I);
-         D := Make_Package_Declaration (N);
-         Set_IDL_Unit (D, P);
-         Set_Corresponding_Node (N, D);
-         Set_Parent (D, M);
-         Set_Implementation_Package (P, D);
-         Append_Node_To_List (D, L);
+            --  Implementation package
+
+            Set_Str_To_Name_Buffer ("Impl");
+            N := Make_Defining_Identifier (Name_Find);
+            Set_Parent_Unit_Name (N, I);
+            D := Make_Package_Declaration (N);
+            Set_IDL_Unit (D, P);
+            Set_Corresponding_Node (N, D);
+            Set_Parent (D, M);
+            Set_Implementation_Package (P, D);
+            Append_Node_To_List (D, L);
+         end if;
       end if;
 
       return P;
