@@ -83,6 +83,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-requests.ads \
 		polyorb-sequences-bounded.ads \
 		polyorb-sequences-unbounded.ads \
+		polyorb-sequences-unbounded_at.ads \
 		polyorb-sequences-unbounded-search.ads \
 		polyorb-servants.ads \
 		polyorb-setup-proxies_poa.ads \
@@ -282,6 +283,7 @@ polyorb-requests.lo:polyorb.ads polyorb-annotations.ads polyorb-any.ads polyorb-
 polyorb-sequences.lo:polyorb.ads polyorb-sequences.ads 
 polyorb-sequences-bounded.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-bounded.adb polyorb-sequences-bounded.ads 
 polyorb-sequences-unbounded.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-unbounded.adb polyorb-sequences-unbounded.ads 
+polyorb-sequences-unbounded_at.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-unbounded_at.adb polyorb-sequences-unbounded_at.ads 
 polyorb-sequences-unbounded-search.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-sequences-unbounded-search.adb polyorb-sequences-unbounded-search.ads 
 polyorb-servants.lo:polyorb.ads polyorb-annotations.ads polyorb-any.ads polyorb-any-exceptionlist.ads polyorb-any-nvlist.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-log.adb polyorb-log.ads polyorb-objects.ads polyorb-objects-interface.ads polyorb-opaque.ads polyorb-opaque-chunk_pools.ads polyorb-poa_policies.ads polyorb-poa_policies-thread_policy.ads polyorb-references.ads polyorb-requests.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-servants.adb polyorb-servants.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-task_info.ads polyorb-tasking.ads polyorb-tasking-condition_variables.ads polyorb-tasking-mutexes.ads polyorb-tasking-threads.ads polyorb-tasking-watchers.ads polyorb-transport.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-chained_lists.ads polyorb-utils-simple_flags.ads polyorb-utils-strings.ads 
 polyorb-setup.lo:polyorb.ads polyorb-annotations.ads polyorb-any.ads polyorb-any-exceptionlist.ads polyorb-any-nvlist.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-filters.ads polyorb-jobs.ads polyorb-obj_adapters.ads polyorb-objects.ads polyorb-opaque.ads polyorb-opaque-chunk_pools.ads polyorb-orb.ads polyorb-poa_policies.ads polyorb-poa_policies-thread_policy.ads polyorb-references.ads polyorb-requests.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-servants.ads polyorb-setup.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-task_info.ads polyorb-tasking.ads polyorb-tasking-advanced_mutexes.ads polyorb-tasking-condition_variables.ads polyorb-tasking-mutexes.ads polyorb-tasking-threads.ads polyorb-tasking-watchers.ads polyorb-transport.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-chained_lists.ads polyorb-utils-simple_flags.ads polyorb-utils-strings.ads 
