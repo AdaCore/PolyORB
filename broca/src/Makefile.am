@@ -71,9 +71,8 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
-ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao \
-	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src \
-	-g -O2 $(CFLAGS)
+ADAFLAGS = $(GNATFLAGS) \
+	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src
 
 ADACOMPILER = ../support/adacompiler
 

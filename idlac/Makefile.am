@@ -1,12 +1,9 @@
 SUBDIRS = testsuite
 
-GNAT_STYLE= -gnaty3bcefhikmt
-GNATMAKE_FLAGS= $(GNAT_STYLE) -O2 -g -gnatf -gnatwu -gnatwe -gnatgao
-
 all-local: testparser testlexer testexpansion testgen idlac
 
 testparser testlexer testexpansion testgen idlac: force $(TREE_FILES)
-	$(GNATMAKE) -I. -I$(srcdir) $(GNATMAKE_FLAGS) $@
+	$(GNATMAKE) -I. -I$(srcdir) $(GNATFLAGS) $@
 
 TREE_FILES=idl_fe-tree.ads idl_fe-tree.adb
 
