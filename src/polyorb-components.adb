@@ -52,6 +52,21 @@ package body PolyORB.Components is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (C : in out Component) is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
+      pragma Debug (O ("finalizing component"));
+      null;
+      --  Do nothing, as we actually always finalize types dervied
+      --  from Component.
+   end Finalize;
+
    -------------
    -- Connect --
    -------------

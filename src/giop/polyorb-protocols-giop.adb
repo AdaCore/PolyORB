@@ -81,8 +81,8 @@ package body PolyORB.Protocols.GIOP is
       pragma Warnings (On);
    begin
       Session := new GIOP_Session;
-      PolyORB.Protocols.Initialize
-        (PolyORB.Protocols.Session (Session.all));
+      pragma Debug (O ("Create GIOP Session"));
+      Initialize (GIOP_Session (Session.all));
       Set_Allocation_Class (Session.all, Dynamic);
    end Create;
 
@@ -105,7 +105,6 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Initialize parameters for GIOP Protocol"));
       pragma Debug (O ("Conf Section : " & Section));
       pragma Debug (O ("Conf Prefix : " & Prefix));
-
 
       pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
       Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
@@ -173,8 +172,6 @@ package body PolyORB.Protocols.GIOP is
      (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Initializing GIOP session"));
-
-      Protocols.Initialize (Protocols.Session (S));
       S.Buffer_In  := new Buffer_Type;
    end Initialize;
 
@@ -304,7 +301,6 @@ package body PolyORB.Protocols.GIOP is
 
       if Sess.Implem = null then
          --  Initialize session with default GIOP version
-
          Get_GIOP_Implem (Sess, Sess.Conf.GIOP_Def_Ver);
       end if;
 

@@ -37,6 +37,7 @@
 --  $Id$
 
 with PolyORB.Filters.Interface;
+with PolyORB.Components;
 
 package body PolyORB.Binding_Objects is
 
@@ -46,13 +47,16 @@ package body PolyORB.Binding_Objects is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (X : in out Binding_Object)
-   is
+   procedure Finalize (X : in out Binding_Object) is
+      use PolyORB.Components;
       M : Filters.Interface.Disconnect_Request;
+
    begin
       Components.Emit_No_Reply (X.BO_Component, M);
+      Finalize (X.BO_Component.all);
       X.BO_Component := null;
+      --  XXX Not sure this instruction is usefull anymore
+
    end Finalize;
 
    -------------------
