@@ -689,7 +689,6 @@ package body System.Garlic.Heart is
 
       Set_Connection_Hits (0);
       Trace.Shutdown;
-      Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
       RPC_Shutdown;
 

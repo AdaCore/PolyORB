@@ -62,10 +62,6 @@ package System.Garlic.Soft_Links is
      (P : in Parameterless_Procedure);
    procedure Sub_Non_Terminating_Task;
 
-   procedure Register_Termination_Shutdown
-     (P : in Parameterless_Procedure);
-   procedure Termination_Shutdown;
-
    procedure Register_Termination_Initialize
      (P : in Parameterless_Procedure);
    procedure Termination_Initialize;

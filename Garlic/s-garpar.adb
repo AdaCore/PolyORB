@@ -151,8 +151,6 @@ package body System.Garlic.Partitions is
    --  Internal allocation. From indicates the partition that initiated
    --  the allocation process.
 
-   procedure Dump_Partition_Table;
-
    procedure Dump_Partition_Info
      (PID  : in Types.Partition_ID;
       Info : in Partition_Info);
@@ -183,9 +181,7 @@ package body System.Garlic.Partitions is
      access function (Info : Partition_Info) return Boolean;
 
    function Matching_Partitions
-     (First : Partition_ID;
-      Last  : Partition_ID;
-      Match : Matching_Function)
+     (Match : Matching_Function)
      return Partition_List;
    --  Return a list of partitions ids that match the criteria Match.
 
@@ -524,8 +520,8 @@ package body System.Garlic.Partitions is
    begin
       Partitions.Enter;
       declare
-         Result : Partition_List := Matching_Partitions
-           (First_PID, Partitions.Last, Has_Global_Termination'Access);
+         Result : constant Partition_List :=
+           Matching_Partitions (Has_Global_Termination'Access);
       begin
          Partitions.Leave;
          return Result;
@@ -756,6 +752,18 @@ package body System.Garlic.Partitions is
    -- Has_Local_Termination --
    ---------------------------
 
+   function Has_Local_Termination (Partition : Partition_ID) return Boolean is
+      Info  : Partition_Info;
+      Error : Error_Type;
+   begin
+      Get_Partition_Info (Partition, Info, Error);
+      return Has_Local_Termination (Info);
+   end Has_Local_Termination;
+
+   ---------------------------
+   -- Has_Local_Termination --
+   ---------------------------
+
    function Has_Local_Termination (Info : Partition_Info) return Boolean is
    begin
       return Info.Allocated
@@ -872,8 +880,8 @@ package body System.Garlic.Partitions is
    begin
       Partitions.Enter;
       declare
-         Result : Partition_List := Matching_Partitions
-           (First_PID, Partitions.Last, Is_Known'Access);
+         Result : constant Partition_List :=
+           Matching_Partitions (Is_Known'Access);
       begin
          Partitions.Leave;
          return Result;
@@ -888,8 +896,8 @@ package body System.Garlic.Partitions is
    begin
       Partitions.Enter;
       declare
-         Result : Partition_List := Matching_Partitions
-           (First_PID, Partitions.Last, Has_Local_Termination'Access);
+         Result : constant Partition_List :=
+           Matching_Partitions (Has_Local_Termination'Access);
       begin
          Partitions.Leave;
          return Result;
@@ -901,23 +909,22 @@ package body System.Garlic.Partitions is
    -------------------------
 
    function Matching_Partitions
-     (First : Partition_ID;
-      Last  : Partition_ID;
-      Match : Matching_Function)
+     (Match : Matching_Function)
      return Partition_List
    is
-      Info : Partition_Info;
+      Result : Partition_List (Natural (First_PID) ..
+                               Natural (Partitions.Last));
+      Index  : Natural := Natural (First_PID);
+      Info   : Partition_Info;
    begin
-      for PID in First .. Last loop
+      for PID in First_PID .. Partitions.Last loop
          Info := Partitions.Get_Component (PID);
          if Match (Info) then
-            return (1 .. 1 => PID) &
-              Matching_Partitions (PID + 1, Last, Match);
-         else
-            return Matching_Partitions (PID + 1, Last, Match);
+            Result (Index) := PID;
+            Index := Index + 1;
          end if;
       end loop;
-      return Null_Partition_List;
+      return Result (Natural (First_PID) .. Index - 1);
    end Matching_Partitions;
 
    --------------------
@@ -972,8 +979,8 @@ package body System.Garlic.Partitions is
    begin
       Partitions.Enter;
       declare
-         Result : Partition_List := Matching_Partitions
-           (First_PID, Partitions.Last, Is_Known'Access);
+         Result : constant Partition_List :=
+           Matching_Partitions (Is_Online'Access);
       begin
          Partitions.Leave;
          return Result;

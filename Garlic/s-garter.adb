@@ -33,7 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+with Ada.Calendar;                use Ada.Calendar;
+with Ada.Exceptions;              use Ada.Exceptions;
 with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
@@ -43,7 +44,6 @@ with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
 with System.Garlic.Utils;         use System.Garlic.Utils;
 
-with System.Task_Primitives.Operations;
 with System.Tasking.Debug;        use System.Tasking, System.Tasking.Debug;
 with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking);
@@ -69,18 +69,11 @@ package body System.Garlic.Termination is
    --  A Stamp value is assigned at each round of the termination protocol
    --  to distinguish between different rounds.
 
-   Termination_Stamp : Stamp_Type := Stamp_Type'Last;
-   pragma Atomic (Termination_Stamp);
-   Acknowledge_Count : Natural;
-   Vote_Result_Ready : Boolean;
-   Vote_Result_Value : Boolean;
+   function ">" (S1, S2 : Stamp_Type) return Boolean;
+   --  Compare two stamps. S1 > S2 means that S1 is very likely to have been
+   --  issued prior to S2.
 
-   type Termination_Code is
-      (Set_Stamp, Check_Stamp, Positive_Ack, Negative_Ack);
-   --  The termination code used in negociation. It is always followed by
-   --  a stamp.
-
-   Time_Between_Checks : constant Duration := 3.0;
+   Time_Between_Checks : constant Duration := 1.0;
    Time_To_Synchronize : constant Duration := 10.0;
    Polling_Interval    : constant Duration := 0.5;
    --  Constants which change the behaviour of this package.
@@ -120,17 +113,67 @@ package body System.Garlic.Termination is
 
    procedure Dump_Task_Table;
 
-   procedure Send
-     (PID   : in Partition_ID;
-      Code  : in Termination_Code;
-      Stamp : in Stamp_Type;
-      Error : in out Error_Type);
+   Current_Father : Types.Partition_ID;
+   --  Our father for the current wave
 
-   procedure Shutdown;
-   --  Shutdown any active task
+   Current_Stamp  : Stamp_Type := 0;
+   --  The stamp of the current request
+
+   Neighbours_Contacted : Natural;
+   --  Number of neighbours that have been contacted so far and have not
+   --  sent any answer. This number is brought back to zero as soon as
+   --  we have answered our father, which may happen in case of a negative
+   --  answer from a neighbour.
+
+   Current_Ready  : Boolean := False;
+   pragma Atomic (Current_Ready);
+   Previous_Ready : Boolean := False;
+   --  Record the fact that we are (were) ready to terminate at the time of
+   --  the first message received for the current Stamp. Those values are
+   --  initially false so that two rounds are needed for every partition
+   --  joining the distributed system.
+
+   Termination_Detected : Boolean := False;
+   --  Will be set to True when the termination will be detected
+
+   Shutdown_Rejected : Boolean;
+   --  Will be set when termination is rejected early
+
+   type Control_Type is (Query, Answer, Perform_Shutdown);
+
+   procedure Send_Wave;
+   --  Send a wave to all our neighbours but our father and return the
+   --  number of partitions that have been contacted.
+
+   procedure Send_Answer (Recipient : in Partition_ID; Ready : in Boolean);
+   --  Send an answer to Recipient saying whether we are ready or not to
+   --  terminate. As a special case, if the Recipient is equal to our own
+   --  Partition_ID, then it means that we are on the initiator of the
+   --  termination algorithm. In this case, the result will be stored
+   --  in Termination_Detected.
+
+   procedure Send_Shutdown;
+   --  Send a shutdown wave to have all the neighbours terminate.
 
    procedure Sub_Non_Terminating_Task;
    --  Let Garlic know that a task is no longer a non terminating task.
+
+   ---------
+   -- ">" --
+   ---------
+
+   function ">" (S1, S2 : Stamp_Type) return Boolean is
+      Signed_Diff : Integer;
+   begin
+      Signed_Diff := Integer (S1) - Integer (S2);
+      if Signed_Diff > Integer (Stamp_Type'Last) / 2 then
+         return False;
+      elsif Signed_Diff < -Integer (Stamp_Type'Last / 2) then
+         return True;
+      else
+         return Signed_Diff > 0;
+      end if;
+   end ">";
 
    -----------------------
    -- Activity_Detected --
@@ -138,10 +181,7 @@ package body System.Garlic.Termination is
 
    procedure Activity_Detected is
    begin
-      Enter_Critical_Section;
-      Vote_Result_Ready := True;
-      Vote_Result_Value := False;
-      Leave_Critical_Section;
+      Current_Ready := False;
    end Activity_Detected;
 
    ------------------------------
@@ -154,6 +194,20 @@ package body System.Garlic.Termination is
       Non_Terminating_Tasks := Non_Terminating_Tasks + 1;
       Leave_Critical_Section;
    end Add_Non_Terminating_Task;
+
+   ----------------------
+   -- Dump_Task_Table --
+   ----------------------
+
+   procedure Dump_Task_Table is
+   begin
+      if Debug_Mode (Private_Debug_Key) then
+         List_Tasks;
+         D ("awake =" & Environment_Task.Awake_Count'Img);
+         D ("count =" & Non_Terminating_Tasks'Img);
+         D ("indep =" & Independent_Task_Count'Img);
+      end if;
+   end Dump_Task_Table;
 
    ---------------------------
    -- Get_Active_Task_Count --
@@ -168,6 +222,218 @@ package body System.Garlic.Termination is
       pragma Debug (Dump_Task_Table);
       return Total;
    end Get_Active_Task_Count;
+
+   ------------------------
+   -- Global_Termination --
+   ------------------------
+
+   procedure Global_Termination is
+      Flip_Flop : Boolean := True;
+      Deadline  : Time;
+   begin
+
+      --  This partition is involved in the global termination algorithm.
+      --  But only the main partition will have something to do. If
+      --  shutdown is already in progress, we do not have anything to
+      --  negotiate.
+
+      if Shutdown_In_Progress or else not Options.Is_Boot_Server then
+         return;
+      end if;
+
+      --  We have no father. This special case will be recognized by
+      --  Send_Answer.
+
+      Current_Father := Self_PID;
+
+      Main_Loop : loop
+
+         --  Wait for a given time
+
+         pragma Debug (D ("Waiting for some time"));
+
+         --  The following block may cause an additionnal delay of
+         --  Time_Between_Checks before the shutdown, but it will only
+         --  occur whenever an error has been signaled causing the regular
+         --  shutdown algorithm to be unused.
+
+         exit Main_Loop when Shutdown_In_Progress;
+
+         if Flip_Flop then
+            delay Time_Between_Checks;
+            exit Main_Loop when Shutdown_In_Progress;
+         end if;
+         Flip_Flop := not Flip_Flop;
+
+         --  To terminate, Get_Active_Task_Count should be 1 because the
+         --  env. task is still active because it is executing this code.
+
+         if Get_Active_Task_Count = 1
+           and then Local_Termination_Partitions'Length = 0
+         then
+            --  Update termination stamp to start a new vote
+
+            Current_Stamp     := Current_Stamp + 1;
+            Previous_Ready    := Current_Ready;
+            Current_Ready     := True;
+            Shutdown_Rejected := False;
+
+            pragma Debug
+              (D ("Starting round" & Stamp_Type'Image (Current_Stamp)));
+
+            --  Send a wave
+
+            Enter_Critical_Section;
+            pragma Debug (Dump_Partition_Table);
+            Send_Wave;
+
+            --  If we have no neighbour, then we can safely terminate
+
+            if Neighbours_Contacted = 0 then
+               Leave_Critical_Section;
+               Heart.Soft_Shutdown;
+               exit Main_Loop;
+            end if;
+
+            Leave_Critical_Section;
+
+            --  Wait until we get all the answers
+
+            Deadline := Clock + Time_To_Synchronize;
+
+            while Clock < Deadline and then not Shutdown_Rejected loop
+
+               delay Polling_Interval;
+
+               if Termination_Detected then
+
+                  pragma Debug
+                    (D ("Seeing that global termination is enabled"));
+
+                  Send_Shutdown;
+
+                  Heart.Soft_Shutdown;
+                  exit Main_Loop;
+               end if;
+
+            end loop;
+
+         end if;
+      end loop Main_Loop;
+   end Global_Termination;
+
+   --------------------
+   -- Handle_Request --
+   --------------------
+
+   procedure Handle_Request
+     (Partition : in Partition_ID;
+      Opcode    : in External_Opcode;
+      Query     : access Params_Stream_Type;
+      Reply     : access Params_Stream_Type;
+      Error     : in out Error_Type)
+   is
+      Control : Control_Type;
+      Stamp   : Stamp_Type;
+      B       : Boolean;
+   begin
+      Stamp_Type'Read (Query, Stamp);
+      if not Stamp'Valid then
+         pragma Debug (D ("Invalid stamp received"));
+         Raise_Exception (Constraint_Error'Identity, "Invalid stamp");
+      end if;
+      Control_Type'Read (Query, Control);
+      if not Control'Valid then
+         pragma Debug (D ("Invalid control received"));
+         Raise_Exception (Constraint_Error'Identity, "Invalid control");
+      end if;
+
+      Enter_Critical_Section;
+      case Control is
+         when Termination.Query =>
+            if Stamp > Current_Stamp then
+               Current_Stamp  := Stamp;
+               Current_Father := Partition;
+               Previous_Ready := Current_Ready;
+
+               --  We are ready only if we have two active tasks in the
+               --  system, the environment task and the current one
+               --  (which is active because it is an incoming request).
+
+               Current_Ready  := Get_Active_Task_Count = 2;
+
+               pragma Debug
+                 (D ("New round" & Stamp_Type'Image (Current_Stamp) &
+                     Partition_ID'Image (Current_Father)));
+               Send_Wave;
+
+               --  If we have no neighbour, then we can answer the
+               --  father right now.
+
+               if Neighbours_Contacted = 0 then
+                  Send_Answer (Current_Father,
+                               Previous_Ready and Current_Ready);
+               end if;
+            elsif Stamp = Current_Stamp then
+               pragma Debug
+                 (D ("Got slave message" &
+                     Stamp_Type'Image (Current_Stamp) &
+                     Partition_ID'Image (Partition)));
+               Send_Answer (Partition, Previous_Ready and Current_Ready);
+            else
+               pragma Debug (D ("Got obsolete stamp" &
+                                Stamp_Type'Image (Stamp)));
+               null;
+            end if;
+
+         when Answer =>
+            Boolean'Read (Query, B);
+            if not B'Valid then
+               pragma Debug (D ("Invalid boolean received for answer"));
+               Leave_Critical_Section;
+               Raise_Exception (Constraint_Error'Identity, "Invalid control");
+            end if;
+            pragma Debug (D ("Got answer " & Boolean'Image (B) &
+                             Stamp_Type'Image (Current_Stamp) &
+                             Partition_ID'Image (Partition)));
+            if Stamp = Current_Stamp
+              and then Neighbours_Contacted > 0
+            then
+               Neighbours_Contacted := Neighbours_Contacted - 1;
+               if not B then
+                  pragma Debug
+                    (D ("Sending a negative answer back to father" &
+                        Partition_ID'Image (Current_Father) &
+                        Stamp_Type'Image (Current_Stamp)));
+                  Send_Answer (Current_Father, False);
+               elsif Neighbours_Contacted = 0 then
+                  pragma Debug
+                    (D ("Answering neighbour" &
+                        Partition_ID'Image (Partition) &
+                        Stamp_Type'Image (Current_Stamp)));
+                  Send_Answer
+                    (Current_Father, Previous_Ready and Current_Ready);
+               end if;
+            else
+               null;
+               pragma Debug (D ("Ignoring answer with bad stamp"));
+            end if;
+
+         when Perform_Shutdown =>
+            if not Shutdown_In_Progress then
+               pragma Debug (D ("Propagating final shutdown message"));
+               Send_Shutdown;
+               Leave_Critical_Section;
+               Heart.Soft_Shutdown;
+               Enter_Critical_Section;
+            else
+               null;
+               pragma Debug (D ("Ignoring redundant final shutdown message"));
+            end if;
+
+      end case;
+      Leave_Critical_Section;
+   end Handle_Request;
 
    ----------------
    -- Initialize --
@@ -198,135 +464,88 @@ package body System.Garlic.Termination is
       Heart.Soft_Shutdown;
    end Local_Termination;
 
-   --------------------
-   -- Handle_Request --
-   --------------------
+   -----------------
+   -- Send_Answer --
+   -----------------
 
-   procedure Handle_Request
-     (Partition : in Partition_ID;
-      Opcode    : in External_Opcode;
-      Query     : access Params_Stream_Type;
-      Reply     : access Params_Stream_Type;
-      Error     : in out Error_Type)
-   is
-      Code  : Termination_Code;
-      Stamp : Stamp_Type;
+   procedure Send_Answer (Recipient : in Partition_ID; Ready : in Boolean) is
+      Message : aliased Params_Stream_Type (0);
+      Error   : Error_Type;
    begin
-      Termination_Code'Read (Query, Code);
-
-      if not Opcode'Valid then
-         Ada.Exceptions.Raise_Exception
-           (Constraint_Error'Identity,
-            "Received invalid termination operation");
+      if Recipient = Self_PID then
+         Termination_Detected := Ready;
+         Shutdown_Rejected    := not Ready;
+         return;
       end if;
+      Enter_Critical_Section;
+      Stamp_Type'Write (Message'Access, Current_Stamp);
+      Control_Type'Write (Message'Access, Answer);
+      Boolean'Write (Message'Access, Ready);
+      Send (Recipient, Shutdown_Service, Message'Access, Error);
+      Leave_Critical_Section;
+   end Send_Answer;
 
-      Stamp_Type'Read (Query, Stamp);
-      if not Stamp'Valid then
-         Ada.Exceptions.Raise_Exception
-           (Constraint_Error'Identity,
-            "Received invalid termination stamp");
-      end if;
+   -------------------
+   -- Send_Shutdown --
+   -------------------
 
-      case Code is
-         when Set_Stamp =>
-            Enter_Critical_Section;
-            Termination_Stamp := Stamp;
-            Vote_Result_Ready := True;
-            Vote_Result_Value := True;
-            Leave_Critical_Section;
-
-         when Check_Stamp =>
-            declare
-               Ready : Boolean;
-            begin
-               pragma Assert (Vote_Result_Ready);
-               Enter_Critical_Section;
-               Ready := Vote_Result_Value and then Stamp = Termination_Stamp;
-               Leave_Critical_Section;
-
-               --  To terminate, Get_Active_Task_Count should be 2 because
-               --  the env. task is still active (awake) and the task
-               --  executing this code is also active.
-
-               if Ready
-                 and then Get_Active_Task_Count = 2
-                 and then Options.Termination /= Deferred_Termination
-               then
-                  pragma Debug (D ("Partition can terminate"));
-                  Termination_Code'Write (Reply, Positive_Ack);
-               else
-                  pragma Debug (D ("Partition cannot terminate"));
-                  Termination_Code'Write (Reply, Negative_Ack);
-               end if;
-               Stamp_Type'Write (Reply, Stamp);
-            end;
-
-         when Positive_Ack =>
-            Enter_Critical_Section;
-            if Stamp = Termination_Stamp then
-               if not Vote_Result_Ready then
-                  Acknowledge_Count := Acknowledge_Count - 1;
-                  if Acknowledge_Count = 0 then
-                     Vote_Result_Ready := True;
-                     Vote_Result_Value := True;
-                  end if;
-               end if;
-            end if;
-            Leave_Critical_Section;
-
-         when Negative_Ack =>
-            Enter_Critical_Section;
-            if Stamp = Termination_Stamp then
-               Vote_Result_Ready := True;
-               Vote_Result_Value := False;
-            end if;
-            Leave_Critical_Section;
-
-      end case;
-   end Handle_Request;
-
-   ----------------------
-   -- Dump_Task_Table --
-   ----------------------
-
-   procedure Dump_Task_Table is
-   begin
-      if Debug_Mode (Private_Debug_Key) then
-         List_Tasks;
-         D ("awake =" & Environment_Task.Awake_Count'Img);
-         D ("count =" & Non_Terminating_Tasks'Img);
-         D ("indep =" & Independent_Task_Count'Img);
-      end if;
-   end Dump_Task_Table;
-
-   ----------
-   -- Send --
-   ----------
-
-   procedure Send
-     (PID   : in Partition_ID;
-      Code  : in Termination_Code;
-      Stamp : in Stamp_Type;
-      Error : in out Error_Type)
-   is
-      Query : aliased Params_Stream_Type (0);
-   begin
-      Termination_Code'Write (Query'Access, Code);
-      Stamp_Type'Write (Query'Access, Stamp);
-      Send (PID, Shutdown_Service, Query'Access, Error);
-   end Send;
-
-   --------------
-   -- Shutdown --
-   --------------
-
-   procedure Shutdown is
+   procedure Send_Shutdown is
+      Neighbours   : constant Partition_List := Online_Partitions;
+      Message      : aliased Params_Stream_Type (0);
+      Message_Copy : aliased Params_Stream_Type (0);
+      Error        : Error_Type;
+      Partition    : Partition_ID;
    begin
       Enter_Critical_Section;
-      Vote_Result_Ready := True;
-      Vote_Result_Value := True;
+      Stamp_Type'Write (Message'Access, Current_Stamp);
+      Control_Type'Write (Message'Access, Perform_Shutdown);
+      for I in Neighbours'Range loop
+         Partition := Neighbours (I);
+         if Partition /= Self_PID then
+            Copy (Message, Message_Copy);
+            Send (Partition, Shutdown_Service, Message'Access, Error);
+         end if;
+      end loop;
+      Deallocate (Message);
       Leave_Critical_Section;
-   end Shutdown;
+   end Send_Shutdown;
+
+   ---------------
+   -- Send_Wave --
+   ---------------
+
+   procedure Send_Wave is
+      Neighbours   : constant Partition_List := Online_Partitions;
+      Message      : aliased Params_Stream_Type (0);
+      Message_Copy : aliased Params_Stream_Type (0);
+      Error        : Error_Type;
+      Partition    : Partition_ID;
+   begin
+      Enter_Critical_Section;
+      Stamp_Type'Write (Message'Access, Current_Stamp);
+      Control_Type'Write (Message'Access, Query);
+      Neighbours_Contacted := 0;
+      for I in Neighbours'Range loop
+         Partition := Neighbours (I);
+         if Partition /= Self_PID
+           and then Partition /= Current_Father
+           and then not Has_Local_Termination (Partition)
+         then
+            Copy (Message, Message_Copy);
+            Send
+              (Neighbours (I), Shutdown_Service, Message_Copy'Access, Error);
+            if Found (Error) then
+               Catch (Error);
+            else
+               Neighbours_Contacted := Neighbours_Contacted + 1;
+            end if;
+         end if;
+      end loop;
+      Deallocate (Message);
+      pragma Debug (D ("Send request to" &
+                       Natural'Image (Neighbours_Contacted) & " neighbours"));
+      Leave_Critical_Section;
+   end Send_Wave;
 
    ------------------------------
    -- Sub_Non_Terminating_Task --
@@ -339,153 +558,9 @@ package body System.Garlic.Termination is
       Leave_Critical_Section;
    end Sub_Non_Terminating_Task;
 
-   ------------------------
-   -- Global_Termination --
-   ------------------------
-
-   procedure Global_Termination is
-   begin
-
-      --  This partition is involved in the global termination algorithm.
-      --  But only the main partition will have something to do. If
-      --  shutdown is already in progress, we do not have anything to
-      --  negotiate.
-
-      if Shutdown_In_Progress or else not Options.Is_Boot_Server then
-         return;
-      end if;
-
-      Main_Loop : loop
-
-         --  Wait for a given time
-
-         pragma Debug (D ("Waiting for some time"));
-
-         --  The following block may cause an additionnal delay of
-         --  Time_Between_Checks before the shutdown, but it will only
-         --  occur whenever an error has been signaled causing the regular
-         --  shutdown algorithm to be unused.
-
-         exit Main_Loop when Shutdown_In_Progress;
-         delay Time_Between_Checks;
-         exit Main_Loop when Shutdown_In_Progress;
-
-         --  To terminate, Get_Active_Task_Count should be 1 because the
-         --  env. task is still active because it is executing this code.
-
-         if Get_Active_Task_Count = 1 then
-            declare
-               function Clock return Duration
-                 renames System.Task_Primitives.Operations.Clock;
-               Stamp       : Stamp_Type;
-               Success     : Boolean;
-               Deadline    : Duration;
-               Count       : Natural := 0;
-               Error       : Error_Type;
-            begin
-               --  First of all, check if there is any alive partition whose
-               --  termination is local. If this is the case, that means
-               --  that these partitions have not terminated yet.
-
-               if Local_Termination_Partitions'Length = 0 then
-                  --  Update termination stamp to start a new vote.
-
-                  Enter_Critical_Section;
-                  Termination_Stamp := Termination_Stamp + 1;
-                  Vote_Result_Ready := False;
-                  Stamp := Termination_Stamp;
-                  Leave_Critical_Section;
-
-                  --  Send a first wave of requests to indicate the new
-                  --  stamp.
-
-                  declare
-                     PIDs : Partition_List := Global_Termination_Partitions;
-                  begin
-                     Count := 0;
-                     for I in PIDs'Range loop
-                        if PIDs (I) /= Self_PID then
-                           Count := Count + 1;
-                           Send (PIDs (I), Set_Stamp, Stamp, Error);
-                        end if;
-                     end loop;
-
-                     --  Note the number of voters.
-
-                     Enter_Critical_Section;
-                     Acknowledge_Count := Count;
-                     if Count = 0 then
-                        Vote_Result_Ready := True;
-                        Vote_Result_Value := True;
-                     end if;
-                     Leave_Critical_Section;
-
-                     --  Send a second wave of requests to see if the
-                     --  partition is ready to terminate or if the
-                     --  partition has received a request from another
-                     --  partition since the first wave.
-
-
-                     for I in PIDs'Range loop
-                        if PIDs (I) /= Self_PID then
-                           Send (PIDs (I), Check_Stamp, Stamp, Error);
-                        end if;
-                     end loop;
-                  end;
-
-                  Success  := False;
-                  Deadline := Clock + Time_To_Synchronize;
-                  while Clock < Deadline loop
-
-                     --  The following construction is against all the
-                     --  quality and style guidelines; but they cannot
-                     --  be applied here: we do NOT care if this is
-                     --  not executed in time, since that means that
-                     --  some other activity took place. If this is
-                     --  the case, then it is likely that we do not
-                     --  want to terminate anymore.
-
-                     delay Polling_Interval;
-
-                     Enter_Critical_Section;
-                     if Vote_Result_Ready then
-                        Success := Vote_Result_Value;
-                        Leave_Critical_Section;
-                        exit;
-                     else
-                        Leave_Critical_Section;
-                     end if;
-                  end loop;
-
-               else
-                  --  Success is impossible because some partitions with
-                  --  local termination are still alive.
-
-                  Success := False;
-               end if;
-
-               --  To terminate, Get_Active_Task_Count should be 1 because
-               --  the env. task is still active because it is executing
-               --  this code.
-
-               if Success and then Get_Active_Task_Count = 1 then
-
-                  --  Everyone agrees it's time to die, so let's initiate
-                  --  this if nothing runs here.
-
-                  Heart.Soft_Shutdown;
-                  exit Main_Loop;
-               end if;
-            end;
-         end if;
-
-      end loop Main_Loop;
-   end Global_Termination;
-
 begin
    Register_Add_Non_Terminating_Task (Add_Non_Terminating_Task'Access);
    Register_Sub_Non_Terminating_Task (Sub_Non_Terminating_Task'Access);
-   Register_Termination_Shutdown (Shutdown'Access);
    Register_Termination_Initialize (Initialize'Access);
    Register_Activity_Detected (Activity_Detected'Access);
    Register_Local_Termination (Local_Termination'Access);

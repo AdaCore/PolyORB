@@ -1,3 +1,25 @@
+1999-07-29  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garpar.ads, s-garpar.adb: Export Dump_Partition_Table so that
+	it can be used to debug the termination algorithm.
+	Fix bug in Online_Partitions (was using Is_Known instead of
+	Is_Online).
+	Rewrite Matching_Partitions more efficiently.
+
+1999-07-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Remove reference to Termination_Shutdown.
+
+	* s-garter.adb: Implement new wave-based algorithm. This one
+	should work in all the cases, even in presence of messages in
+	transit.
+
+	* s-gasoli.ads, s-gasoli.adb: Remove *Termination_Shutdown
+	subprograms as they are not used anymore.
+
+	* s-garpar.ads, s-garpar.adb: New subprogram Has_Local_Termination 
+	used by the termination algorithm.
+
 1999-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garpar.adb, s-garpar.ads: Add new subprograms Set_Online and

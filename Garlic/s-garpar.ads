@@ -94,6 +94,10 @@ package System.Garlic.Partitions is
    function Local_Termination_Partitions return Types.Partition_List;
    function Online_Partitions return Types.Partition_List;
 
+   function Has_Local_Termination (Partition : Types.Partition_ID)
+     return Boolean;
+   --  Return True if partition has a local termination
+
    procedure Handle_Partition_Request
      (Partition : in Types.Partition_ID;
       Query     : access Streams.Params_Stream_Type;
@@ -147,5 +151,8 @@ package System.Garlic.Partitions is
    procedure Shutdown;
    --  Resume tasks waiting for an update of partition info table to
    --  ensure shutdown.
+
+   procedure Dump_Partition_Table;
+   --  Dump partition table on standard output for debugging purpose
 
 end System.Garlic.Partitions;

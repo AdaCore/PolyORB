@@ -105,13 +105,6 @@ package body System.Garlic.Soft_Links is
    procedure Sub_Non_Terminating_Task
      renames P_Sub_Non_Terminating_Task.Call;
 
-   package P_Termination_Shutdown is new Proc ("Termination_Shutdown");
-   procedure Register_Termination_Shutdown
-     (P : in Parameterless_Procedure)
-     renames P_Termination_Shutdown.Register;
-   procedure Termination_Shutdown
-     renames P_Termination_Shutdown.Call;
-
    package P_Termination_Initialize is new Proc ("Termination_Initialize");
    procedure Register_Termination_Initialize
      (P : in Parameterless_Procedure)
