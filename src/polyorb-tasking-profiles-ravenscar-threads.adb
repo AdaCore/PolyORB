@@ -33,10 +33,8 @@
 
 --  Implementation of Threads under the Ravenscar profile.
 
-pragma Warnings (Off);
 with System.Tasking;
 --  This is an internal GNAT unit.
-pragma Warnings (On);
 
 with Ada.Task_Identification;
 with Ada.Unchecked_Conversion;
