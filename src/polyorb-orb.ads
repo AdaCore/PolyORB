@@ -141,16 +141,13 @@ package PolyORB.ORB is
    --  RJ is freed after it is called.
 
    procedure Idle
-     (P         : access Tasking_Policy_Type;
-      This_Task :        PolyORB.Task_Info.Task_Info;
-      ORB       :        ORB_Access)
-      is abstract;
-   --  Called by a task that has nothing to do in order to
-   --  wait until there may be anything to do.
+     (P   : access Tasking_Policy_Type;
+      ORB : ORB_Access) is abstract;
+   --  Called by a task that has nothing to do in order
+   --  to wait until there may be anything to do.
    --  The calling task must hold ORB_Lock before calling Idle;
    --  the tasking policy shall release it while the task is
    --  idling, and re-assert it before Idle returns.
-   --  'This_Task' holds information on this waiting task.
 
    procedure Queue_Request_To_Handler
      (P   : access Tasking_Policy_Type;

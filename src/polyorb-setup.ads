@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,15 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Initialization of a complete PolyORB partition.
+--  Initialization of a PolyORB server.
+--  This package has several child procedures, corresponding
+--  to different compile-time configurations.
 
 --  $Id$
 
 with PolyORB.ORB;
 
 package PolyORB.Setup is
-
-   pragma Elaborate_Body;
 
    The_Tasking_Policy : PolyORB.ORB.Tasking_Policy_Access;
    The_ORB : PolyORB.ORB.ORB_Access;
