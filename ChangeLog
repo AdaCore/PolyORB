@@ -1,10 +1,16 @@
+1998-09-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: To build isthriob, don't compile s-stratt.adb
+ 	anymore and bind with flag -t to ignore stamp inconsistency.
+        Don't care about inlining and stamp inconsistency since this
+        executable is supposed to check whether IO are thread blocking or
+        not. This should be fast because it is done during configuration.
+
 1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in (TISTHRBIO): Use a reliable method that works with
 	GNAT-inlined/GLADE-not-inlined, GNAT-not-inlined/GLADE-inlined,
-	both-inlined or both-non-inlined. The two previous versions had a
-	problem with some combinations, the last one causing nightly build 
-	failures.
+	both-inlined or both-non-inlined.
 
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 

@@ -219,7 +219,10 @@ if test "$TCP_INCLUDED" = ""; then
       echo "   renames System.Garlic.Thin;"       >>$srcdir/Garlic/s-gatcop.ads
    else
       AC_MSG_CHECKING([for thread-blocking I/O (long)])
-      ${GNATMAKE} -a -q -m isthrbio.adb -I$srcdir/Garlic;
+      ${ADA} -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
+      ${ADA} -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
+      ${ADA} -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
+      ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic -bargs -t;
       if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
         ISTHRBIO="no"
       fi
