@@ -41,7 +41,6 @@ with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
-with System.Garlic.Remote;     use System.Garlic.Remote;
 with System.Garlic.Storages;   use System.Garlic.Storages;
 with System.Garlic.Types;
 with System.Garlic.Soft_Links;
@@ -376,35 +375,6 @@ package body System.Partition_Interface is
       return Hash_Index (Natural (K.Addr) mod Positive (Hash_Index'Last + 1));
    end Hash;
 
-   ------------
-   -- Launch --
-   ------------
-
-   procedure Launch
-     (Rsh_Command  : in String;
-      Name_Is_Host : in Boolean;
-      General_Name : in String;
-      Rsh_Options  : in String;
-      Command_Line : in String)
-   is
-   begin
-      if not Nolaunch then
-         if Name_Is_Host then
-            Full_Launch
-              (Rsh_Command,
-               General_Name,
-               Rsh_Options,
-               Command_Line);
-         else
-            Full_Launch
-              (Rsh_Command,
-               Get_Host (General_Name),
-               Rsh_Options,
-               Command_Line);
-         end if;
-      end if;
-   end Launch;
-
    -------------------------------
    -- Raise_Communication_Error --
    -------------------------------
@@ -465,6 +435,27 @@ package body System.Partition_Interface is
       Register_Package (N, Self_PID);
    end Register_Passive_Package;
 
+   ---------------------------------------------------
+   -- Register_Passive_Package_On_Passive_Partition --
+   ---------------------------------------------------
+
+   procedure Register_Passive_Package_On_Passive_Partition
+     (Partition : in RPC.Partition_ID;
+      Name      : in Unit_Name;
+      Version   : in String := "")
+     is
+      N : String       := Name;
+      V : Version_Type := Version_Type (Version);
+      P : Partition_ID := Partition_ID (Partition);
+
+   begin
+      To_Lower (N);
+
+      pragma Debug (D ("Register " & N & " on passive partition" & P'Img));
+
+      Register_Unit (P, N, 0, V);
+   end Register_Passive_Package_On_Passive_Partition;
+
    --------------------------------
    -- Register_Passive_Partition --
    --------------------------------
@@ -505,27 +496,6 @@ package body System.Partition_Interface is
       To_Lower (N);
       Register_Unit (Self_PID, N, R, V);
    end Register_Receiving_Stub;
-
-   ---------------------------------------------------
-   -- Register_Passive_Package_On_Passive_Partition --
-   ---------------------------------------------------
-
-   procedure Register_Passive_Package_On_Passive_Partition
-     (Partition : in RPC.Partition_ID;
-      Name      : in Unit_Name;
-      Version   : in String := "")
-     is
-      N : String       := Name;
-      V : Version_Type := Version_Type (Version);
-      P : Partition_ID := Partition_ID (Partition);
-
-   begin
-      To_Lower (N);
-
-      pragma Debug (D ("Register " & N & " on passive partition" & P'Img));
-
-      Register_Unit (P, N, 0, V);
-   end Register_Passive_Package_On_Passive_Partition;
 
    --------------
    -- RCI_Info --
