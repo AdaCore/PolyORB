@@ -1,12 +1,17 @@
-------------------------------------------------------------------------------
---                     DROOPI COMPONENTS                                    --
---                       IOR SPEC                                           --
-------------------------------------------------------------------------------
+--  Representation of object references as typed
+--  Interoperable Object References.
+
+--  An IOR aggregates the identification of an interface
+--  and a set of profiles designating an object that supports
+--  this interface. An IOR can be converted to a stringified
+--  representation by marshalling it according to CDR, and converting
+--  the resulting stream element array into a string of hexadecimal digits.
+
+--  $Id$
 
 with CORBA;
 
 with Droopi.Buffers;      use Droopi.Buffers;
-
 
 package Droopi.References.IOR is
 
