@@ -1,3 +1,8 @@
+2002-02-13  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* glade_ug.texi: Include gfdl.texi and fix some spacing
+	problems. Fix copyright as well.
+
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* user_guide.html: Remove RCS keyword.

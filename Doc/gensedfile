@@ -9,8 +9,8 @@ TARGET=$2
 case ${SOURCE} in
   idl*)
     cat <<EOF >>${TARGET}
-s/\{/\@\{/g
-s/\}/\@\}/g
+s/{/\@{/g
+s/}/\@}/g
 EOF
     ;;
   *)

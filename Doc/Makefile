@@ -1,7 +1,7 @@
 CP = /bin/cp
 SED = /bin/sed
 SHELL=/bin/sh
-FIG2DEV=/usr/X11R6/bin/fig2dev
+FIG2DEV=fig2dev
 
 CFGFILES=\
 myconfig.cfg

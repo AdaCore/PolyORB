@@ -6,7 +6,7 @@
 
 @c GNU Free Documentation License
 @noindent
-Version 1.1, March 2000
+Version 1.1
 @sp 1
 @noindent
 Copyright @copyright{} 2000 Free Software Foundation, Inc.

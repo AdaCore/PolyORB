@@ -11,14 +11,14 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle GLADE Version __glade_version__
+@subtitle GLADE Version glade-3.15a
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
 @page
 @vskip 0pt plus 1filll
 
-@copyright{} Copyright 1997-2000, Free Soft Foundation.
+@copyright{} Copyright 1997-2002, Free Soft Foundation.
 
 GLADE is free software; you can redistribute it and/or modify it under
 terms of the GNU General Public License as published by the Free
@@ -44,6 +44,7 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * The Distributed Systems Annex::  
 * Getting Started With GLADE::  
 * DSA and CORBA::               
+* GNU Free Documentation License::  
 @end menu
 @end ifinfo
 
@@ -366,7 +367,10 @@ subprograms. Otherwise, a partition calling a remote subprogram on
 Unit_2 would not be able to statically determine where to perform the
 remote call between the two instances of Unit_2.
  
+@*
+@*
 @image{xe-arch.fig}
+@*
 
 @node Categorization Pragmas, Pragma Declared Pure, Architecture of a Distributed Ada95 Application, The Distributed Systems Annex
 @section Categorization Pragmas
@@ -1047,7 +1051,10 @@ to him. The worker performs the job and saves the result (reply - 3) in
 a storage common to all the factories.  The worker notifies the factory
 of the end of his job (notify - 4).
 
+@*
+@*
 @image{full-ex.fig}
+@*
 
 When a worker has completed his job, the result must be saved in a
 common storage. To do this, we define a protected area in SP package
@@ -2772,7 +2779,7 @@ kill MAIN_PART.
 @c Language-defined exceptions propagate well through different
 @c partitions.
 
-@node DSA and CORBA,  , Getting Started With GLADE, Top
+@node DSA and CORBA, GNU Free Documentation License, Getting Started With GLADE, Top
 @appendix DSA and CORBA
 
 @menu
@@ -2795,7 +2802,10 @@ are Interface Definition Language, Language Mappings, Stubs, Skeletons
 and Object Adapters, ORB, Interface Repository, Dynamic Invocation, ORB
 protocols and CORBA services.
 
+@*
+@*
 @image{corba-arch.fig}
+@*
 
 The IDL specifies modules, constants, types and interfaces. An object
 interface defines the operations, exceptions and public attributes a
@@ -3192,6 +3202,8 @@ ORB. This would also allow applications written in other languages to
 invoke DSA features. We are also seeking to use this approach to offer a
 DII mechanism for DSA.
 
+@node GNU Free Documentation License,  , DSA and CORBA, Top
+@include gfdl.texi
 
 
 @c XXXXX Index is nonexistent
