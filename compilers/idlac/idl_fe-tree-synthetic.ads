@@ -103,7 +103,7 @@ package Idl_Fe.Tree.Synthetic is
    --  Return a Repository ID in OMG IDL format for K_Named Node
    --  (as defined in "10.6 RepositoryIds").
 
-   function Version (Node : in Node_Id) return Version_Type;
+   function Version (Node : in Node_Id) return String;
    --  Return the version part of Node's repository id.
 
    function All_Ancestors

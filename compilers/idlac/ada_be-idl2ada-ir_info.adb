@@ -656,7 +656,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "name => CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "version => CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      PL (CU, "  (""" & Version (Node) & """),");
    end Gen_Standard_Create_Parameters;
 
    ------------------------------
@@ -772,7 +772,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "  (" & Repository_Id_Name (Node) & "),");
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
-      PL (CU, "To_CORBA_String (""" & Image (Version (Node))
+      PL (CU, "To_CORBA_String (""" & Version (Node)
           & """),");
       PL (CU, "Base_Ifs,");
       PL (CU, Boolean'Image (Abst (Node)) & "));");
@@ -966,7 +966,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """)));");
+      PL (CU, "  (""" & Version (Node) & """)));");
       DI (CU);
       NL (CU);
       PL (CU, "return Cached_" & IRN & ";");
@@ -1035,7 +1035,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      PL (CU, "  (""" & Version (Node) & """),");
       PL (CU, "Members));");
       DI (CU);
       DI (CU);

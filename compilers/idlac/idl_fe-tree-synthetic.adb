@@ -24,8 +24,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Interfaces;
-
 with Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
 with Idl_Fe.Debug;
@@ -187,16 +185,10 @@ package body Idl_Fe.Tree.Synthetic is
 
    end Idl_Repository_Id;
 
-   function Version (Node : Node_Id) return Version_Type is
+   function Version (Node : Node_Id) return String is
       Id : constant String := Idl_Repository_Id (Node);
-      Dot : Integer := Id'Last;
-      Colon : Integer;
+      Colon : Integer := Id'Last;
    begin
-      while Dot >= Id'First and then Id (Dot) /= '.' loop
-         Dot := Dot - 1;
-      end loop;
-
-      Colon := Dot - 1;
       while Colon >= Id'First and then Id (Colon) /= ':' loop
          Colon := Colon - 1;
       end loop;
@@ -206,11 +198,7 @@ package body Idl_Fe.Tree.Synthetic is
                 Fatal, Get_Location (Node));
       end if;
 
-      return
-        (Major => Interfaces.Unsigned_16'Value
-         (Id (Colon + 1 .. Dot - 1)),
-         Minor => Interfaces.Unsigned_16'Value
-         (Id (Dot + 1 .. Id'Last)));
+      return Id (Colon + 1 .. Id'Last);
    end Version;
 
    function All_Ancestors
