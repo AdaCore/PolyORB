@@ -92,6 +92,11 @@ package body Disp is
             Put_Line ("repository");
             Disp_List (N_Repository (N).Contents, Nindent, Full);
 
+         when K_Module =>
+            Put_Line ("module " & Get_Name (N_Module (N)));
+            Disp_Indent (Nindent, "content:");
+            Disp_List (N_Module (N).Contents, Nindent + Offset, Full);
+
 --          when K_Interface =>
 --             Put_Line ("interface " & Get_Name (N_Interface (N)));
 --             if Full then
@@ -358,11 +363,6 @@ package body Disp is
 --                Disp_Indent (Nindent, "bound:");
 --                Disp_Tree (N_Sequence (N).Bound.all, Nindent + Offset, Full);
 --             end if;
-
---          when K_Module =>
---             Put_Line ("module " & Get_Name (N_Module (N)));
---             Disp_Indent (Nindent, "content:");
---             Disp_List (N_Module (N).Contents, Nindent + Offset, Full);
 
 --          when K_Const =>
 --             Put_Line ("const " & Get_Name (N_Const (N)));

@@ -3,13 +3,14 @@ with GNAT.Command_Line;
 with Tokens; use Tokens;
 
 procedure testlexer is
+   Token : Tokens.Idl_Token;
 begin
    Tokens.Initialize (GNAT.Command_Line.Get_Argument,
                       True,
                       True);
 
    loop
-      Next_Token;
+      Token := Get_Next_Token;
       Ada.Text_Io.Put (Idl_Token'Image (Token));
       case Token is
          when T_Lit_Decimal_Integer |

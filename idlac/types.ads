@@ -30,9 +30,9 @@ package Types is
 
    --  all the possible kinds of node
    type Node_Kind is
-      (K_Repository  --  ,
+      (K_Repository,
 --        K_Scoped_Name,
---        K_Module,
+       K_Module  --  ,
 --        K_Interface,
 --        K_Forward_Interface,
 --        K_Operation,

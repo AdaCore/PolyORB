@@ -18,7 +18,7 @@
 
 with Tokens; use Tokens;
 with Types; use Types;
---  with Errors;
+with Errors;
 
 package body Parse is
 
@@ -33,6 +33,57 @@ package body Parse is
       Tokens.Initialize (Filename, Preprocess, Keep_Temporary_Files);
    end Initialize;
 
+
+   --------------------------------------
+   --  management of the token stream  --
+   --------------------------------------
+
+   --  This is a little buffer to put tokens if we have
+   --  to look a bit further than the current_token.
+
+   --  buffer length
+   Buffer_Length : constant Natural := 3;
+
+   --  a type for indexes on the buffer
+   type Buffer_Index is mod Buffer_Length;
+
+   --  the buffer itself
+   Token_Buffer : array (Buffer_Index) of Idl_Token
+     := (others => T_Error);
+
+   --  index of the current token in the buffer
+   Current_Index : Buffer_Index := 0;
+
+   --  index of the newest token in the buffer (could be different
+   --  from the current token if we looked a bit further in the past)
+   Newest_Index : Buffer_Index := 0;
+
+   --  This function returns the current token
+   function Get_Token return Idl_Token is
+   begin
+      return Token_Buffer (Current_Index);
+   end Get_Token;
+
+   --  This procedure consumes a token. If the token was already
+   --  in the buffer, it just increases the index. Else, it gets
+   --  the next token from the lexer.
+   procedure Next_Token is
+   begin
+      if Current_Index = Newest_Index then
+         Newest_Index := Newest_Index + 1;
+         Token_Buffer (Newest_Index) := Tokens.Get_Next_Token;
+      end if;
+      Current_Index := Current_Index + 1;
+   end Next_token;
+
+   --  Returns the next token in the token stream coming from the
+   --  lexer without consuming it. It places it in the buffer
+   function View_Next_Token return Idl_Token is
+   begin
+      Newest_Index := Newest_Index + 1;
+      Token_Buffer (Newest_Index) := Tokens.Get_Next_Token;
+      return Token_Buffer (Newest_Index);
+   end View_Next_Token;
 
    --------------------------
    --  Parsing of the idl  --
@@ -1254,28 +1305,6 @@ package body Parse is
 --       return Res;
 --    end Parse_Const_Dcl;
 
---    --  Rule 3:
---    --  <module> ::= "module" <identifier> "{" <definition>+ "}"
---    function Parse_Module return N_Module_Acc is
---       Res : N_Module_Acc;
---    begin
---       Res := new N_Module;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Module);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       --  Create a scope for the module.
---       Push_Scope (Res);
---       Scan_Expect (T_Left_Cbracket);
---       Next_Token;
---       loop
---          Append_Node (Res.Contents, Parse_Definition);
---          exit when Token = T_Right_Cbracket;
---       end loop;
---       Next_Token;
---       Pop_Scope;
---       return Res;
---    end Parse_Module;
 
    --  Rule 2:
    --  <definition> ::= <type_dcl> ";"
@@ -1283,10 +1312,12 @@ package body Parse is
 --                 |   <except_dcl> ";"
 --                 |   <interface> ";"
 --                 |   <module> ";"
-   function Parse_Definition return N_Root_Acc is
+   procedure Parse_Definition (Result : out N_Root_Acc;
+                               Success : out Boolean) is
 --       Res : N_Root_Acc;
    begin
-      return null;
+      Result := null;
+      Success := False;
 --       case Token is
 --          when T_Typedef | T_Struct | T_Union | T_Enum | T_Native =>
 --             Res := N_Root_Acc (Parse_Type_Dcl);
@@ -1308,6 +1339,88 @@ package body Parse is
 --       return Res;
    end Parse_Definition;
 
+   procedure Go_To_Next_Definition is
+   begin
+      null;
+   end Go_To_Next_Definition;
+
+
+   --  Rule 3:
+   --  <module> ::= "module" <identifier> "{" <definition>+ "}"
+   procedure Parse_Module (Result : out N_Module_Acc;
+                           Success : out Boolean) is
+      Location : Errors.Location;
+   begin
+      Location := Get_Location;
+      --  Is there an identifier ?
+      Next_Token;
+      case Get_Token is
+         when  T_Identifier =>
+            case View_Next_Token is
+               when T_Left_Cbracket =>
+                  --  Creation of the node
+                  Result := new N_Module;
+                  Types.Set_Location (Result.all, Location);
+                  --  try to add the identifier to the scope
+                  if not Types.Add_Identifier (Result) then
+                     --  there is a name collision with the module name
+                     declare
+                        Loc : Errors.Location;
+                     begin
+                        loc := Types.Get_Location (Find_Identifier_Node.all);
+                        Errors.Parser_Error
+                          ("This module name is already defined in" &
+                           " this scope : " &
+                           Errors.Display_Location (Loc),
+                           Errors.Error);
+                     end;
+                  end if;
+                  --  create a new scope
+                  Push_Scope (Result);
+                  --  consume the T_Left_Cbracket token
+                  Next_Token;
+                  --  parse the module body
+                  Next_Token;
+                  declare
+                     Definition : N_Root_Acc;
+                     Definition_Result : Boolean;
+                  begin
+                     while Get_Token /= T_Right_Cbracket loop
+                        --  try to parse a definition
+                        Parse_Definition (Definition, Definition_Result);
+                        if Definition_Result then
+                           --  successfull
+                           Append_Node (Result.Contents, Definition);
+                           Next_Token;
+                        else
+                           --  failed
+                           Go_To_Next_Definition;
+                        end if;
+                     end loop;
+                     --  consume the T_Right_Cbracket token
+                     Next_Token;
+                  end;
+                  --  end of the module body parsing
+                  Pop_Scope;
+                  Success := True;
+               when others =>
+                  Errors.Parser_Error ("'{' expected. " &
+                                       "This module definition " &
+                                       "will be skipped",
+                                       Errors.Error);
+                  Result := null;
+                  Success := False;
+            end case;
+         when others =>
+            Errors.Parser_Error ("Identifier expected. " &
+                                 "This module definition " &
+                                 "will be skipped",
+                                 Errors.Error);
+            Result := null;
+            Success := False;
+      end case;
+   end Parse_Module;
+
 
    --  Rule 1 :
    --  <specification> ::= <definition>+
@@ -1319,45 +1432,55 @@ package body Parse is
       --  The repository is the root scope.
       Push_Scope (Result);
       Next_Token;
-      loop
-         Append_Node (Result.Contents, Parse_Definition);
-         exit when Token = T_Eof;
+      while Get_Token /= T_Eof loop
+         declare
+            Definition : N_Root_Acc;
+            Definition_Result : Boolean;
+         begin
+            Parse_Definition (Definition, Definition_Result);
+            if Definition_Result then
+               Append_Node (Result.Contents, Definition);
+               Next_token;
+            else
+               Go_To_Next_Definition;
+            end if;
+         end;
       end loop;
       Pop_Scope;
       return Result;
    end Parse_Specification;
 
 
---
---  INUTILE ?????
---
---
---    --  Be sure TOKEN_KIND is the current token.
---    --  If not, emit a message, and try to as wise as possible.
---    procedure Expect (Token_Kind : Idl_Token) is
---    begin
---       if Token = Token_Kind then
---          return;
---       end if;
+   --
+   --  INUTILE ?????
+   --
+   --
+   --    --  Be sure TOKEN_KIND is the current token.
+   --    --  If not, emit a message, and try to as wise as possible.
+   --    procedure Expect (Token_Kind : Idl_Token) is
+   --    begin
+   --       if Token = Token_Kind then
+   --          return;
+   --       end if;
 
---       if Token_Kind = T_Greater and then Token = T_Greater_Greater then
---          Errors.Parser_Error
---            ("`>>' is a shift operator, use `> >' for a double `>'",
---             Errors.Error);
---          Set_Replacement_Token (T_Greater);
---       else
---          Errors.Parser_Error ("unexpected token " & Image (Token)
---                      & ", " & Image (Token_Kind) & " expected",
---                                Errors.Error);
---          raise Parse_Error;
---       end if;
---    end Expect;
+   --       if Token_Kind = T_Greater and then Token = T_Greater_Greater then
+   --          Errors.Parser_Error
+   --            ("`>>' is a shift operator, use `> >' for a double `>'",
+   --             Errors.Error);
+   --          Set_Replacement_Token (T_Greater);
+   --       else
+   --          Errors.Parser_Error ("unexpected token " & Image (Token)
+   --                      & ", " & Image (Token_Kind) & " expected",
+   --                                Errors.Error);
+   --          raise Parse_Error;
+   --       end if;
+   --    end Expect;
 
---    procedure Scan_Expect (Token_Kind : Idl_Token) is
---    begin
---       Next_Token;
---       Expect (Token_Kind);
---    end Scan_Expect;
+   --    procedure Scan_Expect (Token_Kind : Idl_Token) is
+   --    begin
+   --       Next_Token;
+   --       Expect (Token_Kind);
+   --    end Scan_Expect;
 
 
 end Parse;

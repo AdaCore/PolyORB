@@ -194,12 +194,9 @@ package Tokens is
                          Preprocess : in Boolean;
                          Keep_Temporary_Files : in Boolean);
 
-   --  Advance the lexical analyse until a new token is found.
-   --  An invalid token will make function TOKEN returns t_error.
-   procedure Next_Token;
-
-   --  Get the current token.
-   function Token return Idl_Token;
+   --  Analyses further and returns the next token.
+   --  Returns t_error if the entry is invalid.
+   function Get_Next_Token return Idl_Token;
 
 
 

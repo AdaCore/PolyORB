@@ -342,7 +342,8 @@ package body Tokens is
 
    ----------------------------------------
    --  scanners for chars, identifiers,  --
-   --    numeric and string literals     --
+   --    numeric, string literals and    --
+   --      preprocessor directives.      --
    ----------------------------------------
 
    --  Called when the current character is a '.
@@ -367,7 +368,7 @@ package body Tokens is
    --
    --  The escape \uhhhh consist of a backslash followed by the character
    --  'u', followed by one, two, three or four hexadecimal digits.
-   procedure Scan_Char is
+   function Scan_Char return Idl_Token is
    begin
       Set_Mark;
       if Next_Char = '\' then
@@ -375,16 +376,16 @@ package body Tokens is
             when 'n' | 't' | 'v' | 'b' | 'r' | 'f'
               | 'a' | '\' | '?' | Quotation =>
                Skip_Char;
-               Current_Token := T_Lit_Escape_Char;
+               return T_Lit_Escape_Char;
             when ''' =>
                if View_Next_Next_Char /= ''' then
                   Errors.Lexer_Error ("Invalid character : '\', "
                                       & "it should probably be '\\'",
                                       Errors.Error);
-                  Current_Token := T_Error;
+                  return T_Error;
                else
                   Skip_Char;
-                  Current_Token := T_Lit_Escape_Char;
+                  return T_Lit_Escape_Char;
                end if;
             when '0' .. '7' =>
                Skip_Char;
@@ -402,9 +403,9 @@ package body Tokens is
                                       & "', maximum is 3 in a char "
                                       & "definition",
                                       Errors.Error);
-                  Current_Token := T_Error;
+                  return T_Error;
                else
-                  Current_Token := T_Lit_Octal_Char;
+                  return T_Lit_Octal_Char;
                end if;
             when 'x' =>
                Skip_Char;
@@ -420,9 +421,9 @@ package body Tokens is
                                          & "', maximum is 2 in a char "
                                          & "definition",
                                          Errors.Error);
-                     Current_Token := T_Error;
+                     return T_Error;
                   else
-                     Current_Token := T_Lit_Hexa_Char;
+                     return T_Lit_Hexa_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
@@ -430,7 +431,7 @@ package body Tokens is
                                       & Get_Marked_Text
                                       & "'",
                                       Errors.Error);
-                  Current_Token := T_Error;
+                  return T_Error;
                end if;
             when 'u' =>
                Skip_Char;
@@ -452,9 +453,9 @@ package body Tokens is
                                          & "', maximum is 4 in a unicode "
                                          & "char definition",
                                          Errors.Error);
-                     Current_Token := T_Error;
+                     return T_Error;
                   else
-                     Current_Token := T_Lit_Unicode_Char;
+                     return T_Lit_Unicode_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
@@ -462,7 +463,7 @@ package body Tokens is
                                         & Get_Marked_Text
                                         & "'",
                                         Errors.Error);
-                  Current_Token := T_Error;
+                  return T_Error;
                end if;
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_e =>
                Go_To_End_Of_Char;
@@ -470,35 +471,35 @@ package body Tokens is
                                    & Get_Marked_Text
                                    & "'. For hexadecimal codes, use \xhh",
                                    Errors.Error);
-               Current_Token := T_Error;
+               return T_Error;
             when others =>
                Go_To_End_Of_Char;
                Errors.Lexer_Error ("Invalid definition of character : "
                                    & Get_Marked_Text
                                    & "'",
                                    Errors.Error);
-               Current_Token := T_Error;
+               return T_Error;
          end case;
       elsif Get_Current_Char = ''' then
          if View_Next_Char = ''' then
             Errors.Lexer_Error ("Invalid character : ''', "
                                 & "it should probably be '\''",
                                 Errors.Error);
-            Current_Token := T_Error;
+            return T_Error;
          else
-            Current_Token := T_Lit_Simple_Char;
-            return;
+            return T_Lit_Simple_Char;
          end if;
       else
-         Current_Token := T_Lit_Simple_Char;
+         return T_Lit_Simple_Char;
       end if;
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
          Errors.Lexer_Error ("Invalid character : "
                              & Get_Marked_Text,
                              Errors.Error);
-         Current_Token := T_Error;
+         return T_Error;
       end if;
+      raise Errors.Internal_Error;
    end Scan_Char;
 
 
@@ -518,7 +519,7 @@ package body Tokens is
    --  Within a string, the double quote character " must be preceded
    --  by a \.
    --  A string literal may not contain the character '\0'.
-   procedure Scan_String is
+   function Scan_String return Idl_Token is
       Several_Lines : Boolean := False;
    begin
       Set_Mark;
@@ -528,8 +529,7 @@ package body Tokens is
                if View_Next_Char = Quotation then
                   Skip_Char;
                else
-                  Current_Token := T_Lit_String;
-                  return;
+                  return T_Lit_String;
                end if;
             when '\' =>
                case View_Next_Char is
@@ -546,8 +546,7 @@ package body Tokens is
                           ("A string literal may not contain"
                            & " the character '\0'",
                            Errors.Error);
-                        Current_Token := T_Error;
-                        return;
+                        return T_Error;
                      end if;
                   when '1' .. '7' =>
                      Skip_Char;
@@ -560,8 +559,7 @@ package body Tokens is
                         Errors.Lexer_Error
                           ("bad hexadecimal character in string",
                            Errors.Error);
-                        Current_Token := T_Error;
-                        return;
+                        return T_Error;
                      end if;
                   when LC_U =>
                      if Is_Hexa_Digit_Character
@@ -572,16 +570,14 @@ package body Tokens is
                         Errors.Lexer_Error
                           ("bad unicode character in string",
                            Errors.Error);
-                        Current_Token := T_Error;
-                        return;
+                        return T_Error;
                      end if;
                   when others =>
                      Go_To_End_Of_String;
                      Errors.Lexer_Error
                        ("bad escape sequence in string",
                         Errors.Error);
-                     Current_Token := T_Error;
-                     return;
+                     return T_Error;
                end case;
             when Lf =>
                if Several_Lines = False then
@@ -601,6 +597,8 @@ package body Tokens is
                              & Quotation
                              & " at the end of a string",
                              Errors.Fatal);
+         --  This last line will never be reached
+         raise Errors.Fatal_Error;
    end Scan_String;
 
 
@@ -638,8 +636,7 @@ package body Tokens is
       if Get_Current_Char = 'L'
         and View_Next_Char = ''' then
          Skip_Char;
-         Scan_Char;
-         case Current_Token is
+         case Scan_Char is
             when T_Lit_Simple_Char =>
                return T_Lit_Wide_Simple_Char;
             when T_Lit_Escape_Char =>
@@ -658,8 +655,7 @@ package body Tokens is
       elsif Get_Current_Char = 'L'
         and View_Next_Char = Quotation then
          Skip_Char;
-         Scan_String;
-         case Current_Token is
+         case Scan_String is
             when T_Lit_String =>
                return T_Lit_Wide_String;
             when T_Error  =>
@@ -722,7 +718,7 @@ package body Tokens is
    --  consist of a sequence of decimal (base ten) digits. Either the integer
    --  part or the fraction part (but not both) may be missing; the decimal
    --  point (but not the letter d (or D)) may be missing
-   procedure Scan_Numeric is
+   function Scan_Numeric return Idl_Token is
    begin
       Set_Mark;
       if Get_Current_Char = '0' and then View_Next_Char /= '.' then
@@ -731,15 +727,15 @@ package body Tokens is
             while Is_Hexa_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Hexa_Integer;
+            return T_Lit_Hexa_Integer;
          elsif Is_Octal_Digit_Character (View_Next_Char) then
             while Is_Octal_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Octal_Integer;
+            return T_Lit_Octal_Integer;
          else
             --  This is only a digit.
-            Current_Token := T_Lit_Decimal_Integer;
+            return T_Lit_Decimal_Integer;
          end if;
       else
          if Get_Current_Char /= '.' then
@@ -756,7 +752,7 @@ package body Tokens is
             end loop;
             if View_Next_Char = 'D' or else View_Next_Char = 'd' then
                Skip_Char;
-               Current_Token := T_Lit_Floating_Fixed_Point;
+               return T_Lit_Floating_Fixed_Point;
             elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
                Skip_Char;
                if View_Next_Char = '+' or else View_Next_Char = '-' then
@@ -765,9 +761,9 @@ package body Tokens is
                while Is_Digit_Character (View_Next_Char) loop
                   Skip_Char;
                end loop;
-               Current_Token := T_Lit_Exponent_Floating_Point;
+               return T_Lit_Exponent_Floating_Point;
             else
-               Current_Token := T_Lit_Simple_Floating_Point;
+               return T_Lit_Simple_Floating_Point;
             end if;
          elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
             Skip_Char;
@@ -777,12 +773,12 @@ package body Tokens is
             while Is_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Pure_Exponent_Floating_Point;
+            return T_Lit_Pure_Exponent_Floating_Point;
          elsif View_Next_Char = 'D' or else View_Next_Char = 'd' then
             Skip_Char;
-            Current_Token := T_Lit_Simple_Fixed_Point;
+            return T_Lit_Simple_Fixed_Point;
          else
-            Current_Token := T_Lit_Decimal_Integer;
+            return T_Lit_Decimal_Integer;
          end if;
       end if;
    end Scan_Numeric;
@@ -797,25 +793,24 @@ package body Tokens is
    --
    --  "users may lexically "escape" identifiers by prepending an
    --  underscore (_) to an identifier.
-   procedure Scan_Underscore is
+   function Scan_Underscore return Idl_Token is
    begin
       if Is_Alphabetic_Character (View_Next_Char) then
          Skip_Char;
-         Current_Token := Scan_Identifier;
+         return Scan_Identifier;
          if Current_Token = T_Identifier then
             Errors.Lexer_Error
               ("Invalid identifier name. An identifier cannot begin" &
                " with '_', except if the end is an idl keyword",
                Errors.Error);
-            Current_Token := T_Error;
+            return T_Error;
          else
-            Current_Token := T_Identifier;
-            return;
+            return T_Identifier;
          end if;
       else
          Errors.Lexer_Error ("Invalid character '_'",
                              Errors.Error);
-         Current_Token := T_Error;
+         return T_Error;
       end if;
    end Scan_Underscore;
 
@@ -872,7 +867,6 @@ package body Tokens is
                while View_Next_Char /= Lf loop
                   Skip_Char;
                end loop;
-               Current_Token := T_Pragma;
                return True;
             else
                Errors.Lexer_Error
@@ -1024,7 +1018,7 @@ package body Tokens is
    end initialize;
 
    --  Gets the next token and puts it in current_token
-   procedure Next_Token is
+   function Get_Next_Token return Idl_Token is
    begin
       loop
          case Next_Char is
@@ -1034,68 +1028,52 @@ package body Tokens is
                Refresh_Offset;
                Token_Col := Col + Col_offset;
             when ';' =>
-               Current_Token := T_Semi_Colon;
-               return;
+               return T_Semi_Colon;
             when '{' =>
-               Current_Token := T_Left_Cbracket;
-               return;
+               return T_Left_Cbracket;
             when '}' =>
-               Current_Token := T_Right_Cbracket;
-               return;
+               return T_Right_Cbracket;
             when ':' =>
                if view_next_char = ':' then
                   Skip_Char;
-                  Current_Token := T_Colon_Colon;
+                  return T_Colon_Colon;
                else
-                  Current_Token := T_Colon;
+                  return T_Colon;
                end if;
-               return;
             when ',' =>
-               Current_Token := T_Comma;
-               return;
+               return T_Comma;
             when '(' =>
-               Current_Token := T_Left_Paren;
-               return;
+               return T_Left_Paren;
             when ')' =>
-               Current_Token := T_Right_Paren;
-               return;
+               return T_Right_Paren;
             when '=' =>
-               Current_Token := T_Equal;
-               return;
+               return T_Equal;
             when '|' =>
-               Current_Token := T_Bar;
-               return;
+               return T_Bar;
             when '^' =>
-               Current_Token := T_Circumflex;
-               return;
+               return T_Circumflex;
             when '&' =>
-               Current_Token := T_Ampersand;
-               return;
+               return T_Ampersand;
             when '<' =>
                if View_Next_Char = '<' then
                   Skip_Char;
-                  Current_Token := T_Less_Less;
+                  return T_Less_Less;
                else
-                  Current_Token := T_Less;
+                  return T_Less;
                end if;
-               return;
             when '>' =>
                if View_Next_Char = '>' then
                   Skip_Char;
-                  Current_Token := T_Greater_Greater;
+                  return T_Greater_Greater;
                else
-                  Current_Token := T_Greater;
+                  return T_Greater;
                end if;
-               return;
             when '+' =>
-               Current_Token := T_Plus;
-               return;
+               return T_Plus;
             when '-' =>
-               Current_Token := T_Minus;
-               return;
+               return T_Minus;
             when '*' =>
-               Current_Token := T_Star;
-               return;
+               return T_Star;
             when '/' =>
                if View_Next_Char = '/' then
                   --  This is a line comment.
@@ -1105,27 +1083,20 @@ package body Tokens is
                   Skip_Char;
                   Skip_Comment;
                else
-                  Current_Token := T_Slash;
-                  return;
+                  return T_Slash;
                end if;
             when '%' =>
-               Current_Token := T_Percent;
-               return;
+               return T_Percent;
             when '~' =>
-               Current_Token := T_Tilde;
-               return;
+               return T_Tilde;
             when '[' =>
-               Current_Token := T_Left_Sbracket;
-               return;
+               return T_Left_Sbracket;
             when ']' =>
-               Current_Token := T_Right_Sbracket;
-               return;
+               return T_Right_Sbracket;
             when '0' .. '9' =>
-               Scan_Numeric;
-               return;
+               return Scan_Numeric;
             when '.' =>
-               Scan_Numeric;
-               return;
+               return Scan_Numeric;
             when 'A' .. 'Z'
               | LC_A .. LC_Z
               | UC_A_Grave .. UC_I_Diaeresis
@@ -1136,20 +1107,16 @@ package body Tokens is
               | LC_O_Oblique_Stroke .. LC_U_Diaeresis
               | LC_German_Sharp_S
               | LC_Y_Diaeresis =>
-               Current_Token := Scan_Identifier;
-               return;
+               return Scan_Identifier;
             when '_' =>
-               Scan_Underscore;
-               return;
+               return Scan_Underscore;
             when ''' =>
-               Scan_Char;
-               return;
+               return Scan_Char;
             when Quotation =>
-               Scan_String;
-               return;
+               return Scan_String;
             when Number_Sign =>
                if Scan_Preprocessor then
-                  return;
+                  return T_Pragma;
                end if;
             when others =>
                if Get_Current_Char >= ' ' then
@@ -1163,13 +1130,11 @@ package body Tokens is
                      & Natural'Image (Character'Pos (Get_Current_Char)),
                      Errors.Error);
                end if;
-               Current_Token := T_Error;
-               return;
+               return T_Error;
          end case;
       end loop;
       exception
          when Ada.Text_Io.End_Error =>
-            Current_Token := T_Eof;
             if not Keep_Temporary_Files then
                declare
                   use GNAT.OS_Lib;
@@ -1178,14 +1143,8 @@ package body Tokens is
                   Delete_File (Tmp_File_Name'Address, Spawn_Result);
                end;
             end if;
-            return;
-   end Next_Token;
-
-   --  returns the current token
-   function Token return Idl_Token is
-   begin
-      return Current_Token;
-   end Token;
+            return T_Eof;
+   end Get_Next_Token;
 
 
    -------------------------------------
@@ -1200,58 +1159,17 @@ package body Tokens is
                               Col => Token_Col + Col - Line'First);
    end Get_Location;
 
-   --  returns the name of the current identifier in case the current
-   --  token is T_Identifier. Else, raises an internal_error exception
+   --  returns the name of the current identifier
    function Get_Identifier return String is
    begin
-      if Current_Token = T_Identifier then
-         return Get_Marked_Text;
-      else
-         raise Errors.Internal_Error;
-      end if;
+      return Get_Marked_Text;
    end Get_Identifier;
 
-   --  returns a literal as a string in case the current
-   --  token is a literal. Else, raises an internal error exception
-   function Get_Literal return String is
-   begin
-      case Current_Token is
-         when  T_Lit_Decimal_Integer |
-           T_Lit_Octal_Integer |
-           T_Lit_Hexa_Integer |
-           T_Lit_Simple_Char |
-           T_Lit_Escape_Char |
-           T_Lit_Octal_Char |
-           T_Lit_Hexa_Char |
-           T_Lit_Unicode_Char |
-           T_Lit_Wide_Simple_Char |
-           T_Lit_Wide_Escape_Char |
-           T_Lit_Wide_Octal_Char |
-           T_Lit_Wide_Hexa_Char |
-           T_Lit_Wide_Unicode_Char |
-           T_Lit_Simple_Floating_Point |
-           T_Lit_Exponent_Floating_Point |
-           T_Lit_Pure_Exponent_Floating_Point |
-           T_Lit_String |
-           T_Lit_Wide_String |
-           T_Lit_Simple_Fixed_Point |
-           T_Lit_Floating_Fixed_Point =>
-            return Get_Marked_Text;
-         when others =>
-            raise Errors.Internal_Error;
-      end case;
-   end Get_Literal;
+   --  returns a literal as a string
+   function Get_Literal return String renames Get_Identifier;
 
-   --  returns the value of the current pragma  in case the current
-   --  token is T_Pragma. Else, raises an internal_error exception
-   function Get_Pragma return String is
-   begin
-      if Current_Token = T_Pragma then
-         return Get_Marked_Text;
-      else
-         raise Errors.Internal_Error;
-      end if;
-   end Get_Pragma;
+   --  returns the value of the current pragma
+   function Get_Pragma return String renames Get_Identifier;
 
 
    -------------------------

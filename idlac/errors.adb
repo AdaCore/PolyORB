@@ -18,6 +18,23 @@ package body Errors is
       return Res (2 .. Res'Last);
    end Nat_To_String;
 
+   --  displays a location
+   function Display_Location (Loc : in Location) return String is
+   begin
+--       Ada.Text_Io.Put ("line ");
+--       Ada.Text_Io.Put (Nat_To_String (Loc.Line));
+--       Ada.Text_Io.Put (", column ");
+--       Ada.Text_Io.Put (Nat_To_String (Loc.Col));
+--       Ada.Text_Io.Put (" of file ");
+--       Ada.Text_Io.Put (Loc.Filename.all);
+      return "line " &
+        Nat_To_String (Loc.Line) &
+        ", column " &
+        Nat_To_String (Loc.Col) &
+        " of file " &
+        Loc.Filename.all;
+   end Display_Location;
+
    --  displays an error
    procedure Display_Error (Message : in String;
                             Level : in Error_Kind) is
@@ -33,12 +50,7 @@ package body Errors is
             Ada.Text_Io.Put ("WARNING occured");
       end case;
       if Loc.Line > 0 then
-         Ada.Text_Io.Put (" at line");
-         Ada.Text_Io.Put (Nat_To_String (Loc.Line));
-         Ada.Text_Io.Put (", column ");
-         Ada.Text_Io.Put (Nat_To_String (Loc.Col));
-         Ada.Text_Io.Put (" of file ");
-         Ada.Text_Io.Put (Loc.Filename.all);
+         Ada.Text_Io.Put (" at " & Display_Location (Loc));
       end if;
       Ada.Text_Io.New_Line;
       Ada.Text_Io.Put ("    ");

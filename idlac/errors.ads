@@ -12,6 +12,10 @@ package Errors is
       Col : Natural;
    end record;
 
+   --  returns a string with the following format :
+   --  file : name_of_file, line : line_nb, column : column_nb
+   function Display_Location (Loc : in Location) return String;
+
    --  this exception is for internal use,
    --  it is raised when idlac reaches an inconsistent state
    Internal_Error : exception;

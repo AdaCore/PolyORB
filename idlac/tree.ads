@@ -78,6 +78,12 @@ package Tree is
    function Get_Kind (N : N_Repository) return Node_Kind;
    type N_Repository_Acc is access all N_Repository;
 
+   type N_Module is new N_Scope with record
+      Contents : Node_List;
+   end record;
+   type N_Module_Acc is access all N_Module;
+   function Get_Kind (N : N_Module) return Node_Kind;
+
 --    --  A scoped name.
 --    type N_Scoped_Name is new N_Root with record
 --       Value : N_Named_Acc;
@@ -360,12 +366,6 @@ package Tree is
 --    type N_Lit_Floating_Point is new N_Literal with null record;
 --    type N_Lit_Floating_Point_Acc is access all N_Lit_Floating_Point;
 --    function Get_Kind (N : N_Lit_Floating_Point) return Node_Kind;
-
---    type N_Module is new N_Scope with record
---       Contents : Node_List;
---    end record;
---    type N_Module_Acc is access all N_Module;
---    function Get_Kind (N : N_Module) return Node_Kind;
 
 --    type N_Const is new N_Named with record
 --       C_Type : N_Root_Acc;

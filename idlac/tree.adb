@@ -68,6 +68,11 @@ package body Tree is
       return K_Repository;
    end Get_Kind;
 
+   function Get_Kind (N : N_Module) return Node_Kind is
+   begin
+      return K_Module;
+   end Get_Kind;
+
 --    function Get_Kind (N : N_Scoped_Name) return Node_Kind is
 --    begin
 --       return K_Scoped_Name;
@@ -306,11 +311,6 @@ package body Tree is
 --    function Get_Kind (N : N_Sequence) return Node_Kind is
 --    begin
 --       return K_Sequence;
---    end Get_Kind;
-
---    function Get_Kind (N : N_Module) return Node_Kind is
---    begin
---       return K_Module;
 --    end Get_Kind;
 
 --    function Get_Kind (N : N_Const) return Node_Kind is
