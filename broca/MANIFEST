@@ -204,6 +204,7 @@ idlac/idl_fe-types.ads
 idlac/idl_fe.ads
 idlac/idl_fe.opt
 idlac/idlac.adb
+idlac/idlac_flags.ads
 idlac/make_nodes.py
 idlac/nodes.txt
 idlac/platform.ads.in

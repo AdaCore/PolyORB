@@ -196,7 +196,8 @@ package body Idl_Fe.Lexer is
    ----------------------
    procedure Refresh_Offset is
    begin
-      Offset := Offset + 8 - (Current_Location.Col + Offset) mod 8;
+      Offset :=
+        ((Current_Location.Col + Offset + 7) / 8) * 8 - Current_Location.Col;
    end Refresh_Offset;
 
    -------------------
@@ -990,13 +991,12 @@ package body Idl_Fe.Lexer is
                         use Ada.Strings;
                         Separator : Natural;
                         Text : String := Get_Marked_Text;
-                        Text_Last : Natural := Text'Last;
                      begin
                         --  verifies the name ends with ".idl"
-                        if Text'Length > 3 and then
-                          Text (Text'Last - 3 .. Text'Last) = ".idl" then
-                           Text_Last := Text_Last - 4;
-                        else
+                        if Text'Length < 4
+                          or else
+                          Text (Text'Last - 3 .. Text'Last) /= ".idl"
+                        then
                            Errors.Error
                              ("An idl file name should have a " &
                               Ada.Characters.Latin_1.Quotation &
@@ -1019,11 +1019,11 @@ package body Idl_Fe.Lexer is
                            Current_Location.Dirname :=
                             new String'(Text (Text'First .. Separator - 1));
                            Current_Location.Filename :=
-                            new String'(Text (Separator + 1 .. Text_Last));
+                            new String'(Text (Separator + 1 .. Text'Last));
                         else
                            Current_Location.Dirname := null;
                            Current_Location.Filename :=
-                            new String'(Text (Text'First .. Text_Last));
+                            new String'(Text (Text'First .. Text'Last));
                         end if;
                      end;
                      Skip_Spaces;

@@ -31,6 +31,8 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.IO_Aux;       use GNAT.IO_Aux;
 with GNAT.OS_Lib;       use GNAT.OS_Lib;
 
+with Idlac_Flags;       use Idlac_Flags;
+
 with Idl_Fe.Types;
 with Idl_Fe.Parser;
 with Idl_Fe.Lexer;
@@ -63,12 +65,6 @@ procedure Idlac is
 
    File_Name : Idl_Fe.Types.String_Cacc;
    Rep       : Idl_Fe.Types.Node_Id;
-
-   Generate_Impl_Template : Boolean := False;
-   Keep_Temporary_Files   : Boolean := False;
-   Preprocess_Only        : Boolean := False;
-   To_Stdout              : Boolean := False;
-   Verbose                : Boolean := True;
 
 begin
    begin
