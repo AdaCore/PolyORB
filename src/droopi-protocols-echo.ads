@@ -14,6 +14,7 @@ package Droopi.Protocols.Echo is
 
    procedure Create_Session
      (Proto   : access Echo_Protocol;
+      Server  : Servers.Server_Access;
       Sock    : Sockets.Socket_Type;
       Session : out Session_Access;
       Channel : out Channels.Channel_Access);

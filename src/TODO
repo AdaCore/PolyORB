@@ -15,6 +15,11 @@ Items still requiring attention
 * A single-task client configuration.
 * A multi-tasking server configuration.
 * A multi-tasking client configuration.
+* A mechanism for use of non-connected message passing
+  protocols (eg UDP).
+* A mechanism for optional implementation of reliable
+  message delivery over a non-reliable message delivery
+  protocol (eg UDP with ack/retransmission)
 
 Items processed
 ---------------

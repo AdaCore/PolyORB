@@ -4,6 +4,7 @@
 
 with Droopi.Channels;
 with Droopi.Requests; use Droopi.Requests;
+with Droopi.Servers;
 with Droopi.Sockets;
 
 package Droopi.Protocols is
@@ -21,6 +22,7 @@ package Droopi.Protocols is
 
    procedure Create_Session
      (Proto   : access Protocol;
+      Server  : Servers.Server_Access;
       Sock    : Sockets.Socket_Type;
       Session : out Session_Access;
       Channel : out Channels.Channel_Access)
@@ -61,6 +63,7 @@ private
    type Protocol is abstract tagged limited null record;
 
    type Session is abstract tagged limited record
+      Server  : Servers.Server_Access;
       Channel : Channels.Channel_Access;
    end record;
 

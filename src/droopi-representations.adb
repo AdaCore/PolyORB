@@ -107,7 +107,7 @@ package body Droopi.Representations is
          Data_Address);
 
       Data_Address.Zone (Data_Address.Offset
-	.. Data_Address.Offset + Octets'Length - 1)
+        .. Data_Address.Offset + Octets'Length - 1)
         := Octets;
    end Align_Marshall_Copy;
 
@@ -126,7 +126,7 @@ package body Droopi.Representations is
       Align (Buffer, Alignment);
       Extract_Data (Buffer, Data_Address, Size);
       return Data_Address.Zone
-	(Data_Address.Offset .. Data_Address.Offset + Size - 1);
+        (Data_Address.Offset .. Data_Address.Offset + Size - 1);
    end Align_Unmarshall_Copy;
 
 end Droopi.Representations;

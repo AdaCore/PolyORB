@@ -2,8 +2,11 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with Droopi.Buffers;
 with Droopi.Log;
+with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
 
@@ -19,6 +22,7 @@ package body Droopi.Protocols.Echo is
 
    procedure Create_Session
      (Proto   : access Echo_Protocol;
+      Server  : Servers.Server_Access;
       Sock    : Sockets.Socket_Type;
       Session : out Session_Access;
       Channel : out Channels.Channel_Access)
@@ -31,6 +35,7 @@ package body Droopi.Protocols.Echo is
       Channel := new Session_Channel;
       Channels.Create (Channel, Sock);
       Session_Channel (Channel.all).Session := Session;
+      Session.Server  := Server;
       Session.Channel := Channel;
 
       --  That is Echo-specific. Or is it?
@@ -56,28 +61,75 @@ package body Droopi.Protocols.Echo is
       Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
    end Handle_Connect;
 
+   type String_Array is array (Integer range <>) of String_Ptr;
+
+   function Split (S : String) return String_Array;
+   function Split (S : String) return String_Array
+   is
+      Result : String_Array (1 .. S'Length);
+      Last : Integer := Result'First - 1;
+      Word_First : Integer := S'First;
+      Word_Last : Integer;
+   begin
+      while Word_First <= S'Last loop
+         Word_Last := Word_First - 1;
+         Last := Last + 1;
+         while Word_Last < S'Last and then S (Word_Last + 1) /= ' ' loop
+            Word_Last := Word_Last + 1;
+         end loop;
+         Result (Last) := new String'(S (Word_First .. Word_Last));
+         Word_First := Word_Last + 1;
+         while Word_First <= S'Last and then S (Word_First) = ' ' loop
+            Word_First := Word_First + 1;
+         end loop;
+      end loop;
+
+      return Result (Result'First .. Last);
+   end Split;
+
+   procedure Free (SA : in out String_Array);
+   procedure Free (SA : in out String_Array) is
+   begin
+      for I in SA'Range loop
+         Free (SA (I));
+      end loop;
+   end Free;
+
    procedure Handle_Data (S : access Echo_Session) is
    begin
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
 
       declare
-         Str : constant String
-           := Unmarshall_String (Rep, S.Buffer);
-      begin
-         pragma Debug (O ("Remote said: " & Str));
-         Buffers.Release_Contents (S.Buffer.all);
-         Marshall_String
-           (Rep, S.Buffer, "You said « " & Str & " »"
-            & ASCII.CR & ASCII.LF);
+         Argv : String_Array
+           := Split (Unmarshall_String (Rep, S.Buffer));
 
-         Channels.Send_Data (S.Channel, S.Buffer);
+         Req : Request_Access := null;
+      begin
          Buffers.Release_Contents (S.Buffer.all);
+         --  Clear buffer
+
+         begin
+            pragma Debug (O ("Received request " & Argv (1).all
+                             & " on object " & Argv (2).all
+                             & " with args " & Argv (3).all));
+            Create_Request
+              (Req,
+               Target    => Argv (2),
+               Operation => Argv (1).all,
+               Args      => Argv (3).all);
+
+            Servers.Queue_Request (S.Server, Req);
+         exception
+            when E : others =>
+               O ("Got exception: "
+                  & Ada.Exceptions.Exception_Information (E));
+         end;
+         Free (Argv);
       end;
 
       Channels.Expect_Data (S.Channel, S.Buffer, 1024, False);
-      --  Clear buffer and prepare to receive next message.
-
+      --  Prepare to receive next message.
    end Handle_Data;
 
    procedure Handle_Connection_Closed (S : access Echo_Session) is

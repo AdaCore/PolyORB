@@ -2,15 +2,53 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 package Droopi.Requests is
 
-   pragma Pure;
+   pragma Elaborate_Body;
 
-   type Request is tagged limited private;
+   -------------
+   -- Request --
+   -------------
 
+   --  A DUMMY ONE, to be replaced by something like
+   --  CORBA.Request.
+
+   type Request is limited private;
+   type Request_Access is access all Request;
+
+   type String_Ptr is access String;
+   subtype Object is String_Ptr;
+   procedure Free is new Ada.Unchecked_Deallocation
+     (String, String_Ptr);
+
+   procedure Create_Request
+     (Req       : out Request_Access;
+      Target    : Object;
+      Operation : String;
+      Args      : String);
+
+   procedure Destroy_Request
+     (Req : in out Request_Access);
+
+   ------------
+   -- Result --
+   ------------
+
+   --  Juste a placeholder, likewise.
+
+   subtype Result is String_Ptr;
+
+   procedure Execute (Req : Request; Res : out Result);
+   procedure Destroy (Res : in out Result);
 
 private
 
-   type Request is tagged limited null record;
+   type Request is tagged limited record
+      Target    : Object;
+      Operation : String_Ptr;
+      Args      : String_Ptr;
+   end record;
 
 end Droopi.Requests;

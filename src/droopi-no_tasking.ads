@@ -74,7 +74,8 @@ package Droopi.No_Tasking is
    -- Advanced Mutex for PCS with Tasking --
    -----------------------------------------
 
-   type Unprotected_Adv_Mutex_Type is new Soft_Links.Adv_Mutex_Type with private;
+   type Unprotected_Adv_Mutex_Type is
+     new Soft_Links.Adv_Mutex_Type with private;
 
    function Create return Soft_Links.Adv_Mutex_Access;
 
@@ -85,7 +86,7 @@ package Droopi.No_Tasking is
    procedure Leave (M : in Unprotected_Adv_Mutex_Type);
 
 private
-  type Unprotected_Mutex_Type is
+   type Unprotected_Mutex_Type is
      new Soft_Links.Mutex_Type with null record;
 
    type Unprotected_Adv_Mutex_Type is

@@ -142,6 +142,11 @@ package Droopi.ORB is
       AS  : Active_Socket);
    --  Delete socket S from the set of sockets monitored by ORB.
 
+   procedure Queue_Request
+     (ORB : access ORB_Type;
+      R   : Droopi.Requests.Request_Access);
+   --  Perform request R, then destroy it.
+
 private
 
    type Tasking_Policy_Type is abstract tagged limited null record;

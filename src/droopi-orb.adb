@@ -1,5 +1,7 @@
 --  $Id$
 
+with Ada.Exceptions;
+
 with Droopi.Log;
 with Droopi.Soft_Links;
 with Droopi.Channels;
@@ -9,6 +11,7 @@ package body Droopi.ORB is
    use Droopi.Jobs;
    use Droopi.Log;
    use Droopi.Protocols;
+   use Droopi.Requests;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
 
@@ -106,6 +109,7 @@ package body Droopi.ORB is
                if New_AS.Protocol /= null then
                   Create_Session
                     (New_AS.Protocol,
+                     Server_Access (ORB),
                      New_AS.Socket,
                      New_Session,
                      New_AS.Channel);
@@ -328,7 +332,6 @@ package body Droopi.ORB is
 
       --  Stop accepting incoming connections.
       --  XX TBD
-      raise Not_Implemented;
 
       if Wait_For_Completion then
          --  XX TBD
@@ -388,5 +391,54 @@ package body Droopi.ORB is
       end if;
       Leave_Critical_Section;
    end Delete_Socket;
+
+   ----------------------------------
+   -- Job type for object requests --
+   ----------------------------------
+
+   type Request_Job is new Job with record
+      ORB : ORB_Access;
+      Req : Request_Access;
+   end record;
+
+   procedure Run (J : access Request_Job);
+   procedure Run (J : access Request_Job)
+   is
+      Res : Requests.Result;
+   begin
+      pragma Debug (O ("Run Request_Job: enter"));
+      pragma Assert (J.Req /= null);
+      Requests.Execute (J.Req.all, Res);
+      pragma Debug (O ("Run Request_Job: executed request"));
+      --  Execute request.
+
+      --  Send_Result (Session, Result);
+      --  Send back answer.
+
+      Destroy (Res);
+      --  Clear result.
+
+      Destroy_Request (J.Req);
+      --  Destroy request.
+   exception
+      when E : others =>
+         pragma Debug (O ("Run Request_Job: Got exception "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
+
+   end Run;
+
+   procedure Queue_Request
+     (ORB : access ORB_Type;
+      R   : Droopi.Requests.Request_Access)
+   is
+      J : constant Job_Access := new Request_Job;
+   begin
+      pragma Debug (O ("Queue_Request: enter"));
+      Request_Job (J.all).ORB := ORB_Access (ORB);
+      Request_Job (J.all).Req := R;
+
+      Queue_Job (ORB.Job_Queue, J);
+   end Queue_Request;
 
 end Droopi.ORB;

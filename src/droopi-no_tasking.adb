@@ -159,9 +159,9 @@ package body Droopi.No_Tasking is
          raise Program_Error;
 
          --  Or hang forever...
-         loop
-            null;
-         end loop;
+         --  loop
+         --     null;
+         --  end loop;
       end if;
    end Wait;
 

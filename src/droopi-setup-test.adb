@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
@@ -43,14 +45,26 @@ begin
 
    --  Allow reuse of local addresses.
 
---     Set_Socket_Option
---       (Server,
---        Socket_Level,
---        (Reuse_Address, True));
+   Set_Socket_Option
+     (Server,
+      Socket_Level,
+      (Reuse_Address, True));
 
-   Bind_Socket (Server, Addr);
+   loop
+      begin
+         Put_Line ("Binding to port" & Addr.Port'Img);
+         Bind_Socket (Server, Addr);
+         exit;
+      exception
+         when Droopi.Sockets.Socket_Error =>
+            --  Address already in use.
+            Addr.Port := Addr.Port + 1;
+         when others =>
+            raise;
+      end;
+   end loop;
+
    Listen_Socket (Server);
-
 
    Insert_Socket
      (The_ORB, Active_Socket'
