@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#32 $
+--  $Id: //droopi/main/src/polyorb-any.ads#33 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -781,8 +781,8 @@ package PolyORB.Any is
    --  puts its type to Tc
 
    procedure Copy_Any_Value
-     (Dest : in out Any;
-      Src  :        Any);
+     (Dest : Any;
+      Src  : Any);
    --  Set the value of Dest from the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
@@ -906,8 +906,8 @@ private
    --  Some methods to deal with the Any fields.
 
    procedure Set_Value
-     (Obj       : in out Any;
-      The_Value : in     Any_Content_Ptr);
+     (Obj       : in Any;
+      The_Value : in Any_Content_Ptr);
    pragma Inline (Set_Value);
 
    function Get_Value

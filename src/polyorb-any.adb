@@ -3105,9 +3105,7 @@ package body PolyORB.Any is
    -- Copy_Any_Value --
    --------------------
 
-   procedure Copy_Any_Value
-     (Dest : in out Any;
-      Src  : Any) is
+   procedure Copy_Any_Value (Dest : Any; Src : Any) is
    begin
       pragma Debug (O ("Copy_Any_Value: enter"));
 
@@ -3614,8 +3612,8 @@ package body PolyORB.Any is
    ---------------
 
    procedure Set_Value
-     (Obj       : in out Any;
-      The_Value : in     Any_Content_Ptr)
+     (Obj       : in Any;
+      The_Value : in Any_Content_Ptr)
    is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Obj));
