@@ -1,3 +1,9 @@
+1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: isthrbio may need s-stratt.{o,ali} in some
+	configurations (GNAT compiled without inlining and GLADE compiled
+	with inlining).
+
 1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* NEWS: Update "New ports", "New functionnalities" and "Bug fixes" 
