@@ -32,27 +32,27 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Value;
+
+with Broca.Names;
 with Broca.Repository;
 
 package body Broca.Value.Value_Skel is
 
    function Is_A
-     (Type_Id : in CORBA.RepositoryId)
+     (Type_Id : in Standard.String)
      return CORBA.Boolean;
    --  The Is_A operation for the root value type,
    --  CORBA::ValueBase.
 
    function Is_A
-     (Type_Id : in CORBA.RepositoryId)
+     (Type_Id : in Standard.String)
      return CORBA.Boolean
    is
       use CORBA;
    begin
       return Broca.Repository.Is_Equivalent
         (Type_Id,
-         RepositoryId
-         (CORBA.String'(To_CORBA_String
-                        ("IDL:omg.org/CORBA/ValueBase:1.0"))));
+         Broca.Names.OMG_RepositoyId ("ValueBase"));
    end Is_A;
 
 begin

@@ -42,7 +42,7 @@ package Broca.Value.Value_Skel is
 
    type Is_A_Type is access
      function
-     (Type_Id : in CORBA.RepositoryId)
+     (Type_Id : in Standard.String)
      return CORBA.Boolean;
 
    --  This is where we store all the Is_A operations for
