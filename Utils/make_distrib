@@ -4,8 +4,9 @@
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-k?|-prcs|-n] tag dir
+# Usage: make_distrib [-s] [-k?|-prcs|-n] tag dir
 #
+#   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -k?   : override CVS keywords expansion
 #   -prcs : use prcs to extract files
 #   -n    : assume a checkout has already been done in dir
@@ -28,6 +29,12 @@ fi;
 prcs=false
 kk=
 nocheckout=false
+s=false
+
+if test "x$1" = -s; then
+    s=true
+    shift
+fi
 
 case $1 in
   -k*)   kk=$1; shift;;
@@ -60,7 +67,13 @@ else
 fi
 if [ -f Utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
-  . Utils/VERSION.INFO
+  if $s; then
+    echo "(with no implicit version information)"
+    . Utils/VERSION.INFO
+  else
+    echo "(with GNAT/GLADE version information derived from ${dir})"
+    . Utils/VERSION.INFO ${dir}
+  fi
   rm -f Utils/VERSION.INFO
 else
   echo "WARNING: unable to locate VERSION.INFO in directory Utils"

@@ -13,10 +13,20 @@
 
 	* configure.in: Add support for AIX.
 
+1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: If we know for sure that we do have
+	thread-blocking I/O, then there is no need to include
+	s-ganobl.ad[bs] in the compilation.
+
 1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in: Generate at configuration time a default boot
 	server address in order to avoid multi-user conflicts.
+
+1998-10-21  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Fix bug reported by Pascal Obry.
 
 1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
 

@@ -823,6 +823,9 @@ package body System.Garlic.TCP is
       Peer  : C.int;
       Error : Error_Type;
    begin
+      if Shutdown_Completed then
+         return;
+      end if;
 
       pragma Debug (D ("Remote connections shutdown"));
 

@@ -1,3 +1,11 @@
+1999-01-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* make_distrib: Pass the directory name to VERSION.INFO if not
+	requested otherwise.
+
+	* VERSION.INFO: Add the possibility to get the GLADE version name from
+	the command line.
+
 1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* nokeywords.pl: Update script so that it clears version as well

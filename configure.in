@@ -198,14 +198,15 @@ if test -z "$TCP_INCLUDED"; then
   fi
   if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb; then
     S_GTPLSP_ADB="5${PLATFORM_SPECIFIC}gtplsp.adb"
-    TCP_PLATFORM_SOURCE="s-gtplsp.adb"
+    # It is important that the body be first
+    TCP_PLATFORM_SOURCES="s-gtplsp.adb s-gtplsp.ads"
   else
     S_GTPLSP_ADB=""
-    TCP_PLATFORM_SOURCE="s-gtplsp.ads"
+    TCP_PLATFORM_SOURCES="s-gtplsp.ads"
   fi;
   AC_SUBST(S_GTPLSP_ADS)
   AC_SUBST(S_GTPLSP_ADB)
-  AC_SUBST(TCP_PLATFORM_SOURCE)
+  AC_SUBST(TCP_PLATFORM_SOURCES)
   AC_ARG_WITH(thread-blocking-io,
   [  --with-thread-blocking-io
                           Pretend that system has thread blocking I/Os],
@@ -225,8 +226,12 @@ if test -z "$TCP_INCLUDED"; then
       ISTHRBIO="test"
     fi
   ])
- PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
- PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+ if test "$ISTHRBIO" = "yes"; then
+   :
+ else
+   PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
+   PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
+ fi
 fi
 AC_SUBST(PROTOCOLSSOURCES)
 AC_SUBST(PROTOCOLSOBJECTS)
