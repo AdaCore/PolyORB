@@ -380,19 +380,14 @@ package body PolyORB.Protocols.SRP is
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      Args_List : NV_Sequence_Access;
-      Temp_Arg  : NamedValue;
+      It : Iterator := First (List_Of (Args).all);
    begin
       --  By modifing Args_list, we modify directly Args
-      Args_List := List_Of (Args);
-      for I in 1 .. Get_Count (Args) loop
-         Temp_Arg := Element_Of (Args_List.all, Positive (I));
-         --  Temp_Arg is an empty any, but its type is already set
-
-         Unmarshall (Buffer, Temp_Arg);
-         Replace_Element (Args_List.all, Positive (I), Temp_Arg);
+      while not Last (It) loop
+         Unmarshall (Buffer, Value (It).all);
+         Next (It);
       end loop;
    end Unmarshall_Args;
 
@@ -404,7 +399,7 @@ package body PolyORB.Protocols.SRP is
    is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Utils;
 
       function To_SEA (S : Types.String) return Stream_Element_Array;
@@ -422,18 +417,15 @@ package body PolyORB.Protocols.SRP is
          return Value;
       end To_SEA;
 
-      Args_List   : NV_Sequence_Access;
+      It : Iterator := First (List_Of (Args).all);
       Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
-      Temp_Arg  : NamedValue;
+      Temp_Arg  : Element_Access;
 
       Temp_Buffer : aliased Buffer_Type;
       --  XXX BAD BAD buffer allocated on the stack
    begin
-      --  By modifing Args_list, we modify directly Args
-      Args_List := List_Of (Args);
-
-      for I in 1 .. Get_Count (Args) loop
-         Temp_Arg := Element_Of (Args_List.all, Positive (I));
+      while not Last (It) loop
+         Temp_Arg := Value (It);
 
          declare
             Value : aliased Stream_Element_Array :=
@@ -445,10 +437,9 @@ package body PolyORB.Protocols.SRP is
                                Endianness => Little_Endian,
                                Initial_CDR_Position => 0);
             Show (Temp_Buffer);
-            Unmarshall (Temp_Buffer'Access, Temp_Arg);
-            Replace_Element (Args_List.all, Positive (I), Temp_Arg);
+            Unmarshall (Temp_Buffer'Access, Temp_Arg.all);
          end;
-
+         Next (It);
          Current_Arg := Current_Arg.all.Next;
       end loop;
    end Unmarshall;

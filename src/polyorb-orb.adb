@@ -646,7 +646,7 @@ package body PolyORB.ORB is
       --  Set link from TAP to PF.
 
       Enter (ORB.ORB_Lock);
-      TAP_Seqs.Append (ORB.Transport_Access_Points, TAP);
+      TAP_Lists.Append (ORB.Transport_Access_Points, TAP);
       Insert_Source (ORB, New_AES);
       Leave (ORB.ORB_Lock);
    end Register_Access_Point;
@@ -666,22 +666,19 @@ package body PolyORB.ORB is
 
       Enter (ORB.ORB_Lock);
       declare
-         TAPs : constant TAP_Seqs.Element_Array
-           := TAP_Seqs.To_Element_Array
-           (ORB.Transport_Access_Points);
-         Found : Boolean := False;
+         use TAP_Lists;
+         It : Iterator := First (ORB.Transport_Access_Points);
       begin
+         All_Access_Points :
+         while not Last (It) loop
+            exit All_Access_Points
+            when Binding_Data.Is_Local_Profile
+              (Profile_Factory_Of (Value (It).all), P);
+            Next (It);
+         end loop All_Access_Points;
          Leave (ORB.ORB_Lock);
-         for I in TAPs'Range loop
-            if Binding_Data.Is_Local_Profile
-              (Profile_Factory_Of (TAPs (I)), P)
-            then
-               Found := True;
-            end if;
 
-            exit when Found;
-         end loop;
-         return Found;
+         return not Last (It);
       end;
    end Is_Profile_Local;
 
@@ -969,31 +966,31 @@ package body PolyORB.ORB is
       Enter (ORB.ORB_Lock);
       declare
          use PolyORB.Binding_Data;
-         use TAP_Seqs;
+         use TAP_Lists;
 
-         TAPs : constant Element_Array
-           := To_Element_Array (ORB.Transport_Access_Points);
+         It : Iterator := First (ORB.Transport_Access_Points);
 
-         Profiles : References.Profile_Array (TAPs'Range);
+         Profiles : References.Profile_Array
+           (1 .. Length (ORB.Transport_Access_Points));
          Last_Profile : Integer := Profiles'First - 1;
       begin
-         Leave (ORB.ORB_Lock);
-         for I in TAPs'Range loop
+         while not Last (It) loop
             declare
                PF : constant Profile_Factory_Access
-                 := Profile_Factory_Of (TAPs (I));
+                 := Profile_Factory_Of (Value (It).all);
             begin
                if PF /= null then
                   --  Null profile factories may occur for access points
                   --  that have an ad hoc protocol stack, but no binding
                   --  data information.
                   Last_Profile := Last_Profile + 1;
-                  Profiles (Last_Profile) := Create_Profile
-                    (Profile_Factory_Of (TAPs (I)), Oid.all);
+                  Profiles (Last_Profile) := Create_Profile (PF, Oid.all);
                   pragma Assert (Profiles (Last_Profile) /= null);
                end if;
             end;
+            Next (It);
          end loop;
+         Leave (ORB.ORB_Lock);
 
          References.Create_Reference
            (Profiles (Profiles'First .. Last_Profile), Typ, Ref);

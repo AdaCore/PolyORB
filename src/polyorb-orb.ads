@@ -47,7 +47,6 @@ with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
@@ -331,9 +330,9 @@ private
      (PAE.Asynch_Ev_Monitor_Access, PAE."=");
    subtype Monitor_List is Monitor_Lists.List;
 
-   package TAP_Seqs is new PolyORB.Sequences.Unbounded
-     (PT.Transport_Access_Point_Access);
-   subtype TAP_Seq is TAP_Seqs.Sequence;
+   package TAP_Lists is new PolyORB.Utils.Chained_Lists
+     (PT.Transport_Access_Point_Access, PT."=");
+   subtype TAP_List is TAP_Lists.List;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
    is new PolyORB.Components.Component with record
@@ -365,7 +364,7 @@ private
       --  The set of asynchronous event monitors to be watched
       --  by ORB tasks.
 
-      Transport_Access_Points : TAP_Seq;
+      Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.
 
       Polling : Boolean;
