@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 2002-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -67,7 +67,7 @@ package body PolyORB.Configuration is
    --------------------------------------------
 
    package Variables is
-      new PolyORB.Dynamic_Dict (Value => String_Ptr, No_Value => null);
+      new PolyORB.Dynamic_Dict (Value => String_Ptr);
 
    procedure Set_Variable
      (Section : String;

@@ -68,9 +68,8 @@ package body CORBA.ORB is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Nil_Ref : CORBA.Object.Ref;
    package Referenced_Objects is new PolyORB.Dynamic_Dict
-     (Value => CORBA.Object.Ref, No_Value => Nil_Ref);
+     (Value => CORBA.Object.Ref);
    --  For initial references.
 
    procedure Register_Initial_Reference

@@ -301,6 +301,8 @@ private
       end record;
 
    Default : Sequence;
+   pragma Warnings (Off, Default);
+   --  The default initial value is fine.
 
    Null_Sequence : constant Sequence := Default;
 

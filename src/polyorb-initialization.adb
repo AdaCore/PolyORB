@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 2001-2002 Free Software Fundation              --
+--             Copyright (C) 2001-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -73,8 +73,7 @@ package body PolyORB.Initialization is
 
    Initialized : Boolean := False;
    World : Dep_Lists.List;
-   package World_Dict is new PolyORB.Dynamic_Dict
-     (Value => Module_Access, No_Value => null);
+   package World_Dict is new PolyORB.Dynamic_Dict (Value => Module_Access);
 
    function Lookup_Module (Name : String) return Module_Access;
 
