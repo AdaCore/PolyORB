@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  T E S T _ N A M I N G _ C O R B A _ I                   --
+--                  P O _ C O S _ N A M I N G _ S H E L L                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -62,7 +62,7 @@ with PolyORB.Setup.Thread_Pool_Server;
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
-procedure Test_Naming_CORBA_I is
+procedure PO_COS_Naming_Shell is
 
    package Names renames CosNaming.IDL_SEQUENCE_CosNaming_NameComponent;
 
@@ -666,4 +666,4 @@ begin
       end if;
    end loop;
 
-end Test_Naming_CORBA_I;
+end PO_COS_Naming_Shell;
