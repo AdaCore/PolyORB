@@ -17,6 +17,34 @@ package body Backend.BE_Ada is
 
    D_Tree   : Boolean := False;
 
+   Interface_Reference                        : Node_Id;
+   Interface_Ref_Designator                   : Node_Id;
+   Standard_Designator         : Node_Id;
+   Standard_String_Designator  : Node_Id;
+
+   CORBA_Designator                           : Node_Id;
+   CORBA_Object_Designator                    : Node_Id;
+   CORBA_Object_Ref_Designator                : Node_Id;
+   CORBA_To_CORBA_String_Designator           : Node_Id;
+   CORBA_Object_Is_Nil_Designator             : Node_Id;
+   CORBA_Any_Designator                       : Node_Id;
+   CORBA_Raise_Inv_Objref_Designator          : Node_Id;
+
+
+   PolyORB_Designator                         : Node_Id;
+   PolyORB_Requests_Designator                : Node_Id;
+   PolyORB_Requests_Request_Access_Designator : Node_Id;
+   PolyORB_Any_Designator                     : Node_Id;
+   PolyORB_Any_NVList_Designator              : Node_Id;
+   PolyORB_Any_NVList_Ref_Designator          : Node_Id;
+   PolyORB_Any_NVList_Create_Designator       : Node_Id;
+   PolyORB_Any_NamedValue_Designator          : Node_Id;
+   PolyORB_Types_Identifier_Designator        : Node_Id;
+   PolyORB_Types_Designator                   : Node_Id;
+   PolyORB_Types_To_PolyORB_String_Designator : Node_Id;
+
+
+
    Returns_Parameter_Name : Name_Id;
    Self_Parameter_Name    : Name_Id;
    To_Parameter_Name      : Name_Id;
@@ -26,13 +54,12 @@ package body Backend.BE_Ada is
    Arg_List_U_Name        : Name_Id;
    Result_U_Name          : Name_Id;
    Result_Name_U_Name     : Name_Id;
-   Arg_Name_To_U_Name     : Name_Id;
-   Argument_U_To_Name     : Name_Id;
-   pragma Unreferenced
-     (Argument_U_To_Name, Arg_Name_To_U_Name);
+   Default_Sys_Member     : Name_Id;
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
+
+   procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id);
 
    procedure Initialize;
    procedure Initialize_Variables_Name;
@@ -58,9 +85,23 @@ package body Backend.BE_Ada is
    function Make_Repository_Declaration (E : Node_Id) return Node_Id;
 
    function Marshaller_Body
-     (Subp_Spec : Node_Id) return List_Id;
+     (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id;
    function Marshaller_Declarations
      (Subp_Spec : Node_Id) return List_Id;
+
+   -------------------
+   -- Bind_Together --
+   -------------------
+
+   procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id) is
+   begin
+      if Present (F) then
+         Set_BE_Node (F, B);
+      end if;
+      if Present (B) then
+         Set_FE_Node (B, F);
+      end if;
+   end Bind_FE_To_BE;
 
    ---------------
    -- Configure --
@@ -112,6 +153,173 @@ package body Backend.BE_Ada is
       Int0_Val := New_Integer_Value (0, 1, 10);
    end Initialize;
 
+   -----------------------------
+   -- Initialize_CORBA_Entity --
+   -----------------------------
+
+   procedure Initialize_CORBA_Entity is
+   begin
+      Declare_CORBA_Type (FEN.K_Float);
+      Declare_CORBA_Type (FEN.K_Double);
+      Declare_CORBA_Type (FEN.K_Long_Double);
+      Declare_CORBA_Type (FEN.K_Short);
+      Declare_CORBA_Type (FEN.K_Long);
+      Declare_CORBA_Type (FEN.K_Long_Long);
+      Declare_CORBA_Type (FEN.K_Unsigned_Short);
+      Declare_CORBA_Type (FEN.K_Unsigned_Long);
+      Declare_CORBA_Type (FEN.K_Unsigned_Long_Long);
+      Declare_CORBA_Type (FEN.K_Char);
+      Declare_CORBA_Type (FEN.K_Wide_Char, "WChar");
+      Declare_CORBA_Type (FEN.K_String);
+      Declare_CORBA_Type (FEN.K_Wide_String);
+      Declare_CORBA_Type (FEN.K_Boolean);
+      Declare_CORBA_Type (FEN.K_Octet);
+
+      CORBA_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("CORBA");
+      Set_Defining_Identifier
+        (CORBA_Designator, Make_Defining_Identifier (Name_Find));
+
+      CORBA_Object_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Object");
+      Set_Defining_Identifier
+        (CORBA_Object_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_Object_Designator, CORBA_Designator);
+
+      CORBA_Object_Ref_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Ref");
+      Set_Defining_Identifier
+        (CORBA_Object_Ref_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_Object_Ref_Designator, CORBA_Object_Designator);
+
+
+      CORBA_To_CORBA_String_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("To_CORBA_String");
+      Set_Defining_Identifier
+        (CORBA_To_CORBA_String_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_To_CORBA_String_Designator, CORBA_Designator);
+
+      CORBA_Object_Is_Nil_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Is_Nil");
+      Set_Defining_Identifier
+        (CORBA_Object_Is_Nil_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_Object_Is_Nil_Designator, CORBA_Object_Designator);
+
+      CORBA_Any_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Any");
+      Set_Defining_Identifier
+        (CORBA_Any_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_Any_Designator, CORBA_Designator);
+
+      CORBA_Raise_Inv_Objref_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Raise_Inv_Objref");
+      Set_Defining_Identifier
+        (CORBA_Raise_Inv_Objref_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (CORBA_Raise_Inv_Objref_Designator, CORBA_Designator);
+
+   end Initialize_CORBA_Entity;
+
+   -------------------------------
+   -- Initialize_PolyORB_Entity --
+   -------------------------------
+
+   procedure Initialize_PolyORB_Entity is
+   begin
+      PolyORB_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("PolyORB");
+      Set_Defining_Identifier
+        (PolyORB_Designator, Make_Defining_Identifier (Name_Find));
+
+      PolyORB_Requests_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Requests");
+      Set_Defining_Identifier
+        (PolyORB_Requests_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Requests_Designator, PolyORB_Designator);
+
+      PolyORB_Requests_Request_Access_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Request_Access");
+      Set_Defining_Identifier
+        (PolyORB_Requests_Request_Access_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Requests_Request_Access_Designator,
+         PolyORB_Requests_Designator);
+
+      PolyORB_Any_Designator  := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Any");
+      Set_Defining_Identifier
+        (PolyORB_Any_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Any_Designator, PolyORB_Designator);
+
+      PolyORB_Any_NVList_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("NVList");
+      Set_Defining_Identifier
+        (PolyORB_Any_NVList_Designator, Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Any_NVList_Designator, PolyORB_Any_Designator);
+
+      PolyORB_Any_NVList_Ref_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Ref");
+      Set_Defining_Identifier
+        (PolyORB_Any_NVList_Ref_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Any_NVList_Ref_Designator, PolyORB_Any_NVList_Designator);
+
+      PolyORB_Any_NVList_Create_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Create");
+      Set_Defining_Identifier
+        (PolyORB_Any_NVList_Create_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Any_NVList_Create_Designator, PolyORB_Any_NVList_Designator);
+
+      PolyORB_Any_NamedValue_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("NamedValue");
+      Set_Defining_Identifier
+        (PolyORB_Any_NamedValue_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Any_NamedValue_Designator, PolyORB_Any_Designator);
+
+      PolyORB_Types_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Types");
+      Set_Defining_Identifier
+        (PolyORB_Types_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Types_Designator, PolyORB_Designator);
+
+      PolyORB_Types_Identifier_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("Identifier");
+      Set_Defining_Identifier
+        (PolyORB_Types_Identifier_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Types_Identifier_Designator, PolyORB_Types_Designator);
+
+      PolyORB_Types_To_PolyORB_String_Designator := New_Node (K_Designator);
+      Set_Str_To_Name_Buffer ("To_PolyORB_String");
+      Set_Defining_Identifier
+        (PolyORB_Types_To_PolyORB_String_Designator,
+         Make_Defining_Identifier (Name_Find));
+      Set_Parent_Unit_Name
+        (PolyORB_Types_To_PolyORB_String_Designator, PolyORB_Types_Designator);
+
+   end Initialize_PolyORB_Entity;
+
    -------------------------------
    -- Initialize_Variables_Name --
    -------------------------------
@@ -146,11 +354,8 @@ package body Backend.BE_Ada is
       Set_Str_To_Name_Buffer ("Result_Name_U");
       Result_Name_U_Name := Name_Find;
 
-      Set_Str_To_Name_Buffer ("Arg_Name_To_U");
-      Arg_Name_To_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Argument_U_To");
-      Argument_U_To_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Default_Sys_Member");
+      Default_Sys_Member := Name_Find;
    end Initialize_Variables_Name;
 
    ---------------------------------
@@ -349,10 +554,46 @@ package body Backend.BE_Ada is
    ---------------------
 
    function Marshaller_Body
-     (Subp_Spec : Node_Id) return List_Id is
-      pragma Unreferenced (Subp_Spec);
+     (Subp_Spec : Node_Id; Local_Variables : List_Id) return List_Id is
+      pragma Unreferenced (Subp_Spec, Local_Variables);
+      L : List_Id;
+      N : Node_Id;
+      C : Node_Id;
+      P : List_Id;
+      S : List_Id;
    begin
-      return No_List;
+      L := New_List (BEN.K_List_Id);
+      --  Test if the Self_Ref_U is nil, if it's nil raise exception.
+      C := New_Node (BEN.K_Subprogram_Call);
+      Set_Defining_Identifier
+        (C, Copy_Designator (CORBA_Raise_Inv_Objref_Designator));
+      S := New_List (BEN.K_List_Id);
+      Append_Node_To_List
+        (Make_Defining_Identifier (Default_Sys_Member), S);
+      Set_Actual_Parameter_Part (C, S);
+      S := New_List (BEN.K_List_Id);
+      Append_Node_To_List (C, S);
+      C := New_Node (BEN.K_Subprogram_Call);
+      Set_Defining_Identifier
+        (C, Copy_Designator (CORBA_Object_Is_Nil_Designator));
+      P := New_List (BEN.K_List_Id);
+      Append_Node_To_List
+        (Make_Defining_Identifier (Self_Ref_U_Name), P);
+      Set_Actual_Parameter_Part (C, P);
+      N := Make_If_Statement (C, S, No_List);
+      Append_Node_To_List (N, L);
+
+      --  Create argument list.
+      C := New_Node (K_Subprogram_Call);
+      Set_Defining_Identifier
+        (C, Copy_Designator (PolyORB_Any_NVList_Create_Designator));
+      P := New_List (BEN.K_List_Id);
+      Append_Node_To_List
+        (Make_Defining_Identifier (Arg_List_U_Name), P);
+      Set_Actual_Parameter_Part (C, P);
+      Append_Node_To_List (C, L);
+
+      return L;
    end Marshaller_Body;
 
    -----------------------------
@@ -366,8 +607,79 @@ package body Backend.BE_Ada is
       N : Node_Id;
       V : Value_Id;
       C : Node_Id;
+      I : Node_Id;
+      X : Name_Id;
+      D : Node_Id;
+      R : Name_Id;
    begin
       L := New_List (BEN.K_List_Id);
+
+      --  Arg_List_U declaration.
+      N := Make_Object_Declaration
+        (Defining_Identifier =>
+           Make_Defining_Identifier (Arg_List_U_Name),
+         Constant_Present    => False,
+         Object_Definition   => RE (RE_Ref_3),
+         Expression          => No_Node);
+      Append_Node_To_List (N, L);
+
+      P := Parameter_Profile (Subp_Spec);
+      I := First_Node (P);
+      I := Next_Node (I);
+      while Present (I) loop
+         --  Arg_Name_U_X declaration
+         --  Arg_Name_U_X : PolyORB.Types.Identifier
+         --    := PolyORB.Types.To_PolyORB_String ("X")
+         --  ** where X is the parameter name.
+         X := BEN.Name (Defining_Identifier (I));
+         C := New_Node (K_Subprogram_Call);
+         Set_Defining_Identifier
+           (C, Copy_Node (PolyORB_Types_To_PolyORB_String_Designator));
+         P := New_List (BEN.K_List_Id);
+         V := New_String_Value (X, False);
+         Append_Node_To_List (Make_Literal (V), P);
+         Set_Actual_Parameter_Part (C, P);
+
+         Set_Str_To_Name_Buffer ("Arg_Name_U_");
+         Get_Name_String_And_Append (X);
+         R := Name_Find;
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (R),
+            Constant_Present => False,
+            Object_Definition =>
+              Copy_Designator (PolyORB_Types_Identifier_Designator),
+            Expression => C);
+         Append_Node_To_List (N, L);
+
+         --  Argument_U_X declaration
+         --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
+         --  ** where X is the parameter name.
+         --  ** where Y is the fully qualified current package Name.
+         D := New_Node (K_Designator);
+         Set_Str_To_Name_Buffer ("To_Any");
+         Set_Defining_Identifier
+           (D, Make_Defining_Identifier (Name_Find));
+         Set_Parent_Unit_Name
+           (D, Defining_Identifier (Helper_Package (Current_Entity)));
+
+         C := New_Node (K_Subprogram_Call);
+         Set_Defining_Identifier (C, D);
+         P := New_List (BEN.K_List_Id);
+         Append_Node_To_List (Make_Defining_Identifier (X), P);
+         Set_Actual_Parameter_Part (C, P);
+
+         Set_Str_To_Name_Buffer ("Argument_U_");
+         Get_Name_String_And_Append (X);
+         R := Name_Find;
+         N := Make_Object_Declaration
+           (Defining_Identifier => Make_Defining_Identifier (R),
+            Constant_Present => False,
+            Object_Definition =>
+              Copy_Designator (CORBA_Any_Designator),
+            Expression => C);
+         Append_Node_To_List (N, L);
+         I := Next_Node (I);
+      end loop;
 
       --  Operation_Name_U declaration
       V := New_String_Value
@@ -403,15 +715,6 @@ package body Backend.BE_Ada is
            Make_Defining_Identifier (Request_U_Name),
          Constant_Present    => False,
          Object_Definition   => RE (RE_Request_Access),
-         Expression          => No_Node);
-      Append_Node_To_List (N, L);
-
-      --  Arg_List_U declaration.
-      N := Make_Object_Declaration
-        (Defining_Identifier =>
-           Make_Defining_Identifier (Arg_List_U_Name),
-         Constant_Present    => False,
-         Object_Definition   => RE (RE_Ref_3),
          Expression          => No_Node);
       Append_Node_To_List (N, L);
 
@@ -523,7 +826,7 @@ package body Backend.BE_Ada is
 
          Set_Main_Body;
          D := Marshaller_Declarations (N);
-         S := Marshaller_Body (N);
+         S := Marshaller_Body (N, D);
          P := Make_Subprogram_Implementation (N, D, S);
          Append_Node_To_List (P, Statements (Current_Package));
 
@@ -535,7 +838,7 @@ package body Backend.BE_Ada is
 
             Set_Main_Body;
             D := Marshaller_Declarations (N);
-            S := Marshaller_Body (N);
+            S := Marshaller_Body (N, D);
             P := Make_Subprogram_Implementation (N, D, S);
             Append_Node_To_List (P, Statements (Current_Package));
          end if;
@@ -724,12 +1027,12 @@ package body Backend.BE_Ada is
       Subp_Spec := Make_Subprogram_Specification
         (Make_Defining_Identifier (E), Profile, Returns);
       Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-
+      Bind_FE_To_BE (E, Subp_Spec);
       --  Add subprogram to main implementation
 
       Set_Main_Body;
       Declarative_Part := Marshaller_Declarations (Subp_Spec);
-      Body_Part := Marshaller_Body (Subp_Spec);
+      Body_Part := Marshaller_Body (Subp_Spec, Declarative_Part);
       Subp_Body := Make_Subprogram_Implementation
         (Subp_Spec, Declarative_Part, Body_Part);
       Append_Node_To_List (Subp_Body, Statements (Current_Package));
@@ -798,7 +1101,8 @@ package body Backend.BE_Ada is
       N := Make_Full_Type_Declaration
         (Make_Defining_Identifier (E),
          Make_Record_Type_Definition
-           (Make_Record_Definition (L)));
+         (Make_Record_Definition (L)));
+      Bind_FE_To_BE (E, N);
       Append_Node_To_List
         (N, Visible_Part (Current_Package));
       Append_Node_To_List
@@ -831,6 +1135,7 @@ package body Backend.BE_Ada is
                  (Subtype_Indication    => T,
                   Record_Extension_Part => No_Node));
          end if;
+         Bind_FE_To_BE (E, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List

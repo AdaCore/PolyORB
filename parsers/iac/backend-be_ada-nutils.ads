@@ -86,6 +86,12 @@ package Backend.BE_Ada.Nutils is
      (Entity : Node_Id)
       return Node_Id;
 
+   function Make_If_Statement
+     (Condition : Node_Id;
+      Then_Statements : List_Id;
+      Else_Statements : List_Id)
+     return Node_Id;
+
    function Make_Literal
      (Value : Value_Id)
      return Node_Id;

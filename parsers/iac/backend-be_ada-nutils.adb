@@ -409,6 +409,25 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Fully_Qualified_Identifier;
 
+   -----------------------
+   -- Make_If_Statement --
+   -----------------------
+
+   function Make_If_Statement
+     (Condition : Node_Id;
+      Then_Statements : List_Id;
+      Else_Statements : List_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_If_Statement);
+      Set_Condition (N, Condition);
+      Set_Then_Statements (N, Then_Statements);
+      Set_Else_Statements (N, Else_Statements);
+      return N;
+   end Make_If_Statement;
+
    ------------------
    -- Make_Literal --
    ------------------

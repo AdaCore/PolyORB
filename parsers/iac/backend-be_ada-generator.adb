@@ -130,6 +130,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
+   procedure Generate_If_Statement (N : Node_Id);
    procedure Generate_Literal (N : Node_Id);
    procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
@@ -181,6 +182,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_IDL_Unit =>
             Generate_IDL_Unit_Packages (N);
+
+         when K_If_Statement =>
+            Generate_If_Statement (N);
 
          when K_Literal =>
             Generate_Literal (N);
@@ -398,6 +402,67 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
    end Generate_IDL_Unit_Packages;
+
+   ---------------------------
+   -- Generate_If_Statement --
+   ---------------------------
+
+   procedure Generate_If_Statement (N : Node_Id) is
+      T : List_Id;
+      E : List_Id;
+      I : Node_Id;
+   begin
+      T := Then_Statements (N);
+      E := Else_Statements (N);
+      Write_Indentation;
+      Write (Tok_If);
+      Write_Space;
+      Generate (Condition (N));
+      Write_Space;
+      Write (Tok_Then);
+      Write_Eol;
+      Increment_Indentation;
+      if not Is_Empty (T) then
+         Write_Indentation;
+         I := First_Node (T);
+         while Present (I) loop
+            Generate (I);
+            I := Next_Node (I);
+            Write (Tok_Semicolon);
+            if Present (I) then
+               Write_Eol;
+               Write_Indentation;
+            end if;
+         end loop;
+      else
+         Write (Tok_Null);
+         Write (Tok_Semicolon);
+      end if;
+      Decrement_Indentation;
+      if not Is_Empty (E) then
+         Write_Indentation;
+         Write (Tok_Else);
+         Increment_Indentation;
+         Write_Eol;
+         Write_Indentation;
+         I := First_Node (E);
+         while Present (I) loop
+            Generate (I);
+            I := Next_Node (I);
+            Write (Tok_Semicolon);
+            if Present (I) then
+               Write_Eol;
+               Write_Indentation;
+            end if;
+         end loop;
+         Decrement_Indentation;
+      end if;
+      Write_Eol;
+      Write_Indentation;
+      Write (Tok_End);
+      Write_Space;
+      Write (Tok_If);
+   end Generate_If_Statement;
 
    ----------------------
    -- Generate_Literal --
@@ -699,6 +764,14 @@ package body Backend.BE_Ada.Generator is
          Write (Tok_Null);
          Write (Tok_Semicolon);
          Write_Eol;
+      else
+         M := First_Node (S);
+         while Present (M) loop
+            Generate (M);
+            Write (Tok_Semicolon);
+            Write_Eol;
+            M := Next_Node (M);
+         end loop;
       end if;
       Decrement_Indentation;
       Write_Indentation;

@@ -129,6 +129,16 @@ module Backend::BE_Ada::Nodes {
     List_Id    Enumeration_Literals;
   };
 
+  /******************/
+  /* IF Statetement */
+  /******************/
+
+  interface If_Statement : Node_Id {
+    Node_Id    Condition;
+    List_Id    Then_Statements; 
+    List_Id    Else_Statements; 
+  };
+
   /***************/
   /* Other nodes */
   /***************/
