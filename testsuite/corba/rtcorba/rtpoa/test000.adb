@@ -130,6 +130,10 @@ begin
       procedure Test_CLIENT_PROPAGATED_1;
       procedure Test_CLIENT_PROPAGATED_2;
 
+      ----------------------------
+      -- Test_SERVER_DECLARED_1 --
+      ----------------------------
+
       procedure Test_SERVER_DECLARED_1 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
          Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
@@ -181,6 +185,52 @@ begin
             & "'");
          New_Line;
 
+         --  Create reference with priority
+
+         begin
+            declare
+               Obj_Ref2 : constant CORBA.Object.Ref :=
+                 RTPortableServer.POA.Create_Reference_With_Priority
+                 (Child_POA_Server,
+                  CORBA.To_CORBA_String (Echo.Repository_Id),
+                  7);
+               pragma Unreferenced (Obj_Ref2);
+            begin
+               Output ("Create_Reference_With_Priority raised an exception",
+                       False);
+            end;
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               Output ("Create_Reference_With_Priority raised an exception",
+                       True);
+         end;
+
+         --  Create reference with id and priority
+
+         begin
+            declare
+               Oid : constant PortableServer.ObjectId
+                 := PortableServer.String_To_ObjectId ("dead");
+
+               Obj_Ref2 : constant CORBA.Object.Ref :=
+                 RTPortableServer.POA.Create_Reference_With_Id_And_Priority
+                 (Child_POA_Server,
+                  Oid,
+                  CORBA.To_CORBA_String (Echo.Repository_Id),
+                  7);
+               pragma Unreferenced (Obj_Ref2);
+            begin
+               Output
+                 ("Create_Reference_With_Id_And_Priority raised an exception",
+                  False);
+            end;
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               Output
+                 ("Create_Reference_With_Id_And_Priority raised an exception",
+                  True);
+         end;
+
          --  Activate servant with priority
 
          begin
@@ -202,9 +252,40 @@ begin
             Output ("Activate_Object_With_Priority raised an exception", True);
          end;
 
+         --  Activate servant with id and priority
+
+         begin
+            declare
+               Obj2 : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
+
+               Oid : constant PortableServer.ObjectId
+                 := PortableServer.String_To_ObjectId ("dead");
+
+            begin
+               RTPortableServer.POA.Activate_Object_With_Id_And_Priority
+                 (Child_POA_Server,
+                  Oid,
+                  PortableServer.Servant (Obj2),
+                  11000);
+
+               Output
+                 ("Activate_Object_With_Id_And_Priority raised no exception",
+                  False);
+            end;
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               Output
+                 ("Activate_Object_With_Id_And_Priority raised no exception",
+                  True);
+         end;
+
          Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
-         Output ("done", True);
+         Output ("All tests done", True);
       end Test_SERVER_DECLARED_1;
+
+      ----------------------------
+      -- Test_SERVER_DECLARED_2 --
+      ----------------------------
 
       procedure Test_SERVER_DECLARED_2 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
@@ -213,7 +294,7 @@ begin
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
 
-         Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -236,7 +317,9 @@ begin
          Append (Policies_Server,
                  CORBA.Policy.Ref (Priority_Model_Policy_Ref_Server));
 
-         Append (Policies_Server, Implicit_Activation_Policy);
+         Append (Policies_Server, No_Implicit_Activation_Policy);
+
+         Output ("NO_IMPLICIT_ACTIVATION policy declared", True);
 
          Child_POA_Server := RTPortableServer.POA.To_Ref
            (PortableServer.POA.Create_POA
@@ -260,6 +343,38 @@ begin
             when PortableServer.POA.ServantNotActive =>
                Output ("Created object with SERVER_DECLARED policy "
                        & "raised PortableServer.POA.ServantNotActive", True);
+         end;
+
+         --  Create reference
+
+         begin
+            declare
+               Obj_Ref2 : constant CORBA.Object.Ref :=
+                 RTPortableServer.POA.Create_Reference_With_Priority
+                 (Child_POA_Server,
+                  CORBA.To_CORBA_String (Echo.Repository_Id),
+                  7);
+
+            begin
+               Output ("Create_Reference_With_Priority raised no exception",
+                       True);
+
+               --  Output object IOR
+
+               New_Line;
+               Put_Line
+                 ("'"
+                  & CORBA.To_Standard_String
+                  (CORBA.Object.Object_To_String (Obj_Ref2))
+                  & "'");
+               New_Line;
+
+            end;
+         exception
+            when others =>
+               Output ("Create_Reference_With_Priority raised no exception",
+                       False);
+               raise;
          end;
 
          --  Activate servant with priority
@@ -300,7 +415,12 @@ begin
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Server), False, False);
+         Output ("All tests done", True);
       end Test_SERVER_DECLARED_2;
+
+      ------------------------------
+      -- Test_CLIENT_PROPAGATED_1 --
+      ------------------------------
 
       procedure Test_CLIENT_PROPAGATED_1 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
@@ -356,23 +476,23 @@ begin
 
          --  Create reference
 
---          begin
---             declare
---                Obj_Ref2 : constant CORBA.Object.Ref :=
---                  RTPortableServer.POA.Create_Reference_With_Priority
---                  (Child_POA_Client,
---                   CORBA.To_CORBA_String (Echo.Repository_Id),
---                   7);
---                pragma Unreferenced (Obj_Ref2);
---             begin
---                Output ("Create_Reference_With_Priority raised an exception",
---                        False);
---             end;
---          exception
---             when PortableServer.POA.WrongPolicy =>
---                Output ("Create_Reference_With_Priority raised an exception",
---                        True);
---          end;
+         begin
+            declare
+               Obj_Ref2 : constant CORBA.Object.Ref :=
+                 RTPortableServer.POA.Create_Reference_With_Priority
+                 (Child_POA_Client,
+                  CORBA.To_CORBA_String (Echo.Repository_Id),
+                  7);
+               pragma Unreferenced (Obj_Ref2);
+            begin
+               Output ("Create_Reference_With_Priority raised an exception",
+                       False);
+            end;
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               Output ("Create_Reference_With_Priority raised an exception",
+                       True);
+         end;
 
          --  Activate servant with priority
 
@@ -426,7 +546,12 @@ begin
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
+         Output ("All tests done", True);
       end Test_CLIENT_PROPAGATED_1;
+
+      ------------------------------
+      -- Test_CLIENT_PROPAGATED_2 --
+      ------------------------------
 
       procedure Test_CLIENT_PROPAGATED_2 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
@@ -435,7 +560,7 @@ begin
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
 
-         Implicit_Activation_Policy : CORBA.Policy.Ref
+         No_Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref
            (Create_Implicit_Activation_Policy (NO_IMPLICIT_ACTIVATION));
 
@@ -458,7 +583,9 @@ begin
          Append (Policies_Client,
                  CORBA.Policy.Ref (Priority_Model_Policy_Ref_Client));
 
-         Append (Policies_Client, Implicit_Activation_Policy);
+         Append (Policies_Client, No_Implicit_Activation_Policy);
+
+         Output ("NO_IMPLICIT_ACTIVATION policy declared", True);
 
          Child_POA_Client := RTPortableServer.POA.To_Ref
            (PortableServer.POA.Create_POA
@@ -502,6 +629,7 @@ begin
          end;
 
          Destroy (PortableServer.POA.Ref (Child_POA_Client), False, False);
+         Output ("All tests done", True);
       end Test_CLIENT_PROPAGATED_2;
 
    begin
