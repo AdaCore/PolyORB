@@ -1,40 +1,82 @@
-////////////////////////////////////////////////////////////////////////////
-////                                                                    ////
-////     This class is both a C class and an Ada Class (see             ////
-////     omniObject.ads). It is wrapped around omniObject_C2Ada         ////
-////     in order to avoid the presence of non default construc-        ////
-////     tors.                                                          ////
-////     So, it provides the same functions as omniObject_C2Ada         ////
-////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlying omniObject_C2Ada       ////
-////     object                                                         ////
-////                                                                    ////
-////                                                                    ////
-////                Date : 02/16/99                                     ////
-////                                                                    ////
-////                authors : Sebastien Ponce                           ////
-////                                                                    ////
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+////                                                               ////
+////                         AdaBroker                             ////
+////                                                               ////
+////                 class Ada_OmniObject                          ////
+////                                                               ////
+////                                                               ////
+////   Copyright (C) 1999 ENST                                     ////
+////                                                               ////
+////   This file is part of the AdaBroker library                  ////
+////                                                               ////
+////   The AdaBroker library is free software; you can             ////
+////   redistribute it and/or modify it under the terms of the     ////
+////   GNU Library General Public License as published by the      ////
+////   Free Software Foundation; either version 2 of the License,  ////
+////   or (at your option) any later version.                      ////
+////                                                               ////
+////   This library is distributed in the hope that it will be     ////
+////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
+////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
+////   PURPOSE.  See the GNU Library General Public License for    ////
+////   more details.                                               ////
+////                                                               ////
+////   You should have received a copy of the GNU Library General  ////
+////   Public License along with this library; if not, write to    ////
+////   the Free Software Foundation, Inc., 59 Temple Place -       ////
+////   Suite 330, Boston, MA 02111-1307, USA                       ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   Description                                                 ////
+////   -----------                                                 ////
+////     This class is is both a C class and an Ada Class (see     ////
+////     omniObject.ads). It is wrapped around omniObject_C2Ada    ////
+////     in order to avoid the presence of non default construc-   ////
+////     tors.                                                     ////
+////     So, it provides the same functions as omniObject_C2Ada    ////
+////     except that constructors are replaced by Init functions.  ////
+////     It has also a pointer on the underlying omniObject_C2Ada  ////
+////     object                                                    ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   authors : Sebastien Ponce, Fabien Azavant                   ////
+////   date    : 02/28/99                                          ////
+////                                                               ////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 
 
 #include "Ada_OmniObject.hh"
 
+// Constructor
+//------------
 Ada_OmniObject::Ada_OmniObject()
 {
   Init_Ok = false;
 };
 
+
+// ~Ada_OmniObject
+//----------------
 Ada_OmniObject::~Ada_OmniObject()
 {
   delete C_OmniObject ;
 } ;
 
+
+// Destructor
+//------------
 void
 Ada_OmniObject::Destructor(Ada_OmniObject* o) {
   delete o ;
 }
 
 
+// Init
+//-----
 void
 Ada_OmniObject::Init ()
 {
@@ -45,6 +87,9 @@ Ada_OmniObject::Init ()
   return;
 }
 
+
+// Init
+//-----
 void
 Ada_OmniObject::Init (const char *repoId,
 		      Rope *r,
@@ -66,6 +111,9 @@ Ada_OmniObject::Init (const char *repoId,
   return;
 };
 
+
+// Init
+//-----
 void
 Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
 {
@@ -75,6 +123,8 @@ Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
 }
 
  
+// setRopeAndKey
+//--------------
 void
 Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
@@ -89,6 +139,9 @@ Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
   }
 };
 
+
+// getRopeAndKey
+//--------------
 void
 Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success) {
   if (Init_Ok) {
@@ -103,6 +156,8 @@ Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success) {
 }
       
   
+// assertObjectExistent
+//---------------------
 void
 Ada_OmniObject::assertObjectExistent() {
   if (Init_Ok) {
@@ -117,6 +172,8 @@ Ada_OmniObject::assertObjectExistent() {
 }
 
 
+// is_proxy
+//---------
 _CORBA_Boolean
 Ada_OmniObject::is_proxy() {
   if (Init_Ok) {
@@ -129,6 +186,9 @@ Ada_OmniObject::is_proxy() {
   }
 }
 
+
+// dispatch
+//---------
 extern _CORBA_Boolean dispatch(GIOP_S &,
 			       const char *operation,
 			       _CORBA_Boolean response_expected);
@@ -145,6 +205,8 @@ Ada_OmniObject::getOmniObject() {
 
 
 
+// setRepositoryID
+//----------------
 void
 Ada_OmniObject::setRepositoryID(const char* repoId) {
   if (Init_Ok) {
@@ -160,6 +222,8 @@ Ada_OmniObject::setRepositoryID(const char* repoId) {
 
 
 
+// getRepositoryID
+//----------------
 const char*
 Ada_OmniObject::getRepositoryID() {
   if (Init_Ok) {
@@ -173,6 +237,8 @@ Ada_OmniObject::getRepositoryID() {
 }
  
 
+// string_to_ada_object
+//---------------------
 Ada_OmniObject*
 Ada_OmniObject::string_to_ada_object(const char *repoId) {
   omniObject *objptr = omni::stringToObject(repoId) ;
@@ -185,6 +251,9 @@ Ada_OmniObject::string_to_ada_object(const char *repoId) {
   }
 }
 
+
+// ada_object_to_string
+//---------------------
 char*
 Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
   if ( objptr == 0 ) {
@@ -195,6 +264,8 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
 }
 
 
+// iopProfiles
+//------------
 IOP::TaggedProfileList*
 Ada_OmniObject::iopProfiles() {
   if (Init_Ok) {
@@ -207,6 +278,9 @@ Ada_OmniObject::iopProfiles() {
   }
 }
 
+
+// ada_create_objref
+//---------------------
 Ada_OmniObject*
 Ada_OmniObject::ada_create_objref(const char* repoId,
 				  IOP::TaggedProfileList* profiles,

@@ -59,7 +59,6 @@ public:
   void Init (Rope *r);
   // Initialisation of Ada_Giop_c, calls the
   // underlying GIOP_C constructor
-
   
   void InitialiseRequest(const void          *objkey,
 			 const size_t         objkeysize,
@@ -74,24 +73,19 @@ public:
   //			                   const size_t         msgsize,
   //			                   const _CORBA_Boolean oneway);
 
-  
   GIOP::ReplyStatusType ReceiveReply();
   // wrapper around GIOP::ReplyStatusType ReceiveReply();
 
-  
   void RequestCompleted(_CORBA_Boolean skip);
   // wrapper around void RequestCompleted(_CORBA_Boolean skip=0);
-
   
 private:
 
   GIOP_C *C_Giop_c;
   // Pointer on the underlying Giop_s object
-
   
   bool Init_Ok;
   // This flag tells whether an init function was called or not
-
   
 };
 

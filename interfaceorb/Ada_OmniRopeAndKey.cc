@@ -1,31 +1,67 @@
-////////////////////////////////////////////////////////////////////////////
-////                                                                    ////
-////     This class is both a C class and an Ada Class (see             ////
-////     omniRopeAndKey.ads). It is wrapped around omniRopeAndKey       ////
-////     in order to avoid the presence of non default construc-        ////
-////     tors.                                                          ////
-////     So, it provides the same functions as omniRopeAndKey           ////
-////     except that constructors are replaced by Init functions.       ////
-////     It has also a pointer on the underlying omniRopeAndKey         ////
-////     object                                                         ////
-////                                                                    ////
-////                                                                    ////
-////                Date : 02/18/99                                     ////
-////                                                                    ////
-////                authors : Sebastien Ponce                           ////
-////                                                                    ////
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+////                                                               ////
+////                         AdaBroker                             ////
+////                                                               ////
+////                 class Ada_OmniRopeAndKey                      ////
+////                                                               ////
+////                                                               ////
+////   Copyright (C) 1999 ENST                                     ////
+////                                                               ////
+////   This file is part of the AdaBroker library                  ////
+////                                                               ////
+////   The AdaBroker library is free software; you can             ////
+////   redistribute it and/or modify it under the terms of the     ////
+////   GNU Library General Public License as published by the      ////
+////   Free Software Foundation; either version 2 of the License,  ////
+////   or (at your option) any later version.                      ////
+////                                                               ////
+////   This library is distributed in the hope that it will be     ////
+////   useful, but WITHOUT ANY WARRANTY; without even the implied  ////
+////   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ////
+////   PURPOSE.  See the GNU Library General Public License for    ////
+////   more details.                                               ////
+////                                                               ////
+////   You should have received a copy of the GNU Library General  ////
+////   Public License along with this library; if not, write to    ////
+////   the Free Software Foundation, Inc., 59 Temple Place -       ////
+////   Suite 330, Boston, MA 02111-1307, USA                       ////
+////                                                               ////
+////                                                               ////
+////                                                               ////
+////   Description                                                 ////
+////   -----------                                                 ////
+////     This class is both a C class and an Ada Class (see        ////
+////     omniRopeAndKey.ads). It is wrapped around omniRopeAndKey  ////
+////     in order to avoid the presence of non default construc-   ////
+////     tors.                                                     ////
+////     So, it provides the same functions as omniRopeAndKey      ////
+////     except that constructors are replaced by Init functions.  ////
+////     It has also a pointer on the underlying omniRopeAndKey    ////
+////     object                                                    ////
+////                                                               ////
+////                                                               ////
+////   authors : Sebastien Ponce, Fabien Azavant                   ////
+////   date    : 02/28/99                                          ////
+////                                                               ////
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 
 
 #include "Ada_OmniRopeAndKey.hh"
 
+
+// Ada_OmniRopeAndKey
+//-------------------
 Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 {
   Init_Ok = false;
   C_omniRopeAndKey = NULL;
 };
-// default constructor
 
+
+// Init
+//-----
 void
 Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
 {
@@ -33,6 +69,9 @@ Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
   Init_Ok = true;
 };
 
+
+// Init
+//-----
 void
 Ada_OmniRopeAndKey::Init ()
 {
@@ -40,6 +79,9 @@ Ada_OmniRopeAndKey::Init ()
   Init_Ok = true;
 };
 
+
+// rope
+//-----
 Rope*
 Ada_OmniRopeAndKey::rope()
 {
@@ -53,6 +95,9 @@ Ada_OmniRopeAndKey::rope()
   }
 };
 
+
+// key
+//-----
 _CORBA_Octet*
 Ada_OmniRopeAndKey::key()
 {
@@ -65,7 +110,10 @@ Ada_OmniRopeAndKey::key()
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::key without initialising object.");
   }
 };
-  
+
+
+// keysize
+//--------
 _CORBA_ULong
 Ada_OmniRopeAndKey::keysize()
 {
@@ -80,6 +128,8 @@ Ada_OmniRopeAndKey::keysize()
 };
 
 
+// equals
+//-------
 _CORBA_Boolean
 Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
   if (Init_Ok) {
