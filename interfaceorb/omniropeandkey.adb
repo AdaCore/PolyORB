@@ -54,54 +54,6 @@ with System.Address_To_Access_Conversions ;
 package body OmniRopeAndKey is
 
 
-   -- C_Init
-   ---------
-   procedure C_Init (Self : in out Object'Class ;
-                     R : System.Address ;
-                     K : System.Address ;
-                     Ksize : Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_Init,"Init__18Ada_OmniRopeAndKeyP4RopePUcUl") ;
-   -- wrapper around  Ada_OmniRopeAndKey function Init
-   -- (see Ada_OmniRopeAndKey.hh)
-   -- called by the Ada equivalent : Init
-
-
-   -- Init
-   -------
-   procedure Init (Self : in out Object'Class ;
-                   R : in Rope.Object ;
-                   K : in Corba.Octet ;
-                   Ksize : in Corba.Unsigned_Long) is
-      C_K : System.Address ;
-      C_Ksize : Interfaces.C.Unsigned_Long ;
-   begin
-      -- transforms the arguments in a C type ...
-      C_K := K'Address ;
-      C_Ksize := Interfaces.C.Unsigned_Long(Ksize) ;
-      -- ... and calls the C procedure
-      C_Init (Self,System.Address (R),C_K,C_Ksize) ;
-   end;
-
-
-   -- C_Init2
-   ----------
-   procedure C_Init2 (Self : in out Object'Class) ;
-   pragma Import (C,C_Init2,"Init__18Ada_OmniRopeAndKey") ;
-   -- wrapper around  Ada_OmniRopeAndKey function Init
-   -- (see Ada_OmniRopeAndKey.hh)
-   -- name was changed to avoid conflict
-   -- called by the Ada equivalent : Init
-
-
-   -- Init
-   -------
-   procedure Init (Self : in out Object'Class) is
-   begin
-      C_Init2 (Self) ;
-      -- just call the C function
-   end;
-
-
    -- C_Get_Rope
    -------------
    function C_Get_Rope (Self : in Object'Class) return System.Address ;
@@ -141,5 +93,21 @@ package body OmniRopeAndKey is
       -- ... and transforms the result in Ada type
       return Corba.Unsigned_Long (C_Result) ;
    end;
+
+
+   -- Initialize
+   -------------
+   procedure Initialize(Self : in out Controlled_Wrapper) is
+   begin
+      Init(Self.Real) ;
+   end ;
+
+
+   -- Finalize
+   -----------
+   procedure Finalize(Self : in out Controlled_Wrapper) is
+   begin
+      Free(Self.Real) ;
+   end ;
 
 end OmniRopeAndKey ;

@@ -110,15 +110,15 @@ package body Corba.Object is
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)
                           return Corba.Boolean is
-      Rak : Omniropeandkey.Object ;
-      Other_Rak : Omniropeandkey.Object ;
+      Rak : Omniropeandkey.Controlled_Wrapper ;
+      Other_Rak : Omniropeandkey.Controlled_Wrapper ;
       S1, S2 : Corba.Boolean ;
    begin
       -- this is copied from corbaObject.cc L160.
       -- Here, Refs are proxy objects
-      OmniObject.Get_Rope_And_Key(Self.Omniobj.all, Rak, S1) ;
-      Omniobject.Get_Rope_And_Key(Other.Omniobj.all, Other_Rak, S2) ;
-      return S1 and S2 and (Rak = Other_Rak) ;
+      OmniObject.Get_Rope_And_Key(Self.Omniobj.all, Rak.Real, S1) ;
+      Omniobject.Get_Rope_And_Key(Other.Omniobj.all, Other_Rak.Real, S2) ;
+      return S1 and S2 and (Rak.Real = Other_Rak.Real) ;
    end;
 
 

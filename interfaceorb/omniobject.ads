@@ -330,14 +330,14 @@ package OmniObject is
    -- checks that this object really exists
 
    procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : out Omniropeandkey.Object ;
+                               L : in out Omniropeandkey.Object ;
                                Success : out Boolean ) ;
    -- returns the rope and key for this omniobject
    -- if it is a proxy object
 
 
    procedure Set_Rope_And_Key(Self : in out Object'Class ;
-                              L : in Omniropeandkey.Object ;
+                              L : in out Omniropeandkey.Object ;
                               KeepIOP : in Boolean := True) ;
    -- sets the rope and key for this object
 

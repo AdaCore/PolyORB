@@ -200,7 +200,7 @@ Ada_OmniObject::disposeObject() {
 void
 Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
-  if (Init_Ok) {
+  if ( (Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
     C_Object->setRopeAndKey(*(l.C_Object),keepIOP);

@@ -56,17 +56,7 @@
 Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 {
   Init_Ok = false;
-  C_Object = NULL;
-};
-
-
-// Init
-//-----
-void
-Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
-{
-  C_Object = new omniRopeAndKey (r,k,ksize);
-  Init_Ok = true;
+  C_Object = 0 ;
 };
 
 
@@ -75,8 +65,22 @@ Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
 void
 Ada_OmniRopeAndKey::Init ()
 {
+  if (C_Object) {
+    delete C_Object ;
+  }
   C_Object = new omniRopeAndKey ();
   Init_Ok = true;
+};
+
+// Free
+//-----
+void
+Ada_OmniRopeAndKey::Free ()
+{
+  if (C_Object) {
+    delete C_Object ;
+  }
+  Init_Ok = false ;
 };
 
 
@@ -132,7 +136,7 @@ Ada_OmniRopeAndKey::keysize()
 //-------
 _CORBA_Boolean
 Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
-  if (Init_Ok) {
+  if ( (Init_Ok) && (other.assertInit_Ok())) {
     // if Initialisation was made then 
     // compare effectively the two objects
     // this code is pasted from corbaObject.cc L160

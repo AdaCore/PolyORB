@@ -490,7 +490,7 @@ package body OmniObject is
    -- C_Get_Rope_And_Key
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
-                                L : out Omniropeandkey.Object ;
+                                L : in out Omniropeandkey.Object ;
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
@@ -502,7 +502,7 @@ package body OmniObject is
    -- Get_Rope_And_Key
    -------------------
    procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : out Omniropeandkey.Object ;
+                               L : in out Omniropeandkey.Object ;
                                Success : out Corba.Boolean ) is
       C_Success : Sys_Dep.C_Boolean ;
    begin
@@ -654,7 +654,7 @@ package body OmniObject is
    -- C_Set_Rope_And_Key
    ----------------------
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
-                                 L : in Omniropeandkey.Object ;
+                                 L : in out Omniropeandkey.Object ;
                                  KeepIOP : in Sys_Dep.C_Boolean) ;
    pragma Import (CPP,C_Set_Rope_And_Key,
                   "setRopeAndKey__14Ada_OmniObjectRC18Ada_OmniRopeAndKeyb") ;
@@ -665,7 +665,7 @@ package body OmniObject is
    -- Set_Rope_And_Key
    -------------------
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object ;
+                               L : in out Omniropeandkey.Object ;
                                KeepIOP : in Boolean := True) is
       C_KeepIOP : Sys_Dep.C_Boolean ;
    begin

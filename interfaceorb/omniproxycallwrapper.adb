@@ -85,7 +85,7 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object ;
+      Rope_And_Key : Omniropeandkey.Controlled_Wrapper ;
       -- rope and key of the omniobject
 
       The_Rope : Rope.Object ;
@@ -118,23 +118,13 @@ package body omniProxyCallWrapper is
          -- verify that the object exists
          Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
 
-         -- Initialisation of Rope_And_Key
-         ---------------------------------------------
-         -- WARNING WARNING WARNING WARNING WARNING --
-         -- MEMORY LEAK                             --
-         -- WARNING WARNING WARNING WARNING WARNING --
-         ---------------------------------------------
-         Omniropeandkey.Init(Rope_And_Key) ;
-
          -- get the current values of the rope and the key
-         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
-         pragma Debug(Output(Debug,
-                             "RopeAndKey = null := " & Boolean'Image (System.Address (Omniropeandkey.Get_Rope(Rope_And_Key)) = System.Null_Address) ));
 
          -- Get a GIOP driven strand
-         The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key) ;
+         The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key.Real) ;
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : Got The rope"));
 
@@ -145,13 +135,13 @@ package body omniProxyCallWrapper is
 
          pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : key_size = "
                              & Corba.Unsigned_Long'Image
-                             (Omniropeandkey.Key_Size(Rope_And_Key))));
+                             (Omniropeandkey.Key_Size(Rope_And_Key.Real))));
 
          -- Calculates the size of the message
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key),
+           (Omniropeandkey.Key_Size(Rope_And_Key.Real),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
 
          pragma Debug(Output(Debug,
@@ -166,8 +156,8 @@ package body omniProxyCallWrapper is
 
          -- Initialize the request
          Giop_C.Initialize_Request(Giop_Client.Real,
-                                   Omniropeandkey.Get_Key(Rope_And_Key),
-                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   Omniropeandkey.Get_Key(Rope_And_Key.Real),
+                                   Omniropeandkey.Key_Size(Rope_And_Key.Real),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    False);
@@ -253,7 +243,7 @@ package body omniProxyCallWrapper is
                declare
                   Obj_Ref : Corba.Object.Ref ;
                   Omniobj_Ptr2 : Omniobject.Object_Ptr ;
-                  R : Omniropeandkey.Object ;
+                  R : Omniropeandkey.Controlled_Wrapper ;
                   Unneeded_Result : Corba.Boolean ;
                begin
                   -- unmarshall the object
@@ -280,10 +270,10 @@ package body omniProxyCallWrapper is
                   end if ;
                   -- get the rope and the key of the object
                   Omniobject.Get_Rope_And_Key (Omniobj_Ptr2.all,
-                                               R,
+                                               R.Real ,
                                                Unneeded_result) ;
                   -- and set these rope and key to Omniobj
-                  Omniobject.Set_Rope_And_Key(Omniobj_Ptr.all, R) ;
+                  Omniobject.Set_Rope_And_Key(Omniobj_Ptr.all, R.Real) ;
                   return ;
 
                end ;
@@ -405,7 +395,7 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object ;
+      Rope_And_Key : Omniropeandkey.Controlled_Wrapper ;
       -- rope and key of the omniobject
 
       Is_Fwd : Corba.Boolean ;
@@ -436,10 +426,10 @@ package body omniProxyCallWrapper is
          Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
 
          -- get the current values of the rope and the key
-         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
 
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client.Real, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+         Giop_C.Init (Giop_Client.Real, Omniropeandkey.Get_Rope(Rope_And_Key.Real)) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
@@ -448,7 +438,7 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key),
+           (Omniropeandkey.Key_Size(Rope_And_Key.Real),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Align_Size (Call_Desc,
@@ -456,8 +446,8 @@ package body omniProxyCallWrapper is
 
          -- Initialise the request
          Giop_C.Initialize_Request(Giop_Client.Real,
-                                   Omniropeandkey.Get_Key(Rope_And_Key),
-                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   Omniropeandkey.Get_Key(Rope_And_Key.Real),
+                                   Omniropeandkey.Key_Size(Rope_And_Key.Real),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    True);

@@ -48,7 +48,7 @@
 -----------------------------------------------------------------------
 
 
-
+with Ada.Finalization ;
 with Interfaces.C ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
@@ -64,7 +64,7 @@ package OmniRopeAndKey is
 
    type Object is tagged record
       C_Object : System.Address ;
-      -- C field : pointer on the underlying C netBufferedStream object
+      -- C field : pointer on the underlying C omniRopeAndKey object
       Init_Ok : Sys_Dep.C_Boolean ;
       -- C field : state of the object (initialized or not)
       Table : Interfaces.CPP.Vtable_Ptr ;
@@ -77,25 +77,9 @@ package OmniRopeAndKey is
    -- (see Ada_OmniRopeAndKey.hh)
 
 
-   type Object_Ptr is access all Object ;
-   -- type pointer on type Object
-
-
-   procedure Init (Self : in out Object'Class ;
-                   R : in Rope.Object ;
-                   K : in CORBA.Octet ;
-                   Ksize : in CORBA.Unsigned_Long);
-   -- Ada constructor of the class.
-   -- This function (or the other function Init) must be called
-   -- after each declaration of an Object object. If it is not,
-   -- you can not use the object.
-
-
-   procedure Init (Self : in out Object'Class) ;
-   -- Ada constructor of the class.
-   -- This function (or the other function Init) must be called
-   -- after each declaration of an Object object. If it is not,
-   -- you can not use the object.
+   type Controlled_Wrapper is new Ada.Finalization.Limited_Controlled with record
+      Real : Object ;
+   end record ;
 
 
    function Get_Rope (Self : in Object'Class) return Rope.Object;
@@ -131,12 +115,29 @@ package OmniRopeAndKey is
 
 private
 
+   procedure Init (Self : in out Object'Class) ;
+   pragma Import (C,Init,"Init__18Ada_OmniRopeAndKey") ;
+   -- Ada constructor of the class.
+   -- This function (or the other function Init) must be called
+   -- after each declaration of an Object object. If it is not,
+   -- you can not use the object.
+
+   procedure Free(Self : in out Object'Class) ;
+   pragma Import (CPP, Free, "Free__18Ada_OmniRopeAndKey") ;
+   -- deletes the underlying C++ pointer
+
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__18Ada_OmniRopeAndKey");
    -- default constructor of the C class.
    -- Actually, this constructor does nothing and you must
    -- call Init to init properly an object.
+
+
+   procedure Initialize(Self : in out Controlled_Wrapper) ;
+   --calls Init
+   procedure Finalize(Self : in out Controlled_Wrapper) ;
+   -- calls Free
 
 end OmniRopeAndKey ;
 

@@ -58,14 +58,13 @@ public:
   Ada_OmniRopeAndKey ();
   // Default Constructor
   
-  void Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize);
-  // Initialisation of Ada_OmniRopeAndKey, calls the
-  // underlying omniRopeAndKey constructor
-  
   void Init ();
   // Initialisation of Ada_OmniRopeAndKey, calls the
   // underlying omniRopeAndKey constructor
   
+  void Free() ;
+  // deletes the underlying C_Object
+
   Rope* rope();
   // wrapper around inline Rope* rope() const
 
