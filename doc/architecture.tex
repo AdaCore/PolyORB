@@ -12,8 +12,6 @@
 \usepackage{array}
 \usepackage{amsmath}
 
-\newcommand{\droopi}{\textsc{Droopi}}
-
 \title{Conception et mise en {\oe}uvre de \droopi{}\\
 Un middleware générique pour systèmes d'objets
 répartis interopérables}
@@ -60,7 +58,25 @@ différentes.
 Une première solution au problème de l'interopérabilité est
 l'établissement de passerelles entre plates-formes, c'est-à-dire
 d'objets recevant des appels de méthodes par une plate-forme,
-et les répercutant dans une autre.
+et les répercutant dans une autre. Nous avons ainsi proposé
+une solution permettant à un implémenteur de services d'utiliser
+l'annexe des systèmes répartis d'\ada{} pour développer un objet,
+et de rendre cet objet accessible pour des clients CORBA.
+
+À cet effet, nous générons automatiquement la
+spécification du service en OMG~IDL, à partir de sa spécification
+en \ada{}. En utilisant un traducteur CORBA préexistant,
+nous pouvons générer automatiquement un squelette de serveur en Ada.
+L'implémentation de ce serveur est également générée 
+automatiquement par un autre module de l'outil que nous avons
+développé.
+
+La mise en {\oe}uvre des méthodes de chaque objet CORBA ainsi
+défini consiste en des appels aux services Ada~95 correspondants.
+Nous réalisons donc une passerelle jouant à la fois le rôle de serveur
+CORBA et de client de l'annexe~; ce composant permettra d'utiliser les services
+«~actifs~» de l'annexe à partir du monde CORBA.
+
 % les middlewares, les plates-formes à objets répartis
 % Préliminaires sur la question de l'interopérabilité.
 % Deux solutions possibles pour l'interopérabilité :
@@ -180,13 +196,23 @@ CORBA AdaBroker & 4 & 7 & 2 & 1  \\\hline
 
 \section{Analyse fonctionnelle}
 
-In this section, we present a generic description of the functions that one
-can expect to find in a distributed OO platform; we thus provide an
-architectural model for such a platform, and we show how CORBA and \dsa{}
-can be interpreted as instances of this model. This description captures
-the common structural and functional elements of distribution middlewares,
-in order to help structuring a generic middleware implementation
-supporting each of these elements under various appearances, or personalities.
+Dans cette section, nous présentons une description des fonctions
+récurrentes dans les plates-formes de répartition basées sur les
+objets répartis. Cette description se veut neutre vis-à-vis de
+la plate-forme, et ne décrit pas une mise en {\oe}uvre particulière
+du modèle objets répartis. Nous donnons ainsi un modèle d'architecture
+pour une telle plate-forme de répartition, puis nous montrons comment
+CORBA et l'annexe des systèmes répartis d'\ada{} peuvent être
+interprétées comme des instances de ce modèle.
+
+Nous formalisons dans ce modèle les traits communs structuraux
+et fonctionnels que nous avons identifiés dans les intergiciels
+de répartition. Notre objectif est d'apporter une aide à la
+conception d'un intergiciel supportant la reconfiguration séparée
+de chacun de ces aspects, afin de le rendre personnalisable,
+et la cohabitation de différentes personnalités au sein de la
+même instance de l'intergiciel en cours d'exécution, afin
+de le rendre «~schizophrène~».
 
 \subsection{Services offerts aux utilisateurs du middleware}
 \label{sec:recurring-svcs}
@@ -232,6 +258,30 @@ We now give a more detailed description of these functional areas:
   global mapping of identifiers to network addresses has to be
   maintained.
 \fi
+  \end{description}
+
+\item[Binding]\mbox{}
+
+  %% XXX TBD.
+  \begin{description}
+  \item[Definition]
+  The binding service consists in associating a transport connection
+  (as defined by the following Transport service) with an object
+  reference, and to create a client-side surrogate of the actual
+  designated object. This surrogate processes method calls performed
+  using the object reference by forwarding them as invocation request
+  messages to the target object.
+
+  \item[Properties]
+  Implicit or explicit binding.
+
+  \item[Rationale]
+  Stefani \& Shapiro. Allow flexible control of the transport
+  connection establishment, eg QoS.
+
+  %%  XXX éviter les répétitions par rapport à l'autre endroit
+  %%     où on cause de ce service.
+
   \end{description}
 
 \item[Transport]\mbox{}
@@ -503,23 +553,9 @@ Invoking this method involves the following steps:
   the reference and creates a connection to the object's ORB.
 
 \item[Binding] The object reference and transport connection
-  are associated within a client-side construct. This construct
-  is the result of \emph{binding} the object reference to the
-  transport connection; it can process method invocations (by
-  forwarding them to the actual object through the connection).
-  It can therefore be construed as representing the called object:
-  it is a \emph{surrogate} of the server object on the client side.
-
-  The binding operation can be implicit or explicit. It is implicit
-  when it is conducted
-  by the middleware as a consequence of the caller performing a
-  method invocation on a yet unbound reference. This is the most
-  common case in distributed object platforms such as CORBA
-  or Java/RMI. It can also be explicit when it is controlled
-  by actions of the user. In the case of an explicit binding of
-  an object reference to a transport object, the user can control
-  parameters of the transport connection, such as the negociation
-  of a level of quality of service.
+  is implicitly associated with a client-side surrogate
+  that will process requests by forwarding them to the actual
+  remote object.
 
 \item[Marshalling] It converts the string passed
   to the method into a representation suitable for network transport,
@@ -728,10 +764,9 @@ Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
 
 %%  XXX à compléter !
 
-\subsection{Binding}
-%% XXX Traduction?
+\subsection{Binding} % XXX traduction !
 
-%% \funcfing{binding}{Fonction \emph{binding}}
+\funcfig{binding}{Fonction \emph{binding}}
 %%  XXX figure à faire
 
 \emph{Fonction faisant intervenir seulement la couche protocolaire.
@@ -752,6 +787,26 @@ de méthode. Il peut aussi être explicite, lorsque l'utilisateur souhaite
 contrôler certains aspects de l'établissement de la connexion, par exemple
 pour choisir des paramètres de qualité de service à négocier avec
 le réseau.
+
+%  The transport objects
+%  are associated within a client-side construct. This construct
+%  is the result of \emph{binding} the object reference to the
+%  transport connection; it can process method invocations (by
+%  forwarding them to the actual object through the connection).
+%  It can therefore be construed as representing the called object:
+%  it is a \emph{surrogate} of the server object on the client side.
+
+%  The binding operation can be implicit or explicit. It is implicit
+%  when it is conducted
+%  by the middleware as a consequence of the caller performing a
+%  method invocation on a yet unbound reference. This is the most
+%  common case in distributed object platforms such as CORBA
+%  or Java/RMI. It can also be explicit when it is controlled
+%  by actions of the user. In the case of an explicit binding of
+%  an object reference to a transport object, the user can control
+%  parameters of the transport connection, such as the negociation
+%  of a level of quality of service.
+
 
 \subsection{Représentation}
 
