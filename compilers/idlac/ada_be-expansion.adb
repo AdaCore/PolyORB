@@ -28,6 +28,7 @@ with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Tree.Low_Level; use Idl_Fe.Tree.Low_Level;
+with Idl_Fe.Utils;          use Idl_Fe.Utils;
 
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Debug;
@@ -200,17 +201,6 @@ package body Ada_Be.Expansion is
    --  to construct the name of an instance of
    --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
 
-   procedure Add_Identifier_With_Renaming
-     (Node       : Node_Id;
-      Identifier : String;
-      Scope      : Node_Id := No_Node;
-      Is_Inheritable : Boolean := True);
-   --  Assign Identifier to Node in Scope (or current scope if No_Node),
-   --  possibly appending a numeric prefix if a conflict
-   --  would otherwise be introduced. If Is_Inheritable is False, then
-   --  this identifier will not be considered as conflicting when this scope
-   --  is inherited by another.
-
    procedure Insert_Before_Current
      (Node : Node_Id);
    --  Insert node in Current_Gen_Scope immediately before
@@ -226,13 +216,13 @@ package body Ada_Be.Expansion is
    --  Check whether Name is an Ada 95 keyword
 
    procedure Recursive_Copy_Operations
-     (Into : in out Node_List;
-      Parent : in Node_Id;
-      From : Node_Id;
-      Implicit_Inherited : Boolean;
-      Directly_Supported : Boolean;
-      Oldest_Supporting_ValueType : Node_Id;
-      Parents_Seen : in out Node_List);
+     (Into                        : in out Node_List;
+      Parent                      : in     Node_Id;
+      From                        :        Node_Id;
+      Implicit_Inherited          :        Boolean;
+      Directly_Supported          :        Boolean;
+      Oldest_Supporting_ValueType :        Node_Id;
+      Parents_Seen                : in out Node_List);
    --  Recursively copy all operations from K_Interface
    --  or K_ValueType
    --  node From and all its ancestors into Into.
@@ -528,13 +518,13 @@ package body Ada_Be.Expansion is
    ---------------------------------
 
    procedure Recursive_Copy_Operations
-     (Into : in out Node_List;
-      Parent : in Node_Id;
-      From : Node_Id;
-      Implicit_Inherited : Boolean;
-      Directly_Supported : Boolean;
-      Oldest_Supporting_ValueType : Node_Id;
-      Parents_Seen : in out Node_List)
+     (Into                        : in out Node_List;
+      Parent                      : in     Node_Id;
+      From                        :        Node_Id;
+      Implicit_Inherited          :        Boolean;
+      Directly_Supported          :        Boolean;
+      Oldest_Supporting_ValueType :        Node_Id;
+      Parents_Seen                : in out Node_List)
    is
       Ops_It : Node_Iterator;
       O_Node : Node_Id;
@@ -1648,26 +1638,6 @@ package body Ada_Be.Expansion is
 
       end case;
    end Sequence_Type_Name;
-
-   procedure Add_Identifier_With_Renaming
-     (Node       : Node_Id;
-      Identifier : String;
-      Scope      : Node_Id := No_Node;
-      Is_Inheritable : Boolean := True)
-   is
-      Suffix : Integer := 1;
-   begin
-      pragma Debug (O ("Add_Identifier_With_Renaming: trying to add "
-                       & Identifier));
-
-      if not Add_Identifier (Node, Identifier, Scope, Is_Inheritable) then
-         while not Add_Identifier
-           (Node, Identifier & "_" & Img (Suffix), Scope, Is_Inheritable)
-         loop
-            Suffix := Suffix + 1;
-         end loop;
-      end if;
-   end Add_Identifier_With_Renaming;
 
    ---------------------------
    -- Insert_Before_Current --
