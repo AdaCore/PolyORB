@@ -60,6 +60,9 @@ Bug fixes
 
   * Comparisons between remote access to class-wide types values now work
 
+  * GLADE now supports RACW whose designated type has primitive
+    operations with controlling arguments that are not of access mode.
+
   * No more Storage_Size pragmas are needed on user tasks
 
   * GNATDIST now checks that RCI children of a RCI package are configured

@@ -1,3 +1,13 @@
+1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Updated NEWS file.
+
+	* prereq: Bumped to 980126
+
+1998-01-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add s-gartyp.adb to distribution
+
 1998-01-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* README: Remove references to glade_version.txt

@@ -1,3 +1,58 @@
+1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartyp.ads: Expose the type of Portable_Address so that it is
+	possible to obtain its value using the Image attribute.
+
+1998-01-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartyp.ads: New type Portable_Address whose goal is to provide 
+	an exchangeable address type.
+
+	* s-gartyp.adb: New package body with conversion functions for
+	Portable_Address.
+
+1998-01-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-ganata.adb: Use slice assignments to allow for compiler
+	optimization.
+
+1998-01-08  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-gartab.adb, s-gartab.ads: Add debugging information and minor
+ 	reformatting.
+
+	* s-garrep.adb: Fix bug in Garlic.Replay where Has_Arrived called
+ 	into Engine was reading a shutdown message, starting shutdown
+ 	process and invoking Shutdown_Keeper.Signal. The problem was that
+ 	all this code was in a ATC aborted by
+ 	Shutdown_Keeper.Signal. There fore, the application was never
+ 	terminated because aborted during termination.
+
+	* s-gafino.adb, s-gafino.ads, s-gafino.adb, s-gafino.ads: Remove
+ 	Free and Get_Name procedures (no longer useful).
+
+	* s-ganata.adb: Minor reformatting.
+
+	* s-garfil.adb, s-garfil.ads: Get partition name for debugging
+ 	message instead of partition ids, because partition ids are
+ 	dynamic, names are static. Define new function Free and add new
+	parameter Name to Register.
+
+1998-01-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartab.adb: Remove loops and use array assignment to allow for 
+	compiler optimization.
+	(Simple.Allocate): Index was incorrectly calculated when
+	First_Index was not the successor of Null_Index.
+	(Complex.Allocate): Add ??? comments
+
+	* s-garsta.adb: Change Is_Boot_Partition into Set_Is_Boot_Partition
+
+	* Makefile.am: Remove s-rpcdum.ads when cleaning
+
+	* s-garfil.adb: Do not crash when compiling, barf at run-time if
+	necessary instead with an exit(1).
+
 1998-01-05  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garfil.adb, s-garfil.ads: Complete rewritting of filters. Use
