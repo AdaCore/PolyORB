@@ -59,7 +59,7 @@ polyorb_ug_ref.aux: polyorb_ug.bib
 	-${MAKEINFO} -o $@ --number-sections $<
 
 %.pdf: ${srcdir}/%.texi
-	-${TEXI2DVI} $@ --pdf $<
+	-${TEXI2DVI} -o $@ --pdf $<
 
 #
 # Texi generation from .ads files
