@@ -37,6 +37,7 @@ with Ada.Exceptions;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
+with System.Garlic.OS_Lib; use System.Garlic.OS_Lib;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
 

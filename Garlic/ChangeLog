@@ -1,5 +1,9 @@
 Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-ganobl.adb: Use s-gaosli's C_Errno.
+
+	* s-garnam.adb: Idem.
+
 	* constants.sh (constants): Removed useless constants.
 
 	* Makefile.am: No need for special

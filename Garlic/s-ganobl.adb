@@ -37,6 +37,7 @@ with Ada.Interrupts.Names;
 with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.OS_Lib;
 with System.Garlic.Priorities;
 with System.Garlic.Termination;
 
@@ -314,9 +315,9 @@ package body System.Garlic.Non_Blocking is
       pragma Debug
         (D (D_Debug,
             "Connect (first) return code is" & C.int'Image (Dummy) &
-            " and errno is" & C.int'Image (Thin.C_Errno)));
+            " and errno is" & C.int'Image (OS_Lib.C_Errno)));
       if Dummy /= Thin.Failure or else
-        Thin.C_Errno /= Einprogress then
+        OS_Lib.C_Errno /= Einprogress then
          return Dummy;
       end if;
       Asynchronous.Write (S) (Dummy_CP, 0, Dummy);
@@ -324,8 +325,8 @@ package body System.Garlic.Non_Blocking is
       pragma Debug
         (D (D_Debug,
             "Connect return code is" & C.int'Image (Dummy) &
-            " and errno is" & C.int'Image (Thin.C_Errno)));
-      if Dummy = Thin.Failure and then Thin.C_Errno = Eisconn then
+            " and errno is" & C.int'Image (OS_Lib.C_Errno)));
+      if Dummy = Thin.Failure and then OS_Lib.C_Errno = Eisconn then
          return Thin.Success;
       else
          return Dummy;
