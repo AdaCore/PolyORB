@@ -105,7 +105,8 @@ private
 
    type Job is abstract tagged limited null record;
 
-   package Job_Queues is new PolyORB.Utils.Chained_Lists (Job_Access);
+   package Job_Queues is new PolyORB.Utils.Chained_Lists
+     (Job_Access, Doubly_Chained => True);
 
    subtype Job_Queue_Internal is Job_Queues.List;
 

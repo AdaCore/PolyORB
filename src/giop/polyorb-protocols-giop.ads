@@ -132,7 +132,8 @@ private
      (Pending_Request, Pending_Request_Access);
 
    package Pend_Req_List is
-      new PolyORB.Utils.Chained_Lists (Pending_Request_Access);
+     new PolyORB.Utils.Chained_Lists
+       (Pending_Request_Access, Doubly_Chained => True);
 
    --------------------
    -- GIOP Send Mode --
