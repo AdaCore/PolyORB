@@ -44,7 +44,6 @@
 -----------------------------------------------------------------------
 
 
-with Ada.Unchecked_Conversion ;
 
 package body Iop is
 
@@ -152,24 +151,6 @@ package body Iop is
    end ;
 
 
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
-
-   -- C_To_Ada_Unsigned_Long
-   -------------------------
-   function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long ,
-                                   Corba.Unsigned_Long) ;
-   -- needed to change ada type Interfaces.C.Unsigned_Long
-   -- into C type Corba.Unsigned_Long
-
-
    -- C_NP_AlignedSize
    -------------------
    function C_NP_AlignedSize (A : in System.Address ;
@@ -192,11 +173,11 @@ package body Iop is
    begin
       -- transforms the arguments in a C type ...
       C_A := System.Address (A) ;
-      C_Initialoffset := Ada_To_C_Unsigned_Long (Initialoffset) ;
+      C_Initialoffset := Interfaces.C.Unsigned_Long (Initialoffset) ;
       -- ... calls the C function ...
       C_Result := C_NP_alignedSize (C_A,C_Initialoffset) ;
       -- ... and transforms the result in an Ada type
-      return  C_To_Ada_Unsigned_Long (C_Result) ;
+      return  Corba.Unsigned_Long (C_Result) ;
    end ;
 
 
@@ -222,7 +203,7 @@ package body Iop is
       -- ... calls the C function ...
       C_Result := C_Length (C_A) ;
       -- ... and transforms the result in an Ada type
-      return  C_To_Ada_Unsigned_Long (C_Result) ;
+      return  Corba.Unsigned_Long (C_Result) ;
    end ;
 
 end Iop ;

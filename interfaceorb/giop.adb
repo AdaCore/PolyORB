@@ -45,17 +45,7 @@
 -----------------------------------------------------------------------
 
 
-with Ada.Unchecked_Conversion ;
-
 package body Giop is
-
-   -- Ada_To_C_Int
-   ---------------
-   function Ada_To_C_Int is
-     new Ada.Unchecked_Conversion (Integer,
-                                   Interfaces.C.Int) ;
-   -- needed to change ada type Integer
-   -- into C type Interfaces.C.Int
 
 
    -- Reply_Status_Type_To_C_Int
@@ -63,7 +53,7 @@ package body Giop is
    function Reply_Status_Type_To_C_Int (Status : in Reply_Status_Type)
                                         return Interfaces.C.Int is
    begin
-      return Ada_To_C_Int (Reply_Status_Type'Pos(Status)) ;
+      return Interfaces.C.Int (Reply_Status_Type'Pos(Status)) ;
    end;
 
 
@@ -72,7 +62,7 @@ package body Giop is
    function C_Int_To_Reply_Status_Type (N : in Interfaces.C.Int)
                                         return Reply_Status_Type is
    begin
-      return Reply_Status_Type'Val(N) ;
+      return Reply_Status_Type'Val(Integer(N)) ;
    end;
 
 

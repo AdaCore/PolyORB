@@ -49,7 +49,6 @@
 -----------------------------------------------------------------------
 
 
-with Ada.Unchecked_Conversion ;
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 
@@ -81,15 +80,6 @@ package body Giop_C is
       -- just calls the C procedure
       C_Init (Self, System.Address (R)) ;
    end;
-
-
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
 
 
    -- C_Initialize_Request
@@ -125,12 +115,12 @@ package body Giop_C is
    begin
       -- transforms the arguments into a C type ...
       C_Objkey := Objkey'Address ;
-      C_Objkeysize := Ada_To_C_Unsigned_Long (Objkeysize) ;
+      C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
       C_Opname := Interfaces.C.Strings.New_String (Ada_Opname) ;
       -- desallocation in a few lines
-      C_Opnamesize := Ada_To_C_Unsigned_Long (Corba.Length (Opname)
-                                              + Corba.Unsigned_Long (1)) ;
-      C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
+      C_Opnamesize := Interfaces.C.Unsigned_Long (Corba.Length (Opname)
+                                                  + Corba.Unsigned_Long (1)) ;
+      C_MsgSize := Interfaces.C.Unsigned_Long (MsgSize) ;
       C_Oneway := Sys_Dep.Boolean_Ada_To_C (Oneway) ;
       -- ... and calls the C procedure
       C_Initialize_Request (Self,
@@ -191,15 +181,6 @@ package body Giop_C is
    end ;
 
 
-   -- C_To_Ada_Unsigned_Long
-   -------------------------
-   function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long,
-                                   Corba.Unsigned_Long) ;
-   -- needed to change C type Interfaces.C.Unsigned_Long
-   -- into ada type Corba.Unsigned_Long
-
-
    -- C_Request_Header_Size
    ------------------------
    function C_Request_Header_Size (Objkeysize : in Interfaces.C.Unsigned_long ;
@@ -221,12 +202,12 @@ package body Giop_C is
       C_Result : Interfaces.C.Unsigned_Long ;
    begin
       -- transforms the arguments into a C type ...
-      C_Objkeysize := Ada_To_C_Unsigned_Long (Objkeysize) ;
-      C_Opnamesize := Ada_To_C_Unsigned_Long (Opnamesize) ;
+      C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
+      C_Opnamesize := Interfaces.C.Unsigned_Long (Opnamesize) ;
       -- ... calls the C procedure ...
       C_Result := C_Request_Header_Size (C_Objkeysize, C_Opnamesize) ;
       -- ... and transforms the result into an Ada type
-      return  C_To_Ada_Unsigned_Long (C_Result) ;
+      return  Corba.Unsigned_Long (C_Result) ;
    end;
 
 end Giop_C ;

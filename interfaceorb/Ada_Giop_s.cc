@@ -122,7 +122,6 @@ Ada_Giop_s::ReplyCompleted()
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    cerr << "before" << endl ;
     ((GIOP_S *) C_Object)->ReplyCompleted();
   } else {
     // else raise an Ada Exception

@@ -49,8 +49,6 @@
 -----------------------------------------------------------------------
 
 
-with Ada.Unchecked_Conversion ;
-
 package body Exceptions is
 
 
@@ -58,49 +56,13 @@ package body Exceptions is
    ---       conversion functions                 ---
    --------------------------------------------------
 
-   -- Ada_To_C_Int
-   ---------------
-   function Ada_To_C_Int is
-     new Ada.Unchecked_Conversion (Integer,
-                                   Interfaces.C.Int) ;
-   -- needed to change ada type Integer
-   -- into C type Interfaces.C.Int
-
-
-   -- C_To_Ada_Int
-   ---------------
-   function C_To_Ada_Int is
-     new Ada.Unchecked_Conversion (Interfaces.C.Int ,
-                                   Integer) ;
-   -- needed to change ada type Interfaces.C.Int
-   -- into C type Integer
-
-
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
-
-   -- C_To_Ada_Unsigned_Long
-   -------------------------
-   function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long ,
-                                   Corba.Unsigned_Long) ;
-   -- needed to change C type Interfaces.C.Unsigned_Long
-   -- into Ada type Corba.Unsigned_Long
-
-
    -- Int_To_Status
    ----------------
    function Int_To_Status (N : in Interfaces.C.Int)
                            return Corba.Completion_Status is
       Ada_N : Integer ;
    begin
-      Ada_N := C_To_Ada_Int (N) ;
+      Ada_N := Integer (N) ;
       return Corba.Completion_Status'Val(Ada_N) ;
    end ;
 
@@ -112,7 +74,7 @@ package body Exceptions is
       Ada_Result : Integer ;
    begin
       Ada_Result := Corba.Completion_Status'Pos(Status) ;
-      return Ada_To_C_Int (Ada_Result) ;
+      return Interfaces.C.Int (Ada_Result) ;
    end ;
 
 
@@ -141,7 +103,7 @@ package body Exceptions is
    begin
       -- transforms the arguments in a C type ...
       Corba.Get_Members (E,Member) ;
-      C_Minor := Ada_To_C_Unsigned_Long (Member.Minor) ;
+      C_Minor := Interfaces.C.Unsigned_Long (Member.Minor) ;
       C_Status := Status_To_Int (Member.Completed) ;
       -- ... and calls the C procedure
       C_Raise_C_UNKNOWN_Exception (C_Minor, C_Status) ;
@@ -169,7 +131,7 @@ package body Exceptions is
       Ada_Pd_Status : Corba.Completion_Status ;
    begin
       -- transforms the arguments in a Ada type ...
-      Ada_Pd_Minor := C_To_Ada_Unsigned_Long (Pd_Minor) ;
+      Ada_Pd_Minor := Corba.Unsigned_Long (Pd_Minor) ;
       Ada_Pd_Status := Int_To_Status (Pd_Status) ;
       -- ... and calls the C procedure
       Raise_Ada_UNKNOWN_Exception (Ada_Pd_Minor,Ada_Pd_Status) ;

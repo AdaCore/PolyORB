@@ -49,18 +49,9 @@
 
 
 with Ada.Exceptions ;
-with Ada.Unchecked_Conversion ;
 with System.Address_To_Access_Conversions ;
 
 package body OmniRopeAndKey is
-
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
 
 
    -- C_Init
@@ -86,7 +77,7 @@ package body OmniRopeAndKey is
    begin
       -- transforms the arguments in a C type ...
       C_K := K'Address ;
-      C_Ksize := Ada_To_C_Unsigned_Long(Ksize) ;
+      C_Ksize := Interfaces.C.Unsigned_Long(Ksize) ;
       -- ... and calls the C procedure
       C_Init (Self,System.Address (R),C_K,C_Ksize) ;
    end;
@@ -161,15 +152,6 @@ package body OmniRopeAndKey is
    end;
 
 
-   -- C_To_Ada_Unsigned_Long
-   -------------------------
-   function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long,
-                                   Corba.Unsigned_Long) ;
-   -- needed to change C type Interfaces.C.Unsigned_Long into
-   -- ada type Corba.Unsigned_Long
-
-
    -- C_Key_Size
    -------------
    function C_Key_Size (Self : in Object'Class) return Interfaces.C.Unsigned_Long ;
@@ -188,7 +170,7 @@ package body OmniRopeAndKey is
       -- calls the C function ...
       C_Result := C_Key_Size (Self) ;
       -- ... and transforms the result in Ada type
-      return C_To_Ada_Unsigned_Long (C_Result) ;
+      return Corba.Unsigned_Long (C_Result) ;
    end;
 
 end OmniRopeAndKey ;

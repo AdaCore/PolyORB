@@ -47,7 +47,6 @@
 
 
 with Ada.Exceptions ;
-with Ada.Unchecked_Conversion ;
 with Interfaces.C ;
 with System ;
 use type System.Address ;
@@ -591,15 +590,6 @@ package body omniProxyCallWrapper is
    end ;
 
 
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
-
    -- C_Omni_Call_Transient_Exeption_Handler
    -----------------------------------------
    function C_Omni_Call_Transient_Exeption_Handler
@@ -629,8 +619,8 @@ package body omniProxyCallWrapper is
    begin
       -- transforms the arguments in a C type ...
       C_Obj := Obj'Address ;
-      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
-      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
+      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
       C_Status := Completion_Status_To_C_Int (Status) ;
       -- ... calls the C function ...
       C_Result := C_Omni_Call_Transient_Exeption_Handler (C_Obj,
@@ -671,8 +661,8 @@ package body omniProxyCallWrapper is
    begin
       -- transforms the arguments in a C type ...
       C_Obj := Obj'Address ;
-      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
-      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
+      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
       C_Status := Completion_Status_To_C_Int (Status) ;
       -- ... and calls the C function
       C_Result := C_Omni_Comm_Failure_Exception_Handler (C_Obj,
@@ -713,8 +703,8 @@ package body omniProxyCallWrapper is
    begin
       -- transforms the arguments in a C type ...
       C_Obj := Obj'Address ;
-      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
-      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Retries := Interfaces.C.Unsigned_Long (Retries) ;
+      C_Minor := Interfaces.C.Unsigned_Long (Minor) ;
       C_Status := Completion_Status_To_C_Int (Status) ;
       -- ... and calls the C function
       C_Result := C_Omni_System_Exception_Handler (C_Obj,
