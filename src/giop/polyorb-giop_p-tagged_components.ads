@@ -174,8 +174,8 @@ private
    -- Tag List --
    --------------
 
-   --  Tag_Group : constant Tag_Value := 39;
+   Tag_Group : constant Tag_Value := 39;
    --  TAO Value
-   Tag_Group : constant Tag_Value := 1413566211;
+   --  Tag_Group : constant Tag_Value := 1413566211;
 
 end PolyORB.GIOP_P.Tagged_Components;
