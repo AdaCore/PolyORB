@@ -9,7 +9,6 @@ with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
-with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
@@ -39,17 +38,25 @@ package System.PolyORB_Interface is
       --  Null for RCI servants (the root POA will be used in
       --  this case.)
    end record;
-   subtype Servant_Access is PolyORB.Objects.Servant_Access;
+   type Servant_Access is access all Servant'Class;
 
    function Handle_Message
      (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
 
-   procedure Register_Receiving_Stub
+   procedure Register_Obj_Receiving_Stub
+     (Name          : in String;
+      Handler       : in Message_Handler_Access;
+      Receiver      : in Servant_Access);
+   --  Register Receiver as the RPC servant for distributed objects
+   --  of type Name, at elaboration time.
+
+   procedure Register_Pkg_Receiving_Stub
      (Name     : in String;
-      Receiver : in Servant_Access;
-      Version  : in String := "");
+      Version  : in String;
+      Handler  : in Message_Handler_Access;
+      Receiver : in Servant_Access);
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
 
@@ -336,12 +343,6 @@ package System.PolyORB_Interface is
 
    Result_Name : constant PolyORB.Types.Identifier
      := PolyORB.Types.To_PolyORB_String ("Result");
-
-   function Setup_Object_Adapter
-     (Name            : String;
-      Configuration   : PolyORB.POA_Config.Configuration_Access;
-      Default_Servant : Servant_Access)
-      return PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
 private
 

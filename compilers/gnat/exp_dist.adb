@@ -1048,23 +1048,52 @@ package body Exp_Dist is
       --  XXX TBD (RACW subp-ids-dispatch)
 
       Append_To (Decls, RPC_Receiver_Decl);
+--        Append_To (Decls,
+--          Make_Assignment_Statement (Loc,
+--            Name =>
+--              Make_Selected_Component (Loc,
+--                Prefix =>
+--                  New_Occurrence_Of (
+--                    Stub_Elements.Object_RPC_Receiver, Loc),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Handler)),
+--            Expression =>
+--              Make_Attribute_Reference (Loc,
+--                Prefix =>
+--                  New_Occurrence_Of (
+--                    Defining_Unit_Name (
+--                      Specification (RPC_Receiver_Decl)), Loc),
+--                Attribute_Name =>
+--                  Name_Access)));
+
+--        Append_Freeze_Action (Designated_Type,
       Append_To (Decls,
-        Make_Assignment_Statement (Loc,
-          Name =>
-            Make_Selected_Component (Loc,
-              Prefix =>
+        Make_Procedure_Call_Statement (Loc,
+           Name =>
+             New_Occurrence_Of (
+               RTE (RE_Register_Obj_Receiving_Stub), Loc),
+
+           Parameter_Associations => New_List (
+               --  Name
+             Make_String_Literal (Loc,
+               Full_Qualified_Name (Designated_Type)),
+
+               --  Handler
+             Make_Attribute_Reference (Loc,
+               Prefix =>
+                 New_Occurrence_Of (
+                   Defining_Unit_Name (
+                     Specification (RPC_Receiver_Decl)), Loc),
+               Attribute_Name =>
+                 Name_Access),
+
+               --  Receiver
+             Make_Attribute_Reference (Loc,
+               Prefix =>
                 New_Occurrence_Of (
                   Stub_Elements.Object_RPC_Receiver, Loc),
-              Selector_Name =>
-                Make_Identifier (Loc, Name_Handler)),
-          Expression =>
-            Make_Attribute_Reference (Loc,
-              Prefix =>
-                New_Occurrence_Of (
-                  Defining_Unit_Name (
-                    Specification (RPC_Receiver_Decl)), Loc),
-              Attribute_Name =>
-                Name_Access)));
+               Attribute_Name =>
+                 Name_Access))));
 
       --  Do not analyze RPC receiver at this stage since it will otherwise
       --  reference subprograms that have not been analyzed yet. It will
@@ -2166,39 +2195,38 @@ package body Exp_Dist is
           Handled_Statement_Sequence =>
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => New_List (
-                Make_Assignment_Statement (Loc,
-                  Name =>
-                    Make_Selected_Component (Loc,
-                      Prefix =>
-                        New_Occurrence_Of (
-                          Defining_Identifier (Pkg_RPC_Receiver_Object), Loc),
-                      Selector_Name =>
-                        Make_Identifier (Loc, Name_Handler)),
-                  Expression =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix          =>
-                        New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
-                      Attribute_Name  => Name_Access)),
                 Make_Procedure_Call_Statement (Loc,
                   Name                   =>
                     New_Occurrence_Of
-                       (RTE (RE_Register_Receiving_Stub), Loc),
+                       (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
                   Parameter_Associations => New_List (
+
+                     --  Name
                     Make_String_Literal (Loc,
                       Strval => Get_Pkg_Name_String_Id (Pkg_Spec)),
+
+                     --  Version
+                    Make_Attribute_Reference (Loc,
+                      Prefix         =>
+                        New_Occurrence_Of
+                           (Defining_Entity (Pkg_Spec), Loc),
+                      Attribute_Name =>
+                        Name_Version),
+
+                     --  Handler
+                    Make_Attribute_Reference (Loc,
+                      Prefix          =>
+                        New_Occurrence_Of (Pkg_RPC_Receiver, Loc),
+                      Attribute_Name  => Name_Access),
+
+                     --  Receiver
                     Make_Attribute_Reference (Loc,
                       Prefix         =>
                         New_Occurrence_Of (
                           Defining_Identifier (
                             Pkg_RPC_Receiver_Object), Loc),
                       Attribute_Name =>
-                        Name_Unrestricted_Access),
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of
-                           (Defining_Entity (Pkg_Spec), Loc),
-                      Attribute_Name =>
-                        Name_Version))))));
+                        Name_Unrestricted_Access))))));
 
       Append_To (Decls, Dummy_Register_Body);
       Analyze (Dummy_Register_Body);
@@ -2225,8 +2253,6 @@ package body Exp_Dist is
       Stub_Type_Declaration           : Node_Id;
       Stub_Type_Access_Declaration    : Node_Id;
       Object_RPC_Receiver_Declaration : Node_Id;
-
-      --  RPC_Receiver_Msg : Entity_Id;
 
    begin
       if Stub_Elements /= Empty_Stub_Structure then
@@ -4027,6 +4053,35 @@ package body Exp_Dist is
       end if;
 
    end Copy_Specification;
+
+--     function Copy_Specification
+--       (Loc         : Source_Ptr;
+--        Spec        : Node_Id;
+--        Object_Type : Entity_Id := Empty;
+--        Stub_Type   : Entity_Id := Empty;
+--        New_Name    : Name_Id   := No_Name)
+--        return        Node_Id
+--     is
+--        Map : Elist_Id := No_Elist;
+--        New_Spec : Node_Id;
+--     begin
+--        if Object_Type /= Empty then
+--           pragma Assert (Stub_Type /= Empty);
+
+--           Map := New_Elmt_List;
+--           Append_Elmt (Node => Object_Type, To => Map);
+--           Append_Elmt (Node => Stub_Type,   To => Map);
+--        end if;
+
+--        New_Spec := New_Copy_Tree (Spec, Map, Loc);
+--        if New_Name /= No_Name then
+--           Replace (
+--             Defining_Unit_Name (New_Spec),
+--             Make_Defining_Identifier (Loc,
+--               New_Name));
+--        end if;
+--        return New_Spec;
+--     end Copy_Specification;
 
    ---------------------------
    -- Could_Be_Asynchronous --

@@ -19,7 +19,6 @@ with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -50,17 +49,20 @@ package body System.PolyORB_Interface is
    -- Local declarations --
    ------------------------
 
-   --  During elaboration, each RCI package on this partition is
-   --  registered as a Receiving_Stub entry.
+   --  During elaboration, each RCI package and each distributed
+   --  object type registers a Receiving_Stub entry.
    --
    --  The All_Receiving_Stubs list is subsequently traversed
    --  during PolyORB's initialization, so the proper structures
-   --  are registered with the middleware and the naming service.
+   --  are created within the middleware and the naming service.
+
+   type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
 
    type Receiving_Stub is record
+      Kind     : Receiving_Stub_Kind;
       Name     : String_Ptr;
-      Receiver : PolyORB.Objects.Servant_Access;
       Version  : String_Ptr;
+      Receiver : Servant_Access;
    end record;
 
    package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
@@ -104,6 +106,15 @@ package body System.PolyORB_Interface is
 --        new Ada.Unchecked_Conversion (System.Address, Local_Oid);
    function To_Address is
       new Ada.Unchecked_Conversion (Local_Oid, System.Address);
+
+   procedure Setup_Object_RPC_Receiver
+     (Name            : String;
+      Default_Servant : Servant_Access);
+   --  Setup an object adapter to receive method invocation
+   --  requests for distributed object type Name.
+   --  Use the specified POA configuration (which must include
+   --  the USER_ID, NON_RETAIN and USE_DEFAULT_SERVANT policies).
+   --  The components of Servant are set appropriately.
 
    ------------------------
    -- Caseless_String_Eq --
@@ -284,39 +295,47 @@ package body System.PolyORB_Interface is
       while not Last (It) loop
          declare
             use PolyORB.Obj_Adapters;
-            use PolyORB.Objects;
             use PolyORB.ORB;
             use PolyORB.Setup;
 
             Stub : Receiving_Stub := Value (It).all;
 
-            Oid : aliased PolyORB.Objects.Object_Id
-              := Export (Object_Adapter (The_ORB), Stub.Receiver);
-            Ref : PolyORB.References.Ref;
          begin
-            pragma Debug (O ("Registering RCI: " & Stub.Name.all));
-            Create_Reference
-              (The_ORB, Oid'Access,
-               Stub.Name.all & ":" & Stub.Version.all,
-               Ref);
-            pragma Debug
-              (O ("Done, ref is: " & PolyORB.References.Image (Ref)));
-            pragma Debug
-              (O ("Done, ref is: "
-                    & PolyORB.Types.To_Standard_String
-                    (PolyORB.References.IOR.Object_To_String (Ref))));
+            case Stub.Kind is
+               when Obj_Stub =>
+                  Setup_Object_RPC_Receiver
+                    (Stub.Name.all, Stub.Receiver);
 
-            declare
-               CRef : CORBA.Object.Ref;
-            begin
-               CORBA.Object.Convert_To_CORBA_Ref (Ref, CRef);
-               PolyORB.CORBA_P.Naming_Tools.Register
-                 (Name => To_Lower (Stub.Name.all) & ".RCI",
-                  Ref => CRef, Rebind => True);
-               --  XXX Using the CORBA naming service is not necessarily
-               --  a good idea. Alternative design: use a Boot_Server
-               --  distributed object dedicated to DSA services.
-            end;
+               when Pkg_Stub =>
+                  declare
+                     Oid : aliased PolyORB.Objects.Object_Id
+                       := Export (Object_Adapter (The_ORB),
+                                  PolyORB.Objects.Servant_Access
+                                    (Stub.Receiver));
+                     Ref : PolyORB.References.Ref;
+                  begin
+                     Create_Reference
+                       (The_ORB, Oid'Access,
+                        Stub.Name.all & ":" & Stub.Version.all,
+                        Ref);
+
+                     declare
+                        CRef : CORBA.Object.Ref;
+                        --  XXX SHOULD NOT DEPEND ON CORBA!!!!!
+                     begin
+                        CORBA.Object.Convert_To_CORBA_Ref (Ref, CRef);
+                        PolyORB.CORBA_P.Naming_Tools.Register
+                          (Name => To_Lower (Stub.Name.all) & ".RCI",
+                           Ref => CRef, Rebind => True);
+                        --  XXX Using the CORBA naming service is not
+                        --  necessarily a good idea. Alternative design:
+                        --  use a Boot_Server distributed object dedicated
+                        --  to DSA applications (may be required for
+                        --  validation, because we need to somehow assign
+                        --  Partition_Ids).
+                     end;
+                  end;
+            end case;
 
             Free (Stub.Name);
             Free (Stub.Version);
@@ -422,38 +441,66 @@ package body System.PolyORB_Interface is
       PolyORB.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
-   -----------------------------
-   -- Register_Receiving_Stub --
-   -----------------------------
+   ---------------------------------
+   -- Register_Obj_Receiving_Stub --
+   ---------------------------------
 
-   procedure Register_Receiving_Stub
-     (Name     : in String;
-      Receiver : in Servant_Access;
-      Version  : in String := "")
+   procedure Register_Obj_Receiving_Stub
+     (Name          : in String;
+      Handler       : in Message_Handler_Access;
+      Receiver      : in Servant_Access)
    is
       use Receiving_Stub_Lists;
    begin
+      pragma Assert (Name (Name'Last) = ASCII.NUL);
+      Receiver.Handler := Handler;
+
       Append
         (All_Receiving_Stubs,
          Receiving_Stub'
-           (Name     => +Name,
+           (Kind     => Obj_Stub,
+            Name     => +Name (Name'First .. Name'Last - 1),
+            Receiver => Receiver,
+            Version  => null));
+   end Register_Obj_Receiving_Stub;
+
+   ---------------------------------
+   -- Register_Pkg_Receiving_Stub --
+   ---------------------------------
+
+   procedure Register_Pkg_Receiving_Stub
+     (Name     : in String;
+      Version  : in String;
+      Handler  : in Message_Handler_Access;
+      Receiver : in Servant_Access)
+   is
+      use Receiving_Stub_Lists;
+   begin
+      Receiver.Handler := Handler;
+      Append
+        (All_Receiving_Stubs,
+         Receiving_Stub'
+           (Kind     => Pkg_Stub,
+            Name     => +Name,
             Receiver => Receiver,
             Version  => +Version));
-   end Register_Receiving_Stub;
+   end Register_Pkg_Receiving_Stub;
 
-   --------------------------
-   -- Setup_Object_Adapter --
-   --------------------------
+   -------------------------------
+   -- Setup_Object_RPC_Receiver --
+   -------------------------------
 
-   function Setup_Object_Adapter
+   procedure Setup_Object_RPC_Receiver
      (Name            : String;
-      Configuration   : PolyORB.POA_Config.Configuration_Access;
       Default_Servant : Servant_Access)
-     return PolyORB.Obj_Adapters.Obj_Adapter_Access
    is
       use PolyORB.POA;
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
+
+      Configuration : PolyORB.POA_Config.Configuration_Access;
+      pragma Warnings (Off, Configuration);
+      --  XXX initialize someway!
 
       POA : constant Obj_Adapter_Access
         := Create_POA
@@ -462,10 +509,14 @@ package body System.PolyORB_Interface is
          A_POAManager => null,
          Policies     => Default_Policies (Configuration.all));
    begin
-      POA.Default_Servant := Default_Servant;
+      POA.Default_Servant := PolyORB.Objects.Servant_Access
+        (Default_Servant);
+
+      Default_Servant.Object_Adapter :=
+        PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
+
       Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
-      return PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
-   end Setup_Object_Adapter;
+   end Setup_Object_RPC_Receiver;
 
    ------------
    -- To_Any --
