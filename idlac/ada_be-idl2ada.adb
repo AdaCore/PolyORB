@@ -32,7 +32,6 @@ with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
 with Ada_Be.Debug;
-pragma Elaborate (Ada_Be.Debug);
 
 with Errors;                use Errors;
 with Utils;                 use Utils;

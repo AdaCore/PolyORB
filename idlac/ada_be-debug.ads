@@ -41,6 +41,8 @@
 
 package Ada_Be.Debug is
 
+   pragma Elaborate_Body;
+
    function Is_Active (Flag : in String) return Natural;
    --  returns 0 when not active
 

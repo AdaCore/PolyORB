@@ -30,7 +30,6 @@ with Ada.Unchecked_Deallocation;
 with Ada.Text_IO;
 
 with Ada_Be.Debug;
-pragma Elaborate (Ada_Be.Debug);
 
 package body Ada_Be.Source_Streams is
 
