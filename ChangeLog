@@ -1,3 +1,7 @@
+1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in, Makefile.in: Add platform Open NT.
+
 1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Reinstated Garlic/s-garthi.ads, and remove
