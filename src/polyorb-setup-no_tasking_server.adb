@@ -59,6 +59,4 @@ pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 
 package body PolyORB.Setup.No_Tasking_Server is
 
-begin
-   PolyORB.Initialization.Initialize_World;
 end PolyORB.Setup.No_Tasking_Server;
