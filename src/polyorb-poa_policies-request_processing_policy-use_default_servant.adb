@@ -2,11 +2,8 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---   POLYORB.POA_POLICIES.REQUEST_PROCESSING_POLICY.USE_DEFAULT_SERVANT     --
 --                                                                          --
---                                 B o d y                                  --
---                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -53,13 +50,12 @@ is
      (Self : Use_Default_Servant_Policy;
       Other_Policies   : AllPolicies)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
-
+   begin
       null;
-      --  XXX TODO check compat for USE_DEFAULT_SERVANT
+      --  No rule to test.
 
    end Check_Compatibility;
 
@@ -69,11 +65,12 @@ is
 
    function Policy_Id
      (Self : Use_Default_Servant_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+   begin
       return "REQUEST_PROCESSING_POLICY.USE_DEFAULT_SERVANT";
    end Policy_Id;
 
@@ -86,12 +83,12 @@ is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (U_Oid);
       pragma Warnings (On);
+   begin
       null;
    end Etherealize_All;
 
@@ -105,10 +102,10 @@ is
       U_Oid : Unmarshalled_Oid)
      return Servants.Servant_Access
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self, U_Oid);
       pragma Warnings (On);
+   begin
 
       return POA.Obj_Adapter_Access (OA).Default_Servant;
    end Id_To_Servant;

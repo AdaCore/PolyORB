@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -49,11 +49,12 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    function Policy_Id
      (Self : ORB_Ctrl_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+   begin
       return "THREAD_POLICY.ORB_CTRL";
    end Policy_Id;
 
