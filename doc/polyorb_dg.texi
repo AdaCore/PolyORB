@@ -14,7 +14,7 @@ Here shall lie the licence of this document
 
 @titlepage
 @title PolyORB Developer's Guide
-@author The PolyORB Team
+@author Thomas Vergnaud
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -28,6 +28,7 @@ Here shall lie the licence of this document
 @end ifnottex
 
 @menu
+* About this guide::
 * Introduction::
 * Coding rules::
 * Main packages::
@@ -35,16 +36,59 @@ Here shall lie the licence of this document
 * Protocol layer::
 * Neutral layer::
 * Services::
+* GNU Free Documentation License::
 * Index::
 @end menu
 
+@c -------------------------------------------------------------------
+@node About this guide
+@unnumbered About this guide
+@c -------------------------------------------------------------------
+
+@noindent
+This guide aims at giving you some information about the PolyORB
+global structure, in order to help find your way though the packages.
+It also gives you hints on how to build protocol or application
+personalities.
 
 @node Introduction
 @chapter Introduction
 
 @cindex Introduction
 
-Here shall lie a short text about PolyORB concepts
+PolyORB aims at providing a uniform solution to build distributed
+applications. To do so, the architecture of PolyORB allows for
+providing multiple middleware behaviors, both on the application side
+(e.g. CORBA, Distributed Systems Annex of Ada 95) and protocol side
+(e.g. GIOP, SOAP). Those behaviors are implemented by
+``personalities'', which can be viewed as interfaces between networks
+or applications and the PolyORB core. Through them, PolyORB behaves as
+if it were a particular middleware implementation.
+
+Personalities mainly use or extend mechanisms that are provided by the
+PolyORB core, and thus adapt them to implement specific
+implementations. As the PolyORB core provides the basis of all what
+personalities provide, it is called ``neutral core''.
+
+What is very special in the PolyORB architecture, is that there can be
+multiple application and protocol personalities in the same configuration.
+Thus, PolyORB is said to have a ``schizophrenic architecture''.
+
+The architecture of a PolyORB personalisation is made of three layers:
+@itemize @bullet
+@item the application personalities;
+@item the neutral layer;
+@item the protocol personalities.
+@end itemize
+
+Above the application personalities lie the user applications; the
+protocol personalities directly rely on the network.
+
+Actually, one can view three sublayers within the neutral layer. At
+the very heart of the layer, there is the neutral core, which is
+nearly a middleware implementation in itself. Above and below thei
+neutral inner core lie the mechanisms to operate with the
+personalities.
 
 @node Coding rules
 @chapter Coding rules
@@ -860,6 +904,8 @@ the time may uselessly use the memory. You should use the package
 @code{PolyORB.Calendar}, which provides the primitives of
 @code{Ada.Calendar}, and the implementation of which depends on the
 tasking policy.
+
+@include gfdl.texi
 
 @node Index
 @unnumbered Index
