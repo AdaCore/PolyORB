@@ -34,23 +34,26 @@
 
 with Ada.Characters;
 with Ada.Characters.Handling;
-
+with Ada.Streams;
 with Ada.Strings.Fixed;  use Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Ada.Streams;
-
-with PolyORB.Types;
-
 with PolyORB.Buffers;
+with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Representations.Test;
+with PolyORB.Types;
 
 with PolyORB.Utils.HTTP; use PolyORB.Utils.HTTP;
 with PolyORB.Utils.HTTP_Messages; use PolyORB.Utils.HTTP_Messages;
 
-package body  PolyORB.Protocols.HTTP is
+package body PolyORB.Protocols.HTTP is
 
-   End_Section : constant String := "";
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.http");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    -----------------------
    -- Utility functions --
@@ -514,15 +517,16 @@ package body  PolyORB.Protocols.HTTP is
       Str : Types.String;
       Index  : Natural := 1;
    begin
+      pragma Debug (O ("Request_Parse_Header: enter"));
 
       loop
          Offset := 0;
          if Index <= Length (Mess) then
             loop
                if Element (Mess, Index + Offset) = CR
-                  and then Element (Mess, Index + Offset + 1) = LF then
-                  Str := To_PolyORB_String (Slice (Mess, Index,
-                            Index + Offset - 1));
+                 and then Element (Mess, Index + Offset + 1) = LF then
+                  Str := To_PolyORB_String
+                    (Slice (Mess, Index, Index + Offset - 1));
                   Index := Index + Offset + 2;
                   exit;
                else
@@ -530,15 +534,13 @@ package body  PolyORB.Protocols.HTTP is
                end if;
             end loop;
             Request_Parse_Line (To_Standard_String (Str), Status, Success);
-            if Success = False then
-               exit;
-            end if;
+
+            exit when not Success;
          else
             exit;
          end if;
       end loop;
    end Request_Parse_Header;
-
 
    procedure Request_Parse_Line
       (Command : String;
@@ -627,7 +629,8 @@ package body  PolyORB.Protocols.HTTP is
          end if;
       end Parse_Request_Line;
 
-   begin
+   begin --  Request_Parse_Line
+      pragma Debug (O ("Request_Parse_Line: enter"));
       Success := True;
       if Parse_Request_Line (Command) = NON_POST then
          Success := False;
@@ -668,8 +671,6 @@ package body  PolyORB.Protocols.HTTP is
          Status.If_Modified_Since := To_PolyORB_String (
             Command (If_Modified_Since_Token'Length + 1
                      .. Command'Last));
-
-
       end if;
 
    exception

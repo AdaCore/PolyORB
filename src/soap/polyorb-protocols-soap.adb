@@ -657,21 +657,30 @@ package body PolyORB.Protocols.SOAP  is
       Cl : Natural := 0;
       use PolyORB.Buffers;
    begin
+      pragma Assert (S.HTTP_Session /= null);
+
       if S.Expect_Header = True then
-         pragma Debug (O ("SOAP DI header"));
+         pragma Debug (O ("SOAP Data_Indication: header"));
          declare
             Octets_List : constant Stream_Element_Array
               := To_Stream_Element_Array (S.Buffer);
             Header : Types.String := To_PolyORB_String ("");
-            Resp : HTTP_Response_Access renames S.HTTP_Session.Response;
-            Req  : HTTP_Request_Access renames S.HTTP_Session.Request;
+            Resp : HTTP_Response_Access
+              renames S.HTTP_Session.Response;
+            Req  : HTTP_Request_Access
+              renames S.HTTP_Session.Request;
             Succ : Boolean;
          begin
             for I in  Octets_List'Range loop
                Append (Header, Character'Val (Natural (Octets_List (I))));
             end loop;
+            pragma Debug (O ("Received header: "
+                             & To_Standard_String (Header)));
+
+            pragma Debug (O ("My role: " & S.Role'Img));
+
             if S.Role = Client then
-               S.HTTP_Session.Response := new HTTP_Response;
+               Resp := new HTTP_Response;
                Response_Parse_Header (Header, Resp);
                if Response_Status (Resp.all) = S200 or
                  Response_Status (Resp.all) = S500 then
@@ -691,7 +700,7 @@ package body PolyORB.Protocols.SOAP  is
                end if;
 
             else
-               S.HTTP_Session.Request := new HTTP_Request;
+               Req := new HTTP_Request;
                Request_Parse_Header (Header, S.HTTP_Session.Request, Succ);
                if Succ and then
                  Request_Mtd (Req.all) = POST and then
@@ -708,7 +717,7 @@ package body PolyORB.Protocols.SOAP  is
 
          end;
       else
-         pragma Debug (O ("SOAP DI body"));
+         pragma Debug (O ("SOAP Data_Indication: body"));
          declare
             Octets_List : constant Stream_Element_Array
               := To_Stream_Element_Array (S.Buffer);
@@ -741,6 +750,7 @@ package body PolyORB.Protocols.SOAP  is
    begin
       S.Role := Server;
       S.Expect_Header := True;
+      S.HTTP_Session := new HTTP_Session;
       Expect_Data (S, S.Buffer, 0);
    end Handle_Connect_Indication;
 
