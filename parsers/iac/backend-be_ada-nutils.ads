@@ -119,7 +119,8 @@ package Backend.BE_Ada.Nutils is
      range Tok_Mod .. Tok_Separate;
 
    type Operator_Type  is
-     (Op_And,             -- and
+     (Op_Not,             -- not
+      Op_And,             -- and
       Op_And_Then,        -- and then
       Op_Or,              -- or
       Op_Or_Then,         -- or then
@@ -143,12 +144,14 @@ package Backend.BE_Ada.Nutils is
       Op_Arrow,           -- =>
       Op_Vertical_Bar);   -- |
 
+
+
    Operator_Image : array
      (Operator_Type'Pos (Op_And) ..  Operator_Type'Pos (Op_Vertical_Bar))
      of Name_Id;
 
    subtype Keyword_Operator is Operator_Type
-     range Op_And .. Op_Or_Then;
+     range Operator_Type'First .. Op_Or_Then;
 
    type Parameter_Id is
      (P_Arg_Modes,
@@ -168,7 +171,8 @@ package Backend.BE_Ada.Nutils is
       P_Target,
       P_Operation,
       P_Arg_List,
-      P_Req);
+      P_Req,
+      P_Exception_Info);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -327,6 +331,11 @@ package Backend.BE_Ada.Nutils is
       Is_Private_Extention  : Boolean := False)
      return Node_Id;
 
+   function Make_Designator
+     (Designator : Name_Id;
+      Parent     : Name_Id := No_Name)
+     return Node_Id;
+
    function Make_Enumeration_Type_Definition
      (Enumeration_Literals : List_Id)
      return Node_Id;
@@ -338,7 +347,7 @@ package Backend.BE_Ada.Nutils is
    function Make_Expression
      (Left_Expr : Node_Id;
       Operator  : Operator_Type;
-      Right_Expr : Node_Id)
+      Right_Expr : Node_Id := No_Node)
      return Node_Id;
 
    function Make_For_Statement

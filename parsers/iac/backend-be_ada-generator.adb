@@ -423,6 +423,16 @@ package body Backend.BE_Ada.Generator is
       Op      : constant Operator_Id := Operator (N);
       R_Expr  : constant Node_Id     := Right_Expr (N);
    begin
+      if No (R_Expr) then
+         if Op = Operator_Type'Pos (Op_Not) then
+            Write (Tok_Not);
+         else
+            Write_Name (Operator_Image (Standard.Integer (Op)));
+         end if;
+
+         Write_Space;
+      end if;
+
       Generate (L_Expr);
 
       if Present (R_Expr) then

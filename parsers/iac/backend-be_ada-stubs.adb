@@ -769,7 +769,6 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Req)),
          Expression    => Make_Defining_Identifier (VN (V_Request)));
       Append_Node_To_List (N, P);
-
       N := Make_Subprogram_Call
         (RE (RE_Create_Request),
          P);
@@ -787,6 +786,38 @@ package body Backend.BE_Ada.Stubs is
           N));
       Append_Node_To_List (N, Statements);
 
+      --  ???
+
+      P := New_List (K_List_Id);
+      C := Make_Designator
+        (Designator => PN (P_Argument),
+         Parent     => VN (V_Result));
+      N := Make_Assignment_Statement
+        (C,
+         Make_Designator
+         (Designator => PN (P_Exception_Info),
+          Parent     => VN (V_Request)));
+      Append_Node_To_List (N, P);
+      N := Make_Subprogram_Call
+        (RE (RE_Destroy_Request),
+         Make_List_Id
+         (Make_Designator (VN (V_Request))));
+      Append_Node_To_List (N, P);
+      N := Make_Subprogram_Call
+        (RE (RE_Raise_From_Any),
+         Make_List_Id (Copy_Node (C)));
+      Append_Node_To_List (N, P);
+      N := Make_Subprogram_Call
+        (RE (RE_Is_Empty),
+         Make_List_Id (C));
+      N := Make_Expression (N, Op_Not);
+      N := Make_If_Statement
+        (N, P, No_List);
+      Append_Node_To_List (N, Statements);
+      N := Make_Subprogram_Call
+        (RE (RE_Destroy_Request),
+         Make_List_Id (Make_Designator (VN (V_Request))));
+      Append_Node_To_List (N, Statements);
       return Statements;
    end Marshaller_Body;
 

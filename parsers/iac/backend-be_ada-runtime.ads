@@ -20,6 +20,7 @@ package Backend.BE_Ada.Runtime is
       RU_PolyORB_Types,
       RU_PolyORB_CORBA_P,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
+      RU_PolyORB_CORBA_P_Exceptions,
       RU_Standard,
       RU_PortableServer);
 
@@ -81,8 +82,9 @@ package Backend.BE_Ada.Runtime is
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_From_Any,                  --  CORBA.Object.Helper.From_Any
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_To_CORBA_Object,           -- CORBA.TypeCode.Internals.To_CORBA_Object
+      RE_To_CORBA_Object,     --  CORBA.TypeCode.Internals.To_CORBA_Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
+      RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
@@ -93,9 +95,11 @@ package Backend.BE_Ada.Runtime is
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Create_Request,            --  PolyORB.Requests.Create_Request
       RE_Flags,                     --  PolyORB.Requests.Flags
+      RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
       RE_Client_Invoke,    --  PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
+      RE_Raise_From_Any,   --  PolyORB.CORBA_P.Exceptions.Raise_From_Any
       RE_String_2,                  --  Standard.String
       RE_Servant_Base);             --  PortableServer.Servant_Base
 
@@ -158,6 +162,7 @@ package Backend.BE_Ada.Runtime is
          RE_Object                => RU_CORBA,
          RE_To_CORBA_Object       => RU_CORBA,
          RE_NamedValue            => RU_PolyORB_Any,
+         RE_Is_Empty              => RU_PolyORB_Any,
          RE_Ref_3                 => RU_PolyORB_Any_NVList,
          RE_Create                => RU_PolyORB_Any_NVList,
          RE_TC_Object             => RU_PolyORB_Any,
@@ -168,9 +173,11 @@ package Backend.BE_Ada.Runtime is
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Create_Request        => RU_PolyORB_Requests,
          RE_Flags                 => RU_PolyORB_Requests,
+         RE_Destroy_Request       => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
          RE_Client_Invoke         => RU_PolyORB_CORBA_P_Interceptors_Hooks,
+         RE_Raise_From_Any      => RU_PolyORB_CORBA_P_Exceptions,
          RE_String_2              => RU_Standard,
          RE_Servant_Base          => RU_PortableServer);
 

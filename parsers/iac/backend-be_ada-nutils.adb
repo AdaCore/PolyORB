@@ -570,6 +570,30 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Derived_Type_Definition;
 
+   ---------------------
+   -- Make_Designator --
+   ---------------------
+
+   function Make_Designator
+     (Designator : Name_Id;
+      Parent     : Name_Id := No_Name)
+     return Node_Id
+   is
+      N : Node_Id;
+      P : Node_Id;
+   begin
+      N := New_Node (K_Designator);
+      Set_Defining_Identifier (N, Make_Defining_Identifier (Designator));
+
+      if Parent /= No_Name then
+         P := New_Node (K_Designator);
+         Set_Defining_Identifier (P, Make_Defining_Identifier (Parent));
+         Set_Parent_Unit_Name (N, P);
+      end if;
+
+      return N;
+   end Make_Designator;
+
    --------------------------------------
    -- Make_Enumeration_Type_Definition --
    --------------------------------------
@@ -609,7 +633,7 @@ package body Backend.BE_Ada.Nutils is
    function Make_Expression
      (Left_Expr  : Node_Id;
       Operator   : Operator_Type;
-      Right_Expr : Node_Id)
+      Right_Expr : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;

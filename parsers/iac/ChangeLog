@@ -1,5 +1,23 @@
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-stubs.adb: added instructions to the marshaller
+	body. 
+
+	* backend-be_ada-runtime.ads: Added new runtimes entities used in
+	stubs body. 
+
+	* backend-be_ada-generator.adb: Modified Generate_Expression to
+	handle well the generation of unary operation. 
+
+	* backend-be_ada-nutils.ads: Added Op_Not in Operation_Type. 
+
+	* backend-be_ada-nutils.adb: Added Make_Designator a subprogram
+	that returns a designator for a given name_id. Expr2 field in
+	Make_expression is now optional (to handle unary operations).  
+	
+
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-impls.adb: Complete generation of the  implementation body. 
 
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
