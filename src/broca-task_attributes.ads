@@ -33,7 +33,7 @@
 
 with PortableServer;
 
-pragma Elaborate_All (PortableServer);
+pragma Elaborate (PortableServer);
 
 package Broca.Task_Attributes is
 

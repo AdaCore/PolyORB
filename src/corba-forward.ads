@@ -36,6 +36,8 @@ with CORBA.Object;
 generic
 package CORBA.Forward is
 
+   pragma Elaborate_Body;
+
    type Ref is new CORBA.Object.Ref with null record;
 
    generic

@@ -52,13 +52,16 @@ procedure Idlac is
    begin
       Put_Line (Current_Error, "Usage: " & Command_Name
                 & " [-i] [-k] idl_file [-cppargs ...]");
-      Put_Line (Current_Error, "  -E    Preprocess only.");
-      Put_Line (Current_Error, "  -i    Generate implementation template.");
-      Put_Line (Current_Error, "  -k    Keep temporary files.");
-      Put_Line (Current_Error, "  -p    Produce source on standard output.");
-      Put_Line (Current_Error, "  -q    Be quiet.");
+      Put_Line (Current_Error, "  -E     Preprocess only.");
+      Put_Line (Current_Error, "  -d     Generate delegation package.");
+      Put_Line (Current_Error, "  -i     Generate implementation template.");
+      Put_Line (Current_Error, "  -nodyn Don't generate code for dynamic "
+                & "invocation.");
+      Put_Line (Current_Error, "  -k     Keep temporary files.");
+      Put_Line (Current_Error, "  -p     Produce source on standard output.");
+      Put_Line (Current_Error, "  -q     Be quiet.");
       Put_Line (Current_Error, "  -cppargs ARGS");
-      Put_Line (Current_Error, "        Pass ARGS to the C++ preprocessor.");
+      Put_Line (Current_Error, "         Pass ARGS to the C++ preprocessor.");
       Put_Line (Current_Error, "  -I dir is a shortcut for -cppargs -I dir.");
       OS_Exit (1);
    end Usage;
@@ -72,7 +75,7 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: i k p q") is
+         case Getopt ("E I: d i k p q nodyn") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -82,13 +85,17 @@ begin
                Idl_Fe.Lexer.Add_Argument ("-I");
                Idl_Fe.Lexer.Add_Argument (Parameter);
 
+            when 'd' =>
+               Generate_Delegate := True;
+
             when 'i' =>
-               Generate_Impl_Template
-                 := True;
+               Generate_Impl_Template := True;
+
+            when 'n' =>
+               Generate_Dyn := False;
 
             when 'k' =>
-               Keep_Temporary_Files
-                 := True;
+               Keep_Temporary_Files := True;
 
             when 'p' =>
                To_Stdout := True;
@@ -169,12 +176,11 @@ begin
       Rep := Idl_Fe.Parser.Parse_Specification;
 
       if Errors.Is_Error then
-
          Put (Current_Error,
               Natural'Image (Errors.Error_Number)
               & " error(s)");
          if Errors.Is_Warning then
-            Put_Line
+            Put
               (Current_Error,
                " and "
                & Natural'Image (Errors.Warning_Number)
@@ -195,8 +201,9 @@ begin
          end if;
       end if;
 
-      --  Expand tree
+      --  Expand tree. This should not cause any errors!
       Ada_Be.Expansion.Expand_Repository (Rep);
+      pragma Assert (not Errors.Is_Error);
 
       --  Generate code
       Ada_Be.Idl2Ada.Generate

@@ -1771,7 +1771,7 @@ package body Broca.CDR is
          when 13 =>
             Result := CORBA.TypeCode.TC_Principal;
          when 14 =>
-            Result := CORBA.TypeCode.TC_ObjRef;
+            Result := CORBA.TypeCode.TC_Object;
             declare
                Id : CORBA.String := Unmarshall (Buffer);
                Name : CORBA.String := Unmarshall (Buffer);
@@ -2335,7 +2335,7 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in out CORBA.AbstractBase.Ref'Class) is
       Obj : constant Broca.Object.Object_Ptr
-        := new Broca.Object.Object_Type;
+        := new Broca.Object.Object_Type (Local_Object => False);
    begin
       Broca.Object.Unmarshall
         (Buffer, Broca.Object.Object_Type (Obj.all));

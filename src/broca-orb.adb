@@ -38,7 +38,6 @@ with CORBA.Impl;
 
 with Broca.Buffers;
 with Broca.CDR;
-with Broca.IOP;
 with Broca.Environment;
 with Broca.Exceptions;
 with Broca.Names;
@@ -50,9 +49,8 @@ with Broca.Debug;
 pragma Elaborate (Broca.Debug);
 
 with Broca.IIOP;
-pragma Warnings (Off, Broca.IIOP);
-
 with Broca.POA;
+with Broca.RootPOA;
 with PortableServer.POA;
 with PortableServer.ServantLocator.Impl;
 with PortableServer.ServantManager;
@@ -81,7 +79,7 @@ package body Broca.ORB is
    --  registered with the other references, as they may be queried
    --  often.
 
-   type Profile_IIOP_Ptr is access Broca.IIOP.Profile_IIOP_Type;
+--   type Profile_IIOP_Ptr is access Broca.IIOP.Profile_IIOP_Type;
 
    type References_Locator is
      new PortableServer.ServantLocator.Impl.Object with null record;
@@ -172,27 +170,30 @@ package body Broca.ORB is
       Host : constant String   := Get_Conf (Naming_Host, Naming_Host_Default);
       Port : constant Positive :=
         Positive'Value (Get_Conf (Naming_Port, Naming_Port_Default));
-      Profile : Profile_IIOP_Ptr := new Broca.IIOP.Profile_IIOP_Type;
-      Obj     : Broca.Object.Object_Ptr := new Broca.Object.Object_Type;
+      Profile : Broca.IIOP.Profile_IIOP_1_0_Access
+        := new Broca.IIOP.Profile_IIOP_1_0_Type;
       Result  : CORBA.Object.Ref;
    begin
       if IOR /= "" then
          String_To_Object (CORBA.To_CORBA_String (IOR), Result);
          return Result;
       end if;
-      Obj.Type_Id             :=
-        CORBA.To_CORBA_String
-        (Broca.Names.OMG_RepositoryId ("CosNaming/NamingContext"));
       Profile.Host   := CORBA.To_CORBA_String (Host);
       Profile.Port   := CORBA.Unsigned_Short (Port);
       Profile.ObjKey :=
         Build_Object_Key
         (Initial_References_POA_Name,
          CORBA.String (Name_Service_ObjectId));
-      Obj.Profiles :=
-        new Broca.IOP.Profile_Ptr_Array'(1 =>
-                                           Broca.IOP.Profile_Ptr (Profile));
-      CORBA.Object.Set (Result, CORBA.Impl.Object_Ptr (Obj));
+      declare
+         Obj : Broca.Object.Object_Ptr := Broca.Object.Create_Object
+           (Type_Id => CORBA.To_CORBA_String
+            (Broca.Names.OMG_RepositoryId ("CosNaming/NamingContext")),
+            Profiles => new Broca.IOP.Profile_Ptr_Array'
+            (1 => Broca.IOP.Profile_Ptr (Profile)),
+            Local_Object => False);
+      begin
+         CORBA.Object.Set (Result, CORBA.Impl.Object_Ptr (Obj));
+      end;
       return Result;
    end Build_Remote_Naming_Reference;
 
@@ -242,20 +243,12 @@ package body Broca.ORB is
      (IOR : access Broca.Buffers.Buffer_Type;
       Ref : out CORBA.Object.Ref'Class)
    is
-      Type_Id : CORBA.String;
-      Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
-
+      use Broca.Object;
+      Obj : Object_Ptr := Create_Object_From_IOR (IOR);
    begin
-      pragma Debug (O ("IOR_To_Object : enter"));
-
-      Broca.IOP.Decapsulate_IOR (IOR, Type_Id, Profiles);
-
-      pragma Debug (O ("IOR_To_Object : Type_Id unmarshalled : "
-                       & CORBA.To_Standard_String (Type_Id)));
-
       declare
-         A_Ref : CORBA.Object.Ref'Class :=
-           Broca.Repository.Create (CORBA.RepositoryId (Type_Id));
+         A_Ref : CORBA.Object.Ref'Class := Broca.Repository.Create
+           (CORBA.RepositoryId (Get_Type_Id (Obj.all)));
       begin
          if CORBA.Object.Is_Nil (A_Ref) then
             --  No classes for the string was found.
@@ -265,20 +258,10 @@ package body Broca.ORB is
             --                new Broca.Object.Object_Type);
             CORBA.Object.Set
               (A_Ref,
-               CORBA.Impl.Object_Ptr'(new Broca.Object.Object_Type));
+               CORBA.Impl.Object_Ptr (Obj));
          end if;
 
          pragma Assert (not CORBA.Object.Is_Nil (A_Ref));
-
-         declare
-            --  Get the access to the internal object.
-            Obj : constant Broca.Object.Object_Ptr
-              := Broca.Object.Object_Ptr
-              (CORBA.Object.Object_Of (A_Ref));
-         begin
-            Obj.Type_Id  := Type_Id;
-            Obj.Profiles := Profiles;
-         end;
 
          CORBA.Object.Set (Ref, CORBA.Object.Object_Of (A_Ref));
 
@@ -370,6 +353,9 @@ package body Broca.ORB is
          declare
             R : PortableServer.POA.Ref;
          begin
+            Broca.RootPOA.Start;
+            --  Ensure that the root POA exists.
+
             PortableServer.POA.Set (R, CORBA.Impl.Object_Ptr (Root_POA));
             return R;
          end;

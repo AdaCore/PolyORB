@@ -56,6 +56,8 @@ generic
 
 package Sequences.Bounded is
 
+   pragma Elaborate_Body;
+
    Max_Length : constant Positive := Max;
 
    type Element_Array is array (Positive range <>) of Element;

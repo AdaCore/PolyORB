@@ -10,12 +10,12 @@ GNATMAKE_FLAGS = \
 	-I$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT)/../idls/cos/naming $(ADASOCKETS_INCLUDE) \
 	-g -O2 -m -gnata \
-	$(EXAMPLE_GNATMAKE_FLAGS)
+	$(EXAMPLE_GNATMAKE_FLAGS) \
 	-largs $(ADASOCKETS_LIBS)
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
-CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb
+CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb
 
 DISTCLEANFILES = client server
 
@@ -26,10 +26,10 @@ SUFFIXES = .idl .ads .adb
 $(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
 
 .idl.ads:
-	$(IDLAC) $<
+	$(IDLAC) $(IDLAC_FLAGS) $<
 
 .idl.adb:
-	$(IDLAC) $<
+	$(IDLAC) $(IDLAC_FLAGS) $<
 
 $(IDLAC): force
 	cd $(EXAMPLES_ROOT)/../idlac && $(MAKE) idlac

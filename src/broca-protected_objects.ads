@@ -35,6 +35,8 @@ with Broca.Soft_Links;
 
 package Broca.Protected_Objects is
 
+   pragma Elaborate_Body;
+
    procedure Initialize;
 
    -------------------------------------------

@@ -34,6 +34,7 @@
 with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
+with Broca.Debug;
 
 with Broca.Names;
 with Broca.Repository;
@@ -42,6 +43,18 @@ with Broca.Exceptions;
 with Broca.Object;
 
 package body CORBA.Object is
+
+   -----------
+   -- Debug --
+   -----------
+
+   Flag : constant Natural
+     := Broca.Debug.Is_Active ("corba.object");
+   procedure O is new Broca.Debug.Output (Flag);
+
+   Flag2 : constant Natural
+     := Broca.Debug.Is_Active ("corba.object_reference_count");
+   procedure O2 is new Broca.Debug.Output (Flag2);
 
    ----------
    -- Is_A --
@@ -56,6 +69,8 @@ package body CORBA.Object is
       use Broca.Repository;
 
       Self_Ref : Ref := Self;
+      Object : Broca.Object.Object_Ptr
+        := Broca.Object.Object_Ptr (Object_Of (Self));
 
    begin
 
@@ -69,8 +84,9 @@ package body CORBA.Object is
 
         Is_Equivalent
         (CORBA.To_CORBA_String (Logical_Type_Id),
-         CORBA.RepositoryId (Broca.Object.Object_Ptr
-                             (Object_Of (Self)).Type_Id))
+         CORBA.RepositoryId
+         (Broca.Object.Get_Type_Id (Object.all))
+         )
       --  Any object is of the class of its
       --  actual (i. e. most derived) type.
 
@@ -206,6 +222,18 @@ package body CORBA.Object is
                                     Req_Flags);
    end Create_Request;
 
+   ------------------
+   --  Deallocate  --
+   ------------------
+   procedure Deallocate (Object : access Content_ObjRef) is
+      Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
+   begin
+      pragma Debug (O2 ("Deallocate (ObjRef) : enter"));
+      Deallocate (Object.Value);
+      Deallocate_Any_Content (Obj);
+      pragma Debug (O2 ("Deallocate (ObjRef) : end"));
+   end Deallocate;
+
    -----------------
    --  Duplicate  --
    -----------------
@@ -213,7 +241,14 @@ package body CORBA.Object is
                        return Any_Content_Ptr is
    begin
       return new Content_ObjRef'
-        (Value => Content_ObjRef_Ptr (Object).Value);
+        (Value => new CORBA.Object.Ref'
+         (Content_ObjRef_Ptr (Object).Value.all));
    end Duplicate;
+
+   ----------------
+   --  TC_Object --
+   ----------------
+   function TC_Object return CORBA.TypeCode.Object
+     renames CORBA.TypeCode.TC_Object;
 
 end CORBA.Object;

@@ -29,18 +29,26 @@ with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 private package Ada_Be.Idl2Ada.Skel is
 
-   Suffix : constant String
-     := ".Skel";
+   --  This package contains the code common to the skeleton and the
+   --  delegate packages.
+
+   type Skel_Kind is (Skeleton, Delegate);
+
+   function Suffix (SK : Skel_Kind) return String;
 
    procedure Gen_Node_Spec
      (CU   : in out Compilation_Unit;
-      Node : Node_Id);
+      SK   : in Skel_Kind;
+      Node : in Node_Id);
+
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
-      Node : Node_Id);
+      SK   : in Skel_Kind;
+      Node : in Node_Id);
 
    procedure Gen_Body_Common_End
-     (CU : in out Compilation_Unit;
+     (CU   : in out Compilation_Unit;
+      SK   : in Skel_Kind;
       Node : in Node_Id);
    --  generates code for skel_body that is common
    --  for interfaces and valuetypes supporting interfaces

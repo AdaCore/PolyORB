@@ -181,6 +181,8 @@ package body Ada_Be.Expansion is
    -- Utility routines --
    ----------------------
 
+   subtype Location is Errors.Location;
+
    Current_Position_In_List : Node_Id
      := No_Node;
    procedure Expand_Node_List
@@ -205,10 +207,13 @@ package body Ada_Be.Expansion is
    procedure Add_Identifier_With_Renaming
      (Node       : Node_Id;
       Identifier : String;
-      Scope      : Node_Id := No_Node);
+      Scope      : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True);
    --  Assign Identifier to Node in Scope (or current scope if No_Node),
    --  possibly appending a numeric prefix if a conflict
-   --  would otherwise be introduced.
+   --  would otherwise be introduced. If Is_Inheritable is False, then
+   --  this identifier will not be considered as conflicting when this scope
+   --  is inherited by another.
 
    procedure Insert_Before_Current
      (Node : Node_Id);
@@ -230,7 +235,7 @@ package body Ada_Be.Expansion is
       From : Node_Id;
       Implicit_Inherited : Boolean;
       Directly_Supported : Boolean;
-      Oldest_ValueType_That_Has_It : Node_Id;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen : in out Node_List);
    --  Recursively copy all operations from K_Interface
    --  or K_ValueType
@@ -242,7 +247,7 @@ package body Ada_Be.Expansion is
    --  and the Is_Implicit_Inherited attribute is set
    --  to Implicit_Inherited.
 
-   --  Directly_Supported and Oldest_ValueType_That_Has_It
+   --  Directly_Supported and Oldest_Supporting_ValueType
    --  are valuetype attributes. See nodes.txt for their
    --  meaning
 
@@ -271,10 +276,37 @@ package body Ada_Be.Expansion is
 
       Set_Expanded (Node, True);
 
-      --  Rename nodes with Ada identifiers
 
-      if Is_Named (Node) and then Is_Ada_Keyword (Name (Node)) then
-         Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+      if Is_Named (Node) then
+         if Is_Ada_Keyword (Name (Node)) then
+
+            --  Rename nodes whose name collide with Ada
+            --  reserved words.
+
+            Add_Identifier_With_Renaming (Node, "IDL_" & Name (Node));
+         end if;
+
+         --  Allocate a name for the node's repository ID
+
+         if Kind (Node) /= K_Repository
+           and then Kind (Node) /= K_Ben_Idl_File then
+            declare
+               RID_Name_Node : constant Node_Id
+                 := Make_Named (Loc (Node));
+            begin
+               Set_Repository_Id_Identifier (Node, RID_Name_Node);
+               if Is_Gen_Scope (Node) then
+                  Push_Scope (Node);
+                  Add_Identifier_With_Renaming
+                    (RID_Name_Node, "Repository_Id", Is_Inheritable => False);
+                  Pop_Scope;
+               else
+                  Add_Identifier_With_Renaming
+                    (RID_Name_Node, Name (Node) & "_Repository_Id",
+                     Is_Inheritable => False);
+               end if;
+            end;
+         end if;
       end if;
 
       case (Kind (Node)) is
@@ -349,13 +381,13 @@ package body Ada_Be.Expansion is
 
       type Header_Num is range 0 .. 1024;
       function Hash is new GNAT.HTable.Hash (Header_Num);
-      function Hash (A : Errors.File_Name_Ptr) return Header_Num;
-      function Hash (A : Errors.File_Name_Ptr) return Header_Num is
+      function Hash (A : Errors.String_Ptr) return Header_Num;
+      function Hash (A : Errors.String_Ptr) return Header_Num is
       begin
          return Hash (A.all);
       end Hash;
-      function Equals (A, B : Errors.File_Name_Ptr) return Boolean;
-      function Equals (A, B : Errors.File_Name_Ptr) return Boolean is
+      function Equals (A, B : Errors.String_Ptr) return Boolean;
+      function Equals (A, B : Errors.String_Ptr) return Boolean is
       begin
          return A.all = B.all;
       end Equals;
@@ -363,7 +395,7 @@ package body Ada_Be.Expansion is
         (Header_Num,
          Node_Id,
          No_Node,
-         Errors.File_Name_Ptr,
+         Errors.String_Ptr,
          Hash,
          Equals);
 
@@ -379,7 +411,7 @@ package body Ada_Be.Expansion is
          declare
             Current : Node_Id;
             Loc : Errors.Location;
-            Filename : Errors.File_Name_Ptr;
+            Filename : Errors.String_Ptr;
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
@@ -400,7 +432,7 @@ package body Ada_Be.Expansion is
             if (Idl_File_Node = No_Node) then
 
                --  create a new node Ben_Idl_File
-               Idl_File_Node := Make_Ben_Idl_File;
+               Idl_File_Node := Make_Ben_Idl_File (Loc);
 
                --  set its name
                --  is it correct when conflict ?
@@ -505,7 +537,7 @@ package body Ada_Be.Expansion is
       From : Node_Id;
       Implicit_Inherited : Boolean;
       Directly_Supported : Boolean;
-      Oldest_ValueType_That_Has_It : Node_Id;
+      Oldest_Supporting_ValueType : Node_Id;
       Parents_Seen : in out Node_List)
    is
       Ops_It : Node_Iterator;
@@ -536,9 +568,9 @@ package body Ada_Be.Expansion is
               (New_O_Node, Implicit_Inherited);
             Set_Is_Directly_Supported
               (New_O_Node, Directly_Supported);
-            if (Oldest_ValueType_That_Has_It /= No_Node) then
-               Set_Oldest_ValueType_That_Has_It
-                 (New_O_Node, Oldest_ValueType_That_Has_It);
+            if (Oldest_Supporting_ValueType /= No_Node) then
+               Set_Oldest_Supporting_ValueType
+                 (New_O_Node, Oldest_Supporting_ValueType);
             end if;
             Append_Node (Into, New_O_Node);
          end if;
@@ -554,7 +586,7 @@ package body Ada_Be.Expansion is
            (Into, Parent, Value (I_Node),
             Implicit_Inherited,
             Directly_Supported,
-            Oldest_ValueType_That_Has_It,
+            Oldest_Supporting_ValueType,
             Parents_Seen);
       end loop;
    end Recursive_Copy_Operations;
@@ -595,7 +627,7 @@ package body Ada_Be.Expansion is
             From => Value (Primary_Parent),
             Implicit_Inherited => True,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
 
@@ -609,7 +641,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -656,7 +688,7 @@ package body Ada_Be.Expansion is
                    => True,
             Directly_Supported
                    => False,
-            Oldest_ValueType_That_Has_It
+            Oldest_Supporting_ValueType
                    => No_Node,
             Parents_Seen => Parents_Seen);
       end if;
@@ -673,7 +705,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => False,
-            Oldest_ValueType_That_Has_It => No_Node,
+            Oldest_Supporting_ValueType => No_Node,
             Parents_Seen => Parents_Seen);
       end loop;
 
@@ -689,7 +721,7 @@ package body Ada_Be.Expansion is
             From => Value (I_Node),
             Implicit_Inherited => False,
             Directly_Supported => True,
-            Oldest_ValueType_That_Has_It => Node,
+            Oldest_Supporting_ValueType => Node,
             Parents_Seen => Interfaces_Seen);
       end loop;
 
@@ -738,7 +770,7 @@ package body Ada_Be.Expansion is
          pragma Debug (O ("Expand_State_Member:"));
          declare
             New_State_Member : Node_Id
-              := Make_State_Member;
+              := Make_State_Member (Get_Location (Current_Decl));
             Decls : Node_List := Nil_List;
          begin
             Get_Next_Node (It, Current_Decl);
@@ -788,12 +820,14 @@ package body Ada_Be.Expansion is
       --  containing these attributes, wherein we insert
       --  _get_Attribute and _set_Attribute operations.
 
+      Loc : Location;
+
       Position : Node_Id := Node;
       Iterator : Node_Iterator;
       Current_Declarator : Node_Id;
    begin
       pragma Assert (Kind (Node) = K_Attribute
-                     or Kind (Node) = K_State_Member);
+                     or else Kind (Node) = K_State_Member);
 
       Init (Iterator, Declarators);
 
@@ -810,11 +844,13 @@ package body Ada_Be.Expansion is
                           & "declarator with name : "
                           & Ada_Name (Current_Declarator)));
 
+         Loc := Get_Location (Current_Declarator);
+
          if Is_Readable then
             --  create the get_method
             declare
                Get_Method : constant Node_Id
-                 := Make_Operation;
+                 := Make_Operation (Loc);
                Success : Boolean;
             begin
                pragma Debug (O ("Creating _get_ method"));
@@ -832,7 +868,7 @@ package body Ada_Be.Expansion is
                Set_Original_Node (Get_Method, Node);
 
                if Kind (Node) = K_State_Member then
-                  Set_Oldest_ValueType_That_Has_It
+                  Set_Oldest_Supporting_ValueType
                     (Get_Method, Parent_Scope (Current_Declarator));
                end if;
 
@@ -849,9 +885,9 @@ package body Ada_Be.Expansion is
          if Is_Writable then
             declare
                Set_Method : constant Node_Id
-                 := Make_Operation;
+                 := Make_Operation (Loc);
                Void_Node : constant Node_Id
-                 := Make_Void;
+                 := Make_Void (Loc);
                Success : Boolean;
             begin
                pragma Debug (O ("Creating _set_ method"));
@@ -864,8 +900,8 @@ package body Ada_Be.Expansion is
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
-                  Param : Node_Id := Make_Param;
-                  Decl : Node_Id := Make_Declarator;
+                  Param : Node_Id := Make_Param (Loc);
+                  Decl : Node_Id := Make_Declarator (Loc);
                   Params : Node_List := Nil_List;
                begin
                   --  new value parameter
@@ -885,7 +921,7 @@ package body Ada_Be.Expansion is
                Set_Original_Node (Set_Method, Node);
 
                if Kind (Node) = K_State_Member then
-                  Set_Oldest_ValueType_That_Has_It
+                  Set_Oldest_Supporting_ValueType
                     (Set_Method, Parent_Scope (Current_Declarator));
                end if;
                --  add the node to the node list
@@ -901,7 +937,9 @@ package body Ada_Be.Expansion is
    end Expand_Attribute_And_State_Member;
 
    procedure Expand_Operation
-     (Node : in Node_Id) is
+     (Node : in Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       Expand_Node_List (Parameters (Node), False);
       Expand_Node (Operation_Type (Node));
@@ -914,12 +952,12 @@ package body Ada_Be.Expansion is
               := Operation_Type (Node);
 
             Void_Node : Node_Id
-              := Make_Void;
+              := Make_Void (Loc);
 
             Param_Node : constant Node_Id
-              := Make_Param;
+              := Make_Param (Loc);
             Decl_Node : constant Node_Id
-              := Make_Declarator;
+              := Make_Declarator (Loc);
 
             Success : Boolean;
          begin
@@ -948,9 +986,9 @@ package body Ada_Be.Expansion is
       end if;
 
       --  If this operation is defined in valuetype,
-      --  set its "Oldest_ValueType_That_Has_It" attribute
+      --  set its "Oldest_Supporting_ValueType" attribute
       if Kind (Parent_Scope (Node)) = K_ValueType then
-         Set_Oldest_ValueType_That_Has_It
+         Set_Oldest_Supporting_ValueType
            (Node, Parent_Scope (Node));
       end if;
 
@@ -964,13 +1002,15 @@ package body Ada_Be.Expansion is
    end Expand_Param;
 
    procedure Expand_Exception
-     (Node : in Node_Id) is
+     (Node : in Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       pragma Assert (Kind (Node) = K_Exception);
 
       declare
          Members_Struct : constant Node_Id
-           := Make_Struct;
+           := Make_Struct (Loc);
          Enclosing_Scope : constant Node_Id
            := Parent_Scope (Node);
          Enclosing_List : Node_List
@@ -1089,12 +1129,13 @@ package body Ada_Be.Expansion is
    procedure Expand_Sequence
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
       Sequence_Node : Node_Id
         := Node;
       Seq_Ref_Node : Node_Id
-        := Make_Scoped_Name;
+        := Make_Scoped_Name (Loc);
       Seq_Inst_Node : constant Node_Id
-        := Make_Sequence_Instance;
+        := Make_Sequence_Instance (Loc);
    begin
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
@@ -1121,7 +1162,9 @@ package body Ada_Be.Expansion is
          True  => new String'("Bounded_Wide_String"));
 
    procedure Expand_String
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       if Bound (Node) = No_Node then
          --  This string is not bounded.
@@ -1135,9 +1178,9 @@ package body Ada_Be.Expansion is
          String_Node : Node_Id
            := Node;
          String_Inst_Node : constant Node_Id
-           := Make_String_Instance;
+           := Make_String_Instance (Loc);
          String_Ref_Node : Node_Id
-           := Make_Scoped_Name;
+           := Make_Scoped_Name (Loc);
 
       begin
          Add_Identifier_With_Renaming
@@ -1162,17 +1205,19 @@ package body Ada_Be.Expansion is
    procedure Expand_Fixed
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
+
       Fixed_Node : Node_Id
         := Node;
       Fixed_Ref_Node : Node_Id
-        := Make_Scoped_Name;
+        := Make_Scoped_Name (Loc);
 
       Identifier : constant String
         := "Fixed_" & Img (Integer_Value (Digits_Nb (Node)))
         & "_" & Img (Integer_Value (Scale (Node)));
 
       Definition : constant Identifier_Definition_Acc
-        := Find_Identifier_Definition (Identifier);
+        := Find_Identifier_Definition (Identifier, Loc);
       Success : Boolean;
 
    begin
@@ -1188,9 +1233,9 @@ package body Ada_Be.Expansion is
       if Definition = null then
          declare
             Typedef_Node : constant Node_Id
-              := Make_Type_Declarator;
+              := Make_Type_Declarator (Loc);
             Declarator_Node : constant Node_Id
-              := Make_Declarator;
+              := Make_Declarator (Loc);
          begin
             Success := Add_Identifier (Declarator_Node, Identifier,
                                        Get_Current_Gen_Scope);
@@ -1229,9 +1274,8 @@ package body Ada_Be.Expansion is
      (Node : Node_Id;
       Replacement_Node : out Node_Id)
    is
-      NK : constant Node_Kind
-        := Kind (Node);
-
+      Loc : constant Location  := Get_Location (Node);
+      NK  : constant Node_Kind := Kind (Node);
    begin
       Replacement_Node := No_Node;
 
@@ -1247,12 +1291,10 @@ package body Ada_Be.Expansion is
       pragma Debug (O ("Expand_Constructed_Type: enter"));
 
       declare
-         Current_Gen_Scope : constant Node_Id
-           := Get_Current_Gen_Scope;
+         Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
 
-         Constr_Type_Node : Node_Id := Node;
-         Constr_Type_Ref_Node : Node_Id
-           := Make_Scoped_Name;
+         Constr_Type_Node     : Node_Id := Node;
+         Constr_Type_Ref_Node : Node_Id := Make_Scoped_Name (Loc);
 
       begin
          Insert_Before_Current (Constr_Type_Node);
@@ -1346,25 +1388,19 @@ package body Ada_Be.Expansion is
    procedure Expand_Array_Declarator
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
    begin
       if Is_Empty (Array_Bounds (Node)) then
          return;
       end if;
 
       declare
-         Parent_Node : constant Node_Id
-           := Parent (Node);
-
-         Array_Node : constant Node_Id
-           := Make_Declarator;
-         Array_Type_Node : constant Node_Id
-           := Make_Type_Declarator;
-
+         Parent_Node       : constant Node_Id := Parent (Node);
+         Array_Node        : constant Node_Id := Make_Declarator (Loc);
+         Array_Type_Node   : constant Node_Id := Make_Type_Declarator (Loc);
          Element_Type_Node : Node_Id;
-         Array_Ref_Node : Node_Id
-        := Make_Scoped_Name;
-
-         Success : Boolean;
+         Array_Ref_Node    : Node_Id          := Make_Scoped_Name (Loc);
+         Success           : Boolean;
       begin
          pragma Debug (O ("Expand_Array_Declarator: enter"));
 
@@ -1637,16 +1673,18 @@ package body Ada_Be.Expansion is
    procedure Add_Identifier_With_Renaming
      (Node       : Node_Id;
       Identifier : String;
-      Scope      : Node_Id := No_Node)
+      Scope      : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True)
    is
       Suffix : Integer := 1;
    begin
       pragma Debug (O ("Add_Identifier_With_Renaming: trying to add "
                        & Identifier));
 
-      if not Add_Identifier (Node, Identifier, Scope) then
+      if not Add_Identifier (Node, Identifier, Scope, Is_Inheritable) then
          while not Add_Identifier
-           (Node, Identifier & "_" & Img (Suffix), Scope) loop
+           (Node, Identifier & "_" & Img (Suffix), Scope, Is_Inheritable)
+         loop
             Suffix := Suffix + 1;
          end loop;
       end if;

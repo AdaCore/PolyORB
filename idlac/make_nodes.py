@@ -92,13 +92,14 @@ for n in nodes:
         spec.append ("   --     %-25s : %s" % (name, type))
     spec.append ("   --")
     spec.append ("")
-    spec.append ("   function Make_%s return Node_Id;" % n)
+    spec.append ("   function Make_%s (Loc : Location) return Node_Id;" % n)
     spec.append ("   function Is_%s (N : Node_Id) return Boolean;" % n)
     spec.append ("")
-    body.append ("   function Make_%s return Node_Id is" % n)
+    body.append ("   function Make_%s (Loc : Location) return Node_Id is" % n)
     body.append ("      Node  : constant Node_Access := new Node_Type;")
     body.append ("      Index : constant Node_Id     := Nodes_Table.Allocate;")
     body.append ("   begin")
+    body.append ("      Node.Loc := Loc;")
     body.append ("      Node.Kind := K_%s;" % n)
     for (name, type, init) in get_fields (i):
         if init:

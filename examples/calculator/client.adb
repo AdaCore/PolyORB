@@ -58,7 +58,7 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.Helper;
 
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 with Interfaces.C;
 
@@ -327,7 +327,7 @@ procedure Client is
                The_Useless_Ref : CORBA.Object.Ref;
             begin
                begin
-                  The_Useless_Ref := Naming_Tools.Locate
+                  The_Useless_Ref := Locate
                     (To_Standard_String (Module_Name & Separator & The_Name));
                   StringSeq.Append (Servers, The_Name);
                exception
@@ -367,7 +367,7 @@ procedure Client is
          end loop;
          Put_Line ("The result of this operation is : " &
                    CORBA.Long'Image (Generic_Function
-                                     (Naming_Tools.Locate
+                                     (Locate
                                       (To_Standard_String
                                        (Module_Name & Separator & Server_Name)),
                                       Identifier (Operation_Name),
@@ -398,7 +398,7 @@ procedure Client is
 
 begin
    RepId := Repository.Helper.To_Ref
-     (Naming_Tools.Locate ("Interface_Repository"));
+     (Locate ("Interface_Repository"));
 
    --  Enter the main loop
    Put_Line ("This is The Calculator Example");

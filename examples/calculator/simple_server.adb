@@ -56,7 +56,7 @@ with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ModuleDef;
 with CORBA.Repository_Root.ModuleDef.Helper;
 
-with Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 with CosNaming.NamingContext;
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -140,7 +140,7 @@ procedure Simple_Server is
    begin
       Handler.Handle_Kill.Wait;
       Put_Line ("Removing this server from cosnaming");
-      Naming_Tools.Unregister ("calculators/simple_calculator");
+      Unregister ("calculators/simple_calculator");
       Put_Line ("Thank you for using our servers.");
       Quit (Interfaces.C.Int (2));
    end;
@@ -153,7 +153,7 @@ begin
    --  Register to the IR  --
    --------------------------
    Myrep := Repository.Helper.To_Ref
-     (Naming_Tools.Locate ("Interface_Repository"));
+     (Locate ("Interface_Repository"));
 
    --  checking if it worked
    if Repository.Is_Nil (Myrep) then
@@ -211,7 +211,7 @@ begin
             Name : Identifier;
             Version : VersionSpec;
          begin
-            Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id_Ü);
+            Id := To_CORBA_String (Calculators.Simple_Calculator.Repository_Id);
             Name := To_CORBA_String ("simple_calculator");
             Version := To_CORBA_String ("1.0");
             Int := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
@@ -263,10 +263,7 @@ begin
    ------------------------------
    declare
    begin
-      Naming_Tools.Register ("calculators/simple_calculator", Ref);
-   exception
-      when CosNaming.NamingContext.AlreadyBound =>
-         Naming_Tools.Register ("calculators/simple_calculator", Ref, Rebind => True);
+      Register ("calculators/simple_calculator", Ref, Rebind => True);
    end;
 
    --------------------------------

@@ -6,9 +6,9 @@ GNATMAKE_FLAGS = -z -I$(srcdir) \
 	-I$(COS_DIRS) \
 	-I../../src \
 	-I$(srcdir)/../../src \
-	-I../../adasockets/src \
-	-I$(srcdir)/../../adasockets/src \
-	-g -O2 -m -gnata
+	$(ADASOCKETS_INCLUDE) \
+	-g -O2 -m -gnata \
+	-largs $(ADASOCKETS_LIBS)
 
 PROGS = test_time
 

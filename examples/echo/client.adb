@@ -27,28 +27,29 @@
 ------------------------------------------------------------------------------
 
 --   echo client.
-with Ada.Command_Line;
-with Ada.Text_IO; use Ada.Text_IO;
-with CORBA; use CORBA;
+with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;      use Ada.Text_IO;
 with CORBA.ORB;
-with Echo;
+with Echo.Helper;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Client is
-   Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
+   Sent_Msg, Rcvd_Msg : CORBA.String;
    myecho : Echo.Ref;
 
 begin
 
-   if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+   if Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
    end if;
 
-   --  transforms the Ada string into CORBA.String
-   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
-
    --  getting the CORBA.Object
-   CORBA.ORB.String_To_Object (IOR, myecho);
+   if Argument (1) = "-i" then
+      myecho := Echo.Helper.To_Ref (Locate ("echo"));
+   else
+      myecho := Echo.Helper.To_Ref (Locate (Argument (1)));
+   end if;
 
    --  checking if it worked
    if Echo.Is_Nil (myecho) then
@@ -66,12 +67,12 @@ begin
 exception
    when E : CORBA.Transient =>
       declare
-         Memb : System_Exception_Members;
+         Memb : CORBA.System_Exception_Members;
       begin
-         Get_Members (E, Memb);
+         CORBA.Get_Members (E, Memb);
          Put ("received exception transient, minor");
-         Put (Unsigned_Long'Image (Memb.Minor));
+         Put (CORBA.Unsigned_Long'Image (Memb.Minor));
          Put (", completion status: ");
-         Put_Line (Completion_Status'Image (Memb.Completed));
+         Put_Line (CORBA.Completion_Status'Image (Memb.Completed));
       end;
 end Client;

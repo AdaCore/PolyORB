@@ -4,7 +4,7 @@ GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../../src \
 	-I$(srcdir)/../../src \
 	$(ADASOCKETS_INCLUDE) \
-	-g -O2 -m -gnata
+	-g -O2 -m -gnata \
 	-largs $(ADASOCKETS_LIBS)
 
 CLEANFILES = b~*.* *.o *.ali

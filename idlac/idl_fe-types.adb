@@ -55,14 +55,22 @@ package body Idl_Fe.Types is
 
    procedure Add_Definition_To_Storage
      (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc);
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : in Boolean);
    --  Add the definition to Scope storage table.
-   --  It is done at the end of the scope parsing (called by pop_scope)
 
    procedure Add_Identifier_Definition
      (Scope      : Node_Id;
-      Definition : in Identifier_Definition_Acc);
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : Boolean);
    --  Add an identifier definition to a scope.
+
+   function Find_Inherited_Identifier_Definition
+     (Name : String;
+      Loc  : Errors.Location)
+     return Identifier_Definition_Acc;
+   --  Find the identifier definition in inherited interfaces.
+   --  If this identifier is not defined, returns a null pointer.
 
    --------------------------------------
    -- Root of the tree parsed from IDL --
@@ -526,7 +534,8 @@ package body Idl_Fe.Types is
 
    procedure Add_Identifier_Definition
      (Scope : Node_Id;
-      Definition : in Identifier_Definition_Acc)
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : Boolean)
    is
       List : Identifier_Definition_List;
    begin
@@ -537,7 +546,7 @@ package body Idl_Fe.Types is
         (Definition => Definition,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
-      Add_Definition_To_Storage (Scope, Definition);
+      Add_Definition_To_Storage (Scope, Definition, Is_Inheritable);
       pragma Debug (O2 ("Add_Identifier_Definition : end"));
    end Add_Identifier_Definition;
 
@@ -731,13 +740,10 @@ package body Idl_Fe.Types is
       return Res;
    end Hash;
 
-   -------------------------------------
-   --  scope handling types  methods  --
-   -------------------------------------
+   -------------------------
+   -- Add_Int_Val_Forward --
+   -------------------------
 
-   ---------------------------
-   --  Add_Int_Val_Forward  --
-   ---------------------------
 
    procedure Add_Int_Val_Forward
      (Node : in Node_Id)
@@ -750,9 +756,10 @@ package body Idl_Fe.Types is
         (Get_Root_Scope, UF);
    end Add_Int_Val_Forward;
 
-   ------------------------------
-   --  Add_Int_Val_Definition  --
-   ------------------------------
+   ----------------------------
+   -- Add_Int_Val_Definition --
+   ----------------------------
+
    procedure Add_Int_Val_Definition
      (Node : in Node_Id)
    is
@@ -764,9 +771,9 @@ package body Idl_Fe.Types is
         (Get_Root_Scope, UF);
    end Add_Int_Val_Definition;
 
-   ----------------------
-   --  Get_Root_Scope  --
-   ----------------------
+   --------------------
+   -- Get_Root_Scope --
+   --------------------
 
    function Get_Root_Scope
      return Node_Id is
@@ -774,9 +781,9 @@ package body Idl_Fe.Types is
       return Root_Scope.Scope;
    end Get_Root_Scope;
 
-   -------------------------
-   --  Get_Current_Scope  --
-   -------------------------
+   -----------------------
+   -- Get_Current_Scope --
+   -----------------------
 
    function Get_Current_Scope
      return Node_Id is
@@ -795,9 +802,11 @@ package body Idl_Fe.Types is
         := Current_Scope;
    begin
       while Scope /= null
-        and then not Is_Gen_Scope (Scope.Scope) loop
+        and then not Is_Gen_Scope (Scope.Scope)
+      loop
          Scope := Scope.Parent;
       end loop;
+
       if Scope /= null then
          return Scope.Scope;
       else
@@ -870,15 +879,15 @@ package body Idl_Fe.Types is
 
       procedure Reenter_Definition_List
         (Definition_List : Identifier_Definition_List);
-      --  Enter all identifiers in Definition_List into
-      --  the global Id_Table and Hash_Table, in reverse
-      --  order.
+      --  Enter all identifiers in Definition_List into the
+      --  global Id_Table and Hash_Table, in reverse order.
 
       procedure Reenter_Definition_List
         (Definition_List : Identifier_Definition_List) is
       begin
+
          --  Definitions must be re-added in the order they
-         --  were first created, i. e. stating at the tail
+         --  were first created, i. e. starting at the tail
          --  of Definition_List.
 
          if Definition_List = null then
@@ -889,18 +898,23 @@ package body Idl_Fe.Types is
 
          Reenter_Definition_List (Definition_List.Next);
 
-         --  first find a place for this identifier in the table
+         --  Find a place for this identifier in the table...
+
          Create_Identifier_Index
            (Definition_List.Definition.Name.all,
             Hash_Table,
             Id_Table,
             Index);
-         --  set its fields previous_definition and id that were
-         --  not used in the scope table
+
+         --  Set its fields previous_definition and id that were
+         --  not used in the scope table...
+
          Definition_List.Definition.Previous_Definition :=
            Id_Table.Table (Index).Definition;
          Definition_List.Definition.Id := Index;
-         --  And finally add it to the scope
+
+         --  And finally add the identifier to the scope
+
          Id_Table.Table (Index).Definition := Definition_List.Definition;
          pragma Debug (O2 ("Reenter_Definition_List: leave"));
       end Reenter_Definition_List;
@@ -915,7 +929,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_Scope : current_scope is null."));
          pragma Debug (O ("Push_Scope : root scope is defined at " &
-                          Errors.Display_Location
+                          Errors.Location_To_String
                           (Get_Location (Scope))));
          Root_Scope := Stack;
       end if;
@@ -923,8 +937,10 @@ package body Idl_Fe.Types is
 
       pragma Debug (O ("Push_Scope : putting the old definition " &
                        "in the id_table."));
+
       --  Add all definition of the new scope into the hash table,
-      --  in case there are some. Useful when a scoped is reopened.
+      --  in case there are some. Used when a scoped is reopened.
+
       Reenter_Definition_List (Identifier_List (Scope));
       pragma Debug (O2 ("Push_Scope : end"));
    end Push_Scope;
@@ -946,12 +962,16 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Pop_Scope : enter"));
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
-      --  Add these definition to the identifier_table of the current_scope
+
+      --  Add these definition to the identifier_table of the Current_Scope
+
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
          pragma Debug (O ("Pop_Scope: beginning of loop "));
          Old_Definition := Definition_List.Definition;
-         --  remove the identifier from the id_table
+
+         --  Remove the identifier from the Id_Table
+
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          pragma Debug (O ("Pop_Scope: test the presence of" &
@@ -999,7 +1019,7 @@ package body Idl_Fe.Types is
 
             Errors.Error
               ("The forward declaration " &
-               Errors.Display_Location
+               Errors.Location_To_String
                (Get_Location (Forward_Def)) &
                " is not implemented.",
                Errors.Error,
@@ -1029,13 +1049,13 @@ package body Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
+      Loc   : Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean is
       A_Definition : Identifier_Definition_Acc;
       Scop         : Node_Id;
    begin
-      pragma Debug (O2 ("Is_Redefinable : enter"));
-      pragma Debug (O ("Is_Redefinable : the identifier is : " & Name));
+      pragma Debug (O2 ("Is_Redefinable (""" & Name & """): enter"));
 
       if Scope = No_Node then
          Scop := Current_Scope.Scope;
@@ -1044,46 +1064,56 @@ package body Idl_Fe.Types is
       end if;
       pragma Assert (Is_Scope (Scop));
 
-      --  Checks if the identifier is already imported
+      --  Check if the identifier is already imported
+
       if Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
-         pragma Debug (O2 ("Is_Redefinable : already imported"));
-         pragma Debug (O2 ("Is_Redefinable : end"));
+         pragma Debug (O ("Is_Redefinable: already imported"));
+         pragma Debug (O2 ("Is_Redefinable: end"));
          return False;
       end if;
-      A_Definition := Find_Identifier_Definition (Name);
+
+      A_Definition := Find_Identifier_Definition (Name, Loc);
       if A_Definition /= null then
-         pragma Debug (O ("Is_Redefinable : " &
+         pragma Debug (O ("Is_Redefinable: " &
                           "Definition found is " &
                           Node_Kind'Image
                           (Kind (A_Definition.Node))));
-         --  Checks if the identifier is not being redefined in the same
-         --  scope.
+
+         --  Ensure that the identifier is not being redefined
+         --  in the same scope.
+
          if A_Definition.Parent_Scope = Scop then
-            pragma Debug (O2 ("Is_Redefinable : end"));
+            pragma Debug (O2 ("Is_Redefinable: end"));
             return False;
          end if;
+
          --  An attribute or operation may not be redefined
-         if Kind (A_Definition.Node) = K_Operation or else
-           (Kind (A_Definition.Node) = K_Declarator and then
-            Kind (Parent (A_Definition.Node)) = K_Attribute)
+
+         if Kind (A_Definition.Node) = K_Operation
+           or else (Kind (A_Definition.Node) = K_Declarator
+             and then Kind (Parent (A_Definition.Node)) = K_Attribute)
          then
-            if Kind (Scop) = K_Interface or
-              Kind (Scop) = K_ValueType then
-               pragma Debug (O ("Is_Redefinable : cannot redefine " &
-                                "an op, attr"));
+            if Kind (Scop) = K_Interface
+              or else Kind (Scop) = K_ValueType
+            then
+               pragma Debug (O ("Is_Redefinable: "
+                 & "An operation or attribute cannot be redefined."));
                pragma Debug (O2 ("Is_Redefinable : end"));
                return False;
             end if;
          end if;
+
          --  Ckecks if identifier found is the scope name:
-         --  it is not allowed except for the operation
+         --  it is not allowed except for operations
+
          if Kind (Scop) /= K_Operation
            and then A_Definition = Definition (Scop)
          then
-            pragma Debug (O2 ("Is_Redefinable : end"));
+            pragma Debug (O2 ("Is_Redefinable: end"));
             return False;
          end if;
       end if;
+
       pragma Debug (O2 ("Is_Redefinable : end"));
       return True;
    end Is_Redefinable;
@@ -1146,9 +1176,9 @@ package body Idl_Fe.Types is
 
    end Imported_Identifier_Index;
 
-   ------------------------------
-   -- Create_Indentifier_Index --
-   ------------------------------
+   -----------------------------
+   -- Create_Identifier_Index --
+   -----------------------------
 
    procedure Create_Identifier_Index
      (Identifier : String;
@@ -1204,10 +1234,14 @@ package body Idl_Fe.Types is
          Table.Table (Previous).Next := Uniq_Id (Result);
       end if;
 
-      --  Add an entry in INDEX.
-      Table.Table (Result) := (Definition => null,
-                              Next => Nil_Uniq_Id);
+      --  Add an entry for Index, using default values
+
       Index := Result;
+      Table.Table (Result) :=
+        (Definition     => null,
+         Is_Inheritable => True,
+         Next           => Nil_Uniq_Id);
+
       pragma Debug (O2 ("Create_Identifier_Index : end"));
       return;
    end Create_Identifier_Index;
@@ -1216,48 +1250,59 @@ package body Idl_Fe.Types is
    -- Find_Identifier_Definition --
    --------------------------------
 
-   function Find_Identifier_Definition (Name : String)
-                                        return Identifier_Definition_Acc is
+   function Find_Identifier_Definition
+     (Name : String;
+      Loc  : Errors.Location)
+     return Identifier_Definition_Acc
+   is
       Index : Uniq_Id;
       Imported_Definition, Inherited_Definition : Identifier_Definition_Acc;
       Definition : Identifier_Definition_Acc := null;
    begin
-      pragma Debug (O2 ("Find_Identifier_Definition : enter"));
-      pragma Debug (O ("Find_Identifier_Definition : " &
-                       "the identifier is " & Name));
+      pragma Debug (O2 ("Find_Identifier_Definition ("""
+                        & Name & """): enter"));
+
       Index := Identifier_Index (Name, Hash_Table, Id_Table);
-      pragma Debug (O ("Find_Identifier_Definition : " &
+      pragma Debug (O ("Find_Identifier_Definition: " &
                        "check_identifier_index done"));
+
       if Index /= Nil_Uniq_Id then
-         pragma Debug (O ("Find_Identifier_Definition : " &
+         pragma Debug (O ("Find_Identifier_Definition: " &
                           "there is a definition in the id table"));
          Definition := Id_Table.Table (Index).Definition;
-         --  is the definition in the scope
+
+         --  Is the definition in the current scope?
+
          if Definition.Parent_Scope = Current_Scope.Scope then
-            pragma Debug (O2 ("Find_Identifier_Definition : end"));
+            pragma Debug (O2 ("Find_Identifier_Definition: end"));
             return Definition;
          end if;
       end if;
 
+      --  Is the definition imported?
+
       Imported_Definition := Find_Imported_Identifier_Definition (Name);
-      --  is the definition imported
       if Imported_Definition /= null then
-         pragma Debug (O2 ("Find_Identifier_Definition : end"));
+         pragma Debug (O2 ("Find_Identifier_Definition: end"));
          return Imported_Definition;
       end if;
-      --  is the definition inherited
+
+      --  Is the definition inherited?
+
       Inherited_Definition
-        := Find_Inherited_Identifier_Definition (Name);
+        := Find_Inherited_Identifier_Definition (Name, Loc);
       if Inherited_Definition /= null then
-         pragma Debug (O ("Find_Identifier_Definition : " &
+         pragma Debug (O ("Find_Identifier_Definition: " &
                           "Inherited definition is of type " &
                           Node_Kind'Image
                           (Kind (Inherited_Definition.Node))));
-         pragma Debug (O2 ("Find_Identifier_Definition : end"));
+         pragma Debug (O2 ("Find_Identifier_Definition: end"));
          return Inherited_Definition;
       end if;
-      --  the definition is in a upper scope
-      pragma Debug (O2 ("Find_Identifier_Definition : end"));
+
+      --  The definition is in a upper scope
+
+      pragma Debug (O2 ("Find_Identifier_Definition: end"));
       return Definition;
    end Find_Identifier_Definition;
 
@@ -1265,10 +1310,13 @@ package body Idl_Fe.Types is
    -- Find_Identifier_Node --
    --------------------------
 
-   function Find_Identifier_Node (Name : String) return Node_Id is
+   function Find_Identifier_Node
+     (Name : String;
+      Loc  : Errors.Location)
+     return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
-      Definition := Find_Identifier_Definition (Name);
+      Definition := Find_Identifier_Definition (Name, Loc);
       if Definition = null then
          return No_Node;
       else
@@ -1304,12 +1352,15 @@ package body Idl_Fe.Types is
    function Add_Identifier
      (Node  : Node_Id;
       Name  : String;
-      Scope : Node_Id := No_Node)
+      Scope : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True)
      return Boolean
    is
       Definition : Identifier_Definition_Acc;
       Index      : Uniq_Id;
       Scop       : Node_Id;
+      Loc        : constant Errors.Location
+        := Get_Location (Node);
    begin
       if Scope = No_Node then
          Scop := Current_Scope.Scope;
@@ -1317,18 +1368,18 @@ package body Idl_Fe.Types is
          Scop := Scope;
       end if;
       pragma Assert (Is_Scope (Scop));
-      pragma Debug (O2 ("Add_Identifier : enter"));
-      pragma Debug (O ("Add_Identifier : the identifier is " & Name));
-      --  Checks if the identifier is redefinable
-      if not Is_Redefinable (Name, Scop) then
-         pragma Debug (O ("Add_Identifier : identifier not redefinable"));
-         pragma Debug (O2 ("Add_Identifier : end"));
+      pragma Debug (O2 ("Add_Identifier (""" & Name & """): enter"));
+
+      --  Check whether the identifier is redefinable
+
+      if not Is_Redefinable (Name, Loc, Scop) then
+         pragma Debug (O ("Add_Identifier: identifier not redefinable"));
+         pragma Debug (O2 ("Add_Identifier: end"));
          return False;
       end if;
-      pragma Debug (O ("Add_Identifier : creating a definition"));
-      --  Creates a new definition.
-      Create_Identifier_Index
-        (Name, Hash_Table, Id_Table, Index);
+
+      pragma Debug (O ("Add_Identifier: creating a definition"));
+      Create_Identifier_Index (Name, Hash_Table, Id_Table, Index);
       Definition := new Identifier_Definition;
       Definition.Name := new String'(Name);
       Definition.Id := Index;
@@ -1336,13 +1387,17 @@ package body Idl_Fe.Types is
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
       Definition.Parent_Scope := Scop;
       Id_Table.Table (Index).Definition := Definition;
-      pragma Debug (O ("Add_Identifier : adding definition to " &
-                       "the current scope"));
-      Add_Identifier_Definition (Scop, Definition);
-      pragma Debug (O ("Add_Identifier : puting the definition in its node"));
+
+      pragma Debug (O ("Add_Identifier: "
+                       & "adding definition to the current scope"));
+      Add_Identifier_Definition (Scop, Definition, Is_Inheritable);
+
+      pragma Debug (O ("Add_Identifier: puting the definition in its node"));
       Set_Definition (Node, Definition);
-      pragma Debug (O2 ("Add_Identifier : end"));
+
+      pragma Debug (O2 ("Add_Identifier: end"));
       return True;
+
    end Add_Identifier;
 
    --------------------------------
@@ -1351,7 +1406,8 @@ package body Idl_Fe.Types is
 
    function Find_Identifier_In_Storage
      (Scope : Node_Id;
-      Name : String)
+      Name : String;
+      Inheritable_Only : Boolean := False)
      return Identifier_Definition_Acc
    is
 
@@ -1382,7 +1438,11 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O2 ("Find_Identifier_In_Storage : enter"));
       Index := Stored_Identifier_Index (Scope, Name);
-      if Index /= Nil_Uniq_Id then
+      if Index /= Nil_Uniq_Id
+        and then (Identifier_Table (Scope).Content_Table.Table
+                  (Index).Is_Inheritable
+                  or else not Inheritable_Only)
+      then
          pragma Debug (O2 ("Find_Identifier_In_Storage : end"));
          return Identifier_Table (Scope).
            Content_Table.Table (Index).Definition;
@@ -1419,7 +1479,8 @@ package body Idl_Fe.Types is
 
    procedure Add_Definition_To_Storage
      (Scope      : in Node_Id;
-      Definition : in Identifier_Definition_Acc)
+      Definition : in Identifier_Definition_Acc;
+      Is_Inheritable : in Boolean)
    is
       Index : Uniq_Id;
    begin
@@ -1435,6 +1496,8 @@ package body Idl_Fe.Types is
                      Table (Index).Definition = null);
       Identifier_Table (Scope).Content_Table.
         Table (Index).Definition := Definition;
+      Identifier_Table (Scope).Content_Table.
+        Table (Index).Is_Inheritable := Is_Inheritable;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;
 
@@ -1529,17 +1592,20 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Parent : Node_List;
    begin
-      pragma Debug (O2 ("Find_Identifier_In_Inheritance : enter"));
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance ("""
+                        & Name & """: enter"));
       Parent :=  Parents (Scope);
       Init (It, Parent);
-      --  loop for all the Parent of the scope
+
+      --  Iterate over all parents of the scope
+
       while not Is_End (It) loop
          Get_Next_Node (It, Node);
          pragma Assert (Kind (Node) = K_Scoped_Name);
-         pragma Debug (O ("Find_Identifier_In_Inheritance : " &
+         pragma Debug (O ("Find_Identifier_In_Inheritance: " &
                           Node_Kind'Image (Kind (Node))));
          Definition := Find_Identifier_In_Storage
-           (Value (Node), Name);
+           (Value (Node), Name, Inheritable_Only => True);
          if Definition /= null then
             Append_Node (List, Definition.Node);
          else
@@ -1549,7 +1615,7 @@ package body Idl_Fe.Types is
                List);
          end if;
       end loop;
-      pragma Debug (O2 ("Find_Identifier_In_Inheritance : end"));
+      pragma Debug (O2 ("Find_Identifier_In_Inheritance: end"));
       return;
    end Find_Identifier_In_Inheritance;
 
@@ -1558,63 +1624,59 @@ package body Idl_Fe.Types is
    --------------------------------------------
 
    function Find_Inherited_Identifier_Definition
-     (Name : String)
+     (Name : String;
+      Loc  : Errors.Location)
      return Identifier_Definition_Acc
    is
+      Temp_List   : Node_List := Nil_List;
       Result_List : Node_List := Nil_List;
-      First_List : Node_List := Nil_List;
+      Result      : Identifier_Definition_Acc;
    begin
-      pragma Debug (O2 ("Find_Inherited_Identifier_Definition : enter"));
-      --  There are no imports in modules.
-      if not (False
-        or else Kind (Current_Scope.Scope) = K_Interface
-        or else Kind (Current_Scope.Scope) = K_ValueType)
+      pragma Debug (O2 ("Find_Inherited_Identifier_Definition ("""
+                        & Name & """): enter"));
+
+      --  There are no imports in modules
+      if Kind (Current_Scope.Scope) /= K_Interface
+        and then Kind (Current_Scope.Scope) /= K_ValueType
       then
-         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
+         pragma Debug (O2 ("Find_Inherited_Identifier_Definition: end"));
          return null;
       end if;
 
       Find_Identifier_In_Inheritance
-        (Name,
-         Current_Scope.Scope,
-         First_List);
-      Result_List := Simplify_Node_List (First_List);
-      Free (First_List);
-      if Get_Length (Result_List) = 0 then
-         pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
-                          "Nothing found in inheritance"));
-         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-         return null;
-      elsif  Get_Length (Result_List) = 1 then
-         declare
-            Node : Node_Id;
-         begin
-            pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+        (Name, Current_Scope.Scope, Temp_List);
+      Result_List := Simplify_Node_List (Temp_List);
+
+      case Get_Length (Result_List) is
+
+         when 0 =>
+            pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
+                             "Nothing found in inheritance"));
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition: end"));
+            Result := null;
+
+         when 1 =>
+            pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
                              "One definition found in inheritance"));
-            Node := Head (Result_List);
-            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-            return Definition (Node);
-         end;
-      else
-         declare
-            Node : Node_Id;
-         begin
-            --  there is multiple definition
-            pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
-                             "Many definitions found in inheritance"));
+            Result := Definition (Head (Result_List));
+
+         when others =>
+            --  There are multiple definitions
+            pragma Debug (O ("Find_Inherited_Identifier_Definition: " &
+                             "Multiple definitions found in inheritance"));
 
             Errors.Error ("Multiple definitions found" &
-                                        " in inheritance : ambiguous " &
-                                        "referance",
-                                        Errors.Error,
-                                        Idl_Fe.Lexer.Get_Lexer_Location);
+                          " in inheritance: ambiguous " &
+                          "reference",
+                          Errors.Error,
+                          Loc);
 
-            Node := Head (Result_List);
-            Free (Result_List);
-            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
-            return Definition (Node);
-         end;
-      end if;
+            Result := Definition (Head (Result_List));
+      end case;
+
+      Free (Temp_List);
+      Free (Result_List);
+      return Result;
    end Find_Inherited_Identifier_Definition;
 
    -----------------------------------
@@ -1631,7 +1693,7 @@ package body Idl_Fe.Types is
       Prefix_Node : constant Node_Id
         := Current_Prefix (Get_Current_Scope);
       Name_Node : constant Node_Id
-        := Make_Lit_String;
+        := Make_Lit_String (Get_Location (Node));
    begin
       pragma Debug (O2 ("Set_Default_Repository_Id : enter"));
       pragma Assert (not Is_Explicit_Repository_Id (Node));

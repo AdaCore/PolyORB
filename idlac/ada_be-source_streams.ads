@@ -41,6 +41,7 @@ package Ada_BE.Source_Streams is
    type Diversion is
      (Visible_Declarations,
       Private_Declarations,
+      Generic_Formals,
       Elaboration);
    --  A compilation unit can have several diversions,
    --  each of which is a linear stream of source code
@@ -70,7 +71,7 @@ package Ada_BE.Source_Streams is
    --  If CU is a Unit_Spec, it is not allowed to set the current
    --  diversion to Elaboration.
    --  If CU is a Unit_Body, it is not allowed to set the current
-   --  diversion to Private_Declarations.
+   --  diversion to Private_Declarations or Generic_Formals.
 
    procedure Add_With (Unit      : in out Compilation_Unit;
                        Dep       : String;

@@ -30,9 +30,9 @@ package Idl_Fe.Lexer is
 
    pragma Elaborate_Body;
 
-   -------------------------------
-   --  idl keywords and tokens  --
-   -------------------------------
+   -----------------------------
+   -- IDL keywords and tokens --
+   -----------------------------
 
    --  All the idl_keywords
    --
@@ -137,34 +137,39 @@ package Idl_Fe.Lexer is
    --  The main methods : initialize and next_token  --
    ----------------------------------------------------
 
-   --  initializes the lexer by opening the file to process
+   procedure Initialize
+     (Filename : in String;
+      Preprocess : in Boolean;
+      Keep_Temporary_Files : in Boolean);
+   --  Initializes the lexer by opening the file to process
    --  and by preprocessing it if necessary
-   procedure Initialize (Filename : in String;
-                         Preprocess : in Boolean;
-                         Keep_Temporary_Files : in Boolean);
 
-   --  Preprocess a file and output the result on standard out.
    procedure Preprocess_File (Filename : in String);
+   --  Preprocess a file and output the result on standard out.
 
-   --  Remove temporary files
    procedure Remove_Temporary_Files;
+   --  Remove temporary files.
 
-   --  Analyses further and returns the next token.
-   --  Returns t_error if the entry is invalid.
    function Get_Next_Token return Idl_Token;
+   --  Analyse forward and return the next token.
+   --  Returns T_Error if the entry is invalid.
 
+   ------------------------------------------
+   -- Current state of the lexer.          --
+   -- These subprograms must not be called --
+   -- outside the parser.                  --
+   ------------------------------------------
 
-   -------------------------------------
-   --  methods useful for the parser  --
-   -------------------------------------
+   package Lexer_State is
 
-   --  Returns the location of the current_token
-   function Get_Lexer_Location return Errors.Location;
+      function Get_Lexer_Location return Errors.Location;
+      --  Return the location of the current token.
 
-   --  If the current token is an identifier, a literal or a pragma,
-   --  returns its string value
-   function Get_Lexer_String return String;
+      function Get_Lexer_String return String;
+      --  If the current token is an identifier, a literal
+      --  or a pragma, return its string value
 
+   end Lexer_State;
 
    -----------------------------
    --  idl string processing  --

@@ -32,8 +32,7 @@ with CORBA;
 with CORBA.Object;
 
 with Broca.Server_Tools; use Broca.Server_Tools;
-
-with Naming_Tools; use Naming_Tools;
+with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Text_IO;

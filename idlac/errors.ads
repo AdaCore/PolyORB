@@ -24,32 +24,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package Errors is
 
    -------------------------
    --  Types Definitions  --
    -------------------------
 
-   --  type for the file names
-   type File_Name_Ptr is access String;
+   --  A point in a source file
 
-   --  type for the directory names
-   type Dir_Name_Ptr is access String;
-
-   --  How to deallocate a file name
-   procedure Free is new Ada.Unchecked_Deallocation (String, File_Name_Ptr);
-
-   --  How to deallocate a directory name
-   procedure Free is new Ada.Unchecked_Deallocation (String, Dir_Name_Ptr);
-
-   --  defines a place in one of the parsed files
+   type String_Ptr is access String;
    type Location is record
-      Filename : File_Name_Ptr;
-      Dirname : Dir_Name_Ptr;
-      Line : Natural;
-      Col : Natural;
+      Filename : String_Ptr;
+      Dirname  : String_Ptr;
+      Line     : Natural;
+      Col      : Natural;
    end record;
 
    No_Location : constant Location :=
@@ -77,10 +65,14 @@ package Errors is
    --  Location handling  --
    -------------------------
 
-   --  returns a string with the following format :
+   function Location_To_String
+     (Loc   : in Location;
+      Short : in Boolean := False)
+     return String;
+   --  Return a string with the following format if Short is False:
    --  file : name_of_file, line : line_nb, column : column_nb
-   function Display_Location (Loc : in Location) return String;
-
+   --  or, if Short is True,
+   --  name_of_file:line_nb:column_nb
 
 
    ----------------------

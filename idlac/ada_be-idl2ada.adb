@@ -30,6 +30,8 @@ with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
+with Idlac_Flags;           use Idlac_Flags;
+
 with Ada_Be.Identifiers;    use Ada_Be.Identifiers;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 with Ada_Be.Temporaries;    use Ada_Be.Temporaries;
@@ -49,6 +51,9 @@ package body Ada_Be.Idl2Ada is
 
    Flag : constant Natural := Ada_Be.Debug.Is_Active ("ada_be.idl2ada");
    procedure O is new Ada_Be.Debug.Output (Flag);
+
+   function Skeleton return Skel.Skel_Kind renames Skel.Skeleton;
+   function Delegate return Skel.Skel_Kind renames Skel.Delegate;
 
    -------------------------------------------------
    -- General purpose code generation subprograms --
@@ -91,8 +96,7 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Repository_Id
      (Node : in Node_Id;
       Spec : in out Compilation_Unit);
-   --  generates the RepositoryId for
-   --  an interface or valuetype
+   --  Generate the RepositoryId for an interface or valuetype
 
    procedure Gen_Is_A
      (Node       : in Node_Id;
@@ -116,12 +120,6 @@ package body Ada_Be.Idl2Ada is
    --  the produced declaration is a private extension
    --  declaration, else it is an extension declaration
    --  with an empty extension.
-
-   procedure Gen_Delegate
-     (Node : in Node_Id;
-      Delegate_Spec : in out Compilation_Unit;
-      Delegate_Body : in out Compilation_Unit);
-   --  Generates the Delegate child package
 
    procedure Gen_Operation_Body_Prologue
      (CU : in out Compilation_Unit;
@@ -214,7 +212,7 @@ package body Ada_Be.Idl2Ada is
       Value_Skel_Name : constant String
         := Stubs_Name & Value_Skel.Suffix;
       Skel_Name : constant String
-        := Stubs_Name & Skel.Suffix;
+        := Stubs_Name & Skel.Suffix (Skeleton);
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -245,13 +243,17 @@ package body Ada_Be.Idl2Ada is
         := New_Package (Skel_Name, Unit_Spec);
       Skel_Body : Compilation_Unit
         := New_Package (Skel_Name, Unit_Body);
+
    begin
-      --  ValueType reference type.
+
+      --  ValueType reference type
+
       Gen_Object_Reference_Declaration
         (Stubs_Spec, Node);
       Gen_Repository_Id (Node, Stubs_Spec);
 
       if not Abst (Node) then
+         NL (Stubs_Spec);
          PL (Stubs_Spec, "Null_Value : constant Value_Ref;");
          Divert (Stubs_Spec, Private_Declarations);
          PL (Stubs_Spec, "Null_Value : constant Value_ref");
@@ -281,9 +283,9 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
-      --  skel package
-      Skel.Gen_Node_Spec (Skel_Spec, Node);
-      Skel.Gen_Node_Body (Skel_Body, Node);
+      --  Skel package
+      Skel.Gen_Node_Spec (Skel_Spec, Skeleton, Node);
+      Skel.Gen_Node_Body (Skel_Body, Skeleton, Node);
 
       --  generate code for node content
       declare
@@ -325,7 +327,7 @@ package body Ada_Be.Idl2Ada is
                   if Kind (Export_Node) = K_Operation
                     and then Is_Directly_Supported (Export_Node) then
                      pragma Debug (O ("Gen_Node_Skel_Body"));
-                     Skel.Gen_Node_Body (Skel_Body, Export_Node);
+                     Skel.Gen_Node_Body (Skel_Body, Skeleton, Export_Node);
                   end if;
                end if;
 
@@ -345,7 +347,7 @@ package body Ada_Be.Idl2Ada is
                                        Node);
 
       if Supports (Node) /= Nil_List then
-         Skel.Gen_Body_Common_End (Skel_Body, Node);
+         Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
       end if;
 
       if Implement then
@@ -383,7 +385,7 @@ package body Ada_Be.Idl2Ada is
                  := Kind (Operation_Type (Node)) /= K_Void;
                Original_VT_Name : constant String
                  := Ada_Full_Name
-                 (Oldest_ValueType_That_Has_It (Node));
+                 (Oldest_Supporting_ValueType (Node));
             begin
                if not Is_Implicit_Inherited (Node) then
                   Add_With (CU, Parent_Scope_Name (Node)
@@ -539,42 +541,32 @@ package body Ada_Be.Idl2Ada is
       Implement : Boolean;
       To_Stdout : Boolean)
    is
-      Stubs_Name : constant String
-        := Ada_Full_Name (Node);
-      Stream_Name : constant String
-        := Stubs_Name & Stream.Suffix;
-      Skel_Name : constant String
-        := Stubs_Name & Skel.Suffix;
-      Impl_Name : constant String
-        := Stubs_Name & Impl.Suffix;
-      Helper_Name : constant String
-        := Stubs_Name & Helper.Suffix;
+      Stubs_Name    : constant String := Ada_Full_Name (Node);
+      Stream_Name   : constant String := Stubs_Name & Stream.Suffix;
+      Skel_Name     : constant String := Stubs_Name & Skel.Suffix (Skeleton);
+      Impl_Name     : constant String := Stubs_Name & Impl.Suffix;
+      Helper_Name   : constant String := Stubs_Name & Helper.Suffix;
+      Delegate_Name : constant String := Stubs_Name & Skel.Suffix (Delegate);
 
-      Stubs_Spec : Compilation_Unit
-        := New_Package (Stubs_Name, Unit_Spec);
-      Stubs_Body : Compilation_Unit
-        := New_Package (Stubs_Name, Unit_Body);
+      Stubs_Spec : Compilation_Unit := New_Package (Stubs_Name, Unit_Spec);
+      Stubs_Body : Compilation_Unit := New_Package (Stubs_Name, Unit_Body);
 
-      Stream_Spec : Compilation_Unit
-        := New_Package (Stream_Name, Unit_Spec);
-      Stream_Body : Compilation_Unit
-        := New_Package (Stream_Name, Unit_Body);
+      Stream_Spec : Compilation_Unit := New_Package (Stream_Name, Unit_Spec);
+      Stream_Body : Compilation_Unit := New_Package (Stream_Name, Unit_Body);
 
-      Skel_Spec : Compilation_Unit
-        := New_Package (Skel_Name, Unit_Spec);
-      Skel_Body : Compilation_Unit
-        := New_Package (Skel_Name, Unit_Body);
+      Skel_Spec : Compilation_Unit := New_Package (Skel_Name, Unit_Spec);
+      Skel_Body : Compilation_Unit := New_Package (Skel_Name, Unit_Body);
 
-      Impl_Spec : Compilation_Unit
-        := New_Package (Impl_Name, Unit_Spec);
-      Impl_Body : Compilation_Unit
-        := New_Package (Impl_Name, Unit_Body);
+      Impl_Spec : Compilation_Unit := New_Package (Impl_Name, Unit_Spec);
+      Impl_Body : Compilation_Unit := New_Package (Impl_Name, Unit_Body);
 
-      Helper_Spec : Compilation_Unit
-        := New_Package (Helper_Name, Unit_Spec);
-      Helper_Body : Compilation_Unit
-        := New_Package (Helper_Name, Unit_Body);
+      Helper_Spec : Compilation_Unit := New_Package (Helper_Name, Unit_Spec);
+      Helper_Body : Compilation_Unit := New_Package (Helper_Name, Unit_Body);
 
+      Delegate_Spec : Compilation_Unit :=
+        New_Package (Delegate_Name, Unit_Spec);
+      Delegate_Body : Compilation_Unit :=
+        New_Package (Delegate_Name, Unit_Body);
 
    begin
       case Kind (Node) is
@@ -652,8 +644,54 @@ package body Ada_Be.Idl2Ada is
 
             if not Abst (Node) then
 
-               Skel.Gen_Node_Spec (Skel_Spec, Node);
-               Skel.Gen_Node_Body (Skel_Body, Node);
+               Skel.Gen_Node_Spec (Skel_Spec, Skeleton, Node);
+               Skel.Gen_Node_Body (Skel_Body, Skeleton, Node);
+
+               --  Delegate package
+               if Generate_Delegate then
+                  NL (Delegate_Body);
+                  PL (Delegate_Body,
+                      "function Create (From : access Wrapped) " &
+                      "return Object_Ptr");
+                  PL (Delegate_Body, "is");
+                  PL (Delegate_Body,
+                      "   Result : constant Object_Ptr := new Object;");
+                  PL (Delegate_Body, "begin");
+                  PL (Delegate_Body,
+                      "   Result.Real := From.all'Unchecked_Access;");
+                  PL (Delegate_Body, "   return Result;");
+                  PL (Delegate_Body, "end Create;");
+
+                  Skel.Gen_Node_Spec (Delegate_Spec, Delegate, Node);
+                  Skel.Gen_Node_Body (Delegate_Body, Delegate, Node);
+
+                  Add_With (Delegate_Spec, "PortableServer");
+                  NL (Delegate_Spec);
+                  PL (Delegate_Spec,
+                      "type Object (<>) is " &
+                      "new PortableServer.Servant_Base with private;");
+                  PL (Delegate_Spec,
+                      "type Object_Ptr is access all Object'Class;");
+                  NL (Delegate_Spec);
+                  PL (Delegate_Spec,
+                      "function Create (From : access Wrapped) " &
+                      "return Object_Ptr;");
+                  Divert (Delegate_Spec, Private_Declarations);
+                  NL (Delegate_Spec);
+                  PL (Delegate_Spec,
+                      "type Wrapped_Access is access all Wrapped;");
+                  NL (Delegate_Spec);
+                  PL (Delegate_Spec,
+                      "type Object is " &
+                      "new PortableServer.Servant_Base with record");
+                  PL (Delegate_Spec,
+                      "   Real : Wrapped_Access;");
+                  PL (Delegate_Spec,
+                      "end record;");
+                  Divert (Delegate_Spec, Generic_Formals);
+                  PL (Delegate_Spec, "type Wrapped is limited private;");
+                  Divert (Delegate_Spec, Visible_Declarations);
+               end if;
 
                if Implement then
                   Divert (Impl_Spec, Private_Declarations);
@@ -707,7 +745,16 @@ package body Ada_Be.Idl2Ada is
                      --  in skeleton spec.
                      if not Abst (Node) then
                         Skel.Gen_Node_Body
-                          (Skel_Body, Export_Node);
+                          (Skel_Body, Skeleton, Export_Node);
+
+                        if Generate_Delegate then
+                           Divert (Delegate_Spec, Generic_Formals);
+                           Impl.Gen_Node_Spec
+                             (Delegate_Spec, Export_Node, Delegate => True);
+                           Divert (Delegate_Spec, Visible_Declarations);
+                           Skel.Gen_Node_Body
+                             (Delegate_Body, Delegate, Export_Node);
+                        end if;
 
                         if Implement then
                            Impl.Gen_Node_Spec
@@ -740,7 +787,10 @@ package body Ada_Be.Idl2Ada is
                                              Node);
 
             if not Abst (Node) then
-               Skel.Gen_Body_Common_End (Skel_Body, Node);
+               Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
+               if Generate_Delegate then
+                  Skel.Gen_Body_Common_End (Delegate_Body, Delegate, Node);
+               end if;
             end if;
 
          when others =>
@@ -775,6 +825,10 @@ package body Ada_Be.Idl2Ada is
             if not Is_Abstract_Node then
                Generate (Skel_Spec, False, To_Stdout);
                Generate (Skel_Body, False, To_Stdout);
+               if Generate_Delegate then
+                  Generate (Delegate_Spec, False, To_Stdout);
+                  Generate (Delegate_Body, False, To_Stdout);
+               end if;
             end if;
          end if;
       end;
@@ -791,12 +845,11 @@ package body Ada_Be.Idl2Ada is
         := Kind (Node);
    begin
       pragma Assert ((NK = K_Interface)
-                     or (NK = K_ValueType));
+                     or else (NK = K_ValueType));
       NL (Spec);
-      PL (Spec, T_Repository_Id
+      PL (Spec, Repository_Id_Name (Node)
           & " : constant Standard.String");
       PL (Spec, "  := """ & Idl_Repository_Id (Node) & """;");
-      NL (Spec);
    end Gen_Repository_Id;
 
    --------------
@@ -909,7 +962,7 @@ package body Ada_Be.Idl2Ada is
           "return Is_Equivalent (Logical_Type_Id, "
           & Ada_Full_Name (Node)
           & "."
-          & T_Repository_Id & ")");
+          & Repository_Id_Name (Node) & ")");
       PL (CU, "  or else Is_Equivalent");
       PL (CU, "    (Logical_Type_Id, ");
 
@@ -939,7 +992,7 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, Ada_Full_Name (P_Node));
             PL (CU, "  or else Is_Equivalent (Logical_Type_Id, "
                 & Ada_Full_Name (P_Node)
-                & "." & T_Repository_Id & ")");
+                & "." & Repository_Id_Name (P_Node) & ")");
          end loop;
          Free (Parents);
       end;
@@ -1273,7 +1326,7 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, "CORBA");
             NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
-            PL (CU, Ada_Name (Node) & "_" & T_Repository_Id
+            PL (CU, Repository_Id_Name (Node)
                 & " : constant CORBA.RepositoryId");
             PL (CU, "  := CORBA.To_CORBA_String ("""
                 & Idl_Repository_Id (Node) & """);");
@@ -1335,8 +1388,9 @@ package body Ada_Be.Idl2Ada is
 
          when K_Type_Declarator =>
             declare
-               Is_Interface : constant Boolean
-                 := Is_Interface_Type (T_Type (Node));
+               Is_Ref : constant Boolean
+                 := Is_Interface_Type (T_Type (Node))
+                 or else Kind (T_Type (Node)) = K_Object;
                Is_Fixed : constant Boolean
                  := Kind (T_Type (Node)) = K_Fixed;
             begin
@@ -1356,7 +1410,7 @@ package body Ada_Be.Idl2Ada is
                           := not Is_Empty (Array_Bounds (Decl_Node));
                      begin
                         NL (CU);
-                        if Is_Interface
+                        if Is_Ref
                           and then not Is_Array then
                            --  A typedef where the <type_spec>
                            --  denotes an interface type, and
@@ -1388,7 +1442,7 @@ package body Ada_Be.Idl2Ada is
                            end loop;
                            Put (CU, ") of ");
                         else
-                           if not (Is_Interface or else Is_Fixed) then
+                           if not (Is_Ref or else Is_Fixed) then
                               Put (CU, "new ");
                            end if;
                         end if;
@@ -1531,15 +1585,16 @@ package body Ada_Be.Idl2Ada is
             PL (CU, ";");
 
          when K_ValueBase =>
-            null;
-         when K_Native =>
+            --  FIXME: Check that this is correct.
             null;
 
-         when K_Object =>
-            null;
---         when K_Any =>
---            null;
+         when K_Native =>
+            NL (CU);
+            PL (CU, "--  type " & Name (Declarator (Node))
+                & " is implementation defined;");
+
          when K_Void =>
+            --  FIXME: Probably cannot happen.
             null;
 
          when K_Fixed =>
@@ -1553,7 +1608,6 @@ package body Ada_Be.Idl2Ada is
       end case;
 
    end Gen_Node_Stubs_Spec;
-
 
    --------------------------
    -- Gen_Node_Stubs_Body  --
@@ -1766,6 +1820,7 @@ package body Ada_Be.Idl2Ada is
                      Add_With_Entity (CU, E_Node);
 
                      if First then
+                        Add_With (CU, "Broca.CDR", Use_It => True);
                         Add_With (CU, "Broca.Exceptions");
 
                         PL (CU, "declare");
@@ -1786,8 +1841,9 @@ package body Ada_Be.Idl2Ada is
                      NL (CU);
                      PL (CU, "if CORBA.""="" ("
                          & T_Exception_Repo_Id & ",");
-                     PL (CU, "  " & Ada_Full_Name (E_Node)
-                         & "_" & T_Repository_Id & ") then");
+                     PL (CU, "  "
+                         & Ada_Full_Name (Parent_Scope (E_Node))
+                         & "." & Repository_Id_Name (E_Node) & ") then");
                      II (CU);
                      PL (CU, "declare");
                      II (CU);
@@ -1906,10 +1962,12 @@ package body Ada_Be.Idl2Ada is
    ---------------------------
 
    procedure Gen_Operation_Profile
-     (CU : in out Compilation_Unit;
+     (CU          : in out Compilation_Unit;
       Object_Type : in String;
-      Node : Node_Id;
-      With_Name : Boolean := True) is
+      Node        : in Node_Id;
+      With_Name   : in Boolean := True;
+      Delegate    : in Boolean := False)
+   is
    begin
       case Kind (Node) is
 
@@ -1918,6 +1976,9 @@ package body Ada_Be.Idl2Ada is
             --  Subprogram name
 
             NL (CU);
+            if Delegate then
+               Put (CU, "with ");
+            end if;
             if Kind (Operation_Type (Node)) = K_Void then
                Put (CU, "procedure ");
             else
@@ -1990,8 +2051,9 @@ package body Ada_Be.Idl2Ada is
                   end if;
                end if;
             end;
-
-
+            if Delegate then
+               Put (CU, " is <>");
+            end if;
 
          when K_Param =>
 
@@ -2086,6 +2148,10 @@ package body Ada_Be.Idl2Ada is
            K_Octet              |
            K_Any                =>
             Add_With (CU, "CORBA");
+            Put (CU, Ada_Type_Name (Node));
+
+         when K_Object =>
+            Add_With (CU, "CORBA.Object");
             Put (CU, Ada_Type_Name (Node));
 
          when K_Enumerator =>
@@ -2415,7 +2481,10 @@ package body Ada_Be.Idl2Ada is
                if True
                  and then Kind (P_Node) = K_Type_Declarator
                  and then Is_Empty (Array_Bounds (Node))
-                 and then Is_Interface_Type (T_Type (P_Node)) then
+                 and then
+                 (Is_Interface_Type (T_Type (P_Node))
+                  or else Kind (T_Type (P_Node)) = K_Object)
+               then
                   --  For a typedef of an interface type, the
                   --  dependance must be on the stream unit for
                   --  the scope that contains the actual definition.
@@ -2496,31 +2565,16 @@ package body Ada_Be.Idl2Ada is
       return Name (Node);
    end Idl_Operation_Id;
 
-   ------------------
-   -- Gen_Delegate --
-   ------------------
+   ------------------------
+   -- Repository_Id_Name --
+   ------------------------
 
-   procedure Gen_Delegate
-     (Node : in Node_Id;
-      Delegate_Spec : in out Compilation_Unit;
-      Delegate_Body : in out Compilation_Unit) is
-      NK : constant Node_Kind
-        := Kind (Node);
+   function Repository_Id_Name
+     (Node : Node_Id)
+     return String is
    begin
-      case NK is
-         when K_Interface =>
-            if Abst (Node) then
-               null;
-            else
-               PL (Delegate_Spec,
-                   "type Wrapped is limited private;");
-            end if;
-         when K_Operation =>
-            null; --  NIY
-         when others =>
-            null;
-      end case;
-   end Gen_Delegate;
+      return Ada_Name (Repository_Id_Identifier (Node));
+   end Repository_Id_Name;
 
    procedure Gen_Operation_Body_Prologue
      (CU : in out Compilation_Unit;

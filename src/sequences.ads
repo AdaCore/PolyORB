@@ -41,6 +41,8 @@
 
 package Sequences is
 
+   pragma Pure (Sequences);
+
    Length_Error, Pattern_Error, Index_Error : exception;
 
    type Alignment is (Left, Right, Center);

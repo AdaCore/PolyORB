@@ -219,7 +219,7 @@ package body Idl_Fe.Tree.Synthetic is
       Candidate : Node_Id;
    begin
       pragma Assert ((Kind (Node) = K_Interface)
-                     or (Kind (Node) = K_ValueType));
+                     or else (Kind (Node) = K_ValueType));
       Init (It, Parents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, Candidate);

@@ -50,6 +50,9 @@ with Broca.Flags;
 with Broca.ORB;
 with Broca.Object;
 
+with Broca.Inet_Server;
+--  The TCP/IP transport
+
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
@@ -563,7 +566,7 @@ package body Broca.Server is
       Request_Id        : CORBA.Unsigned_Long;
       Response_Expected : CORBA.Boolean;
       Operation         : CORBA.String;
-      Principal         : CORBA.String;
+      Principal         : Broca.GIOP.Principal;
       POA               : Broca.POA.Ref;
       POA_State         : Broca.POA.Processing_State_Type;
 
@@ -628,7 +631,8 @@ package body Broca.Server is
 
                --  Principal
                pragma Debug (O ("Handle_Request : unmarshalling principal"));
-               Principal := Unmarshall (Buffer);
+               Principal := Broca.GIOP.Principal
+                 (Broca.Sequences.Unmarshall (Buffer));
 
                begin
                   --  This Unlock_R the POA.
@@ -888,14 +892,10 @@ package body Broca.Server is
       Key : Broca.Buffers.Encapsulation)
      return CORBA.Object.Ref
    is
-      The_IOR : Broca.Object.Object_Ptr
-        := new Broca.Object.Object_Type;
       The_Ref : CORBA.Object.Ref;
       Object_Key_Buffer : aliased Buffer_Type;
       Server  : Server_Ptr;
    begin
-      The_IOR.Type_Id := CORBA.String (Type_Id);
-
       POA_Object_Of (POA).Link_Lock.Lock_R;
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
@@ -920,6 +920,7 @@ package body Broca.Server is
            := Encapsulate (Object_Key_Buffer'Access);
 
          Nbr_Profiles : CORBA.Unsigned_Long;
+         Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
 
       begin
          Release (Object_Key_Buffer);
@@ -928,6 +929,9 @@ package body Broca.Server is
          --  to allow future use of marshall-by-reference
          --  for the construction of Object_Key.
 
+         --  We are going to walk the list of available TSAPs:
+         --  make sure that all servers are properly registered.
+         Broca.Inet_Server.Ensure_Started;
          Nbr_Profiles := 0;
          for N in Server_Id_Type loop
             Server := Server_Table.Get_Server_By_Id (N);
@@ -937,19 +941,27 @@ package body Broca.Server is
             end if;
          end loop;
 
-         The_IOR.Profiles := new Broca.IOP.Profile_Ptr_Array'
+         Profiles := new Broca.IOP.Profile_Ptr_Array'
            (1 .. Nbr_Profiles => null);
 
          for N in Server_Id_Type loop
             Server := Server_Table.Get_Server_By_Id (N);
             exit when Server = null;
             if Can_Create_Profile (Server) then
-               The_IOR.Profiles (CORBA.Unsigned_Long (N))
+               Profiles (CORBA.Unsigned_Long (N))
                  := Make_Profile (Server, Object_Key);
             end if;
          end loop;
 
-         CORBA.Object.Set (The_Ref, CORBA.Impl.Object_Ptr (The_IOR));
+         declare
+            The_IOR : Broca.Object.Object_Ptr := Broca.Object.Create_Object
+              (Type_Id => CORBA.String (Type_Id),
+               Profiles => Profiles,
+               Local_Object => True);
+         begin
+            CORBA.Object.Set (The_Ref, CORBA.Impl.Object_Ptr (The_IOR));
+         end;
+
          return The_Ref;
       end;
    end Build_IOR;
@@ -1227,7 +1239,18 @@ package body Broca.Server is
       end if;
    end Unmarshall;
 
-begin
-   Broca.ORB.Register_ORB
-     (new This_ORB_Type'(Broca.ORB.ORB_Type with null record));
+   Started : Boolean := False;
+
+   procedure Start is
+   begin
+      if Started then
+         return;
+      end if;
+
+      Broca.ORB.Register_ORB
+        (new This_ORB_Type'(Broca.ORB.ORB_Type with null record));
+
+      Started := True;
+   end Start;
+
 end Broca.Server;

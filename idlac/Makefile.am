@@ -11,12 +11,13 @@ all-local: $(TESTPROGS) idlac
 testparser testlexer testgen idlac: force $(TREE_FILES)
 	$(GNATMAKE) -m -I. -I$(srcdir) $(GNATFLAGS) $@
 
-TREE_FILES=idl_fe-tree.ads idl_fe-tree.adb
+TREE_FILES=$(srcdir)/idl_fe-tree.ads $(srcdir)/idl_fe-tree.adb
 
 $(TREE_FILES): $(srcdir)/nodes.txt $(srcdir)/make_nodes.py
-	$(PYTHON) $(srcdir)/make_nodes.py $(srcdir)/nodes.txt > idl_fe-tree.ada
-	$(GNATCHOP) -w idl_fe-tree.ada
-	$(RM) idl_fe-tree.ada
+	(cd $(srcdir) && \
+	  $(PYTHON) make_nodes.py nodes.txt > idl_fe-tree.ada && \
+	  $(GNATCHOP) -w idl_fe-tree.ada && \
+	  $(RM) idl_fe-tree.ada)
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb
 

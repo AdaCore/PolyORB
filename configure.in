@@ -81,7 +81,9 @@ AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
            examples/Makefile examples/all_functions/Makefile
            examples/all_types/Makefile examples/random/Makefile
 	   examples/calculator/Makefile examples/valuetypes/Makefile
-	   examples/valuetypes/cycle/Makefile examples/valuetypes/forward/Makefile
+           examples/echo/Makefile
+	   examples/valuetypes/cycle/Makefile
+           examples/valuetypes/forward/Makefile
            man/Makefile
 	   cos/Makefile cos/event/Makefile cos/naming/Makefile
            cos/time/Makefile])

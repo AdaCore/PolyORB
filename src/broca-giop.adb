@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with Ada.Strings.Unbounded;
 
 with CORBA;
 
@@ -67,8 +66,7 @@ package body Broca.GIOP is
    --  The offset of the byte_order boolean field in
    --  a GIOP message header.
 
-   Default_Principal : Ada.Strings.Unbounded.Unbounded_String
-     := Nobody_Principal;
+   Default_Principal : Principal;
 
    MsgType_To_Octet :
      constant array (MsgType'Range) of CORBA.Octet
@@ -117,6 +115,24 @@ package body Broca.GIOP is
      := (0 => Unknown_Object,
          1 => Object_Here,
          2 => Object_Forward);
+
+   ------------------
+   -- To_Principal --
+   ------------------
+
+   function To_Principal
+     (S : String)
+     return Principal
+   is
+      Octets : Broca.Sequences.CORBA_Octet_Array (1 .. S'Length + 1);
+   begin
+      for I in Octets'First .. Octets'Last - 1 loop
+         Octets (I) := CORBA.Octet
+           (Character'Pos (S (S'First + I - 1)));
+      end loop;
+      Octets (Octets'Last) := 0;
+      return To_Sequence (Octets);
+   end To_Principal;
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -290,12 +306,9 @@ package body Broca.GIOP is
    end Release;
 
    procedure Set_Default_Principal
-     (Principal : Ada.Strings.Unbounded.Unbounded_String
-        := Nobody_Principal) is
+     (P : Principal) is
    begin
-      pragma Debug (O ("Setting default requsting principal to:"));
-      pragma Debug (O (Ada.Strings.Unbounded.To_String (Principal)));
-      Default_Principal := Principal;
+      Default_Principal := P;
    end Set_Default_Principal;
 
    ---------------------------
@@ -343,7 +356,9 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer'Access, CORBA.String (Operation));
 
       --  Principal
-      Marshall (Handler.Buffer'Access, CORBA.String (Default_Principal));
+      Broca.Sequences.Marshall
+        (Handler.Buffer'Access,
+         Broca.Sequences.Octet_Sequence (Default_Principal));
    end Send_Request_Marshall;
 
    -----------------------
@@ -359,7 +374,8 @@ package body Broca.GIOP is
       use Broca.CDR;
       use CORBA;
 
-      Header_Buffer      : aliased Buffer_Type;
+      Header_Buffer      : Buffer_Access := new Buffer_Type;
+
       Message_Type       : MsgType;
       Message_Size       : CORBA.Unsigned_Long;
       Message_Endianness : Endianness_Type;
@@ -371,15 +387,16 @@ package body Broca.GIOP is
       pragma Debug (O ("Send_Request_Send: enter"));
       --  Add GIOP header.
       Marshall_GIOP_Header
-        (Header_Buffer'Access,
+        (Header_Buffer,
          Broca.GIOP.Request,
          Length (Handler.Buffer'Access));
-      Prepend (Header_Buffer, Handler.Buffer'Access);
+      Prepend (Header_Buffer.all, Handler.Buffer'Access);
 
       pragma Debug (O ("Send_Request_Send: about to send request"));
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer'Access);
       Release (Handler.Buffer);
+      Release (Header_Buffer);
 
       pragma Debug (O ("Send_Request_Send: request sent"));
       if not Reponse_Expected then
@@ -393,39 +410,37 @@ package body Broca.GIOP is
 
       pragma Debug (O ("Send_Request_Send: Receive answer ..."));
       declare
-         Message_Header : Broca.Opaque.Octet_Array_Ptr
-           := IOP.Receive (Handler.Connection,
-                           Message_Header_Size);
-         Message_Header_Buffer : aliased Buffer_Type;
+         Header : Broca.Opaque.Octet_Array_Ptr := IOP.Receive
+           (Handler.Connection, Message_Header_Size);
+         Header_Buffer : Buffer_Access := new Buffer_Type;
          Endianness : Endianness_Type;
       begin
          pragma Debug (O ("Send_Request_Send: Receive answer done"));
 
          if CORBA.Boolean'Val
-           (CORBA.Octet (Message_Header
-                         (Message_Header'First
-                          + Byte_Order_Offset)) and 1) then
+           (CORBA.Octet (Header (Header'First + Byte_Order_Offset)) and 1)
+         then
             Endianness := Little_Endian;
          else
             Endianness := Big_Endian;
          end if;
 
          Broca.Buffers.Initialize_Buffer
-           (Message_Header_Buffer'Access,
+           (Header_Buffer,
             Message_Header_Size,
-            Message_Header.all'Address,
+            Header.all'Address,
             Endianness,
             0);
 
          Unmarshall_GIOP_Header
-           (Message_Header_Buffer'Access,
+           (Header_Buffer,
             Message_Type, Message_Size, Message_Endianness,
             Header_Correct);
 
          pragma Assert (Message_Endianness = Endianness);
 
-         Release (Message_Header_Buffer);
-         Free (Message_Header);
+         Release (Header_Buffer);
+         Free (Header);
       end;
 
       if not (Header_Correct and then Message_Type = Reply) then
@@ -585,10 +600,9 @@ package body Broca.GIOP is
       return Unsigned_Long_To_LocateStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
-   User_Principal : constant String := Get_Conf (Principal, Principal_Default);
+   User_Principal : constant String
+     := Get_Conf (Requesting_Principal, Requesting_Principal_Default);
+
 begin
-   if User_Principal /= "" then
-      Set_Default_Principal
-        (Ada.Strings.Unbounded.To_Unbounded_String (User_Principal));
-   end if;
+   Set_Default_Principal (To_Principal (User_Principal));
 end Broca.GIOP;

@@ -149,7 +149,7 @@ package body Ada_Be.Idl2Ada.Value_Impl is
             if Supports (Node) /= Nil_List then
                Add_With (CU,
                          Ada_Full_Name (Node)
-                         & Ada_Be.Idl2Ada.Skel.Suffix);
+                         & Ada_Be.Idl2Ada.Skel.Suffix (Skel.Skeleton));
 
             end if;
 

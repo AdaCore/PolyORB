@@ -39,11 +39,10 @@ with Broca.IOP;
 
 package Broca.Object is
 
-   type Object_Type is new CORBA.Impl.Object with
-      record
-         Type_Id  : CORBA.String;
-         Profiles : IOP.Profile_Ptr_Array_Ptr;
-      end record;
+   pragma Elaborate_Body;
+
+   type Object_Type (Local_Object : Boolean) is
+     new CORBA.Impl.Object with private;
 
    type Object_Ptr is access all Object_Type'Class;
 
@@ -52,15 +51,57 @@ package Broca.Object is
 
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : in Broca.Object.Object_Type);
+      Value  : in Object_Type);
 
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Result : out Broca.Object.Object_Type);
 
    function Find_Profile
-     (Object : Object_Ptr)
+     (Object : in Object_Ptr)
      return IOP.Profile_Ptr;
    --  Find a profile for a message
 
+   function Get_Type_Id (Object : in Object_Type) return CORBA.String;
+   pragma Inline (Get_Type_Id);
+
+   function Create_Object_From_IOR
+     (IOR : access Broca.Buffers.Buffer_Type)
+     return Object_Ptr;
+
+   --  It is used by Broca.ORB.Build_Remote_Naming_Reference
+   --  It will be nice if this will be not used at all
+--     function Create_Custom_Object
+--       (Type_Id : in CORBA.String;
+--        Host : in CORBA.String;
+--        Port : in CORBA.Unsigned_Short;
+--        Object_Key : in Broca.Sequences.Octet_Sequence)
+--        return Object_Ptr;
+
+   --  Creates object
+   function Create_Object
+     (Type_Id : in CORBA.String;
+      Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
+      Local_Object : in Boolean)
+     return Object_Ptr;
+
+private
+
+   type Object_Type (Local_Object : Boolean) is
+     new CORBA.Impl.Object with
+      record
+         Type_Id  : CORBA.String;
+         Profiles : Broca.IOP.Profile_Ptr_Array_Ptr := null;
+         case Local_Object is
+            when False =>
+               Used_Profile_Index   : CORBA.Unsigned_Long := 0;
+               Is_Supported_Profile : Boolean             := False;
+               --  True if server is placed in the same address space with
+               --  Object.
+            when True =>
+               null;
+         end case;
+      end record;
+
 end Broca.Object;
+

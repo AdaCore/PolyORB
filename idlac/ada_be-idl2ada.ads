@@ -61,6 +61,12 @@ private
    --  The name of the Ada subprogram that maps
    --  K_Operation Node.
 
+   function Repository_Id_Name
+     (Node : Node_Id)
+     return String;
+   --  The name of the Ada constant that contains
+   --  the repository ID of K_Named Node.
+
    procedure Add_With_Stream
      (CU : in out Compilation_Unit;
       Node : Node_Id);
@@ -113,15 +119,18 @@ private
    --  Generate a "when others => null;" clause.
 
    procedure Gen_Operation_Profile
-     (CU : in out Compilation_Unit;
+     (CU          : in out Compilation_Unit;
       Object_Type : in String;
-      Node : Node_Id;
-      With_Name : Boolean := True);
+      Node        : in Node_Id;
+      With_Name   : in Boolean := True;
+      Delegate    : in Boolean := False);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
    --  If With_name is false, then the profile is generated, without
    --  the subprogram name, to create an access to subprogram type.
+   --  If Delegate is True, "with" is added in front of the declaration
+   --  and "is <>" at the end.
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;

@@ -384,22 +384,28 @@ package Idl_Fe.Types is
 
    function Is_Redefinable
      (Name  : String;
+      Loc   : Errors.Location;
       Scope : Node_Id := No_Node)
      return Boolean;
    --  Check if the name is redefinable in Scope or in the current scope
    --  (default). If result is false, means that Find_Identifier_Definition
    --  has a NOT NULL result!
+   --  Loc is the location of the attempted redefinition.
 
    function Find_Identifier_Definition
-     (Name : String)
+     (Name : String;
+      Loc  : Errors.Location)
      return Identifier_Definition_Acc;
-   --  Find the current identifier definition.
-   --  The current identifier is the one just scanned by the lexer
+   --  Find the definition associated with the usage occurence of
+   --  identifier Name located at Loc.
    --  If this identifier is not defined, returns a null pointer.
 
-   function Find_Identifier_Node (Name : String) return Node_Id;
-   --  Find the node corresponding to the current identifier.
-   --  The current identifier is the one just scanned by the lexer
+   function Find_Identifier_Node
+     (Name : String;
+      Loc  : Errors.Location)
+     return Node_Id;
+   --  Find the node associated with the usage occurence of
+   --  identifier Name located at Loc.
    --  If this identifier is not defined, returns a null pointer.
 
    procedure Redefine_Identifier
@@ -411,18 +417,25 @@ package Idl_Fe.Types is
    function Add_Identifier
      (Node  : Node_Id;
       Name  : String;
-      Scope : Node_Id := No_Node)
+      Scope : Node_Id := No_Node;
+      Is_Inheritable : Boolean := True)
      return Boolean;
    --  Creates an identifier definition for the current identifier
    --  and add it to scope Scope or the current scope if Scope is No_Node.
-   --  Node is the node where the identifier is defined.
+   --  Node is the node where the identifier is defined. If Is_Inheritable
+   --  is False, then this identifier will not be considered when resolving
+   --  names in scopes that inherit from this one.
    --  Returns true if successful, False if the identifier was
    --  already in this scope.
 
    function Find_Identifier_In_Storage
-     (Scope : Node_Id; Name : String)
+     (Scope            : Node_Id;
+      Name             : String;
+      Inheritable_Only : Boolean := False)
      return Identifier_Definition_Acc;
-   --  Find the identifier definition in Scope.
+   --  Find the identifier definition in Scope. If Inheritable_Only,
+   --  do not consider identifiers that were marked as not eligible
+   --  for inheritance.
    --  If this identifier is not defined, returns a null pointer.
 
    function Find_Imported_Identifier_Definition
@@ -443,12 +456,6 @@ package Idl_Fe.Types is
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
    --  it is useful for looking in the inherited interfaces or value types
-
-   function Find_Inherited_Identifier_Definition
-     (Name : String)
-     return Identifier_Definition_Acc;
-   --  Find the identifier definition in the inherited interface.
-   --  If this identifier is not defined, returns a null pointer.
 
    -----------------------
    -- Identifiers table --
@@ -477,14 +484,19 @@ package Idl_Fe.Types is
    type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
    Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
 
-   --  Type of an entry in the Id_Table.
-   --  it contains the following :
-   --    - the Identifier_Definition,
+   --  An entry in the ID table, containing:
+   --    - the Identifier_Definition;
+   --    - a flag indicating whether this entry can be incorporated
+   --      into another (interface or valuetype) scope by inheritance
+   --      (meant for use only during expansion);
    --    - a pointer to the entry correponding to the next definition
    --      of an identifier with the same hash value.
+
    type Hash_Entry is record
-      Definition : Identifier_Definition_Acc := null;
-      Next : Uniq_Id;
+      Definition     : Identifier_Definition_Acc
+        := null;
+      Is_Inheritable : Boolean := True;
+      Next           : Uniq_Id;
    end record;
 
    ----------------------------------

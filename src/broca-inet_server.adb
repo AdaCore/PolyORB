@@ -471,89 +471,6 @@ package body Broca.Inet_Server is
       end if;
    end Accept_Poll_Set_Change;
 
-   -----------
-   -- Start --
-   -----------
-
-   procedure Start (Port : in Natural := 0) is
-      Sock : Interfaces.C.int;
-      Sock_Name : Sockaddr_In;
-      Sock_Name_Size : aliased Interfaces.C.int;
-      Result : Interfaces.C.int;
-      Used_Port : Natural;
-   begin
-      pragma Debug (O ("Start: enter"));
-
-      if Port = 0 then
-         Used_Port := Natural'Value
-           (Get_Conf (Environment.Port, Environment.Port_Default));
-      else
-         Used_Port := Port;
-      end if;
-
-      --  Create the socket.
-      Sock := C_Socket (Af_Inet, Sock_Stream, 0);
-      if Sock = Failure then
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-      pragma Debug (O ("Socket created"));
-
-      declare
-         One    : aliased Integer := 1;
-         Result : int;
-      begin
-         Result :=
-           C_Setsockopt (Sock, Sol_Socket, So_Reuseaddr, One'Address, 4);
-      end;
-
-      --  Find an address for this host.
-      Get_Host_Address;
-      pragma Debug (O ("Got the host address"));
-
-      --  Bind this socket.
-      --  Do not use the default address (security issue), but the address
-      --  found.
-      Sock_Name.Sin_Family := Af_Inet;
-      Sock_Name.Sin_Port := Htons (Used_Port);
-      Sock_Name.Sin_Addr := Inaddr_Any;
-      Result := C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8);
-      if Result = Failure then
-         C_Close (Sock);
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-      pragma Debug (O ("Socket bound"));
-
-      --  Listen
-      Result := C_Listen (Sock, 8);
-      if Result = Failure then
-         C_Close (Sock);
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-      pragma Debug (O ("Listen statement executed"));
-
-      --  Retrieve the port.
-      Sock_Name_Size := Sock_Name'Size / 8;
-      Result := C_Getsockname (Sock, Sock_Name'Address, Sock_Name_Size'Access);
-      if Result = Failure then
-         C_Close (Sock);
-         Broca.Exceptions.Raise_Comm_Failure;
-      end if;
-
-      --  Register the socket
-      Lock.Insert_Listening (Sock);
-
-      if not Server_Started then
-         Server_Started := True;
-         IIOP_Host      := CORBA.To_CORBA_String (In_Addr_To_Str (My_Addr));
-         IIOP_Port      := CORBA.Unsigned_Short (Ntohs (Sock_Name.Sin_Port));
-      end if;
-
-      pragma Debug (O ("listening on host: " &
-                       CORBA.To_Standard_String (IIOP_Host) &
-                       ", port:" &
-                       Positive'Image (Ntohs (Sock_Name.Sin_Port))));
-   end Start;
-
    --------------------
    -- Ensure_Started --
    --------------------
@@ -785,8 +702,8 @@ package body Broca.Inet_Server is
       use Broca.Sequences;
       use Broca.IIOP;
 
-      Res : Profile_IIOP_Access
-        := new Profile_IIOP_Type;
+      Res : Profile_IIOP_1_0_Access
+        := new Profile_IIOP_1_0_Type;
    begin
       Res.Version := IIOP_Version;
       Res.Host    := IIOP_Host;
@@ -797,18 +714,103 @@ package body Broca.Inet_Server is
       return Broca.IOP.Profile_Ptr (Res);
    end Make_Profile;
 
-begin
-   The_Fd_Server := new Fd_Server_Type;
-   Broca.Server.Register
-     (Broca.Server.Server_Ptr (The_Fd_Server), Fd_Server_Id);
+   -----------
+   -- Start --
+   -----------
 
-   --  Create signalling socket pair.
-   if C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address) = Failure then
-      Broca.Exceptions.Raise_Comm_Failure;
-   end if;
+   procedure Start (Port : in Natural := 0) is
+      Sock : Interfaces.C.int;
+      Sock_Name : Sockaddr_In;
+      Sock_Name_Size : aliased Interfaces.C.int;
+      Result : Interfaces.C.int;
+      Used_Port : Natural;
+   begin
+      pragma Debug (O ("Start: enter"));
 
-   Lock.Initialize (Signal_Fd_Read);
+      The_Fd_Server := new Fd_Server_Type;
+      Broca.Server.Register
+        (Broca.Server.Server_Ptr (The_Fd_Server), Fd_Server_Id);
 
-   --  There is always one request to handle: accepting a connection.
-   Broca.Server.New_Request (Fd_Server_Id);
+      --  Create signalling socket pair.
+      if C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address)
+        = Failure
+      then
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+
+      Lock.Initialize (Signal_Fd_Read);
+
+      --  There is always one request to handle: accepting a connection.
+      Broca.Server.New_Request (Fd_Server_Id);
+
+      if Port = 0 then
+         Used_Port := Natural'Value
+           (Get_Conf (Environment.Port, Environment.Port_Default));
+      else
+         Used_Port := Port;
+      end if;
+
+      --  Create the socket.
+      Sock := C_Socket (Af_Inet, Sock_Stream, 0);
+      if Sock = Failure then
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+      pragma Debug (O ("Socket created"));
+
+      declare
+         One    : aliased Integer := 1;
+         Result : int;
+      begin
+         Result :=
+           C_Setsockopt (Sock, Sol_Socket, So_Reuseaddr, One'Address, 4);
+      end;
+
+      --  Find an address for this host.
+      Get_Host_Address;
+      pragma Debug (O ("Got the host address"));
+
+      --  Bind this socket.
+      --  Do not use the default address (security issue), but the address
+      --  found.
+      Sock_Name.Sin_Family := Af_Inet;
+      Sock_Name.Sin_Port := Htons (Used_Port);
+      Sock_Name.Sin_Addr := Inaddr_Any;
+      Result := C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8);
+      if Result = Failure then
+         C_Close (Sock);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+      pragma Debug (O ("Socket bound"));
+
+      --  Listen
+      Result := C_Listen (Sock, 8);
+      if Result = Failure then
+         C_Close (Sock);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+      pragma Debug (O ("Listen statement executed"));
+
+      --  Retrieve the port.
+      Sock_Name_Size := Sock_Name'Size / 8;
+      Result := C_Getsockname (Sock, Sock_Name'Address, Sock_Name_Size'Access);
+      if Result = Failure then
+         C_Close (Sock);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
+
+      --  Register the socket
+      Lock.Insert_Listening (Sock);
+
+      if not Server_Started then
+         Server_Started := True;
+         IIOP_Host      := CORBA.To_CORBA_String (In_Addr_To_Str (My_Addr));
+         IIOP_Port      := CORBA.Unsigned_Short (Ntohs (Sock_Name.Sin_Port));
+      end if;
+
+      pragma Debug (O ("listening on host: " &
+                       CORBA.To_Standard_String (IIOP_Host) &
+                       ", port:" &
+                       Positive'Image (Ntohs (Sock_Name.Sin_Port))));
+   end Start;
+
 end Broca.Inet_Server;

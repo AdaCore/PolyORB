@@ -52,10 +52,8 @@ with File;                         use File;
 with File.Impl;
 with File.Helper;
 
-with Naming_Tools;                 use Naming_Tools;
-
+with Broca.Naming_Tools;                 use Broca.Naming_Tools;
 with Broca.Server_Tools;
-with Broca.GIOP;
 
 procedure Test_Naming is
 
@@ -75,6 +73,7 @@ procedure Test_Naming is
       Write,
       List,
       Ls,
+      Namei,
       Lmkdir,
       Mkdir,
       Md,
@@ -101,6 +100,7 @@ procedure Test_Naming is
          Write  => M ("write <F> <S>, write string S in file F"),
          List   => M ("list [<D>], list files in dir D [def = <.>]"),
          Ls     => M ("   (alias for LIST)"),
+         Namei  => M ("namei <N>, show IOR bound to <N>"),
          Lmkdir => M ("lmdir <D>, make local dir and bind it to <D>"),
          Mkdir  => M ("   (alias for LMKDIR)"),
          Md     => M ("   (alias for LMKDIR)"),
@@ -112,27 +112,32 @@ procedure Test_Naming is
          Df     => M ("df [<D>], print <IOR> of a given dir <D> [def = <.>]"));
 
    function From
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return NamingContext.Ref;
 
    function Parent
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return NamingContext.Ref;
 
    function To_Dir
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return NamingContext.Ref;
 
    function To_File
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return File.Ref;
 
+   function To_Object
+     (S   : String;
+      Sep : Character := '/')
+     return CORBA.Object.Ref;
+
    function To_Name
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
       return Name;
 
@@ -162,7 +167,7 @@ procedure Test_Naming is
    ------------
 
    function Parent
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return NamingContext.Ref
    is
@@ -171,7 +176,6 @@ procedure Test_Naming is
    begin
       if Length (N) = 1 then
          return From (S);
-
       else
          return CosNaming.NamingContext.Helper.To_Ref
            (Resolve (From (S), Name (Head (N, Length (N) - 1, Null_NC))));
@@ -183,7 +187,7 @@ procedure Test_Naming is
    ----------
 
    function From
-     (S   : in  String_Access;
+     (S   : in  String;
       Sep : in  Character := '/')
      return NamingContext.Ref is
    begin
@@ -199,14 +203,14 @@ procedure Test_Naming is
    ------------
 
    function To_Dir
-     (S   : in String_Access;
+     (S   : in String;
       Sep : in Character := '/')
      return NamingContext.Ref is
    begin
       return NamingContext.Helper.To_Ref (Resolve (From (S), To_Name (S)));
    exception
       when others =>
-         Ada.Text_IO.Put_Line ("No such directory " & S.all);
+         Ada.Text_IO.Put_Line ("No such directory " & S);
          raise;
    end To_Dir;
 
@@ -215,55 +219,38 @@ procedure Test_Naming is
    -------------
 
    function To_File
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
      return File.Ref is
    begin
-      return File.Helper.To_Ref (Resolve (From (S), To_Name (S)));
+      return File.Helper.To_Ref (To_Object (S, Sep));
+   end To_File;
+
+   ---------------
+   -- To_Object --
+   ---------------
+
+   function To_Object
+     (S   : String;
+      Sep : Character := '/')
+     return CORBA.Object.Ref is
+   begin
+      return Resolve (From (S), To_Name (S));
    exception
       when others =>
-         Ada.Text_IO.Put_Line ("No such file " & S.all);
+         Ada.Text_IO.Put_Line ("No such object " & S);
          raise;
-   end To_File;
+   end To_Object;
 
    -------------
    -- To_Name --
    -------------
 
    function To_Name
-     (S   : String_Access;
+     (S   : String;
       Sep : Character := '/')
-      return Name
-   is
-      Element : NameComponent;
-      Result  : Name;
-      First   : Natural;
-      Last    : Natural;
-
-   begin
-      Element.Kind := Null_Istring;
-
-      Last := S'First;
-      while Last <= S'Last loop
-         First := Last;
-         while Last <= S'Last
-           and then S (Last) /= Sep
-         loop
-            Last := Last + 1;
-         end loop;
-
-         Element.Id := To_CORBA_String (S (First .. Last - 1));
-         Append (Result, Element);
-
-         while Last <= S'Last
-           and then S (Last) = Sep
-         loop
-            Last := Last + 1;
-         end loop;
-      end loop;
-
-      return Result;
-   end To_Name;
+     return Name
+     renames Broca.Naming_Tools.Parse_Name;
 
    ---------------
    -- To_String --
@@ -311,21 +298,19 @@ procedure Test_Naming is
       Ada.Text_IO.New_Line;
    end Usage;
 
-   Back    : Name := To_Name (new String'(".."));
-   Here    : Name := To_Name (new String'("."));
-   Cmmd    : Command;
+   Back     : Name := To_Name ("...subcontext");
+   Here     : Name := To_Name ("..subcontext");
+   Cmmd     : Command;
    Register_Service : Boolean := False;
 
    procedure Bind_Self
       (Self : CosNaming.NamingContext.Ref;
-       As   : String)
-   is
-      As_Name : Name := To_Name (new String'(As));
+       As   : Name) is
    begin
-      Bind_Context (Self, As_Name, Self);
+      Bind_Context (Self, As, Self);
    exception
       when E : others =>
-         Ada.Text_IO.Put ("Warning: could not bind " & As & ": ");
+         Ada.Text_IO.Put ("Warning: could not bind " & To_String (As) & ": ");
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
          Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    end Bind_Self;
@@ -336,7 +321,7 @@ begin
       Initialize_Option_Scan ('-', False, "");
 
       loop
-         case Getopt ("i n s I: p:") is
+         case Getopt ("i n s I:") is
             when ASCII.Nul =>
                exit;
 
@@ -392,10 +377,6 @@ begin
                      raise;
                end;
 
-            when 'p' =>
-               Broca.GIOP.Set_Default_Principal
-                 (Ada.Strings.Unbounded.To_Unbounded_String (Parameter));
-
             when others =>
                --  This never happens.
                raise Program_Error;
@@ -421,19 +402,13 @@ begin
       if Register_Service then
          Ada.Text_IO.Put ("registering main service by name...");
          Ada.Text_IO.Flush;
-         begin
-            Register (Test_Name, CORBA.Object.Ref (WDR));
-         exception
-            when AlreadyBound =>
-               Ada.Text_IO.Put (" rebinding...");
-               Register (Test_Name, CORBA.Object.Ref (WDR), Rebind => True);
-         end;
+         Register (Test_Name, CORBA.Object.Ref (WDR), Rebind => True);
          Ada.Text_IO.Put_Line (" done");
       end if;
    end if;
 
-   Bind_Self (WDR, ".");
-   Bind_Self (WDR, "..");
+   Bind_Self (WDR, Here);
+   Bind_Self (WDR, Back);
 
    loop
       Argc := Count;
@@ -463,17 +438,17 @@ begin
                     raise Syntax_Error;
                   end if;
                   Argv := Argument (2);
-                  WDR  := To_Dir (Argv);
+                  WDR  := To_Dir (Argv.all);
 
                when Rmkdir =>
                   if Argc /= 2 then
                     raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Dir   := New_Context (From (Argv));
-                  Bind_Context (From (Argv), To_Name (Argv), Dir);
+                  Dir   := New_Context (From (Argv.all));
+                  Bind_Context (From (Argv.all), To_Name (Argv.all), Dir);
                   Bind_Context (Dir, Here, Dir);
-                  Bind_Context (Dir, Back, Parent (Argv));
+                  Bind_Context (Dir, Back, Parent (Argv.all));
 
                when Lmkdir | Mkdir | Md =>
                   if Argc /= 2 then
@@ -482,9 +457,9 @@ begin
                   Argv  := Argument (2);
                   Broca.Server_Tools.Servant_To_Reference
                     (PortableServer.Servant (NamingContext.Impl.Create), Dir);
-                  Bind_Context (From (Argv), To_Name (Argv), Dir);
+                  Bind_Context (From (Argv.all), To_Name (Argv.all), Dir);
                   Bind_Context (Dir, Here, Dir);
-                  Bind_Context (Dir, Back, Parent (Argv));
+                  Bind_Context (Dir, Back, Parent (Argv.all));
 
                when Write =>
                   if Argc /= 3 then
@@ -492,13 +467,12 @@ begin
                   end if;
                   Argv  := Argument (2);
                   begin
-                     Fil := To_File (Argv);
+                     Fil := To_File (Argv.all);
 
                   exception when others =>
                      Ada.Text_IO.Put_Line ("Creating file " & Argv.all);
                      Fil := File.Impl.New_File;
-                     Bind (From (Argv),
-                           To_Name (Argv),
+                     Bind (From (Argv.all), To_Name (Argv.all),
                            CORBA.Object.Ref (Fil));
                   end;
                   Argv := Argument (3);
@@ -509,9 +483,19 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Fil   := To_File (Argv);
+                  Fil   := To_File (Argv.all);
                   Ada.Text_IO.Put_Line
                     (CORBA.To_Standard_String (Get_Image (Fil)));
+
+               when Namei =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  Argv := Argument (2);
+                  Ada.Text_IO.Put_Line
+                    (CORBA.To_Standard_String
+                     (CORBA.Object.Object_To_String (To_Object (Argv.all))));
 
                when List | Ls =>
                   if Argc >= 3 then
@@ -521,7 +505,7 @@ begin
                      Dir   := WDR;
                   else
                      Argv := Argument (2);
-                     Dir  := To_Dir (Argv);
+                     Dir  := To_Dir (Argv.all);
                   end if;
 
                   declare
@@ -558,7 +542,7 @@ begin
                     (CORBA.To_CORBA_String (Argv.all), Obj);
                   Dir  := NamingContext.Helper.To_Ref (Obj);
                   Argv := Argument (2);
-                  Bind_Context (From (Argv), To_Name (Argv), Dir);
+                  Bind_Context (From (Argv.all), To_Name (Argv.all), Dir);
 
                when Df =>
 
@@ -571,7 +555,7 @@ begin
 
                   else
                      Argv := Argument (2);
-                     Dir  := To_Dir (Argv);
+                     Dir  := To_Dir (Argv.all);
                      Ada.Text_IO.Put (Argv.all);
                   end if;
 
@@ -584,7 +568,7 @@ begin
                      raise Syntax_Error;
                   end if;
                   Argv := Argument (2);
-                  Obj := Resolve (From (Argv), To_Name (Argv));
+                  Obj := Resolve (From (Argv.all), To_Name (Argv.all));
                   Dir := NamingContext.Helper.To_Ref (Obj);
                   declare
                      Bindings : BindingList;
@@ -596,9 +580,9 @@ begin
                         Ada.Text_IO.Put_Line ("directory not empty");
 
                      else
-                        Unbind (From (Argv), To_Name (Argv) & Here);
-                        Unbind (From (Argv), To_Name (Argv) & Back);
-                        Unbind (From (Argv), To_Name (Argv));
+                        Unbind (From (Argv.all), To_Name (Argv.all) & Here);
+                        Unbind (From (Argv.all), To_Name (Argv.all) & Back);
+                        Unbind (From (Argv.all), To_Name (Argv.all));
                         Destroy (Dir);
                      end if;
                   end;

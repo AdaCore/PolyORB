@@ -35,6 +35,11 @@ with Broca.Buffers; use Broca.Buffers;
 with Broca.IOR;
 with Broca.ORB;
 
+with Broca.Inet_Server;
+pragma Warnings (Off, Broca.Inet_Server);
+pragma Elaborate (Broca.Inet_Server);
+--  Elaborate a Broca server
+
 with CORBA.Object;
 with CORBA.NVList;
 with CORBA.Impl;

@@ -29,15 +29,16 @@ with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 private package Ada_Be.Idl2Ada.Impl is
 
-   Suffix : constant String
-     := ".Impl";
+   Suffix : constant String := ".Impl";
 
    procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
+     (CU       : in out Compilation_Unit;
+      Node     : Node_Id;
+      Delegate : Boolean := False);
    procedure Gen_Node_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate an implementation template.
+   --  Generate an implementation template. If Delegate is True, the
+   --  generated spec is a delegate's generic formal parameter.
 
 end Ada_Be.Idl2Ada.Impl;

@@ -190,6 +190,17 @@ package body Sockets is
       return Result;
    end Get;
 
+   ------------
+   -- Get FD --
+   ------------
+
+   function Get_FD (Socket : in Socket_FD)
+     return Interfaces.C.int
+   is
+   begin
+      return Socket.FD;
+   end Get_FD;
+
    --------------
    -- Get_Line --
    --------------
@@ -272,7 +283,7 @@ package body Sockets is
    -------------
 
    function Receive (Socket : Socket_FD; Max : Stream_Element_Count := 4096)
-     return Ada.Streams.Stream_Element_Array
+     return Stream_Element_Array
    is
       Buffer  : Stream_Element_Array (1 .. Max);
       Addr    : aliased In_Addr;
@@ -294,7 +305,7 @@ package body Sockets is
    -------------
 
    procedure Receive (Socket : in Socket_FD'Class;
-                      Data   : out Ada.Streams.Stream_Element_Array)
+                      Data   : out Stream_Element_Array)
    is
       Index : Stream_Element_Offset := Data'First;
       Rest  : Stream_Element_Count  := Data'Length;
@@ -311,6 +322,22 @@ package body Sockets is
          end;
       end loop;
    end Receive;
+
+   ------------------
+   -- Receive_Some --
+   ------------------
+
+   procedure Receive_Some
+     (Socket : in Socket_FD'Class;
+      Data   : out Stream_Element_Array;
+      Last   : out Stream_Element_Offset)
+   is
+      Sub_Buffer : constant Stream_Element_Array :=
+        Receive (Socket, Data'Length);
+   begin
+      Last := Data'First + Sub_Buffer'Length - 1;
+      Data (Data'First .. Last) := Sub_Buffer;
+   end Receive_Some;
 
    ----------
    -- Send --

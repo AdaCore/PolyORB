@@ -33,5 +33,7 @@ package Idlac_Flags is
    Preprocess_Only        : Boolean := False;
    To_Stdout              : Boolean := False;
    Verbose                : Boolean := True;
+   Generate_Delegate      : Boolean := False;
+   Generate_Dyn           : Boolean := True;
 
 end Idlac_Flags;

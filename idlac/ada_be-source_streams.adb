@@ -150,7 +150,9 @@ package body Ada_Be.Source_Streams is
       if not (False
         or else Whence = Visible_Declarations
         or else (Whence = Private_Declarations and then CU.Kind = Unit_Spec)
-        or else (Whence = Elaboration and then CU.Kind = Unit_Body)) then
+        or else (Whence = Elaboration and then CU.Kind = Unit_Body)
+        or else (Whence = Generic_Formals and then CU.Kind = Unit_Spec))
+      then
          raise Program_Error;
       end if;
 
@@ -275,6 +277,13 @@ package body Ada_Be.Source_Streams is
          end loop;
 
          if Unit.Context_Clause /= null then
+            New_Line (File);
+         end if;
+
+         if not Unit.Diversions (Generic_Formals).Empty then
+            Put_Line (File, "generic");
+            Put (File, To_String
+                 (Unit.Diversions (Generic_Formals).Library_Item));
             New_Line (File);
          end if;
 

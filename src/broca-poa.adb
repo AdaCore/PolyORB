@@ -113,7 +113,7 @@ package body Broca.POA is
          use Broca.Sequences.Octet_Sequences;
 
          X : Object.Object_Ptr := Object.Object_Ptr (Obj);
-         P : Profile_Ptr := X.Profiles (X.Profiles'First);
+         P : Profile_Ptr := Object.Find_Profile (X);
          E : aliased Encapsulation := To_Octet_Array (Get_Object_Key (P.all));
 
          Key       : aliased Buffer_Type;

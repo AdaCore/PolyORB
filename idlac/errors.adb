@@ -28,6 +28,7 @@ with Ada.Strings.Fixed; use Ada.Strings, Ada.Strings.Fixed;
 with Ada.Text_IO;       use Ada.Text_IO;
 with GNAT.OS_Lib;
 with Idlac_Flags;       use Idlac_Flags;
+with Utils;             use Utils;
 
 package body Errors is
 
@@ -35,66 +36,61 @@ package body Errors is
    --  Location handling  --
    -------------------------
 
-   --  nice display of a natural
-   function Nat_To_String (Val : Natural) return String;
-
-   --  display an error
-   procedure Display_Error (Message : in String;
-                            Level : in Error_Kind;
-                            Loc : Location);
+   procedure Display_Error
+     (Message : in String;
+      Level : in Error_Kind;
+      Loc : Location);
+   --  Display an error
 
    procedure Pinpoint_Error
      (Message : in String;
       Loc     : in Location);
-   --  Print a full description of the error message with pointers on the
-   --  error location.
+   --  Print a full description of the error message with pointers
+   --  on the error location.
 
    function Full_Name (Loc : Location) return String;
    --  Return the full file name (i.e., a usable one)
 
-   ---------------------
-   --  Nat_To_String  --
-   ---------------------
+   --------------------------
+   --  Location_To_String  --
+   --------------------------
 
-   function Nat_To_String (Val : Natural) return String is
-      Res : String := Natural'Image (Val);
-   begin
-      return Res (2 .. Res'Last);
-   end Nat_To_String;
+   function Location_To_String
+     (Loc   : in Location;
+      Short : in Boolean := False)
+     return String is
 
-   ------------------------
-   --  Display_Location  --
-   ------------------------
+      function Path return String;
+      --  Return the file name, or "<standard input>" if unknown
 
-   function Display_Location (Loc : in Location) return String is
-   begin
-      if Loc.Filename /= null then
-         if Loc.Dirname /= null then
-            return "line " &
-              Nat_To_String (Loc.Line) &
-              ", column " &
-              Nat_To_String (Loc.Col) &
-              " of file " &
-              Loc.Dirname.all &
+      ----------
+      -- Path --
+      ----------
+
+      function Path return String is
+      begin
+         if Loc.Filename = null then
+            return "<standard input>";
+         elsif Loc.Dirname = null then
+            return Loc.Filename.all;
+         else
+            return Loc.Dirname.all &
               GNAT.OS_Lib.Directory_Separator &
               Loc.Filename.all;
-         else
-            return "line " &
-              Nat_To_String (Loc.Line) &
-              ", column " &
-              Nat_To_String (Loc.Col) &
-              " of file " &
-              Loc.Filename.all;
          end if;
+      end Path;
+
+      Line   : constant String := Img (Loc.Line);
+      Column : constant String := Img (Loc.Col);
+
+   begin
+      if Short then
+         return Path & ':' & Line & ':' & Column;
       else
-         return "line " &
-           Nat_To_String (Loc.Line) &
-           ", column " &
-           Nat_To_String (Loc.Col);
+         return
+           "line " & Line & ", column " & Column & " of file " & Path;
       end if;
-   end Display_Location;
-
-
+   end Location_To_String;
 
    ----------------------
    --  Error handling  --
@@ -251,7 +247,7 @@ package body Errors is
             File      : File_Type;
             Line      : String (1 .. 1024);
             Last      : Natural;
-            LN        : constant String := Nat_To_String (Loc.Line);
+            LN        : constant String := Img (Loc.Line);
             LNN       : constant Positive := LN'Length;
          begin
             Open (File, In_File, File_Name);
@@ -271,9 +267,9 @@ package body Errors is
          end;
          New_Line (Current_Error);
       else
-         Put_Line (Current_Error,
-                   Full_Name (Loc) & ":" & Nat_To_String (Loc.Line) &
-                   ":" & Nat_To_String (Loc.Col) & " " & Message);
+         Put_Line
+           (Current_Error,
+            Location_To_String (Loc, Short => True) & ' ' & Message);
       end if;
    end Pinpoint_Error;
 

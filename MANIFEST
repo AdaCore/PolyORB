@@ -66,6 +66,8 @@ cos/naming/File.idl
 cos/naming/Makefile.am
 cos/naming/Makefile.in
 cos/naming/ab_names.adb
+cos/naming/broca-naming_tools.adb
+cos/naming/broca-naming_tools.ads
 cos/naming/cosnaming-bindingiterator-impl.adb
 cos/naming/cosnaming-bindingiterator-impl.ads
 cos/naming/cosnaming-namingcontext-impl.adb
@@ -74,8 +76,6 @@ cos/naming/file-impl.adb
 cos/naming/file-impl.ads
 cos/naming/menu.adb
 cos/naming/menu.ads
-cos/naming/naming_tools.adb
-cos/naming/naming_tools.ads
 cos/naming/test_naming.adb
 cos/time/Makefile.am
 cos/time/Makefile.in
@@ -124,6 +124,16 @@ examples/calculator/longseq.ads
 examples/calculator/server.adb
 examples/calculator/simple_server.adb
 examples/calculator/stringseq.ads
+examples/echo/Makefile.am
+examples/echo/Makefile.in
+examples/echo/client.adb
+examples/echo/delegated_server.adb
+examples/echo/delegated_server.ads
+examples/echo/dynclient.adb
+examples/echo/echo.idl
+examples/echo/echo-impl.adb
+examples/echo/echo-impl.ads
+examples/echo/server.adb
 examples/generic/genericserver.adb
 examples/generic/genericserver.ads
 examples/generic/header.txt

@@ -34,9 +34,11 @@
 with CORBA.AbstractBase;
 with CORBA.Impl;
 with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
+pragma Elaborate (Sequences.Unbounded);
 
 package CORBA.ContextList is
+
+   pragma Elaborate_Body;
 
    type Ref is new CORBA.AbstractBase.Ref with null record;
    Nil_Ref : constant Ref;

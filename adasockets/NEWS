@@ -1,5 +1,33 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.10
+
+** New package Sockets.Stream_IO
+
+A new package Sockets.Stream_IO allows the user to build a stream from an
+existing socket. The stream can then be used as any other Ada stream.
+Two new examples, stream_listener and stream_sender are provided to
+demonstrate this feature.
+
+** New procedure Receive_Some.
+
+A new Receive_Some procedure, suggested by Laurent Guerby, allows the user
+to get the first data available instead of waiting for the buffer to be
+filled.
+
+** Allow adasockets-config to be called with no parameter.
+
+This has been suggested by Preben Randhol, and simplifies the gnatmake
+command line whenever someone uses no library but adasockets.
+
+* New in AdaSockets 0.1.9
+
+** Add a new function Get_FD.
+
+A new function Get_FD has been added in the Sockets package to let GtkAda users
+add this descriptor to the list of descriptors to watch. Patch sent by
+Bobby D. Bryant <bdbryant@mail.utexas.edu>.
+
 * New in AdaSockets 0.1.8
 
 ** Change the building process

@@ -35,7 +35,7 @@ with Ada.Finalization;
 
 with CORBA;
 
-with Broca.Opaque;
+with Broca.Opaque;    use Broca.Opaque;
 with Broca.Buffers;
 with Broca.Sequences;
 
@@ -79,6 +79,9 @@ package Broca.IOP is
    Tag_Internet_IOP        : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
 
+   type Profile_Priority is new Integer range 0 .. Integer'Last;
+   --  Profile_Priority'First means "unsupported profile type"
+
    type Profile_Type is abstract
      new Ada.Finalization.Limited_Controlled
      with private;
@@ -100,6 +103,11 @@ package Broca.IOP is
       return Profile_Tag is abstract;
    --  Return standard protocol profile tag.
 
+   function Get_Profile_Priority
+     (Profile : in Profile_Type)
+     return Profile_Priority is abstract;
+   pragma Inline (Get_Profile_Priority);
+
    procedure Marshall_Profile_Body
      (Buffer  : access Buffers.Buffer_Type;
       Profile : Profile_Type) is abstract;
@@ -114,54 +122,20 @@ package Broca.IOP is
 
    type Profile_Ptr is access all Profile_Type'Class;
 
-   procedure Marshall_Tagged_Profile
-     (Buffer : access Buffers.Buffer_Type;
-      Profile : Profile_Type'Class);
-   --  Marshall a TaggedProfile into Buffer.
-
-   function Unmarshall_Tagged_Profile
-     (Buffer : access Buffers.Buffer_Type)
-     return Profile_Ptr;
-   --  Unmarshall a TaggedProfile from Buffer.
-   --  The Profile_Type designated by the returned
-   --  Profile_Ptr is dynamically allocated; it is up
-   --  to the caller to release the associated storage
-   --  when the profile is not needed anymore.
-
    type Profile_Ptr_Array is
      array (CORBA.Unsigned_Long range <>) of Profile_Ptr;
 
    type Profile_Ptr_Array_Ptr is access Profile_Ptr_Array;
-
-   -----------------------
-   -- Object References --
-   -----------------------
-
-   procedure Encapsulate_IOR
-     (Buffer   : access Buffers.Buffer_Type;
-      Type_Id  : in CORBA.String;
-      Profiles : in Profile_Ptr_Array_Ptr);
-
-   procedure Decapsulate_IOR
-     (Buffer   : access Buffers.Buffer_Type;
-      Type_Id  : out CORBA.String;
-      Profiles : out Profile_Ptr_Array_Ptr);
 
    type Unmarshall_Profile_Body_Type is
      access function
      (Buffer  : access Buffers.Buffer_Type)
      return Profile_Ptr;
 
-   procedure Register
-     (Tag                     : in Profile_Tag;
-      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
-   --  Register Unmarshall_Profile_Body as the function used
-   --  to unmarshall a Tagged Profile Body corresponding to Tag.
-
-   --  procedure Unegister
-   --    (Tag : in Profile_Tag);
-   --  Remove any registered unmarshalling function associated
-   --  with Tag.
+   procedure Find_Best_Profile
+     (Profiles : in Profile_Ptr_Array_Ptr;
+      Used_Profile_Index : out CORBA.Unsigned_Long;
+      Is_Supported_Profile : out Boolean);
 
 private
 

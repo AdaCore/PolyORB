@@ -182,10 +182,6 @@ package PortableServer is
       Is_A       : in Servant_Class_Predicate;
       Dispatcher : in GIOP_Dispatcher);
 
-   procedure Unregister_Skeleton
-     (Type_Id    : in CORBA.RepositoryId);
-
-
    --  Calling ForwardRequest does not increase the usage counter of
    --  REFERENCE.  As a result, the user must ensure not to release
    --  REFERENCE while the exception is processed.

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with CORBA;             use CORBA;
 
 with GNAT.HTable;
@@ -42,6 +44,9 @@ with Broca.Opaque;
 with Broca.Soft_Links;  use Broca.Soft_Links;
 with Broca.Buffers.IO_Operations;
 with Broca.IOP;         use Broca.IOP;
+with Broca.Profiles;    use Broca.Profiles;
+pragma Elaborate_All (Broca.Profiles);
+
 with Broca.Sequences;   use Broca.Sequences;
 with Broca.Sockets;
 
@@ -85,7 +90,9 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type);
 
-   function Image (Profile : access Profile_IIOP_Type) return String;
+   function Image
+     (Profile : access Profile_IIOP_1_0_Type'Class)
+      return String;
    --  For debugging purpose ...
 
    function Unmarshall_IIOP_Profile_Body
@@ -156,7 +163,7 @@ package body Broca.IIOP is
    ---------------------
 
    function Find_Connection
-     (Profile : access Profile_IIOP_Type)
+     (Profile : access Profile_IIOP_1_0_Type)
      return Connection_Ptr
    is
       use Interfaces.C;
@@ -264,7 +271,7 @@ package body Broca.IIOP is
    --------------------
 
    function Get_Object_Key
-     (Profile : Profile_IIOP_Type)
+     (Profile : Profile_IIOP_1_0_Type)
      return Broca.Sequences.Octet_Sequence is
    begin
       return Profile.ObjKey;
@@ -275,11 +282,36 @@ package body Broca.IIOP is
    ---------------------
 
    function Get_Profile_Tag
-     (Profile : Profile_IIOP_Type)
+     (Profile : Profile_IIOP_1_0_Type)
      return Profile_Tag is
    begin
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
+
+   procedure Finalization
+     (Profile : in out Profile_IIOP_1_1_Type)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Tagged_Component_Type, Tagged_Component_Access);
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Tagged_Component_Array, Tagged_Components_Ptr);
+   begin
+      for I in Profile.Components'Range loop
+         Free (Profile.Components (I));
+      end loop;
+      Free (Profile.Components);
+   end Finalization;
+
+   --------------------------
+   -- Get_Profile_Priority --
+   --------------------------
+
+   function Get_Profile_Priority
+     (Profile : in Profile_IIOP_1_0_Type)
+     return Profile_Priority is
+   begin
+      return IIOP_1_0_Profile_Priority;
+   end Get_Profile_Priority;
 
    -----------------
    -- Hash_Strand --
@@ -296,7 +328,9 @@ package body Broca.IIOP is
    --  Image --
    ------------
 
-   function Image (Profile : access Profile_IIOP_Type) return String is
+   function Image
+     (Profile : access Profile_IIOP_1_0_Type'Class)
+      return String is
    begin
       return To_Standard_String (Profile.Host) & Profile.Port'Img & " <...>";
    end Image;
@@ -307,7 +341,7 @@ package body Broca.IIOP is
 
    procedure Marshall_Profile_Body
      (Buffer  : access Buffers.Buffer_Type;
-      Profile : Profile_IIOP_Type)
+      Profile : Profile_IIOP_1_0_Type)
    is
       use Broca.CDR;
 
@@ -340,7 +374,6 @@ package body Broca.IIOP is
      return Profile_Ptr
    is
       Version : Version_Type;
-      Length  : CORBA.Long;
 
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : aliased Buffer_Type;
@@ -348,7 +381,8 @@ package body Broca.IIOP is
       Host   : CORBA.String;
       Port   : CORBA.Unsigned_Short;
       ObjKey : Broca.Sequences.Octet_Sequence;
-      Result : Profile_IIOP_Access;
+      Result : Profile_Ptr;
+      Tagged_Components : Tagged_Components_Ptr;
 
    begin
       pragma Debug (O ("Unmarshall_IIOP_Profile_Body : enter"));
@@ -357,38 +391,112 @@ package body Broca.IIOP is
       Version.Major := Unmarshall (Profile_Buffer'Access);
       Version.Minor := Unmarshall (Profile_Buffer'Access);
 
-      if Version.Major /= IIOP_Version.Major
-        or else Version.Minor > IIOP_Version.Minor
-      then
-         pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
-                          & "Invalid IIOP version number"));
-         --  null;
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
+      case Version.Major is
+         when 1 =>
+            Host   := Unmarshall (Profile_Buffer'Access);
+            Port   := Unmarshall (Profile_Buffer'Access);
+            ObjKey := Unmarshall (Profile_Buffer'Access);
+            case Version.Minor is
+               when 0 =>
+                  declare
+                     R : Profile_IIOP_1_0_Access
+                       := new Profile_IIOP_1_0_Type;
+                  begin
+                     R.Version := Version;
+                     R.Host    := Host;
+                     R.Port    := Port;
+                     R.ObjKey  := ObjKey;
 
-      Host   := Unmarshall (Profile_Buffer'Access);
-      Port   := Unmarshall (Profile_Buffer'Access);
-      ObjKey := Unmarshall (Profile_Buffer'Access);
+                     pragma Debug
+                       (O ("Created profile: " & Image (R)));
 
-      if Version.Minor = 1 then
-         Length := Unmarshall (Profile_Buffer'Access);
-         if Length /= 0 then
-            --  FIXME: Multiple components are not yet handled.
-            Broca.Exceptions.Raise_Bad_Param;
-         end if;
-      end if;
+                     Result := Profile_Ptr (R);
+                  end;
+               when 1 =>
+                  Tagged_Components := Broca.Profiles.Unmarshall
+                    (Profile_Buffer'Access);
+                  declare
+                     R : Profile_IIOP_1_1_Access
+                       := new Profile_IIOP_1_1_Type;
+                  begin
+                     R.Version := Version;
+                     R.Host    := Host;
+                     R.Port    := Port;
+                     R.ObjKey  := ObjKey;
+                     R.Components := Tagged_Components;
 
-      Result := new Profile_IIOP_Type;
+                     pragma Debug
+                       (O ("Created profile: " & Image (R)));
 
-      Result.Version := Version;
-      Result.Host    := Host;
-      Result.Port    := Port;
-      Result.ObjKey  := ObjKey;
+                     Result := Profile_Ptr (R);
+                  end;
+               when others =>
+                  declare
+                     R : Unknown_Profile_Access := new Unknown_Profile_Type;
+                  begin
+                     R.Tag := Tag_Internet_IOP;
+                     R.Data := new Encapsulation'(Profile_Body);
 
-      pragma Debug (O ("Created profile: " & Image (Result)));
+                     pragma Debug
+                       (O ("Created internet profile of unknown type"));
 
-      return Profile_Ptr (Result);
+                     Result := Profile_Ptr (R);
+                  end;
+            end case;
+         when others =>
+--          pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
+--                           & "Invalid IIOP version number"));
+            declare
+               R : Unknown_Profile_Access := new Unknown_Profile_Type;
+            begin
+               R.Tag := Tag_Internet_IOP;
+               R.Data := new Encapsulation'(Profile_Body);
+
+               pragma Debug
+                 (O ("Created internet profile of unknown type"));
+
+               Result := Profile_Ptr (R);
+            end;
+      end case;
+
+      return Result;
    end Unmarshall_IIOP_Profile_Body;
+
+   --------------
+   -- IIOP 1,1 --
+   --------------
+
+   function Get_Profile_Priority
+     (Profile : in Profile_IIOP_1_1_Type)
+     return Profile_Priority is
+   begin
+      return IIOP_1_1_Profile_Priority;
+   end Get_Profile_Priority;
+
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_1_1_Type)
+   is
+      use Broca.CDR;
+      Profile_Body : Buffer_Access := new Buffer_Type;
+   begin
+      --  A TAG_INTERNET_IOP Profile Body is an encapsulation.
+      Start_Encapsulation (Profile_Body);
+
+      --  Version
+      Marshall (Profile_Body, IIOP_Version.Major);
+      Marshall (Profile_Body, IIOP_Version.Minor);
+
+      Marshall (Profile_Body, Profile.Host);
+      Marshall (Profile_Body, Profile.Port);
+      Marshall (Profile_Body, Profile.ObjKey);
+
+      Marshall (Profile_Body, Profile.Components.all);
+
+      --  Marshall the Profile_Body into Buffer.
+      Marshall (Buffer, Encapsulate (Profile_Body));
+      Release (Profile_Body);
+   end Marshall_Profile_Body;
 
    --------------------------
    -- Port_To_Network_Port --
@@ -484,7 +592,7 @@ package body Broca.IIOP is
 
 begin
 
-   Broca.IOP.Register
+   Broca.Profiles.Register
      (Tag_Internet_IOP,
       Unmarshall_IIOP_Profile_Body'Access);
 
