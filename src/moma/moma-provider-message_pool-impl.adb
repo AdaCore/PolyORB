@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ P O O L . I M P L                --
+--      M O M A . P R O V I D E R . M E S S A G E _ P O O L . I M P L       --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -33,13 +33,60 @@
 --  $Id$
 
 with MOMA.Types;
+with MOMA.Provider.Message_Pool.Warehouse;
+with PolyORB.Log;
 
-package MOMA.Message_Pool.Impl is
+package body MOMA.Provider.Message_Pool.Impl is
+
+   use MOMA.Types;
+   use MOMA.Provider.Message_Pool.Warehouse;
+   use PolyORB.Log;
+
+   package L is new
+     PolyORB.Log.Facility_Log ("moma.provider.message_pool.impl");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   W : MOMA.Provider.Message_Pool.Warehouse.Warehouse;
+   --  XXX up to now, we use one and only one Warehouse,
+   --  more warehouse would require message analysis,
+   --  => to be done later, after proper message definition
+
+   Message_Id : Natural := 0;
+   --  Dummy counter for message_id, to be trashed ...
+
+   -------------
+   -- Publish --
+   -------------
 
    function Publish (Message : in MOMA.Types.String)
-                     return MOMA.Types.String;
+                     return MOMA.Types.String is
+      Temp : constant String := Integer'Image (Message_Id);
+      Key  : constant String := "M" & Temp (2 .. Temp'Last);
+      --  Dummy Key construction, should be analyzed from message
+   begin
+      pragma Debug (O ("Got new message " & To_Standard_String (Message)
+                       & " with Key " & Key));
+
+      Ensure_Initialization (W);
+
+      Message_Id := Message_Id + 1;
+
+      Register (W, Key, Message);
+
+      return To_MOMA_String (Key);
+   end Publish;
+
+   ---------
+   -- Get --
+   ---------
 
    function Get (Message_Id : in MOMA.Types.String)
-                 return MOMA.Types.String;
+                 return MOMA.Types.String is
+   begin
+      pragma Debug (O ("Sending back message "
+                       & To_Standard_String (Message_Id)));
+      return Lookup (W, To_Standard_String (Message_Id));
+   end Get;
 
-end MOMA.Message_Pool.Impl;
+end MOMA.Provider.Message_Pool.Impl;

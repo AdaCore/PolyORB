@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    M O M A . M E S S A G E _ P O O L                     --
+--           M O M A . P R O V I D E R . M E S S A G E _ P O O L            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,7 +36,7 @@ with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
 
-package MOMA.Message_Pool is
+package MOMA.Provider.Message_Pool is
 
    type Object is new PolyORB.Minimal_Servant.Servant with null record;
 
@@ -50,4 +50,4 @@ package MOMA.Message_Pool is
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
 
-end MOMA.Message_Pool;
+end MOMA.Provider.Message_Pool;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ P O O L . I M P L                --
+--                  MOMA.PROVIDER.MESSAGE_POOL.WAREHOUSE                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,62 +30,64 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A dynamic, protected  dictionnary of objects, indexed by Strings.
+
 --  $Id$
 
+--  generic
+
+--  type Value is private;
+--  No_Value : Value;
+
 with MOMA.Types;
-with MOMA.Message_Pool.Warehouse;
-with PolyORB.Log;
+with PolyORB.Utils.HTables.Perfect;
+with PolyORB.Locks;
 
-package body MOMA.Message_Pool.Impl is
+package MOMA.Provider.Message_Pool.Warehouse is
 
-   use MOMA.Types;
-   use MOMA.Message_Pool.Warehouse;
-   use PolyORB.Log;
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect (MOMA.Types.String);
 
-   package L is new PolyORB.Log.Facility_Log ("moma.message_pool.impl");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
+   use Perfect_Htable;
 
-   W : MOMA.Message_Pool.Warehouse.Warehouse;
-   --  XXX up to now, we use one and only one Warehouse,
-   --  more warehouse would require message analysis,
-   --  => to be done later, after proper message definition
+   type Warehouse is record
+      T : Table_Instance;
+      T_Initialized : Boolean := False;
+      T_Lock : PolyORB.Locks.Rw_Lock_Access;
+   end record;
 
-   Message_Id : Natural := 0;
-   --  Dummy counter for message_id, to be trashed ...
+   Key_Not_Found : exception;
 
-   -------------
-   -- Publish --
-   -------------
+   procedure Ensure_Initialization (W : in out Warehouse);
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that T was initialized
 
-   function Publish (Message : in MOMA.Types.String)
-                     return MOMA.Types.String is
-      Temp : constant String := Integer'Image (Message_Id);
-      Key  : constant String := "M" & Temp (2 .. Temp'Last);
-      --  Dummy Key construction, should be analyzed from message
-   begin
-      pragma Debug (O ("Got new message " & To_Standard_String (Message)
-                       & " with Key " & Key));
+   procedure Register
+     (W : Warehouse;
+      K : String;
+      V : MOMA.Types.String);
+   --  Associate key K with value V.
 
-      Ensure_Initialization (W);
+   procedure Unregister
+     (W : Warehouse;
+      K : String);
+   --  Remove any association for K. Key_Not_Found is raised
+   --  if no value was registered for this key.
 
-      Message_Id := Message_Id + 1;
+   function Lookup
+      (W : Warehouse;
+       K : String)
+     return MOMA.Types.String;
+   --  Lookup K in the dictionary, and return the associated value.
+   --  Key_Not_Found is raised if no value was registered for this
+   --  key.
 
-      Register (W, Key, Message);
+   function Lookup
+     (W : Warehouse;
+      K : String;
+      Default : MOMA.Types.String)
+     return MOMA.Types.String;
+   --  As above, but Default is returned for non-registered keys,
+   --  insted of raising an exception.
 
-      return To_MOMA_String (Key);
-   end Publish;
-
-   ---------
-   -- Get --
-   ---------
-
-   function Get (Message_Id : in MOMA.Types.String)
-                 return MOMA.Types.String is
-   begin
-      pragma Debug (O ("Sending back message "
-                       & To_Standard_String (Message_Id)));
-      return Lookup (W, To_Standard_String (Message_Id));
-   end Get;
-
-end MOMA.Message_Pool.Impl;
+end MOMA.Provider.Message_Pool.Warehouse;

@@ -51,14 +51,14 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with PolyORB.MOMA_P.Tools;
 
-with MOMA.Message_Pool;
+with MOMA.Provider.Message_Pool;
 
 procedure Server is
 
    use PolyORB.MOMA_P.Tools;
 
-   MOMA_Obj : constant MOMA.Message_Pool.Object_Acc
-     := new MOMA.Message_Pool.Object;
+   MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
+     := new MOMA.Provider.Message_Pool.Object;
 
    MOMA_Ref : PolyORB.References.Ref;
 
@@ -67,7 +67,7 @@ begin
    --  Register the Object to the ORB
 
    Initiate_Servant (MOMA_Obj,
-                     MOMA.Message_Pool.If_Desc,
+                     MOMA.Provider.Message_Pool.If_Desc,
                      MOMA_Ref);
 
    Put_Line (PolyORB.Types.To_Standard_String

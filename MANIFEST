@@ -488,12 +488,6 @@ src/moma/moma-message_consumers-topics.adb
 src/moma/moma-message_consumers-topics.ads
 src/moma/moma-message_consumers.adb
 src/moma/moma-message_consumers.ads
-src/moma/moma-message_pool-impl.adb
-src/moma/moma-message_pool-impl.ads
-src/moma/moma-message_pool-warehouse.adb
-src/moma/moma-message_pool-warehouse.ads
-src/moma/moma-message_pool.adb
-src/moma/moma-message_pool.ads
 src/moma/moma-message_producers-queues.adb
 src/moma/moma-message_producers-queues.ads
 src/moma/moma-message_producers-topics.adb
@@ -515,6 +509,12 @@ src/moma/moma-provider-message_consumer-impl.adb
 src/moma/moma-provider-message_consumer-impl.ads
 src/moma/moma-provider-message_consumer.adb
 src/moma/moma-provider-message_consumer.ads
+src/moma/moma-provider-message_pool-impl.adb
+src/moma/moma-provider-message_pool-impl.ads
+src/moma/moma-provider-message_pool-warehouse.adb
+src/moma/moma-provider-message_pool-warehouse.ads
+src/moma/moma-provider-message_pool.adb
+src/moma/moma-provider-message_pool.ads
 src/moma/moma-provider-message_producer-impl.adb
 src/moma/moma-provider-message_producer-impl.ads
 src/moma/moma-provider-message_producer.adb

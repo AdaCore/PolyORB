@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . D Y N A M I C _ D I C T                  --
+--      M O M A . P R O V I D E R . M E S S A G E _ P O O L . I M P L       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,64 +30,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected  dictionnary of objects, indexed by Strings.
-
 --  $Id$
 
---  generic
-
---  type Value is private;
---  No_Value : Value;
-
 with MOMA.Types;
-with PolyORB.Utils.HTables.Perfect;
-with PolyORB.Locks;
 
-package MOMA.Message_Pool.Warehouse is
+package MOMA.Provider.Message_Pool.Impl is
 
-   package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (MOMA.Types.String);
+   function Publish (Message : in MOMA.Types.String)
+                     return MOMA.Types.String;
 
-   use Perfect_Htable;
+   function Get (Message_Id : in MOMA.Types.String)
+                 return MOMA.Types.String;
 
-   type Warehouse is record
-      T : Table_Instance;
-      T_Initialized : Boolean := False;
-      T_Lock : PolyORB.Locks.Rw_Lock_Access;
-   end record;
-
-   Key_Not_Found : exception;
-
-   procedure Ensure_Initialization (W : in out Warehouse);
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that T was initialized
-
-   procedure Register
-     (W : Warehouse;
-      K : String;
-      V : MOMA.Types.String);
-   --  Associate key K with value V.
-
-   procedure Unregister
-     (W : Warehouse;
-      K : String);
-   --  Remove any association for K. Key_Not_Found is raised
-   --  if no value was registered for this key.
-
-   function Lookup
-      (W : Warehouse;
-       K : String)
-     return MOMA.Types.String;
-   --  Lookup K in the dictionary, and return the associated value.
-   --  Key_Not_Found is raised if no value was registered for this
-   --  key.
-
-   function Lookup
-     (W : Warehouse;
-      K : String;
-      Default : MOMA.Types.String)
-     return MOMA.Types.String;
-   --  As above, but Default is returned for non-registered keys,
-   --  insted of raising an exception.
-
-end MOMA.Message_Pool.Warehouse;
+end MOMA.Provider.Message_Pool.Impl;

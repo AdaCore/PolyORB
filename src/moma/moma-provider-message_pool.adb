@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    M O M A . M E S S A G E _ P O O L                     --
+--           M O M A . P R O V I D E R . M E S S A G E _ P O O L            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -38,9 +38,9 @@ with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
 
-with MOMA.Message_Pool.Impl;
+with MOMA.Provider.Message_Pool.Impl;
 
-package body MOMA.Message_Pool is
+package body MOMA.Provider.Message_Pool is
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -48,7 +48,7 @@ package body MOMA.Message_Pool is
    use PolyORB.Types;
    use PolyORB.Requests;
 
-   package L is new PolyORB.Log.Facility_Log ("moma.message_pool");
+   package L is new PolyORB.Log.Facility_Log ("moma.provider.message_pool");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -90,7 +90,7 @@ package body MOMA.Message_Pool is
                         (Args_Sequence.all, 1).Argument);
          begin
             Req.Result.Argument := To_Any
-              (MOMA.Message_Pool.Impl.Publish (Publish_Arg));
+              (MOMA.Provider.Message_Pool.Impl.Publish (Publish_Arg));
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
 
@@ -113,7 +113,7 @@ package body MOMA.Message_Pool is
                         (Args_Sequence.all, 1).Argument);
          begin
             Req.Result.Argument := To_Any
-              (MOMA.Message_Pool.Impl.Get (Get_Arg));
+              (MOMA.Provider.Message_Pool.Impl.Get (Get_Arg));
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
 
@@ -193,4 +193,4 @@ package body MOMA.Message_Pool is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
-end MOMA.Message_Pool;
+end MOMA.Provider.Message_Pool;

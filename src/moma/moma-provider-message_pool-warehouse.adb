@@ -37,7 +37,7 @@
 with PolyORB.Utils.HTables.Perfect;
 with PolyORB.Locks;
 
-package body MOMA.Message_Pool.Warehouse is
+package body MOMA.Provider.Message_Pool.Warehouse is
 
    use PolyORB.Locks;
 
@@ -139,4 +139,4 @@ package body MOMA.Message_Pool.Warehouse is
       when No_Key => raise Key_Not_Found;
    end Unregister;
 
-end MOMA.Message_Pool.Warehouse;
+end MOMA.Provider.Message_Pool.Warehouse;
