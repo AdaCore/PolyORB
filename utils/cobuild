@@ -9,19 +9,31 @@
 ###################################################
 
 usage () {
-  echo "Usage: $0 -m EMAIL_ADDRESS -i SOURCE_DIR -o OUTPUT_DIR -p PROJECT -r [cvs | p4] [ -c CHANGELIST ]"
+  echo "Usage: $0 -m EMAIL_ADDRESS -i SOURCE_DIR -o OUTPUT_DIR -p PROJECT -r [cvs | p4 | none] [ -c CHANGELIST ]"
   echo "  A notification e-mail will be sent to EMAIL_ADDRESS"
   echo "  Source code is in SOURCE_DIR"
   echo "  A symlink tree is made in OUTPUT_DIR/src"
   echo "  Build is done in OUTPUT_DIR/build"
   echo "  Install is done in OUTPUT_DIR/install"
-  echo " "
+  echo ""
   echo "  PROJECT is the name of the project to be built"
-  echo "  cvs : retrieve PROJECT from CVS repository"
-  echo "  p4  : retrieve PROJECT from Perforce repository"
-  echo "    CHANGELIST indicates Perforce changelist to consider for building"
+  echo ""
+  echo "  Revision control options:"
+  echo "    cvs   checkout PROJECT from CVS repository"
+  echo "    p4    checkout PROJECT from Perforce repository"
+  echo "    none  use source directory as is, do not attempt to checkout"
+  echo ""
+  echo "  CHANGELIST indicates Perforce change number to use"
+  
   exit 1
 }
+
+###################################################
+# Set defaults
+###################################################
+
+MAILTO=root
+CM_REPOSITORY=none
 
 ###################################################
 # Parse commande line
@@ -46,7 +58,7 @@ do
       PROJECT=$OPTARG  
       ;;
     r)
-      USE_REPOSITORY=$OPTARG
+      CM_REPOSITORY=$OPTARG
       ;;
     *)
       usage
@@ -64,22 +76,37 @@ then
   usage
 fi
 
-: ${MAILTO:=root}
+case "$CM_REPOSITORY" in
+  p4|cvs|none)
+    ;;
+  *)
+    usage
+    ;;
+esac
 
 ###################################################
 # Setup environment
 ###################################################
 
-if [ "x$USE_REPOSITORY" = "xp4" ]
+if [ "x$CM_REPOSITORY" = "xp4" ]
 then
     P4CONFIG=.p4
     export P4CONFIG
 fi
 
+case ":$PATH:" in
+  *:/usr/local/bin:*)
+    ;;
+  *)
+    PATH=/usr/local/bin:$PATH
+    ;;
+esac
 TMPDIR=/var/tmp
 GNUMAKE=gmake
+LANG=C
 
-export MAILTO OUTPUT_DIR SOURCE_DIR TMPDIR GNUMAKE
+export MAILTO OUTPUT_DIR SOURCE_DIR TMPDIR GNUMAKE \
+  PATH LANG
 
 set -e
 umask 022
@@ -101,13 +128,29 @@ trap 'rm -f $PIDFILE.lock' 0
 
 cd $SOURCE_DIR
 
-if [ "x$USE_REPOSITORY" = "xp4" -a "x$CHANGELIST" = x ]
-then
-  CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
-fi
-export CHANGELIST
+case "$CM_REPOSITORY" in
+  p4)
+    if [ "$CHANGELIST" = "" ]; then
+      CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
+    fi
+    CM_TAG="$CHANGELIST"
+    ;;
+  cvs)
+    if [ "$CHANGELIST" = "" ]; then
+      CM_TAG="HEAD"
+    else
+      CM_TAG="ch_$CHANGELIST"
+    fi
+    ;;
+  none)
+    CM_TAG="current"
+    ;;
+esac
+export CHANGELIST CM_TAG
 
-# Kill any previous build.
+# Kill any previous build, unless we know for a fact
+# that the build in porgress is building this change
+# or a more recent one.
 
 if [ -f $PIDFILE ]
 then
@@ -116,12 +159,15 @@ then
   then
     # Build in progress.
 
-    [ -f "$CHGFILE" ] && OLDCHG=`cat "$CHGFILE"`
-    if [ "$OLDCHG" -ge "$CHANGELIST" ]
-    then
-      # Already building this changelist or a more recent one.
-      exit 0
+    if [ "$CHANGELIST" != "" && -f "$CHGFILE" ]; then
+      if [ "`cat $CHGFILE`" -ge "$CHANGELIST" ]
+      then
+        # Already building this changelist or a more recent one.
+        exit 0
+      fi
     fi
+
+    # Interrupt current build
     kill $OLDPID > /dev/null 2>&1 || true
   fi
 fi
@@ -132,32 +178,30 @@ exec > $LOGFILE 2>&1
 
 # Prepare execution.
 
-echo "---------- Starting build of ${PROJECT} ch. ${CHANGELIST}: `date`"
-echo "---------- Syncing"
+echo "---------- Starting build of ${PROJECT} at `date`"
+echo "---------- Syncing from repository $CM_REPOSITORY at $CM_TAG"
 
 ###################################################
 # Update files
 ###################################################
 
-if [ "x$USE_REPOSITORY" = "xp4" ]
-then
-echo "Syncing from Perforce repository"
-#p4 sync "#none"
-#rm -fr $SOURCE_DIR/*
-p4 sync @$CHANGELIST
-fi
-
-if [ "x$USE_REPOSITORY" = "xcvs" ]
-then
-echo "Syncing from CVS repository"
-cvs update -d -C
+case "$CM_REPOSITORY" in
+  p4)
+    p4 sync @$CM_TAG
+    ;;
+  cvs)
+    cvs update -d -C -r$CM_TAG
+    ;;
+  *)
+    echo "Using currently directory as is"
+    ;;
 fi
 
 ###################################################
 # Launch build process
 ###################################################
 
-/usr/local/bin/rungroup /bin/sh -c '(
+rungroup /bin/sh -c '(
   set -e
   sleep 10
 
@@ -207,7 +251,9 @@ fi
 
 THISPID=$!
 echo $THISPID > $PIDFILE
-echo $CHANGELIST > $CHGFILE
+if [ "$CHANGELIST" != "" ]; then
+  echo $CHANGELIST > $CHGFILE
+fi
 
 ###################################################
 # Analyze build output
@@ -240,9 +286,9 @@ fi
 
 if $SUCCESS
 then
-  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGELIST $STATUS" $MAILTO
+  echo -e "$MSG" | Mail -s "${PROJECT} build $CM_REPOSITORY $CM_TAG $STATUS" $MAILTO
 else
-  cat $OUTPUT_DIR/build.log | Mail -s "${PROJECT} BUILD $CHANGELIST FAILED" $MAILTO
+  cat $OUTPUT_DIR/build.log | Mail -s "${PROJECT} BUILD $CM_REPOSITORY $CM_TAG FAILED" $MAILTO
 fi
 
 lockfile $PIDFILE.lock
