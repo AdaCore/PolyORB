@@ -1,17 +1,30 @@
 #!/bin/sh
 # @configure_input@
 
-prefix=@prefix@
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+includedir="@includedir@"
+libdir="@libdir@"
 appli="@APPLI_LIST@"
 proto="@PROTO_LIST@"
 services="@SERVICE_LIST@"
 
-polyorb_dir="@XMLADA_INCS@ -I${prefix}/lib/polyorb"
-polyorb_lib="@XMLADA_LIBS@ -L${prefix}/lib"
+polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
+polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
 
-for P in $appli $proto
+for P in $appli
 do
- polyorb_dir="$polyorb_dir -I${prefix}/lib/polyorb-${P}"
+ polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+done
+
+for P in $proto
+do
+ if [ "x$P" = "xgiop" ]
+ then
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/giop -I${includedir}/polyorb/giop/iiop -I${includedir}/polyorb/giop/diop -I${includedir}/polyorb/giop/miop"
+ else
+   polyorb_dir="$polyorb_dir -I${includedir}/polyorb/${P}"
+ fi
 done
 
 MAJOR=@POLYORB_MAJOR_VERSION@
