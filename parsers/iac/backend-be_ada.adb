@@ -102,7 +102,7 @@ package body Backend.BE_Ada is
 
          Function_Id :=
            Mk_Node_Ada_Identifier
-           ("Get_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
+           ("get_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
          Append_Node_To_List
            (Mk_Node_Ada_Function_Spec
             (Function_Id, Argument_List, Return_Type), L);
@@ -156,7 +156,7 @@ package body Backend.BE_Ada is
 
          Procedure_Id :=
            Mk_Node_Ada_Identifier
-           ("Set_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
+           ("set_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
          Append_Node_To_List
            (Mk_Node_Ada_Procedure_Spec
             (Procedure_Id, Argument_List), L);
@@ -274,8 +274,12 @@ package body Backend.BE_Ada is
             Set_Str_To_Name_Buffer (Image (Kind (E)));
             Node := Node_Id (Get_Name_Table_Info (Name_Find));
 
+         when K_Scoped_Name =>
+            Node := Ada_Node (Reference (E));
          when others =>
-            DE ("Type Mapping not implemented yet");
+            Set_Str_To_Name_Buffer (Image (Kind (E)));
+            Error_Name (1) := Name_Find;
+            DE ("Type Mapping not implemented yet: %");
       end case;
       return Node;
    end Get_Mapped_Type;
@@ -437,7 +441,9 @@ package body Backend.BE_Ada is
                   Ada_Public_List := Visite_Type_Declaration (N);
                   Append_List_To_List (Ada_Public_List, Public_Decl);
                when others =>
-                  DE ("Visit_Interface : Fonctionnalite pas encore imp!");
+                  Set_Str_To_Name_Buffer (Image (Kind (N)));
+                  Error_Name (1) := Name_Find;
+                  DE ("Visit_Interface : Pas encore implemente! %");
             end case;
             N := Next_Node (N);
          end loop;
@@ -466,6 +472,15 @@ package body Backend.BE_Ada is
         Mk_Node_Ada_Identifier (IDL_Name (Identifier (E)));
       Return_Type_Node := Get_Mapped_Type (Type_Spec (E));
       L := Parameters (E);
+      --   Argument Identifier
+      Param_Id := Mk_Node_Ada_Identifier ("Self");
+      --   Argument Type
+      Param_Type := Mk_Node_Ada_Identifier ("Ref");
+      --   Argument Mode
+      Param_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
+      Ada_Argument := Mk_Node_Ada_Argument (Param_Id, Param_Type, Param_Mode);
+      --   Argument List
+      Append_Node_To_List (Ada_Argument, Ada_Argument_List);
       if L /= No_List then
          N := First_Node (L);
          while Present (N) loop
@@ -553,13 +568,26 @@ package body Backend.BE_Ada is
    function Visite_Type_Declaration (E : Node_Id) return List_Id is
       Type_Spec_Node : Node_Id;
       Declarators_List : List_Id;  --    := Declarators (E);
-      pragma Unreferenced (Declarators_List);
+      D : Node_Id;
+      Result_List : List_Id := No_List; -- Ada Type Definition List
+      Ada_Type_Declaration : Node_Id;
    begin
 
       Type_Spec_Node := Get_Mapped_Type (Type_Spec (E));
-      W_Node_Id (Type_Spec_Node);
-
-      return No_List;
+      Declarators_List := Declarators (E);
+      D := First_Node (Declarators_List);
+      while Present (D) loop
+         Ada_Type_Declaration :=
+           Mk_Node_Simple_Derived_Type_Def
+           (Mk_Node_Ada_Identifier
+            (IDL_Name (Identifier (D))), Type_Spec_Node);
+         Set_Ada_Node (D, Ada_Type_Declaration);
+         --   Link Idl node  with Ada node.
+         Append_Node_To_List
+           (Ada_Type_Declaration, Result_List);
+         D := Next_Node (D);
+      end loop;
+      return Result_List;
    end Visite_Type_Declaration;
 
 end Backend.BE_Ada;

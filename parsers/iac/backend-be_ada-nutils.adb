@@ -284,6 +284,24 @@ package body Backend.BE_Ada.Nutils is
       return No_Node;
    end Mk_Node_Ada_Procedure;
 
+   --------------------------------------
+   -- Mk_Node_Simple_Derived_Type_Def  --
+   --------------------------------------
+   function Mk_Node_Simple_Derived_Type_Def
+     (Identifier_Node : Node_Id; Type_Spec_Node : Node_Id) return Node_Id is
+
+      Node : Node_Id;
+      Nested_Node : Node_Id;
+   begin
+      Node := New_Node (K_Type_Declaration, No_Location);
+      Nested_Node := New_Node (K_Derived_Type_Definition, No_Location);
+      Set_Identifier (Nested_Node, Type_Spec_Node);
+      Set_Is_Abstract (Nested_Node, False);
+      Set_Identifier (Node, Identifier_Node);
+      Set_Type_Spec (Node, Nested_Node);
+      return Node;
+   end Mk_Node_Simple_Derived_Type_Def;
+
 
 
 end Backend.BE_Ada.Nutils;

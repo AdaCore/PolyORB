@@ -64,6 +64,8 @@ package Backend.BE_Ada.Nutils is
    function Mk_Node_Ada_Procedure
      (Proc_Spec : Node_Id; Decl : List_Id;
                            Proc_Body : List_Id) return Node_Id;
+   function Mk_Node_Simple_Derived_Type_Def
+     (Identifier_Node : Node_Id; Type_Spec_Node : Node_Id) return Node_Id;
 
 
 

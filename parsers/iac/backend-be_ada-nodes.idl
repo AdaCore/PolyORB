@@ -107,6 +107,7 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Parent;
     Node_Id    Package_Spec;
     Node_Id    Package_Body;
+    Node_Id    IDL_Node; 
   };
 
 

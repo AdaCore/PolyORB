@@ -63,12 +63,15 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Function_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
+      N_Small_Indents := 1;
       Write_Function_Spec_Header (E);
       Arg_List := Argument_List (E);
       if Arg_List /= No_List then
+         W_Small_Indents;
          Generate_Argument_List (Arg_List);
       end if;
-      Write_Str (" return ");
+      W_Small_Indents;
+      Write_Str ("return ");
       Generate_Type_Spec (Type_Spec (E));
       Write_Line (";");
    end Generate_Ada_Function_Spec;
@@ -79,9 +82,11 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Procedure_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
+      N_Small_Indents := 1;
       Write_Procedure_Spec_Header (E);
       Arg_List := Argument_List (E);
       if Arg_List /= No_List then
+         W_Small_Indents;
          Generate_Argument_List (Arg_List);
       end if;
       Write_Line (";");
@@ -99,7 +104,7 @@ package body Backend.BE_Ada.FILES_Generation is
       Arg_Mode := Argument_Mode (E);
       case Arg_Mode is
          when Lexer.Token_Type'Pos (Lexer.T_In) =>
-            null;
+            Write_Str ("in ");
          when Lexer.Token_Type'Pos (Lexer.T_Out) =>
             Write_Str ("out ");
          when Lexer.Token_Type'Pos (Lexer.T_Inout) =>
@@ -119,6 +124,7 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Argument_List (L : List_Id) is
       N : Node_Id;
    begin
+      N_Small_Indents := N_Small_Indents + 1;
       N := First_Node (L);
       Write_Str ("(");
       while Present (N) loop
@@ -126,9 +132,11 @@ package body Backend.BE_Ada.FILES_Generation is
          N := Next_Node (N);
          if Present (N) then
             Write_Str ("; ");
+            W_Small_Indents;
          end if;
       end loop;
       Write_Str (")");
+      N_Small_Indents := N_Small_Indents - 1;
    end Generate_Argument_List;
 
 
@@ -183,7 +191,7 @@ package body Backend.BE_Ada.FILES_Generation is
       if Is_Abstract (E) then
          Write_Str ("abstract ");
       end if;
-      Write_Str (Get_Name_String (Name (Identifier (E))));
+      Generate_Type_Spec (Identifier (E));
       Record_Extenstion_Node := Record_Extention_Part (E);
       if Record_Extenstion_Node /= No_Node then
          Write_Str (" with ");
@@ -260,6 +268,18 @@ package body Backend.BE_Ada.FILES_Generation is
       null;
    end Generate_Package_With;
 
+   -------------------------------
+   -- Generate Record Type Spec --
+   -------------------------------
+   procedure Generate_Record_Type_Spec (E : Node_Id) is
+   begin
+      if Is_Null_Record (E) then
+         Write_Str ("null record");
+      else
+         null; --   In progress...
+      end if;
+   end Generate_Record_Type_Spec;
+
 
    ----------------------------------
    --   Generate Type Declaration  --
@@ -292,6 +312,8 @@ package body Backend.BE_Ada.FILES_Generation is
             Generate_Derived_Type (E);
          when K_Ada_Identifier =>
             Write_Str (Get_Name_String (Name (E)));
+         when K_Type_Declaration =>
+            Write_Str (Get_Name_String (Name (Identifier (E))));
          when others =>
             Set_Str_To_Name_Buffer (Image (Kind (E)));
             Error_Name (1) := Name_Find;
@@ -300,17 +322,6 @@ package body Backend.BE_Ada.FILES_Generation is
       pragma Warnings (on);
    end Generate_Type_Spec;
 
-   -------------------------------
-   -- Generate Record Type Spec --
-   -------------------------------
-   procedure Generate_Record_Type_Spec (E : Node_Id) is
-   begin
-      if Is_Null_Record (E) then
-         Write_Str ("null record");
-      else
-         null; --   In progress...
-      end if;
-   end Generate_Record_Type_Spec;
 
    --------------------------------
    --  Write_Package_Spec_Header --

@@ -228,6 +228,19 @@ package body Backend.BE_Ada.Debug is
       W_Node (N);
    end W_Node_Id;
 
+
+   procedure W_Small_Indents is
+   begin
+      Write_Eol;
+      W_Indents;
+      if N_Small_Indents >= 1 then
+         Write_Str ("  ");
+      end if;
+      for I in 2 .. N_Small_Indents loop
+         Write_Str (" ");
+      end loop;
+   end W_Small_Indents;
+
    ---------
    -- wni --
    ---------

@@ -1,0 +1,46 @@
+Ada Backend Architecture : 
+
+The Backend Ada is divided in two parts: 
+1- Ada Tree Generation. 
+2- Source code generation.  
+ 
+Backend.BE_Ada 
+
+   "Backend-be_ada" is the package  responsible of generating  the
+   Ada tree from the Idl tree.    
+   procedure Generate (E : Node_Id) : this procedure generate
+   the Ada Tree. Then following the flags passed to the
+   backend-ada-config it may produce the Ada source code, or dump the
+   Ada tree or something else not implemented yet. (We can imagine a
+   flag for optimizing performance, and another for optimizing memory
+   footprint...).    
+
+   1-1 Ada-Tree Generation 
+   Generate use Visitor Functions. Visitor_XXX stand for
+   visit the XXX Idl node. The  returned value of this functions is
+   either Node_Id or List_Id, it's related with the context of each Idl
+   structure in the idl tree(See 'be-adatree-design.txt'). 
+   The result of all this Visitors functions is elements of the 
+   ADA_Package_List. which is a list of all the generated packages.
+
+   1-2 Source code Generation: 
+   The source code generation is realized by calling the
+   Backend_BE_Ada.Files.Generation.Generate (L); (L : the List of
+   Ada packages).
+   This Procedure use Generate_XXX (stand for Generate the
+   corresponding XXX node source).             
+
+
+   
+
+Ada Backend Configuration : 
+   The most disadvantage in the Idlac compiler, is that Idlac is not
+   flexible. 
+   It's easy to implement several alternative algorithm for the
+   marshalling and unmarshalling code generation. Each solution gives
+   a performance and memory footprint trade of, and to choose the
+   appropriate solution, by activating the correct flags. 
+   And so for the demultiplexing algorithms.
+   ** No algorithms for parameters marshalling and unmarshalling are
+   implemented yet...   
+-- To be continued.    
