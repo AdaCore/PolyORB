@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#3 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#4 $
 
 with System;
 --  For bit-order information.
@@ -241,16 +241,22 @@ package PolyORB.Buffers is
    --  Retrieving data from a buffer
 
    procedure Extract_Data
-     (Buffer : access Buffer_Type;
-      Data   : out Opaque_Pointer;
-      Size   : Stream_Element_Count);
-   --  Retrieve Size elements from Buffer.
+     (Buffer      : access Buffer_Type;
+      Data        : out Opaque_Pointer;
+      Size        : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0);
+   --  Retrieve Size elements from Buffer. If Use_Current,
+   --  the extraction starts at the current position in the
+   --  buffer, else it starts at At_Position.
+
    --  On return, Data contains an access to the retrieved
-   --  Data, and the CDR current position is advanced by Size.
+   --  Data, and if Use_Current, then the CDR current position
+   --  is advanced by Size.
 
    function CDR_Position (Buffer : access Buffer_Type)
      return Stream_Element_Offset;
-   --  return the current CDR position of the buffer
+   --  Return the current CDR position of the buffer
    --  in the marshalling stream.
 
    ---------------------------------------

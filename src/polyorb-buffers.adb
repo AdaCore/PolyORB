@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#3 $
+--  $Id: //droopi/main/src/polyorb-buffers.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -333,20 +333,27 @@ package body PolyORB.Buffers is
    procedure Extract_Data
      (Buffer : access Buffer_Type;
       Data   : out Opaque_Pointer;
-      Size   : Stream_Element_Count) is
+      Size   : Stream_Element_Count;
+      Use_Current : Boolean := True;
+      At_Position : Stream_Element_Offset := 0)
+   is
+      Start_Position : Stream_Element_Offset;
    begin
+      if Use_Current then
+         Start_Position := Buffer.CDR_Position;
+      end if;
       Extract_Data
-        (Buffer.Contents,
-         Data,
-         Buffer.CDR_Position - Buffer.Initial_CDR_Position,
-         Size);
-      Buffer.CDR_Position := Buffer.CDR_Position + Size;
+        (Buffer.Contents, Data,
+         Start_Position - Buffer.Initial_CDR_Position, Size);
+      if Use_Current then
+         Buffer.CDR_Position := Buffer.CDR_Position + Size;
+      end if;
    end Extract_Data;
-
 
    function CDR_Position
      (Buffer : access Buffer_Type)
-     return Stream_Element_Offset is
+     return Stream_Element_Offset
+   is
    begin
       return Buffer.CDR_Position;
    end CDR_Position;
@@ -357,7 +364,8 @@ package body PolyORB.Buffers is
 
    procedure Send_Buffer
      (Buffer : access Buffer_Type;
-      Socket : Sockets.Socket_Type) is
+      Socket : Sockets.Socket_Type)
+   is
    begin
       Iovec_Pools.Write_To_Socket (Socket, Buffer.Contents'Access);
    end Send_Buffer;
