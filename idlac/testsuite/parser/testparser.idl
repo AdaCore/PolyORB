@@ -295,3 +295,9 @@ boolean op14 () context ("0error");
 boolean op15 () context ("eréror");
 boolean op16 () context ("err*or");
 boolean op17 () context ("erroré");
+
+/* Test of eval_or_expr */
+const integer c1 = TRUE | 2;
+const integer c2 = 2 | true;
+const integer c3 = 3 | -5;
+const integer c4 = 10000000 | -5;

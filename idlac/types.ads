@@ -105,29 +105,30 @@ package Types is
    type Const_Kind is
      (C_Short,
       C_Long,
-      C_Long_Long,
-      C_Unsigned_Short,
-      C_Unsigned_Long,
-      C_Unsigned_Long_Long,
+      C_LongLong,
+      C_UShort,
+      C_ULong,
+      C_ULongLong,
       C_Char,
-      C_Wide_Char,
+      C_WChar,
       C_Boolean,
       C_Float,
       C_Double,
-      C_Long_Double,
+      C_LongDouble,
       C_Fixed,
       C_String,
-      C_Wide_String,
+      C_WString,
       C_Octet,
-      C_Enum,
-      C_No_Type);
+      C_Enum);
 
    --  type of a constant
+   type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
+   type Idl_Fixed_Scale is new Long_Long_Integer range 0 .. 31;
    type Const_Type (Kind : Const_Kind) is record
       case Kind is
          when C_Fixed =>
-            Digits_Nb : Long_Long_Integer range 0 .. 31;
-            Scale : Long_Long_Integer range 0 .. 31;
+            Digits_Nb : Idl_Fixed_Digits_Nb;
+            Scale : Idl_Fixed_Scale;
          when others =>
             null;
       end case;

@@ -64,7 +64,8 @@ package body Disp is
                           Full : Boolean;
                           Op : String) is
    begin
-      Put_Line ("binary operator " & Op);
+      Put_Line ("binary operator " & Op & ", value = ");
+--                Long_Long_Integer'Image (N.Value.all));
       Disp_Indent (Indent, "left:");
       Disp_Tree (N.Left.all, Indent, Full);
       Disp_Indent (Indent, "right:");

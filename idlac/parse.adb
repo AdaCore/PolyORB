@@ -229,12 +229,10 @@ package body Parse is
    --  Add_Used_Value  --
    ----------------------
    function Add_Used_Value (C : N_Expr_Acc) return Boolean is
-      Val : Value_Ptr;
       Old_Used : Set_Ptr := null;
       Used : Set_Ptr := Used_Values;
    begin
-      Val := Eval (C);
-      while Used /= null and then Used.Interval.Max < Val loop
+      while Used /= null and then Used.Interval.Max < C.Value loop
          Old_Used := Used;
          Used := Used.Next;
       end loop;
@@ -242,11 +240,11 @@ package body Parse is
          if Old_Used = null then
             Used_Values := new Set;
             Used_Values.Next := null;
-            Used_Values.Interval := (Min => Val, Max => Val);
+            Used_Values.Interval := (Min => C.Value, Max => C.Value);
          else
-            if Is_Prec (Used.Interval.Max, Val) then
+            if Is_Prec (Used.Interval.Max, C.Value) then
                if Used.Next /= null
-                 and then Is_Prec (Val, Used.Next.Interval.Min) then
+                 and then Is_Prec (C.Value, Used.Next.Interval.Min) then
                   --  merge the intervals
                   declare
                      Old_Used : Set_Ptr := Used.Next;
@@ -257,31 +255,31 @@ package body Parse is
                   end;
                else
                   --  only change the upper bound of the interval
-                  Used.Interval.Max := Val;
+                  Used.Interval.Max := C.Value;
                end if;
             else
                Old_Used.Next := new Set;
                Old_Used.Next.all.Next := null;
-               Old_Used.Next.all.Interval := (Min => Val, Max => Val);
+               Old_Used.Next.all.Interval := (Min => C.Value, Max => C.Value);
             end if;
          end if;
       else
-         if Used.Interval.Min > Val then
-            if Is_Prec (Val, Used.Interval.Min) then
+         if Used.Interval.Min > C.Value then
+            if Is_Prec (C.Value, Used.Interval.Min) then
                if Old_Used /= null
-                 and then Is_Prec (Old_Used.Interval.Max, Val) then
+                 and then Is_Prec (Old_Used.Interval.Max, C.Value) then
                   --  merge the intervals
                   Old_Used.Interval.Max := Used.Interval.Max;
                   Old_Used.Next := Used.Next;
                   Free (Used);
                else
                   --  only change the lower bound of the interval
-                  Used.Interval.Min := Val;
+                  Used.Interval.Min := C.Value;
                end if;
             else
                Old_Used.Next := new Set;
                Old_Used.Next.all.Next := Used;
-               Old_Used.Next.all.Interval := (Min => Val, Max => Val);
+               Old_Used.Next.all.Interval := (Min => C.Value, Max => C.Value);
             end if;
          else
             return False;
@@ -302,15 +300,6 @@ package body Parse is
          Free (Old_Used_Values);
       end loop;
    end Release_All_Used_Values;
-
-   ------------
-   --  Eval  --
-   ------------
-   function Eval (C : N_Expr_Acc) return Value_Ptr is
-   begin
-      raise Errors.Internal_Error;
-      return null;
-   end Eval;
 
 
    --------------------------
@@ -2111,20 +2100,19 @@ package body Parse is
    procedure Parse_Const_Exp (Result : out N_Expr_Acc;
                               Constant_Type : in N_Root_Acc;
                               Success : out Boolean) is
-      Value_Type : Const_Type_Ptr;
       Loc : Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Or_Expr (Result, Value_Type, Success);
+      Parse_Or_Expr (Result, Success);
       --  check compatibility between the constant expression
       --  and its supposed type
       case Get_Kind (Constant_Type.all) is
          when K_Short =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short =>
                   null;
-               when C_Unsigned_Short =>
-                  if Result.Value.all > Long_Long_Integer (Idl_Short'Last) then
+               when C_UShort =>
+                  if Short_Value_Ptr (Result.Value).Value > Idl_Short'Last then
                      Errors.Parser_Error ("constraint error : this value is " &
                                           "not in range of type short but " &
                                           "unsigned short.",
@@ -2136,19 +2124,19 @@ package body Parse is
                                        "not in range of type short but long.",
                                        Errors.Error,
                                        Loc);
-               when C_Long_Long =>
+               when C_LongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type short but " &
                                        "long long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Long =>
+               when C_ULong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type short but " &
                                        "unsigned long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Long_Long =>
+               when C_ULongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type short but " &
                                        "unsigned long long.",
@@ -2161,26 +2149,26 @@ package body Parse is
                                        Loc);
             end case;
          when K_Long =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short
-                 | C_Unsigned_Short
+                 | C_UShort
                  | C_Long =>
                   null;
-               when C_Unsigned_Long =>
-                  if Result.Value.all > Long_Long_Integer (Idl_Long'Last) then
+               when C_ULong =>
+                  if Long_Value_Ptr (Result.Value).Value > Idl_Long'Last then
                      Errors.Parser_Error ("constraint error : this value is " &
                                           "not in range of type long but " &
                                           "unsigned long.",
                                           Errors.Error,
                                           Loc);
                   end if;
-               when C_Long_Long =>
+               when C_LongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type long but " &
                                        "long long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Long_Long =>
+               when C_ULongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type long but " &
                                        "unsigned long long.",
@@ -2193,16 +2181,16 @@ package body Parse is
                                        Loc);
             end case;
          when K_Long_Long =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short
-                 | C_Unsigned_Short
+                 | C_UShort
                  | C_Long
-                 | C_Unsigned_Long
-                 | C_Long_Long =>
+                 | C_ULong
+                 | C_LongLong =>
                   null;
-               when C_Unsigned_Long_Long =>
-                  if Result.Value.all >
-                    Long_Long_Integer (Idl_LongLong'Last) then
+               when C_ULongLong =>
+                  if LongLong_Value_Ptr (Result.Value).Value >
+                    Idl_LongLong'Last then
                      Errors.Parser_Error ("constraint error : this value is " &
                                           "not in range of type long long " &
                                           "but unsigned long long.",
@@ -2216,7 +2204,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Unsigned_Short =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned short " &
@@ -2229,21 +2217,21 @@ package body Parse is
                                        "but long.",
                                        Errors.Error,
                                        Loc);
-               when C_Long_Long =>
+               when C_LongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned short " &
                                        "but long long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Short =>
+               when C_UShort =>
                   null;
-               when C_Unsigned_Long =>
+               when C_ULong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned short " &
                                        "but unsigned long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Long_Long =>
+               when C_ULongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned short " &
                                        "but unsigned long long.",
@@ -2256,7 +2244,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Unsigned_Long =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned long " &
@@ -2270,16 +2258,16 @@ package body Parse is
                                        "but long.",
                                        Errors.Error,
                                        Loc);
-               when C_Long_Long =>
+               when C_LongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned long " &
                                        "but long long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Short
-                 | C_Unsigned_Long =>
+               when C_UShort
+                 | C_ULong =>
                   null;
-               when C_Unsigned_Long_Long =>
+               when C_ULongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned long " &
                                        "but unsigned long long.",
@@ -2292,7 +2280,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Unsigned_Long_Long =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Short =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned long " &
@@ -2306,15 +2294,15 @@ package body Parse is
                                        "long but long.",
                                        Errors.Error,
                                        Loc);
-               when C_Long_Long =>
+               when C_LongLong =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type unsigned long " &
                                        "long but long long.",
                                        Errors.Error,
                                        Loc);
-               when C_Unsigned_Short
-                 | C_Unsigned_Long
-                 | C_Unsigned_Long_Long =>
+               when C_UShort
+                 | C_ULong
+                 | C_ULongLong =>
                   null;
                when others =>
                   Errors.Parser_Error ("constraint error : this value is " &
@@ -2323,10 +2311,10 @@ package body Parse is
                                        Loc);
             end case;
          when K_Char =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Char =>
                   null;
-               when C_Wide_Char =>
+               when C_WChar =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not of type char but wide_char.",
                                        Errors.Error,
@@ -2338,8 +2326,8 @@ package body Parse is
                                        Loc);
             end case;
          when K_Wide_Char =>
-            case Value_Type.Kind is
-               when C_Wide_Char =>
+            case Result.Value.Const_Type.Kind is
+               when C_WChar =>
                   null;
                when C_Char =>
                   Errors.Parser_Error ("constraint error : this value is " &
@@ -2353,7 +2341,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Boolean =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Boolean =>
                   null;
                when others =>
@@ -2363,7 +2351,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Float =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Float =>
                   null;
                when C_Double =>
@@ -2372,7 +2360,7 @@ package body Parse is
                                        "but double.",
                                        Errors.Error,
                                        Loc);
-               when C_Long_Double =>
+               when C_LongDouble =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type float " &
                                        "but long double.",
@@ -2385,11 +2373,11 @@ package body Parse is
                                        Loc);
             end case;
          when K_Double =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Float
                  | C_Double =>
                   null;
-               when C_Long_Double =>
+               when C_LongDouble =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not in range of type double " &
                                        "but long double.",
@@ -2402,10 +2390,10 @@ package body Parse is
                                        Loc);
             end case;
          when K_Long_Double =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Float
                  | C_Double
-                 | C_Long_Double =>
+                 | C_LongDouble =>
                   null;
                when others =>
                   Errors.Parser_Error ("constraint error : this value is " &
@@ -2414,30 +2402,32 @@ package body Parse is
                                        Loc);
             end case;
          when K_Fixed =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Fixed =>
-                  declare
-                     Sc_Node : Long_Long_Integer
-                       renames N_Fixed_Acc (Constant_Type).Scale.Value.all;
-                     Sc_Exp : Long_Long_Integer
-                       renames Value_Type.Scale;
-                     Dg_Node : Long_Long_Integer
-                       renames  N_Fixed_Acc
-                       (Constant_Type).Digits_Nb.Value.all;
-                     Dg_Exp : Long_Long_Integer
-                       renames Value_Type.Digits_Nb;
-                  begin
-                     if Sc_Node > Sc_Exp
-                       and then Dg_Node > Dg_Exp + (Sc_Node - Sc_Exp) then
-                        null;
-                     else
-                        Errors.Parser_Error ("constraint error : this value " &
-                                             "is more precise than the " &
-                                             "declared type",
-                                             Errors.Error,
-                                             Loc);
-                     end if;
-                  end;
+                  null;  --  FIXME
+--                   declare
+--                      Dg_Node : Idl_Short
+--                        renames Short_Value_Ptr (N_Fixed_Acc (Constant_Type)
+--                                                  .Scale.Value).Value;
+--                      Dg_Exp : Idl_Fixed_Digits_Nb;
+--                        renames Result.Value.Const_Type.Digits_Nb;
+--                      Sc_Node : Idl_Short
+--                        renames Short_Value_Ptr (N_Fixed_Acc (Constant_Type)
+--                                                  .Digits_Nb.Value).Value;
+--                      Sc_Exp : Idl_Fixed_Scale;
+--                        renames Result.Value.Const_Type.Scale;
+--                   begin
+--                      if Sc_Node > Sc_Exp
+--                        and then Dg_Node > Dg_Exp + (Sc_Node - Sc_Exp) then
+--                         null;
+--                      else
+--                      Errors.Parser_Error ("constraint error : this value " &
+--                                              "is more precise than the " &
+--                                              "declared type",
+--                                              Errors.Error,
+--                                              Loc);
+--                      end if;
+--                   end;
                when others =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not a fixed point number.",
@@ -2445,10 +2435,10 @@ package body Parse is
                                        Loc);
             end case;
          when K_String =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_String =>
                   null;
-               when C_Wide_String =>
+               when C_WString =>
                   Errors.Parser_Error ("constraint error : this value is " &
                                        "not of type string but wide_string.",
                                        Errors.Error,
@@ -2460,8 +2450,8 @@ package body Parse is
                                        Loc);
             end case;
          when K_Wide_String =>
-            case Value_Type.Kind is
-               when C_Wide_String =>
+            case Result.Value.Const_Type.Kind is
+               when C_WString =>
                   null;
                when C_String =>
                   Errors.Parser_Error ("constraint error : this value is " &
@@ -2475,7 +2465,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Octet =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Octet =>
                   null;
                when others =>
@@ -2485,7 +2475,7 @@ package body Parse is
                                        Loc);
             end case;
          when K_Enum =>
-            case Value_Type.Kind is
+            case Result.Value.Const_Type.Kind is
                when C_Enum =>
                   null;
                when others =>
@@ -2497,37 +2487,35 @@ package body Parse is
          when others =>
             raise Errors.Internal_Error;
       end case;
-      Free (Value_Type);
    end Parse_Const_Exp;
 
    --------------------
    --  Parse_Or_Exp  --
    --------------------
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Constant_Type : out Const_Type_Ptr;
                             Success : out Boolean) is
       Xor_Exp : N_Expr_Acc;
       Loc : Errors.Location;
    begin
       Loc := Get_Token_Location;
-      Parse_Xor_Expr (Xor_Exp, Constant_Type, Success);
+      Parse_Xor_Expr (Xor_Exp, Success);
       if not Success then
          return;
       end if;
       if Get_Token = T_Bar then
          declare
-            Constant_Type2 : Const_Type_Ptr;
             Res : N_Or_Expr_Acc;
          begin
             Next_Token;
             Res := new N_Or_Expr;
             Set_Location (Result.all, Loc);
             Res.Left := N_Expr_Acc (Xor_Exp);
-            Parse_Or_Expr (Res.Right, Constant_Type2, Success);
+            Parse_Or_Expr (Res.Right, Success);
             if Success then
-               Constant_Type :=
-                 Check_Const_Type (Constant_Type,
-                                   Constant_Type2);
+               Eval_Or_Expr (Res.Left.Value,
+                             Res.Right.Value,
+                             Res.Value,
+                             Loc);
             end if;
             Result := N_Expr_Acc (Res);
          end;
@@ -2541,11 +2529,9 @@ package body Parse is
    --  Parse_Xor_Exp  --
    ---------------------
    procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
-                             Constant_Type : out Types.Const_Type_Ptr;
                              Success : out Boolean) is
    begin
       Result := null;
-      Constant_Type := null;
       Success := False;
    end Parse_Xor_Expr;
 
@@ -4610,14 +4596,15 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Digits_Nb, Success);
-      if Result.Digits_Nb.Value.all < 0
-        or Result.Digits_Nb.Value.all > 31 then
-         Errors.Parser_Error ("invalid number of digits in fixed point " &
-                              "type definition : it should be in range " &
-                              "0 .. 31.",
-                              Errors.Error,
-                              Get_Token_Location);
-      end if;
+      --  FIXME
+--       if Result.Digits_Nb.Value.all < 0
+--         or Result.Digits_Nb.Value.all > 31 then
+--          Errors.Parser_Error ("invalid number of digits in fixed point " &
+--                               "type definition : it should be in range " &
+--                               "0 .. 31.",
+--                               Errors.Error,
+--                               Get_Token_Location);
+--       end if;
       if not Success then
          return;
       end if;
@@ -4630,18 +4617,19 @@ package body Parse is
       end if;
       Next_Token;
       Parse_Positive_Int_Const (Result.Scale, Success);
-      if Result.Scale.Value.all < 0 then
-         Errors.Parser_Error ("invalid scale factor in fixed point " &
-                              "type definition : it may not be negative.",
-                              Errors.Error,
-                              Get_Token_Location);
-      elsif Result.Digits_Nb.Value.all >= Result.Scale.Value.all then
-         Errors.Parser_Error ("invalid scale factor in fixed point " &
-                              "type definition : it should not exceed" &
-                              "the number of digits.",
-                              Errors.Error,
-                              Get_Token_Location);
-      end if;
+      --  FIXME
+--       if Result.Scale.Value.all < 0 then
+--          Errors.Parser_Error ("invalid scale factor in fixed point " &
+--                               "type definition : it may not be negative.",
+--                               Errors.Error,
+--                               Get_Token_Location);
+--       elsif Result.Digits_Nb.Value.all >= Result.Scale.Value.all then
+--          Errors.Parser_Error ("invalid scale factor in fixed point " &
+--                               "type definition : it should not exceed" &
+--                               "the number of digits.",
+--                               Errors.Error,
+--                               Get_Token_Location);
+--       end if;
       if not Success then
          return;
       end if;
@@ -5026,15 +5014,238 @@ package body Parse is
       end if;
    end Check_Context_String;
 
-   ------------------------
-   --  Check_Const_Type  --
-   ------------------------
-   function Check_Const_Type (First : in Types.Const_Type_Ptr;
-                              Second : in Types.Const_Type_Ptr)
-                              return Types.Const_Type_Ptr is
+
+   ---------------------------------
+   --  evaluation of expressions  --
+   ---------------------------------
+   --------------------
+   --  Eval_Or_Expr  --
+   --------------------
+   procedure Eval_Or_Expr (Left : in Value_Ptr;
+                           Right : in Value_Ptr;
+                           Result : out Value_Ptr;
+                           Loc : in Errors.Location) is
    begin
-      return null;
-   end Check_Const_Type;
+      if Left = null or Right = null then
+         Result := null;
+         return;
+      end if;
+      case Left.Const_Type.Kind is
+         when C_Short
+           | C_UShort
+           | C_Long
+           | C_ULong
+           | C_LongLong
+           | C_ULongLong =>
+            null;
+         when others =>
+            Errors.Parser_Error ("invalid type in the left term of this " &
+                                 "expression. Or expression is only " &
+                                 "applicable to integer expressions.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            return;
+      end case;
+      case Right.Const_Type.Kind is
+         when C_Short
+           | C_UShort
+           | C_Long
+           | C_ULong
+           | C_LongLong
+           | C_ULongLong =>
+            null;
+         when others =>
+            Errors.Parser_Error ("invalid type in the right term of this " &
+                                 "expression. Or expression is only " &
+                                 "applicable to integer expressions.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            return;
+      end case;
+--       case Right.Const_Type.Kind is
+--          when C_Short =>
+--             case Left.Const_Type.Kind is
+--                when C_Short =>
+--                   Result := new Short_Value;
+--                   Result.Const_Type := new Const_Type'(Kind => C_Short);
+--                   Short_Value_Ptr (Result).Value :=
+--                     Short_Value_Ptr (Right).Value or
+--                     Short_Value_Ptr (Left).Value;
+--                when C_UShort =>
+--                   if UShort_Value_Ptr (Left).Value <=
+--                     Idl_UShort (Idl_Short'Last) then
+--                      Result := new Short_Value;
+--                      Result.Const_Type := new Const_Type'(Kind => C_Short);
+--                      Short_Value_Ptr (Result).Value :=
+--                        Short_Value_Ptr (Right).Value or
+--                        Short_Value_Ptr (Left).Value;
+--                   else
+--                      Result = null;
+--                   end if;
+--                when C_Long =>
+--                   Res_T := new Const_Type (Kind => C_Long);
+--                when C_LongLong =>
+--                   Res_T := new Const_Type (Kind => C_LongLong);
+--                when C_ULong
+--                   | C_ULongLong =>
+--                   Res_T := new Const_Type (Kind => C_No_Type);
+--                when others =>
+--                   raise Errors.Internal_Error;
+--             end case;
+--          when C_UShort =>
+--             case Left.Const_Type is
+--                when C_Short
+--                  | C_Long
+--                  | C_LongLong =>
+--                   Res_T := new Const_Type (Kind => C_No_Type);
+--                when C_UShort =>
+--                   Res_T := new Const_Type (Kind => C_UShort);
+--                when C_ULong =>
+--                   Res_T := new Const_Type (Kind => C_ULong);
+--                when C_ULongLong =>
+--                   Res_T := new Const_Type (Kind => C_ULongLong);
+--                when others =>
+--                   raise Errors.Internal_Error;
+--             end case;
+--          when C_Long =>
+--             case Left.Const_Type is
+--                when C_Short
+--                  | C_UShort
+--                  | C_Long =>
+--                   Res_T := new Const_Type (Kind => C_Long);
+--                when C_ULong =>
+--                   if Left.all <= LongLong_Integer (Idl_Long'Last) then
+--                      Res_T := new Const_Type (Kind => C_Long);
+--                   else
+--                      Res_T := new Const_Type (Kind => C_No_Type);
+--                   end if;
+--                when C_LongLong =>
+--                   Res_T := new Const_Type (Kind => C_LongLong);
+--                when C_ULongLong =>
+--                   Res_T := new Const_Type (Kind => C_No_Type);
+--                when others =>
+--                   raise Errors.Internal_Error;
+--             end case;
+--          when C_ULong =>
+--             case Left.Const_Type is
+--                when C_Short
+--                  | C_Long
+--                  | C_LongLong =>
+--                   Res_T := new Const_Type (Kind => C_No_Type);
+--                when C_UShort
+--                   | C_ULong =>
+--                   Res_T := new Const_Type (Kind => C_ULong);
+--                when C_ULongLong =>
+--                   Res_T := new Const_Type (Kind => C_ULongLong);
+--                when others =>
+--                   raise Errors.Internal_Error;
+--             end case;
+--          when C_LongLong =>
+--             case Left.Const_Type is
+--                when C_Short
+--                  | C_UShort
+--                  | C_Long
+--                  | C_ULong
+--                  | C_LongLong =>
+--                   Res_T := new Const_Type (Kind => C_LongLong);
+--                when C_ULongLong =>
+--                   if Left.all <= Long_Long_Integer (Idl_LongLong'Last) then
+--                      Res_T := new Const_Type (Kind => C_LongLong);
+--                   else
+--                      Res_T := new Const_Type (Kind => C_No_Type);
+--                   end if;
+--                when others =>
+--                   raise Errors.Internal_Error;
+--             end case;
+--          when others =>
+--             raise Errors.Internal_Error;
+--       end case;
+--       if Result = null then
+--          Errors.Parser_Error ("incompatible type between the two terms " &
+--                               "of this expression. Or expression is only " &
+--                               "applicable to integer expressions.",
+--                               Errors.Error,
+--                               Loc);
+--          return;
+--       end if;
+
+      Result := null;
+
+--       --  FIXME : return better type !!!
+--       Res := new Long_Long_Integer'(Left.all or Right.all);
+--       --  if overflow, change type
+--       case Res_T is
+--          when C_Short =>
+--             if Res.all > Long_Long_Integer (Idl_Short'Last) or
+--               Res.all < Long_Long_Integer (Idl_Short'First) then
+--                Res_T := C_Long;
+--             end if;
+--          when C_UShort =>
+--             if Res.all > Long_Long_Integer (Idl_UShort'Last) or
+--               Res.all < Long_Long_Integer (Idl_UShort'First) then
+--                Res_T := C_ULong;
+--             end if;
+--          when C_Long =>
+--             if Res.all > Long_Long_Integer (Idl_Long'Last) or
+--               Res.all < Long_Long_Integer (Idl_Long'First) then
+--                Res_T := C_LongLong;
+--             end if;
+--          when C_ULong =>
+--             if Res.all > Long_Long_Integer (Idl_ULong'Last) or
+--               Res.all < Long_Long_Integer (Idl_ULong'First) then
+--                Res_T := C_ULongLong;
+--             end if;
+--          when C_LongLong =>
+--             if Res.all > Long_Long_Integer (Idl_Long_Long'Last) or
+--               Res.all < Long_Long_Integer (Idl_Long_Long'First) then
+--                Errors.Parser_Error ("overflow : constant too large.",
+--                                     Errors.Error,
+--                                     Loc);
+--                Res_T := C_No_type;
+--             end if;
+--          when C_ULongLong =>
+--             if Res.all > Long_Long_Integer (Idl_ULongLong'Last) or
+--               Res.all < Long_Long_Integer (Idl_ULongLong'First) then
+--                Res_T := C_ULongLong;
+--             end if;
+--          when C_No_Type =>
+--             null;
+--          when others =>
+--             raise Errors.Internal_Error;
+--       end case;
+--       --  if positive, then use unsigned types
+--       case Res_T is
+--          when C_Short =>
+--             if Res.all > 0 then
+--                Res_T := C_UShort;
+--             end if;
+--          when C_Long =>
+--             if Res.all > 0 then
+--                Res_T := C_UShort;
+--             end if;
+--          when C_LongLong =>
+--             if Res.all > 0 then
+--                Res_T := C_UShort;
+--             end if;
+--          when C_ULong
+--            | C_UShort
+--            | C_ULongLong
+--            | C_No_Type =>
+--             null;
+--          when others =>
+--             raise Errors.Internal_Error;
+--       end case;
+   end Eval_Or_Expr;
+
+   ----------
+   --  or  --
+   ----------
+   function "or" (X, Y : Idl_Short) return Idl_Short is
+   begin
+      return X;
+   end "or";
 
    ------------------------------
    --  To resume after errors  --

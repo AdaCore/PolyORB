@@ -27,28 +27,95 @@ package Tree is
    --  Management of const values  --
    ----------------------------------
 
-   --  all possible values for an idl const
+   --  all possible types for an idl const
    type Idl_Short is new Long_Long_Integer range (-2 ** 15) .. (2 ** 15 - 1);
    type Idl_Long is new Long_Long_Integer range (-2 ** 31) .. (2 ** 31 - 1);
    type Idl_LongLong is new Long_Long_Integer range
      (-2 ** 63) .. (2 ** 63 - 1);
    type Idl_UShort is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
    type Idl_ULong is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
-   type Idl_ULonglong is new Long_Long_Integer range
+   type Idl_ULongLong is new Long_Long_Integer range
      (-2 ** 63) .. (2 ** 63 - 1);
    type Idl_Char is new Long_Long_Integer range 0 .. (2 ** 8 - 1);
-   type Idl_WideChar is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
+   type Idl_WChar is new Long_Long_Integer range 0 .. (2 ** 16 - 1);
    type Idl_Boolean is new Long_Long_Integer range 0 .. 1;
    type Idl_Enum is new Long_Long_Integer range 0 .. (2 ** 32 - 1);
-   type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
-   type Idl_Fixed_Scale is new Long_Long_Integer range 0 .. 31;
 
-   --  a pointer on an idl value
-   type Value_Ptr is access all Long_Long_Integer;
+   --  all possible values for an idl const
+   type Idl_Value is abstract tagged record
+      Const_Type : Types.Const_Type_Ptr;
+   end record;
+   type Short_Value is new Idl_Value with record
+     Value : Idl_Short;
+   end record;
+   type Long_Value is new Idl_Value with record
+     Value : Idl_Long;
+   end record;
+   type LongLong_Value is new Idl_Value with record
+     Value : Idl_LongLong;
+   end record;
+   type UShort_Value is new Idl_Value with record
+     Value : Idl_UShort;
+   end record;
+   type ULong_Value is new Idl_Value with record
+     Value : Idl_ULong;
+   end record;
+   type ULongLong_Value is new Idl_Value with record
+     Value : Idl_ULongLong;
+   end record;
+   type Char_Value is new Idl_Value with record
+     Value : Idl_Char;
+   end record;
+   type WChar_Value is new Idl_Value with record
+     Value : Idl_WChar;
+   end record;
+   type Boolean_Value is new Idl_Value with record
+     Value : Idl_Boolean;
+   end record;
+   type Enum_Value is new Idl_Value with record
+     Value : Idl_Enum;
+   end record;
+   type Fixed_Value is new Idl_Value with record
+      null;  --     Value : Idl_Short;
+   end record;
 
-   --  to deallocate a value_ptr
+   --  pointers on an idl values
+   type Value_Ptr is access all Idl_Value'Class;
+   type Short_Value_Ptr is access all Short_Value;
+   type Long_Value_Ptr is access all Long_Value;
+   type LongLong_Value_Ptr is access all LongLong_Value;
+   type UShort_Value_Ptr is access all UShort_Value;
+   type ULong_Value_Ptr is access all ULong_Value;
+   type ULongLong_Value_Ptr is access all ULongLong_Value;
+   type Char_Value_Ptr is access all Char_Value;
+   type WChar_Value_Ptr is access all WChar_Value;
+   type Boolean_Value_Ptr is access all Boolean_Value;
+   type Enum_Value_Ptr is access all Enum_Value;
+   type Fixed_Value_Ptr is access all Fixed_Value;
+
+   --  to deallocate pointers on values
    procedure Free is new Ada.Unchecked_Deallocation
-     (Long_Long_Integer, Value_Ptr);
+     (Short_Value, Short_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Long_Value, Long_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (LongLong_Value, LongLong_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (UShort_Value, UShort_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ULong_Value, ULong_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (ULongLong_Value, ULongLong_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Char_Value, Char_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (WChar_Value, WChar_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Boolean_Value, Boolean_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Enum_Value, Enum_Value_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Fixed_Value, Fixed_Value_Ptr);
 
    --  compare two value_ptr
    --  actually compare the real values pointed by these pointers

@@ -128,9 +128,6 @@ private
    --  Frees all the set of already used values
    procedure Release_All_Used_Values;
 
-   --  Evaluates the numeric value of an expression
-   function Eval (C : N_Expr_Acc) return Value_Ptr;
-
 
    --------------------------
    --  Parsing of the idl  --
@@ -393,7 +390,6 @@ private
    --  <or_expr> ::= <xor_expr>
    --            |   <xor_expr> "^" <or_expr>
    procedure Parse_Or_Expr (Result : out N_Expr_Acc;
-                            Constant_Type : out Types.Const_Type_Ptr;
                             Success : out Boolean);
 
    --  Rule 31
@@ -403,7 +399,6 @@ private
    --  <xor_expr> ::= <and_expr>
    --             |   <and_expr> "^" <xor_expr>
    procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
-                             Constant_Type : out Types.Const_Type_Ptr;
                              Success : out Boolean);
 
    --  Rule 41
@@ -759,6 +754,11 @@ private
    --  constraints.
    procedure Check_Context_String (S : in String);
 
+
+   ---------------------------------
+   --  evaluation of expressions  --
+   ---------------------------------
+
    --  CORBA V2.3 - 3.9.2
    --
    --  "An infix operator can combine two integer, floats
@@ -766,12 +766,22 @@ private
    --  "Infix operator are applicable only to integer, float
    --  and fixed types."
    --
-   --  this function raises an error if first and second are
-   --  not compatible and computes the type of the result. In case
-   --  of incompatibility, the type is C_No_Type
-   function Check_Const_Type (First : Types.Const_Type_Ptr;
-                              Second : Types.Const_Type_Ptr)
-                              return Types.Const_Type_Ptr;
+   --  all the functions in this section raise an error if the types
+   --  of each element are not compatible. It then computes the type
+   --  of the result. In case of incompatibility, the type is
+   --  C_No_Type
+   --
+   --  Beside that, when the type is ok, these functions compute
+   --  the value of the expression.
+
+   --  Or expression evaluation
+   procedure Eval_Or_Expr (Left : in Value_Ptr;
+                           Right : in Value_Ptr;
+                           Result : out Value_Ptr;
+                           Loc : in Errors.Location);
+
+   --  actual or functions for idl types
+   function "or" (X, Y : Idl_Short) return Idl_Short;
 
    ------------------------------
    --  To resume after errors  --
