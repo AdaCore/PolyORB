@@ -68,10 +68,12 @@ $(lib): $(ADA_OBJS)
 
 $(ADA_OBJS): allsrc
 
-allsrc: $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/sockets.ads
+allsrc: force $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/sockets.ads
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::
 	$(RM) *.o *.ali *~ *.c
 	$(RM) allsrc
 	$(RM) $(lib)
+
+force:
