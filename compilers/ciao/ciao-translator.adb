@@ -19,10 +19,10 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#6 $
 
 with Ada.Exceptions;
-with Ada.Wide_Text_Io;  use Ada.Wide_Text_Io;
+with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
 with Ada.Characters.Handling; use  Ada.Characters.Handling;
 
 with Asis.Clauses;
@@ -32,10 +32,10 @@ with Asis.Definitions;
 with Asis.Elements;
 with Asis.Expressions;
 with Asis.Iterator;
+pragma Elaborate_All (Asis.Iterator);
 with Asis.Text;
 
 with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
-with CIAO.Filenames;    use CIAO.Filenames;
 
 --  with CIAO.IDL_Tree;     use CIAO.IDL_Tree;
 --  with CIAO.IDL_Syntax;   use CIAO.IDL_Syntax;
@@ -80,9 +80,6 @@ package body CIAO.Translator is
 
       Line_Number_Wide_Image : Wide_String
         := Line_Number'Wide_Image (E_Span.First_Line);
-      Character_Position_Wide_Image : Wide_String
-        := Character_Position'Wide_Image
-        (E_Span.First_Column);
 
       E_Lines : Line_List :=
         Lines (Element    => Element,
@@ -92,12 +89,14 @@ package body CIAO.Translator is
       New_Line;
       New_Line;
       Put (Line_Number_Wide_Image);
-           -- (2 .. Line_Number_Wide_Image'Last));
+      --  (2 .. Line_Number_Wide_Image'Last));
       Put (". ");
       Put (Line_Image (E_Lines (E_Lines'First)));
       New_Line;
 
-      for I in 1 .. E_Span.First_Column + Line_Number_Wide_Image'Length + 1 loop
+      for I in 1 .. E_Span.First_Column
+        + Line_Number_Wide_Image'Length + 1
+      loop
          Put (' ');
       end loop;
 
@@ -105,25 +104,27 @@ package body CIAO.Translator is
       New_Line;
       Put (">>> ");
 
-      Ada.Exceptions.Raise_Exception (Translation_Error'Identity, Message);
+      Ada.Exceptions.Raise_Exception
+        (Translation_Error'Identity, Message);
    end Raise_Translation_Error;
 
-   ----------------------------------------------------------------------
-   -- Unit_Category                                                    --
-   -- Returns the category (Pure, RT, RCI or Other) of a library unit. --
-   ----------------------------------------------------------------------
+   function Unit_Category (LU : in Compilation_Unit)
+     return Unit_Categories;
+   --  Returns the category (Pure, RT, RCI or Other)
+   --  of a library unit.
 
    function Unit_Category (LU : in Compilation_Unit)
      return Unit_Categories is
       D : constant Declaration := Unit_Declaration (LU);
       K : constant Declaration_Kinds := Declaration_Kind (D);
    begin
-      -- Check that LU is a package specification
+      --  Check that LU is a package specification
       if K /= A_Package_Declaration then
-         Raise_Translation_Error (Nil_Element, "Unexpected unit declaration kind.");
+         Raise_Translation_Error
+           (Nil_Element, "Unexpected unit declaration kind.");
       end if;
 
-      -- Find the category of LU.
+      --  Find the category of LU.
       declare
          Unit_Pragmas : constant Pragma_Element_List := Pragmas (D);
       begin
@@ -265,10 +266,10 @@ package body CIAO.Translator is
               (Element, "Unexpected element.");
 
          when A_Pragma =>
-            -- XXX Ignore all pragmas for now. This is
-            -- probably wrong. At *least* a pragma
-            -- Asynchronous should be translated to a
-            -- semantic marker.
+            --  XXX Ignore all pragmas for now. This is
+            --  probably wrong. At *least* a pragma
+            --  Asynchronous should be translated to a
+            --  semantic marker.
             Control := Abandon_Children;
 
          when A_Defining_Name =>
@@ -303,10 +304,10 @@ package body CIAO.Translator is
 
             --  Process_Expression (Element, Control, State);
          when An_Association =>
-            -- XXX
+            --  XXX
             null;
          when A_Clause =>
-            -- XXX
+            --  XXX
             Control := Abandon_Children;
       end case;
    exception
@@ -370,18 +371,12 @@ package body CIAO.Translator is
       --  Post-condition: State.Current_Node is the <op_dcl> node
       --  and its name has not been set.
 
---       function Get_Constants_Interface (N : in Node_Id)
---         return Node_Id;
-      --  Returns the Node_Id of the <interface_dcl> node that
-      --  contains all constants exported by the module;
-      --  allocates it if it does not exist yet.
-
       procedure Process_Distributed_Object_Declaration
         (Element : in Asis.Element;
          Control : in out Traverse_Control;
          State   : in out Translator_State)
       is
-         Forward_Node : Node_Id;
+         --  Forward_Node : Node_Id;
          Success : Boolean;
       begin
 --          Forward_Node := New_Forward_Interface;
@@ -448,6 +443,7 @@ package body CIAO.Translator is
 
       begin
          Op_Node := Make_Operation (No_Location);
+         Set_Is_Oneway (Op_Node, False);
          Append_Node_To_Contents (State.Current_Node, Op_Node);
          Push_Scope (Op_Node);
 
@@ -479,37 +475,16 @@ package body CIAO.Translator is
          Pop_Scope;
       end Process_Operation_Declaration;
 
---       function Get_Constants_Interface (N : in Node_Id)
---         return Node_Id is
---          Interface_Node     : Node_Id;
---          Interface_Dcl_Node : Node_Id;
---       begin
---          Interface_Dcl_Node := Constants_Interface (N);
---          if No (Interface_Dcl_Node) then
---             Interface_Node := New_Interface;
---             Set_Parent (Interface_Node, State.Current_Node);
---             Add_Interface (State.Current_Node, Interface_Node);
-
---             Interface_Dcl_Node := Specific_Interface (Interface_Node);
-
---             Set_Constants_Interface (State.Current_Node, Interface_Dcl_Node);
---             Set_Name (Interface_Header (Interface_Dcl_Node),
---                       New_Name ("Constants"));
---          end if;
-
---          return Interface_Dcl_Node;
---       end Get_Constants_Interface;
-
    begin
 
       --  Process_Declaration
 
       case DK is
          when
-           An_Ordinary_Type_Declaration |                -- 3.2.1(3)
-           A_Subtype_Declaration        |                -- 3.2.2(2)
-           A_Task_Type_Declaration      |                -- 9.1(2)
-           A_Protected_Type_Declaration =>               -- 9.4(2)
+           An_Ordinary_Type_Declaration |                --  3.2.1(3)
+           A_Subtype_Declaration        |                --  3.2.2(2)
+           A_Task_Type_Declaration      |                --  9.1(2)
+           A_Protected_Type_Declaration =>               --  9.4(2)
             declare
                Type_Definition      : constant Asis.Definition
                  := Declarations.Type_Declaration_View (Element);
@@ -680,7 +655,7 @@ package body CIAO.Translator is
                --  Children were processed explicitly.
             end;
 
-         when An_Incomplete_Type_Declaration =>          -- 3.2.1(2), 3.10(2)
+         when An_Incomplete_Type_Declaration =>          --  3.2.1(2), 3.10(2)
             --  An incomplete_type_declaration is translated
             --  when completed. The only place where the name
             --  could be used before completion in the context
@@ -693,7 +668,7 @@ package body CIAO.Translator is
             Control := Abandon_Children;
             --  No child processing required.
 
-         when A_Private_Type_Declaration =>              -- 3.2.1(2), 7.3(2)
+         when A_Private_Type_Declaration =>              --  3.2.1(2), 7.3(2)
             declare
                TK : Trait_Kinds := Trait_Kind (Element);
                Type_Definition  : constant Asis.Definition
@@ -748,7 +723,7 @@ package body CIAO.Translator is
                end if;
             end;
 
-         when A_Private_Extension_Declaration =>         -- 3.2.1(2), 7.3(3)
+         when A_Private_Extension_Declaration =>         --  3.2.1(2), 7.3(3)
             declare
                Ancestor_Definition : constant Asis.Defining_Name
                  := Corresponding_Entity_Name_Definition
@@ -777,17 +752,17 @@ package body CIAO.Translator is
             end;
 
          when
-           A_Variable_Declaration         |              -- 3.3.1(2)
-           A_Single_Task_Declaration      |              -- 3.3.1(2), 9.1(3)
-           A_Single_Protected_Declaration =>             -- 3.3.1(2), 9.4(2)
+           A_Variable_Declaration         |              --  3.3.1(2)
+           A_Single_Task_Declaration      |              --  3.3.1(2), 9.1(3)
+           A_Single_Protected_Declaration =>             --  3.3.1(2), 9.4(2)
             Raise_Translation_Error
               (Element, "Unexpected variable declaration (according to unit categorization).");
 
          when
-           A_Constant_Declaration          |             -- 3.3.1(4)
-           A_Deferred_Constant_Declaration |             -- 3.3.1(6), 7.4(2)
-           An_Integer_Number_Declaration   |             -- 3.3.2(2)
-           A_Real_Number_Declaration       =>            -- 3.5.6(2)
+           A_Constant_Declaration          |             --  3.3.1(4)
+           A_Deferred_Constant_Declaration |             --  3.3.1(6), 7.4(2)
+           An_Integer_Number_Declaration   |             --  3.3.2(2)
+           A_Real_Number_Declaration       =>            --  3.5.6(2)
 --             declare
 --                Interface_Dcl_Node : constant Node_Id
 --                  := Get_Constants_Interface (State.Current_Node);
@@ -821,10 +796,10 @@ package body CIAO.Translator is
 --                               Translate_Subtype_Mark
 --                                 (Asis.Definitions.Subtype_Mark (Object_Definition), State);
 --                            when A_Type_Definition => --  A_Constrained_Array_Definition
---                               -- XXX TODO:
---                               -- * emit a type <name_of_constant>_array
---                               -- * map the constant to a function which returns that type.
---                               -- (an IDL function cannot return an anonymous array.)
+--                               --  XXX TODO:
+--                               --  * emit a type <name_of_constant>_array
+--                               --  * map the constant to a function which returns that type.
+--                               --  (an IDL function cannot return an anonymous array.)
 --                               raise Program_Error;
 
 --                            when others =>
@@ -834,7 +809,7 @@ package body CIAO.Translator is
 --                      end;
 --                   else
 --                      --  An_Integer_Number_Declaration or A_Real_Number_Declaration
---                      -- XXX This code is more or less replicated in An_Unconstrained_Array_Definition
+--                      --  XXX This code is more or less replicated in An_Unconstrained_Array_Definition
 --                      --     and should be factored.
 --                      declare
 --                         TS_Node : Node_Id;
@@ -873,7 +848,7 @@ package body CIAO.Translator is
 --             end;
             raise Not_Implemented;
 
-         when An_Enumeration_Literal_Specification =>    -- 3.5.1(3)
+         when An_Enumeration_Literal_Specification =>    --  3.5.1(3)
             pragma Assert (Kind (State.Current_Node) = K_Enum);
 
             declare
@@ -900,8 +875,8 @@ package body CIAO.Translator is
             end;
 
          when
-           A_Discriminant_Specification |                -- 3.7(5)
-           A_Component_Declaration      =>               -- 3.8(6)
+           A_Discriminant_Specification |                --  3.7(5)
+           A_Component_Declaration      =>               --  3.8(6)
             pragma Assert (Kind (State.Current_Node) = K_Struct);
 
             declare
@@ -942,8 +917,8 @@ package body CIAO.Translator is
             end;
 
          when
-           A_Procedure_Declaration |                     -- 6.1(4)
-           A_Function_Declaration  =>                    -- 6.1(4)
+           A_Procedure_Declaration |                     --  6.1(4)
+           A_Function_Declaration  =>                    --  6.1(4)
             declare
                Is_Function             : constant Boolean
                  := (DK = A_Function_Declaration);
@@ -1004,9 +979,9 @@ package body CIAO.Translator is
                         --  (it does not override an inherited operation).
                         --  Obtain the corresponding <interface_dcl> node.
 
-                        -- XXX For now, we do not check whether this operation overrides
-                        -- another with a different signature. In that case, erroneous
-                        -- IDL is produced!
+                        --  XXX For now, we do not check whether this operation overrides
+                        --  another with a different signature. In that case, erroneous
+                        --  IDL is produced!
                         Interface_Dcl_Node := Get_Translation (Tagged_Type_Declaration);
                      end if;
                   end;
@@ -1043,7 +1018,7 @@ package body CIAO.Translator is
                --  Children were processed explicitly.
             end;
 
-         when A_Parameter_Specification =>               -- 6.1(15)
+         when A_Parameter_Specification =>               --  6.1(15)
             declare
                Defining_Names   : constant Defining_Name_List
                  := Declarations.Names (Element);
@@ -1085,16 +1060,16 @@ package body CIAO.Translator is
                         Mode := Mode_Inout;
                      else
                         case Mode_Kind (Element) is
-                           when Not_A_Mode     =>          -- An unexpected element
+                           when Not_A_Mode     =>          --  An unexpected element
                               Raise_Translation_Error
                               (Element, "Unexpected element (Not_A_Mode).");
                            when
-                             A_Default_In_Mode |           -- procedure A(B :        C);
-                             An_In_Mode        =>          -- procedure A(B : IN     C);
+                             A_Default_In_Mode |           --  procedure A(B :        C);
+                             An_In_Mode        =>          --  procedure A(B : IN     C);
                               Mode := Mode_In;
-                           when An_Out_Mode    =>          -- procedure A(B :    OUT C);
+                           when An_Out_Mode    =>          --  procedure A(B :    OUT C);
                               Mode := Mode_Out;
-                           when An_In_Out_Mode =>          -- procedure A(B : IN OUT C);
+                           when An_In_Out_Mode =>          --  procedure A(B : IN OUT C);
                               Mode := Mode_Inout;
                         end case;
                      end if;
@@ -1106,7 +1081,7 @@ package body CIAO.Translator is
             Control := Abandon_Children;
             --  Children were processed explicitly.
 
-         when A_Package_Declaration =>                   -- 7.1(2)
+         when A_Package_Declaration =>                   --  7.1(2)
             declare
                Defining_Names : constant Definition_List
                  := Names (Element);
@@ -1164,62 +1139,62 @@ package body CIAO.Translator is
             end;
 
          when
-           A_Procedure_Body_Declaration    |             -- 6.3(2)
-           A_Function_Body_Declaration     |             -- 6.3(2)
-           A_Task_Body_Declaration         |             -- 9.1(6)
-           A_Protected_Body_Declaration    |             -- 9.4(7)
-           A_Package_Body_Declaration      |             -- 7.2(2)
-           A_Procedure_Body_Stub           |             -- 10.1.3(3)
-           A_Function_Body_Stub            |             -- 10.1.3(3)
-           A_Package_Body_Stub             |             -- 10.1.3(4)
-           A_Task_Body_Stub                |             -- 10.1.3(5)
-           A_Protected_Body_Stub           |             -- 10.1.3(6)
-           An_Entry_Body_Declaration       =>            -- 9.5.2(5)
+           A_Procedure_Body_Declaration    |             --  6.3(2)
+           A_Function_Body_Declaration     |             --  6.3(2)
+           A_Task_Body_Declaration         |             --  9.1(6)
+           A_Protected_Body_Declaration    |             --  9.4(7)
+           A_Package_Body_Declaration      |             --  7.2(2)
+           A_Procedure_Body_Stub           |             --  10.1.3(3)
+           A_Function_Body_Stub            |             --  10.1.3(3)
+           A_Package_Body_Stub             |             --  10.1.3(4)
+           A_Task_Body_Stub                |             --  10.1.3(5)
+           A_Protected_Body_Stub           |             --  10.1.3(6)
+           An_Entry_Body_Declaration       =>            --  9.5.2(5)
             Raise_Translation_Error
               (Element, "Unexpected body declaration.");
 
          when
-           An_Exception_Declaration        |             -- 11.1(2)
+           An_Exception_Declaration        |             --  11.1(2)
            --  User-defined exceptions need not be
            --  mapped, as all Ada exceptions are propagated
            --  as ::CIAO::Ada_Exception.
-           A_Generic_Procedure_Declaration |             -- 12.1(2)
-           A_Generic_Function_Declaration  |             -- 12.1(2)
-           A_Generic_Package_Declaration   =>            -- 12.1(2)
+           A_Generic_Procedure_Declaration |             --  12.1(2)
+           A_Generic_Function_Declaration  |             --  12.1(2)
+           A_Generic_Package_Declaration   =>            --  12.1(2)
            --  Generic declarations define no exported services,
            --  and are therefore not mapped.
             Control := Abandon_Children;
 
          when
-           A_Package_Instantiation                  |    -- 12.3(2)
-           A_Procedure_Instantiation                |    -- 12.3(2)
-           A_Function_Instantiation                 |    -- 12.3(2)
+           A_Package_Instantiation                  |    --  12.3(2)
+           A_Procedure_Instantiation                |    --  12.3(2)
+           A_Function_Instantiation                 |    --  12.3(2)
 
-           An_Object_Renaming_Declaration           |    -- 8.5.1(2)
-           An_Exception_Renaming_Declaration        |    -- 8.5.2(2)
-           A_Package_Renaming_Declaration           |    -- 8.5.3(2)
-           A_Procedure_Renaming_Declaration         |    -- 8.5.4(2)
-           A_Function_Renaming_Declaration          |    -- 8.5.4(2)
-           A_Generic_Package_Renaming_Declaration   |    -- 8.5.5(2)
-           A_Generic_Procedure_Renaming_Declaration |    -- 8.5.5(2)
-           A_Generic_Function_Renaming_Declaration  =>   -- 8.5.5(2)
+           An_Object_Renaming_Declaration           |    --  8.5.1(2)
+           An_Exception_Renaming_Declaration        |    --  8.5.2(2)
+           A_Package_Renaming_Declaration           |    --  8.5.3(2)
+           A_Procedure_Renaming_Declaration         |    --  8.5.4(2)
+           A_Function_Renaming_Declaration          |    --  8.5.4(2)
+           A_Generic_Package_Renaming_Declaration   |    --  8.5.5(2)
+           A_Generic_Procedure_Renaming_Declaration |    --  8.5.5(2)
+           A_Generic_Function_Renaming_Declaration  =>   --  8.5.5(2)
            --  These constructs are not supported due to
            --  restrictions placed by the translation specification.
             Raise_Translation_Error
               (Element, "Construct not supported by translation schema.");
 
          when
-           Not_A_Declaration                |            -- An unexpected element
-           A_Loop_Parameter_Specification   |            -- 5.5(4)
-           An_Entry_Declaration             |            -- 9.5.2(2)
-           An_Entry_Index_Specification     |            -- 9.5.2(2)
-           A_Choice_Parameter_Specification |            -- 11.2(4)
-           A_Formal_Object_Declaration      |            -- 12.4(2)
-           A_Formal_Type_Declaration        |            -- 12.5(2)
-           A_Formal_Procedure_Declaration   |            -- 12.6(2)
-           A_Formal_Function_Declaration    |            -- 12.6(2)
-           A_Formal_Package_Declaration     |            -- 12.7(2)
-           A_Formal_Package_Declaration_With_Box =>      -- 12.7(3)
+           Not_A_Declaration                |            --  An unexpected element
+           A_Loop_Parameter_Specification   |            --  5.5(4)
+           An_Entry_Declaration             |            --  9.5.2(2)
+           An_Entry_Index_Specification     |            --  9.5.2(2)
+           A_Choice_Parameter_Specification |            --  11.2(4)
+           A_Formal_Object_Declaration      |            --  12.4(2)
+           A_Formal_Type_Declaration        |            --  12.5(2)
+           A_Formal_Procedure_Declaration   |            --  12.6(2)
+           A_Formal_Function_Declaration    |            --  12.6(2)
+           A_Formal_Package_Declaration     |            --  12.7(2)
+           A_Formal_Package_Declaration_With_Box =>      --  12.7(3)
             Raise_Translation_Error
               (Element, "Unexpected element (A_Declaration).");
       end case;
@@ -1231,36 +1206,36 @@ package body CIAO.Translator is
       State   : in out Translator_State) is
    begin
       case Definition_Kind (Element) is
-         when Not_A_Definition =>                 -- An unexpected element
+         when Not_A_Definition =>                 --  An unexpected element
             Raise_Translation_Error
               (Element, "Unexpected element (A_Definition).");
 
-         when A_Type_Definition =>                -- 3.2.1(4)
+         when A_Type_Definition =>                --  3.2.1(4)
             Process_Type_Definition (Element, Control, State);
 
-         when A_Subtype_Indication =>             -- 3.2.2(3)
+         when A_Subtype_Indication =>             --  3.2.2(3)
             --  Process child nodes:
             --  translate subtype_mark, ignore constraint.
             null;
 
-         when A_Constraint =>                     -- 3.2.2(5)
+         when A_Constraint =>                     --  3.2.2(5)
             --  Constraints cannot be represented in OMG IDL
             --  and are therefore ignored.
             Control := Abandon_Children;
 
-         when A_Discrete_Subtype_Definition =>    -- 3.6(6)
-            -- XXX Does this ever happen?
+         when A_Discrete_Subtype_Definition =>    --  3.6(6)
+            --  XXX Does this ever happen?
             raise Program_Error;
 
-         when A_Discrete_Range =>                 -- 3.6.1(3)
-            -- XXX Does this ever happen?
+         when A_Discrete_Range =>                 --  3.6.1(3)
+            --  XXX Does this ever happen?
             raise Program_Error;
 
-         when An_Unknown_Discriminant_Part =>     -- 3.7(3)
-            -- XXX Does this ever happen?
+         when An_Unknown_Discriminant_Part =>     --  3.7(3)
+            --  XXX Does this ever happen?
             raise Program_Error;
 
-         when A_Known_Discriminant_Part =>        -- 3.7(2)
+         when A_Known_Discriminant_Part =>        --  3.7(2)
             if State.Pass = Deferred_Discriminant_Part then
                null;
                --  Process child nodes recursively.
@@ -1270,36 +1245,36 @@ package body CIAO.Translator is
             end if;
 
          when
-           A_Component_Definition   |             -- 3.6(7)
-           A_Record_Definition      |             -- 3.8(3)
+           A_Component_Definition   |             --  3.6(7)
+           A_Record_Definition      |             --  3.8(3)
             --  Process child nodes.
-           A_Null_Record_Definition |             -- 3.8(3)
-           A_Null_Component         =>            -- 3.8(4)
+           A_Null_Record_Definition |             --  3.8(3)
+           A_Null_Component         =>            --  3.8(4)
             --  Nothing to do, no child elements.
             null;
 
-         when A_Variant_Part =>                   -- 3.8.1(2)
-            -- XXX TODO
+         when A_Variant_Part =>                   --  3.8.1(2)
+            --  XXX TODO
             null;
 
-         when A_Variant =>                        -- 3.8.1(3)
-            -- XXX TODO
+         when A_Variant =>                        --  3.8.1(3)
+            --  XXX TODO
             null;
 
-         when An_Others_Choice =>                 -- 3.8.1(5) => 4.3.1(5) => 4.3.3(5) => 11.2(5)
-            -- XXX
+         when An_Others_Choice =>                 --  3.8.1(5) => 4.3.1(5) => 4.3.3(5) => 11.2(5)
+            --  XXX
             null;
 
          when
-           A_Private_Type_Definition        |     -- 7.3(2)
-           A_Tagged_Private_Type_Definition |     -- 7.3(2)
-           A_Private_Extension_Definition   =>    -- 7.3(3)
-            -- XXX Does this ever happen? (should not)
+           A_Private_Type_Definition        |     --  7.3(2)
+           A_Tagged_Private_Type_Definition |     --  7.3(2)
+           A_Private_Extension_Definition   =>    --  7.3(3)
+            --  XXX Does this ever happen? (should not)
             raise Program_Error;
 
          when
-           A_Task_Definition      |               -- 9.1(4)
-           A_Protected_Definition =>              -- 9.4(4)
+           A_Task_Definition      |               --  9.1(4)
+           A_Protected_Definition =>              --  9.4(4)
             --  A task type or protected type.
 --             declare
 --                Type_Spec_Node : Node_Id;
@@ -1311,8 +1286,8 @@ package body CIAO.Translator is
 --             end;
             raise Not_Implemented;
 
-         when A_Formal_Type_Definition =>         -- 12.5(3)
-            -- XXX Does this ever happen ? We are not supposed to support generics?!?!
+         when A_Formal_Type_Definition =>         --  12.5(3)
+            --  XXX Does this ever happen ? We are not supposed to support generics?!?!
             raise Program_Error;
 
       end case;
@@ -1363,13 +1338,13 @@ package body CIAO.Translator is
 --         := Expression_Kind (Element);
 --    begin
 --       case EK is
---          when Not_An_Expression =>                -- An unexpected element
+--          when Not_An_Expression =>                --  An unexpected element
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (Not_An_Expression).");
 
 --          when
---            An_Identifier        |                 -- 4.1
---            A_Selected_Component =>                -- 4.1.3
+--            An_Identifier        |                 --  4.1
+--            A_Selected_Component =>                --  4.1.3
 --             --  The expression shall be translated as
 --             --  a <scoped_name>. State.Current_Node shall
 --             --  accept a <scoped_name> subnode.
@@ -1413,7 +1388,7 @@ package body CIAO.Translator is
 --                --  Children were processed explicitly.
 --             end;
 
---          when An_Attribute_Reference =>           -- 4.1.4
+--          when An_Attribute_Reference =>           --  4.1.4
 --             case Attribute_Kind (Element) is
 --                when
 --                  A_Base_Attribute  |
@@ -1434,52 +1409,52 @@ package body CIAO.Translator is
 --          ------------------------------------------------------
 
 --          when
---            An_Integer_Literal     |               -- 2.4
---            A_Real_Literal         |               -- 2.4.1
---            A_String_Literal       |               -- 2.6
---            A_Character_Literal    |               -- 4.1
---            An_Enumeration_Literal |               -- 4.1
---            A_Null_Literal         =>              -- 4.4
+--            An_Integer_Literal     |               --  2.4
+--            A_Real_Literal         |               --  2.4.1
+--            A_String_Literal       |               --  2.6
+--            A_Character_Literal    |               --  4.1
+--            An_Enumeration_Literal |               --  4.1
+--            A_Null_Literal         =>              --  4.4
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (a literal).");
 
 --          when
---            An_Operator_Symbol      |              -- 4.1
---            A_Function_Call         =>             -- 4.1
+--            An_Operator_Symbol      |              --  4.1
+--            A_Function_Call         =>             --  4.1
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (a function or operator).");
 
 --          when
---            An_Explicit_Dereference |              -- 4.1
---            An_Indexed_Component |                 -- 4.1.1
---            A_Slice              =>                -- 4.1.2
+--            An_Explicit_Dereference |              --  4.1
+--            An_Indexed_Component |                 --  4.1.1
+--            A_Slice              =>                --  4.1.2
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (an indexed reference or explicit dereference).");
 
 --          when
---            A_Record_Aggregate           |         -- 4.3
---            An_Extension_Aggregate       |         -- 4.3
---            A_Positional_Array_Aggregate |         -- 4.3
---            A_Named_Array_Aggregate      =>        -- 4.3
+--            A_Record_Aggregate           |         --  4.3
+--            An_Extension_Aggregate       |         --  4.3
+--            A_Positional_Array_Aggregate |         --  4.3
+--            A_Named_Array_Aggregate      =>        --  4.3
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (an aggregate).");
 
 --          when
---            An_And_Then_Short_Circuit      |       -- 4.4
---            An_Or_Else_Short_Circuit       |       -- 4.4
---            An_In_Range_Membership_Test    |       -- 4.4
---            A_Not_In_Range_Membership_Test |       -- 4.4
---            An_In_Type_Membership_Test     |       -- 4.4
---            A_Not_In_Type_Membership_Test  |       -- 4.4
---            A_Parenthesized_Expression     |       -- 4.4
---            A_Type_Conversion              |       -- 4.6
---            A_Qualified_Expression         =>      -- 4.7
+--            An_And_Then_Short_Circuit      |       --  4.4
+--            An_Or_Else_Short_Circuit       |       --  4.4
+--            An_In_Range_Membership_Test    |       --  4.4
+--            A_Not_In_Range_Membership_Test |       --  4.4
+--            An_In_Type_Membership_Test     |       --  4.4
+--            A_Not_In_Type_Membership_Test  |       --  4.4
+--            A_Parenthesized_Expression     |       --  4.4
+--            A_Type_Conversion              |       --  4.6
+--            A_Qualified_Expression         =>      --  4.7
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (An_Expression).");
 
 --          when
---            An_Allocation_From_Subtype |           -- 4.8
---            An_Allocation_From_Qualified_Expression => -- 4.8
+--            An_Allocation_From_Subtype |           --  4.8
+--            An_Allocation_From_Qualified_Expression => --  4.8
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (an allocator).");
 --       end case;
@@ -1499,15 +1474,15 @@ package body CIAO.Translator is
       --  <type_spec> of State.Current_Node to that.
 
       case TK is
-         when Not_A_Type_Definition =>                 -- An unexpected element
+         when Not_A_Type_Definition =>                 --  An unexpected element
             Raise_Translation_Error
               (Element, "Unexpected element (Not_A_Type_Definition).");
 
-         when A_Root_Type_Definition =>                -- 3.5.4(14) => 3.5.6(3)
+         when A_Root_Type_Definition =>                --  3.5.4(14) => 3.5.6(3)
             Raise_Translation_Error
               (Element, "Unexpected implicit element (A_Root_Type_Definition).");
 
-         when A_Derived_Type_Definition =>             -- 3.4(2)
+         when A_Derived_Type_Definition =>             --  3.4(2)
 
             Set_T_Type
             (State.Current_Node, Translate_Subtype_Mark
@@ -1518,16 +1493,16 @@ package body CIAO.Translator is
             Control := Abandon_Children;
             --  Children were processed explicitly.
 
-         when An_Enumeration_Type_Definition =>        -- 3.5.1(2)
+         when An_Enumeration_Type_Definition =>        --  3.5.1(2)
             null;
             --  Process all children recursively.
 
          when
-           A_Signed_Integer_Type_Definition   |        -- 3.5.4(3)
-           A_Modular_Type_Definition          |        -- 3.5.4(4)
-           A_Floating_Point_Definition        |        -- 3.5.7(2)
-           An_Ordinary_Fixed_Point_Definition |        -- 3.5.9(3)
-           A_Decimal_Fixed_Point_Definition   =>       -- 3.5.9(6)
+           A_Signed_Integer_Type_Definition   |        --  3.5.4(3)
+           A_Modular_Type_Definition          |        --  3.5.4(4)
+           A_Floating_Point_Definition        |        --  3.5.7(2)
+           An_Ordinary_Fixed_Point_Definition |        --  3.5.9(3)
+           A_Decimal_Fixed_Point_Definition   =>       --  3.5.9(6)
 
             Set_T_Type
             (State.Current_Node,
@@ -1537,8 +1512,8 @@ package body CIAO.Translator is
             --  Children were processed explicitly.
 
          when
-           An_Unconstrained_Array_Definition |         -- 3.6(2)
-           A_Constrained_Array_Definition    =>        -- 3.6(2)
+           An_Unconstrained_Array_Definition |         --  3.6(2)
+           A_Constrained_Array_Definition    =>        --  3.6(2)
             declare
                Component_Subtype_Mark : constant Asis.Expression
                  := Asis.Definitions.Subtype_Mark
@@ -1683,7 +1658,7 @@ package body CIAO.Translator is
                --  Children were processed explicitly.
             end;
 
-         when A_Record_Type_Definition =>              -- 3.8(2)
+         when A_Record_Type_Definition =>              --  3.8(2)
             if Kind (State.Current_Node) = K_Type_Declarator then
                --  This is a limited record, mapped as a typedef
                --  to an opaque type (whereas a non-limited record
@@ -1712,27 +1687,32 @@ package body CIAO.Translator is
             end;
 
          when
-           A_Tagged_Record_Type_Definition       |     -- 3.8(2)
-           A_Derived_Record_Extension_Definition =>    -- 3.4(2)
+           A_Tagged_Record_Type_Definition       |     --  3.8(2)
+           A_Derived_Record_Extension_Definition =>    --  3.4(2)
 
-              Set_T_Type (State.Current_Node, New_Opaque_Type);
+            Set_T_Type (State.Current_Node, New_Opaque_Type);
 
-              Control := Abandon_Children;
-              --  Children were processed explicitly
+            Control := Abandon_Children;
+            --  Children were processed explicitly
 
-         when An_Access_Type_Definition =>             -- 3.10(2)
-            --  This is the definition of a Remote Access to Class-Wide type.
-            --  (RAS were processed in Process_Declaration directly; other
-            --  access-to-object types are not allowed in the visible part
-            --  of a declared pure, RT or RCI package).
+         when An_Access_Type_Definition =>             --  3.10(2)
+
+            --  This is the definition of a Remote Access to Class-Wide
+            --  type (RAS were processed in Process_Declaration directly;
+            --  other access-to-object types would not be allowed in the
+            --  visible part of a declared pure, RT or RCI package).
+
             declare
                Designated_Subtype : constant Asis.Expression
                  := Asis.Definitions.Subtype_Mark
                  (Asis.Definitions.Access_To_Object_Definition (Element));
             begin
                pragma Assert (True
-                 and then Expression_Kind (Designated_Subtype) = An_Attribute_Reference
-                 and then Attribute_Kind (Designated_Subtype) = A_Class_Attribute);
+                 and then Expression_Kind (Designated_Subtype)
+                   = An_Attribute_Reference
+                 and then Attribute_Kind (Designated_Subtype)
+                   = A_Class_Attribute);
+
                Set_T_Type
                  (State.Current_Node, Translate_Subtype_Mark
                   (Prefix (Designated_Subtype)));
@@ -1810,8 +1790,8 @@ package body CIAO.Translator is
    begin
       case EK is
          when
-           An_Identifier        |                 -- 4.1
-           A_Selected_Component =>                -- 4.1.3
+           An_Identifier        |                 --  4.1
+           A_Selected_Component =>                --  4.1.3
 
             declare
                use Asis.Compilation_Units;
@@ -1859,7 +1839,7 @@ package body CIAO.Translator is
                end if;
             end;
 
-         when An_Attribute_Reference =>           -- 4.1.4
+         when An_Attribute_Reference =>           --  4.1.4
             case Attribute_Kind (Exp) is
                when
                  A_Base_Attribute  |
@@ -1940,11 +1920,11 @@ package body CIAO.Translator is
       end if;
    end Post_Translate_Element;
 
-   ----------------------------------------------------
-   -- Translate_Context_Clause                       --
-   -- Translate the context clause of a library unit --
-   -- into a set of preprocessor directives.         --
-   ----------------------------------------------------
+   procedure Translate_Context_Clause
+     (Library_Unit : Asis.Compilation_Unit;
+      State        : in out Translator_State);
+   --  Translate the context clause of a library unit
+   --  into a set of subtree inclusions.
 
    procedure Translate_Context_Clause
      (Library_Unit : Asis.Compilation_Unit;
@@ -1985,7 +1965,8 @@ package body CIAO.Translator is
                              := Make_Ben_Idl_File (No_Location);
                            Success : Boolean;
                         begin
-                           Append_Node_To_Contents (State.Current_Node, Include_Node);
+                           Append_Node_To_Contents
+                             (State.Current_Node, Include_Node);
                            Success := Add_Identifier
                              (Include_Node, IDL_Module_Name
                               (Enclosing_Compilation_Unit
@@ -1994,8 +1975,8 @@ package body CIAO.Translator is
                            Set_Contents
                              (Include_Node, Contents (Unit_Translation));
                            Set_Translation (Unit_Declaration, Include_Node);
-                           --  The translation of the declaration of a withed
-                           --  unit is a #include preprocessor directive node.
+                           --  The translation of the declaration of a
+                           --  withed unit is a Ben_Idl_File subtree.
                         end;
                      end loop;
                   end;
@@ -2046,7 +2027,8 @@ package body CIAO.Translator is
       if Category = Other then
          Raise_Translation_Error
            (Nil_Element,
-            "The unit is not a Pure, Remote Types or Remote Call Interface package specification.");
+            "The unit is not a Pure, Remote Types or "
+            & "Remote Call Interface package specification.");
       end if;
 
       declare

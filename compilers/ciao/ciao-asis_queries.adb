@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#4 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;

@@ -96,7 +96,7 @@ pragma Preelaborate (CIAO.Types);
    --  character code as required in Ada 95. This section defines a few
    --  general use constants and subtypes.
 
-   EOF : constant Character := Ascii.SUB;
+   EOF : constant Character := ASCII.SUB;
    --  The character SUB (16#1A#) is used in DOS and other systems derived
    --  from DOS (OS/2, NT etc) to signal the end of a text file. Internally
    --  all source files are ended by an EOF character, even on Unix systems.
@@ -109,7 +109,7 @@ pragma Preelaborate (CIAO.Types);
    subtype Graphic_Character is Character range ' ' .. '~';
    --  Graphic characters, as defined in ARM
 
-   subtype Line_Terminator is Character range Ascii.LF .. Ascii.CR;
+   subtype Line_Terminator is Character range ASCII.LF .. ASCII.CR;
    --  Line terminator characters (LF, VT, FF, CR)
 
    subtype Upper_Half_Character is
@@ -205,12 +205,12 @@ pragma Preelaborate (CIAO.Types);
 
    Standard_Location : constant Source_Ptr := -2;
    --  Used for all nodes in the representation of package Standard other
-   --  than nodes representing the contents of Standard.Ascii. Note that
+   --  than nodes representing the contents of Standard.ASCII. Note that
    --  testing for <= Standard_Location tests for both Standard_Location
-   --  and for Standard_Ascii_Location.
+   --  and for Standard_ASCII_Location.
 
-   Standard_Ascii_Location : constant Source_Ptr := -3;
-   --  Used for all nodes in the presentation of package Standard.Ascii
+   Standard_ASCII_Location : constant Source_Ptr := -3;
+   --  Used for all nodes in the presentation of package Standard.ASCII
 
    First_Source_Ptr : constant Source_Ptr := 0;
    --  Starting source pointer index value for first source program

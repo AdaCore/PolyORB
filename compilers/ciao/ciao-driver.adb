@@ -18,7 +18,7 @@
 
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#4 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
@@ -62,7 +62,7 @@ procedure CIAO.Driver is
 
    IDL_File    : Ada.Text_IO.File_Type;
    Tree_File   : Ada.Text_IO.File_Type;
-   Spec_File   : Ada.Text_IO.File_Type;
+   --  Spec_File   : Ada.Text_IO.File_Type;
    Form        : String := "";
 
    CIAO_Context : Asis.Context;
@@ -430,13 +430,13 @@ procedure CIAO.Driver is
          I_Len := I_Options'Length;
          for I in 1 .. Dir_Count loop
             while (Next_Dir_End <= I_Len and then
-                   I_options (Next_Dir_End) /= ' ')
+                   I_Options (Next_Dir_End) /= ' ')
             loop
                Next_Dir_End := Next_Dir_End + 1;
             end loop;
             Next_Dir_End := Next_Dir_End - 1;
-            Arg_list (I) :=
-               new String'(I_options (Next_Dir_Start .. Next_Dir_End));
+            Arg_List (I) := new String'
+              (I_Options (Next_Dir_Start .. Next_Dir_End));
                Next_Dir_Start := Next_Dir_End + 2;
                Next_Dir_End := Next_Dir_Start;
          end loop;
@@ -537,19 +537,19 @@ begin  --  CIAO.Driver's body.
 --    Proxy_Generator.Generate (IDL_Tree);
 --    --  Generate proxy packages.
 
-   Idl_Fe.Display_Tree.Disp_Tree (Idl_Tree);
+   Idl_Fe.Display_Tree.Disp_Tree (IDL_Tree);
 
    Clean;
 
 exception
 
-   when Ex : Asis.Exceptions.Asis_Inappropriate_Context
-          |  Asis.Exceptions.Asis_Inappropriate_Container
-          |  Asis.Exceptions.Asis_Inappropriate_Compilation_Unit
-          |  Asis.Exceptions.Asis_Inappropriate_Element
-          |  Asis.Exceptions.Asis_Inappropriate_Line
-          |  Asis.Exceptions.Asis_Inappropriate_Line_Number
-          |  Asis.Exceptions.Asis_Failed
+   when Ex : Asis.Exceptions.ASIS_Inappropriate_Context
+          |  Asis.Exceptions.ASIS_Inappropriate_Container
+          |  Asis.Exceptions.ASIS_Inappropriate_Compilation_Unit
+          |  Asis.Exceptions.ASIS_Inappropriate_Element
+          |  Asis.Exceptions.ASIS_Inappropriate_Line
+          |  Asis.Exceptions.ASIS_Inappropriate_Line_Number
+          |  Asis.Exceptions.ASIS_Failed
      =>
       Set_Output (Standard_Error);
       New_Line;

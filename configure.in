@@ -74,7 +74,7 @@ AM_ADA_PREREQ(20010503, 3.14a1)
 # Output
 #
 AC_OUTPUT([Makefile
-	   compilers/Makefile compilers/idlac/Makefile
+	   compilers/Makefile compilers/ciao/Makefile compilers/idlac/Makefile
 	   compilers/idlac/testsuite/Makefile
 	   compilers/idlac/platform.ads
 	   src/Makefile src/corba/Makefile src/soap/Makefile

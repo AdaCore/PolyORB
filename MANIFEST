@@ -7,6 +7,8 @@ aclocal.m4
 compilers/Makefile.am
 compilers/Makefile.common
 compilers/Makefile.in
+compilers/ciao/Makefile.am
+compilers/ciao/Makefile.in
 compilers/idlac/Makefile.am
 compilers/idlac/Makefile.in
 compilers/idlac/README.Expansion
