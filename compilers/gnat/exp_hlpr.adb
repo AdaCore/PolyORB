@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -96,18 +94,12 @@ package body Exp_Hlpr is
 
    --  Common subprograms for building record helpers
 
-   function Empty_Start_Dimen
-     (Loc   : Source_Ptr;
-      Dimen : Integer)
-      return List_Id;
-   --  Return Empty.
-
    generic
       with function Build_Start_Dimen
         (Loc   : Source_Ptr;
-         Dimen : Integer)
+         Dimen : Int)
          return List_Id
-        is Empty_Start_Dimen;
+        is <>;
    function Make_Array_Iterator
      (Subprogram    : Entity_Id;
       Arry          : Entity_Id;
@@ -497,7 +489,51 @@ package body Exp_Hlpr is
 
          declare
 
-            function Make_From_Any_Array_Iterator is new Make_Array_Iterator;
+            Constrained : constant Boolean := Is_Constrained (Typ);
+
+            function Build_Increment_Counter return Node_Id;
+            --  Return a statement that increments the Counter variable.
+
+            function From_Any_Start_Dimen
+              (Loc   : Source_Ptr;
+               Dimen : Int)
+              return List_Id;
+            --  If starting a dimension in an unconstrained array, skip the
+            --  length on that dimension.
+
+            Counter : constant Entity_Id
+              := Make_Defining_Identifier (Loc, Name_J);
+
+            function Build_Increment_Counter return Node_Id is
+            begin
+               return Make_Assignment_Statement (Loc,
+                 Name =>
+                   New_Occurrence_Of (Counter, Loc),
+                 Expression =>
+                   Make_Op_Add (Loc,
+                     Left_Opnd =>
+                       New_Occurrence_Of (Counter, Loc),
+                     Right_Opnd =>
+                       Make_Integer_Literal (Loc, 1)));
+            end Build_Increment_Counter;
+
+            function From_Any_Start_Dimen
+              (Loc   : Source_Ptr;
+               Dimen : Int)
+              return List_Id
+            is
+               pragma Unreferenced (Loc, Dimen);
+            begin
+               if Constrained then
+                  return No_List;
+               end if;
+
+               return New_List (Build_Increment_Counter);
+               --  Skip the length componend on that dimension.
+            end From_Any_Start_Dimen;
+
+            function Make_From_Any_Array_Iterator is
+              new Make_Array_Iterator (From_Any_Start_Dimen);
 
             Assign_Component : Node_Id;
             Indices : constant List_Id := New_List;
@@ -506,8 +542,6 @@ package body Exp_Hlpr is
               := Make_Defining_Identifier (Loc, Name_R);
             Component_TC : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_T);
-            Counter : constant Entity_Id
-              := Make_Defining_Identifier (Loc, Name_J);
          begin
             Append_To (Decls,
               Make_Object_Declaration (Loc,
@@ -515,6 +549,13 @@ package body Exp_Hlpr is
                 Object_Definition =>
                   New_Occurrence_Of (Typ, Loc)));
             Set_Etype (Res, Typ);
+            --  XXX for unconstrained subtype, need to constrain each of the
+            --  n dimensions of the array with the nth element of the any
+            --  aggregate.
+
+            --  if Constrained then
+            --     Add constraint...
+            --  end if;
 
             Append_To (Decls,
               Make_Object_Declaration (Loc,
@@ -554,15 +595,7 @@ package body Exp_Hlpr is
                               New_Occurrence_Of (Component_TC, Loc),
                               New_Occurrence_Of (Counter, Loc))),
                           Decls)),
-                   Make_Assignment_Statement (Loc,
-                     Name =>
-                       New_Occurrence_Of (Counter, Loc),
-                     Expression =>
-                       Make_Op_Add (Loc,
-                         Left_Opnd =>
-                           New_Occurrence_Of (Counter, Loc),
-                         Right_Opnd =>
-                           Make_Integer_Literal (Loc, 1))))));
+                   Build_Increment_Counter)));
 
             Append_To (Stms,
               Make_From_Any_Array_Iterator (Fnam,
@@ -939,7 +972,46 @@ package body Exp_Hlpr is
       elsif (Is_Array_Type (Typ) and then Is_Constrained (Typ)) then
 
          declare
-            function Make_To_Any_Array_Iterator is new Make_Array_Iterator;
+
+            Constrained : constant Boolean := Is_Constrained (Typ);
+
+            function To_Any_Start_Dimen
+              (Loc   : Source_Ptr;
+               Dimen : Int)
+              return List_Id;
+            --  If starting a dimension in an unconstrained array, output the
+            --  length on that dimension (the array is represented as nested
+            --  sequences.)
+
+            function To_Any_Start_Dimen
+              (Loc   : Source_Ptr;
+               Dimen : Int)
+              return List_Id
+            is
+            begin
+               if Constrained then
+                  return No_List;
+               end if;
+
+               return New_List (
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Any, Loc),
+                     Build_To_Any_Call (
+                       Make_Attribute_Reference (Loc,
+                         Prefix =>
+                           New_Occurrence_Of (Expr_Parameter, Loc),
+                         Attribute_Name =>
+                           Name_Length,
+                         Expressions => New_List (
+                           Make_Integer_Literal (Loc, Dimen))),
+                       Decls))));
+            end To_Any_Start_Dimen;
+
+            function Make_To_Any_Array_Iterator is
+              new Make_Array_Iterator (To_Any_Start_Dimen);
 
             Indices : constant List_Id := New_List;
             Component : Node_Id;
@@ -1512,20 +1584,6 @@ package body Exp_Hlpr is
       end if;
    end Compile_Stream_Body_In_Scope;
 
-   -----------------------
-   -- Empty_Start_Dimen --
-   -----------------------
-
-   function Empty_Start_Dimen
-     (Loc   : Source_Ptr;
-      Dimen : Integer)
-      return List_Id
-   is
-      pragma Unreferenced (Loc, Dimen);
-   begin
-      return No_List;
-   end Empty_Start_Dimen;
-
    ------------------------
    -- Find_Inherited_TSS --
    ------------------------
@@ -1686,7 +1744,7 @@ package body Exp_Hlpr is
          --  is required at the beginning of each dimension. Call the
          --  appropriate subprogram (Start_Dimen).
 
-         Stm_List := Build_Start_Dimen (Loc, Integer (J));
+         Stm_List := Build_Start_Dimen (Loc, J);
          if Present (Stm_List) then
             Append_To (Stm_List, Inner_Stm);
             Inner_Stm := Make_Block_Statement (Loc,
