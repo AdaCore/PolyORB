@@ -34,7 +34,7 @@ package CORBA.POA is
       Adapter_Name : in CORBA.String;
       A_POAManager : in CORBA.POA_Manager.POA_Manager_Ptr;
       Policies : in CORBA.Policy_List.Policy_List)
-     return CORBA.POA_Types.Obj_Adapter_Ptr is abstract;
+     return CORBA.POA_Types.Obj_Adapter_Access is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
 

@@ -12,14 +12,14 @@ package body CORBA.POA_Types is
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
       Persistency_Flag : in CORBA.Short)
-     return Unmarshalled_Oid
+     return Unmarshalled_Oid_Access
    is
-      U_Oid : Unmarshalled_Oid_Ptr;
+      U_Oid : Unmarshalled_Oid_Access;
    begin
       U_Oid := new Unmarshalled_Oid'(Name,
                                      System_Generated,
                                      Persistency_Flag);
-      return U_Oid.all;
+      return U_Oid;
    end Create_Id;
 
    ---------------

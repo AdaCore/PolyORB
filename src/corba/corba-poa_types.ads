@@ -12,7 +12,7 @@ package CORBA.POA_Types is
       record
          Name         : CORBA.String;
       end record;
-   type Obj_Adapter_Ptr is access Obj_Adapter;
+   type Obj_Adapter_Access is access Obj_Adapter;
    --  The POA object
 
    type Unmarshalled_Oid is
@@ -22,14 +22,14 @@ package CORBA.POA_Types is
          Persistency_Flag : CORBA.Short;
          --  ??? How do we implement the PERSISTENT policy?
      end record;
-   type Unmarshalled_Oid_Ptr is access Unmarshalled_Oid;
+   type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
    --  The unmarshalled Object_Id
 
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;
       Persistency_Flag : in CORBA.Short)
-     return Unmarshalled_Oid;
+     return Unmarshalled_Oid_Access;
    --  Create an Unmarshalled_Oid
 
    function Create_Id
@@ -46,6 +46,6 @@ package CORBA.POA_Types is
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
    procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Unmarshalled_Oid, Unmarshalled_Oid_Ptr);
+     (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
 end CORBA.POA_Types;

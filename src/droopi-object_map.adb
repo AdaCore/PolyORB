@@ -47,7 +47,7 @@ package body Droopi.Object_Map is
    ---------------------
 
    function Is_Object_Id_In (O_Map  : in Object_Map_Access;
-                             Item : Object_Id)
+                             Item   : Object_Id)
                             return Boolean
    is
       An_Entry : Map_Entry;
@@ -61,7 +61,7 @@ package body Droopi.Object_Map is
    ---------------
 
    function Get_By_Id (O_Map  : in Object_Map_Access;
-                       Item : in Object_Id)
+                       Item   : in Object_Id)
                       return Map_Entry
    is
       An_Entry : Map_Entry;
@@ -85,7 +85,7 @@ package body Droopi.Object_Map is
    --------------------
 
    function Get_By_Servant (O_Map  : in Object_Map_Access;
-                            Item : in Servant)
+                            Item   : in Servant)
                            return Map_Entry
    is
       An_Entry : Map_Entry;
@@ -109,7 +109,7 @@ package body Droopi.Object_Map is
    ------------------
 
    function Get_By_Index (O_Map : in Object_Map_Access;
-                          Index : in Natural)
+                          Index : in Integer)
                          return Map_Entry
    is
       An_Entry : Map_Entry;
@@ -161,7 +161,7 @@ package body Droopi.Object_Map is
    ---------------------
 
    function Remove_By_Index (O_Map : in Object_Map_Access;
-                             Index : in Natural)
+                             Index : in Integer)
                             return Map_Entry
    is
       To_Remove : Map_Entry;

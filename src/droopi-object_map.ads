@@ -36,7 +36,7 @@ package Droopi.Object_Map is
    type Object_Map_Access is access all Object_Map;
 
    function Add (O_Map : in Object_Map_Access;
-                 Obj : in Map_Entry)
+                 Obj   : in Map_Entry)
                 return Integer;
    --  Adds a new entry in the map
    --  and returns it's index
@@ -65,7 +65,7 @@ package Droopi.Object_Map is
    --  Doesn't check that the servant is only once in the map
 
    function Get_By_Index (O_Map : in Object_Map_Access;
-                          Index : in Natural)
+                          Index : in Integer)
                          return Map_Entry;
    --  Given an index, returns the corrsponding map entry
 
@@ -77,7 +77,7 @@ package Droopi.Object_Map is
    --  that the object_id wasn't in the map.
 
    function Remove_By_Index (O_Map : in Object_Map_Access;
-                             Index : in Natural)
+                             Index : in Integer)
                             return Map_Entry;
    --  Given an index, removes an entry from the map
    --  and returns it. A null value means that the index
