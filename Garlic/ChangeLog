@@ -1,3 +1,7 @@
+1998-05-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (CLEANFILES): Remove config.h.
+
 1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5?gtplsp.ads: Use pragma Warnings to work around false warnings.
