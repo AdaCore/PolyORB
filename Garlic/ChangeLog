@@ -1,3 +1,36 @@
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gaphlo.adb, s-gaphlo.ads: Add subprograms Get_Name and
+	Get_Data to extract from a standard location the support name and
+	the support data.
+
+	* s-garsto.adb: Fix bad debugging env variable. Use new
+ 	subprograms from Garlic.Physical_Location.
+	
+	* s-gardfs.ads, s-gardfs.adb: Use new subprograms from
+ 	Garlic.Physical_Location. Add a directory separator to specific
+	data and analyze default data location correctly. Do not pass
+	default data location to Initialize anymore.
+
+	* s-garpar.adb: Use partition name as key parameter to read
+ 	partition info. Partition name is now a key parameter because of
+ 	passive partitions. These partitions cannot elaborate themselves
+ 	as they have no elaboration code. So, duplicated registration
+ 	conflicts are resolved using the partition name.  Fix a bug due to
+ 	a bad boot partition initialization for passive partitions. Fix a
+ 	bug in Get_Protocol that caused this subprogram to incorrectly
+ 	raise a assert error when in fact a communication error was
+ 	supposed to be raised. Fix a bad ordered sequence of instruction
+ 	in Define_New_Partition for passive partitions.
+
+	* s-garuni.adb: Fix a bug in the linked list of units configured
+	on a partition. The list was modified before detecting a potential 
+	incorrect insertion of a unit in this list. Therefore, it was
+	possible to cause a cycle in the list.
+
+	* s-parint.adb, s-parint.adb: Add Elaborate_Passive_Partition to
+	flush shared passive units registration on the boot server.
+ 
 2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* split.adb: Force a hard line break when splitting very long name

@@ -1,3 +1,10 @@
+2000-05-24  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* NEWS: Add info on new features (passive partitions, multi
+	protocols, multi storage).
+
+	* Makefile.in: Regenerate incorrect file.
+
 2000-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Let the user choose the default optimization he wants
