@@ -1,3 +1,9 @@
+2005-02-18  Laurent Pautet  <pautet@noos.fr>
+
+	* xe_front.adb, xe_front.ads : Detect undefined partitions in
+	channel definition.
+	Fixes D301-006.
+
 2004-10-30  Laurent Pautet  <pautet@enst.fr>
 
 	* xe_sem.adb: Change selection of tasking policy for a
