@@ -192,9 +192,20 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Partition_Type_Node);
 
+      Declare_Type
+        (Type_Name    => Str_To_Id ("_task_pool_type"),
+         Type_Kind    => Pre_Type_Task_Pool,
+         Comp_Type    => Integer_Type_Node,
+         List_Size    => 3,
+         Is_Frozen    => True,
+         Type_Sloc    => Null_Location,
+         Type_Node    => Task_Pool_Type_Node);
+
       --  Legal attribute : 'Main
       --  Legal attribute : 'Host
+      --  Legal attribute : 'Filter
       --  Legal attribute : 'Storage_Dir
+      --  Legal attribute : 'Termination
       --  Legal attribute : 'Command_Line
 
       Declare_Type_Attribute
@@ -242,6 +253,14 @@ package body XE_Stdcnf is
          Attribute_Name   => Str_To_Id ("filter"),
          Attr_Type_Node   => String_Type_Node,
          Attribute_Kind   => Attribute_PFilter,
+         Attribute_Sloc   => Null_Location,
+         Attribute_Node   => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Str_To_Id ("task_pool"),
+         Attr_Type_Node   => Task_Pool_Type_Node,
+         Attribute_Kind   => Attribute_Task_Pool,
          Attribute_Sloc   => Null_Location,
          Attribute_Node   => Attribute_Node);
 

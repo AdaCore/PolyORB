@@ -1269,7 +1269,7 @@ package body XE_Back is
                Main_Partition := Partition;
             end if;
 
-         when Attribute_CFilter | Attribute_Unknown =>
+         when Attribute_CFilter | Attribute_Unknown | Attribute_Task_Pool =>
             raise Fatal_Error;
 
       end case;

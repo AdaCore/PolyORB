@@ -77,7 +77,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Int range 200 .. 208;
+   type Attribute_Type is new Int range 200 .. 209;
 
    Attribute_Unknown      : constant Attribute_Type := 200;
    Attribute_Host         : constant Attribute_Type := 201;
@@ -88,6 +88,7 @@ package XE is
    Attribute_Leader       : constant Attribute_Type := 206;
    Attribute_PFilter      : constant Attribute_Type := 207;
    Attribute_CFilter      : constant Attribute_Type := 208;
+   Attribute_Task_Pool    : constant Attribute_Type := 209;
 
 
    -- Pragma_Type --
@@ -113,7 +114,7 @@ package XE is
 
    -- Predefined_Type --
 
-   type Predefined_Type is new Int range 401 .. 410;
+   type Predefined_Type is new Int range 401 .. 411;
 
    Pre_Type_Partition       : constant Predefined_Type := 401;
    Pre_Type_Channel         : constant Predefined_Type := 402;
@@ -125,6 +126,7 @@ package XE is
    Pre_Type_Ada_Unit        : constant Predefined_Type := 408;
    Pre_Type_Function        : constant Predefined_Type := 409;
    Pre_Type_Procedure       : constant Predefined_Type := 410;
+   Pre_Type_Task_Pool       : constant Predefined_Type := 411;
 
 
    -- Termination_Type --
@@ -175,6 +177,7 @@ package XE is
    Subprogram_Type_Node     : Type_Id;
    Main_Procedure_Type_Node : Type_Id;
    Host_Function_Type_Node  : Type_Id;
+   Task_Pool_Type_Node      : Type_Id;
 
    Pragma_Starter_Node      : Subprogram_Id;
    Pragma_Import_Node       : Subprogram_Id;

@@ -1,3 +1,9 @@
+Wed Apr 30 18:39:31 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_back.adb, xe.ads, xe_stdcnf.adb: Hooks to be able to specify
+ 	task pool marks (low, high, max). These three integers would
+ 	specify the low, high and max bounds of anonymous tasks in Garlic.
+
 Tue Apr 29 10:24:53 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_utils.ads, xe_utils.adb: Change More_Recent into ">" to avoid
