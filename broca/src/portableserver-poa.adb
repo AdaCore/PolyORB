@@ -48,13 +48,13 @@ package body Portableserver.POA is
       return Create_Ref (CORBA.Object.Get (Self));
    end To_Ref;
 
-   function To_Poa (Self : Ref) return Broca.POA.POA_Object_Access;
+   function To_Poa (Self : Ref) return Broca.POA.POA_Object_Ptr;
 
-   function To_Poa (Self : Ref) return Broca.POA.POA_Object_Access is
+   function To_Poa (Self : Ref) return Broca.POA.POA_Object_Ptr is
       use Broca.POA;
       use Broca.Refs;
       Res_Ref : Broca.Refs.Ref_Ptr;
-      Res : Broca.POA.POA_Object_Access;
+      Res : Broca.POA.POA_Object_Ptr;
    begin
       Res_Ref := Get (Self);
       if Res_Ref = null
@@ -62,7 +62,7 @@ package body Portableserver.POA is
       then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
-      Res := Broca.POA.POA_Object_Access (Res_Ref);
+      Res := Broca.POA.POA_Object_Ptr (Res_Ref);
       if Res.POA_Manager = null then
          Broca.Exceptions.Raise_Object_Not_Exist;
       else
@@ -94,7 +94,7 @@ package body Portableserver.POA is
    function Get_Servant_Manager (Self : Ref)
                                  return PortableServer.ServantManager.Ref
    is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
       Res : PortableServer.ServantManager.Ref;
    begin
       POA := To_Poa (Self);
@@ -107,8 +107,8 @@ package body Portableserver.POA is
    procedure Set_Servant_Manager
      (Self : in Ref; Imgr : in PortableServer.ServantManager.Ref)
    is
-      POA : Broca.POA.POA_Object_Access;
-      Skel : Broca.POA.Internal_Skeleton_Access;
+      POA : Broca.POA.POA_Object_Ptr;
+      Skel : Broca.POA.Internal_Skeleton_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Request_Policy /= USE_SERVANT_MANAGER then
@@ -161,8 +161,8 @@ package body Portableserver.POA is
      return Ref'Class
    is
       use Broca.POA;
-      Res : Broca.POA.POA_Object_Access;
-      POA : Broca.POA.POA_Object_Access;
+      Res : Broca.POA.POA_Object_Ptr;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       --  Note - The NON_RETAIN policy requires either the USE_DEFAULT_SERVANT
       --  or USE_SERVANT_MANAGER policies.
@@ -189,7 +189,7 @@ package body Portableserver.POA is
          Res := Broca.POA.Create_POA
            (POA,
             Adapter_Name,
-            POAManager_Object_Access
+            POAManager_Object_Ptr
             (PortableServer.POAManager.Get (A_POAManager)),
             Tp, Lp, Up, Ip, Ap, Sp, Rp);
          All_POAs_Lock.Unlock_W;
@@ -206,8 +206,8 @@ package body Portableserver.POA is
       return Ref'Class
    is
       use Broca.POA;
-      Res : Broca.POA.POA_Object_Access;
-      POA : Broca.POA.POA_Object_Access;
+      Res : Broca.POA.POA_Object_Ptr;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       All_POAs_Lock.Lock_W;
@@ -225,7 +225,7 @@ package body Portableserver.POA is
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean)
    is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       Broca.POA.Destroy_POA (POA, Etherealize_Objects, Wait_For_Completion);
@@ -233,7 +233,7 @@ package body Portableserver.POA is
    end Destroy;
 
    function Get_Servant (Self : Ref) return Servant is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Request_Policy /= USE_DEFAULT_SERVANT then
@@ -247,7 +247,7 @@ package body Portableserver.POA is
    end Get_Servant;
 
    procedure Set_Servant (Self : in Ref; P_Servant : in Servant) is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Request_Policy /= USE_DEFAULT_SERVANT then
@@ -258,7 +258,7 @@ package body Portableserver.POA is
 
    function Activate_Object (Self : Ref; P_Servant : Servant)
                              return ObjectId is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
 
@@ -274,7 +274,7 @@ package body Portableserver.POA is
 
    procedure Activate_Object_With_Id
      (Self : in Ref; Oid : in ObjectId; P_Servant : in Servant) is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
 
@@ -287,7 +287,7 @@ package body Portableserver.POA is
    end Activate_Object_With_Id;
 
    procedure Deactivate_Object (Self : in Ref; Oid : in ObjectId) is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
 
@@ -302,7 +302,7 @@ package body Portableserver.POA is
    function Create_Reference (Self : Ref; Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Id_Assign_Policy /= SYSTEM_ID then
@@ -315,7 +315,7 @@ package body Portableserver.POA is
      (Self : Ref; Oid : ObjectId; Intf : CORBA.RepositoryId)
       return CORBA.Object.Ref
    is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       return Broca.POA.Create_Reference_With_Id (POA, Oid, Intf);
@@ -323,7 +323,7 @@ package body Portableserver.POA is
 
    function Servant_To_Id (Self : Ref; P_Servant : Servant) return ObjectId
    is
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Servant_Policy /= RETAIN
@@ -339,7 +339,7 @@ package body Portableserver.POA is
                                   return CORBA.Object.Ref
    is
       Res : CORBA.Object.Ref;
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Servant_Policy /= RETAIN
@@ -358,12 +358,12 @@ package body Portableserver.POA is
      (Self : Ref; Reference : CORBA.Object.Ref'CLASS) return ObjectId
    is
       use Broca.POA;
-      POA : Broca.POA.POA_Object_Access;
-      Skel : Broca.POA.Skeleton_Access;
+      POA : Broca.POA.POA_Object_Ptr;
+      Skel : Broca.POA.Skeleton_Ptr;
    begin
       POA := To_Poa (Self);
       Skel := Broca.POA.To_Skeleton (Reference);
-      if Skel.POA /= POA_Object_Access (POA) then
+      if Skel.POA /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;
       return Skel.Object_Id;
@@ -373,12 +373,12 @@ package body Portableserver.POA is
      (Self : Ref; Reference : CORBA.Object.Ref'CLASS) return Servant
    is
       use Broca.POA;
-      POA : Broca.POA.POA_Object_Access;
-      Skel : Broca.POA.Skeleton_Access;
+      POA : Broca.POA.POA_Object_Ptr;
+      Skel : Broca.POA.Skeleton_Ptr;
    begin
       POA := To_Poa (Self);
       Skel := Broca.POA.To_Skeleton (Reference);
-      if Skel.POA /= POA_Object_Access (POA) then
+      if Skel.POA /= POA_Object_Ptr (POA) then
          raise WrongAdapter;
       end if;
       if POA.Servant_Policy /= RETAIN
@@ -391,8 +391,8 @@ package body Portableserver.POA is
 
    function Id_To_Servant (Self : Ref; Oid : ObjectId) return Servant
    is
-      POA : Broca.POA.POA_Object_Access;
-      Skel : Broca.POA.Skeleton_Access;
+      POA : Broca.POA.POA_Object_Ptr;
+      Skel : Broca.POA.Skeleton_Ptr;
    begin
       POA := To_Poa (Self);
       if POA.Servant_Policy /= RETAIN then
@@ -409,8 +409,8 @@ package body Portableserver.POA is
    function Id_To_Reference (Self : Ref; Oid : ObjectId)
                              return CORBA.Object.Ref
    is
-      POA : Broca.POA.POA_Object_Access;
-      Skel : Broca.POA.Skeleton_Access;
+      POA : Broca.POA.POA_Object_Ptr;
+      Skel : Broca.POA.Skeleton_Ptr;
       Res : CORBA.Object.Ref;
    begin
       POA := To_Poa (Self);

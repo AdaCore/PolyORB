@@ -10,7 +10,7 @@ with Broca.Sequences;
 
 package Broca.POA is
    type POA_Object;
-   type POA_Object_Access is access all POA_Object'Class;
+   type POA_Object_Ptr is access all POA_Object'Class;
 
    ------------------
    --  POAManager  --
@@ -24,7 +24,7 @@ package Broca.POA is
    --  POAManager internal object and primitives.
    type POAManager_Object is abstract new Broca.Refs.Ref_Type
      with null record;
-   type POAManager_Object_Access is access all POAManager_Object'Class;
+   type POAManager_Object_Ptr is access all POAManager_Object'Class;
 
    procedure Activate (Self : in out POAManager_Object) is abstract;
    procedure Hold_Requests (Self : in out POAManager_Object;
@@ -40,9 +40,9 @@ package Broca.POA is
    --  Add (register) or remove (unregister) a POA to be controled by the
    --  POAManager.
    procedure Register (Self : in out POAManager_Object;
-                       A_Poa : POA_Object_Access) is abstract;
+                       A_Poa : POA_Object_Ptr) is abstract;
    procedure Unregister (Self : in out POAManager_Object;
-                         A_Poa : POA_Object_Access) is abstract;
+                         A_Poa : POA_Object_Ptr) is abstract;
 
    --  9.3.2
    --  A POA Manager encapsulates the processing state of the POAs it is
@@ -80,15 +80,15 @@ package Broca.POA is
          P_Servant : PortableServer.Servant;
       end record;
 
-   type Internal_Skeleton_Access is access all Internal_Skeleton;
+   type Internal_Skeleton_Ptr is access all Internal_Skeleton;
 
    --  Can raise bad_param.
    function To_Internal_Skeleton (Ref : CORBA.Object.Ref'Class)
-                                  return Internal_Skeleton_Access;
+                                  return Internal_Skeleton_Ptr;
 
    --  Also set usage counter to 1.
    function Create_Internal_Skeleton (P_Servant : PortableServer.Servant)
-                                      return Internal_Skeleton_Access;
+                                      return Internal_Skeleton_Ptr;
 
    ----------------
    --  Skeleton  --
@@ -103,7 +103,7 @@ package Broca.POA is
 
          P_Servant : PortableServer.Servant;
 
-         POA : Broca.POA.POA_Object_Access;
+         POA : Broca.POA.POA_Object_Ptr;
 
          --  ObjectId.
          Object_Id : PortableServer.ObjectId :=
@@ -118,11 +118,11 @@ package Broca.POA is
      (Buffer : in out Broca.Buffers.Buffer_Descriptor;
       Value  : in Skeleton);
 
-   type Skeleton_Access is access all Skeleton;
+   type Skeleton_Ptr is access all Skeleton;
 
    --  Can raise bad_param.
    function To_Skeleton (Ref : CORBA.Object.Ref'Class)
-                         return Skeleton_Access;
+                         return Skeleton_Ptr;
 
    -----------
    --  POA  --
@@ -149,7 +149,7 @@ package Broca.POA is
          Index : POA_Index_Type;
 
          --  Internal data.
-         POA_Manager : POAManager_Object_Access;
+         POA_Manager : POAManager_Object_Ptr;
          Name : CORBA.String;
          Activator : PortableServer.AdapterActivator.Ref;
          Default_Servant : PortableServer.Servant := null;
@@ -173,11 +173,11 @@ package Broca.POA is
          --  Any access to the single linked list of children is protected by
          --  all_poa_lock.
          --  CHILDREN is protected by LINK_LOCK.
-         Children : POA_Object_Access := null;
+         Children : POA_Object_Ptr := null;
          --  BROTHER is under the control of the parent.
-         Brother : POA_Object_Access := null;
+         Brother : POA_Object_Ptr := null;
          --  PARENT can't be changed, it is assigned at initialisation.
-         Parent : POA_Object_Access := null;
+         Parent : POA_Object_Ptr := null;
       end record;
 
    --  Note: for all primitives of POA_Object, policies checking is done
@@ -203,14 +203,14 @@ package Broca.POA is
                            return ObjectId is abstract;
 
    function Servant_To_Skeleton (Self : access POA_Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Access is abstract;
+      return Broca.POA.Skeleton_Ptr is abstract;
 
    function Skeleton_To_Servant
-     (Self : access POA_Object; Skeleton : Broca.POA.Skeleton_Access)
+     (Self : access POA_Object; Skeleton : Broca.POA.Skeleton_Ptr)
      return Servant is abstract;
 
    function Id_To_Skeleton (Self : access POA_Object; Oid : ObjectId)
-     return Skeleton_Access is abstract;
+     return Skeleton_Ptr is abstract;
 
    procedure Deactivate_Object (Self : access POA_Object; Oid : ObjectId)
      is abstract;
@@ -232,14 +232,14 @@ package Broca.POA is
       Message : in out Broca.Buffers.Buffer_Descriptor) is abstract;
 
    function Get_The_POAManager (Self : access POA_Object)
-                                return POAManager_Object_Access;
+                                return POAManager_Object_Ptr;
 
    --  Before calling CREATE_POA,  All_POAs_lock must have been lock_W, so that
    --  links can be safely.  After the call, it is still locked.
    function Create_POA
      (Self         : access POA_Object;
       Adapter_Name : CORBA.String;
-      A_POAManager : POAManager_Object_Access;
+      A_POAManager : POAManager_Object_Ptr;
       Tp           : ThreadPolicyValue;
       Lp : LifespanPolicyValue;
       Up : IdUniquenessPolicyValue;
@@ -247,7 +247,7 @@ package Broca.POA is
       Ap : ImplicitActivationPolicyValue;
       Sp : ServantRetentionPolicyValue;
       Rp : RequestProcessingPolicyValue)
-     return POA_Object_Access is abstract;
+     return POA_Object_Ptr is abstract;
 
    --  Return null if the POA was not found nor created.
    --  Before calling FIND_POA,  All_POAs_lock must have been lock_W, so that
@@ -258,7 +258,7 @@ package Broca.POA is
      (Self         : access POA_Object;
       Adapter_Name : CORBA.String;
       Activate_It  : CORBA.Boolean)
-      return POA_Object_Access is abstract;
+      return POA_Object_Ptr is abstract;
 
    --  Note: All_POAs_lock must not have been taken.
    procedure Destroy_POA (Self : access POA_Object;

@@ -32,13 +32,13 @@ package Broca.ORB is
    --  A state of a poa has changed.
    procedure POA_State_Changed
      (ORB : in out ORB_Type;
-      POA : in Broca.POA.POA_Object_Access) is abstract;
+      POA : in Broca.POA.POA_Object_Ptr) is abstract;
 
-   type ORB_Access is access all ORB_Type'Class;
+   type ORB_Ptr is access all ORB_Type'Class;
 
-   procedure Register_ORB (ORB : ORB_Access);
+   procedure Register_ORB (ORB : ORB_Ptr);
    procedure Run;
-   procedure POA_State_Changed (POA : Broca.POA.POA_Object_Access);
+   procedure POA_State_Changed (POA : Broca.POA.POA_Object_Ptr);
 
    --  Well Known ObjectIds.
    Root_POA_ObjectId             : constant CORBA.ORB.ObjectId;

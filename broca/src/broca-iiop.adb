@@ -22,7 +22,7 @@ package body Broca.IIOP is
    --------------------
 
    function Get_Object_Key
-     (Profile : Profile_Iiop_Type)
+     (Profile : Profile_IIOP_Type)
      return Broca.Sequences.Octet_Sequence is
    begin
       return Profile.Object_Key;
@@ -60,7 +60,7 @@ package body Broca.IIOP is
       Old_Endian : CORBA.Boolean;
       New_Endian : CORBA.Boolean;
    begin
-      Res := new Profile_Iiop_Type;
+      Res := new Profile_IIOP_Type;
 
       --  Extract length of the sequence.
       Unmarshall (Buffer, Profile_Length);
@@ -71,11 +71,11 @@ package body Broca.IIOP is
       Set_Endianess (Buffer, New_Endian);
 
       --  Extract version
-      Unmarshall (Buffer, Res.Iiop_Version.Major);
-      Unmarshall (Buffer, Res.Iiop_Version.Minor);
+      Unmarshall (Buffer, Res.IIOP_Version.Major);
+      Unmarshall (Buffer, Res.IIOP_Version.Minor);
 
-      if Res.Iiop_Version.Major /= 1
-        or else Res.Iiop_Version.Minor > 1
+      if Res.IIOP_Version.Major /= 1
+        or else Res.IIOP_Version.Minor > 1
       then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
@@ -87,7 +87,7 @@ package body Broca.IIOP is
       Res.Network_Port := Port_To_Network_Port (Res.Port);
       Broca.Sequences.Unmarshall (Buffer, Res.Object_Key);
 
-      if Res.Iiop_Version.Minor = 1 then
+      if Res.IIOP_Version.Minor = 1 then
          Unmarshall (Buffer, Nbr_Seq);
          if Nbr_Seq /= 0 then
             --  Components are not yet handled.
@@ -102,9 +102,9 @@ package body Broca.IIOP is
       Set_Endianess (Buffer, Old_Endian);
    end Create_Profile;
 
-   procedure Create_Socket_Address (Profile : in out Profile_Iiop_Type);
+   procedure Create_Socket_Address (Profile : in out Profile_IIOP_Type);
 
-   procedure Create_Socket_Address (Profile : in out Profile_Iiop_Type)
+   procedure Create_Socket_Address (Profile : in out Profile_IIOP_Type)
    is
       use Ada.Strings.Unbounded;
       use Sockets.Naming;
@@ -120,10 +120,10 @@ package body Broca.IIOP is
         (Address_Of (To_String (Unbounded_String (Profile.Host))));
    end Create_Socket_Address;
 
-   function Create_Strand (Profile : access Profile_Iiop_Type)
+   function Create_Strand (Profile : access Profile_IIOP_Type)
                            return Strand_Ptr;
 
-   function Create_Strand (Profile : access Profile_Iiop_Type)
+   function Create_Strand (Profile : access Profile_IIOP_Type)
                            return Strand_Ptr is
       Res : Strand_Ptr;
    begin
@@ -135,9 +135,9 @@ package body Broca.IIOP is
    end Create_Strand;
 
    procedure Open_Strand
-     (Profile : access Profile_Iiop_Type; Strand : Strand_Ptr);
+     (Profile : access Profile_IIOP_Type; Strand : Strand_Ptr);
 
-   procedure Open_Strand (Profile : access Profile_Iiop_Type;
+   procedure Open_Strand (Profile : access Profile_IIOP_Type;
                           Strand : Strand_Ptr)
    is
       use Sockets.Naming;
@@ -244,7 +244,7 @@ package body Broca.IIOP is
 
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
-   function Find_Connection (Profile : access Profile_Iiop_Type)
+   function Find_Connection (Profile : access Profile_IIOP_Type)
                              return Broca.Object.Connection_Ptr
    is
       use Interfaces.C;

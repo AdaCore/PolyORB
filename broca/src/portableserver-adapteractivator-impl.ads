@@ -6,8 +6,8 @@ package PortableServer.AdapterActivator.Impl is
 
    --  FIXME
    --  This corresponds to _this in c++.
-   type Object_Access is access all Object'Class;
-   function To_Ref (Self : Object_Access)
+   type Object_Ptr is access all Object'Class;
+   function To_Ref (Self : Object_Ptr)
                     return PortableServer.AdapterActivator.Ref;
 
    procedure Unknown_Adapter

@@ -3,7 +3,7 @@ with Broca.POA;
 with PortableServer.AdapterActivator;
 
 package body PortableServer.AdapterActivator.Impl is
-   function To_Ref (Self : Object_Access)
+   function To_Ref (Self : Object_Ptr)
                     return PortableServer.AdapterActivator.Ref is
       Res : PortableServer.AdapterActivator.Ref;
    begin

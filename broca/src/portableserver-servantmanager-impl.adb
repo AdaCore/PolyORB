@@ -2,7 +2,7 @@ with Broca.Refs;
 with Broca.POA;
 
 package body PortableServer.ServantManager.Impl is
-   function To_Ref (Self : Object_Access)
+   function To_Ref (Self : Object_Ptr)
                     return PortableServer.ServantManager.Ref is
       Res : PortableServer.ServantManager.Ref;
    begin

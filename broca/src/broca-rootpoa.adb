@@ -39,7 +39,7 @@ package body Broca.Rootpoa is
    ---------------------------------------
 
    package Poa_Vararray is new Broca.Vararray
-     (Element => Broca.POA.POA_Object_Access,
+     (Element => Broca.POA.POA_Object_Ptr,
       Null_Element => null,
       Index_Type => Natural);
 
@@ -110,9 +110,9 @@ package body Broca.Rootpoa is
       Wait_For_Completion : in CORBA.Boolean);
 
    procedure Register (Self : in out Poa_Manager_Type;
-                       A_Poa : POA_Object_Access);
+                       A_Poa : POA_Object_Ptr);
    procedure Unregister (Self : in out Poa_Manager_Type;
-                         A_Poa : POA_Object_Access);
+                         A_Poa : POA_Object_Ptr);
    procedure Inc_Usage_If_Active (Self : in out Poa_Manager_Type;
                                   State : out Processing_State_Type);
    procedure Dec_Usage (Self : in out Poa_Manager_Type);
@@ -120,12 +120,12 @@ package body Broca.Rootpoa is
    function Is_Inactive (Self : in Poa_Manager_Type) return Boolean;
 
    procedure State_Changed_Iterator
-     (El : Broca.POA.POA_Object_Access; Arg : Boolean);
+     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean);
    procedure Etherealize_Iterator
-     (El : Broca.POA.POA_Object_Access; Arg : Boolean);
+     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean);
 
    procedure State_Changed_Iterator
-     (El : Broca.POA.POA_Object_Access; Arg : Boolean) is
+     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean) is
    begin
       --  Avoid a warning.
       if Arg then
@@ -135,7 +135,7 @@ package body Broca.Rootpoa is
    end State_Changed_Iterator;
 
    procedure Etherealize_Iterator
-     (El : Broca.POA.POA_Object_Access; Arg : Boolean) is
+     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean) is
    begin
       --  Avoid a warning.
       if Arg then
@@ -192,13 +192,13 @@ package body Broca.Rootpoa is
    end Deactivate;
 
    procedure Register
-     (Self : in out Poa_Manager_Type; A_Poa : POA_Object_Access) is
+     (Self : in out Poa_Manager_Type; A_Poa : POA_Object_Ptr) is
    begin
       Poa_Vararray.Insert (Self.Poas, A_Poa);
    end Register;
 
    procedure Unregister
-     (Self : in out Poa_Manager_Type; A_Poa : POA_Object_Access) is
+     (Self : in out Poa_Manager_Type; A_Poa : POA_Object_Ptr) is
    begin
       Poa_Vararray.Remove (Self.Poas, A_Poa);
    end Unregister;
@@ -232,7 +232,7 @@ package body Broca.Rootpoa is
 
    --  The ghost POA manager is used by ghost POA, ie poa created by
    --  find_POA before calling an AdapterActivator.
-   Ghost_Poa_Manager : POAManager_Object_Access;
+   Ghost_Poa_Manager : POAManager_Object_Ptr;
 
    ----------------------------------
    --  An implementation of a POA  --
@@ -255,7 +255,7 @@ package body Broca.Rootpoa is
    type Servant_Cell_Type is
       record
          --  SKELETON must not be null when state is active.
-         Skeleton : Broca.POA.Skeleton_Access;
+         Skeleton : Broca.POA.Skeleton_Ptr;
 
          --  State of the entry.
          State : Cell_State_Type := Free;
@@ -317,7 +317,7 @@ package body Broca.Rootpoa is
    function Servant_To_Id (Self : access Object; P_Servant : Servant)
                            return ObjectId;
    function Skeleton_To_Servant
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Access)
+     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
      return Servant;
    procedure Deactivate_Object (Self : access Object; Oid : ObjectId);
 
@@ -333,7 +333,7 @@ package body Broca.Rootpoa is
    function Create_POA
      (Self          : access Object;
       Adapter_Name  : CORBA.String;
-      A_POAManager  : POAManager_Object_Access;
+      A_POAManager  : POAManager_Object_Ptr;
       Thread_Policy : ThreadPolicyValue;
       Lifespan_Policy : LifespanPolicyValue;
       Uniqueness_Policy : IdUniquenessPolicyValue;
@@ -341,21 +341,21 @@ package body Broca.Rootpoa is
       Activation_Policy : ImplicitActivationPolicyValue;
       Servant_Policy : ServantRetentionPolicyValue;
       Request_Policy : RequestProcessingPolicyValue)
-     return POA_Object_Access;
+     return POA_Object_Ptr;
    function Find_POA
      (Self         : access Object;
       Adapter_Name : CORBA.String;
       Activate_It  : CORBA.Boolean)
-      return POA_Object_Access;
+      return POA_Object_Ptr;
    procedure Destroy_POA (Self : access Object;
                           Etherealize_Objects : CORBA.Boolean;
                           Wait_For_Completion : CORBA.Boolean);
    procedure Cleanup (Self : access Object);
 
    function Servant_To_Skeleton (Self : access Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Access;
+      return Broca.POA.Skeleton_Ptr;
    function Id_To_Skeleton (Self : access Object; Oid : ObjectId)
-     return Skeleton_Access;
+     return Skeleton_Ptr;
 
    subtype Objectid_Type is
      Broca.Sequences.Octet_Sequences.Element_Array (0 .. 3);
@@ -377,7 +377,7 @@ package body Broca.Rootpoa is
    function Slot_By_Servant (Self : access Object; P_Servant : Servant)
                              return Slot_Index_Type;
    function Slot_By_Skeleton
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Access)
+     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
       return Slot_Index_Type;
 
    --  Return how many times the servant was activated.
@@ -388,7 +388,7 @@ package body Broca.Rootpoa is
                                     return Broca.Buffers.Buffer_Descriptor;
    function Clean_Slot (Self : access Object; Slot : Slot_Index_Type)
                         return Boolean;
-   procedure Unlink_POA (Self : POA_Object_Access);
+   procedure Unlink_POA (Self : POA_Object_Ptr);
 
    --  Find a skeleton to be destroyed
    function Get_Slot_To_Destroy (Self : access Object) return Slot_Index_Type;
@@ -444,7 +444,7 @@ package body Broca.Rootpoa is
    end Slot_By_Servant;
 
    function Slot_By_Skeleton
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Access)
+     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
       return Slot_Index_Type is
    begin
       if Self.Object_Map /= null then
@@ -639,7 +639,7 @@ package body Broca.Rootpoa is
       P_Servant : PortableServer.Servant;
       Type_Id   : CORBA.RepositoryId;
       Oid       : ObjectId)
-     return Broca.POA.Skeleton_Access;
+     return Broca.POA.Skeleton_Ptr;
 
    function Create_Skeleton
      (Self      : access Object;
@@ -647,15 +647,15 @@ package body Broca.Rootpoa is
       P_Servant : PortableServer.Servant;
       Type_Id   : CORBA.RepositoryId;
       Oid       : ObjectId)
-     return Broca.POA.Skeleton_Access
+     return Broca.POA.Skeleton_Ptr
    is
       Key : Broca.Buffers.Buffer_Descriptor;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       Obj := new Broca.POA.Skeleton;
       Obj.P_Servant := P_Servant;
       Obj.Object_Id := Oid;
-      Obj.POA := POA_Object_Access (Self);
+      Obj.POA := POA_Object_Ptr (Self);
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Obj));
 
       --  The servant is now active
@@ -668,7 +668,7 @@ package body Broca.Rootpoa is
       end if;
 
       Broca.Server.Build_IOR
-        (Obj.IOR, Type_Id, Broca.POA.POA_Object_Access (Self), Key);
+        (Obj.IOR, Type_Id, Broca.POA.POA_Object_Ptr (Self), Key);
 
       Broca.Buffers.Destroy (Key);
 
@@ -683,7 +683,7 @@ package body Broca.Rootpoa is
    is
       Slot : Slot_Index_Type;
       Oid : ObjectId;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Uniqueness_Policy = UNIQUE_ID
         and then Slot_By_Servant (Self, P_Servant) /= Bad_Slot_Index
@@ -703,7 +703,7 @@ package body Broca.Rootpoa is
      (Self : access Object; Oid : ObjectId; P_Servant : PortableServer.Servant)
    is
       Slot : Slot_Index_Type;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
       if Slot = Bad_Slot_Index then
@@ -732,7 +732,7 @@ package body Broca.Rootpoa is
    is
       Res : CORBA.Object.Ref;
       Slot : Slot_Index_Type;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
       Oid : ObjectId;
    begin
       --  Allocate an objectId.
@@ -752,7 +752,7 @@ package body Broca.Rootpoa is
    is
       Res : CORBA.Object.Ref;
       Slot : Slot_Index_Type;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Servant_Policy = RETAIN then
          Slot := Slot_By_Object_Id (Self, Oid);
@@ -777,7 +777,7 @@ package body Broca.Rootpoa is
    is
       Slot : Slot_Index_Type;
       Oid : ObjectId;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Uniqueness_Policy = UNIQUE_ID then
          Slot := Slot_By_Servant (Self, P_Servant);
@@ -799,11 +799,11 @@ package body Broca.Rootpoa is
    end Servant_To_Id;
 
    function Servant_To_Skeleton (Self : access Object; P_Servant : Servant)
-      return Broca.POA.Skeleton_Access
+      return Broca.POA.Skeleton_Ptr
    is
       Slot : Slot_Index_Type;
       Oid : ObjectId;
-      Obj : Broca.POA.Skeleton_Access;
+      Obj : Broca.POA.Skeleton_Ptr;
    begin
       if Self.Uniqueness_Policy = UNIQUE_ID then
          Slot := Slot_By_Servant (Self, P_Servant);
@@ -825,7 +825,7 @@ package body Broca.Rootpoa is
    end Servant_To_Skeleton;
 
    function Skeleton_To_Servant
-     (Self : access Object; Skeleton : Broca.POA.Skeleton_Access)
+     (Self : access Object; Skeleton : Broca.POA.Skeleton_Ptr)
      return Servant
    is
       Slot : Slot_Index_Type;
@@ -845,7 +845,7 @@ package body Broca.Rootpoa is
    end Skeleton_To_Servant;
 
    function Id_To_Skeleton (Self : access Object; Oid : ObjectId)
-     return Skeleton_Access
+     return Skeleton_Ptr
    is
       Slot : Slot_Index_Type;
    begin
@@ -898,7 +898,7 @@ package body Broca.Rootpoa is
    procedure Cleanup (Self : access Object)
    is
       Slot : Slot_Index_Type;
-      Sm : Broca.POA.Internal_Skeleton_Access;
+      Sm : Broca.POA.Internal_Skeleton_Ptr;
       A_Servant : PortableServer.Servant;
       A_Poa : PortableServer.POA.Ref;
       Is_Cleanup : Boolean;
@@ -961,7 +961,7 @@ package body Broca.Rootpoa is
       if Self.POA_Manager /= null then
          Broca.POA.Inc_Usage (Self.POA_Manager.all);
       end if;
-      Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Access (Self));
+      Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Ptr (Self));
    end Set_Cleanup_Call_Back;
 
    --  Called by the poa manager.
@@ -978,7 +978,7 @@ package body Broca.Rootpoa is
          end loop;
          if To_Clean then
             Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Self));
-            Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Access (Self));
+            Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Ptr (Self));
          end if;
       end if;
       Self.Map_Lock.Unlock;
@@ -993,7 +993,7 @@ package body Broca.Rootpoa is
       end if;
       if Clean_Slot (Self, Slot) then
          Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Self));
-         Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Access (Self));
+         Broca.Server.Request_Cleanup (Broca.POA.POA_Object_Ptr (Self));
       end if;
    end Deactivate_Object;
 
@@ -1008,7 +1008,7 @@ package body Broca.Rootpoa is
       use PortableServer;
       Slot : Slot_Index_Type;
       A_Servant : Servant;
-      Skel : Internal_Skeleton_Access;
+      Skel : Internal_Skeleton_Ptr;
       A_Poa : PortableServer.POA.Ref;
       Oid : ObjectId;
       The_Cookie : PortableServer.ServantLocator.Cookie;
@@ -1103,7 +1103,7 @@ package body Broca.Rootpoa is
                   Attributes.Set_Value
                     (POA_Task_Attribute'
                      (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
-                  Giop_Dispatch
+                  GIOP_Dispatch
                     (A_Servant, CORBA.To_Standard_String (Operation),
                      Request_Id, Reponse_Expected, Message);
                   PortableServer.ServantLocator.Impl.Postinvoke
@@ -1126,7 +1126,7 @@ package body Broca.Rootpoa is
          Attributes.Set_Value
            (POA_Task_Attribute'
             (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
-         Giop_Dispatch
+         GIOP_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
             Reponse_Expected, Message);
          pragma Debug (O ("GIOP_Invoke : giop_dispatch returned"));
@@ -1153,7 +1153,7 @@ package body Broca.Rootpoa is
    function Create_POA
      (Self          : access Object;
       Adapter_Name  : CORBA.String;
-      A_POAManager  : POAManager_Object_Access;
+      A_POAManager  : POAManager_Object_Ptr;
       Thread_Policy : ThreadPolicyValue;
       Lifespan_Policy : LifespanPolicyValue;
       Uniqueness_Policy : IdUniquenessPolicyValue;
@@ -1161,10 +1161,10 @@ package body Broca.Rootpoa is
       Activation_Policy : ImplicitActivationPolicyValue;
       Servant_Policy : ServantRetentionPolicyValue;
       Request_Policy : RequestProcessingPolicyValue)
-     return POA_Object_Access
+     return POA_Object_Ptr
    is
       use CORBA;
-      Child : POA_Object_Access;
+      Child : POA_Object_Ptr;
       Res : Object_Ptr;
    begin
       --  Fail if there is already a POA with the same name.
@@ -1182,9 +1182,9 @@ package body Broca.Rootpoa is
          Res := new Object;
          Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
          --  Link it.
-         Res.Parent := POA_Object_Access (Self);
+         Res.Parent := POA_Object_Ptr (Self);
          Res.Brother := Self.Children;
-         Self.Children := POA_Object_Access (Res);
+         Self.Children := POA_Object_Ptr (Res);
 
          --  Internal data.
          Res.Name := Adapter_Name;
@@ -1192,7 +1192,7 @@ package body Broca.Rootpoa is
          Res := Object_Ptr (Child);
       end if;
 
-      Broca.Server.Register_POA (POA_Object_Access (Res));
+      Broca.Server.Register_POA (POA_Object_Ptr (Res));
 
       --  Policies
       Res.Thread_Policy := Thread_Policy;
@@ -1217,19 +1217,19 @@ package body Broca.Rootpoa is
       end if;
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res.POA_Manager));
 
-      return POA_Object_Access (Res);
+      return POA_Object_Ptr (Res);
    end Create_POA;
 
-   procedure Unlink_POA (Self : POA_Object_Access) is
-      A_Poa : POA_Object_Access;
+   procedure Unlink_POA (Self : POA_Object_Ptr) is
+      A_Poa : POA_Object_Ptr;
    begin
       if Self.Parent /= null then
          A_Poa := Self.Parent.Children;
-         if A_Poa = POA_Object_Access (Self) then
+         if A_Poa = POA_Object_Ptr (Self) then
             Self.Parent.Children := Self.Brother;
          else
             while A_Poa.Brother /= null loop
-               if A_Poa.Brother = POA_Object_Access (Self) then
+               if A_Poa.Brother = POA_Object_Ptr (Self) then
                   A_Poa.Brother := Self.Brother;
                   exit;
                end if;
@@ -1242,9 +1242,9 @@ package body Broca.Rootpoa is
                           Etherealize_Objects : CORBA.Boolean;
                           Wait_For_Completion : CORBA.Boolean)
    is
-      procedure Unregister_All (Self : POA_Object_Access);
-      procedure Destroy_All (Self : POA_Object_Access);
-      procedure Unregister_All (Self : POA_Object_Access) is
+      procedure Unregister_All (Self : POA_Object_Ptr);
+      procedure Destroy_All (Self : POA_Object_Ptr);
+      procedure Unregister_All (Self : POA_Object_Ptr) is
       begin
          if Self.Children /= null then
             Unregister_All (Self.Children);
@@ -1258,7 +1258,7 @@ package body Broca.Rootpoa is
          Self.POA_Manager := null;
       end Unregister_All;
 
-      procedure Destroy_All (Self : POA_Object_Access) is
+      procedure Destroy_All (Self : POA_Object_Ptr) is
       begin
          if Self.Children /= null then
             Destroy_All (Self.Children);
@@ -1279,29 +1279,29 @@ package body Broca.Rootpoa is
          --             null;
          --          end if;
       end Destroy_All;
-      POA : POA_Object_Access := POA_Object_Access (Self);
+      POA : POA_Object_Ptr := POA_Object_Ptr (Self);
    begin
       All_POAs_Lock.Lock_W;
       if POA.Parent /= null then
-         POA_Object_Access (POA.Parent).Link_Lock.Lock_W;
+         POA_Object_Ptr (POA.Parent).Link_Lock.Lock_W;
          Unlink_POA (POA);
-         POA_Object_Access (POA.Parent).Link_Lock.Unlock_W;
+         POA_Object_Ptr (POA.Parent).Link_Lock.Unlock_W;
       end if;
       Unregister_All (POA);
       --  Now, the POA is unknown by the server and unreachable.
       All_POAs_Lock.Unlock_W;
-      Destroy_All (POA_Object_Access (Self));
+      Destroy_All (POA_Object_Ptr (Self));
    end Destroy_POA;
 
    function Find_POA
      (Self         : access Object;
       Adapter_Name : CORBA.String;
       Activate_It  : CORBA.Boolean)
-      return POA_Object_Access
+      return POA_Object_Ptr
    is
       use CORBA;
-      Child : POA_Object_Access;
-      Res : POA_Object_Access;
+      Child : POA_Object_Ptr;
+      Res : POA_Object_Ptr;
       Poa_Ref : PortableServer.POA_Forward.Ref;
       Created : Boolean;
    begin
@@ -1383,7 +1383,7 @@ package body Broca.Rootpoa is
       end if;
    end Find_POA;
 
-   Root_POA : Broca.POA.POA_Object_Access;
+   Root_POA : Broca.POA.POA_Object_Ptr;
 begin
    --  Build the default POAManager.
    --  9.3.2  Processing States
@@ -1399,7 +1399,7 @@ begin
    Root_POA := new Object;
    Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Root_POA));
    Root_POA.POA_Manager :=
-     Broca.POA.POAManager_Object_Access (Default_Poa_Manager);
+     Broca.POA.POAManager_Object_Ptr (Default_Poa_Manager);
    --  9.3.8
    --  The parent of the root POA is null.
    Root_POA.Parent := null;

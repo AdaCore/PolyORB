@@ -58,7 +58,7 @@ package Broca.Server is
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
-   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Access);
+   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Ptr);
 
    --  When a server has a request that can be processed, it must inform
    --  with this procedure.
@@ -72,18 +72,18 @@ package Broca.Server is
 
    --  Register a POA.
    --  broca.poa.all_poas_lock should have been lock_w.
-   procedure Register_POA (POA : Broca.POA.POA_Object_Access);
+   procedure Register_POA (POA : Broca.POA.POA_Object_Ptr);
 
    --  Unregister a POA.
    --  broca.poa.all_poas_lock should have been lock_w.
-   procedure Unregister_POA (POA : Broca.POA.POA_Object_Access);
+   procedure Unregister_POA (POA : Broca.POA.POA_Object_Ptr);
 
    --  This procedure builds an IOR.
    --  It can return a null_string if there is no profiles for this object.
    --  KEY is only the key for the POA, not the full object key.
    procedure Build_IOR (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
-                        POA : Broca.POA.POA_Object_Access;
+                        POA : Broca.POA.POA_Object_Ptr;
                         Key : Broca.Buffers.Buffer_Descriptor);
 private
    type Server_Id_Type is new Natural;

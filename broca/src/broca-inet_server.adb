@@ -1,6 +1,6 @@
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
-with CORBA.Iop;
+with CORBA.IOP;
 with Sockets.Thin;
 with Sockets.Constants;
 with Interfaces.C; use Interfaces.C;
@@ -25,8 +25,8 @@ package body Broca.Inet_Server is
    procedure O is new Broca.Debug.Output (Flag);
 
    My_Addr : Sockets.Thin.In_Addr;
-   Iiop_Host : CORBA.String;
-   Iiop_Port : CORBA.Unsigned_Short;
+   IIOP_Host : CORBA.String;
+   IIOP_Port : CORBA.Unsigned_Short;
    Listening_Socket : Interfaces.C.int;
 
    --  Find an IPv4 address for this host.
@@ -201,11 +201,11 @@ package body Broca.Inet_Server is
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
-      Iiop_Port := CORBA.Unsigned_Short (Sock_Name.Sin_Port);
+      IIOP_Port := CORBA.Unsigned_Short (Sock_Name.Sin_Port);
 
       --  Network to host byte order conversion.
       if Broca.Buffers.Is_Little_Endian then
-         Iiop_Port := (Iiop_Port / 256) + (Iiop_Port mod 256) * 256;
+         IIOP_Port := (IIOP_Port / 256) + (IIOP_Port mod 256) * 256;
       end if;
 
       Listening_Socket := Sock;
@@ -215,12 +215,12 @@ package body Broca.Inet_Server is
          use Ada.Text_IO;
          Addr_Str : String := In_Addr_To_Str (My_Addr);
       begin
-         Iiop_Host := CORBA.To_CORBA_String (Addr_Str);
+         IIOP_Host := CORBA.To_CORBA_String (Addr_Str);
          if Broca.Flags.Verbose then
             Put ("listening on host: ");
             Put (Addr_Str);
             Put (", port: ");
-            Put_Line (CORBA.Unsigned_Short'Image (Iiop_Port));
+            Put_Line (CORBA.Unsigned_Short'Image (IIOP_Port));
          end if;
       end;
 
@@ -394,7 +394,7 @@ package body Broca.Inet_Server is
       Compute_New_Size (IOR, O_Size, O_Size);
 
       --  Host string.
-      Compute_New_Size (IOR, Iiop_Host);
+      Compute_New_Size (IOR, IIOP_Host);
 
       --  Port
       Compute_New_Size (IOR, US_Size, US_Size);
@@ -415,7 +415,7 @@ package body Broca.Inet_Server is
    is
       use Broca.Marshalling;
    begin
-      Marshall (IOR, CORBA.Iop.Tag_Internet_Iop);
+      Marshall (IOR, CORBA.IOP.Tag_Internet_IOP);
 
       Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR) - UL_Size));
 
@@ -427,10 +427,10 @@ package body Broca.Inet_Server is
       Marshall (IOR, CORBA.Octet'(0));
 
       --  Host
-      Marshall (IOR, Iiop_Host);
+      Marshall (IOR, IIOP_Host);
 
       --  Port
-      Marshall (IOR, Iiop_Port);
+      Marshall (IOR, IIOP_Port);
 
       Align_Size (IOR, UL_Size);
 

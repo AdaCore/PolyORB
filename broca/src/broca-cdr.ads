@@ -15,9 +15,9 @@ package Broca.CDR is
    type Index_Type is mod 2 ** 32;
 
    type Octet_Array is array (Index_Type range <>) of CORBA.Octet;
-   type Octet_Array_Access is access Octet_Array;
+   type Octet_Array_Ptr is access Octet_Array;
 
-   procedure Free (Octets : in out Octet_Array_Access);
+   procedure Free (Octets : in out Octet_Array_Ptr);
 
    type Alignment_Type is range 1 .. 8;
 
@@ -110,7 +110,7 @@ private
 
    type Buffer_Type is new Ada.Finalization.Controlled with record
       Endianess : Endianess_Type;
-      Content   : Octet_Array_Access;
+      Content   : Octet_Array_Ptr;
       Index     : Index_Type;
    end record;
    --  The current implementation works like a realloc() each time something

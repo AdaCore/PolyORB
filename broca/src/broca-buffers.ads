@@ -15,7 +15,7 @@ package Broca.Buffers is
    type Byte is mod 2 ** 8;
    type Buffer_Index_Type is mod 2 ** 32;
    type Buffer_Type is array (Buffer_Index_Type range <>) of Byte;
-   type Buffer_Access is access Buffer_Type;
+   type Buffer_Ptr is access Buffer_Type;
 
    subtype Alignment_Type is Buffer_Index_Type range 1 .. 8;
 
@@ -94,7 +94,7 @@ package Broca.Buffers is
 private
 
    procedure Free is
-      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
+      new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Ptr);
 
    --  A buffer with the current position, as needed by unmarshall and
    --  endianness.
@@ -103,7 +103,7 @@ private
          Pos           : Buffer_Index_Type := 0;
          Little_Endian : Boolean := False;
          Write         : Boolean := True;
-         Buffer        : Buffer_Access := null;
+         Buffer        : Buffer_Ptr := null;
       end record;
 
 end Broca.Buffers;

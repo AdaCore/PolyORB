@@ -7,7 +7,7 @@ package body Broca.CDR is
    use CORBA;
 
    procedure Free_It is
-      new Ada.Unchecked_Deallocation (Octet_Array, Octet_Array_Access);
+      new Ada.Unchecked_Deallocation (Octet_Array, Octet_Array_Ptr);
 
    Local_Endianess : Endianess_Type;
 
@@ -70,7 +70,7 @@ package body Broca.CDR is
    -- Free --
    ----------
 
-   procedure Free (Octets : in out Octet_Array_Access) is
+   procedure Free (Octets : in out Octet_Array_Ptr) is
    begin
       Free_It (Octets);
    end Free;
@@ -279,7 +279,7 @@ package body Broca.CDR is
       Pad_Size    : constant Index_Type :=
         Align (Buffer.Content'Last, Alignment) - Buffer.Content'Last;
       Padding     : constant Octet_Array (1 .. Pad_Size) := (others => 0);
-      New_Content : constant Octet_Array_Access :=
+      New_Content : constant Octet_Array_Ptr :=
         new Octet_Array'(Buffer.Content.all & Padding & Octets);
    begin
       Free (Buffer.Content);

@@ -22,7 +22,7 @@ package PortableServer is
    --  Call an operation.
    --  Only standard exceptions (defined in module CORBA) can be caught
    --  outside of GIOP_DISPATCH, ie user defined exception must be marshalled.
-   procedure Giop_Dispatch
+   procedure GIOP_Dispatch
      (Obj : access Servant_Base;
       Operation : String;
       Request_Id : CORBA.Unsigned_Long;

@@ -2,8 +2,8 @@ package PortableServer.ServantManager.Impl is
    type Object is abstract new PortableServer.Servant_Base with private;
 
    --  FIXME
-   type Object_Access is access all Object'Class;
-   function To_Ref (Self : Object_Access)
+   type Object_Ptr is access all Object'Class;
+   function To_Ref (Self : Object_Ptr)
                     return PortableServer.ServantManager.Ref;
 
 private

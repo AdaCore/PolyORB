@@ -1,6 +1,6 @@
 with CORBA.Sequences.Unbounded;
 with CORBA.ORB; use CORBA.ORB;
-with CORBA.Iop;
+with CORBA.IOP;
 with CORBA.Object;
 with Broca.Exceptions;
 with Broca.Marshalling;
@@ -18,7 +18,7 @@ package body Broca.ORB is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
    procedure O is new Broca.Debug.Output (Flag);
 
-   The_ORB : ORB_Access := null;
+   The_ORB : ORB_Ptr := null;
 
    package IDL_SEQUENCE_Ref is
      new CORBA.Sequences.Unbounded (CORBA.Object.Ref);
@@ -37,7 +37,7 @@ package body Broca.ORB is
       use Broca.Marshalling;
 
       Nbr_Profiles : CORBA.Unsigned_Long;
-      Tag : CORBA.Iop.Profile_Id;
+      Tag : CORBA.IOP.Profile_Id;
       Type_Id : CORBA.String;
       Obj : Broca.Object.Object_Ptr;
       Endianess : Boolean;
@@ -73,7 +73,7 @@ package body Broca.ORB is
          for I in 1 .. Nbr_Profiles loop
             Unmarshall (IOR, Tag);
             case Tag is
-               when CORBA.Iop.Tag_Internet_Iop =>
+               when CORBA.IOP.Tag_Internet_IOP =>
                   Broca.IIOP.Create_Profile (IOR, Obj.Profiles (I));
                when others =>
                   Broca.Exceptions.Raise_Bad_Param;
@@ -137,7 +137,7 @@ package body Broca.ORB is
    -- Register_ORB --
    ------------------
 
-   procedure Register_ORB (ORB : ORB_Access) is
+   procedure Register_ORB (ORB : ORB_Ptr) is
    begin
       if The_ORB /= null then
          --  Only one ORB can register.
@@ -164,7 +164,7 @@ package body Broca.ORB is
    -----------------------
 
    procedure POA_State_Changed
-     (POA : in Broca.POA.POA_Object_Access) is
+     (POA : in Broca.POA.POA_Object_Ptr) is
    begin
       POA_State_Changed (The_ORB.all, POA);
    end POA_State_Changed;

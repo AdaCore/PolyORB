@@ -29,10 +29,10 @@ package Broca.IIOP is
          Lock : Broca.Locks.Mutex_Type;
       end record;
 
-   type Profile_Iiop_Type is new Broca.Object.Profile_Type with
+   type Profile_IIOP_Type is new Broca.Object.Profile_Type with
       record
          --  Informations directly taken from the IOR.
-         Iiop_Version : Version_Type;
+         IIOP_Version : Version_Type;
          Host : CORBA.String;
          Port : CORBA.Unsigned_Short;
          Network_Port : Interfaces.C.unsigned_short;
@@ -48,12 +48,12 @@ package Broca.IIOP is
          --  Lock on the list of strands.
          Lock : Broca.Locks.Rw_Lock_Type;
       end record;
-   type Profile_IIOP_Ptr is access Profile_Iiop_Type;
+   type Profile_IIOP_Ptr is access Profile_IIOP_Type;
 
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
    function Find_Connection
-     (Profile : access Profile_Iiop_Type)
+     (Profile : access Profile_IIOP_Type)
       return Broca.Object.Connection_Ptr;
 
    procedure Create_Profile
@@ -61,7 +61,7 @@ package Broca.IIOP is
       Profile : out Broca.Object.Profile_Ptr);
 
 private
-   function Get_Object_Key (Profile : Profile_Iiop_Type)
+   function Get_Object_Key (Profile : Profile_IIOP_Type)
                             return Broca.Sequences.Octet_Sequence;
 
 end Broca.IIOP;

@@ -51,7 +51,7 @@ package body Broca.Server is
    --  locationForward message can be sent.
    type POA_Entry_Type is
       record
-         POA : Broca.POA.POA_Object_Access := null;
+         POA : Broca.POA.POA_Object_Ptr := null;
          --  The date is incremented during unregister.
          --  FIXME: Overflow is not handled
          Date : Natural := 0;
@@ -68,8 +68,8 @@ package body Broca.Server is
    All_POAs : POA_Entry_Array_Ptr := null;
 
    --  Find a free entry in the table of objects or expand it.
-   procedure Register_POA (POA : Broca.POA.POA_Object_Access) is
-      use type Broca.POA.POA_Object_Access;
+   procedure Register_POA (POA : Broca.POA.POA_Object_Ptr) is
+      use type Broca.POA.POA_Object_Ptr;
    begin
       Log ("register_poa: " & CORBA.To_Standard_String (POA.Name));
       if All_POAs = null then
@@ -110,7 +110,7 @@ package body Broca.Server is
       end if;
    end Register_POA;
 
-   procedure Unregister_POA (POA : Broca.POA.POA_Object_Access) is
+   procedure Unregister_POA (POA : Broca.POA.POA_Object_Ptr) is
    begin
       All_POAs (POA.Index) := (POA => null,
                                Date => All_POAs (POA.Index).Date + 1);
@@ -133,9 +133,9 @@ package body Broca.Server is
    --  Marshall procedure are called only by Build_IOR.
    --  The POA must be locked to prevent any destruction.
    procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access);
+     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Ptr);
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access);
+     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Ptr);
 
    --  Decode (unmarshall) an object_key.
    --  POA is the last POA that was reached.  It can be different from the
@@ -147,16 +147,16 @@ package body Broca.Server is
    --  POA_STATE is the state of the POA.
    procedure Unmarshall
      (Buffer : in out Buffer_Descriptor;
-      POA : out Broca.POA.POA_Object_Access;
+      POA : out Broca.POA.POA_Object_Ptr;
       POA_State : out Broca.POA.Processing_State_Type;
       Key : in out Buffer_Descriptor);
 
    procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access) is
+     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Ptr) is
       use Broca.Marshalling;
       use Broca.POA;
       use PortableServer;
-      Current : Broca.POA.POA_Object_Access;
+      Current : Broca.POA.POA_Object_Ptr;
    begin
       --  Boot date
       Compute_New_Size (Buffer, UL_Size, UL_Size);
@@ -184,12 +184,12 @@ package body Broca.Server is
    --  Create an object_key.
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
       Num : Natural);
 
    procedure Marshall
      (Buffer : in out Buffer_Descriptor;
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
       Num : Natural)
    is
       use Broca.Marshalling;
@@ -208,7 +208,7 @@ package body Broca.Server is
    end Marshall;
 
    procedure Marshall
-     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Access)
+     (Buffer : in out Buffer_Descriptor; POA : Broca.POA.POA_Object_Ptr)
    is
       use Broca.Marshalling;
       use PortableServer;
@@ -230,15 +230,15 @@ package body Broca.Server is
 
    procedure Unmarshall
      (Buffer    : in out Buffer_Descriptor;
-      POA       : out Broca.POA.POA_Object_Access;
+      POA       : out Broca.POA.POA_Object_Ptr;
       POA_State : out Broca.POA.Processing_State_Type;
       Key       : in out Buffer_Descriptor)
    is
       use Broca.Marshalling;
       use Broca.POA;
       Key_Length : Buffer_Index_Type;
-      Current_POA : Broca.POA.POA_Object_Access;
-      Old_POA   : Broca.POA.POA_Object_Access;
+      Current_POA : Broca.POA.POA_Object_Ptr;
+      Old_POA   : Broca.POA.POA_Object_Ptr;
       Tmp_POA_State : Broca.POA.Processing_State_Type;
 
       POA_Name  : CORBA.String;
@@ -422,7 +422,7 @@ package body Broca.Server is
          --  Append (put) a request to the queue.
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
-                           POA : Broca.POA.POA_Object_Access);
+                           POA : Broca.POA.POA_Object_Ptr);
 
          --  Form used by HOLD_QUEUE.
          --  Note: cell.next must be null.
@@ -431,12 +431,12 @@ package body Broca.Server is
          --  Fetch the first request, and remove it from the queue.
          entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : in out Buffer_Descriptor;
-                      POA : out Broca.POA.POA_Object_Access);
+                      POA : out Broca.POA.POA_Object_Ptr);
 
          --  Internal use only.
 --          procedure Try_Fetch (Stream: out Broca.Stream.Stream_Ptr;
 --                               Buffer: in out Buffer_Descriptor;
---                               POA : out Broca.POA.POA_Object_Access;
+--                               POA : out Broca.POA.POA_Object_Ptr;
 --                               Success: out Boolean);
       private
          --  The queue is a single linked list, with an head and a tail.
@@ -463,11 +463,11 @@ package body Broca.Server is
          --  Append a request. Make a copy of buffer.
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
-                           POA : Broca.POA.POA_Object_Access);
+                           POA : Broca.POA.POA_Object_Ptr);
 
          --  Move all requests that use poa POA to the wait_queue.
          procedure Unqueue_By_POA
-           (POA : Broca.POA.POA_Object_Access);
+           (POA : Broca.POA.POA_Object_Ptr);
       private
          --  The queue is a single linked list, with an head and a tail.
          Head : Request_Call_Ptr := null;
@@ -478,7 +478,7 @@ package body Broca.Server is
       --  Element of a queue.
       type Request_Cell_Type is
          record
-            POA : Broca.POA.POA_Object_Access;
+            POA : Broca.POA.POA_Object_Ptr;
             Stream : Broca.Stream.Stream_Ptr;
             Bd : Broca.Buffers.Buffer_Descriptor;
             Next : Request_Call_Ptr;
@@ -559,7 +559,7 @@ package body Broca.Server is
 
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
-                           POA : Broca.POA.POA_Object_Access) is
+                           POA : Broca.POA.POA_Object_Ptr) is
          begin
             --  Simply encapsulate the arguments into a cell.
             Append (new Request_Cell_Type'
@@ -571,7 +571,7 @@ package body Broca.Server is
 
          procedure Try_Fetch (Stream : out Broca.Stream.Stream_Ptr;
                               Buffer : in out Buffer_Descriptor;
-                              POA : out Broca.POA.POA_Object_Access;
+                              POA : out Broca.POA.POA_Object_Ptr;
                               Success : out Boolean)
          is
             Cell : Request_Call_Ptr;
@@ -601,7 +601,7 @@ package body Broca.Server is
 
          entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : in out Buffer_Descriptor;
-                      POA : out Broca.POA.POA_Object_Access)
+                      POA : out Broca.POA.POA_Object_Ptr)
          when Head /= null is
             Res : Boolean;
          begin
@@ -636,7 +636,7 @@ package body Broca.Server is
       is
          use Broca.POA;
          Stream : Broca.Stream.Stream_Ptr;
-         POA : Broca.POA.POA_Object_Access;
+         POA : Broca.POA.POA_Object_Ptr;
       begin
          pragma Debug (O ("Perform_Work : enter"));
          --  Simply get an entry...
@@ -668,7 +668,7 @@ package body Broca.Server is
       protected body Hold_Queue is
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
                            Buffer : Buffer_Descriptor;
-                           POA : Broca.POA.POA_Object_Access)
+                           POA : Broca.POA.POA_Object_Ptr)
          is
             Cell  : Request_Call_Ptr;
             Local : Buffer_Descriptor;
@@ -692,7 +692,7 @@ package body Broca.Server is
             end if;
          end Append;
 
-         procedure Unqueue_By_POA (POA : Broca.POA.POA_Object_Access)
+         procedure Unqueue_By_POA (POA : Broca.POA.POA_Object_Ptr)
          is
             use Broca.POA;
             Cell, Prev_Cell : Request_Call_Ptr;
@@ -754,7 +754,7 @@ package body Broca.Server is
       Reponse_Expected : CORBA.Boolean;
       Operation : CORBA.String;
       Principal : CORBA.String;
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
       POA_State : Broca.POA.Processing_State_Type;
       Key : Buffer_Descriptor;
       Copy : Buffer_Descriptor;
@@ -896,7 +896,7 @@ package body Broca.Server is
       Message_Type : MsgType;
       Message_Size : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
-      POA : Broca.POA.POA_Object_Access;
+      POA : Broca.POA.POA_Object_Ptr;
       POA_State : Broca.POA.Processing_State_Type;
       Key : Buffer_Descriptor;
       Tmp : Buffer_Descriptor;
@@ -960,7 +960,7 @@ package body Broca.Server is
 
    procedure Build_IOR (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
-                        POA : Broca.POA.POA_Object_Access;
+                        POA : Broca.POA.POA_Object_Ptr;
                         Key : Broca.Buffers.Buffer_Descriptor) is
       use Broca.Marshalling;
       IOR : Buffer_Descriptor;
@@ -1036,7 +1036,7 @@ package body Broca.Server is
    type This_ORB_Type is new Broca.ORB.ORB_Type with null record;
    procedure Run (ORB : in out This_ORB_Type);
    procedure POA_State_Changed
-     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Access);
+     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Ptr);
 
    procedure Serv;
 
@@ -1073,7 +1073,7 @@ package body Broca.Server is
    end Run;
 
    procedure POA_State_Changed
-     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Access)
+     (ORB : in out This_ORB_Type; POA : Broca.POA.POA_Object_Ptr)
    is
    begin
       Log ("unqueue requests");
@@ -1082,7 +1082,7 @@ package body Broca.Server is
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
-   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Access)
+   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Ptr)
    is
       Bd : Broca.Buffers.Buffer_Descriptor;
    begin
