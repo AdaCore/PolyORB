@@ -31,6 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Object_Maps;
 with PolyORB.POA_Types;
 
 package PolyORB.POA_Policies.Id_Assignment_Policy is
@@ -40,6 +41,11 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    type IdAssignmentPolicy is abstract new Policy with null record;
 
    type IdAssignmentPolicy_Access is access all IdAssignmentPolicy'Class;
+
+   function Create_Object_Map
+     (Self : IdAssignmentPolicy)
+     return PolyORB.Object_Maps.Object_Map_Access
+      is abstract;
 
    procedure Assign_Object_Identifier
      (Self   :        IdAssignmentPolicy;

@@ -650,6 +650,10 @@ src/polyorb-obj_adapters.adb
 src/polyorb-obj_adapters.ads
 src/polyorb-object_maps.adb
 src/polyorb-object_maps.ads
+src/polyorb-object_maps-system.adb
+src/polyorb-object_maps-system.ads
+src/polyorb-object_maps-user.adb
+src/polyorb-object_maps-user.ads
 src/polyorb-objects-interface.ads
 src/polyorb-objects.adb
 src/polyorb-objects.ads

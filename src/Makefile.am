@@ -40,6 +40,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-obj_adapters.ads \
 		polyorb-obj_adapters-simple.ads \
 		polyorb-object_maps.ads \
+		polyorb-object_maps-system.ads \
+		polyorb-object_maps-user.ads \
 		polyorb-objects.ads \
 		polyorb-opaque.ads \
 		polyorb-opaque-chunk_pools.ads \
