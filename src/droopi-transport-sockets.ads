@@ -14,9 +14,13 @@ package Droopi.Transport.Sockets is
    --  A listening transport service access point as
    --  a listening stream-oriented socket.
 
+   function Create_Transport_Access_Point
+     (Socket : Socket_Type)
+     return Transport_Access_Point_Access;
+
    function Create_Event_Source
      (TAP : Socket_Access_Point)
-      return Asynchronous_Event_Source_Access;
+      return Asynch_Ev_Source_Access;
 
    procedure Accept_Connection
      (TAP : Socket_Access_Point;
@@ -29,7 +33,7 @@ package Droopi.Transport.Sockets is
 
    function Create_Event_Source
      (TE : Socket_Endpoint)
-      return Asynchronous_Event_Source_Access;
+      return Asynch_Ev_Source_Access;
 
    procedure Read
      (TE     : Socket_Endpoint;

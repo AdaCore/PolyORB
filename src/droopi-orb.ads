@@ -5,6 +5,7 @@
 with Sequences.Unbounded;
 
 with Droopi.Asynch_Ev;
+with Droopi.Filters;
 with Droopi.Jobs;
 with Droopi.Requests;
 with Droopi.Schedulers;
@@ -106,6 +107,11 @@ package Droopi.ORB is
       Wait_For_Completion : Boolean := True);
    --  Shut down ORB. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
+
+   procedure Register_Access_Point
+     (ORB   : access ORB_Type;
+      TAP   : Transport_Access_Point_Access;
+      Chain : Filters.Factory_Chain_Access);
 
    procedure Insert_Source
      (ORB : access ORB_Type;

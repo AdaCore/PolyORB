@@ -12,16 +12,16 @@ with Droopi.Refs;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Sockets;
+with Droopi.Transport.Sockets;
 
 procedure Droopi.Setup.Test
 is
    use Droopi.ORB;
    use Droopi.Sockets;
+   use Droopi.Transport.Sockets;
 
    Server : Socket_Type;
    Addr : Sock_Addr_Type;
-
-   The_ORB : ORB_Access;
 
 begin
    -------------------------------
@@ -42,7 +42,7 @@ begin
    --  Depends on Soft_Links.
 
    Put_Line ("@@4");
-   The_ORB := Droopi.ORB.Create_ORB
+   Setup.The_ORB := Droopi.ORB.Create_ORB
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
    --  Create ORB singleton.
 
@@ -78,19 +78,12 @@ begin
 
    Listen_Socket (Server);
 
---     Create_Access_Point
---       (Socket => Server,
---        Chain => new Filters.Factory_Chain'
---        (This => new Protocols.Echo.Echo_Protocol,
---         Upper => null));
---
---     Register_Access_Point
---       (The_ORB,
---        Create_Access_Point
---        (Socket => Server,
---         Chain => new Filters.Factory_Chain'
---         (This => new Protocols.Echo.Echo_Protocol,
---          Upper => null)));
+   Register_Access_Point
+     (The_ORB,
+      TAP => Create_Transport_Access_Point (Server),
+      Chain => new Filters.Factory_Chain'
+      (This => new Protocols.Echo.Echo_Protocol,
+       Upper => null));
 
 
 

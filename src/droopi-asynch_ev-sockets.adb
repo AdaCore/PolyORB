@@ -50,10 +50,22 @@ package body Droopi.Asynch_Ev.Sockets is
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES : Asynch_Ev_Source_Access) is
+      AES : Asynch_Ev_Source_Access)
+   is
+      use Source_Seqs;
+
+      Sources : constant Element_Array
+        := To_Element_Array (AEM.Sources);
    begin
-      raise Not_Implemented;
-      --  XXX unimplemented.
+      All_Sources :
+      for I in Sources'Range loop
+         if Sources (I) = AES then
+            Delete (Source  => AEM.Sources,
+                    From    => 1 + I - Sources'First,
+                    Through => 1 + I - Sources'First);
+            exit All_Sources;
+         end if;
+      end loop All_Sources;
    end Unregister_Source;
 
    function Check_Sources

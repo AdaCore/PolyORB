@@ -15,6 +15,17 @@ package body Droopi.Transport.Sockets is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   function Create_Transport_Access_Point
+     (Socket : Socket_Type)
+     return Transport_Access_Point_Access
+   is
+      Result : constant Transport_Access_Point_Access
+        := new Socket_Access_Point;
+   begin
+      Socket_Access_Point (Result.all).Socket := Socket;
+      return Result;
+   end Create_Transport_Access_Point;
+
    function Create_Event_Source
      (TAP : Socket_Access_Point)
      return Asynch_Ev_Source_Access is

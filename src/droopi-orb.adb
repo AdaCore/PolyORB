@@ -360,6 +360,26 @@ package body Droopi.ORB is
 
    end Shutdown;
 
+   procedure Register_Access_Point
+     (ORB   : access ORB_Type;
+      TAP   : Transport_Access_Point_Access;
+      Chain : Filters.Factory_Chain_Access)
+   is
+      New_AES : Asynch_Ev_Source_Access;
+   begin
+      New_AES := Create_Event_Source (TAP.all);
+      --  Create associated asynchronous event source.
+
+      Set_Note (Notepad_Of (New_AES).all,
+                ORB_Note'(Annotations.Note with D =>
+                            (Kind   => A_TAP_AES,
+                             TAP    => TAP,
+                             Filter_Factory_Chain => Chain)));
+      --  Register link from AES to TAP.
+
+      Insert_Source (ORB, New_AES);
+   end Register_Access_Point;
+
    procedure Insert_Source
      (ORB : access ORB_Type;
       AES : Asynch_Ev_Source_Access) is
@@ -395,7 +415,13 @@ package body Droopi.ORB is
       end;
 
       if ORB.Polling then
-         Abort_Check_Sources (ORB.Selector.all);
+         if ORB.Selector = null then
+            --  XXX Should really not happen!
+            pragma Debug (O ("Ooops! Null Selector (1)."));
+            null;
+         else
+            Abort_Check_Sources (ORB.Selector.all);
+         end if;
       end if;
       Leave (ORB.ORB_Lock.all);
    end Insert_Source;
@@ -409,7 +435,13 @@ package body Droopi.ORB is
       Unregister_Source (AES);
 
       if ORB.Polling then
-         Abort_Check_Sources (ORB.Selector.all);
+         if ORB.Selector = null then
+            --  XXX Should really not happen!
+            pragma Debug (O ("Ooops! Null Selector (2)."));
+            null;
+         else
+            Abort_Check_Sources (ORB.Selector.all);
+         end if;
       end if;
       --  XXX Destroy AES.
       --  XXX Destroy associated TE, associated TAP ?

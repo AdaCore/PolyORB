@@ -13,6 +13,8 @@ package Droopi.Asynch_Ev.Sockets is
    procedure Create (AEM : out Socket_Event_Monitor);
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
+   type Socket_Event_Source is new Asynch_Ev_Source with private;
+
    procedure Register_Source
      (AEM     : in out Socket_Event_Monitor;
       AES     : Asynch_Ev_Source_Access;
