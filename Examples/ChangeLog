@@ -1,3 +1,7 @@
+1999-02-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Add reconnection policy example.
+
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
 	* Bank/message.ads: Categorize the package as
