@@ -3,6 +3,7 @@ with Namet;     use Namet;
 with Frontend.Nodes;   use Frontend.Nodes;
 
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
+with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
@@ -37,10 +38,13 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id;
       --  return widening object reference helper.
 
+      procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
       procedure Visit_Specification (E : Node_Id);
+      procedure Visit_Structure_Type (E : Node_Id);
       procedure Visit_Type_Declaration (E : Node_Id);
+      procedure Visit_Union_Type (E : Node_Id);
 
       -------------------
       -- From_Any_Spec --
@@ -127,12 +131,47 @@ package body Backend.BE_Ada.Helpers is
          N  : Node_Id;
          C  : Node_Id;
          TC : Name_Id;
+         P  : Node_Id;
+         T  : Node_Id;
       begin
+         case FEN.Kind (E) is
+            when K_Enumeration_Type =>
+               N := BE_Node (Identifier (E));
+               P := RE (RE_TC_Enum);
+
+            when K_Interface_Declaration =>
+               N := Package_Declaration
+                 (BEN.Parent (BE_Node (Identifier (E))));
+               P := RE (RE_TC_Object);
+
+            when  K_Complex_Declarator | K_Simple_Declarator =>
+
+               N := BE_Node (Identifier (E));
+               T := Type_Spec
+                 (Declaration (E));
+               if Is_Base_Type (T) then
+                  P := RE (RE_TC_Alias);
+
+               else
+                  raise Program_Error;
+               end if;
+
+            when K_Structure_Type =>
+               N := BE_Node (Identifier (E));
+               P := RE (RE_TC_Struct);
+
+            when K_Union_Type =>
+               null;
+
+            when others =>
+               raise Program_Error;
+         end case;
          Set_Str_To_Name_Buffer ("TC_");
-         Get_Name_String_And_Append (FEN.Name (Identifier (E)));
+         Get_Name_String_And_Append
+           (BEN.Name (Defining_Identifier (N)));
          TC := Name_Find;
          C := Make_Subprogram_Call
-           (Defining_Identifier   => RE (RE_TC_Object),
+           (Defining_Identifier   => P,
             Actual_Parameter_Part => No_List);
          N := Make_Object_Declaration
            (Defining_Identifier =>
@@ -151,6 +190,9 @@ package body Backend.BE_Ada.Helpers is
       begin
          case FEN.Kind (E) is
 
+            when K_Enumeration_Type =>
+               Visit_Enumeration_Type (E);
+
             when K_Interface_Declaration =>
                Visit_Interface_Declaration (E);
 
@@ -160,13 +202,33 @@ package body Backend.BE_Ada.Helpers is
             when K_Specification =>
                Visit_Specification (E);
 
+            when K_Structure_Type =>
+               Visit_Structure_Type (E);
+
             when K_Type_Declaration =>
                Visit_Type_Declaration (E);
+
+            when K_Union_Type =>
+               Visit_Union_Type (E);
 
             when others =>
                null;
          end case;
       end Visit;
+
+      ----------------------------
+      -- Visit_Enumeration_Type --
+      ----------------------------
+
+      procedure Visit_Enumeration_Type (E : Node_Id) is
+      begin
+         Append_Node_To_List
+           (TypeCode_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (From_Any_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (To_Any_Spec (E), Visible_Part (Current_Package));
+      end Visit_Enumeration_Type;
 
       ---------------------------------
       -- Visit_Interface_Declaration --
@@ -183,10 +245,8 @@ package body Backend.BE_Ada.Helpers is
            (Widening_Ref_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (Narrowing_Ref_Spec (E), Visible_Part (Current_Package));
-
-         N := Package_Declaration (BEN.Parent (BE_Node (Identifier (E))));
          Append_Node_To_List
-           (TypeCode_Spec (N), Visible_Part (Current_Package));
+           (TypeCode_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
@@ -232,11 +292,12 @@ package body Backend.BE_Ada.Helpers is
          Pop_Entity;
       end Visit_Specification;
 
-      ----------------------------
-      -- Visit_Type_Declaration --
-      ----------------------------
+      --------------------------
+      -- Visit_Structure_Type --
+      --------------------------
 
-      procedure Visit_Type_Declaration (E : Node_Id) is
+      procedure Visit_Structure_Type (E : Node_Id) is
+
       begin
          Append_Node_To_List
            (TypeCode_Spec (E), Visible_Part (Current_Package));
@@ -244,7 +305,42 @@ package body Backend.BE_Ada.Helpers is
            (From_Any_Spec (E), Visible_Part (Current_Package));
          Append_Node_To_List
            (To_Any_Spec (E), Visible_Part (Current_Package));
+      end Visit_Structure_Type;
+
+      ----------------------------
+      -- Visit_Type_Declaration --
+      ----------------------------
+
+      procedure Visit_Type_Declaration (E : Node_Id) is
+         L : List_Id;
+         D : Node_Id;
+      begin
+         L := Declarators (E);
+         D := First_Entity (L);
+         while Present (D) loop
+            Append_Node_To_List
+              (TypeCode_Spec (D), Visible_Part (Current_Package));
+            Append_Node_To_List
+              (From_Any_Spec (D), Visible_Part (Current_Package));
+            Append_Node_To_List
+              (To_Any_Spec (D), Visible_Part (Current_Package));
+            D := Next_Entity (D);
+         end loop;
       end Visit_Type_Declaration;
+
+      ----------------------
+      -- Visit_Union_Type --
+      ----------------------
+
+      procedure Visit_Union_Type (E : Node_Id) is
+      begin
+         Append_Node_To_List
+           (TypeCode_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (From_Any_Spec (E), Visible_Part (Current_Package));
+         Append_Node_To_List
+           (To_Any_Spec (E), Visible_Part (Current_Package));
+      end Visit_Union_Type;
 
       -----------------------
       -- Widening_Ref_Spec --

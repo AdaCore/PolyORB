@@ -104,6 +104,9 @@ package body Backend.BE_Ada.Runtime is
       Special_Name (RE_To_PolyORB_String, "To_PolyORB_String");
       Special_Name (RE_NamedValue, "NamedValue");
       Special_Name (RE_TC_Object, "TC_Object");
+      Special_Name (RE_TC_Alias, "TC_Alias");
+      Special_Name (RE_TC_Enum, "TC_Enum");
+      Special_Name (RE_TC_Struct, "TC_Struct");
    end Initialize;
 
    --------

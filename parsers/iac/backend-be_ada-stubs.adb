@@ -174,7 +174,7 @@ package body Backend.BE_Ada.Stubs is
            (Map_Defining_Identifier (E),
             Make_Enumeration_Type_Definition (Enum_Literals));
 
-         Set_BE_Node (E, Enum_Type_Decl);
+         Bind_FE_To_BE  (Identifier (E), Enum_Type_Decl);
          Append_Node_To_List
            (Enum_Type_Decl,
             Visible_Part (Current_Package));
@@ -411,7 +411,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Record_Type_Definition
             (Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Link_BE_To_FE (N, E);
+         Bind_FE_To_BE (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -444,7 +444,7 @@ package body Backend.BE_Ada.Stubs is
                   (Subtype_Indication    => T,
                    Record_Extension_Part => No_Node));
             end if;
-            Link_BE_To_FE (N, E);
+            Bind_FE_To_BE (Identifier (D), N);
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List

@@ -54,6 +54,9 @@ package Backend.BE_Ada.Runtime is
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object,                    --  CORBA.TypeCode.Object
+      RE_TC_Alias,                  --  CORBA.TypeCode.TC_Alias
+      RE_TC_Enum,                   --  CORBA.TypeCode.TC_Enum
+      RE_TC_Struct,                 --  CORBA.TypeCode.TC_Struct
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
@@ -96,6 +99,9 @@ package Backend.BE_Ada.Runtime is
          RE_Ref_2                 => RU_CORBA_Object,
          RE_Is_Nil                => RU_CORBA_Object,
          RE_Object                => RU_CORBA_TypeCode,
+         RE_TC_Alias              => RU_CORBA_TypeCode,
+         RE_TC_Enum               => RU_CORBA_TypeCode,
+         RE_TC_Struct             => RU_CORBA_TypeCode,
          RE_NamedValue            => RU_PolyORB_Any,
          RE_Ref_3                 => RU_PolyORB_Any_NVList,
          RE_Create                => RU_PolyORB_Any_NVList,
