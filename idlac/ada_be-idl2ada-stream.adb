@@ -200,12 +200,9 @@ package body Ada_Be.Idl2Ada.Stream is
          when K_Exception =>
             null;
 
-         when K_ValueType =>
-            NL (CU);
-            Gen_Unmarshall_Profile (CU, Node);
-            PL (CU, ";");
-
          when
+           K_ValueType         |
+           K_Forward_ValueType |
            K_Forward_Interface |
            K_Interface =>
             NL (CU);
@@ -274,6 +271,32 @@ package body Ada_Be.Idl2Ada.Stream is
          when K_Exception =>
             null;
 
+         when K_Forward_ValueType =>
+            --  Unmarshall
+            NL (CU);
+            Gen_Unmarshall_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            Add_With (CU, "CORBA.AbstractBase");
+            PL (CU, "New_Ref : " & Ada_Type_Name (Node) & ";");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            Add_With (CU, "Broca.Value.Stream");
+            PL (CU, "Broca.Value.Stream.Unmarshall");
+            PL (CU, "  (Buffer,");
+            PL (CU, "   CORBA.To_CORBA_String");
+            Add_With (CU, Ada_Full_Name (Forward (Node)));
+            PL (CU, "  ("
+                & Ada_Full_Name (Forward (Node))
+                & "." & T_Repository_Id
+                & "),");
+            PL (CU, "New_Ref);");
+            PL (CU, "return New_Ref;");
+            DI (CU);
+            PL (CU, "end Unmarshall;");
+
+
          when K_ValueType =>
 
             if not Abst (Node) then
@@ -332,8 +355,12 @@ package body Ada_Be.Idl2Ada.Stream is
                                          & Node_Kind'Image
                                          (Kind (State_Type (Current)))));
                         if Kind (State_Type (Current)) = K_Scoped_Name
-                        and then Kind (Value (State_Type (Current)))
-                          = K_ValueType then
+                        and then
+                          (Kind (Value (State_Type (Current)))
+                           = K_ValueType or
+                           Kind (Value (State_Type (Current)))
+                           = K_Forward_ValueType)
+                        then
                            --  marshall a valuetype state member
                            PL (CU, "Broca.Value.Stream.Marshall");
                            PL (CU, "  (Buffer,");
@@ -341,10 +368,21 @@ package body Ada_Be.Idl2Ada.Stream is
                                & Ada_Name (Head (State_Declarators (Current)))
                                & ",");
                            PL (CU, "   CORBA.To_CORBA_String");
-                           PL (CU, "     ("
-                               & Parent_Scope_Name
-                               (Head (State_Declarators (Current)))
-                               & "." & T_Repository_Id & "),");
+                           Put (CU, "     (");
+                           if Kind (Value (State_Type (Current)))
+                             = K_ValueType then
+                              Put (CU, Ada_Full_Name
+                                   (Value (State_Type (Current))));
+                           else
+                              --  forward valuetype
+                              Add_With (CU,
+                                        Ada_Full_Name
+                                        (Forward
+                                         (Value (State_Type (Current)))));
+                              Put (CU, Ada_Full_Name
+                                   (Forward (Value (State_Type (Current)))));
+                           end if;
+                           PL (CU, "." & T_Repository_Id & "),");
                            PL (CU, "   Already_Marshalled,");
                            PL (CU, "   Nesting_Depth + 1);");
 
@@ -451,27 +489,42 @@ package body Ada_Be.Idl2Ada.Stream is
                                          & Node_Kind'Image
                                          (Kind (State_Type (Current)))));
                         if Kind (State_Type (Current)) = K_Scoped_Name
-                          and then Kind (Value (State_Type (Current)))
-                          = K_ValueType then
+                        and then
+                          (Kind (Value (State_Type (Current)))
+                           = K_ValueType or
+                           Kind (Value (State_Type (Current)))
+                           = K_Forward_ValueType)
+                        then
                            --  unmarshall a valuetype state member
                            PL (CU, "Broca.Value.Stream.Unmarshall");
                            PL (CU, "  (Buffer,");
                            PL (CU,
                                "   CORBA.To_CORBA_String");
-                           PL (CU, "     ("
-                               & Parent_Scope_Name
-                               (Head (State_Declarators (Current)))
-                               & "."
+                           Put (CU, "     (");
+                           if Kind (Value (State_Type (Current)))
+                             = K_ValueType then
+                              Put (CU, Ada_Full_Name
+                                   (Value (State_Type (Current))));
+                           else
+                              --  forward valuetype
+                              Add_With (CU,
+                                        Ada_Full_Name
+                                        (Forward
+                                         (Value (State_Type (Current)))));
+                              Put (CU, Ada_Full_Name
+                                   (Forward (Value (State_Type (Current)))));
+                           end if;
+                           PL (CU,  "."
                                & T_Repository_Id
                                & "),");
                            PL (CU,
                                "   Obj."
                                & Ada_Name (Head (State_Declarators (Current)))
                                & ",");
-                           PL (CU, "Already_Unmarshalled,");
-                           PL (CU, "With_Chunking,");
-                           PL (CU, "Nesting_Depth + 1,");
-                           PL (CU, "Closing_Tag_Read);");
+                           PL (CU, "   Already_Unmarshalled,");
+                           PL (CU, "   With_Chunking,");
+                           PL (CU, "   Nesting_Depth + 1,");
+                           PL (CU, "   Closing_Tag_Read);");
 
                         else
                            --  unmarshall a standard state member
