@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-locks.ads#5 $
+--  $Id: //droopi/main/src/polyorb-locks.ads#6 $
 
 with PolyORB.Soft_Links;
 
@@ -65,10 +65,8 @@ package PolyORB.Locks is
 
 private
 
-   use PolyORB.Soft_Links;
-
    type Rw_Lock_Type is limited record
-      Guard_Values : Watcher_Access;
+      Guard_Values : Soft_Links.Watcher_Access;
       --  This watcher is updated each time an attribute
       --  of the Rw_Lock_Type that is used in a guard clause
       --  is changed.

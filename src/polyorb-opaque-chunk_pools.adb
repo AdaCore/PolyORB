@@ -32,12 +32,14 @@
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#6 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#7 $
 
 with Ada.Unchecked_Deallocation;
 with System;
 
 package body PolyORB.Opaque.Chunk_Pools is
+
+   use Ada.Streams;
 
    procedure Initialize (X : in out Chunk) is
    begin

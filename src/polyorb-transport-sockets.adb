@@ -40,6 +40,8 @@ with PolyORB.Log;
 
 package body PolyORB.Transport.Sockets is
 
+   use Ada.Streams;
+   use PolyORB.Asynch_Ev;
    use PolyORB.Asynch_Ev.Sockets;
    use PolyORB.Log;
 

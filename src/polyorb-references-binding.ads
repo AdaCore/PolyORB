@@ -43,7 +43,7 @@ package PolyORB.References.Binding is
    pragma Elaborate_Body;
 
    procedure Bind
-     (R          : Ref;
+     (R          : Ref'Class;
       Local_ORB  : ORB.ORB_Access;
       Servant    : out Components.Component_Access;
       Pro        : out Binding_Data.Profile_Access;

@@ -308,15 +308,15 @@ package System.PolyORB_Interface is
    Result_Name : constant PolyORB.Types.Identifier
      := PolyORB.Types.To_PolyORB_String ("Result");
 
-private
+--  private
 
-   pragma Inline
-     (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
-      FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
+--     pragma Inline
+--       (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
+--        FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
 
-      TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
-      TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
+--        TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
+--        TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
 
-   pragma Inline (Caseless_String_Eq);
+--     pragma Inline (Caseless_String_Eq);
 
 end System.PolyORB_Interface;

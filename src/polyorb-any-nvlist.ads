@@ -43,7 +43,7 @@ package PolyORB.Any.NVList is
 
    procedure Add_Item
      (Self       :    Ref;
-      Item_Name  : in Identifier;
+      Item_Name  : in Types.Identifier;
       Item       : in Any;
       Item_Flags : in Flags);
    --  Create a NamedValue and add it to this NVList.
