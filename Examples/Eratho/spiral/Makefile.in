@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1g from Makefile.am
+# Makefile.in generated automatically by automake 1.1m from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -32,38 +32,44 @@ pkgincludedir = $(includedir)/@PACKAGE@
 
 top_builddir = ../../..
 
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-target_alias = @target_alias@
 build_alias = @build_alias@
-host_triplet = @host@
-target_triplet = @target@
 build_triplet = @build@
 host_alias = @host_alias@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
-VERSION = @VERSION@
-TAR = @TAR@
-GNATMAKE = @GNATMAKE@
 CERRNO = @CERRNO@
-PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
-PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
 EXTRA_LIBS = @EXTRA_LIBS@
-RSH = @RSH@
-TCP_INCLUDED = @TCP_INCLUDED@
-PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
-UNZIP = @UNZIP@
 GNATFLAGS = @GNATFLAGS@
-RANLIB = @RANLIB@
+GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+PACKAGE = @PACKAGE@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+RANLIB = @RANLIB@
+RSH = @RSH@
+SSH = @SSH@
+TAR = @TAR@
+TCP_INCLUDED = @TCP_INCLUDED@
+UNZIP = @UNZIP@
+VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
@@ -82,17 +88,19 @@ CONFIG_CLEAN_FILES =
 DIST_COMMON =  Makefile.am Makefile.in
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+GZIP = --best
 default: all
 
+.SUFFIXES:
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Examples/Eratho/spiral/Makefile
 
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
-
-Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
 tags: TAGS
 TAGS:
 
@@ -110,6 +118,7 @@ distdir: $(DISTFILES)
 info:
 dvi:
 check: all
+	$(MAKE)
 installcheck:
 install-exec: 
 	$(NORMAL_INSTALL)
@@ -145,16 +154,16 @@ maintainer-clean-generic:
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-generic
 
-clean:  clean-generic mostlyclean 
+clean:  clean-generic mostlyclean
 
-distclean:  distclean-generic clean 
+distclean:  distclean-generic clean
 	rm -f config.status
 
-maintainer-clean:  maintainer-clean-generic distclean 
+maintainer-clean:  maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: default tags distdir info dvi check installcheck install-exec \
+.PHONY: default tags distdir info dvi installcheck install-exec \
 install-data install uninstall all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
@@ -170,7 +179,6 @@ $(PARTITIONS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)
 
 $(EXTRA_PROGS): $(PARTITIONS)
-.SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
