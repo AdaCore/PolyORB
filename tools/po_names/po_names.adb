@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -69,9 +69,10 @@ procedure PO_Names is
 begin
    PolyORB.Initialization.Initialize_World;
 
+   --  Initialize the Root Naming Context
+
    Root_NC := NC.Create;
    Initiate_Servant (Root_NC,
-                     NC.If_Desc,
                      To_PolyORB_String ("NAMING"),
                      NC_Ref,
                      Error);
@@ -80,9 +81,13 @@ begin
       raise Program_Error;
    end if;
 
+   --  Output its reference
+
    Ada.Text_IO.Put_Line
      ("POLYORB_CORBA_NAMING_IOR=" &
       PolyORB.References.IOR.Object_To_String (NC_Ref));
+
+   --  Run node as a stand alone server
 
    Run_Server;
 end PO_Names;
