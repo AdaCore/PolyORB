@@ -1,9 +1,11 @@
+with PolyORB.Initialization;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.References;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.Strings.Lists;
 
 package body System.PolyORB_Interface is
 
@@ -20,6 +22,10 @@ package body System.PolyORB_Interface is
      (Receiving_Stub);
 
    All_Receiving_Stubs : Receiving_Stub_Lists.List;
+
+   procedure Initialize;
+   --  Initialization procedure to be called during the
+   --  global PolyORB initialization.
 
    --------------
    -- From_Any --
@@ -108,8 +114,6 @@ package body System.PolyORB_Interface is
    -- Initialize --
    ----------------
 
-   procedure Initialize;
-   pragma Unreferenced (Initialize);
    procedure Initialize
    is
       use Receiving_Stub_Lists;
@@ -252,4 +256,16 @@ package body System.PolyORB_Interface is
       return Result;
    end TC_Build;
 
+   use PolyORB.Initialization;
+   use PolyORB.Utils.Strings;
+   use PolyORB.Utils.Strings.Lists;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"dsa",
+       Conflicts => Empty,
+       Depends => +"orb",
+       Provides => Empty,
+       Init => Initialize'Access));
 end System.PolyORB_Interface;
