@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.IO_Exceptions;
 with Ada.Streams;              use Ada.Streams;
 with Ada.Unchecked_Conversion;
 
@@ -43,8 +44,9 @@ package body System.Stream_Attributes is
 
    use UST;
 
-   Data_Error : exception;
-   --  Exception raised if insufficient data read.
+   Data_Error : exception renames Ada.IO_Exceptions.End_Error;
+   --  Exception raised if insufficient data read (End_Error is
+   --  mandated by AI95-00132).
 
    SU : constant := System.Storage_Unit;
    --  XXXXX pragma Assert (SU = 8);
