@@ -169,7 +169,7 @@ package body XE_Parse is
    --  Similar to Search_Variable but with a additional restrictions.
    --  Variable_Node type should be Actual_Type.
 
-   type Convention_Type is (Unknown, Named, Positional);
+   type Convention_Type is (Named, Positional);
    procedure Search_Matching_Parameter
      (Subprogram_Node : Subprogram_Id;
       Convention      : Convention_Type;
@@ -216,6 +216,12 @@ package body XE_Parse is
    --  Declare a new type into the configuration context. Provide the
    --  type name and a possible predefined enumeration litteral.
    --  Structure indicates that this type has several fields.
+
+   procedure Declare_Literal
+     (Literal_Name : in  Name_Id;
+      Literal_Type : in  Type_Id;
+      Literal_Node : out Variable_Id);
+   --  Declare a new literal.
 
    procedure Declare_Variable
      (Conf_Node     : in  Configuration_Id;
@@ -1000,12 +1006,9 @@ package body XE_Parse is
       --  If string literal, declare an anonymous variable.
 
       if Token = Tok_String_Literal then
-         Declare_Variable
-           (Configuration_Node,
-            Expr_Name,
+         Declare_Literal
+           (Expr_Name,
             String_Type_Node,
-            Unique,
-            Expr_Sloc,
             Variable_Id (Expr_Node));
 
       --  Otherwise, retrieve the declaration.
@@ -1283,16 +1286,13 @@ package body XE_Parse is
 
    procedure Associate_Actual_To_Formal
      (Subprogram_Node : in Subprogram_Id) is
-      Convention     : Convention_Type := Unknown;
+      Convention     : Convention_Type;
       Actual_Name    : Name_Id;
       Formal_Name    : Name_Id;
       Actual_Node    : Variable_Id;
-      Actual_Sloc    : Location_Type;
       Formal_Node    : Parameter_Id;
-      Literal_Node   : Variable_Id;
       N_Parameter    : Int;
-      Param_Location : Location_Type;
-      List_Location  : Location_Type;
+      Location       : Location_Type;
    begin
 
       --  Look for the matching (marked) parameters. When a formal
@@ -1302,108 +1302,33 @@ package body XE_Parse is
 
       Unmark_Subprogram_Parameters (Subprogram_Node, N_Parameter);
 
-      List_Location := Get_Token_Location;
+      Location := Get_Token_Location;
 
       --  At the beginning, convention is unknown.
 
       if N_Parameter > 0 then
          T_Left_Paren;
-         loop
-            Param_Location := Get_Token_Location;
 
-            --  After passes, we know the convention.
+         --  What is the the convention used here.
+
+         T_Identifier;
+         Location := Get_Token_Location;
+         Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
+         if Token = Tok_Arrow then
+            Convention := Named;
+         else
+            Convention := Positional;
+         end if;
+         Set_Token_Location (Location);
+
+         loop
+            Location := Get_Token_Location;
 
             if Convention = Named then
                T_Identifier;
-
-            else
-               Take_Token ((Tok_Identifier, Tok_String_Literal));
-
-               --  If this is a string litteral then we know the convention.
-
-               if Token = Tok_String_Literal then
-                  Convention := Positional;
-
-                  --  Create a dummy declaration that contains the literal.
-
-                  Declare_Variable
-                    (Configuration_Node,
-                     Token_Name,
-                     String_Type_Node,
-                     Unique,
-                     Get_Token_Location,
-                     Literal_Node);
-
-               end if;
-
+               Formal_Name := Token_Name;
+               T_Arrow;
             end if;
-
-            --  Note that this formal parameter could be a actual parameter
-            --  if convention is positional, or if convention is unknown
-            --  and no arrow is following.
-
-            Formal_Name := Token_Name;
-
-            case Convention is
-
-               when Unknown =>
-                  Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
-
-                  --  This is definitively a named convention.
-                  --  Formal_Name is correct, read Actual_Name.
-
-                  if Token = Tok_Arrow then
-                     Convention := Named;
-                     Take_Token ((Tok_String_Literal, Tok_Identifier));
-                     Actual_Name := Token_Name;
-                     Actual_Sloc := Get_Token_Location;
-                     if Token = Tok_String_Literal then
-                        Declare_Variable
-                          (Configuration_Node,
-                           Actual_Name,
-                           String_Type_Node,
-                           Unique,
-                           Actual_Sloc,
-                           Literal_Node);
-                     end if;
-                     Take_Token ((Tok_Comma, Tok_Right_Paren));
-
-                  --  This is definitively a positional convention.
-                  --  Ignore Formal_Name, actually we read Actual_Name.
-
-                  else
-                     Convention  := Positional;
-                     Actual_Name := Formal_Name;
-                  end if;
-
-               when Positional =>
-
-                  --  This is a positional convention and Formal_Name
-                  --  should be reassigned to Actual_Name.
-
-                  Actual_Name := Formal_Name;
-                  Take_Token ((Tok_Comma, Tok_Right_Paren));
-
-               when Named =>
-
-                  --  This is a named convention. We need to read Actual_Name.
-
-                  T_Arrow;
-                  Take_Token ((Tok_String_Literal, Tok_Identifier));
-                  Actual_Name := Token_Name;
-                  Actual_Sloc := Get_Token_Location;
-                  if Token = Tok_String_Literal then
-                     Declare_Variable
-                       (Configuration_Node,
-                        Actual_Name,
-                        String_Type_Node,
-                        Unique,
-                        Actual_Sloc,
-                        Literal_Node);
-                  end if;
-                  Take_Token ((Tok_Comma, Tok_Right_Paren));
-
-            end case;
 
             --  If convention = named, check that such a formal parameter
             --     belongs to the subprogram parameter list.
@@ -1417,40 +1342,72 @@ package body XE_Parse is
                Formal_Node);
 
             if Formal_Node = Null_Parameter then
-               Write_Location (Param_Location);
+               Write_Location (Location);
                Write_Str ("formal parameter mismatch");
                Write_Eol;
                Exit_On_Parsing_Error;
             end if;
 
-            --  Does this actual parameter really exist ?
+            Take_Token ((Tok_Identifier, Tok_String_Literal));
+            Location    := Get_Token_Location;
+            Actual_Name := Token_Name;
 
-            Search_Actual_Parameter
-              (Actual_Name,
-               Get_Parameter_Type (Formal_Node),
-               Actual_Node);
+            if Token = Tok_String_Literal then
 
-            if Actual_Node = Null_Variable then
-               Write_Location (Param_Location);
-               Write_Str ("actual parameter mismatch");
-               Write_Eol;
-               Exit_On_Parsing_Error;
+               if Get_Parameter_Type (Formal_Node) /= String_Type_Node then
+                  Write_Location (Location);
+                  Write_Str ("actual parameter mismatch");
+                  Write_Eol;
+                  Exit_On_Parsing_Error;
+               end if;
+
+               --  Create a dummy declaration that contains the literal.
+
+               Declare_Literal
+                 (Actual_Name,
+                  String_Type_Node,
+                  Actual_Node);
+
+            else
+
+               --  Does this actual parameter really exist ?
+
+               Search_Actual_Parameter
+                 (Actual_Name,
+                  Get_Parameter_Type (Formal_Node),
+                  Actual_Node);
+
+               if Actual_Node = Null_Variable then
+                  Write_Location (Location);
+                  Write_Str ("actual parameter mismatch");
+                  Write_Eol;
+                  Exit_On_Parsing_Error;
+               end if;
+
             end if;
 
             --  Mark the matching parameter and set its value to actual
             --  parameter value.
 
-            Set_Parameter_Mark (Formal_Node, 1);
             Assign_Variable (Actual_Node, Variable_Id (Formal_Node));
 
             --  There is one less parameter to match.
 
+            Set_Parameter_Mark (Formal_Node, 1);
             N_Parameter := N_Parameter - 1;
+
+            Take_Token ((Tok_Comma, Tok_Right_Paren));
 
             if Token = Tok_Right_Paren then
                exit when N_Parameter = 0;
                Write_Location (Get_Token_Location);
                Write_Str ("missing parameters");
+               Write_Eol;
+               Exit_On_Parsing_Error;
+            elsif Token /= Tok_Right_Paren and then
+               N_Parameter = 0 then
+               Write_Location (Get_Token_Location);
+               Write_Str ("too many parameters");
                Write_Eol;
                Exit_On_Parsing_Error;
             end if;
@@ -1959,6 +1916,23 @@ package body XE_Parse is
       Type_Node := T;
 
    end Declare_Type;
+
+   ---------------------
+   -- Declare_Literal --
+   ---------------------
+
+   procedure Declare_Literal
+     (Literal_Name : in  Name_Id;
+      Literal_Type : in  Type_Id;
+      Literal_Node : out Variable_Id) is
+      V : Variable_Id;
+   begin
+
+      Create_Variable    (V, Literal_Name);
+      Set_Variable_Type  (V, Literal_Type);
+      Literal_Node := V;
+
+   end Declare_Literal;
 
    ----------------------
    -- Declare_Variable --
@@ -2532,7 +2506,6 @@ package body XE_Parse is
             --  If Positional, find the first unmarked parameter.
             when Positional =>
                if Get_Parameter_Mark (Parameter_Node) = 0 then
-                  Set_Parameter_Mark (Parameter_Node, 1);
                   Formal_Name := Get_Node_Name (Node_Id (Parameter_Node));
                   return;
                end if;
@@ -2543,8 +2516,6 @@ package body XE_Parse is
                   return;
                end if;
 
-            when Unknown =>
-               Exit_On_Parsing_Error;
          end case;
          Next_Subprogram_Parameter (Parameter_Node);
       end loop;

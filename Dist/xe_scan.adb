@@ -305,8 +305,8 @@ package body XE_Scan is
 
                end loop;
 
-               Token      := Tok_String_Literal;
                Token_Name := Name_Find;
+               Token      := Tok_String_Literal;
 
             when 'A' .. 'Z' | 'a' .. 'z' =>
 
