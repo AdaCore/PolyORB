@@ -42,8 +42,6 @@ package PolyORB.Transport.Connected is
 
    use PolyORB.Asynch_Ev;
 
-   Connection_Closed : exception;
-
    ------------------
    -- Access Point --
    ------------------
