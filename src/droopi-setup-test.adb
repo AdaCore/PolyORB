@@ -2,7 +2,11 @@
 
 --  $Id$
 
+with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
+
+with CORBA;
+--  For To_CORBA_String, used in References.IOR.
 
 with Droopi.Filters;
 with Droopi.Filters.Slicers;
@@ -22,6 +26,8 @@ with Droopi.Protocols.GIOP;
 with Droopi.Protocols.SRP;
 
 with Droopi.References;
+with Droopi.References.IOR;
+
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
 with Droopi.Test_Object;
@@ -193,7 +199,7 @@ begin
    --------------------------------------------
 
    Put ("Creating SRP access point... ");
-   Initialize_Socket (SRP_Access_Point, 9998);
+   Initialize_Socket (SRP_Access_Point, 10002);
    Register_Access_Point
      (ORB    => The_ORB,
       TAP    => SRP_Access_Point.SAP,
@@ -225,8 +231,6 @@ begin
       --  Register it with the SOA.
 
       My_Ref : Droopi.References.Ref;
-      pragma Warnings (Off, My_Ref);
-      --  XXX not referenced!
 
    begin
       Obj_Adapters.Simple.Set_Interface_Description
@@ -239,6 +243,19 @@ begin
 
       Put_Line ("Registered object: " & Image (My_Id));
       Put_Line ("Reference is     : " & References.Image (My_Ref));
+      begin
+         Put_Line ("IOR is           : "
+                   & CORBA.To_Standard_String
+                   (References.IOR.Object_To_String
+                    ((Ref => My_Ref,
+                      Type_Id => CORBA.To_CORBA_String
+                      ("IDL:Echo_Type")))));
+      exception
+         when E : others =>
+            Put_Line ("Warning: Object_To_String raised:");
+            Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+
       Run (The_ORB, May_Poll => True);
       --  Execute the ORB.
    end;

@@ -39,7 +39,8 @@ package body Droopi.References is
       for I in P'Range loop
          Res := Res & "  " & Ada.Tags.External_Tag
            (P (I).all'Tag) & ASCII.LF;
-         Res := Res & "    " & Binding_Data.Image (P (I).all);
+         Res := Res & "    " & Binding_Data.Image (P (I).all)
+           & ASCII.LF;
       end loop;
 
       return To_String (Res);
