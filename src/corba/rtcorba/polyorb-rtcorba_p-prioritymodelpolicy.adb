@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,18 +42,19 @@ package body PolyORB.RTCORBA_P.PriorityModelPolicy is
       Server_Priority : in RTCORBA.Priority)
      return PolyORB.Smart_Pointers.Entity_Ptr
    is
-      Result : constant PolyORB.Smart_Pointers.Entity_Ptr
+      Result : constant PolyORB.CORBA_P.Policy.Policy_Object_Ptr
         := new PriorityModelPolicy_Type;
 
       TResult : PriorityModelPolicy_Type
         renames PriorityModelPolicy_Type (Result.all);
+
    begin
+      Set_Policy_Type (TResult, RTCORBA.PRIORITY_MODEL_POLICY_TYPE);
 
       TResult.Priority_Model := Priority_Model;
       TResult.Server_Priority := Server_Priority;
 
-      return Result;
-
+      return PolyORB.Smart_Pointers.Entity_Ptr (Result);
    end Create;
 
    ------------------------
