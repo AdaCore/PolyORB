@@ -39,4 +39,8 @@ package RCI is
 
    --  type Parameterless_RAS is access procedure;
 
+   function Get_Cookie return Integer;
+   procedure Delayed_Set_Cookie (Cookie : Integer);
+   pragma Asynchronous (Delayed_Set_Cookie);
+
 end RCI;

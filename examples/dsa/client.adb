@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Real_Time; use Ada.Real_Time;
 with RCI;
 with RT;
 with SP;
@@ -54,4 +55,16 @@ begin
    Try_RACW ("Elvis");
 
    Put_Line ("|2 + 3i|^2 = " & Float'Image (RCI.Modulus2 (Z)));
+
+   declare
+      C : constant Integer := RCI.Get_Cookie;
+   begin
+      Put_Line ("Cookie value:" & Integer'Image (C));
+      RCI.Delayed_Set_Cookie (C + 1);
+   end;
+   delay until Clock + Milliseconds (500);
+   Put_Line ("Cookie value after 0.5 s:" & Integer'Image (RCI.Get_Cookie));
+   delay until Clock + Milliseconds (2_500);
+   Put_Line ("Cookie value after 3 s:" & Integer'Image (RCI.Get_Cookie));
+
 end Client;

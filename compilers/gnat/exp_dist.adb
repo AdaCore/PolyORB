@@ -34,7 +34,7 @@ with Exp_Strm;    use Exp_Strm;
 with Exp_Tss;     use Exp_Tss;
 with Exp_Util;    use Exp_Util;
 with GNAT.HTable; use GNAT.HTable;
-with Sinput;       use Sinput;
+with Sinput;      use Sinput;
 with Lib;         use Lib;
 with Namet;       use Namet;
 with Nlists;      use Nlists;
@@ -2945,25 +2945,6 @@ package body Exp_Dist is
                Append_To (Decls, Current_Stubs);
                Analyze (Current_Stubs);
 
-               --  Actuals :=
-               --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
-
-               if Nkind (Specification (Current_Declaration))
-                   = N_Function_Specification
-                 or else
-                   not Is_Asynchronous (
-                     Defining_Entity (Specification (Current_Declaration)))
-               then
-                  --  An asynchronous procedure does not want an output
-                  --  parameter, since no result and no exception will
-                  --  ever be returned.
-
---                 Append_To (Actuals,
---                   New_Occurrence_Of (Result_Parameter, Loc));
-                  null;
-               end if;
-
-
                --  Add subprogram to subprograms table for this receiver
 
                Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
@@ -3470,63 +3451,46 @@ package body Exp_Dist is
           Object_Definition   =>
               New_Occurrence_Of (RTE (RE_Request_Access), Loc)));
 
+      Result :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+
+      if Is_Function then
+         Result_TC := Build_TypeCode_Call (Loc,
+           Etype (Subtype_Mark (Spec)), Decls);
+      else
+         Result_TC := New_Occurrence_Of (RTE (RE_TC_Void), Loc);
+      end if;
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Result,
+          Aliased_Present     => False,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_NamedValue), Loc),
+          Expression =>
+            Make_Aggregate (Loc,
+              Component_Associations => New_List (
+                Make_Component_Association (Loc,
+                  Choices => New_List (
+                    Make_Identifier (Loc, Name_Name)),
+                  Expression =>
+                    New_Occurrence_Of (RTE (RE_Result_Name), Loc)),
+                Make_Component_Association (Loc,
+                  Choices => New_List (
+                    Make_Identifier (Loc, Name_Argument)),
+                  Expression =>
+                    Make_Function_Call (Loc,
+                      Name =>
+                        New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                      Parameter_Associations => New_List (
+                        Result_TC))),
+                Make_Component_Association (Loc,
+                  Choices => New_List (
+                    Make_Identifier (Loc, Name_Arg_Modes)),
+                  Expression =>
+                    Make_Integer_Literal (Loc, 0))))));
+
       if not Is_Known_Asynchronous then
---           Result_Parameter :=
---             Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-
---           Append_To (Decls,
---             Make_Object_Declaration (Loc,
---               Defining_Identifier => Result_Parameter,
---               Aliased_Present     => True,
---               Object_Definition   =>
---                 Make_Subtype_Indication (Loc,
---                   Subtype_Mark =>
---                     New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc),
---                   Constraint   =>
---                     Make_Index_Or_Discriminant_Constraint (Loc,
---                       Constraints =>
---                         New_List (Make_Integer_Literal (Loc, 0))))));
---  XXX unnecessary with PolyORB (result NV is modified in place.)
-
-         Result :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
-
-         if Is_Function then
-            Result_TC := Build_TypeCode_Call (Loc,
-              Etype (Subtype_Mark (Spec)), Decls);
-         else
-            Result_TC := New_Occurrence_Of (RTE (RE_TC_Void), Loc);
-         end if;
-
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Result,
-             Aliased_Present     => False,
-             Object_Definition   =>
-               New_Occurrence_Of (RTE (RE_NamedValue), Loc),
-             Expression =>
-               Make_Aggregate (Loc,
-                 Component_Associations => New_List (
-                   Make_Component_Association (Loc,
-                     Choices => New_List (
-                       Make_Identifier (Loc, Name_Name)),
-                     Expression =>
-                       New_Occurrence_Of (RTE (RE_Result_Name), Loc)),
-                   Make_Component_Association (Loc,
-                     Choices => New_List (
-                       Make_Identifier (Loc, Name_Argument)),
-                     Expression =>
-                       Make_Function_Call (Loc,
-                         Name =>
-                           New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
-                         Parameter_Associations => New_List (
-                           Result_TC))),
-                   Make_Component_Association (Loc,
-                     Choices => New_List (
-                       Make_Identifier (Loc, Name_Arg_Modes)),
-                     Expression =>
-                       Make_Integer_Literal (Loc, 0))))));
-
          Exception_Return :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
 
@@ -3537,7 +3501,6 @@ package body Exp_Dist is
                New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc)));
 
       else
-         Result := Empty;
          Exception_Return := Empty;
       end if;
 
@@ -3769,35 +3732,39 @@ package body Exp_Dist is
             New_Occurrence_Of (Request, Loc));
 
       if not Is_Known_Non_Asynchronous then
+         declare
+            Asynchronous_P : Node_Id;
+         begin
+            if Is_Known_Asynchronous then
+               Asynchronous_P := New_Occurrence_Of (Standard_True, Loc);
+            else
+               pragma Assert (Present (Asynchronous));
+               Asynchronous_P := New_Copy_Tree (Asynchronous);
+               --  The expression node Asynchronous will be used to build
+               --  an 'if' statement at the end of Build_General_Calling_Stubs:
+               --  we need to make a copy here.
+            end if;
 
---           --  Build the call to System.RPC.Do_APC
-
---           Asynchronous_Statements := New_List (
---             Make_Procedure_Call_Statement (Loc,
---               Name                   =>
---                 New_Occurrence_Of (RTE (RE_Do_Apc), Loc),
---               Parameter_Associations => New_List (
---                 New_Occurrence_Of (Target_Partition, Loc),
---                 Make_Attribute_Reference (Loc,
---                   Prefix         =>
---                     New_Occurrence_Of (Stream_Parameter, Loc),
---                   Attribute_Name =>
---                     Name_Access))));
-         Asynchronous_Statements := New_List (
-           Make_Null_Statement (Loc));
-         --  XXX Asynch calls not supported yet.
-      else
-         Asynchronous_Statements := No_List;
+            Append_To (Parameter_Associations (Last (Statements)),
+              Make_Indexed_Component (Loc,
+                Prefix =>
+                  New_Occurrence_Of (
+                    RTE (RE_Asynchronous_P_To_Sync_Scope), Loc),
+                Expressions => New_List (Asynchronous_P)));
+         end;
       end if;
 
-      if not Is_Known_Asynchronous then
+      Append_To (Statements,
+          Make_Procedure_Call_Statement (Loc,
+            Name                   =>
+              New_Occurrence_Of (RTE (RE_Request_Invoke), Loc),
+            Parameter_Associations => New_List (
+              New_Occurrence_Of (Request, Loc))));
 
-         Non_Asynchronous_Statements := New_List (
-            Make_Procedure_Call_Statement (Loc,
-              Name                   =>
-                New_Occurrence_Of (RTE (RE_Request_Invoke), Loc),
-              Parameter_Associations => New_List (
-                New_Occurrence_Of (Request, Loc))));
+      Non_Asynchronous_Statements := New_List (Make_Null_Statement (Loc));
+      Asynchronous_Statements := New_List (Make_Null_Statement (Loc));
+
+      if not Is_Known_Asynchronous then
 
 --          --  Read the exception occurrence from the result stream and
 --          --  reraise it. It does no harm if this is a Null_Occurrence since

@@ -1128,6 +1128,7 @@ package Rtsfind is
      RE_RACW_Stub_Type_Access,           -- System.PolyORB_Interface
      RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
      RE_Get_RAS_Ref,                     -- System.PolyORB_Interface
+     RE_Asynchronous_P_To_Sync_Scope,    -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -2178,6 +2179,7 @@ package Rtsfind is
      RE_RACW_Stub_Type_Access            => System_PolyORB_Interface,
      RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
      RE_Get_RAS_Ref                      => System_PolyORB_Interface,
+     RE_Asynchronous_P_To_Sync_Scope     => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,

@@ -1,6 +1,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
-with Ada.Real_Time;
+with Ada.Real_Time; use Ada.Real_Time;
 
 package body RCI is
 
@@ -77,4 +77,18 @@ package body RCI is
    begin
       return Z.Re * Z.Re + Z.Im * Z.Im;
    end Modulus2;
+
+   Cookie : Integer := 0;
+
+   function Get_Cookie return Integer is
+   begin
+      return Cookie;
+   end Get_Cookie;
+
+   procedure Delayed_Set_Cookie (Cookie : Integer) is
+   begin
+      delay until Clock + Milliseconds (2_000);
+      RCI.Cookie := Cookie;
+   end Delayed_Set_Cookie;
+
 end RCI;
