@@ -1,6 +1,6 @@
 alidir = $(libdir)/adabroker
 
-ADA_FULL = \
+ADA_SPECS_WITH_BODY = \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
@@ -10,6 +10,7 @@ ADA_FULL = \
 	   broca-flags.ads \
 	   broca-giop.ads \
 	   broca-iiop.ads \
+	   broca-iop.ads \
 	   broca-inet_server.ads \
 	   broca-ior.ads \
 	   broca-locks.ads \
@@ -44,17 +45,16 @@ ADA_FULL = \
            portableserver-servantmanager-impl.ads \
            portableserver.ads
 
-ADA_SPECS = $(ADA_FULL) \
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
            broca.ads \
            broca-opaque.ads \
-           broca-iop.ads \
            corba-current.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \
            portableserver-servantmanager.ads
 
-ADA_BODIES = $(ADA_FULL:.ads=.adb)
+ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
 ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 
