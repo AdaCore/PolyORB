@@ -22,7 +22,7 @@ force:
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNATMAKE) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
 	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) \
-	   -bargs -static -largs $(LIBS)
+	   -bargs -static -largs -lgccprefix $(LIBS)
 
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
