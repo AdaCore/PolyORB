@@ -250,7 +250,7 @@ begin
          pragma Debug (D ("Activate loaded protocol " &
                           Get_Name (Protocol_Table (P))));
 
-         Initialize (Protocol_Table (P), null, False, Performed, Error);
+         Initialize (Protocol_Table (P), Null_String, False, Performed, Error);
          if Found (Error) then
             Raise_Communication_Error (Error);
          end if;
@@ -292,7 +292,7 @@ begin
             Boot_Data := Get_Data (Boot_Protocol);
          else
             Boot_Data     := new String_Array (1 .. 1);
-            Boot_Data (1) := new String'(Get_Data (Boot_Location).all);
+            Boot_Data (1) := new String'(Get_Data (Boot_Location));
          end if;
 
          --  Have to keep the boot locations in the order the user has

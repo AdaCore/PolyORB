@@ -35,8 +35,9 @@
 
 with Ada.Exceptions;
 with Interfaces;                use Interfaces;
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;       use System.Garlic.Debug;
+with System.Garlic.Exceptions;  use System.Garlic.Exceptions;
 with System.Garlic.Group;       use System.Garlic.Group;
 with System.Garlic.Heart;       use System.Garlic.Heart;
 with System.Garlic.Options;     use System.Garlic.Options;
@@ -181,7 +182,7 @@ package body System.Garlic.Units is
    procedure Get_Unit_Info
      (Unit  : in Unit_Id;
       Info  : out Unit_Info;
-      Error : in out Utils.Error_Type);
+      Error : in out Error_Type);
    --  Return unit info on these unit. If status is unknown, then ask
    --  a boot mirror for a copy of unit info.
 
@@ -255,7 +256,7 @@ package body System.Garlic.Units is
    --  List of elaborated units to register to the boot server.
 
    procedure Free is
-     new Unchecked_Deallocation (Elab_Unit_Node, Elab_Unit_List);
+     new Ada.Unchecked_Deallocation (Elab_Unit_Node, Elab_Unit_List);
 
    Define_Units : constant Request_Type := (Kind => Define_New_Units);
    Copy_Units   : constant Request_Type := (Kind => Copy_Units_Table);
@@ -414,7 +415,7 @@ package body System.Garlic.Units is
    procedure Get_Partition
      (Unit      : in Types.Unit_Id;
       Partition : out Types.Partition_ID;
-      Error     : in out Utils.Error_Type)
+      Error     : in out Error_Type)
    is
       Info : Unit_Info;
    begin
@@ -432,7 +433,7 @@ package body System.Garlic.Units is
    procedure Get_Receiver
      (Unit     : in Types.Unit_Id;
       Receiver : out Interfaces.Unsigned_64;
-      Error    : in out Utils.Error_Type)
+      Error    : in out Error_Type)
    is
       Info : Unit_Info;
    begin
@@ -459,7 +460,7 @@ package body System.Garlic.Units is
    procedure Get_Version
      (Unit    : in Types.Unit_Id;
       Version : out Types.Version_Type;
-      Error   : in out Utils.Error_Type)
+      Error   : in out Error_Type)
    is
       Info : Unit_Info;
    begin

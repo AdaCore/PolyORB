@@ -41,6 +41,7 @@ with System.Garlic.Naming;            use System.Garlic.Naming;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Thin;              use System.Garlic.Thin;
+with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Remote is
 
@@ -92,18 +93,30 @@ package body System.Garlic.Remote is
         and then Host (Host'First) /= '`'
         and then Is_Local_Host (Host)
       then
-         pragma Debug (D ("Run Spawn: """ & Command & """ " & Arguments));
+         declare
+            C1 : constant String := Quote (Command) & ' ' & Arguments;
 
-         Spawn ("""" & Command & """ " & Arguments);
+         begin
+            pragma Debug (D ("Run Spawn: " & C1));
+
+            Spawn (C1);
+         end;
+
       else
-         pragma Debug (D ("Run Spawn: " & Rsh_Command & " " & Host & " " &
-                          Rsh_Options & " ""'" &
-                          Command & "' " & Arguments &
-                          """ < /dev/null > /dev/null 2>&1"));
+         declare
+            C1 : constant String := Quote (Command, ''');
+            C2 : constant String := Quote (C1 & ' ' & Arguments);
+            C3 : constant String := Host & ' ' & Rsh_Options;
+            C4 : constant String := Rsh_Command & ' ' & C3;
+            C5 : constant String := C4 & ' ' & C2;
+            C6 : constant String := C5 & " < /dev/null > /dev/null 2>&1";
 
-         Spawn (Rsh_Command & " " & Host & " " & Rsh_Options & " ""'" &
-                Command & "' " & Arguments &
-                """ < /dev/null > /dev/null 2>&1");
+         begin
+
+            pragma Debug (D ("Run Spawn: " & C6));
+
+            Spawn (C6);
+         end;
       end if;
    end Full_Launch;
 

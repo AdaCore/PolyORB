@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Utils;
+with System.Garlic.Types;
 
 package System.Garlic.Table is
 
@@ -52,7 +52,7 @@ package System.Garlic.Table is
 
       --  These procedures are atomic and cannot be aborted
 
-      procedure Differ (Version : in Utils.Version_Id);
+      procedure Differ (Version : in Types.Version_Id);
       --  Block until internal Version becomes different from Version.
 
       procedure Enter;
@@ -78,7 +78,7 @@ package System.Garlic.Table is
       function Last return Index_Type;
       --  Return last index used.
 
-      procedure Leave (Version : out Utils.Version_Id);
+      procedure Leave (Version : out Types.Version_Id);
       --  Unlock table. Return internal version for later use. Version is
       --  updated by Set_Component.
 

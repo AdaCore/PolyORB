@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Utils;        use System.Garlic.Utils;
+with System.Garlic.Types;        use System.Garlic.Types;
 with System.Garlic.Name_Table;   use System.Garlic.Name_Table;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Debug;        use System.Garlic.Debug;
@@ -96,7 +96,7 @@ package body System.Garlic.Table is
       Watcher : Watcher_Access;
 
       --  This lock is used to block tasks until the table is
-      --  modified. This uses special behaviour of Utils.Mutex_Record.
+      --  modified. This uses special behaviour of Types.Mutex_Record.
       --  Basically, Local_Mutex.Leave (Postponed) lets the run-time know
       --  that the mutex has been postponed and that it should be resumed
       --  when a Local_Mutex.Leave (Modified) occurs.
@@ -159,7 +159,7 @@ package body System.Garlic.Table is
       -- Differ --
       ------------
 
-      procedure Differ (Version : in Utils.Version_Id) is
+      procedure Differ (Version : in Types.Version_Id) is
       begin
          Differ (Watcher, Version);
       end Differ;

@@ -34,8 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Interfaces;
+with System.Garlic.Exceptions;
 with System.Garlic.Types;
-with System.Garlic.Utils;
 
 package System.Garlic.Units is
 
@@ -46,17 +46,17 @@ package System.Garlic.Units is
    procedure Get_Partition
      (Unit      : in Types.Unit_Id;
       Partition : out Types.Partition_ID;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
 
    procedure Get_Receiver
      (Unit     : in Types.Unit_Id;
       Receiver : out Interfaces.Unsigned_64;
-      Error    : in out Utils.Error_Type);
+      Error    : in out Exceptions.Error_Type);
 
    procedure Get_Version
      (Unit    : in Types.Unit_Id;
       Version : out Types.Version_Type;
-      Error   : in out Utils.Error_Type);
+      Error   : in out Exceptions.Error_Type);
 
    function Get_Unit_Id (Name : String) return Types. Unit_Id;
 
@@ -80,7 +80,7 @@ package System.Garlic.Units is
 
    procedure Register_Units_On_Boot_Server
      (Partition : in Types.Partition_ID;
-      Error    : in out Utils.Error_Type);
+      Error    : in out Exceptions.Error_Type);
    --  Register all the units previously declared by partition. Then,
    --  get back info on these units to check that these units are
    --  valid.
