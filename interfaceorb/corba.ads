@@ -4,6 +4,10 @@ with Ada.Strings.Unbounded;
 
 with Interfaces;
 
+with System;
+with System.Address_To_Access_Conversions;
+with Ada.Unchecked_Conversion;
+
 package CORBA is
 
    --  CORBA Module: In order to prevent names defined with the CORBA
@@ -105,6 +109,171 @@ package CORBA is
    --  Transforms a CORBA string into the correponding standard string
 
    ---------------
+   -- TypeCodes --
+   ---------------
+
+   type TCKind is
+      (Tk_Null,
+       Tk_Void,
+       Tk_Short,
+       Tk_Long,
+       Tk_Ushort,
+       Tk_Ulong,
+       Tk_Float,
+       Tk_Double,
+       Tk_Boolean,
+       Tk_Char,
+       Tk_Octet,
+       Tk_Any,
+       Tk_TypeCode,
+       Tk_Principal,
+       Tk_Objref,
+       Tk_Struct,
+       Tk_Union,
+       Tk_Enum,
+       Tk_String,
+       Tk_Sequence,
+       Tk_Array);
+
+   type Any is private;
+   --  Any Type: the any type permits the specification of
+   --  values that can express an IDL type.
+   --  implementation defined
+
+
+   package TypeCode is
+      --  TypeCodes are values that represent invocation argument types,
+      --  attribute types, and Object types.
+      --  see spec 23-28
+
+      type Object is private;
+
+      procedure Set (O : out Object;
+                     K : in CORBA.TCKind);
+
+      Bounds : exception;
+
+      type Bounds_Members is new CORBA.IDL_Exception_Members with null record;
+
+      procedure Get_Members
+        (From : in Ada.Exceptions.Exception_Occurrence;
+         To   : out Bounds_Members);
+      --  must be there to override abstract declaration
+
+      function Get_Members
+        (X : Ada.Exceptions.Exception_Occurrence)
+         return Bounds_Members;
+      --  does the same as the same-named procedure but must be there
+      --  since specified
+
+      function Equal
+        (Self : in Object;
+         TC   : in Object)
+         return CORBA.Boolean;
+
+      function "="
+        (Left, Right : in Object)
+         return Boolean
+        renames Equal;
+
+      function Kind
+        (Self : in Object)
+         return TCKind;
+      --  return the kind of Object
+
+      function Param_Count
+        (Self : in Object)
+         return CORBA.Long;
+      --  the number of parameters for this TypeCode
+
+      function Parameter
+        (Self  : in Object;
+         Index : in CORBA.Long) -- note origin is 0
+         return Any;
+      --  the index'th parameter. Parameters are indexed
+      --  from 0 to (Param_Count - 1)
+
+
+
+
+   private
+      --  implementation defined
+      Out_Of_Bounds_Index : exception;
+      type Cell;
+      type Cell_Ptr is access all Cell;
+      type Cell is record
+         Parameter : CORBA.Any;
+         Next : Cell_Ptr;
+      end record;
+      --  choice of a list implementation may be temporary
+      type Object is
+         record
+            Kind : CORBA.TCKind;
+            Parameters : Cell_Ptr := null;
+         end record;
+
+   end TypeCode;
+
+
+   function Get_Type (The_Any : in CORBA.Any) return CORBA.TypeCode.Object;
+
+   procedure SetAny
+     (A : out Any;
+      V : in System.Address;
+      T : in CORBA.TypeCode.Object);
+
+   function To_Any (From : in CORBA.Octet)          return CORBA.Any;
+   function To_Any (From : in CORBA.Short)          return CORBA.Any;
+   function To_Any (From : in CORBA.Long)           return CORBA.Any;
+   function To_Any (From : in CORBA.Unsigned_Short) return CORBA.Any;
+   function To_Any (From : in CORBA.Unsigned_Long)  return CORBA.Any;
+   function To_Any (From : in CORBA.Boolean)        return CORBA.Any;
+   function To_Any (From : in CORBA.Char)           return CORBA.Any;
+   function To_Any (From : in CORBA.String)         return CORBA.Any;
+
+   function From_Any (From : in CORBA.Any) return CORBA.Octet;
+   function From_Any (From : in CORBA.Any) return CORBA.Short;
+   function From_Any (From : in CORBA.Any) return CORBA.Unsigned_Short;
+   function From_Any (From : in CORBA.Any) return CORBA.Unsigned_Long;
+   function From_Any (From : in CORBA.Any) return CORBA.Boolean;
+   function From_Any (From : in CORBA.Any) return CORBA.Char;
+   function From_Any (From : in CORBA.Any) return CORBA.String;
+
+
+   type Identifier is new CORBA.String;
+
+   ----------------------------------
+   -- Dynamic Invocation Interface --
+   --    Common Data Structures    --
+   ----------------------------------
+
+   type Flags is new CORBA.Unsigned_Long;
+   ARG_IN    : constant Flags := 1;
+   ARG_OUT   : constant Flags := 2;
+   ARG_INOUT : constant Flags := 3;
+
+   type NamedValue is record
+      Name      : Identifier; -- arg name
+      Argument  : CORBA.Any;  -- value
+      Len       : Long;       -- length/count of arg value
+      Arg_Modes : Flags;      -- arg mode flags
+   end record;
+
+   OUT_LIST_MEMORY    : constant Flags := 4; -- CORBA 6.2.1
+   IN_COPY_VALUE      : constant Flags := 5; -- CORBA 6.2.2
+   INV_NO_RESPONSE    : constant Flags := 6; -- CORBA 6.3.1
+   INV_TERM_ON_ERR    : constant Flags := 7; -- CORBA 6.3.2
+   RESP_NO_WAIT       : constant Flags := 8; -- CORBA 6.3.3
+   DEPENDENT_LIST     : constant Flags := 9; -- CORBA 6.4.2
+   CTX_RESTRICT_SCOPE : constant Flags := 10; -- CORBA 6.6.4
+
+   --  Container and Contained Objects
+   --  moved to child package CORBA.Repository_Root
+
+   type Status is new CORBA.Unsigned_Long;
+
+
+   ---------------
    -- AdaBroker --
    ---------------
 
@@ -181,5 +350,70 @@ package CORBA is
    type Transaction_Rolledback_Members is new Ex_Body with null record;
    type Invalid_Transaction_Members    is new Ex_Body with null record;
    type Wrong_Transaction_Members      is new Ex_Body with null record;
+
+private
+   --  implementation defined
+   type Any is
+     record
+        The_Value : System.Address;
+        The_Type  : CORBA.TypeCode.Object;
+     end record;
+
+   type CORBA_Octet_Ptr is access all CORBA.Octet;
+   package Address_To_CORBA_Octet is
+      new System.Address_To_Access_Conversions (CORBA.Octet);
+   function To_CORBA_Octet is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Octet.Object_Pointer, CORBA_Octet_Ptr);
+
+   type CORBA_Short_Ptr is access all CORBA.Short;
+   package Address_To_CORBA_Short is
+      new System.Address_To_Access_Conversions (CORBA.Short);
+   function To_CORBA_Short is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Short.Object_Pointer, CORBA_Short_Ptr);
+
+   type CORBA_Long_Ptr is access all CORBA.Long;
+   package Address_To_CORBA_Long is
+      new System.Address_To_Access_Conversions (CORBA.Long);
+   function To_CORBA_Long is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Long.Object_Pointer, CORBA_Long_Ptr);
+
+   type CORBA_U_Short_Ptr is access all CORBA.Unsigned_Short;
+   package Address_To_CORBA_U_Short is
+      new System.Address_To_Access_Conversions (CORBA.Unsigned_Short);
+   function To_CORBA_U_Short is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_U_Short.Object_Pointer, CORBA_U_Short_Ptr);
+
+   type CORBA_U_Long_Ptr is access all CORBA.Unsigned_Long;
+   package Address_To_CORBA_U_Long is
+      new System.Address_To_Access_Conversions (CORBA.Unsigned_Long);
+   function To_CORBA_U_Long is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_U_Long.Object_Pointer, CORBA_U_Long_Ptr);
+
+   type CORBA_Boolean_Ptr is access all CORBA.Boolean;
+   package Address_To_CORBA_Boolean is
+      new System.Address_To_Access_Conversions (CORBA.Boolean);
+   function To_CORBA_Boolean is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Boolean.Object_Pointer, CORBA_Boolean_Ptr);
+
+   type CORBA_Char_Ptr is access all CORBA.Char;
+   package Address_To_CORBA_Char is
+      new System.Address_To_Access_Conversions (CORBA.Char);
+   function To_CORBA_Char is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_Char.Object_Pointer, CORBA_Char_Ptr);
+
+   type CORBA_String_Ptr is access all CORBA.String;
+   package Address_To_CORBA_String is
+      new System.Address_To_Access_Conversions (CORBA.String);
+   function To_CORBA_String is
+     new Ada.Unchecked_Conversion
+     (Address_To_CORBA_String.Object_Pointer, CORBA_String_Ptr);
+
 
 end CORBA;
