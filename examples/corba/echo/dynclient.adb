@@ -123,7 +123,7 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server> [niter]");
+      Put_Line ("usage : dynclient <IOR_string_from_server> [niter]");
       return;
    end if;
 
