@@ -35,7 +35,7 @@ package body Broca.IOP is
 
       for N in Profiles'Range loop
          Unmarshall  (Buffer, Profile);
-         Callbacks (N).Decapsulate (Buffer, Profiles (N));
+         Callbacks (Profile).Decapsulate (Buffer, Profiles (N));
       end loop;
       Set_Endianess (Buffer, Old_Endian);
    end Decapsulate_IOR;
@@ -66,7 +66,8 @@ package body Broca.IOP is
          --  Length of profile
          Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
-         Callbacks (N).Encapsulate (Buffers (N), Size (Buffer), Profiles (N));
+         Callbacks (Get_Profile_Id (Profiles (N).all)).Encapsulate
+           (Buffers (N), Size (Buffer), Profiles (N));
 
          --  Skip space for profile
          Skip_Bytes (Buffer, Size (Buffers (N)));
