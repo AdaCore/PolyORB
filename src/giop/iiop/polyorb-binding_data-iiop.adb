@@ -283,17 +283,15 @@ package body PolyORB.Binding_Data.IIOP is
 
       Start_Encapsulation (Profile_Body);
 
-      --  Marshalling the version
-
-      Marshall (Profile_Body, IIOP_Profile.Major_Version);
-      Marshall (Profile_Body, IIOP_Profile.Minor_Version);
+      --  Version
+      Marshall (Profile_Body, IIOP_Profile.Version_Major);
+      Marshall (Profile_Body, IIOP_Profile.Version_Minor);
 
       pragma Debug
-        (O ("  Version = " & IIOP_Profile.Major_Version'Img & "."
-            & IIOP_Profile.Minor_Version'Img));
+        (O ("  Version = " & IIOP_Profile.Version_Major'Img & "."
+            & IIOP_Profile.Version_Minor'Img));
 
-      --  Marshalling the socket
-
+      --  Marshalling of a Socket
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
       pragma Debug (O ("  Address = " & Sockets.Image (IIOP_Profile.Address)));
 
@@ -339,14 +337,12 @@ package body PolyORB.Binding_Data.IIOP is
 
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
-      --  Unmarshalling the version
-
-      TResult.Major_Version := Unmarshall (Profile_Buffer);
-      TResult.Minor_Version := Unmarshall (Profile_Buffer);
+      TResult.Version_Major := Unmarshall (Profile_Buffer);
+      TResult.Version_Minor := Unmarshall (Profile_Buffer);
 
       pragma Debug
-        (O ("  Version = " & TResult.Major_Version'Img & "."
-            & TResult.Minor_Version'Img));
+        (O ("  Version = " & TResult.Version_Major'Img & "."
+            & TResult.Version_Minor'Img));
 
       --  Unmarshalling the socket
 
@@ -361,7 +357,7 @@ package body PolyORB.Binding_Data.IIOP is
            Unmarshall (Profile_Buffer);
       begin
          TResult.Object_Id := new Object_Id'(Object_Id (Str));
-         if TResult.Minor_Version /= 0 then
+         if TResult.Version_Minor /= 0 then
             TResult.Components := Unmarshall_Tagged_Component
               (Profile_Buffer);
          end if;

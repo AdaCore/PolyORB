@@ -91,15 +91,15 @@ package PolyORB.Binding_Data.IIOP is
 
 private
 
-   IIOP_Major_Version : constant Types.Octet := 1;
-   IIOP_Minor_Version : constant Types.Octet := 2;
+   IIOP_Version_Major : constant Types.Octet := 1;
+   IIOP_Version_Minor : constant Types.Octet := 2;
 
    --  XXX DOCUMENTATION: What is a Tagged_Component, and what is it
    --  used for ??
 
    type IIOP_Profile_Type is new Profile_Type with record
-      Major_Version : Types.Octet := IIOP_Major_Version;
-      Minor_Version : Types.Octet := IIOP_Minor_Version;
+      Version_Major : Types.Octet := IIOP_Version_Major;
+      Version_Minor : Types.Octet := IIOP_Version_Minor;
       Address       : Sockets.Sock_Addr_Type;
       Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
    end record;
