@@ -1932,7 +1932,6 @@ package body Ada_Be.Idl2Ada is
                Raise_Something : constant Boolean
                  := not Is_Empty (Raises (Node));
 
-               Max_Len : Integer := T_Result_Name'Length;
             begin
                Add_With (CU, "CORBA",
                          Use_It    => True,
@@ -1956,75 +1955,26 @@ package body Ada_Be.Idl2Ada is
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
-                  Len : Integer;
                begin
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
                      if not Is_Returns (P_Node) then
-                        Len := Ada_Name (Declarator (P_Node))'Length;
-                        if Max_Len < Len + T_Argument'Length then
-                           Max_Len := Len + T_Argument'Length;
-                        end if;
-                     end if;
-                  end loop;
-               end;
 
-               NL (CU);
-               PL (CU, Justify (T_Operation_Name, Max_Len)
-                   & " : constant Standard.String");
-               PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
-               PL (CU, Justify (T_Self_Ref, Max_Len) & " : CORBA.Object.Ref");
-               PL (CU, "  := CORBA.Object.Ref ("
-                   & Self_For_Operation (Mapping, Node) & ");");
-               NL (CU);
-
-               declare
-                  It   : Node_Iterator;
-                  P_Node : Node_Id;
-               begin
-                  Init (It, Parameters (Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, P_Node);
-
-                     if not Is_Returns (P_Node) then
                         declare
                            Arg_Name : constant String
                              := Ada_Name (Declarator (P_Node));
+                           Prefix   : constant String
+                             := Helper_Unit (Param_Type (P_Node));
                         begin
-                           PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
+                           PL (CU, T_Arg_Name & Arg_Name
                                & " : PolyORB.Types.Identifier");
                            PL (CU, "  := PolyORB.Types.To_PolyORB_String ("""
                                & Arg_Name & """);");
-                        end;
-                     end if;
 
-                  end loop;
-               end;
-
-               PL (CU, Justify (T_Request, Max_Len)
-                 & " : PolyORB.Requests.Request_Access;");
---                PL (CU, Justify (T_Ctx, Max_Len)
---                  & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
-
-               declare
-                  It   : Node_Iterator;
-                  P_Node : Node_Id;
-               begin
-                  Init (It, Parameters (Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, P_Node);
-                     if not Is_Returns (P_Node) then
-                        declare
-                           Arg_Name : constant String
-                             := Ada_Name (Declarator (P_Node));
-                           Prefix : constant String
-                             := Helper_Unit (Param_Type (P_Node));
-                        begin
                            Add_With (CU, Prefix);
 
-                           PL (CU, Justify (T_Argument & Arg_Name, Max_Len)
-                                & " : CORBA.Any");
+                           PL (CU, T_Argument & Arg_Name & " : CORBA.Any");
                            PL (CU, "  := " & Prefix & ".To_Any");
                            Put (CU, "  (");
                            Gen_Forward_Conversion
@@ -2036,18 +1986,26 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
 
-               PL (CU, Justify (T_Arg_List, Max_Len)
-                   & " : PolyORB.Any.NVList.Ref;");
+               NL (CU);
+               PL (CU, T_Operation_Name & " : constant Standard.String");
+               PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
+               PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
+               PL (CU, "  := CORBA.Object.Ref ("
+                   & Self_For_Operation (Mapping, Node) & ");");
+               NL (CU);
+               PL (CU, T_Request
+                   & " : PolyORB.Requests.Request_Access;");
+
+               PL (CU, T_Arg_List & " : PolyORB.Any.NVList.Ref;");
 
                if Raise_Something then
                   Add_With (CU, "CORBA.ExceptionList");
-                  PL (CU, Justify (T_Excp_List, Max_Len)
+                  PL (CU, T_Excp_List
                     & " : CORBA.ExceptionList.Ref;");
                end if;
 
-               PL (CU, Justify (T_Result, Max_Len)
-                   & " : PolyORB.Any.NamedValue;");
-               PL (CU, Justify (T_Result_Name, Max_Len)
+               PL (CU, T_Result & " : PolyORB.Any.NamedValue;");
+               PL (CU, T_Result_Name
                    & " : CORBA.String := To_CORBA_String (""Result"");");
 
                DI (CU);
