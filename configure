@@ -2087,9 +2087,11 @@ fi
 
 GNAT_RTS_FLAG="";
 am_gnat_major_version=`$GNATLS -v | $SED -ne 's/^GNATLS [^0-9]*\(.\).*$/\1/p'`
-am_gnatlib_dir=`$GNATLS -a -s system.ads | $SED 's,/adainclude/system.ads,,'`
+am_system_ads=`$GNATLS -a -s system.ads`
+am_gnatlib_dir=`dirname $am_system_ads`
+am_gnatlib_dir=`dirname $am_gnatlib_dir`
 am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
-  $am_gnatlib_dir/adainclude/system.ads`
+  $am_system_ads`
 if test $am_gnat_major_version = "5"; then
   if test $am_gnat_zcx_by_default = "True"; then
     if test $SUPPORT_RPC_ABORTION = "True"; then
@@ -2113,14 +2115,14 @@ else
 fi
 
 echo $ac_n "checking whether we support RPC abortion""... $ac_c" 1>&6
-echo "configure:2117: checking whether we support RPC abortion" >&5
+echo "configure:2119: checking whether we support RPC abortion" >&5
 if test $SUPPORT_RPC_ABORTION = "True"; then
   echo "$ac_t""true" 1>&6
 else
   echo "$ac_t""false" 1>&6
 fi
 echo $ac_n "checking which exception model to use""... $ac_c" 1>&6
-echo "configure:2124: checking which exception model to use" >&5
+echo "configure:2126: checking which exception model to use" >&5
 echo "$ac_t""$EXCEPTION_MODEL" 1>&6
 
 

@@ -4,13 +4,12 @@
 #
 # This script builds a compressed archive suitable for distribution.
 #
-# Usage: make_distrib [-s] [-k?|-prcs|-n] tag dir
+# Usage: make_distrib [-s] [-k?|-n] tag dir
 #
 #   -s    : suppress automatic version numbering and get info from VERSION.INFO
 #   -k?   : override CVS keywords expansion
-#   -prcs : use prcs to extract files
 #   -n    : assume a checkout has already been done in dir
-#   tag   : CVS or prcs tag or branch
+#   tag   : CVS tag or branch
 #   dir   : the distribution will unpack in directory <dir> and will be
 #           named <dir>.tar.gz
 #
@@ -22,11 +21,10 @@
 #
 
 if [ $# = 0 ]; then
-   echo "Usage: $0 [-k|-prcs|-n] tag dir";
+   echo "Usage: $0 [-k|-n] tag dir";
    exit 0;
 fi;
 
-prcs=false
 kk=
 nocheckout=false
 s=false
@@ -38,7 +36,6 @@ fi
 
 case $1 in
   -k*)   kk=$1; shift;;
-  -prcs) prcs=true; shift;;
   -n)    nocheckout=true; shift;;
   *)     ;;
 esac
@@ -47,14 +44,7 @@ dir=$2
 prev=`pwd`
 tmp=/tmp/t$$
 mkdir ${tmp}
-if $prcs; then
-  name=`echo *.prj | sed -e 's/\.prj//'`
-  echo Extracting module ${name} from prcs using tag ${tag}
-  cd ${tmp}
-  mkdir ${dir}
-  cd ${dir}
-  prcs checkout -r${tag} ${name}
-elif $nocheckout; then
+if $nocheckout; then
   cd ${dir}
 else
   root=`cat CVS/Root`
@@ -107,9 +97,6 @@ find . -name stamp-h.in -exec touch {} \;
 sleep 1
 find . -name config.h.in -exec touch {} \;
 echo "" >Doc/MANIFEST
-if [ `domainname` = gnat.com ]; then
-  rsh -n plym "cd `pwd`/Doc; make release"
-fi
 flist=""
 for i in `cat Doc/MANIFEST`; do
   flist="${flist} ${dir}/Doc/${i}"

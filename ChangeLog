@@ -1,5 +1,8 @@
 2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* aclocal.m4, configure, all Makefile.in: Make less assumptions on
+	dir separator for NT.
+
 	* MANIFEST: Add xe_reg.ads and xe_reg.adb for NT.
 
 2004-08-12  Laurent Pautet  <pautet@dorine.enst.fr>
