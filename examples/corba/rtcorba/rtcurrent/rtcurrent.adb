@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,21 +40,32 @@ with CORBA.ORB;
 
 with RTCORBA.Current;
 
---  with PolyORB.Setup.No_Tasking_Server;
---  pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
---  pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+with RTCORBA.PriorityMapping.Linear;
 
-with PolyORB.Setup.Thread_Pool_Server;
-pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
-pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+with PolyORB.RTCORBA_P.Setup;
+
+with PolyORB.Setup.No_Tasking_Server;
+pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+
+with PolyORB.Utils.Report;
 
 procedure RTCurrent is
 
    use Ada.Text_IO;
    use CORBA.ORB;
+   use PolyORB.Utils.Report;
+
+   Priority_Mapping : RTCORBA.PriorityMapping.Linear.Object;
 
 begin
    CORBA.ORB.Initialize ("ORB");
+
+   --  Setting up default Priority Mapping for this node
+
+   PolyORB.RTCORBA_P.Setup.Set_Priority_Mapping (Priority_Mapping);
+
+   New_Test ("RTCurrent");
 
    declare
       Current : RTCORBA.Current.Ref
@@ -63,14 +74,35 @@ begin
          (To_CORBA_String ("RTCurrent")));
 
    begin
-      RTCORBA.Current.Set_The_Priority (Current, 42);
+      Output ("Retrieve reference on RTCurrent", True);
 
-      Put_Line ("Current priority:"
+      declare
+         Priority : RTCORBA.Priority;
+         pragma Unreferenced (Priority);
+
+      begin
+         Priority := RTCORBA.Current.Get_The_Priority (Current);
+         Output ("Retrieve RTCurrent priority raised no exception", False);
+      exception
+         when CORBA.Initialize =>
+            Output ("Retrieve unset RTCurrent priority raised "
+                    & "CORBA.Initialize",
+                    True);
+      end;
+
+      RTCORBA.Current.Set_The_Priority (Current, 42);
+      Output ("Set RTCurrent priority", True);
+
+      Put_Line ("New RTCurrent priority:"
                 & RTCORBA.Current.Get_The_Priority (Current)'Img);
+      End_Report;
    exception
       when E : others =>
+         New_Line;
          Put_Line ("Got exception: "
                    & Ada.Exceptions.Exception_Information (E));
+         Output ("FATAL Error", False);
+         End_Report;
    end;
 
 end RTCurrent;
