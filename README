@@ -105,7 +105,7 @@ Commercial Support.
 -------------------
 
 Commercial support, consulting and training for GLADE are available
-from ACT-Europe and Ada Core Technologie. Contact sales@act-europe.fr
+from ACT Europe and Ada Core Technologie. Contact sales@act-europe.fr
 for further details.
 
 Bug Reports & Technical Questions.
@@ -183,12 +183,6 @@ Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 GLADE History.
 --------------
-
-GLADE has been jointly developed by Ada Core Technologies and a
-research team from the Ecole Nat. Sup. de Telecommunication (Paris &
-Brittany). The ENST teams comprise:
-  Laurent Pautet (pautet@inf.enst.fr),
-  Samuel Tardieu (sam@inf.enst.fr).
 
 GLADE has been jointly developed by Ada Core Technologies and a research
 team from the École Nationale Supérieure des Télécommunications (ENST).
