@@ -379,7 +379,9 @@ package body PolyORB.Protocols.GIOP is
          pragma Debug (O ("Remaining data in buffer :"
                           & Remaining (Sess.Buffer_In)'Img
                           & " bytes"));
-         raise GIOP_Error;
+         null;
+         --  It is not an error to leave data remaining in Buffer,
+         --  e.g. in the case of an (unexpected) unknown user exception.
       end if;
 
       pragma Debug (O ("Waiting for next message"));
