@@ -9,6 +9,7 @@ with Droopi.Constants;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
+with Droopi.Objects.Interface;
 with Droopi.References.Binding;
 with Droopi.Soft_Links;
 with Droopi.Transport;
@@ -474,15 +475,14 @@ package body Droopi.ORB is
       declare
 --           Oid : constant Objects.Object_Id
 --             := Extract_Local_Object_Id (J.Req.Target);
---           Servant : constant Objects.Servant_Access
---             := References.Binding.Bind (J.Req.Target);
-         --  XXX not referenced
-         pragma Warnings (Off, Droopi.References.Binding);
+         Servant : constant Objects.Servant_Access
+           := References.Binding.Bind (J.Req.Target, J.ORB);
       begin
          pragma Debug (O ("Executing: " & Requests.Image (J.Req.all)));
          --  Setup_Environment (Oid);
-         --  Objects.Execute_Request (Servant, J.Req.all);
-         --  Unbind (J.Req.Target);
+         Objects.Interface.Emit_Execute_Request (Servant, J.Req);
+         --  Unbind (J.Req.Target, J.ORB, Servant);
+         --  XXX Unbind must Release_Servant.
          null;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;

@@ -10,16 +10,19 @@ with CORBA.NVList;
 with Droopi.Binding_Data.Local;
 with Droopi.Buffers;
 with Droopi.Log;
+with Droopi.Obj_Adapters;
 with Droopi.Objects;
+with Droopi.ORB;
 with Droopi.References;
 with Droopi.Requests; use Droopi.Requests;
-with Droopi.Schedulers;
+--  with Droopi.Schedulers;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
 
 package body Droopi.Protocols.Echo is
 
    use Droopi.Log;
+   use Droopi.ORB;
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -61,11 +64,30 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Connect_Indication (S : access Echo_Session) is
    begin
-      --  Send_String ("Hello, please type data." & ASCII.LF);
       pragma Debug (O ("Received new connection to echo service..."));
-      Expect_Data (S, S.Buffer, 1024
+
+      --  1. Send greetings to client.
+
+      --  Send_String ("Hello, please type data." & ASCII.LF);
+
+      --  2. Notify transport layer that more data is expected.
+
+      Expect_Data (S, S.Buffer, 1024);
       --  Exact => False
-                   );
+
+      --  Note that there is no race condition here. One might
+      --  expect the following unfortunate sequence of events:
+      --    10. Greetings sent to client
+      --    11. Client answers
+      --    20. Expect_Data
+      --  (in 11: transport gets unexpected data).
+      --  This does not actually happen because the TE is not
+      --  being monitored while Send_Greetings and Expect_Data
+      --  are done; it becomes monitored again /after/ the
+      --  Connect_Indication has been processed.
+      --
+      --  The same goes for the handling of a Data_Indication.
+
    end Handle_Connect_Indication;
 
    procedure Handle_Connect_Confirmation (S : access Echo_Session) is
@@ -110,6 +132,9 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Data_Indication (S : access Echo_Session)
    is
+      use CORBA;
+      use CORBA.NVList;
+
       use Binding_Data.Local;
       use Objects;
       use References;
@@ -133,6 +158,9 @@ package body Droopi.Protocols.Echo is
          Target_Profile : Binding_Data.Profile_Access
            := new Local_Profile_Type;
          Target : References.Ref;
+
+         ORB : constant ORB_Access := ORB_Access (S.Server);
+
       begin
          Buffers.Release_Contents (S.Buffer.all);
          --  Clear buffer
@@ -142,8 +170,13 @@ package body Droopi.Protocols.Echo is
                              & " on object " & Image (Oid)
                              & " with args " & Arg_String));
 
-            --  Args := Get_Empty_Arg_List (OA, Oid, Method);
-            --  Result := Get_Empty_Result (OA, Oid, Method);
+            Args   := Obj_Adapters.Get_Empty_Arg_List
+              (Object_Adapter (ORB).all, Oid, Method);
+            Result :=
+              (Name     => To_CORBA_String ("Result"),
+               Argument => Obj_Adapters.Get_Empty_Result
+               (Object_Adapter (ORB).all, Oid, Method),
+               Arg_Modes => 0);
 
             Create_Local_Profile
               (Oid, Local_Profile_Type (Target_Profile.all));
@@ -156,7 +189,8 @@ package body Droopi.Protocols.Echo is
                Result    => Result,
                Req       => Req);
 
-            Schedulers.Queue_Request (S.Server, Req);
+            --            Schedulers.Queue_Request (S.Server, Req);
+            Queue_Request (ORB, Req);
 
          exception
             when E : others =>

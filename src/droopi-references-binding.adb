@@ -2,19 +2,36 @@
 
 --  $Id$
 
+with Ada.Tags;
+
+with Droopi.Binding_Data.Local;
+with Droopi.Log;
+with Droopi.Obj_Adapters;
+with Droopi.ORB;
+
 package body Droopi.References.Binding is
+
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.references.binding");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    function Bind
      (R         : Ref;
       Local_ORB : ORB.ORB_Access)
      return Objects.Servant_Access is
    begin
+      pragma Debug (O ("Bind: enter"));
       if Is_Nil (R) then
          raise Invalid_Reference;
       end if;
 
       declare
          use Binding_Data;
+         use Binding_Data.Local;
+         use Obj_Adapters;
+         use ORB;
          use Profile_Seqs;
 
          Profiles : constant Element_Array
@@ -44,15 +61,24 @@ package body Droopi.References.Binding is
          end if;
 
          declare
-            P : Profile_Type
+            P : Profile_Type'Class
               renames Profiles (Best_Profile_Index).all;
-
-            --  XXX not referenced.
-            pragma Warnings (Off, P);
          begin
+            pragma Debug (O ("Found profile: "
+                             & Ada.Tags.External_Tag (P'Tag)));
             null;
             --  XXX implement!
-            --  Actually more should be done here:
+
+            --  The general idea is:
+
+            --  if P in Local_Profile then
+            --     return Local_Profile (P).Object;
+            --  else
+            --     S := Find_Session (P.Address);
+            --     return Make_Surrogate (S);
+            --  end if;
+
+            --  But actually more should be done here:
             --  * if Local_Profile: OK, the requested
             --    object statically exists.
             --  * a Local_Profile may not have a servant
@@ -73,20 +99,18 @@ package body Droopi.References.Binding is
             --      presumably by sending the ORB an Is_Local_Profile
             --      query for each profile.
 
-         --  if P in Local_Profile then
-         --     return Local_Profile (P).Object;
-         --  else
-         --     S := Find_Session (P.Address);
-         --     return Make_Surrogate (S);
-         --  end if;
+            --  For now (testing/debugging) we use the following
+            --  placeholder:
+
+            if P in Local_Profile_Type then
+               return Find_Servant
+                 (Object_Adapter (Local_ORB), Get_Object_Key (P));
+            end if;
+
          end;
 
-         --  XXX TODO!
+         --  XXX TODO?!
          raise Not_Implemented;
-         pragma Warnings (Off, Bind);
-         --  XXX return not reached.
-         return null;
-         --  XXX keep the compiler happy.
       end;
    end Bind;
 

@@ -215,8 +215,8 @@ package body Droopi.Obj_Adapters.Simple is
    end Get_Empty_Result;
 
    function Find_Servant
-     (OA  : Simple_Obj_Adapter;
-      Id  : Object_Id)
+     (OA : access Simple_Obj_Adapter;
+      Id : Object_Id)
      return Servant_Access
    is
       Result : Servant_Access;
@@ -229,7 +229,7 @@ package body Droopi.Obj_Adapters.Simple is
    end Find_Servant;
 
    procedure Release_Servant
-     (OA : Simple_Obj_Adapter;
+     (OA : access Simple_Obj_Adapter;
       Id : Object_Id;
       Servant : in out Servant_Access) is
    begin

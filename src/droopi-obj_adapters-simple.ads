@@ -60,12 +60,12 @@ package Droopi.Obj_Adapters.Simple is
      return CORBA.Any;
 
    function Find_Servant
-     (OA  : Simple_Obj_Adapter;
+     (OA : access Simple_Obj_Adapter;
       Id : Object_Id)
      return Servant_Access;
 
    procedure Release_Servant
-     (OA : Simple_Obj_Adapter;
+     (OA : access Simple_Obj_Adapter;
       Id : Object_Id;
       Servant : in out Servant_Access);
 

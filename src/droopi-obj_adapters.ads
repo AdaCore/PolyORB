@@ -63,14 +63,14 @@ package Droopi.Obj_Adapters is
    --  Return the result profile of the given method.
 
    function Find_Servant
-     (OA : Obj_Adapter;
+     (OA : access Obj_Adapter;
       Id : Object_Id)
      return Objects.Servant_Access is abstract;
    --  Retrieve the servant managed by OA for logical object Id.
    --  The servant that incarnates the object is return.
 
    procedure Release_Servant
-     (OA : Obj_Adapter;
+     (OA : access Obj_Adapter;
       Id : Object_Id;
       Servant : in out Servant_Access) is abstract;
    --  Signal to OA that a Servant previously obtained using

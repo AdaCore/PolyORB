@@ -134,6 +134,11 @@ begin
         := Obj_Adapters.Export (Obj_Adapter, My_Servant);
       --  Register it with the SOA.
    begin
+      Obj_Adapters.Simple.Set_Interface_Description
+        (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
+         My_Id, Test_Object.If_Desc);
+      --  Set object description.
+
       Put_Line ("Registered object: " & Image (My_Id));
       Run (The_ORB, May_Poll => True);
       --  Execute the ORB.
