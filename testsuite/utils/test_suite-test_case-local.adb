@@ -41,12 +41,6 @@ package body Test_Suite.Test_Case.Local is
    use GNAT.Expect;
    use GNAT.OS_Lib;
 
-   Null_Argument_List : constant Argument_List := (1 => new String'(""));
-
-   Item_To_Match : constant Regexp_Array
-     := Regexp_Array'(+"FAILED",
-                      +"END TESTS(.*)PASSED");
-
    --------------
    -- Run_Test --
    --------------
@@ -60,6 +54,12 @@ package body Test_Suite.Test_Case.Local is
       Fd       : Process_Descriptor;
       Command  : constant String
         := "./" & To_String (Test_To_Run.Exec.Command);
+
+      Argument_List : GNAT.OS_Lib.Argument_List := (1 => new String'(""));
+
+      Item_To_Match : constant Regexp_Array
+        := Regexp_Array'(+"END TESTS(.*)FAILED",
+                         +"END TESTS(.*)PASSED");
 
       Test_Result : Boolean;
 
@@ -94,7 +94,7 @@ package body Test_Suite.Test_Case.Local is
       Non_Blocking_Spawn
         (Descriptor  => Fd,
          Command     => Command,
-         Args        => Null_Argument_List,
+         Args        => Argument_List,
          Buffer_Size => 4096,
          Err_To_Out  => True);
 
@@ -124,7 +124,11 @@ package body Test_Suite.Test_Case.Local is
             Test_Result := False;
       end case;
 
+      --  Clean up
+
+      Free (Argument_List (1));
       Close (Fd);
+
       Close_Test_Output_Context (Output, Test_Result);
 
       return Test_Result;
