@@ -37,5 +37,5 @@ with PolyORB.Exceptions;
 with PolyORB.POA;
 
 procedure PolyORB.Setup.Proxies_POA
-  (Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+  (Root_POA_Object :        PolyORB.POA.Obj_Adapter_Access;
    Error           : in out PolyORB.Exceptions.Error_Container);
