@@ -31,12 +31,8 @@ package body CORBA.Repository_Root.PrimitiveDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.PrimitiveKind
    is
-      Result : CORBA.Repository_Root.PrimitiveKind;
    begin
-
-      --  Insert implementation of get_kind
-
-      return Result;
+      return Self.Kind;
    end get_kind;
 
 end CORBA.Repository_Root.PrimitiveDef.Impl;

@@ -30,12 +30,8 @@ package body CORBA.Repository_Root.FixedDef.Impl is
      (Self : access Object)
      return CORBA.Unsigned_Short
    is
-      Result : CORBA.Unsigned_Short;
    begin
-
-      --  Insert implementation of get_digits
-
-      return Result;
+      return Self.IDL_Digits;
    end get_digits;
 
 
@@ -43,10 +39,7 @@ package body CORBA.Repository_Root.FixedDef.Impl is
      (Self : access Object;
       To : in CORBA.Unsigned_Short) is
    begin
-
-      --  Insert implementation of set_digits
-
-      null;
+      Self.IDL_Digits := To;
    end set_digits;
 
 
@@ -54,12 +47,8 @@ package body CORBA.Repository_Root.FixedDef.Impl is
      (Self : access Object)
      return CORBA.Short
    is
-      Result : CORBA.Short;
    begin
-
-      --  Insert implementation of get_scale
-
-      return Result;
+      return Self.Scale;
    end get_scale;
 
 
@@ -67,10 +56,7 @@ package body CORBA.Repository_Root.FixedDef.Impl is
      (Self : access Object;
       To : in CORBA.Short) is
    begin
-
-      --  Insert implementation of set_scale
-
-      null;
+      Self.Scale := To;
    end set_scale;
 
 end CORBA.Repository_Root.FixedDef.Impl;

@@ -24,7 +24,6 @@ package CORBA.Repository_Root.ValueMemberDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    IDL_Access : CORBA.Repository_Root.Visibility);
 
@@ -57,7 +56,7 @@ private
 
    type Object is
      new CORBA.Repository_Root.Contained.Impl.Object with record
-        IDL_Type : CORBA.TypeCode.Object;
+        --  the IDL_Type is the type of the type_def
         Type_Def : CORBA.Repository_Root.IDLType.Ref;
         IDL_Access : CORBA.Repository_Root.Visibility;
    end record;

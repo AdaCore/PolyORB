@@ -34,12 +34,8 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
      (Self : access Object)
      return CORBA.Unsigned_Long
    is
-      Result : CORBA.Unsigned_Long;
    begin
-
-      --  Insert implementation of get_length
-
-      return Result;
+      return Self.Length;
    end get_length;
 
 
@@ -47,10 +43,7 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
      (Self : access Object;
       To : in CORBA.Unsigned_Long) is
    begin
-
-      --  Insert implementation of set_length
-
-      null;
+      Self.Length := To;
    end set_length;
 
 
@@ -70,12 +63,8 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
    is
-      Result : CORBA.Repository_Root.IDLType.Ref;
    begin
-
-      --  Insert implementation of get_element_type_def
-
-      return Result;
+      return Self.Element_Type_Def;
    end get_element_type_def;
 
 
@@ -83,10 +72,7 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
-
-      --  Insert implementation of set_element_type_def
-
-      null;
+      Self.Element_Type_Def := To;
    end set_element_type_def;
 
 end CORBA.Repository_Root.ArrayDef.Impl;

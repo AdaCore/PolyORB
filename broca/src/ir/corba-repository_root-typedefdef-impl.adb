@@ -48,17 +48,15 @@ package body CORBA.Repository_Root.TypedefDef.Impl is
       return Self.IDLType_View;
    end Get_IDLType_View;
 
-
+   -----------------------------
+   --  Inherited from IDLType --
+   -----------------------------
    function get_type
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_type
-
-      return Result;
+      return IDLType.Impl.Get_Type (Self.IDLType_View);
    end get_type;
 
 

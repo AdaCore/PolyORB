@@ -5,6 +5,7 @@
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.OperationDef.Skel;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ExceptionDef.Impl;
@@ -22,7 +23,6 @@ package body CORBA.Repository_Root.OperationDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Result : CORBA.TypeCode.Object;
                    Result_Def : CORBA.Repository_Root.IDLType.Ref;
                    Params : CORBA.Repository_Root.ParDescriptionSeq;
                    Mode : CORBA.Repository_Root.OperationMode;
@@ -36,7 +36,6 @@ package body CORBA.Repository_Root.OperationDef.Impl is
                            Name,
                            Version,
                            Defined_In);
-      Self.Result := Result;
       Self.Result_Def := Result_Def;
       Self.Params := Params;
       Self.Mode := Mode;
@@ -49,12 +48,10 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_result
-
-      return Result;
+      --  The result should be the type of the result_def
+      return IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Self.Result_Def)));
    end get_result;
 
 
@@ -62,12 +59,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
    is
-      Result : CORBA.Repository_Root.IDLType.Ref;
    begin
-
-      --  Insert implementation of get_result_def
-
-      return Result;
+      return Self.Result_Def;
    end get_result_def;
 
 
@@ -75,10 +68,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
-
-      --  Insert implementation of set_result_def
-
-      null;
+      Self.Result_Def := To;
    end set_result_def;
 
 
@@ -86,12 +76,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.ParDescriptionSeq
    is
-      Result : CORBA.Repository_Root.ParDescriptionSeq;
    begin
-
-      --  Insert implementation of get_params
-
-      return Result;
+      return Self.Params;
    end get_params;
 
 
@@ -99,10 +85,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.ParDescriptionSeq) is
    begin
-
-      --  Insert implementation of set_params
-
-      null;
+      Self.Params := To;
    end set_params;
 
 
@@ -110,12 +93,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.OperationMode
    is
-      Result : CORBA.Repository_Root.OperationMode;
    begin
-
-      --  Insert implementation of get_mode
-
-      return Result;
+      return Self.Mode;
    end get_mode;
 
 
@@ -123,10 +102,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.OperationMode) is
    begin
-
-      --  Insert implementation of set_mode
-
-      null;
+      Self.Mode := To;
    end set_mode;
 
 
@@ -134,12 +110,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.ContextIdSeq
    is
-      Result : CORBA.Repository_Root.ContextIdSeq;
    begin
-
-      --  Insert implementation of get_contexts
-
-      return Result;
+      return Self.Contexts;
    end get_contexts;
 
 
@@ -147,10 +119,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.ContextIdSeq) is
    begin
-
-      --  Insert implementation of set_contexts
-
-      null;
+      Self.Contexts := To;
    end set_contexts;
 
 
@@ -158,12 +127,8 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.ExceptionDefSeq
    is
-      Result : CORBA.Repository_Root.ExceptionDefSeq;
    begin
-
-      --  Insert implementation of get_exceptions
-
-      return Result;
+      return Self.Exceptions;
    end get_exceptions;
 
 
@@ -171,10 +136,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.ExceptionDefSeq) is
    begin
-
-      --  Insert implementation of set_exceptions
-
-      null;
+      Self.Exceptions := To;
    end set_exceptions;
 
 
@@ -192,7 +154,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
                Id => Get_Id (Self),
                Defined_In => Get_Defined_In (Self),
                Version => Get_Version (Self),
-               Result => Self.Result,
+               Result => Get_Result (Self),
                Mode => Self.Mode,
                Contexts => Self.Contexts,
                Parameters => Self.Params,
@@ -204,4 +166,7 @@ package body CORBA.Repository_Root.OperationDef.Impl is
    end Describe;
 
 end CORBA.Repository_Root.OperationDef.Impl;
+
+
+
 

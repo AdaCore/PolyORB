@@ -24,7 +24,6 @@ package CORBA.Repository_Root.OperationDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Result : CORBA.TypeCode.Object;
                    Result_Def : CORBA.Repository_Root.IDLType.Ref;
                    Params : CORBA.Repository_Root.ParDescriptionSeq;
                    Mode : CORBA.Repository_Root.OperationMode;
@@ -84,7 +83,7 @@ private
 
    type Object is
      new CORBA.Repository_Root.Contained.Impl.Object with record
-        Result : CORBA.TypeCode.Object;
+        --  the Result is the type of the result_def
         Result_Def : CORBA.Repository_Root.IDLType.Ref;
         Params : CORBA.Repository_Root.ParDescriptionSeq;
         Mode : CORBA.Repository_Root.OperationMode;

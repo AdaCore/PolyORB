@@ -257,7 +257,7 @@ package body CORBA.Repository_Root.Container.Impl is
       end if;
       if not Contained.Is_Nil (Repository.Impl.Lookup_Id (Rep, Id)) then
          --  The same Id already exists in this repository
-         Broca.Exceptions.Raise_Bad_Param(2);
+         Broca.Exceptions.Raise_Bad_Param (2);
          return False;
       end if;
 
@@ -309,6 +309,7 @@ package body CORBA.Repository_Root.Container.Impl is
                Not_Allowed := True;
             end if;
          when
+           Dk_Module    |
            Dk_Interface |
            Dk_Value  =>
             if Get_Def_Kind (Self) = Dk_Interface
@@ -318,6 +319,18 @@ package body CORBA.Repository_Root.Container.Impl is
          when others =>
             null;
       end case;
+
+      --  exception, union or struct can only contain union, struct or enum.
+      if (Get_Def_Kind (Self) = Dk_Struct) or
+        (Get_Def_Kind (Self) = Dk_Union) or
+        (Get_Def_Kind (Self) = Dk_Exception) then
+         if (Kind /= Dk_Struct) and
+           (Kind /= Dk_Union) and
+           (Kind /= Dk_Enum) then
+            Not_Allowed := True;
+         end if;
+      end if;
+
       if Not_Allowed then
          Broca.Exceptions.Raise_Bad_Param (Minor => 4);
          return False;
@@ -727,9 +740,9 @@ package body CORBA.Repository_Root.Container.Impl is
    end describe_contents;
 
 
-   -------------------------
-   --  create operations  --
-   -------------------------
+   ---------------------
+   --  create_<node>  --
+   ---------------------
    function create_module
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -740,20 +753,23 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
    begin
-      --  initialization of the object
-      ModuleDef.Impl.Init (Obj,
-                           IRObject.Impl.Object_Ptr (Obj),
-                           Dk_Module,
-                           Id,
-                           Name,
-                           Version,
-                           To_Forward (Object_Ptr (Self)),
-                           Contained.Impl.Contained_Seq.Null_Sequence,
-                           Cont_Obj);
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Module) then
+         --  initialization of the object
+         ModuleDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Module,
+                              Id,
+                              Name,
+                              Version,
+                              To_Forward (Object_Ptr (Self)),
+                              Contained.Impl.Contained_Seq.Null_Sequence,
+                              Cont_Obj);
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return ModuleDef.Impl.To_Forward (Obj);
    end create_module;
@@ -770,20 +786,23 @@ package body CORBA.Repository_Root.Container.Impl is
    is
       Obj : ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
    begin
-      --  initialization of the object
-      ConstantDef.Impl.Init (Obj,
-                             IRObject.Impl.Object_Ptr (Obj),
-                             Dk_Constant,
-                             Id,
-                             Name,
-                             Version,
-                             To_Forward (Object_Ptr (Self)),
-                             IDLType.Convert_Forward.To_Ref (IDL_Type),
-                             Value);
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Constant) then
+         --  initialization of the object
+         ConstantDef.Impl.Init (Obj,
+                                IRObject.Impl.Object_Ptr (Obj),
+                                Dk_Constant,
+                                Id,
+                                Name,
+                                Version,
+                                To_Forward (Object_Ptr (Self)),
+                                IDLType.Convert_Forward.To_Ref (IDL_Type),
+                                Value);
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return ConstantDef.Impl.To_Forward (Obj);
    end create_constant;
@@ -801,26 +820,29 @@ package body CORBA.Repository_Root.Container.Impl is
       Container_Obj : Object_Ptr := new Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      StructDef.Impl.Init (Obj,
-                           IRObject.Impl.Object_Ptr (Obj),
-                           Dk_Struct,
-                           Id,
-                           Name,
-                           Version,
-                           To_Forward (Object_Ptr (Self)),
-                           CORBA.ORB.Typecode.Create_Struct_Tc (Id,
-                                                                Name,
-                                                                Members),
-                           IDLType_Obj,
-                           Contained.Impl.Contained_Seq.Null_Sequence,
-                           Container_Obj,
-                           Members);
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Struct) then
+         --  initialization of the object
+         StructDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Struct,
+                              Id,
+                              Name,
+                              Version,
+                              To_Forward (Object_Ptr (Self)),
+                              CORBA.ORB.Typecode.Create_Struct_Tc (Id,
+                                                                   Name,
+                                                                   Members),
+                              IDLType_Obj,
+                              Contained.Impl.Contained_Seq.Null_Sequence,
+                              Container_Obj,
+                              Members);
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return StructDef.Impl.To_Forward (Obj);
    end create_struct;
@@ -842,28 +864,31 @@ package body CORBA.Repository_Root.Container.Impl is
       Container_Obj : Object_Ptr := new Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      UnionDef.Impl.Init (Obj,
-                          IRObject.Impl.Object_Ptr (Obj),
-                          Dk_Union,
-                          Id,
-                          Name,
-                          Version,
-                          To_Forward (Object_Ptr (Self)),
-                          CORBA.ORB.Typecode.Create_Union_Tc (Id,
-                                                              Name,
-                                                              Disc_TC,
-                                                              Members),
-                          IDLType_Obj,
-                          Contained.Impl.Contained_Seq.Null_Sequence,
-                          Container_Obj,
-                          IDLType.Convert_Forward.To_Ref (Discriminator_Type),
-                          Members);
+            --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Union) then
+         --  initialization of the object
+         UnionDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_Union,
+                             Id,
+                             Name,
+                             Version,
+                             To_Forward (Object_Ptr (Self)),
+                             CORBA.ORB.Typecode.Create_Union_Tc (Id,
+                                                                 Name,
+                                                                 Disc_TC,
+                                                                 Members),
+                             IDLType_Obj,
+                             Contained.Impl.Contained_Seq.Null_Sequence,
+                             Container_Obj,
+                             IDLType.Convert_Forward.To_Ref (Discriminator_Type),
+                             Members);
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return UnionDef.Impl.To_Forward (Obj);
    end create_union;
@@ -880,24 +905,27 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : EnumDef.Impl.Object_Ptr := new EnumDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      EnumDef.Impl.Init (Obj,
-                         IRObject.Impl.Object_Ptr (Obj),
-                         Dk_Enum,
-                         Id,
-                         Name,
-                         Version,
-                         To_Forward (Object_Ptr (Self)),
-                         CORBA.ORB.Typecode.Create_Enum_Tc (Id,
-                                                            Name,
-                                                            Members),
-                         IDLType_Obj,
-                         Members);
+            --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Enum) then
+         --  initialization of the object
+         EnumDef.Impl.Init (Obj,
+                            IRObject.Impl.Object_Ptr (Obj),
+                            Dk_Enum,
+                            Id,
+                            Name,
+                            Version,
+                            To_Forward (Object_Ptr (Self)),
+                            CORBA.ORB.Typecode.Create_Enum_Tc (Id,
+                                                               Name,
+                                                               Members),
+                            IDLType_Obj,
+                            Members);
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return EnumDef.Impl.To_Forward (Obj);
    end create_enum;
@@ -916,24 +944,27 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      AliasDef.Impl.Init (Obj,
-                          IRObject.Impl.Object_Ptr (Obj),
-                          Dk_Alias,
-                          Id,
-                          Name,
-                          Version,
-                          To_Forward (Object_Ptr (Self)),
-                          CORBA.ORB.Typecode.Create_Alias_Tc (Id,
-                                                              Name,
-                                                              Orig_TC),
-                          IDLType_Obj,
-                          IDLType.Convert_Forward.To_Ref (Original_Type));
+            --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Alias) then
+         --  initialization of the object
+         AliasDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_Alias,
+                             Id,
+                             Name,
+                             Version,
+                             To_Forward (Object_Ptr (Self)),
+                             CORBA.ORB.Typecode.Create_Alias_Tc (Id,
+                                                                 Name,
+                                                                 Orig_TC),
+                             IDLType_Obj,
+                             IDLType.Convert_Forward.To_Ref (Original_Type));
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return AliasDef.Impl.To_Forward (Obj);
    end create_alias;
@@ -952,25 +983,28 @@ package body CORBA.Repository_Root.Container.Impl is
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      InterfaceDef.Impl.Init (Obj,
-                              IRObject.Impl.Object_Ptr (Obj),
-                              Dk_Interface,
-                              Id,
-                              Name,
-                              Version,
-                              To_Forward (Object_Ptr (Self)),
-                              Contained.Impl.Contained_Seq.Null_Sequence,
-                              CORBA.ORB.Typecode.Create_Interface_Tc (Id,
-                                                                      Name),
-                              Cont_Obj,
-                              IDLType_Obj,
-                              Base_Interfaces,
-                              Is_Abstract);
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+            --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Interface) then
+         --  initialization of the object
+         InterfaceDef.Impl.Init (Obj,
+                                 IRObject.Impl.Object_Ptr (Obj),
+                                 Dk_Interface,
+                                 Id,
+                                 Name,
+                                 Version,
+                                 To_Forward (Object_Ptr (Self)),
+                                 Contained.Impl.Contained_Seq.Null_Sequence,
+                                 CORBA.ORB.Typecode.Create_Interface_Tc (Id,
+                                                                         Name),
+                                 Cont_Obj,
+                                 IDLType_Obj,
+                                 Base_Interfaces,
+                                 Is_Abstract);
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return InterfaceDef.Impl.To_Forward (Obj);
    end create_interface;
@@ -993,34 +1027,60 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
+      Val : CORBA.ValueModifier;
+      Base_TC : CORBA.TypeCode.Object :=  ValueDef.Impl.Get_Type
+        (ValueDef.Impl.To_Object (Base_Value));
+      package VMS renames IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+
    begin
-      --  initialization of the object
-      ValueDef.Impl.Init (Obj,
-                          IRObject.Impl.Object_Ptr (Obj),
-                          Dk_Value,
-                          Id,
-                          Name,
-                          Version,
-                          To_Forward (Object_Ptr (Self)),
-                          Contained.Impl.Contained_Seq.Null_Sequence,
-                          Corba.Typecode.TC_Value,
-                          --  FIXME >>>>>>>>>>>>>
---                          CORBA.ORB.Typecode.Create_Value_Tc (Id,
---                                                              Name,
---                                                            ),
-                          Cont_Obj,
-                          IDLType_Obj,
-                          Supported_Interfaces,
-                          Initializers,
-                          ValueDef.Convert_Forward.To_Ref (Base_Value),
-                          Abstract_Base_Values,
-                          Is_Abstract,
-                          Is_Custom,
-                          Is_Truncatable);
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Value) then
+         --  there cannot be more then one "true" in those boolean!
+         if (Is_Custom and Is_Abstract) or
+           (Is_Custom and Is_Truncatable) or
+           (Is_Abstract and Is_Truncatable) then
+            --  Spec is not precise...
+            Broca.Exceptions.Raise_Bad_Param(2);
+         end if;
+         if Is_Custom then
+            Val := VTM_CUSTOM;
+         elsif Is_Abstract then
+            Val := VTM_ABSTRACT;
+         elsif Is_Truncatable then
+            Val := VTM_TRUNCATABLE;
+         else
+            Val := VTM_NONE;
+         end if;
+
+         --  initialization of the object
+         ValueDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_Value,
+                             Id,
+                             Name,
+                             Version,
+                             To_Forward (Object_Ptr (Self)),
+                             Contained.Impl.Contained_Seq.Null_Sequence,
+                             CORBA.ORB.Typecode.Create_Value_Tc
+                             (Id,
+                              Name,
+                              Val,
+                              Base_TC,
+                              ValueMemberSeq (VMS.Null_Sequence)),
+                             Cont_Obj,
+                             IDLType_Obj,
+                             Supported_Interfaces,
+                             Initializers,
+                             ValueDef.Convert_Forward.To_Ref (Base_Value),
+                             Abstract_Base_Values,
+                             Is_Abstract,
+                             Is_Custom,
+                             Is_Truncatable);
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return ValueDef.Impl.To_Forward (Obj);
    end create_value;
@@ -1039,25 +1099,29 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      ValueBoxDef.Impl.Init (Obj,
-                             IRObject.Impl.Object_Ptr (Obj),
-                             Dk_ValueBox,
-                             Id,
-                             Name,
-                             Version,
-                             To_Forward (Object_Ptr (Self)),
-                             CORBA.ORB.Typecode.Create_Value_Box_Tc (Id,
-                                                                     Name,
-                                                                     Orig_TC),
-                             IDLType_Obj,
-                             IDLType.Convert_Forward.To_Ref
-                             (Original_Type_Def));
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_ValueBox) then
+         --  initialization of the object
+         ValueBoxDef.Impl.Init (Obj,
+                                IRObject.Impl.Object_Ptr (Obj),
+                                Dk_ValueBox,
+                                Id,
+                                Name,
+                                Version,
+                                To_Forward (Object_Ptr (Self)),
+                                CORBA.ORB.Typecode.Create_Value_Box_Tc
+                                (Id,
+                                 Name,
+                                 Orig_TC),
+                                IDLType_Obj,
+                                IDLType.Convert_Forward.To_Ref
+                                (Original_Type_Def));
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return ValueBoxDef.Impl.To_Forward (Obj);
    end create_value_box;
@@ -1074,25 +1138,28 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : ExceptionDef.Impl.Object_Ptr := new ExceptionDef.Impl.Object;
       Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
    begin
-      --  initialization of the object
-      ExceptionDef.Impl.Init (Obj,
-                              IRObject.Impl.Object_Ptr (Obj),
-                              Dk_Exception,
-                              Id,
-                              Name,
-                              Version,
-                              To_Forward (Object_Ptr (Self)),
-                              Contained.Impl.Contained_Seq.Null_Sequence,
-                              Cont_Obj,
-                              CORBA.ORB.TypeCode.Create_Exception_TC (Id,
-                                                                      Name,
-                                                                      Members),
-
-                              Members);
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+            --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Exception) then
+         --  initialization of the object
+         ExceptionDef.Impl.Init (Obj,
+                                 IRObject.Impl.Object_Ptr (Obj),
+                                 Dk_Exception,
+                                 Id,
+                                 Name,
+                                 Version,
+                                 To_Forward (Object_Ptr (Self)),
+                                 Contained.Impl.Contained_Seq.Null_Sequence,
+                                 Cont_Obj,
+                                 CORBA.ORB.TypeCode.Create_Exception_TC
+                                 (Id,
+                                  Name,
+                                  Members),
+                                 Members);
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return ExceptionDef.Impl.To_Forward (Obj);
    end create_exception;
@@ -1108,22 +1175,25 @@ package body CORBA.Repository_Root.Container.Impl is
       Obj : NativeDef.Impl.Object_Ptr := new NativeDef.Impl.Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
-      --  initialization of the object
-      NativeDef.Impl.Init (Obj,
-                           IRObject.Impl.Object_Ptr (Obj),
-                           Dk_Native,
-                           Id,
-                           Name,
-                           Version,
-                           To_Forward (Object_Ptr (Self)),
-                           CORBA.ORB.Typecode.Create_Native_Tc (Id,
-                                                                Name),
-                           IDLType_Obj);
+      --  is the new structure allowed?
+      if Check_Structure (Self, Dk_Native) then
+         --  initialization of the object
+         NativeDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Native,
+                              Id,
+                              Name,
+                              Version,
+                              To_Forward (Object_Ptr (Self)),
+                              CORBA.ORB.Typecode.Create_Native_Tc (Id,
+                                                                   Name),
+                              IDLType_Obj);
 
-      --  add it to the contents field of this container
-      Append_To_Contents
-        (Self,
-         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+         --  add it to the contents field of this container
+         Append_To_Contents
+           (Self,
+            Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
+      end if;
 
       return NativeDef.Impl.To_Forward (Obj);
    end create_native;

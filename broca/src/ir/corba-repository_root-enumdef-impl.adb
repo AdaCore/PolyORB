@@ -64,12 +64,8 @@ package body CORBA.Repository_Root.EnumDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.EnumMemberSeq
    is
-      Result : CORBA.Repository_Root.EnumMemberSeq;
    begin
-
-      --  Insert implementation of get_members
-
-      return Result;
+      return Self.Members;
    end get_members;
 
 
@@ -77,10 +73,7 @@ package body CORBA.Repository_Root.EnumDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.EnumMemberSeq) is
    begin
-
-      --  Insert implementation of set_members
-
-      null;
+      Self.Members := To;
    end set_members;
 
 end CORBA.Repository_Root.EnumDef.Impl;

@@ -72,18 +72,35 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                            Contents);
       Self.Container_View := Container_View;
       Self.Discriminator_Type_Def := Discriminator_Type_Def;
-      Self.Members := Members;
+      Initialize_Members (Self, Members);
    end Init;
 
    ---------------------------------
    --  To get the secondary views --
    ---------------------------------
-
    function Get_Container_View (Self : access Object)
      return CORBA.Repository_Root.Container.Impl.Object_Ptr is
    begin
       return Self.Container_View;
    end Get_Container_View;
+
+
+   --------------------------
+   --  Initialize_Members  --
+   --------------------------
+   procedure Initialize_Members (Self : access Object;
+                                 Seq : in UnionMemberSeq) is
+      package UMS renames
+        IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
+      Memb_Array : UMS.Element_Array
+        := UMS.To_Element_Array (UMS.Sequence (Seq));
+   begin
+      --  when setting the members, type should be set to TC_Void
+      for I in Memb_Array'Range loop
+         Memb_Array (I).IDL_Type := CORBA.TC_Void;
+      end loop;
+      Self.Members := UnionMemberSeq (UMS.To_Sequence (Memb_Array));
+   end Initialize_Members;
 
 
    function get_discriminator_type
@@ -102,12 +119,8 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
    is
-      Result : CORBA.Repository_Root.IDLType.Ref;
    begin
-
-      --  Insert implementation of get_discriminator_type_def
-
-      return Result;
+      return Self.Discriminator_Type_Def;
    end get_discriminator_type_def;
 
 
@@ -115,10 +128,7 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
-
-      --  Insert implementation of set_discriminator_type_def
-
-      null;
+      Self.Discriminator_Type_Def := To;
    end set_discriminator_type_def;
 
 
@@ -126,12 +136,8 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.UnionMemberSeq
    is
-      Result : CORBA.Repository_Root.UnionMemberSeq;
    begin
-
-      --  Insert implementation of get_members
-
-      return Result;
+      return Self.Members;
    end get_members;
 
 
@@ -139,24 +145,21 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.UnionMemberSeq) is
    begin
-
-      --  Insert implementation of set_members
-
-      null;
+      Initialize_Members (Self, To);
    end set_members;
 
 
+   --------------------------------
+   --  Inherited from container  --
+   --------------------------------
    function lookup
      (Self : access Object;
       search_name : in CORBA.ScopedName)
      return CORBA.Repository_Root.Contained.Ref
    is
-      Result : CORBA.Repository_Root.Contained.Ref;
    begin
-
-      --  Insert implementation of lookup
-
-      return Result;
+      return Container.Impl.Lookup (Self.Container_View,
+                                    Search_Name);
    end lookup;
 
 
@@ -166,12 +169,10 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       exclude_inherited : in CORBA.Boolean)
      return CORBA.Repository_Root.ContainedSeq
    is
-      Result : CORBA.Repository_Root.ContainedSeq;
    begin
-
-      --  Insert implementation of contents
-
-      return Result;
+      return Container.Impl.Contents (Self.Container_View,
+                                      Limit_Type,
+                                      Exclude_Inherited);
    end contents;
 
 
@@ -183,12 +184,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       exclude_inherited : in CORBA.Boolean)
      return CORBA.Repository_Root.ContainedSeq
    is
-      Result : CORBA.Repository_Root.ContainedSeq;
    begin
-
-      --  Insert implementation of lookup_name
-
-      return Result;
+      return Container.Impl.Lookup_Name (Self.Container_View,
+                                         Search_Name,
+                                         Levels_To_Search,
+                                         Limit_Type,
+                                         Exclude_Inherited);
    end lookup_name;
 
 
@@ -199,12 +200,11 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       max_returned_objs : in CORBA.Long)
      return CORBA.Repository_Root.Container.DescriptionSeq
    is
-      Result : CORBA.Repository_Root.Container.DescriptionSeq;
    begin
-
-      --  Insert implementation of describe_contents
-
-      return Result;
+      return Container.Impl.Describe_Contents (Self.Container_View,
+                                               Limit_Type,
+                                               Exclude_Inherited,
+                                               Max_Returned_Objs);
    end describe_contents;
 
 
@@ -215,12 +215,11 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ModuleDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_module
-
-      return Result;
+      return Container.Impl.Create_Module (Self.Container_View,
+                                           Id,
+                                           Name,
+                                           Version);
    end create_module;
 
 
@@ -233,12 +232,13 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       value : in CORBA.Any)
      return CORBA.Repository_Root.ConstantDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ConstantDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_constant
-
-      return Result;
+      return Container.Impl.Create_Constant (Self.Container_View,
+                                             Id,
+                                             Name,
+                                             Version,
+                                             IDL_Type,
+                                             Value);
    end create_constant;
 
 
@@ -250,12 +250,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       members : in CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.StructDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.StructDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_struct
-
-      return Result;
+      return Container.Impl.Create_Struct (Self.Container_View,
+                                           Id,
+                                           Name,
+                                           Version,
+                                           Members);
    end create_struct;
 
 
@@ -268,12 +268,13 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       members : in CORBA.Repository_Root.UnionMemberSeq)
      return CORBA.Repository_Root.UnionDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.UnionDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_union
-
-      return Result;
+      return Container.Impl.Create_Union (Self.Container_View,
+                                          Id,
+                                          Name,
+                                          Version,
+                                          Discriminator_Type,
+                                          Members);
    end create_union;
 
 
@@ -285,12 +286,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       members : in CORBA.Repository_Root.EnumMemberSeq)
      return CORBA.Repository_Root.EnumDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.EnumDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_enum
-
-      return Result;
+      return Container.Impl.Create_Enum (Self.Container_View,
+                                         Id,
+                                         Name,
+                                         Version,
+                                         Members);
    end create_enum;
 
 
@@ -302,12 +303,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.AliasDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_alias
-
-      return Result;
+      return Container.Impl.Create_Alias (Self.Container_View,
+                                          Id,
+                                          Name,
+                                          Version,
+                                          Original_Type);
    end create_alias;
 
 
@@ -320,12 +321,13 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       is_abstract : in CORBA.Boolean)
      return CORBA.Repository_Root.InterfaceDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_interface
-
-      return Result;
+      return Container.Impl.Create_Interface (Self.Container_View,
+                                              Id,
+                                              Name,
+                                              Version,
+                                              Base_Interfaces,
+                                              Is_Abstract);
    end create_interface;
 
 
@@ -343,12 +345,18 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       initializers : in CORBA.Repository_Root.InitializerSeq)
      return CORBA.Repository_Root.ValueDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ValueDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_value
-
-      return Result;
+      return Container.Impl.Create_Value (Self.Container_View,
+                                          Id,
+                                          Name,
+                                          Version,
+                                          Is_Custom,
+                                          Is_Abstract,
+                                          Base_Value,
+                                          Is_Truncatable,
+                                          Abstract_Base_Values,
+                                          Supported_Interfaces,
+                                          Initializers);
    end create_value;
 
 
@@ -360,12 +368,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ValueBoxDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_value_box
-
-      return Result;
+      return Container.Impl.Create_Value_Box (Self.Container_View,
+                                              Id,
+                                              Name,
+                                              Version,
+                                              Original_Type_Def);
    end create_value_box;
 
 
@@ -377,12 +385,12 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       members : in CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.ExceptionDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ExceptionDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_exception
-
-      return Result;
+      return Container.Impl.Create_Exception (Self.Container_View,
+                                              Id,
+                                              Name,
+                                              Version,
+                                              Members);
    end create_exception;
 
 
@@ -393,12 +401,11 @@ package body CORBA.Repository_Root.UnionDef.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.NativeDef_Forward.Ref;
    begin
-
-      --  Insert implementation of create_native
-
-      return Result;
+      return Container.Impl.Create_Native (Self.Container_View,
+                                           Id,
+                                           Name,
+                                           Version);
    end create_native;
 
 end CORBA.Repository_Root.UnionDef.Impl;

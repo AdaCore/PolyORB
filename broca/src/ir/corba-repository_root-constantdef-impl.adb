@@ -7,8 +7,11 @@ with CORBA.Impl;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ConstantDef.Skel;
 with CORBA.Repository_Root.Helper;
+
+with Broca.Exceptions;
 
 package body CORBA.Repository_Root.ConstantDef.Impl is
 
@@ -57,7 +60,7 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                            Version,
                            Defined_In);
       Self.Type_Def := Type_Def;
-      Self.Value := Value;
+      Set_Value (Self, Value);
    end Init;
 
    function get_type
@@ -65,8 +68,9 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
      return CORBA.TypeCode.Object
    is
    begin
-      --  The type should be the type of the TypeCode
-      return Corba.Get_Type (Self.Value);
+      --  The type should be the type of the Type_def
+      return IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Self.Type_Def)));
    end get_type;
 
 
@@ -99,8 +103,14 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
    procedure set_value
      (Self : access Object;
       To : in CORBA.Any) is
+      use CORBA.Typecode;
    begin
-      Self.Value := To;
+      if CORBA.Get_Type (Self.Value) = Get_Type (Self)
+      then
+         Self.Value := To;
+      else
+         Broca.Exceptions.Raise_Bad_Param (2);
+      end if;
    end set_value;
 
    ----------------

@@ -65,12 +65,8 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.IDLType.Ref
    is
-      Result : CORBA.Repository_Root.IDLType.Ref;
    begin
-
-      --  Insert implementation of get_original_type_def
-
-      return Result;
+      return Self.Original_Type_Def;
    end get_original_type_def;
 
 
@@ -78,10 +74,7 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
-
-      --  Insert implementation of set_original_type_def
-
-      null;
+      Self.Original_Type_Def := To;
    end set_original_type_def;
 
 end CORBA.Repository_Root.ValueBoxDef.Impl;

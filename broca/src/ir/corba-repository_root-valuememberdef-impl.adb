@@ -5,6 +5,7 @@
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ValueMemberDef.Skel;
 with CORBA.Repository_Root.Helper;
 
@@ -21,7 +22,6 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    IDL_Access : CORBA.Repository_Root.Visibility) is
    begin
@@ -32,7 +32,6 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                            Name,
                            Version,
                            Defined_In);
-      Self.IDL_Type := IDL_Type;
       Self.Type_Def := Type_Def;
       Self.IDL_Access := IDL_Access;
    end Init;
@@ -42,12 +41,10 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_type
-
-      return Result;
+      --  The type should be the type of the Type_def
+      return IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Self.Type_Def)));
    end get_type;
 
 
@@ -57,10 +54,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
    is
       Result : CORBA.Repository_Root.IDLType.Ref;
    begin
-
-      --  Insert implementation of get_type_def
-
-      return Result;
+      return Self.Type_Def;
    end get_type_def;
 
 
@@ -68,10 +62,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.IDLType.Ref) is
    begin
-
-      --  Insert implementation of set_type_def
-
-      null;
+      Self.Type_Def := To;
    end set_type_def;
 
 
@@ -79,12 +70,8 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.Visibility
    is
-      Result : CORBA.Repository_Root.Visibility;
    begin
-
-      --  Insert implementation of get_access
-
-      return Result;
+      return Self.IDL_Access;
    end get_access;
 
 
@@ -92,10 +79,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.Visibility) is
    begin
-
-      --  Insert implementation of set_access
-
-      null;
+      Self.IDL_Access := To;
    end set_access;
 
 
@@ -113,7 +97,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                Id => Get_Id (Self),
                Defined_In => Get_Defined_In (Self),
                Version => Get_Version (Self),
-               IDL_Type => Self.IDL_Type,
+               IDL_Type => Get_Type (Self),
                Type_Def => IDLType.Convert_Forward.To_Forward (Self.Type_Def),
                IDL_Access => Self.IDL_Access);
       Result := (Kind => Get_Def_Kind (Self),

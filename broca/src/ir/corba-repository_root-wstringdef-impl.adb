@@ -34,12 +34,8 @@ package body CORBA.Repository_Root.WstringDef.Impl is
      (Self : access Object)
      return CORBA.Unsigned_Long
    is
-      Result : CORBA.Unsigned_Long;
    begin
-
-      --  Insert implementation of get_bound
-
-      return Result;
+      return Self.Bound;
    end get_bound;
 
 
@@ -47,10 +43,7 @@ package body CORBA.Repository_Root.WstringDef.Impl is
      (Self : access Object;
       To : in CORBA.Unsigned_Long) is
    begin
-
-      --  Insert implementation of set_bound
-
-      null;
+      Self.Bound := To;
    end set_bound;
 
 end CORBA.Repository_Root.WstringDef.Impl;

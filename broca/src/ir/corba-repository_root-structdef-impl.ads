@@ -48,6 +48,10 @@ package CORBA.Repository_Root.StructDef.Impl is
    function Get_Container_View (Self : access Object)
      return CORBA.Repository_Root.Container.Impl.Object_Ptr;
 
+   --  Set the members attribute while putting the "type" field
+   --  of the member to TC_Void
+   procedure Initialize_Members (Self : access Object;
+                                 Seq : in StructMemberSeq);
 
    function get_members
      (Self : access Object)

@@ -44,6 +44,11 @@ package CORBA.Repository_Root.ExceptionDef.Impl is
    function Get_Contained_View (Self : access Object)
      return CORBA.Repository_Root.Contained.Impl.Object_Ptr;
 
+   --  Set the members attribute while putting the "type" field
+   --  of the member to TC_Void
+   procedure Initialize_Members (Self : access Object;
+                                 Seq : in StructMemberSeq);
+
    function get_type
      (Self : access Object)
       return CORBA.TypeCode.Object;

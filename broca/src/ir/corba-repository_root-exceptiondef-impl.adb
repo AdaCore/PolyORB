@@ -48,7 +48,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
                            Defined_In);
       Self.Contained_View := Contained_View;
       Self.Idl_Type := Idl_Type;
-      Self.Members := Members;
+      Initialize_Members (Self, Members);
    end Init;
 
    -----------------
@@ -84,6 +84,23 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
       return Self.Contained_View;
    end Get_Contained_View;
 
+   --------------------------
+   --  Initialize_Members  --
+   --------------------------
+   procedure Initialize_Members (Self : access Object;
+                                 Seq : in StructMemberSeq) is
+      package SMS renames
+        IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+      Memb_Array : SMS.Element_Array
+        := SMS.To_Element_Array (SMS.Sequence (Seq));
+   begin
+      --  when setting the members, type should be set to TC_Void
+      for I in Memb_Array'Range loop
+         Memb_Array (I).IDL_Type := CORBA.TC_Void;
+      end loop;
+      Self.Members := StructMemberSeq (SMS.To_Sequence (Memb_Array));
+   end Initialize_Members;
+
 
    function get_type
      (Self : access Object)
@@ -91,10 +108,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    is
       Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_type
-
-      return Result;
+      return Self.IDL_Type;
    end get_type;
 
 
@@ -104,10 +118,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    is
       Result : CORBA.Repository_Root.StructMemberSeq;
    begin
-
-      --  Insert implementation of get_members
-
-      return Result;
+      return Self.Members;
    end get_members;
 
 
@@ -115,23 +126,19 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.StructMemberSeq) is
    begin
-
-      --  Insert implementation of set_members
-
-      null;
+      Initialize_Members (Self, To);
    end set_members;
 
 
+   ------------------------------
+   --  inherited by contained  --
+   ------------------------------
    function get_id
      (Self : access Object)
      return CORBA.RepositoryId
    is
-      Result : CORBA.RepositoryId;
    begin
-
-      --  Insert implementation of get_id
-
-      return Result;
+      return Contained.Impl.Get_Id (Self.Contained_View);
    end get_id;
 
 
@@ -139,10 +146,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object;
       To : in CORBA.RepositoryId) is
    begin
-
-      --  Insert implementation of set_id
-
-      null;
+      Contained.Impl.Set_Id (Self.Contained_View, To);
    end set_id;
 
 
@@ -150,12 +154,8 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object)
      return CORBA.Identifier
    is
-      Result : CORBA.Identifier;
    begin
-
-      --  Insert implementation of get_name
-
-      return Result;
+      return Contained.Impl.Get_Name (Self.Contained_View);
    end get_name;
 
 
@@ -163,10 +163,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object;
       To : in CORBA.Identifier) is
    begin
-
-      --  Insert implementation of set_name
-
-      null;
+      Contained.Impl.Set_Name (Self.Contained_View, To);
    end set_name;
 
 
@@ -174,12 +171,8 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.VersionSpec
    is
-      Result : CORBA.Repository_Root.VersionSpec;
    begin
-
-      --  Insert implementation of get_version
-
-      return Result;
+      return Contained.Impl.Get_Version (Self.Contained_View);
    end get_version;
 
 
@@ -187,10 +180,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object;
       To : in CORBA.Repository_Root.VersionSpec) is
    begin
-
-      --  Insert implementation of set_version
-
-      null;
+      Contained.Impl.Set_Version (Self.Contained_View, To);
    end set_version;
 
 
@@ -198,25 +188,17 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.Container_Forward.Ref
    is
-      Result : CORBA.Repository_Root.Container_Forward.Ref;
    begin
-
-      --  Insert implementation of get_defined_in
-
-      return Result;
+       return Contained.Impl.Get_Defined_In (Self.Contained_View);
    end get_defined_in;
 
 
    function get_absolute_name
      (Self : access Object)
-     return CORBA.ScopedName
+      return CORBA.ScopedName
    is
-      Result : CORBA.ScopedName;
    begin
-
-      --  Insert implementation of get_absolute_name
-
-      return Result;
+      return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 
 
@@ -224,12 +206,8 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
      (Self : access Object)
      return CORBA.Repository_Root.Repository_Forward.Ref
    is
-      Result : CORBA.Repository_Root.Repository_Forward.Ref;
    begin
-
-      --  Insert implementation of get_containing_repository
-
-      return Result;
+      return Contained.Impl.Get_Containing_Repository (Self.Contained_View);
    end get_containing_repository;
 
 
@@ -251,18 +229,18 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
       return Result;
    end describe;
 
-
    procedure move
      (Self : access Object;
       new_container : in CORBA.Repository_Root.Container_Forward.Ref;
       new_name : in CORBA.Identifier;
       new_version : in CORBA.Repository_Root.VersionSpec) is
    begin
-
-      --  Insert implementation of move
-
-      null;
+      Contained.Impl.Move (Self.Contained_View,
+                           New_Container,
+                           New_Name,
+                           New_Version);
    end move;
+
 
    -----------------------------
    --  Get_ExcDescritpionSeq  --
