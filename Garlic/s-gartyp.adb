@@ -4,7 +4,7 @@
 --                                                                          --
 --                  S Y S T E M . G A R L I C . T Y P E S                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
@@ -33,32 +33,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
+package body System.Garlic.Types is
 
-package System.Garlic.Types is
+   ----------------
+   -- To_Address --
+   ----------------
 
-   pragma Preelaborate;
+   function To_Address (Addr : Portable_Address) return Address is
+   begin
+      return Address (Addr);
+   end To_Address;
 
-   --  This package defines basic types that are used throughout Garlic
-   --  as well as commonly used deallocation and conversion subprograms.
+   -------------------------
+   -- To_Portable_Address --
+   -------------------------
 
-   type String_Access is access String;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (String, String_Access);
-   --  Access on string and deallocation procedure
-
-   type Portable_Address is mod 2 ** 64;
-   --  This type can contain an object of type System.Address on any platform
-   --  where GNAT is supported. It is made public on purpose so that it is
-   --  possible to take a 'Image of it.
-
-   function To_Address (Addr : Portable_Address) return Address;
-   function To_Portable_Address (Addr : Address) return Portable_Address;
-   --  Conversion routines
-
-private
-
-   pragma Inline (To_Address);
-   pragma Inline (To_Portable_Address);
+   function To_Portable_Address (Addr : Address) return Portable_Address is
+   begin
+      return Portable_Address (Addr);
+   end To_Portable_Address;
 
 end System.Garlic.Types;
