@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#6 $
+;;; $Id: //droopi/main/utils/update-headers.el#7 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -37,13 +37,17 @@
 	  (setq name (buffer-substring (match-beginning 1) (match-end 1))
 		spec t)
 	(goto-char (point-min))
-	(if (re-search-forward "^procedure \\([^ ;]+\\)" nil t)
+	(if (re-search-forward "^private package \\(.+\\) \\(is\\|renames\\)" nil t)
 	    (setq name (buffer-substring (match-beginning 1) (match-end 1))
-		  spec (string-match "ads" (buffer-name)))
+		  spec t)
 	  (goto-char (point-min))
-	  (if (re-search-forward "^function \\([^ ;]+\\)" nil t)
+	  (if (re-search-forward "^procedure \\([^ ;]+\\)" nil t)
 	      (setq name (buffer-substring (match-beginning 1) (match-end 1))
-		    spec (string-match "ads" (buffer-name)))))))
+		    spec (string-match "ads" (buffer-name)))
+	    (goto-char (point-min))
+	    (if (re-search-forward "^function \\([^ ;]+\\)" nil t)
+		(setq name (buffer-substring (match-beginning 1) (match-end 1))
+		      spec (string-match "ads" (buffer-name))))))))
 
     ; insert header template
     (goto-char (point-min))
@@ -100,8 +104,8 @@
 
 (defun insert-secondary-header(spec)
   ; add OMG notice for CORBA.* and PortableServer.* spec files
-  (if (and (or (string-match "corba" (buffer-name))
-	       (string-match "portableserver" (buffer-name)))
+  (if (and (or (string-match "^corba" (buffer-name))
+	       (string-match "^portableserver" (buffer-name)))
 	   spec)
       (insert (header-omg))))
 
