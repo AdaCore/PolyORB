@@ -5,6 +5,16 @@ Wed Feb 26 11:28:07 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
  	add @FILTERFILE@ which indicates where to include global filter
  	makefile.
 	
+Mon Feb 24 12:54:55 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* s-garhea.ads: Add a new procedure Initialize.
+
+	* s-garhea.adb: Set Opcode size right from the beginning. This is
+ 	used to avoid unnecessary buffer copies.
+
+	* s-garfil.adb: Use the previous knowledge to reduce unnecessary
+ 	buffer copies.
+
 Fri Feb 21 19:53:29 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* Makefile.am: Add zip filtering. Z library is now included in the
