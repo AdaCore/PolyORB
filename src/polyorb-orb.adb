@@ -1087,6 +1087,11 @@ package body PolyORB.ORB is
             --  XXX The correctness of the following is not
             --  completely determined.
             --  Is this mutitask-safe????
+
+            --  As of 20021122, the answer is NO.
+            --  Run evoluted DSA tests with -n 2 -c 100 -s 1
+            --  and Thead_Pool server.
+
             pragma Debug (O ("Request completed."));
             if Req.Requesting_Task /= null then
                pragma Debug
@@ -1116,7 +1121,8 @@ package body PolyORB.ORB is
                end case;
             else
                O ("ARGH! No requesting task,"
-                  & " discarding Executed_Request.", Error);
+                    & " discarding Executed_Request: "
+                    & Image (Req), Error);
                null;
             end if;
          end;
