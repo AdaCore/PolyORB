@@ -1,5 +1,13 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.11
+
+** New constants defined
+
+David J. Kristola <David95037@aol.com> asked for two new constants to be
+defined, O_NONBLOCK and MSG_PEEK. These will be used for a new extension
+(non-blocking sockets) that he plans to release in the near future.
+
 * New in AdaSockets 0.1.10
 
 ** New package Sockets.Stream_IO
