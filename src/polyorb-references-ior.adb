@@ -154,26 +154,54 @@ package body PolyORB.References.IOR is
         (O ("Decapsulate_IOR: type " & Type_Id
             & " (" & N_Profiles'Img & " profiles)."));
 
+      All_Profiles :
       for N in 1 .. N_Profiles loop
          declare
             Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
             Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
+            Known    : Boolean := False;
          begin
+            pragma Debug (O ("Considering profile with tag"
+                             & Profile_Tag'Image (Tag)));
+
+            All_Callbacks :
             for I in 1 .. Length (Callbacks) loop
+               pragma Debug
+                 (O ("... with callback" & I'Img & " whose tag is "
+                     & Profile_Tag'Image (Element_Of (Callbacks, I).Tag)));
                if Element_Of (Callbacks, I).Tag = Tag then
                   Last_Profile := Last_Profile + 1;
                   Profs (Last_Profile) := Element_Of (Callbacks, I).
                     Unmarshall_Profile_Body (Buffer);
+                  Known := True;
                   --  Profiles dynamically allocated here
                   --  will be freed when the returned
                   --  reference is finalised.
                end if;
-            end loop;
-            --  XXX actually if no callback matches this tag,
-            --  we should unmarshall the profile body as an encaps
-            --  and simply keep it as 'unsupported profile'.
+            end loop All_Callbacks;
+
+            if not Known then
+
+               --  No callback matches this tag.
+
+               declare
+                  pragma Warnings (Off);
+                  Discarded_Body : constant Encapsulation
+                    := Unmarshall (Buffer);
+                  --  Consider the profile body as an encapsulation
+                  --  (our best bet).
+                  pragma Unreferenced (Discarded_Body);
+                  pragma Warnings (On);
+               begin
+                  null;
+                  --  XXX
+                  --  Actually we should keep the tag and encapsulation
+                  --  as an 'unsupported profile'.
+               end;
+
+            end if;
          end;
-      end loop;
+      end loop All_Profiles;
 
       Create_Reference
         (Profs (Profs'First .. Last_Profile), Type_Id,
