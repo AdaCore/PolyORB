@@ -6,13 +6,15 @@ DEL = rm -f
 #######################################################################
 # C/C++ compiler to use
 
-CXX = g++-2.96
-LD  = g++-2.96
+CXX = g++
+LD  = g++
 
 #######################################################################
-# Setup for omniORB 4.0
+# Setup for omniORB 4.0.2
 
 #OMNIORB_PATH    = <path_to_omniORB_install_dir>
+OMNIORB_PATH    = $(HOME)/local/omniORB-4.0.2
+
 OMNIORB_INC     = $(OMNIORB_PATH)/include 
 OMNIORB_LIBPATH = $(OMNIORB_PATH)/lib
 OMNIORB_LIB     = -lomniORB4 -lomniDynamic4
@@ -22,7 +24,7 @@ IDL = omniidl
 IDL_FLAGS = -bcxx
 
 #######################################################################
-# Makefile configured for omniORB 4.0
+# Makefile configured for omniORB 4.0.2
 
 CXXFLAGS = -c -Wall -I$(OMNIORB_INC) -g
 LD_FLAGS = -g
@@ -57,8 +59,8 @@ all_types.hh all_typesSK.cc: ../../all_types.idl
 	$(IDL) $(IDL_FLAGS) ../../all_types.idl
 
 clean:
-	$(DEL) *.o
+	$(DEL) *.o *~
 	$(DEL) $(PROG)
 
-veryclean: clean
+distclean: clean
 	$(DEL) all_types.hh all_typesSK.cc
