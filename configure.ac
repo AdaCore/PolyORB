@@ -566,6 +566,7 @@ AC_OUTPUT([
 	testsuite/corba/rtcorba/rtpoa/Makefile
 	testsuite/core/Makefile
 	testsuite/core/any/Makefile
+	testsuite/core/buffers/Makefile
 	testsuite/core/chained_lists/Makefile
 	testsuite/core/dynamic_dict/Makefile
 	testsuite/core/fixed_point/Makefile
@@ -598,9 +599,9 @@ AC_OUTPUT([
 # Clean up
 ##########################################
 
-${RM} ${PROTO_CLIENT_WITHS}
-${RM} ${PROTO_SERVER_WITHS}
-${RM} ${PO_CATREF_WITHS}
+${RM} -f ${PROTO_CLIENT_WITHS}
+${RM} -f ${PROTO_SERVER_WITHS}
+${RM} -f ${PO_CATREF_WITHS}
 
 ##########################################
 # Copy files
@@ -616,7 +617,7 @@ do
   chmod a+x support/$a
 done
 
-${RM} support/native-adacompiler
+${RM} -f support/native-adacompiler
 ${LN_S} adacompiler support/native-adacompiler
-${RM} support/native-linker
+${RM} -f support/native-linker
 ${LN_S} linker support/native-linker
