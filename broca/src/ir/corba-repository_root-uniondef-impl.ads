@@ -21,6 +21,13 @@ package CORBA.Repository_Root.UnionDef.Impl is
 
    type Object_Ptr is access all Object'Class;
 
+   --  To transform a forward_ref in impl.object_ptr.
+   function To_Object (Fw_Ref : UnionDef_Forward.Ref)
+                       return Object_Ptr;
+
+   --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return UnionDef_Forward.Ref;
 
    --  method used to initialize recursively the object fields.
    procedure Init (Self : access Object;
@@ -36,7 +43,6 @@ package CORBA.Repository_Root.UnionDef.Impl is
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Container_View : CORBA.Repository_Root.Container.Impl.Object_Ptr;
-                   Discriminator_Type : CORBA.TypeCode.Object;
                    Discriminator_Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    Members : CORBA.Repository_Root.UnionMemberSeq);
 
@@ -191,7 +197,7 @@ private
    type Object is
      new CORBA.Repository_Root.TypedefDef.Impl.Object with record
         Container_View : CORBA.Repository_Root.Container.Impl.Object_Ptr;
-        Discriminator_Type : CORBA.TypeCode.Object;
+        --  The discriminator typecode is the one of the IDLType
         Discriminator_Type_Def : CORBA.Repository_Root.IDLType.Ref;
         Members : CORBA.Repository_Root.UnionMemberSeq;
      end record;

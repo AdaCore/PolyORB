@@ -3,11 +3,36 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.AliasDef.Skel;
 
 package body CORBA.Repository_Root.AliasDef.Impl is
 
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : AliasDef_Forward.Ref)
+     return Object_Ptr is
+   begin
+      return Object_Ptr
+        (AliasDef.Object_Of
+         (AliasDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return AliasDef_Forward.Ref is
+      Ref : AliasDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return AliasDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ------------
    --  INIT  --

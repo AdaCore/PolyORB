@@ -22,7 +22,6 @@ package CORBA.Repository_Root.ArrayDef.Impl is
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
                    IDL_Type : CORBA.TypeCode.Object;
                    Length : CORBA.Unsigned_Long;
-                   Element_Type : CORBA.TypeCode.Object;
                    Element_Type_Def : CORBA.Repository_Root.IDLType.Ref);
 
    function get_length
@@ -50,8 +49,9 @@ private
    type Object is
      new CORBA.Repository_Root.IDLType.Impl.Object with record
         Length : CORBA.Unsigned_Long;
-        Element_Type : CORBA.TypeCode.Object;
+        --  the Element_Type field is the one from the IDLType
         Element_Type_Def : CORBA.Repository_Root.IDLType.Ref;
    end record;
 
 end CORBA.Repository_Root.ArrayDef.Impl;
+

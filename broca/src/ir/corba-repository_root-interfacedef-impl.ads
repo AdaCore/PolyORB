@@ -43,6 +43,10 @@ package CORBA.Repository_Root.InterfaceDef.Impl is
    function To_Object (Fw_Ref : InterfaceDef_Forward.Ref)
                        return Object_Ptr;
 
+    --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return InterfaceDef_Forward.Ref;
+
    --  For multiple inheritance, to access the different views
    function Get_Contained_View (Self : access Object)
      return CORBA.Repository_Root.Contained.Impl.Object_Ptr;

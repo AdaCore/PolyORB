@@ -16,7 +16,15 @@ package CORBA.Repository_Root.ValueBoxDef.Impl is
 
    type Object_Ptr is access all Object'Class;
 
-    --  method used to initialize recursively the object fields.
+   --  Transform the forward to an impl.object.ptr.
+   function To_Object (Fw_Ref : ValueBoxDef_Forward.Ref)
+                       return Object_Ptr;
+
+    --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return ValueBoxDef_Forward.Ref;
+
+   --  method used to initialize recursively the object fields.
    procedure Init (Self : access Object;
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;

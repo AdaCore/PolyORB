@@ -2,6 +2,9 @@
 --  This file has been generated automatically
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
+
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.Contained;
@@ -68,6 +71,17 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
          (InterfaceDef.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return InterfaceDef_Forward.Ref is
+      Ref : InterfaceDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return InterfaceDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ---------------------------------
    --  To get the secondary views --

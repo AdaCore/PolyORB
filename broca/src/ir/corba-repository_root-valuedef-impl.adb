@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.OperationDef;
 with CORBA.Repository_Root.AttributeDef;
@@ -21,7 +23,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    ------------
    --  INIT  --
    ------------
-    procedure Init (Self : access Object;
+   procedure Init (Self : access Object;
                    Real_Object :
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : Corba.Repository_Root.DefinitionKind;
@@ -79,6 +81,17 @@ package body CORBA.Repository_Root.ValueDef.Impl is
          (ValueDef.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return ValueDef_Forward.Ref is
+      Ref : ValueDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return ValueDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ---------------------------------
    --  To get the secondary views --

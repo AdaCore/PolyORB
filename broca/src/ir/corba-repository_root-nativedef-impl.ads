@@ -13,6 +13,14 @@ package CORBA.Repository_Root.NativeDef.Impl is
 
    type Object_Ptr is access all Object'Class;
 
+   --  Transform the forward to an impl.object.ptr.
+   function To_Object (Fw_Ref : NativeDef_Forward.Ref)
+                       return Object_Ptr;
+
+    --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return NativeDef_Forward.Ref;
+
 private
 
    type Object is

@@ -15,7 +15,7 @@ with CORBA.Repository_Root.IDLType.Impl;
 
 package body CORBA.Repository_Root.StructDef.Impl is
 
-    -----------------
+   -----------------
    --  To_Object  --
    -----------------
    function To_Object (Fw_Ref : StructDef_Forward.Ref)

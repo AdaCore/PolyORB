@@ -13,6 +13,11 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Container.Skel;
 with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
+with CORBA.Repository_Root.EnumDef.Impl;
+with CORBA.Repository_Root.AliasDef.Impl;
+with CORBA.Repository_Root.NativeDef.Impl;
+with CORBA.Repository_Root.ExceptionDef.Impl;
+with CORBA.Repository_Root.ValueBoxDef.Impl;
 with CORBA.Repository_Root.Repository.Impl;
 with CORBA.Repository_Root.InterfaceDef.Impl;
 with CORBA.Repository_Root.ValueDef.Impl;
@@ -234,31 +239,22 @@ package body CORBA.Repository_Root.Container.Impl is
       end case;
    end To_Container;
 
-   ----------------------
-   --  Get_Repository  --
-   ----------------------
-   function Get_Repository (Self : access Object)
-     return Repository.Impl.Object_Ptr is
-   begin
-      if Get_Def_Kind (Self) = Dk_Repository then
-         return Repository.Impl.Object_Ptr (Object_Ptr (Self));
-      else
-         return Repository.Impl.To_Object
-           (Contained.Impl.Get_Containing_Repository
-            (Contained.Impl.To_Contained (Get_Real_Object (Self))));
-      end if;
-   end Get_Repository;
-
    ----------------
    --  Check_Id  --
    ----------------
    function Check_Id (Self : access Object;
                         Id : RepositoryId) return Boolean
    is
-      Rep : Repository.Impl.Object_Ptr
-        := Get_Repository (Self);
+      Rep : Repository.Impl.Object_Ptr;
       use Contained.Impl;
    begin
+      if Get_Def_Kind (Self) = Dk_Repository then
+         Rep := Repository.Impl.Object_Ptr (Object_Ptr (Self));
+      else
+         Rep := Repository.Impl.To_Object
+           (Get_Containing_Repository
+            (To_Contained (Get_Real_Object (Self))));
+      end if;
       if not Contained.Is_Nil (Repository.Impl.Lookup_Id (Rep, Id)) then
          --  The same Id already exists in this repository
          Broca.Exceptions.Raise_Bad_Param(2);
@@ -799,9 +795,8 @@ package body CORBA.Repository_Root.Container.Impl is
       name : in CORBA.Identifier;
       version : in CORBA.Repository_Root.VersionSpec;
       members : in CORBA.Repository_Root.StructMemberSeq)
-     return CORBA.Repository_Root.StructDef_Forward.Ref
+      return CORBA.Repository_Root.StructDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.StructDef_Forward.Ref;
       Obj : StructDef.Impl.Object_Ptr := new StructDef.Impl.Object;
       Container_Obj : Object_Ptr := new Object;
       IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
@@ -814,7 +809,6 @@ package body CORBA.Repository_Root.Container.Impl is
                            Name,
                            Version,
                            To_Forward (Object_Ptr (Self)),
---                           CORBA.TypeCode.TC_Struct,
                            CORBA.ORB.Typecode.Create_Struct_Tc (Id,
                                                                 Name,
                                                                 Members),
@@ -828,7 +822,7 @@ package body CORBA.Repository_Root.Container.Impl is
         (Self,
          Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return StructDef.Impl.To_Forward (Obj);
    end create_struct;
 
 
@@ -842,11 +836,36 @@ package body CORBA.Repository_Root.Container.Impl is
      return CORBA.Repository_Root.UnionDef_Forward.Ref
    is
       Result : CORBA.Repository_Root.UnionDef_Forward.Ref;
+      Disc_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
+        (IDLType.Impl.To_Object (Discriminator_Type));
+      Obj : UnionDef.Impl.Object_Ptr := new UnionDef.Impl.Object;
+      Container_Obj : Object_Ptr := new Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      UnionDef.Impl.Init (Obj,
+                          IRObject.Impl.Object_Ptr (Obj),
+                          Dk_Union,
+                          Id,
+                          Name,
+                          Version,
+                          To_Forward (Object_Ptr (Self)),
+                          CORBA.ORB.Typecode.Create_Union_Tc (Id,
+                                                              Name,
+                                                              Disc_TC,
+                                                              Members),
+                          IDLType_Obj,
+                          Contained.Impl.Contained_Seq.Null_Sequence,
+                          Container_Obj,
+                          IDLType.Convert_Forward.To_Ref (Discriminator_Type),
+                          Members);
 
-      --  Insert implementation of create_union
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return UnionDef.Impl.To_Forward (Obj);
    end create_union;
 
 
@@ -858,12 +877,29 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.EnumMemberSeq)
      return CORBA.Repository_Root.EnumDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.EnumDef_Forward.Ref;
+      Obj : EnumDef.Impl.Object_Ptr := new EnumDef.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      EnumDef.Impl.Init (Obj,
+                         IRObject.Impl.Object_Ptr (Obj),
+                         Dk_Enum,
+                         Id,
+                         Name,
+                         Version,
+                         To_Forward (Object_Ptr (Self)),
+                         CORBA.ORB.Typecode.Create_Enum_Tc (Id,
+                                                            Name,
+                                                            Members),
+                         IDLType_Obj,
+                         Members);
 
-      --  Insert implementation of create_enum
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return EnumDef.Impl.To_Forward (Obj);
    end create_enum;
 
 
@@ -875,12 +911,31 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.AliasDef_Forward.Ref;
+      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
+        (IDLType.Impl.To_Object (Original_Type));
+      Obj : AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      AliasDef.Impl.Init (Obj,
+                          IRObject.Impl.Object_Ptr (Obj),
+                          Dk_Alias,
+                          Id,
+                          Name,
+                          Version,
+                          To_Forward (Object_Ptr (Self)),
+                          CORBA.ORB.Typecode.Create_Alias_Tc (Id,
+                                                              Name,
+                                                              Orig_TC),
+                          IDLType_Obj,
+                          IDLType.Convert_Forward.To_Ref (Original_Type));
 
-      --  Insert implementation of create_alias
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return AliasDef.Impl.To_Forward (Obj);
    end create_alias;
 
 
@@ -893,12 +948,31 @@ package body CORBA.Repository_Root.Container.Impl is
       is_abstract : in CORBA.Boolean)
      return CORBA.Repository_Root.InterfaceDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
+      Obj : InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
+      Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      InterfaceDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Interface,
+                              Id,
+                              Name,
+                              Version,
+                              To_Forward (Object_Ptr (Self)),
+                              Contained.Impl.Contained_Seq.Null_Sequence,
+                              CORBA.ORB.Typecode.Create_Interface_Tc (Id,
+                                                                      Name),
+                              Cont_Obj,
+                              IDLType_Obj,
+                              Base_Interfaces,
+                              Is_Abstract);
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      --  Insert implementation of create_interface
-
-      return Result;
+      return InterfaceDef.Impl.To_Forward (Obj);
    end create_interface;
 
 
@@ -916,12 +990,39 @@ package body CORBA.Repository_Root.Container.Impl is
       initializers : in CORBA.Repository_Root.InitializerSeq)
      return CORBA.Repository_Root.ValueDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ValueDef_Forward.Ref;
+      Obj : ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
+      Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      ValueDef.Impl.Init (Obj,
+                          IRObject.Impl.Object_Ptr (Obj),
+                          Dk_Value,
+                          Id,
+                          Name,
+                          Version,
+                          To_Forward (Object_Ptr (Self)),
+                          Contained.Impl.Contained_Seq.Null_Sequence,
+                          Corba.Typecode.TC_Value,
+                          --  FIXME >>>>>>>>>>>>>
+--                          CORBA.ORB.Typecode.Create_Value_Tc (Id,
+--                                                              Name,
+--                                                            ),
+                          Cont_Obj,
+                          IDLType_Obj,
+                          Supported_Interfaces,
+                          Initializers,
+                          ValueDef.Convert_Forward.To_Ref (Base_Value),
+                          Abstract_Base_Values,
+                          Is_Abstract,
+                          Is_Custom,
+                          Is_Truncatable);
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      --  Insert implementation of create_value
-
-      return Result;
+      return ValueDef.Impl.To_Forward (Obj);
    end create_value;
 
 
@@ -933,12 +1034,32 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ValueBoxDef_Forward.Ref;
+      Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
+        (IDLType.Impl.To_Object (Original_Type_Def));
+      Obj : ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      ValueBoxDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_ValueBox,
+                             Id,
+                             Name,
+                             Version,
+                             To_Forward (Object_Ptr (Self)),
+                             CORBA.ORB.Typecode.Create_Value_Box_Tc (Id,
+                                                                     Name,
+                                                                     Orig_TC),
+                             IDLType_Obj,
+                             IDLType.Convert_Forward.To_Ref
+                             (Original_Type_Def));
 
-      --  Insert implementation of create_value_box
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return ValueBoxDef.Impl.To_Forward (Obj);
    end create_value_box;
 
 
@@ -950,12 +1071,30 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.ExceptionDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ExceptionDef_Forward.Ref;
+      Obj : ExceptionDef.Impl.Object_Ptr := new ExceptionDef.Impl.Object;
+      Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
    begin
+      --  initialization of the object
+      ExceptionDef.Impl.Init (Obj,
+                              IRObject.Impl.Object_Ptr (Obj),
+                              Dk_Exception,
+                              Id,
+                              Name,
+                              Version,
+                              To_Forward (Object_Ptr (Self)),
+                              Contained.Impl.Contained_Seq.Null_Sequence,
+                              Cont_Obj,
+                              CORBA.ORB.TypeCode.Create_Exception_TC (Id,
+                                                                      Name,
+                                                                      Members),
 
-      --  Insert implementation of create_exception
+                              Members);
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return ExceptionDef.Impl.To_Forward (Obj);
    end create_exception;
 
 
@@ -966,12 +1105,27 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.NativeDef_Forward.Ref;
+      Obj : NativeDef.Impl.Object_Ptr := new NativeDef.Impl.Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      NativeDef.Impl.Init (Obj,
+                           IRObject.Impl.Object_Ptr (Obj),
+                           Dk_Native,
+                           Id,
+                           Name,
+                           Version,
+                           To_Forward (Object_Ptr (Self)),
+                           CORBA.ORB.Typecode.Create_Native_Tc (Id,
+                                                                Name),
+                           IDLType_Obj);
 
-      --  Insert implementation of create_native
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      return Result;
+      return NativeDef.Impl.To_Forward (Obj);
    end create_native;
 
 end CORBA.Repository_Root.Container.Impl;

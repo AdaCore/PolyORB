@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ExceptionDef.Skel;
@@ -60,6 +62,17 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
          (ExceptionDef.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return ExceptionDef_Forward.Ref is
+      Ref : ExceptionDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return ExceptionDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ---------------------------------
    --  To get the secondary views --

@@ -36,6 +36,10 @@ package CORBA.Repository_Root.ExceptionDef.Impl is
    function To_Object (Fw_Ref : ExceptionDef_Forward.Ref)
                        return Object_Ptr;
 
+    --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return ExceptionDef_Forward.Ref;
+
    --  for accessing the secondary parents view
    function Get_Contained_View (Self : access Object)
      return CORBA.Repository_Root.Contained.Impl.Object_Ptr;

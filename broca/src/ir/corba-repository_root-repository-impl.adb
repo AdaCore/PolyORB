@@ -5,14 +5,21 @@
 
 with CORBA.AbstractBase;
 with CORBA.Impl;
+with CORBA.ORB.TypeCode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.FixedDef;
+with CORBA.Repository_Root.FixedDef.Impl;
+with CORBA.Repository_Root.ArrayDef.Impl;
 with CORBA.Repository_Root.ArrayDef;
 with CORBA.Repository_Root.SequenceDef;
+with CORBA.Repository_Root.SequenceDef.Impl;
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.WstringDef;
+with CORBA.Repository_Root.WstringDef.Impl;
 with CORBA.Repository_Root.StringDef;
+with CORBA.Repository_Root.StringDef.Impl;
 with CORBA.Repository_Root.PrimitiveDef;
 with CORBA.Repository_Root.PrimitiveDef.Impl;
 with CORBA.Repository_Root.Contained;
@@ -157,10 +164,18 @@ package body CORBA.Repository_Root.Repository.Impl is
       bound : in CORBA.Unsigned_Long)
      return CORBA.Repository_Root.StringDef.Ref
    is
-      Result : CORBA.Repository_Root.StringDef.Ref;
+      Result : StringDef.Ref;
+      Obj : StringDef.Impl.Object_Ptr := new StringDef.Impl.Object;
    begin
-
-      --  Insert implementation of create_string
+      --  initialization of the string
+      StringDef.Impl.Init (Obj,
+                           IRObject.Impl.Object_Ptr (Obj),
+                           Dk_String,
+                           CORBA.ORB.TypeCode.Create_String_Tc (Bound),
+                           Bound);
+      --  create the ref
+      StringDef.Set (Result,
+                     CORBA.Impl.Object_Ptr (Obj));
 
       return Result;
    end create_string;
@@ -172,9 +187,17 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.WstringDef.Ref
    is
       Result : CORBA.Repository_Root.WstringDef.Ref;
+      Obj : WstringDef.Impl.Object_Ptr := new WstringDef.Impl.Object;
    begin
-
-      --  Insert implementation of create_wstring
+      --  initialization of the wstring
+      WstringDef.Impl.Init (Obj,
+                            IRObject.Impl.Object_Ptr (Obj),
+                            Dk_Wstring,
+                            CORBA.ORB.TypeCode.Create_Wstring_Tc (Bound),
+                            Bound);
+      --  create the ref
+      WstringDef.Set (Result,
+                      CORBA.Impl.Object_Ptr (Obj));
 
       return Result;
    end create_wstring;
@@ -187,9 +210,21 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.SequenceDef.Ref
    is
       Result : CORBA.Repository_Root.SequenceDef.Ref;
+      Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Element_Type)));
+      Obj : SequenceDef.Impl.Object_Ptr := new SequenceDef.Impl.Object;
    begin
-
-      --  Insert implementation of create_sequence
+      --  initialization of the Sequence
+      SequenceDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_Sequence,
+                             CORBA.ORB.TypeCode.Create_Sequence_Tc (Bound,
+                                                                    Element),
+                             Bound,
+                             Element_Type);
+      --  create the ref
+      SequenceDef.Set (Result,
+                       CORBA.Impl.Object_Ptr (Obj));
 
       return Result;
    end create_sequence;
@@ -202,9 +237,21 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.ArrayDef.Ref
    is
       Result : CORBA.Repository_Root.ArrayDef.Ref;
+      Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Element_Type)));
+      Obj : ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
    begin
-
-      --  Insert implementation of create_array
+      --  initialization of the Array
+      ArrayDef.Impl.Init (Obj,
+                          IRObject.Impl.Object_Ptr (Obj),
+                          Dk_Array,
+                          CORBA.ORB.TypeCode.Create_Array_Tc (length,
+                                                              Element),
+                          length,
+                          Element_Type);
+      --  create the ref
+      ArrayDef.Set (Result,
+                    CORBA.Impl.Object_Ptr (Obj));
 
       return Result;
    end create_array;
@@ -217,9 +264,19 @@ package body CORBA.Repository_Root.Repository.Impl is
      return CORBA.Repository_Root.FixedDef.Ref
    is
       Result : CORBA.Repository_Root.FixedDef.Ref;
+      Obj : FixedDef.Impl.Object_Ptr := new FixedDef.Impl.Object;
    begin
-
-      --  Insert implementation of create_fixed
+      --  initialization of the Fixed
+      FixedDef.Impl.Init (Obj,
+                          IRObject.Impl.Object_Ptr (Obj),
+                          Dk_Fixed,
+                          CORBA.ORB.TypeCode.Create_Fixed_Tc (IDL_digits,
+                                                              Scale),
+                          IDL_digits,
+                          Scale);
+      --  create the ref
+      FixedDef.Set (Result,
+                    CORBA.Impl.Object_Ptr (Obj));
 
       return Result;
    end create_fixed;

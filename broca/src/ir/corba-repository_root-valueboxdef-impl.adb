@@ -3,11 +3,36 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ValueBoxDef.Skel;
 
 package body CORBA.Repository_Root.ValueBoxDef.Impl is
 
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : ValueBoxDef_Forward.Ref)
+                       return Object_Ptr is
+   begin
+      return ValueBoxDef.Impl.Object_Ptr
+        (ValueBoxDef.Object_Of
+         (ValueBoxDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return ValueBoxDef_Forward.Ref is
+      Ref : ValueBoxDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return ValueBoxDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ------------
    --  INIT  --

@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Container.Impl;
@@ -12,6 +14,29 @@ with CORBA.Repository_Root.UnionDef.Skel;
 with CORBA.Repository_Root.IDLType.Impl;
 
 package body CORBA.Repository_Root.UnionDef.Impl is
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : UnionDef_Forward.Ref)
+     return Object_Ptr is
+   begin
+      return Object_Ptr
+        (UnionDef.Object_Of
+         (UnionDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return UnionDef_Forward.Ref is
+      Ref : UnionDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return UnionDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ------------
    --  INIT  --
@@ -29,7 +54,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Container_View : CORBA.Repository_Root.Container.Impl.Object_Ptr;
-                   Discriminator_Type : CORBA.TypeCode.Object;
                    Discriminator_Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    Members : CORBA.Repository_Root.UnionMemberSeq) is
    begin
@@ -47,7 +71,6 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                            Def_Kind,
                            Contents);
       Self.Container_View := Container_View;
-      Self.Discriminator_Type := Discriminator_Type;
       Self.Discriminator_Type_Def := Discriminator_Type_Def;
       Self.Members := Members;
    end Init;
@@ -67,12 +90,11 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
+      Discriminator : IDLType.Impl.Object_Ptr
+        :=  IDLType.Impl.Object_Ptr
+        (IDLType.Object_Of (Self.Discriminator_Type_Def));
    begin
-
-      --  Insert implementation of get_discriminator_type
-
-      return Result;
+      return IDLType.Impl.Get_Type (Discriminator);
    end get_discriminator_type;
 
 

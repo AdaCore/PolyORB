@@ -148,10 +148,12 @@ private
         Name : CORBA.Identifier;
         Version : CORBA.Repository_Root.VersionSpec;
         Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-        Containing_Repository : CORBA.Repository_Root.Repository_Forward.Ref;
+        --  The absolute_name and containing_repository fields are
+        --  computed dynamically.
      end record;
 
 end CORBA.Repository_Root.Contained.Impl;
+
 
 
 

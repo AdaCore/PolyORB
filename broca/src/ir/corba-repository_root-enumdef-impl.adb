@@ -3,10 +3,35 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root.EnumDef.Skel;
 
 package body CORBA.Repository_Root.EnumDef.Impl is
 
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : EnumDef_Forward.Ref)
+     return Object_Ptr is
+   begin
+      return Object_Ptr
+        (EnumDef.Object_Of
+         (EnumDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return EnumDef_Forward.Ref is
+      Ref : EnumDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return EnumDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ------------
    --  INIT  --

@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ArrayDef.Skel;
 
 package body CORBA.Repository_Root.ArrayDef.Impl is
@@ -18,7 +19,6 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
                    Def_Kind : CORBA.Repository_Root.DefinitionKind;
                    IDL_Type : CORBA.TypeCode.Object;
                    Length : CORBA.Unsigned_Long;
-                   Element_Type : CORBA.TypeCode.Object;
                    Element_Type_Def : CORBA.Repository_Root.IDLType.Ref) is
    begin
       IDLType.Impl.Init (IDLType.Impl.Object_Ptr (Self),
@@ -26,7 +26,6 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
                          Def_Kind,
                          IDL_Type);
       Self.Length := Length;
-      Self.Element_Type := Element_Type;
       Self.Element_Type_Def := Element_Type_Def;
    end Init;
 
@@ -59,12 +58,11 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
      (Self : access Object)
      return CORBA.TypeCode.Object
    is
-      Result : CORBA.TypeCode.Object;
    begin
-
-      --  Insert implementation of get_element_type
-
-      return Result;
+      return IDLType.Impl.Get_Type
+        (IDLType.Impl.Object_Ptr
+         (IDLType.Object_Of
+          (Self.Element_Type_Def)));
    end get_element_type;
 
 
