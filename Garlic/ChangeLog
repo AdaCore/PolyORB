@@ -170,10 +170,6 @@
 	* 5wgarcon.ads: Install new version from Pascal Obry corresponding 
 	to mingwin32.
 
-	* s-gadiob.ads, s-gadiob.adb: Move declaration of Container_Type
-	from the body to the private part of the spec to be able to
-	compile with GNAT's new check on derivation in generic bodies.
-
 1998-04-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (inlining): Use a form that is less likely to make
@@ -252,9 +248,7 @@
 	pragma Warnings (Off) and (On) since we do not reference anything
 	from this package.
 
-	* s-garobj.adb: Remove unused entities.
-
-	* s-garela.ads: Likewise.
+	* s-garela.ads: Remove unused entities.
 
 	* s-garela.adb: Remove useless with clause.
 
