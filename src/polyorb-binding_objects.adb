@@ -53,7 +53,6 @@ package body PolyORB.Binding_Objects is
 
    begin
       Components.Emit_No_Reply (X.BO_Component, M);
-      Finalize (X.BO_Component.all);
       X.BO_Component := null;
       --  XXX Not sure this instruction is usefull anymore
 

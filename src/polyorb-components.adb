@@ -135,6 +135,7 @@ package body PolyORB.Components is
 
       case C.Allocation_Class is
          when Dynamic =>
+            Finalize (C.all);
             Free (C);
          when others =>
             null;
