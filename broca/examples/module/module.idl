@@ -1,0 +1,7 @@
+module M1 {
+  typedef string My_String;
+
+  interface Echo {
+    string echoMy_String (in My_String s);
+  };
+};
