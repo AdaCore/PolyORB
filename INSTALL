@@ -92,8 +92,8 @@ in Doc/install_guide.txt.
 Building GLADE under Windows NT
 -------------------------------
 
-To build GLADE under NT you must have some NT replacement for the followings 
-UNIX tools :
+1) To build GLADE under NT you must have some NT replacement for the
+   followings UNIX tools :
 
 	bash.exe
 	cat.exe
@@ -113,12 +113,24 @@ UNIX tools :
 	sleep.exe
 	uname.exe
 
-All these tools can be found in the User's Tools Kit (usertools.exe) from
-CYGNUS.
+   All these tools can be found in the User's Tools Kit (usertools.exe) from
+   CYGNUS.
 
-Some others tools are needed but they are provided with the GNAT for NT
-distribution :
+   Some others tools are needed but they are provided with the GNAT for NT
+   distribution :
 
 	ar.exe
 	make.exe
 	ranlib.exe
+
+2) You must add cpp.exe (C preprocessor) in your path environment variable.
+
+   cpp.exe is under <gnat_dir>/lib/gcc-lib/pentium-mingw32msv/2.8.1
+
+3) If you want to build GLADE using a wavefront compiler you must copy the
+   mingw32 GNAT release directory into your wavefront compiler directory.
+
+   The mingw32 directory is <gnat_dir>/mingw32.
+
+   This is required because GLADE need to build the libz library which is
+   written in C.
