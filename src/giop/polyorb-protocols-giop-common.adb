@@ -153,7 +153,6 @@ package body PolyORB.Protocols.GIOP.Common is
       Header_Space    : constant Reservation :=
         Reserve (Buffer_Out, GIOP_Header_Size);
       Reply_Status    : Reply_Status_Type;
-      Except_Id       : Types.String;
       N               : Request_Note;
       Request_Id      : Types.Unsigned_Long renames N.Id;
       CORBA_Occurence : PolyORB.Any.Any;
@@ -180,22 +179,23 @@ package body PolyORB.Protocols.GIOP.Common is
 
          else
             declare
-               Except_Id_2 : constant String :=
+               Exception_Id : constant String :=
                  To_Standard_String
                  (TypeCode.Id (Get_Type (Request.Exception_Info)));
+
             begin
                if PolyORB.GIOP_P.Exceptions.Is_System_Exception
-                 (Except_Id_2) then
+                 (Exception_Id)
+               then
                   Reply_Status := System_Exception;
+
                else
                   Reply_Status := User_Exception;
                end if;
 
-               Except_Id := To_PolyORB_String (Except_Id_2);
-
                pragma Debug
                  (O ("Sending reply, Status : " & Reply_Status'Img));
-               pragma Debug (O ("Exception ID : " & Except_Id_2));
+               pragma Debug (O ("Exception ID : " & Exception_Id));
             end;
          end if;
       end if;
@@ -288,10 +288,10 @@ package body PolyORB.Protocols.GIOP.Common is
    -------------------------
 
    procedure Common_Locate_Reply
-     (Sess        : access GIOP_Session;
-      Request_Id  :        Types.Unsigned_Long;
-      Loc_Type    :        Locate_Reply_Type;
-      Forward_Ref :        References.Ref)
+     (Sess               : access GIOP_Session;
+      Locate_Request_Id  :        Types.Unsigned_Long;
+      Loc_Type           :        Locate_Reply_Type;
+      Forward_Ref        :        References.Ref)
    is
       use PolyORB.Components;
       use PolyORB.Types;
@@ -306,11 +306,11 @@ package body PolyORB.Protocols.GIOP.Common is
                      (Sess.Implem.Version = GIOP_Version'(1, 2)));
 
       pragma Debug (O ("Sending Locate Reply, Request Id :"
-                       & Request_Id'Img
+                       & Locate_Request_Id'Img
                        & " , type : "
                        & Loc_Type'Img));
 
-      Marshall (Buffer, Request_Id);
+      Marshall (Buffer, Locate_Request_Id);
       Marshall (Buffer, Loc_Type);
 
       if Loc_Type = Object_Forward then
@@ -336,12 +336,13 @@ package body PolyORB.Protocols.GIOP.Common is
    ---------------------------------
 
    procedure Common_Process_Locate_Reply
-     (Sess       : access GIOP_Session;
-      Request_Id :        Types.Unsigned_Long;
-      Loc_Type   :        Locate_Reply_Type) is
+     (Sess              : access GIOP_Session;
+      Locate_Request_Id :        Types.Unsigned_Long;
+      Loc_Type          :        Locate_Reply_Type)
+   is
    begin
       pragma Debug (O ("Locate Reply received, Request Id :"
-                       & Request_Id'Img
+                       & Locate_Request_Id'Img
                        & " , type : "
                        & Loc_Type'Img));
 
@@ -353,7 +354,7 @@ package body PolyORB.Protocols.GIOP.Common is
             begin
                Get_Pending_Request_By_Locate
                  (Sess,
-                  Request_Id,
+                  Locate_Request_Id,
                   Req,
                   Success);
                if Success then
@@ -371,7 +372,7 @@ package body PolyORB.Protocols.GIOP.Common is
             begin
                Get_Pending_Request_By_Locate
                  (Sess,
-                  Request_Id,
+                  Locate_Request_Id,
                   Req,
                   Success);
 
@@ -396,7 +397,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
                Remove_Pending_Request_By_Locate
                  (Sess,
-                  Request_Id,
+                  Locate_Request_Id,
                   Success);
 
                if not Success then

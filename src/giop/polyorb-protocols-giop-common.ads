@@ -112,15 +112,15 @@ package PolyORB.Protocols.GIOP.Common is
      return Locate_Reply_Type;
 
    procedure Common_Locate_Reply
-     (Sess        : access GIOP_Session;
-      Request_Id  :        Types.Unsigned_Long;
-      Loc_Type    :        Locate_Reply_Type;
-      Forward_Ref :        References.Ref);
+     (Sess               : access GIOP_Session;
+      Locate_Request_Id  :        Types.Unsigned_Long;
+      Loc_Type           :        Locate_Reply_Type;
+      Forward_Ref        :        References.Ref);
 
    procedure Common_Process_Locate_Reply
-     (Sess       : access GIOP_Session;
-      Request_Id :        Types.Unsigned_Long;
-      Loc_Type   :        Locate_Reply_Type);
+     (Sess              : access GIOP_Session;
+      Locate_Request_Id :        Types.Unsigned_Long;
+      Loc_Type          :        Locate_Reply_Type);
 
    ----------------------------------
    -- Common_Process_Abort_Request --
