@@ -112,6 +112,12 @@ package body Broca.CDR is
    -- unsigned integer types.              --
    ------------------------------------------
 
+   function To_Long_Long is
+      new Ada.Unchecked_Conversion
+     (CORBA.Unsigned_Long_Long, CORBA.Long_Long);
+   function To_Unsigned_Long_Long is
+      new Ada.Unchecked_Conversion
+     (CORBA.Long_Long, CORBA.Unsigned_Long_Long);
    function To_Long is
       new Ada.Unchecked_Conversion
      (CORBA.Unsigned_Long, CORBA.Long);
@@ -130,6 +136,7 @@ package body Broca.CDR is
    -------------------------------------------
 
    subtype Double_Buf is Octet_Array (1 .. 8);
+   subtype Long_Double_Buf is Octet_Array (1 .. 12);
 
    function To_Unsigned_Long is
       new Ada.Unchecked_Conversion
@@ -143,6 +150,12 @@ package body Broca.CDR is
    function To_Double is
       new Ada.Unchecked_Conversion
      (Double_Buf, CORBA.Double);
+   function To_Long_Double_Buf is
+      new Ada.Unchecked_Conversion
+     (CORBA.Long_Double, Long_Double_Buf);
+   function To_Long_Double is
+      new Ada.Unchecked_Conversion
+     (Long_Double_Buf, CORBA.Long_Double);
 
    ----------------------------------
    -- Marshall-by-copy subprograms --
@@ -213,6 +226,32 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data : in CORBA.Unsigned_Long_Long)
+   is
+   begin
+      Align_Marshall_Big_Endian_Copy
+        (Buffer,
+         (BO_Octet (Data / 256**7),
+          BO_Octet ((Data / 256**6) mod 256),
+          BO_Octet ((Data / 256**5) mod 256),
+          BO_Octet ((Data / 256**4) mod 256),
+          BO_Octet ((Data / 256**3) mod 256),
+          BO_Octet ((Data / 256**2) mod 256),
+          BO_Octet ((Data / 256) mod 256),
+          BO_Octet (Data mod 256)),
+         8);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Long_Long)
+   is
+   begin
+      Marshall (Buffer, To_Unsigned_Long_Long (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data : in CORBA.Long)
    is
    begin
@@ -244,6 +283,17 @@ package body Broca.CDR is
    begin
       Align_Marshall_Host_Endian_Copy
         (Buffer, Buf, 8);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Long_Double)
+   is
+      Buf : Long_Double_Buf
+        := To_Long_Double_Buf (Data);
+   begin
+      Align_Marshall_Host_Endian_Copy
+        (Buffer, Buf, 12);
    end Marshall;
 
    procedure Marshall
@@ -339,7 +389,21 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access CORBA.Long_Long) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.Unsigned_Long) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Unsigned_Long_Long) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -354,6 +418,13 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Double) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Long_Double) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -444,6 +515,27 @@ package body Broca.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Unsigned_Long_Long is
+      Octets : constant Octet_Array :=
+        Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
+   begin
+      return CORBA.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
+        + CORBA.Unsigned_Long_Long (Octets (Octets'First + 7));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long_Long is
+   begin
+      return To_Long_Long (Unmarshall (Buffer));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long
    is
    begin
@@ -465,13 +557,19 @@ package body Broca.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Double
-   is
+     return CORBA.Double is
       Octets : constant Octet_Array :=
         Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
-
    begin
       return To_Double (Double_Buf (Octets));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long_Double is
+      Octets : constant Octet_Array :=
+        Align_Unmarshall_Host_Endian_Copy (Buffer, 12, 16);
+   begin
+      return To_Long_Double (Long_Double_Buf (Octets));
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

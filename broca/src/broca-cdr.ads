@@ -101,6 +101,16 @@ package Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access CORBA.Unsigned_Long_Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Unsigned_Long_Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Unsigned_Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.Short);
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -121,6 +131,16 @@ package Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access CORBA.Long_Long);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Long_Long);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long_Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.Float);
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -138,6 +158,16 @@ package Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Double;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Long_Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Long_Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Long_Double;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
