@@ -85,8 +85,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoBoolean;
@@ -126,8 +124,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoShort;
@@ -167,8 +163,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoLong;
@@ -208,8 +202,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoUShort;
@@ -249,8 +241,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoULong;
@@ -290,8 +280,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoFloat;
@@ -331,8 +319,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoDouble;
@@ -372,8 +358,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoChar;
@@ -413,8 +397,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoOctet;
@@ -454,8 +436,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return From_Any (CORBA.Request.Return_Value (Request).Argument);
    end EchoString;
@@ -495,8 +475,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return CORBA.Object.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -537,8 +515,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -579,8 +555,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -621,8 +595,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -663,8 +635,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -705,8 +675,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -747,8 +715,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -789,8 +755,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -831,8 +795,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -873,8 +835,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -914,8 +874,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
    end Set_MyColor;
 
    function Get_MyColor (Self : in CORBA.Object.Ref)
@@ -927,6 +885,8 @@ procedure DynClient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (All_Types.Helper.TC_Color),
@@ -941,8 +901,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return All_Types.Helper.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
@@ -957,6 +915,8 @@ procedure DynClient is
       Result : CORBA.NamedValue;
       Result_Name : CORBA.String := To_CORBA_String ("Result");
    begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Long),
@@ -971,8 +931,6 @@ procedure DynClient is
                                    0);
       --  sending message
       CORBA.Request.Invoke (Request, 0);
-      --  FIXME : not logical
---      CORBA.NVList.Free (Arg_List);
       --  getting the answer
       return CORBA.From_Any
         (CORBA.Request.Return_Value (Request).Argument);
