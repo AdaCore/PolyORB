@@ -257,7 +257,7 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.NamedValue) is
    begin
-      null;
+      Marshall (Buffer, Data.Argument);
    end Marshall;
 
    procedure Marshall
@@ -469,10 +469,11 @@ package body Broca.CDR is
       return CORBA.To_Any (CORBA.Short (0));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.NamedValue is
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      Data : in out CORBA.NamedValue) is
    begin
-      return (CORBA.Null_Identifier, To_Any (CORBA.Short (0)), 0);
+      Data.Argument := Unmarshall (Buffer);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

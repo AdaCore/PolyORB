@@ -72,6 +72,10 @@ package CORBA.NVList is
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data   : Ref);
 
+   --  to unmarshall all the NamedValues of an NVList
+   procedure Unmarshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data : in out Ref);
 
 private
    --  the actual implementation of an NVList, just a list of NamedValue

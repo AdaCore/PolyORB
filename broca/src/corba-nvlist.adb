@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Broca.CDR;
+
 package body CORBA.NVList is
 
    ----------------
@@ -101,9 +103,33 @@ package body CORBA.NVList is
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Data   : Ref) is
+      List : NV_List := Get_NVList (Data);
    begin
-      null;
+      while List /= Null_NVList loop
+         if List.NV.Arg_Modes = CORBA.ARG_IN or
+           List.NV.Arg_Modes = CORBA.ARG_INOUT then
+            Broca.CDR.Marshall (Buffer, List.NV);
+         end if;
+         List := List.Next;
+      end loop;
    end Marshall;
+
+   ------------------
+   --  Unmarshall  --
+   ------------------
+   procedure Unmarshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data : in out Ref) is
+      List : NV_List := Get_NVList (Data);
+   begin
+      while List /= Null_NVList loop
+         if List.NV.Arg_Modes = CORBA.ARG_OUT or
+           List.NV.Arg_Modes = CORBA.ARG_INOUT then
+            Broca.CDR.Unmarshall (Buffer, List.NV);
+         end if;
+         List := List.Next;
+      end loop;
+   end Unmarshall;
 
    ------------------------------------------
    --  implementation of the private part  --

@@ -33,6 +33,7 @@
 
 with Broca.GIOP;
 with Broca.Object;
+with Broca.CDR;
 
 package body CORBA.Request is
 
@@ -80,9 +81,12 @@ package body CORBA.Request is
 
          case Send_Request_Result is
             when Broca.GIOP.Sr_Reply =>
-               --  Unmarshall return value.
-               Self.Result :=
-                 CORBA.Unmarshall (Handler.Buffer'Access);
+               --  Unmarshall out args
+               CORBA.NVList.Unmarshall (Handler.Buffer'Access,
+                                        Self.Args_List);
+               --  Unmarshall return value
+               Broca.CDR.Unmarshall (Handler.Buffer'Access,
+                                     Self.Result);
                Broca.GIOP.Release (Handler);
             when Broca.GIOP.Sr_No_Reply =>
                Broca.GIOP.Release (Handler);

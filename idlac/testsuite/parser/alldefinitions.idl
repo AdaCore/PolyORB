@@ -659,3 +659,8 @@ module moduleB {
   const long constB = constA;
 };
 
+// native type as parameter of a function
+interface interfaceA {
+  native nativeA;
+  void methodA (in nativeA argA);
+};
