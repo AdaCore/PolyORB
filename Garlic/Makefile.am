@@ -45,8 +45,6 @@ $(srcdir)/s-ganobl.ads $(srcdir)/s-ganobl.adb
 
 Makefile: Makefile.fil
 
-@FILTERFILE@
-
 COMMONOBJECTS = \
 s-galiop.o\
 s-galite.o\
@@ -127,6 +125,8 @@ $(srcdir)/s-rpcpoo.ads $(srcdir)/s-rpcpoo.adb \
 $(srcdir)/s-rpstio.ads $(srcdir)/s-rpstio.adb \
 $(srcdir)/s-stratt.adb
 
+@FILTERSMAKEFILE@
+
 OBJECTS = \
 $(PROTOCOLSOBJECTS) \
 @LAUNCHINGOBJECTS@ \
@@ -134,15 +134,15 @@ $(FILTERSOBJECTS) \
 $(COMMONOBJECTS)
 
 SOURCES = \
-@PROTOCOLSSOURCES@ \
+$(PROTOCOLSSOURCES) \
 @LAUNCHINGSOURCES@ \
 $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
-CLEANFILES = *.ali s-garcon.ads *.o s-gaprco.adb s-galiop.ads\
-	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split\
-	inlining gnatlib/* constants_nodef\
-	b_*.c isthrbio$(EXEEXT)
+CLEANFILES = *.ali *.o split b_*.c\
+	s-garser.adb s-gaplsp.ads s-gaprco.adb s-galiop.ads s-garcon.ads\
+	inlining gnatlib/* constants_nodef isthrbio$(EXEEXT)\
+	$(FILTERSOBJECTS)
 
 DISTCLEANFILES = config.h $(TCP_PLATFORM_SOURCES) s-gatcop.ads \
 	Makefile.fil
@@ -236,12 +236,12 @@ $(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
 split: $(srcdir)/split.adb
 	$(GNATMAKE) -m -o split $(srcdir)/split.adb
 
-all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSBUILD)
+all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSINSTALL)
 
 install-dirs-local:
 	-rm -rf $(GARLIC)
 	-$(mkinstalldirs) $(GARLIC)
-	echo $(GARLIC) created
+	@echo $(GARLIC) created
 
 inlining: all-local
 	@-if test ! -f inlining; then\
@@ -295,7 +295,7 @@ linktest: $(srcdir)/linktest.adb $(OBJECTS)
 	   exit 1;\
 	fi
 
-install-extra-libs: $(FILTERSINSTALL) inlining install-dirs-local
+install-extra-libs: $(FILTERSEXTRALIBS) inlining install-dirs-local
 
 install-data-local: all-local install-dirs-local install-extra-libs 
 	@if test ! -f inlining; then\

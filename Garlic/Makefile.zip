@@ -5,13 +5,13 @@
 # Makefile portion for the ZIP filter.
 #
 
-ZIPOBJECTS = \
+zip-objects = \
 s-gafizi.o
 
-ZIPSOURCES = \
+zip-sources = \
 ${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
 
-ZIPLIBOBJS = adler32.o compress.o crc32.o gzio.o \
+zip-extra-objects = adler32.o compress.o crc32.o gzio.o \
 	uncompr.o deflate.o trees.o zutil.o \
 	inflate.o infblock.o inftrees.o \
 	infcodes.o infutil.o inffast.o
@@ -19,14 +19,8 @@ ZIPLIBOBJS = adler32.o compress.o crc32.o gzio.o \
 %.o: $(srcdir)/zlib/%.c
 	$(CC) -c -O2 -I$(srcdir)/zlib $<
 
-FILTERSOBJECTS += $(ZIPOBJECTS)
-FILTERSSOURCES += $(ZIPSOURCES)
-FILTERSBUILD   += ${ZIPLIBOBJSNEEDED}
-ZIPLIBINSTALL   = install-zlib
-FILTERSINSTALL += ${ZIPLIBINSTALLNEEDED}
-
-libz.a: $(ZIPLIBOBJS)
-	$(AR) cq libz.a $(ZIPLIBOBJS)
+libz.a: $(zip-extra-objects)
+	$(AR) cq libz.a $(zipLIBOBJS)
 
 install-zlib: libz.a
 	$(INSTALL_DATA) libz.a $(GARLIC)

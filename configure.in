@@ -272,10 +272,10 @@ AC_SUBST(DEFPROTOCOLDATA)
 AC_ARG_WITH(filters,
 [  --with-filters=list     Enumerate filter list (default=zip)],
 [
-  FILTERLIST="${withval}";
+  FILTERSLIST="${withval}";
 ],
 [
-  FILTERLIST="zip"
+  FILTERSLIST="zip"
 ])
 AC_MSG_CHECKING([default filters])
 [
@@ -284,19 +284,26 @@ if test -d Garlic; then
 else
   mkdir Garlic
 fi
-FILTERFILE=Garlic/Makefile.fil;
-rm -f ${FILTERFILE}
-for F in ${FILTERLIST}; do
+FILTERSMAKEFILE=Garlic/Makefile.fil;
+FILTERSOURCES=""
+FILTEROBJECTS=""
+FILTERINSTALL=""
+FILTEREXTRALIBS=""
+rm -f ${FILTERSMAKEFILE}
+for F in ${FILTERSLIST}; do
   if test -f ${srcdir}/Garlic/Makefile.${F}; then
-    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
-    echo "" >>${FILTERFILE}
+    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERSMAKEFILE}
+    echo "" >>${FILTERSMAKEFILE}
+    FILTERSSOURCES="${FILTERSSOURCES} \$(${F}SOURCES)"
+    FILTERSOBJECTS="${FILTERSOBJECTS} \$(${F}OBJECTS)"
+    FILTERSINSTALL="${FILTERSINSTALL} \$(${F}INSTALL)"
+    FILTERSEXTRALIBS="${FILTERSEXTRALIBS} \$(${F}EXTRAS)"
   else
     ]AC_MSG_ERROR([unknown filter ${F}])[
   fi;
 done
 ]
-AC_MSG_RESULT([${FILTERLIST}])
-AC_SUBST_FILE(FILTERFILE)
+AC_MSG_RESULT([${FILTERSLIST}])
 #
 # Force zip lib installation when zip filter included
 #
@@ -307,7 +314,7 @@ AC_ARG_ENABLE(glade-zlib,
 #
 # Libraries used for filters
 #
-case ${FILTERLIST} in
+case ${FILTERSLIST} in
   *zip*)
     if test $INSTALLZIPLIB = no; then
       AC_CHECK_LIB(z,zlibVersion)
@@ -317,14 +324,16 @@ case ${FILTERLIST} in
     fi
     AC_MSG_CHECKING([whether zip lib installation is needed])
     if test ${INSTALLZIPLIB} = yes; then
-      ZIPLIBOBJSNEEDED='${ZIPLIBOBJS}'
-      ZIPLIBINSTALLNEEDED='${ZIPLIBINSTALL}'
+      FILTERSINSTALL="${FILTERSINSTALL} install-zlib";
     fi
     AC_MSG_RESULT([${INSTALLZIPLIB}])
-    AC_SUBST(ZIPLIBOBJSNEEDED)
-    AC_SUBST(ZIPLIBINSTALLNEEDED)
     ;;
 esac
+AC_SUBST_FILE(FILTERSMAKEFILE)
+AC_SUBST(FILTERSSOURCES)
+AC_SUBST(FILTERSOBJECTS)
+AC_SUBST(FILTERSEXTRALIBS)
+AC_SUBST(FILTERSINSTALL)
 #
 # Extra libraries
 #

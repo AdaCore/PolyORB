@@ -1918,11 +1918,11 @@ fi
 if test "${with_filters+set}" = set; then
   withval="$with_filters"
   
-  FILTERLIST="${withval}";
+  FILTERSLIST="${withval}";
 
 else
   
-  FILTERLIST="zip"
+  FILTERSLIST="zip"
 
 fi
 
@@ -1934,19 +1934,26 @@ if test -d Garlic; then
 else
   mkdir Garlic
 fi
-FILTERFILE=Garlic/Makefile.fil;
-rm -f ${FILTERFILE}
-for F in ${FILTERLIST}; do
+FILTERSMAKEFILE=Garlic/Makefile.fil;
+FILTERSOURCES=""
+FILTEROBJECTS=""
+FILTERINSTALL=""
+FILTEREXTRALIBS=""
+rm -f ${FILTERSMAKEFILE}
+for F in ${FILTERSLIST}; do
   if test -f ${srcdir}/Garlic/Makefile.${F}; then
-    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
-    echo "" >>${FILTERFILE}
+    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERSMAKEFILE}
+    echo "" >>${FILTERSMAKEFILE}
+    FILTERSSOURCES="${FILTERSSOURCES} \$(${F}SOURCES)"
+    FILTERSOBJECTS="${FILTERSOBJECTS} \$(${F}OBJECTS)"
+    FILTERSINSTALL="${FILTERSINSTALL} \$(${F}INSTALL)"
+    FILTERSEXTRALIBS="${FILTERSEXTRALIBS} \$(${F}EXTRAS)"
   else
     { echo "configure: error: unknown filter ${F}" 1>&2; exit 1; }
   fi;
 done
 
-echo "$ac_t""${FILTERLIST}" 1>&6
-
+echo "$ac_t""${FILTERSLIST}" 1>&6
 #
 # Force zip lib installation when zip filter included
 #
@@ -1961,11 +1968,11 @@ fi
 #
 # Libraries used for filters
 #
-case ${FILTERLIST} in
+case ${FILTERSLIST} in
   *zip*)
     if test $INSTALLZIPLIB = no; then
       echo $ac_n "checking for zlibVersion in -lz""... $ac_c" 1>&6
-echo "configure:1969: checking for zlibVersion in -lz" >&5
+echo "configure:1976: checking for zlibVersion in -lz" >&5
 ac_lib_var=`echo z'_'zlibVersion | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1973,7 +1980,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lz  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1977 "configure"
+#line 1984 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1984,7 +1991,7 @@ int main() {
 zlibVersion()
 ; return 0; }
 EOF
-if { (eval echo configure:1988: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:1995: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2016,16 +2023,18 @@ fi
       fi
     fi
     echo $ac_n "checking whether zip lib installation is needed""... $ac_c" 1>&6
-echo "configure:2020: checking whether zip lib installation is needed" >&5
+echo "configure:2027: checking whether zip lib installation is needed" >&5
     if test ${INSTALLZIPLIB} = yes; then
-      ZIPLIBOBJSNEEDED='${ZIPLIBOBJS}'
-      ZIPLIBINSTALLNEEDED='${ZIPLIBINSTALL}'
+      FILTERSINSTALL="${FILTERSINSTALL} install-zlib";
     fi
     echo "$ac_t""${INSTALLZIPLIB}" 1>&6
-    
-    
     ;;
 esac
+
+
+
+
+
 #
 # Extra libraries
 #
@@ -2041,7 +2050,7 @@ fi
 #
 if test $target = $host; then
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:2045: checking how to run the C preprocessor" >&5
+echo "configure:2054: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -2056,13 +2065,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 2060 "configure"
+#line 2069 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2066: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2075: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -2073,13 +2082,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 2077 "configure"
+#line 2086 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2083: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2092: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -2090,13 +2099,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -nologo -E"
   cat > conftest.$ac_ext <<EOF
-#line 2094 "configure"
+#line 2103 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2100: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2109: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   :
@@ -2124,17 +2133,17 @@ for ac_hdr in stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2128: checking for $ac_hdr" >&5
+echo "configure:2137: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2133 "configure"
+#line 2142 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2138: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2147: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2164,17 +2173,17 @@ for ac_hdr in netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2168: checking for $ac_hdr" >&5
+echo "configure:2177: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2173 "configure"
+#line 2182 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2178: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2187: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2204,17 +2213,17 @@ for ac_hdr in sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2208: checking for $ac_hdr" >&5
+echo "configure:2217: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2213 "configure"
+#line 2222 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2218: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2227: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2244,17 +2253,17 @@ for ac_hdr in sys/conf.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2248: checking for $ac_hdr" >&5
+echo "configure:2257: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2253 "configure"
+#line 2262 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2258: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2267: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2490,10 +2499,12 @@ s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@ISTHRBIO@%$ISTHRBIO%g
 s%@DEFPROTOCOLNAME@%$DEFPROTOCOLNAME%g
 s%@DEFPROTOCOLDATA@%$DEFPROTOCOLDATA%g
-/@FILTERFILE@/r $FILTERFILE
-s%@FILTERFILE@%%g
-s%@ZIPLIBOBJSNEEDED@%$ZIPLIBOBJSNEEDED%g
-s%@ZIPLIBINSTALLNEEDED@%$ZIPLIBINSTALLNEEDED%g
+/@FILTERSMAKEFILE@/r $FILTERSMAKEFILE
+s%@FILTERSMAKEFILE@%%g
+s%@FILTERSSOURCES@%$FILTERSSOURCES%g
+s%@FILTERSOBJECTS@%$FILTERSOBJECTS%g
+s%@FILTERSEXTRALIBS@%$FILTERSEXTRALIBS%g
+s%@FILTERSINSTALL@%$FILTERSINSTALL%g
 s%@EXTRA_LIBS@%$EXTRA_LIBS%g
 s%@CPP@%$CPP%g
 
