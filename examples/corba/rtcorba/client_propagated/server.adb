@@ -207,7 +207,7 @@ begin
          False,
          False,
          1,
-         1);
+         0);
 
       Thread_Pool_Policy_Ref_1 := RTCORBA.RTORB.Create_Threadpool_Policy
            (RT_ORB, Thread_Pool_Id_1);

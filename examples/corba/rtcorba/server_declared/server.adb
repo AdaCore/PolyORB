@@ -201,7 +201,7 @@ begin
          Default_Priority        => Default_Priority_1,
          Allow_Request_Buffering => False,
          Max_Buffered_Requests   => 1,
-         Max_Request_Buffer_Size => 1);
+         Max_Request_Buffer_Size => 0);
 
       Output ("Thread Pool created with id"
               & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id_1), True);
@@ -274,7 +274,7 @@ begin
          Default_Priority        => Default_Priority_2,
          Allow_Request_Buffering => True,
          Max_Buffered_Requests   => 1,
-         Max_Request_Buffer_Size => 1);
+         Max_Request_Buffer_Size => 0);
 
       Output ("Thread Pool created with id"
               & RTCORBA.ThreadpoolId'Image (Thread_Pool_Id_2), True);

@@ -251,8 +251,8 @@ begin
          raise;
    end;
 
-   CORBA.ORB.Shutdown (False);
    End_Report;
+   CORBA.ORB.Shutdown (False);
 
 exception
    when E : CORBA.Transient =>
