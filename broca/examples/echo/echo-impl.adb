@@ -35,8 +35,8 @@ package body Echo.Impl is
    function EchoString (Self : access Object; Mesg : in CORBA.String)
                         return CORBA.String is
    begin
-      Ada.Text_IO.Put_Line ("Echoing string: « "
-                & CORBA.To_Standard_String (Mesg) & " »");
+      --  Ada.Text_IO.Put_Line ("Echoing string: « "
+      --            & CORBA.To_Standard_String (Mesg) & " »");
       return Mesg;
    end EchoString;
 
