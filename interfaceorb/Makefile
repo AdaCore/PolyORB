@@ -64,9 +64,9 @@ Ada_Rope.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o
 .cc.o:
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) $<
 
-Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc
+Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.o
 
-Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc
+Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.o
 
 Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 
@@ -80,7 +80,8 @@ Ada_Rope.o : Ada_Rope.cc Ada_Rope.hh
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 
-proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o
+proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
+proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o
 
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
 
@@ -141,9 +142,10 @@ exceptions.ali : exceptions.ads exceptions.adb
 giop.ali : giop.ads giop.adb
 
 giop_c.ali : giop_c.ads giop_c.adb Ada_Giop_c.o corba.ali giop.ali \
-sys_dep.ali rope.ali
+sys_dep.ali rope.ali netbufferedstream.ali
 
-giop_s.ali : giop_s.ads giop_s.adb corba.ali giop.ali sys_dep.ali
+giop_s.ali : giop_s.ads giop_s.adb Ada_Giop_s.o corba.ali giop.ali \
+sys_dep.ali netbufferedstream.ali
 
 iop.ali : iop.ads iop.adb netbufferedstream.ali membufferedstream.ali \
 corba.ali

@@ -48,8 +48,9 @@
 
 
 #include "omniORB2/omniInternal.h"
+#include "Ada_netBufferedStream.hh"
 
-class Ada_Giop_s {
+class Ada_Giop_s : public Ada_netBufferedStream {
   
 public:
 

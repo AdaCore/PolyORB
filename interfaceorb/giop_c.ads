@@ -58,14 +58,15 @@ with Corba ;
 with Giop ;
 with Sys_Dep ;
 with Rope ;
+with Netbufferedstream ;
 
 package Giop_C is
 
-   type Object is tagged record
-      Table : Interfaces.CPP.Vtable_Ptr ;
+   type Object is new NetbufferedStream.Object with record
+      Table1 : Interfaces.CPP.Vtable_Ptr ;
    end record;
    pragma CPP_Class (Object) ;
-   pragma CPP_Vtable (Object,Table,1) ;
+   pragma CPP_Vtable (Object,Table1,1) ;
    -- this type is both a C and an Ada class
    -- it is wrapped around Ada_Giop_c
    -- (see Ada_Giop_c.hh)
