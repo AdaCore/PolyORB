@@ -49,6 +49,56 @@ adabe_argument::produce_impl_adb(dep_list with,string &String, string &previousd
   produce_ads(with, String, previousdefinition);
 }
 
+adabe_argument::produce_proxies_ads(dep_list with,string &String, string &input)
+{
+  if input = "IN"
+    {
+      string tmp = "";
+      bool verif = false;
+      tmp += get_ada_name() + " :";
+      switch (pd_direction) {
+      case dir_IN :
+      case dir_INOUT :
+	tmp += " in ";
+	verif = true;
+	break;
+      case dir_OUT :
+	break;
+      }
+      AST_Decl d* = field_type();
+      tmp += adabe_name::narrow_from_decl(d)->dump_name( with, String, previousdefinition); // virtual method
+      if (verif) String += tmp + ", ";
+    }
+  if input = "OUT"
+    {
+      string tmp = "";
+      bool verif = false;
+      tmp += get_ada_name() + " :";
+      switch (pd_direction) {
+      case dir_OUT :
+      case dir_INOUT :
+	tmp += " out ";
+	verif = true;
+	break;
+      case dir_IN :
+	break;
+      }
+      AST_Decl d* = field_type();
+      tmp += adabe_name::narrow_from_decl(d)->dump_name( with, String, previousdefinition); // virtual method
+      if (verif) String += tmp + ", ";
+    }
+}
+
+void
+adabe_argument::produce_proxies_adb(dep_list with,string &String, string &previousdefinition)
+{
+  INDENT(String);
+  String += "Arg_" + get_ada_name() + " :";
+  AST_Decl d* = field_type();
+  String += adabe_name::narrow_from_decl(d)->dump_name( with, String, previousdefinition); // virtual method
+  String += "_Ptr := null ;\n";
+}
+
 IMPL_NARROW_METHODS1(adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL(adabe_argument)
   

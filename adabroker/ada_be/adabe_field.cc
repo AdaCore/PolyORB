@@ -17,6 +17,7 @@ adabe_field::produce_ads(dep_list with,string &String, string &previousdefinitio
   String += " : ";
   AST_Decl *b = field_type();
   String += adabe_name::narrow_from_decl(b)->dump_name( with, String, previousdefinition); 
+  String += ";\n";
 }
 
 void

@@ -10,7 +10,8 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 	      UTL_Scope(AST_Decl::NT_interface),
 	      ada_name(AST_Decl::NT_interface,n,p)
 {
-  if (nih == -1) pd_is_forwarded = true else pd_is_forwarded = false;
+  if (nih == -1) pd_is_forwarded = true;
+  else pd_is_forwarded = false;
 }
 
 void

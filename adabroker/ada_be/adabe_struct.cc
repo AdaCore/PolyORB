@@ -21,11 +21,9 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
     {
       INDENT(temp);
       AST_Decl *d = i.item();
-      //	if (d->node_type() == AST_Decl::NT_field)
-      //	  {
-      adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
-      temp += "\n";
-      //        }
+      if (d->node_type() == AST_Decl::NT_field)
+	adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }
   DEC_INDENT();

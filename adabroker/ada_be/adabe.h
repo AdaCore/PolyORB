@@ -2,14 +2,16 @@
 #ifndef _ADABE_CLASSES_H_
 #define _ADABE_CLASSES_H_
 
-#include <string.h>
+#include <strings>
+#include <idl.hh>
+
 class string_list
 {
  public:
   string_list();
   ~string_list();
   // constructor and destructor
-  add (string str);
+  void add (string str);
   // add a string to the list
   bool check (string str);
   // check for the presence of the string in the list, and add it 
@@ -19,7 +21,7 @@ class string_list
   string *list;
   int nb_item_in_list;
   int max_item_in_list;
-}
+};
 
 typedef string_list dep_list;
 
@@ -28,26 +30,44 @@ class adabe_name : public virtual AST_Decl
 public:
   adabe_name(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* p);
 
-  char *get_ada_local_name(void); 
+  string get_ada_local_name(void); 
   // give the local ADA name of the AST node
   
-  char *get_ada_full_name(void);
+  string get_ada_full_name(void);
   // give the complete ADA name of the AST node
 
   void compute_ada_names(void);
   // determine the ADA local and complete name
   bool is_already_defined();
   void set_already_defined();
-private:
+  int is_name_already_used(string name);
+  void set_undefined();
+
+  virtual void produce_ads(dep_list, string, string){};
+  virtual void produce_adb(dep_list, string, string){};
+  virtual void produce_impl_ads(dep_list, string, string){};
+  virtual void produce_impl_adb(dep_list, string, string){};
+  virtual void produce_proxies_ads(dep_list, string, string){};
+  virtual void produce_proxies_adb(dep_list, string, string){};
+  virtual void produce_skel_ads(dep_list, string, string){};
+  virtual void produce_skel_adb(dep_list, string, string){};
+  virtual void produce_marshal_ads(dep_list, string, string){};
+  virtual void produce_marshal_adb(dep_list, string, string){};
+  virtual string dump_name(dep_list, string, string){};
+
+ private:
   adabe_name();
-  char *pd_ada_local_name;
-  char *pd_ada_full_name;
+  string pd_ada_local_name;
+  string pd_ada_full_name;
   bool pd_defined_type;
-  void convert(void);
+  void convert(string &);
   // give the ADA name given by the OMG mapping rules of the AST node
 
   bool is_reserved_name(void);
   // determines if the name of the node is an ADA reserved name
+
+  DEF_NARROW_FROM_DECL(adabe_name);
+  DEF_NARROW_FROM_SCOPE(adabe_name);
 };
 
 class adabe_predefined_type : public virtual AST_PredefinedType,
@@ -62,12 +82,14 @@ public:
   DEF_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType);
   DEF_NARROW_FROM_DECL(adabe_predefined_type);
 
-  void produce_ads (dep_list with,string &String, string &previousdefinition);
-  void produce_adb (dep_list with,string &String, string &previousdefinition);
-  void produce_impl_ads (dep_list with,string &String, string &previousdefinition);
-  void produce_impl_adb (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb (dep_list with,string &String, string &previousdefinition);
   //produce the ada name of the type
-  
+   virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the predefined type
+ 
 private:
   string get_ada_predefined_type(void);
   //determine the ada name of the type
@@ -87,10 +109,10 @@ public:
   DEF_NARROW_METHODS1(adabe_constant, AST_Constant);
   DEF_NARROW_FROM_DECL(adabe_constant);
 
-  void produce_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_adb (std::fstream& s, adabe_typedef* tdef);
-  void produce_impl_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_impl_adb (std::fstream& s, adabe_typedef* tdef);
+  virtual void produce_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb (dep_list with,string &String, string &previousdefinition);
 
 private:
   adabe_constant();
@@ -109,10 +131,14 @@ public:
   DEF_NARROW_FROM_DECL(adabe_enum);
   DEF_NARROW_FROM_SCOPE(adabe_enum);
 
-  void produce_ads(std::fstream& s);
-  void produce_ads(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  
   
 private:
   adabe_enum();
@@ -135,8 +161,7 @@ private:
 
 
 class adabe_string : public virtual AST_String,
-		    public virtual adabe_name,
-		    public virtual adabe_sequence_chain
+		    public virtual adabe_name
 {
 public:
 
@@ -161,13 +186,13 @@ public:
 
   adabe_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p);
   // constructor
-  produce_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads (dep_list with,string &String, string &previousdefinition);
   //produce a field in the header
-  produce_adb (dep_list with,string &String, string &previousdefinition);    
+  virtual void produce_adb (dep_list with,string &String, string &previousdefinition);    
   //produce a field in the body
-  produce_impl_ads (dep_list with,string &String, string &previousdefinition); /////useless
+  virtual void produce_impl_ads (dep_list with,string &String, string &previousdefinition); //useless
   //produce a field in the implementation header
-  produce_impl_adb (dep_list with,string &String, string &previousdefinition); ////// useless   
+  virtual void produce_impl_adb (dep_list with,string &String, string &previousdefinition); //useless   
   //produce a field in the implementation body
 
   DEF_NARROW_METHODS1(adabe_field, AST_Field);
@@ -176,7 +201,7 @@ public:
 
 
 class adabe_union : public virtual AST_Union,
-		   public virtual adabe_name,
+		   public virtual adabe_name
 {
 public:
 
@@ -187,14 +212,18 @@ public:
   DEF_NARROW_FROM_DECL(adabe_union);
   DEF_NARROW_FROM_SCOPE(adabe_union);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an union in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the union in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an union in the implementation header
-  void produce_adb(dep_list with,string &String, string &previousdefinition); 
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition); 
   //produce the name of the union in the implementation body
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the union
 
 };
 
@@ -208,16 +237,17 @@ public:
 		  UTL_StrList *p);
   //constructor
   
-  produce_ads(dep_list, string, string, AST_Concretetype*);
+  void produce_ads(dep_list with, string &String, string &previousdefinition, AST_ConcreteType* concrete);
   //produce a branch of the union in the header
-  produce_impl_ads(dep_list, string, string, AST_Concretetype*); //////////// useless
+  void produce_impl_ads(dep_list with, string &String, string &previousdefinition, AST_ConcreteType* concrete);  // useless
   //produce a branch of the union in the implementation header
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 
   DEF_NARROW_METHODS1(adabe_union_branch, AST_UnionBranch);
   DEF_NARROW_FROM_DECL(adabe_union_branch);
 
 private:
-  string produce_disc_value(AST_ConcreteType, AST_Expression)  
+  string produce_disc_value(AST_ConcreteType, AST_Expression);
   //produce the value of the branch
 };
 
@@ -233,16 +263,18 @@ public:
   DEF_NARROW_FROM_DECL(adabe_structure);
   DEF_NARROW_FROM_SCOPE(adabe_structure);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce the structure in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce the structure in the implementation header
-  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure in the implementation body
-  string dump_name(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
   //produce the name of the structure
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 };
 
 
@@ -257,17 +289,18 @@ public:
   DEF_NARROW_FROM_DECL(adabe_exception);
   DEF_NARROW_FROM_SCOPE(adabe_exception);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 
 private:
   adabe_exception();
 };
 
 
-class adabe_typedef;
 class adabe_array : public virtual AST_Array,
 		   public virtual adabe_name
 {
@@ -278,10 +311,14 @@ public:
   DEF_NARROW_METHODS1(adabe_array, AST_Array);
   DEF_NARROW_FROM_DECL(adabe_array);
 
-  void produce_ads (std::fstream& s, adabe_typedef* tdef);
-  void produce_adb(std::fstream& s, adabe_typedef* tdef);
-  void produce_impl_ads(std::fstream& s, adabe_typedef* tdef);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  virtual void produce_ads (dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the array
 
 
 
@@ -302,10 +339,14 @@ public:
   DEF_NARROW_FROM_DECL(adabe_sequence);
   DEF_NARROW_FROM_SCOPE(adabe_sequence);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the sequence
 
 private:
   adabe_sequence();
@@ -319,21 +360,22 @@ public:
   adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_ScopedName *n,
 		UTL_StrList *p);
   //constructor
-  produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an argument of an operation in the header
-  produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an argument of an operation in the body
-  produce_impl_ads(dep_list with,string &String, string &previousdefinition); 
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition); 
   //produce an argument of an operation in the implementation header
-  produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an argument of an operation in the implementation body
+  virtual void produce_proxies_ads(dep_list with,string &String, string &input_style);
+  virtual void produce_proxies_adb(dep_list with,string &String, string &previousdefinition);
 
   DEF_NARROW_METHODS1(adabe_argument, AST_Argument);
   DEF_NARROW_FROM_DECL(adabe_argument);
 };
 
 
-class adabe_interface;
 class adabe_attribute : public virtual AST_Attribute,
 		       public virtual adabe_name
 {
@@ -345,18 +387,19 @@ public:
   DEF_NARROW_FROM_DECL(adabe_attribute);
   DEF_NARROW_FROM_SCOPE(adabe_attribute);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation header
-  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an attribute in the implementation body
-  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the attribute and the necessary functions in the proxy header
-
-
+  virtual void produce_proxies_adb(dep_list with,string &String, string &privatedefinition);
+  //produce the attribute and the necessary functions in the proxy body
+  virtual void produce_skeleton_adb(dep_list with,string &String, string &privatedefinition);
 
 };
 
@@ -376,16 +419,19 @@ public:
   DEF_NARROW_FROM_DECL(adabe_operation);
   DEF_NARROW_FROM_SCOPE(adabe_operation);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation header
-  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an operation in the implementation body
-  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the operation and the necessary functions in the proxy header
+  virtual void produce_proxies_adb(dep_list with,string &String, string &privatedefinition);
+  //produce the operation and the necessary functions in the proxy body
+  virtual void produce_skeleton_adb(dep_list with,string &String, string &privatedefinition);
 
 
 private:
@@ -404,14 +450,19 @@ public:
   DEF_NARROW_METHODS1(adabe_typedef, AST_Typedef);
   DEF_NARROW_FROM_DECL(adabe_typedef);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce a typedef in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the typedef in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce a typedef in the implementation header
-  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce the name of the typedef in the implementation body
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
+  virtual string dump_name(dep_list with,string &String, string &previousdefinition);
+  //produce the name of the typedef
+
 };
 
 
@@ -427,18 +478,23 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface);
   DEF_NARROW_FROM_SCOPE(adabe_interface);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the header
-  void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the body
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the implementation header
-  void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
   //produce an interface in the implementation body
-  void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
-  //produce the necessary functions in the skeleton header
-  void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
   //produce the necessary functions in the proxies header
+  virtual void produce_proxies_adb(dep_list with,string &String, string &privatedefinition);
+  //produce the necessary functions in the proxy body
+  virtual void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
+  //produce the necessary functions in the skeleton header
+  virtual void produce_skeleton_adb(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 };
 
 
@@ -454,9 +510,9 @@ public:
   DEF_NARROW_FROM_DECL(adabe_interface_fwd);
   DEF_NARROW_FROM_SCOPE(adabe_interface_fwd);
 
-  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
   //produce the interface forward in the header
-  void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
   //produce the interface forward in the implementation header
 };
 
@@ -472,10 +528,16 @@ public:
   DEF_NARROW_FROM_DECL(adabe_module);
   DEF_NARROW_FROM_SCOPE(adabe_module);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_proxies_adb(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_skel_adb(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 
 private:
   adabe_module();
@@ -508,10 +570,16 @@ private:
   std::fstream pd_skel;
   std::fstream pd_dynskel;
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
+  virtual void produce_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_impl_adb(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_proxies_ads(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_proxies_adb(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_skel_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_skel_adb(dep_list with,string &String, string &privatedefinition);
+  virtual void produce_marshal_ads(dep_list with,string &String, string &previousdefinition);
+  virtual void produce_marshal_adb(dep_list with,string &String, string &previousdefinition);
 };
 
 

@@ -42,9 +42,11 @@ adabe_predefined_type::dump_name(dep_list with,string &String, string &previousd
 }
 
 string
-ada_predefined_type::get_ada_predefined_type()
+adabe_predefined_type::get_ada_predefined_type()
 {
-  return local_name()->get_string();
+  string result = local_name()->get_string();
+  result = "CORBA." + result;
+  return result;  
 }
 
 IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType)

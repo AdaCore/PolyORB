@@ -35,11 +35,9 @@ adabe_union::produce_ads(dep_list with,string &String, string &previousdefinitio
     {
       INDENT(temp);
       AST_Decl *d = i.item();
-      //	if (d->node_type() == AST_Decl::NT_UnionBranch)
-      //	  {
-      adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
-      temp += "\n";
-      //        }
+      if (d->node_type() == AST_Decl::NT_UnionBranch)
+	adabe_name::narrow_from_decl(d)->produce_ads(with, temp, previousdefinition);
+      else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next();
     }
   DEC_INDENT();
@@ -85,6 +83,7 @@ adabe_union::dump_name(dep_list with,string &String, string &previousdefinition)
 IMPL_NARROW_METHODS1(adabe_union, AST_Union)
 IMPL_NARROW_FROM_DECL(adabe_union)
 IMPL_NARROW_FROM_SCOPE(adabe_union)
+
 
 
 
