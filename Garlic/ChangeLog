@@ -39,11 +39,24 @@
 
 	* s-garsta.adb: Likewise.
 
-1998-02-12  Laurent Guerby  <guerby@gnat.com>
+1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* DOFF: Removed: duplicates UNDALL (!)
+	* s-gadiob.ads: New file.
 
-	* DOFF: new command file.
+	* s-gadiob.adb: Likewise.
+
+	* Makefile.am: Add System.Garlic.Distributed_Object to the
+	library.
+
+1998-02-11  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garobj.ads: New file.
+
+	* s-garobj.adb: Likewise.
+
+	* s-garsta.adb: Call initialization of System.Garlic.Objects.
+
+	* Makefile.am: Add System.Garlic.Objects to the library.
 
 1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
