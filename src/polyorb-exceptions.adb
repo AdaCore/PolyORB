@@ -557,15 +557,13 @@ package body PolyORB.Exceptions is
       if Error.Kind in ORB_System_Error then
          Result := To_Any (Exception_Name,
                            System_Exception_Members (Error.Member.all));
+
       elsif Error.Kind in POA_Error then
-         if Error.Member.all in Null_Members'Class then
-            Result := To_Any (Exception_Name,
-                              Null_Members (Error.Member.all));
-         else
-            raise Program_Error;
-         end if;
+         Result := To_Any (Exception_Name,
+                           Null_Members (Error.Member.all));
       else
          raise Program_Error;
+         --  Never happens.
       end if;
 
       pragma Debug (O ("Error_To_Any: leave."));
