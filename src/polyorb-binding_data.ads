@@ -140,6 +140,13 @@ package PolyORB.Binding_Data is
    --  Create a profile of the type determined by PF, using
    --  Oid as the object specification.
 
+   function Duplicate_Profile
+     (P : Profile_Type)
+     return Profile_Access
+      is abstract;
+   --  Return a copy of the user-provided data used to build P, it
+   --  does not duplicate any internal structure.
+
    procedure Destroy_Profile (P : in out Profile_Access);
    pragma Inline (Destroy_Profile);
 

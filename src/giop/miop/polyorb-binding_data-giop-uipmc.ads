@@ -52,6 +52,10 @@ package PolyORB.Binding_Data.GIOP.UIPMC is
       Oid :        Objects.Object_Id)
      return Profile_Access;
 
+   function Duplicate_Profile
+     (P : UIPMC_Profile_Type)
+     return Profile_Access;
+
    procedure Bind_Profile
      (Profile :     UIPMC_Profile_Type;
       The_ORB :     Components.Component_Access;

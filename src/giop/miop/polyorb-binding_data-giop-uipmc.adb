@@ -259,6 +259,35 @@ package body PolyORB.Binding_Data.GIOP.UIPMC is
 
    end Create_Profile;
 
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : UIPMC_Profile_Type)
+     return Profile_Access
+   is
+      use PolyORB.Objects;
+
+      Result : constant Profile_Access := new UIPMC_Profile_Type;
+
+      TResult : UIPMC_Profile_Type
+        renames UIPMC_Profile_Type (Result.all);
+
+      PP : UIPMC_Profile_Type renames P;
+
+   begin
+      TResult.Version_Major := PP.Version_Major;
+      TResult.Version_Minor := PP.Version_Minor;
+      TResult.Object_Id     := new Object_Id'(PP.Object_Id.all);
+      TResult.Address       := PP.Address;
+      TResult.Components
+        := PolyORB.GIOP_P.Tagged_Components.Deep_Copy (PP.Components);
+      TResult.G_I := new PolyORB.MIOP_P.Groups.Group_Info'(PP.G_I.all);
+
+      return Result;
+   end Duplicate_Profile;
+
    ----------------------
    -- Is_Local_Profile --
    ----------------------

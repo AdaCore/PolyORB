@@ -72,6 +72,10 @@ package PolyORB.Binding_Data.SRP is
       Oid : Objects.Object_Id)
      return Profile_Access;
 
+   function Duplicate_Profile
+     (P : SRP_Profile_Type)
+     return Profile_Access;
+
    function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
       P  : access Profile_Type'Class)

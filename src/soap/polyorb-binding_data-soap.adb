@@ -286,6 +286,31 @@ package body PolyORB.Binding_Data.SOAP is
       return Result;
    end Create_Profile;
 
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : SOAP_Profile_Type)
+     return Profile_Access
+   is
+      use PolyORB.Objects;
+
+      Result : constant Profile_Access := new SOAP_Profile_Type;
+
+      TResult : SOAP_Profile_Type
+        renames SOAP_Profile_Type (Result.all);
+
+      PP : SOAP_Profile_Type renames P;
+
+   begin
+      TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
+      TResult.Address   := PP.Address;
+      TResult.URI_Path  := PP.URI_Path;
+
+      return Result;
+   end Duplicate_Profile;
+
    ----------------------
    -- Is_Local_Profile --
    ----------------------

@@ -62,6 +62,23 @@ package body PolyORB.Binding_Data.Local is
       pragma Assert (P.Object_Id /= null);
    end Create_Local_Profile;
 
+   -----------------------
+   -- Duplicate_Profile --
+   -----------------------
+
+   function Duplicate_Profile
+     (P : Local_Profile_Type)
+     return Profile_Access
+   is
+      Result : constant Profile_Access := new Local_Profile_Type;
+      TResult : Local_Profile_Type renames Local_Profile_Type (Result.all);
+
+   begin
+      TResult.Object_Id := new Object_Id'(P.Object_Id.all);
+
+      return Result;
+   end Duplicate_Profile;
+
    ------------------
    -- Bind_Profile --
    -------------------

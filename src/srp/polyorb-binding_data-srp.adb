@@ -153,6 +153,26 @@ package body PolyORB.Binding_Data.SRP is
       return  Result;
    end Create_Profile;
 
+   function Duplicate_Profile
+     (P : SRP_Profile_Type)
+     return Profile_Access
+   is
+      use PolyORB.Objects;
+
+      Result : constant Profile_Access := new SRP_Profile_Type;
+
+      TResult : SRP_Profile_Type
+        renames SRP_Profile_Type (Result.all);
+
+      PP : SRP_Profile_Type renames P;
+
+   begin
+      TResult.Object_Id := new Object_Id'(PP.Object_Id.all);
+      TResult.Address   := PP.Address;
+
+      return Result;
+   end Duplicate_Profile;
+
    function Is_Local_Profile
      (PF : access SRP_Profile_Factory;
       P  : access Profile_Type'Class)

@@ -49,6 +49,10 @@ package PolyORB.Binding_Data.GIOP.DIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access;
 
+   function Duplicate_Profile
+     (P : DIOP_Profile_Type)
+     return Profile_Access;
+
    function Is_Local_Profile
      (PF : access DIOP_Profile_Factory;
       P  : access Profile_Type'Class)

@@ -55,6 +55,10 @@ package PolyORB.Binding_Data.GIOP.IIOP is
       BO_Ref  : out Smart_Pointers.Ref;
       Error   : out Errors.Error_Container);
 
+   function Duplicate_Profile
+     (P : IIOP_Profile_Type)
+     return Profile_Access;
+
    function Is_Local_Profile
      (PF : access IIOP_Profile_Factory;
       P  : access Profile_Type'Class)

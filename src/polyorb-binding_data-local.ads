@@ -48,6 +48,10 @@ package PolyORB.Binding_Data.Local is
      (Oid : Objects.Object_Id;
       P   : out Local_Profile_Type);
 
+   function Duplicate_Profile
+     (P : Local_Profile_Type)
+     return Profile_Access;
+
    procedure Bind_Profile
      (Profile :     Local_Profile_Type;
       The_ORB :     Components.Component_Access;
