@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableInterceptor.ClientRequestInfo;
 
 with Test001_Globals;
