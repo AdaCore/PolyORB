@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -104,7 +104,7 @@ package body PolyORB.Test_Object_POA is
             use PolyORB.Any.NVList.Internals.NV_Lists;
             use PolyORB.Exceptions;
 
-            Req   : Request_Access
+            Req   : constant Request_Access
               := Execute_Request (Msg).Req;
             Args  : PolyORB.Any.NVList.Ref;
             Error : Error_Container;
