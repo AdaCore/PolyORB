@@ -2332,7 +2332,7 @@ package body Exp_Dist is
                      New_Occurrence_Of (RTE (RE_TypeCode), Loc),
                    Expression =>
                      Build_TypeCode_Call
-                       (Parameter_Type (Current_Parameter))));
+                       (Loc, Entity (Parameter_Type (Current_Parameter)))));
 
                Append_To (Decls,
                  Make_Object_Declaration (Loc,

@@ -14,11 +14,11 @@ package body System.PolyORB_Interface is
    --------------
 
    function TC_Build
-     (Base : PolyORB.TypeCode.Object;
+     (Base : PolyORB.Any.TypeCode.Object;
       Parameters : Any_Array)
-      return PolyORB.TypeCode.Object
+      return PolyORB.Any.TypeCode.Object
    is
-      Result : PolyORB.TypeCode.Object
+      Result : PolyORB.Any.TypeCode.Object
         := Base;
    begin
       for I in Parameters'Range loop

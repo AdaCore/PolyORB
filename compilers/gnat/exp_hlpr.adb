@@ -98,12 +98,14 @@ package body Exp_Hlpr is
    -- Build_TypeCode_Call --
    -------------------------
 
-   function Build_TypeCode_Call (N : Node_Id) return Node_Id is
-      Loc     : constant Source_Ptr := Sloc (N);
-      P_Type  : constant Entity_Id  := Entity (N);
-      U_Type  : constant Entity_Id  := Underlying_Type (P_Type);
-      --  The full view, if P_Type is private; the completion,
-      --  if P_Type is incomplete.
+   function Build_TypeCode_Call
+     (Loc : Source_Ptr;
+      Typ : Entity_Id)
+      return Node_Id
+   is
+      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
+      --  The full view, if Typ is private; the completion,
+      --  if Typ is incomplete.
 
       --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
       FST     : constant Entity_Id  := First_Subtype (U_Type);
@@ -117,7 +119,7 @@ package body Exp_Hlpr is
       --  First simple case where the TypeCode is present
       --  in the type's TSS.
 
-      Fnam := Find_Helper (N, P_Type, Name_uTypeCode);
+      Fnam := Find_Inherited_TSS (U_Type, Name_uTypeCode);
 
       --  Check first for Boolean and Character. These are enumeration types,
       --  but we treat them specially, since they may require special handling
@@ -212,7 +214,6 @@ package body Exp_Hlpr is
 
       elsif Is_Modular_Integer_Type    (U_Type)
         or else Is_Fixed_Point_Type    (U_Type)
-        or else Is_Enumeration_Type    (U_Type)
         or else Is_Signed_Integer_Type (U_Type)
       then
          if P_Size <= Standard_Short_Short_Integer_Size then
@@ -231,19 +232,26 @@ package body Exp_Hlpr is
             Lib_RE := RE_TC_LLU;
          end if;
 
-      else pragma Assert (Is_Access_Type (U_Type));
+      elsif Is_Access_Type (U_Type) then
          if P_Size > System_Address_Size then
             Lib_RE := RE_TC_AD;
          else
             Lib_RE := RE_TC_AS;
          end if;
+      else
+         declare
+            Decl : Entity_Id;
+         begin
+            Build_TypeCode_Function (Loc, U_Type, Decl, Fnam);
+            Insert_Action (Declaration_Node (Typ), Decl);
+         end;
       end if;
 
       --  Call the function
 
       if Lib_RE /= RE_Null then
          pragma Assert (No (Fnam));
-         Fnam := New_Occurrence_Of (RTE (Lib_RE), Loc);
+         Fnam := RTE (Lib_RE);
       end if;
 
       return
@@ -278,7 +286,8 @@ package body Exp_Hlpr is
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
-         Get_Name_String (Chars (Defining_Identifier (Typ)));
+         Get_Name_String (Chars
+           (Defining_Identifier (Declaration_Node (Typ))));
          declare
             Name_String : constant String_Id := String_From_Name_Buffer;
             Repo_Id_String : String_Id := Name_String;
@@ -310,7 +319,7 @@ package body Exp_Hlpr is
                                 New_Occurrence_Of (RTE (RE_TA_TC), Loc),
                               Parameter_Associations => New_List (
                                 Build_TypeCode_Call
-                                  (Declaration_Node (Base_Type (Typ)))))))))));
+                                  (Loc, Etype (Typ))))))))));
          end;
       else
          declare
@@ -386,42 +395,6 @@ package body Exp_Hlpr is
          End_Package_Scope (Scop);
       end if;
    end Compile_Stream_Body_In_Scope;
-
-   -----------------
-   -- Find_Helper --
-   -----------------
-
-   function Find_Helper
-     (N : Node_Id;
-      Typ : Entity_Id;
-      Hnam : Name_Id)
-      return Entity_Id
-   is
-      Loc : constant Source_Ptr := Sloc (N);
-      Pname : Entity_Id;
-      Decl : Node_Id;
-   begin
-
-      Pname := Find_Inherited_TSS (Typ, Hnam);
-
-      if Present (Pname) then
-         null;
-      elsif Hnam = Name_uTypeCode then
-         Build_TypeCode_Function (Loc, Typ, Decl, Pname);
-         Insert_Action (N, Decl);
---           Compile_Stream_Body_In_Scope
---             (N, Decl, Typ, Check => True);
-
---        elsif Hnam = Name_uFrom_Any then
---           Build_From_Any_Function (Typ, Pname);
---        else
---           pragma Assert (Hnam = Name_uto_Any);
---           Build_To_Any_Function (Typ, Pname);
-      end if;
-
-      pragma Assert (Present (Pname));
-      return Pname;
-   end Find_Helper;
 
    ------------------------
    -- Find_Inherited_TSS --

@@ -140,6 +140,10 @@ package System.PolyORB_Interface is
    function TC_WC return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Wchar;
 
+   function TC_Alias return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_Alias;
+   --  Empty Tk_Alias typecode.
+
    type Any_Array is array (Natural range <>) of PolyORB.Any.Any;
 
    function TC_Build
