@@ -43,7 +43,6 @@ with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters;
-with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;

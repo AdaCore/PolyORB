@@ -19,11 +19,11 @@ ir_serverp_FLAGS=	-Aserver.stubs
 common.o common.ali: $(srcdir)/common.ads $(srcdir)/common.adb
 	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/common.adb
 
-server.stubs/server.ali: $(srcdir)/server.ads $(srcdir)/server.adb common.ali s-polint.ali
+server.stubs/server.ali: $(srcdir)/server.ads $(srcdir)/server.adb common.ali
 	@-mkdir server.stubs
 	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/server.adb $(serverp_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzr -o server.stubs/server.o
 
-client.stubs/server.ali: $(srcdir)/server.ads common.ali s-polint.ali
+client.stubs/server.ali: $(srcdir)/server.ads common.ali
 	@-mkdir client.stubs
 	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/server.ads $(simplep_FLAGS) $(GNATMAKE_FLAGS) -cargs -gnatzc -o client.stubs/server.o
 
