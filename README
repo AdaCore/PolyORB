@@ -17,8 +17,8 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---                GLADE is maintained by ACT Europe.                        --
---                (email:glade-report@act-europe.fr)                        --
+--                   GLADE is maintained by ACT Europe.                     --
+--                      (email:glade-report@gnat.com)                       --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -116,7 +116,7 @@ Bug Reports & Technical Questions.
 Bug reports related to the implementation of the distribution annex
 should be sent to:
 
-		      report@gnat.com
+		   glade-report@gnat.com
 
 To participate to general discussions on GLADE, subscribe to the
 mailing list 
