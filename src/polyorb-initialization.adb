@@ -327,7 +327,7 @@ package body PolyORB.Initialization is
 
       Circular_Dependency_Detected := False;
 
-      if not Parameters.Get_Conf ("modules", M.Name.all, True) then
+      if Parameters.Get_Conf ("modules", Module_Name (M).all, True) then
 
          --  This module is not enabled.
 
