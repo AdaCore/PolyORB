@@ -101,6 +101,7 @@ package Messaging is
    Queue_Order_Policy_Type          : constant CORBA.PolicyType := 35;
 
    --  PriorityRange struct
+
    type PriorityRange is record
       Min : Priority;
       Max : Priority;
