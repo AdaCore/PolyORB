@@ -132,61 +132,96 @@ package body PolyORB.Servants.Group_Servants is
                It : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
 
             begin
-               pragma Assert (Reply in Unmarshalled_Arguments);
-               pragma Debug (O ("Arguments unmarshalled, copying it..."));
-               Req_Args := Unmarshalled_Arguments (Reply).Args;
+               pragma Assert (Reply in Unmarshalled_Arguments
+                                or else Reply in Arguments_Error);
 
-               Create (Self.Args);
-               It := First (Internals.List_Of (Req_Args).all);
-               while not Last (It) loop
-                  Add_Item (Self.Args, Value (It).all);
-                  Next (It);
-               end loop;
+               if Reply in Unmarshalled_Arguments then
+                  pragma Debug (O ("Arguments unmarshalled, copying it..."));
+                  Req_Args := Unmarshalled_Arguments (Reply).Args;
 
-               pragma Debug (O ("Send arguments to first"));
-               --  XXX first what ?
+                  Create (Self.Args);
+                  It := First (Internals.List_Of (Req_Args).all);
+                  while not Last (It) loop
+                     Add_Item (Self.Args, Value (It).all);
+                     Next (It);
+                  end loop;
 
-               Self.State := Wait_Other;
-               Leave (Self.Mutex);
+                  pragma Debug (O ("Send arguments to first"));
+                  --  XXX first what ?
 
-               --  Send result
+                  Self.State := Wait_Other;
+                  Leave (Self.Mutex);
 
-               return Unmarshalled_Arguments'
-                 (Args => Unmarshall_Arguments (Msg).Args);
+                  --  Send result
+
+                  return Unmarshalled_Arguments'
+                    (Args => Unmarshall_Arguments (Msg).Args);
+
+               else
+                  pragma Debug (O ("Arguments unmarshalling error"));
+
+                  --  Reply in Arguments_Error
+
+                  Self.Error := Arguments_Error (Reply).Error;
+
+                  Self.State := Wait_Other;
+
+                  --  Copy error and send result
+
+                  declare
+                     Aux : Error_Container;
+                  begin
+                     Throw (Aux, Self.Error.Kind, Self.Error.Member.all);
+                     Leave (Self.Mutex);
+                     return Arguments_Error'(Error => Aux);
+                  end;
+               end if;
             end;
 
          when Wait_Other =>
-            --  Copy arguments and send it
+            --  Copy arguments (or error) and send it
 
-            pragma Debug (O ("Copy previously unmarshalled arguments"));
-            declare
-               use PolyORB.Any;
-               use PolyORB.Any.NVList;
-               use PolyORB.Any.NVList.Internals.NV_Lists;
+            if not Found (Self.Error) then
+               pragma Debug (O ("Copy previously unmarshalled arguments"));
+               declare
+                  use PolyORB.Any;
+                  use PolyORB.Any.NVList;
+                  use PolyORB.Any.NVList.Internals.NV_Lists;
 
-               Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
-               It1 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
-               It2 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
-            begin
-               pragma Assert (Get_Count (Self.Args) = Get_Count (Req_Args));
+                  Req_Args : Ref := Unmarshall_Arguments (Msg).Args;
+                  It1 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
+                  It2 : PolyORB.Any.NVList.Internals.NV_Lists.Iterator;
+               begin
+                  pragma Assert (Get_Count (Self.Args) = Get_Count (Req_Args));
 
-               It1 := First (Internals.List_Of (Self.Args).all);
-               It2 := First (Internals.List_Of (Req_Args).all);
+                  It1 := First (Internals.List_Of (Self.Args).all);
+                  It2 := First (Internals.List_Of (Req_Args).all);
 
-               while not Last (It1) loop
-                  pragma Assert (Value (It1).Name = Value (It2).Name);
-                  pragma Assert (Value (It1).Arg_Modes
-                                 = Value (It2).Arg_Modes);
+                  while not Last (It1) loop
+                     pragma Assert (Value (It1).Name = Value (It2).Name);
+                     pragma Assert (Value (It1).Arg_Modes
+                                    = Value (It2).Arg_Modes);
 
-                  Copy_Any_Value (Value (It2).Argument,
-                                  Value (It1).Argument);
-                  Next (It1);
-                  Next (It2);
-               end loop;
+                     Copy_Any_Value (Value (It2).Argument,
+                                     Value (It1).Argument);
+                     Next (It1);
+                     Next (It2);
+                  end loop;
 
-               Leave (Self.Mutex);
-               return Unmarshalled_Arguments'(Args => Req_Args);
-            end;
+                  Leave (Self.Mutex);
+                  return Unmarshalled_Arguments'(Args => Req_Args);
+               end;
+            else
+               pragma Debug (O ("Copy unmarshalling arguments error"));
+
+               declare
+                  Aux : Error_Container;
+               begin
+                  Throw (Aux, Self.Error.Kind, Self.Error.Member.all);
+                  Leave (Self.Mutex);
+                  return Arguments_Error'(Error => Aux);
+               end;
+            end if;
       end case;
    end Handle_Unmarshall_Arguments;
 
@@ -244,6 +279,7 @@ package body PolyORB.Servants.Group_Servants is
 
       if Self.State = Wait_Other then
          Free (Self.Args);
+         Catch (Self.Error);
       end if;
 
       Self.Counter := 0;
