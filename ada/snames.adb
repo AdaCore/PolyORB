@@ -204,6 +204,7 @@ package body Snames is
      "export_object#" &
      "export_procedure#" &
      "export_valued_procedure#" &
+     "external#" &
      "finalize_storage_only#" &
      "ident#" &
      "import#" &
@@ -289,7 +290,6 @@ package body Snames is
      "dot_replacement#" &
      "dynamic#" &
      "entity#" &
-     "external#" &
      "external_name#" &
      "first_optional_parameter#" &
      "form#" &
@@ -298,6 +298,7 @@ package body Snames is
      "gnat#" &
      "gpl#" &
      "ieee_float#" &
+     "homonym_number#" &
      "internal#" &
      "link_name#" &
      "lowercase#" &
@@ -566,33 +567,37 @@ package body Snames is
      "requeue#" &
      "tagged#" &
      "raise_exception#" &
-     "project#" &
-     "modifying#" &
+     "binder#" &
+     "builder#" &
+     "compiler#" &
+     "cross_reference#" &
+     "default_switches#" &
+     "exec_dir#" &
+     "extends#" &
+     "finder#" &
+     "gnatls#" &
+     "gnatstub#" &
+     "implementation#" &
+     "implementation_exceptions#" &
+     "implementation_suffix#" &
+     "languages#" &
+     "library_dir#" &
+     "library_elaboration#" &
+     "library_kind#" &
+     "library_name#" &
+     "library_version#" &
+     "linker#" &
      "naming#" &
      "object_dir#" &
+     "project#" &
+     "separate_suffix#" &
      "source_dirs#" &
-     "specification#" &
-     "body_part#" &
-     "specification_append#" &
-     "body_append#" &
-     "separate_append#" &
      "source_files#" &
      "source_list_file#" &
+     "specification#" &
+     "specification_exceptions#" &
+     "specification_suffix#" &
      "switches#" &
-     "library_dir#" &
-     "library_name#" &
-     "library_kind#" &
-     "library_version#" &
-     "library_elaboration#" &
-     "gnatmake#" &
-     "gnatls#" &
-     "gnatxref#" &
-     "gnatfind#" &
-     "gnatbind#" &
-     "gnatlink#" &
-     "compiler#" &
-     "binder#" &
-     "linker#" &
       "#";
 
    ---------------------

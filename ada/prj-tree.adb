@@ -44,9 +44,26 @@ package body Prj.Tree is
       pragma Assert
         (Node /= Empty_Node
           and then
-            (Project_Nodes.Table (Node).Kind = N_Attribute_Declaration));
+            (Project_Nodes.Table (Node).Kind = N_Attribute_Declaration
+               or else
+             Project_Nodes.Table (Node).Kind = N_Attribute_Reference));
       return Project_Nodes.Table (Node).Value;
    end Associative_Array_Index_Of;
+
+   ----------------------
+   -- Case_Insensitive --
+   ----------------------
+
+   function Case_Insensitive (Node : Project_Node_Id) return Boolean is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+            (Project_Nodes.Table (Node).Kind = N_Attribute_Declaration
+               or else
+             Project_Nodes.Table (Node).Kind = N_Attribute_Reference));
+      return Project_Nodes.Table (Node).Case_Insensitive;
+   end Case_Insensitive;
 
    --------------------------------
    -- Case_Variable_Reference_Of --
@@ -108,19 +125,20 @@ package body Prj.Tree is
    begin
       Project_Nodes.Increment_Last;
       Project_Nodes.Table (Project_Nodes.Last) :=
-           (Kind       => Of_Kind,
-            Location   => No_Location,
-            Directory  => No_Name,
-            Expr_Kind  => And_Expr_Kind,
-            Variables  => Empty_Node,
-            Packages   => Empty_Node,
-            Pkg_Id     => Empty_Package,
-            Name       => No_Name,
-            Path_Name  => No_Name,
-            Value      => No_String,
-            Field1     => Empty_Node,
-            Field2     => Empty_Node,
-            Field3     => Empty_Node);
+           (Kind             => Of_Kind,
+            Location         => No_Location,
+            Directory        => No_Name,
+            Expr_Kind        => And_Expr_Kind,
+            Variables        => Empty_Node,
+            Packages         => Empty_Node,
+            Pkg_Id           => Empty_Package,
+            Name             => No_Name,
+            Path_Name        => No_Name,
+            Value            => No_String,
+            Field1           => Empty_Node,
+            Field2           => Empty_Node,
+            Field3           => Empty_Node,
+            Case_Insensitive => False);
       return Project_Nodes.Last;
    end Default_Project_Node;
 
@@ -719,9 +737,29 @@ package body Prj.Tree is
       pragma Assert
         (Node /= Empty_Node
           and then
-            Project_Nodes.Table (Node).Kind = N_Attribute_Declaration);
+            (Project_Nodes.Table (Node).Kind = N_Attribute_Declaration
+               or else
+             Project_Nodes.Table (Node).Kind = N_Attribute_Reference));
       Project_Nodes.Table (Node).Value := To;
    end Set_Associative_Array_Index_Of;
+
+   --------------------------
+   -- Set_Case_Insensitive --
+   --------------------------
+
+   procedure Set_Case_Insensitive
+     (Node : Project_Node_Id;
+      To   : Boolean)
+   is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+           (Project_Nodes.Table (Node).Kind = N_Attribute_Declaration
+               or else
+            Project_Nodes.Table (Node).Kind = N_Attribute_Reference));
+      Project_Nodes.Table (Node).Case_Insensitive := To;
+   end Set_Case_Insensitive;
 
    ------------------------------------
    -- Set_Case_Variable_Reference_Of --

@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with Errout;   use Errout;
+with GNAT.Case_Util; use GNAT.Case_Util;
 with Namet;    use Namet;
 with Opt;
 with Output;   use Output;
@@ -36,6 +37,7 @@ with Prj.Ext;  use Prj.Ext;
 with Prj.Nmsc; use Prj.Nmsc;
 with Stringt;  use Stringt;
 
+with GNAT.Case_Util;
 with GNAT.HTable;
 
 package body Prj.Proc is
@@ -74,7 +76,7 @@ package body Prj.Proc is
    function Imported_Or_Modified_Project_From
      (Project   : Project_Id;
       With_Name : Name_Id)
-     return Project_Id;
+      return      Project_Id;
    --  Find an imported or modified project of Project whose name is With_Name.
 
    function Package_From
@@ -245,7 +247,7 @@ package body Prj.Proc is
       --  Reference to the last string elements in Result, when Kind is List.
 
    begin
-      Result.Location := Location_Of (From_Project_Node);
+      Result.Location := Location_Of (First_Term);
 
       --  Process each term of the expression, starting with First_Term
 
@@ -375,11 +377,12 @@ package body Prj.Proc is
                   The_Package     : Package_Id  := Pkg;
                   The_Name        : Name_Id     := No_Name;
                   The_Variable_Id : Variable_Id := No_Variable;
-                  The_Variable    : Variable;
+                  The_Variable    : Variable_Value;
                   Term_Project    : constant Project_Node_Id :=
                                       Project_Node_Of (The_Current_Term);
                   Term_Package    : constant Project_Node_Id :=
                                       Package_Node_Of (The_Current_Term);
+                  Index           : String_Id   := No_String;
 
                begin
                   if Term_Project /= Empty_Node and then
@@ -415,58 +418,144 @@ package body Prj.Proc is
 
                   The_Name := Name_Of (The_Current_Term);
 
-                  if The_Package /= No_Package then
+                  Index := Associative_Array_Index_Of (The_Current_Term);
 
-                     --  First, if there is a package, look into the package
+                  --  If it is not an associative array attribute
 
-                     if Kind_Of (The_Current_Term) = N_Variable_Reference then
-                        The_Variable_Id :=
-                          Packages.Table (The_Package).Decl.Variables;
+                  if Index = No_String then
 
-                     else
-                        The_Variable_Id :=
-                          Packages.Table (The_Package).Decl.Attributes;
+                     --  It is not an associative array attribute
+
+                     if The_Package /= No_Package then
+
+                        --  First, if there is a package, look into the package
+
+                        if
+                          Kind_Of (The_Current_Term) = N_Variable_Reference
+                        then
+                           The_Variable_Id :=
+                             Packages.Table (The_Package).Decl.Variables;
+
+                        else
+                           The_Variable_Id :=
+                             Packages.Table (The_Package).Decl.Attributes;
+                        end if;
+
+                        while The_Variable_Id /= No_Variable
+                          and then
+                          Variable_Elements.Table (The_Variable_Id).Name /=
+                          The_Name
+                        loop
+                           The_Variable_Id :=
+                             Variable_Elements.Table (The_Variable_Id).Next;
+                        end loop;
+
                      end if;
 
-                     while The_Variable_Id /= No_Variable
-                       and then
-                         Variable_Elements.Table (The_Variable_Id).Name /=
-                                                                    The_Name
-                     loop
-                        The_Variable_Id :=
-                          Variable_Elements.Table (The_Variable_Id).Next;
-                     end loop;
+                     if The_Variable_Id = No_Variable then
 
-                  end if;
+                        --  If we have not found it, look into the project
 
-                  if The_Variable_Id = No_Variable then
+                        if
+                          Kind_Of (The_Current_Term) = N_Variable_Reference
+                        then
+                           The_Variable_Id :=
+                             Projects.Table (The_Project).Decl.Variables;
 
-                     --  If we have not found it, look into the project
+                        else
+                           The_Variable_Id :=
+                             Projects.Table (The_Project).Decl.Attributes;
+                        end if;
 
-                     if Kind_Of (The_Current_Term) = N_Variable_Reference then
-                        The_Variable_Id :=
-                          Projects.Table (The_Project).Decl.Variables;
+                        while The_Variable_Id /= No_Variable
+                          and then
+                          Variable_Elements.Table (The_Variable_Id).Name /=
+                          The_Name
+                        loop
+                           The_Variable_Id :=
+                             Variable_Elements.Table (The_Variable_Id).Next;
+                        end loop;
 
-                     else
-                        The_Variable_Id :=
-                          Projects.Table (The_Project).Decl.Attributes;
                      end if;
 
-                     while The_Variable_Id /= No_Variable
-                       and then
-                         Variable_Elements.Table (The_Variable_Id).Name /=
-                                                                     The_Name
-                     loop
-                        The_Variable_Id :=
-                          Variable_Elements.Table (The_Variable_Id).Next;
-                     end loop;
+                     pragma Assert (The_Variable_Id /= No_Variable,
+                                      "variable or attribute not found");
+
+                     The_Variable := Variable_Elements.Table
+                                                    (The_Variable_Id).Value;
+
+                  else
+
+                     --  It is an associative array attribute
+
+                     declare
+                        The_Array   : Array_Id := No_Array;
+                        The_Element : Array_Element_Id := No_Array_Element;
+                        Array_Index : Name_Id := No_Name;
+                     begin
+                        if The_Package /= No_Package then
+                           The_Array :=
+                             Packages.Table (The_Package).Decl.Arrays;
+
+                        else
+                           The_Array :=
+                             Projects.Table (The_Project).Decl.Arrays;
+                        end if;
+
+                        while The_Array /= No_Array
+                          and then Arrays.Table (The_Array).Name /= The_Name
+                        loop
+                           The_Array := Arrays.Table (The_Array).Next;
+                        end loop;
+
+                        if The_Array /= No_Array then
+                           The_Element := Arrays.Table (The_Array).Value;
+
+                           String_To_Name_Buffer (Index);
+
+                           if Case_Insensitive (The_Current_Term) then
+                              To_Lower (Name_Buffer (1 .. Name_Len));
+                           end if;
+
+                           Array_Index := Name_Find;
+
+                           while The_Element /= No_Array_Element
+                             and then Array_Elements.Table (The_Element).Index
+                                                         /= Array_Index
+                           loop
+                              The_Element :=
+                                Array_Elements.Table (The_Element).Next;
+                           end loop;
+
+                        end if;
+
+                        if The_Element /= No_Array_Element then
+                           The_Variable :=
+                             Array_Elements.Table (The_Element).Value;
+
+                        else
+                           if
+                             Expression_Kind_Of (The_Current_Term) = List
+                           then
+                              The_Variable :=
+                                (Kind     => List,
+                                 Location => No_Location,
+                                 Default  => True,
+                                 Values   => Nil_String);
+
+                           else
+                              The_Variable :=
+                                (Kind     => Single,
+                                 Location => No_Location,
+                                 Default  => True,
+                                 Value    => Empty_String);
+                           end if;
+
+                        end if;
+
+                     end;
 
                   end if;
-
-                  pragma Assert (The_Variable_Id /= No_Variable,
-                                 "variable or attribute not found");
-
-                  The_Variable := Variable_Elements.Table (The_Variable_Id);
 
                   case Kind is
 
@@ -479,13 +568,13 @@ package body Prj.Proc is
 
                      when Single =>
 
-                        case The_Variable.Value.Kind is
+                        case The_Variable.Kind is
 
                            when Undefined =>
                               null;
 
                            when Single =>
-                              Add (Result.Value, The_Variable.Value.Value);
+                              Add (Result.Value, The_Variable.Value);
 
                            when List =>
 
@@ -500,7 +589,7 @@ package body Prj.Proc is
                         end case;
 
                      when List =>
-                        case The_Variable.Value.Kind is
+                        case The_Variable.Kind is
 
                            when Undefined =>
                               null;
@@ -522,7 +611,7 @@ package body Prj.Proc is
 
                               Last := String_Elements.Last;
                               String_Elements.Table (Last) :=
-                                (Value    => The_Variable.Value.Value,
+                                (Value    => The_Variable.Value,
                                  Location => Location_Of (The_Current_Term),
                                  Next     => Nil_String);
 
@@ -530,7 +619,7 @@ package body Prj.Proc is
 
                               declare
                                  The_List : String_List_Id :=
-                                              The_Variable.Value.Values;
+                                              The_Variable.Values;
 
                               begin
                                  while The_List /= Nil_String loop
@@ -638,8 +727,8 @@ package body Prj.Proc is
          end case;
 
          The_Term := Next_Term (The_Term);
-
       end loop;
+
       return Result;
    end Expression;
 
@@ -681,7 +770,6 @@ package body Prj.Proc is
 
          return Project_Lists.Table (List).Project;
       end if;
-
    end Imported_Or_Modified_Project_From;
 
    ------------------
@@ -1015,6 +1103,10 @@ package body Prj.Proc is
                      String_To_Name_Buffer
                        (Associative_Array_Index_Of (Current_Item));
 
+                     if Case_Insensitive (Current_Item) then
+                        GNAT.Case_Util.To_Lower (Name_Buffer (1 .. Name_Len));
+                     end if;
+
                      declare
                         The_Array : Array_Id;
 
@@ -1260,9 +1352,8 @@ package body Prj.Proc is
             Write_Line ("""");
          end if;
 
-         Prj.Nmsc.Check_Naming_Scheme (Project, Error_Report);
+         Prj.Nmsc.Ada_Check (Project, Error_Report);
       end if;
-
    end Recursive_Check;
 
    -----------------------
@@ -1303,6 +1394,10 @@ package body Prj.Proc is
             Processed_Data.Location    := Location_Of (From_Project_Node);
             Processed_Data.Directory   := Directory_Of (From_Project_Node);
             Processed_Data.Modified_By := Modified_By;
+            Processed_Data.Naming.Specification_Suffix :=
+              Prj.Default_Spec_Suffixs;
+            Processed_Data.Naming.Implementation_Suffix :=
+              Prj.Default_Impl_Suffixs;
             Add_Attributes (Processed_Data.Decl, Attribute_First);
             With_Clause := First_With_Clause_Of (From_Project_Node);
 

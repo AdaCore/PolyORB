@@ -58,23 +58,20 @@ package body Einfo is
    --  Four of these fields are defined in Sinfo, since they in are the
    --  base part of the node. The access routines for these fields and
    --  the corresponding set procedures are defined in Sinfo. These fields
-   --  are present in all entities.
+   --  are present in all entities. Note that Homonym is also in the base
+   --  part of the node, but has access routines that are more properly
+   --  part of Einfo, which is why they are defined here.
 
    --    Chars                           Name1
    --    Next_Entity                     Node2
    --    Scope                           Node3
    --    Etype                           Node5
 
-   --    The fifth field is also in the base part of the node, but it
-   --    carries some additional semantic checks and its subprograms are
-   --    more properly defined in Einfo.
-
-   --    Homonym                         Node4
-
    --   Remaining fields are present only in extended nodes (i.e. entities)
 
    --  The following fields are present in all entities
 
+   --    Homonym                         Node4
    --    First_Rep_Item                  Node6
    --    Freeze_Node                     Node7
 
@@ -397,8 +394,8 @@ package body Einfo is
    --    Is_Discrim_SO_Function         Flag176
    --    Size_Depends_On_Discriminant   Flag177
    --    Is_Null_Init_Proc              Flag178
+   --    Has_Pragma_Pure_Function       Flag179
 
-   --    (unused)                       Flag179
    --    (unused)                       Flag180
    --    (unused)                       Flag181
    --    (unused)                       Flag182
@@ -416,7 +413,7 @@ package body Einfo is
    function Access_Disp_Table (Id : E) return E is
    begin
       pragma Assert (Is_Tagged_Type (Id));
-      return Node16 (Base_Type (Underlying_Type (Base_Type (Id))));
+      return Node16 (Implementation_Base_Type (Id));
    end Access_Disp_Table;
 
    function Actual_Subtype (Id : E) return E is
@@ -466,7 +463,7 @@ package body Einfo is
    function Associated_Storage_Pool (Id : E) return E is
    begin
       pragma Assert (Is_Access_Type (Id));
-      return Node22 (Id);
+      return Node22 (Root_Type (Id));
    end Associated_Storage_Pool;
 
    function Barrier_Function (Id : E) return N is
@@ -1087,6 +1084,12 @@ package body Einfo is
       return Flag121 (Implementation_Base_Type (Id));
    end Has_Pragma_Pack;
 
+   function Has_Pragma_Pure_Function (Id : E) return B is
+   begin
+      pragma Assert (Is_Subprogram (Id));
+      return Flag179 (Id);
+   end Has_Pragma_Pure_Function;
+
    function Has_Primitive_Operations (Id : E) return B is
    begin
       pragma Assert (Is_Type (Id));
@@ -1106,7 +1109,7 @@ package body Einfo is
    function Has_Record_Rep_Clause (Id : E) return B is
    begin
       pragma Assert (Is_Record_Type (Id));
-      return Flag65 (Id);
+      return Flag65 (Implementation_Base_Type (Id));
    end Has_Record_Rep_Clause;
 
    function Has_Recursive_Call (Id : E) return B is
@@ -1128,7 +1131,7 @@ package body Einfo is
    function Has_Specified_Layout (Id : E) return B is
    begin
       pragma Assert (Is_Type (Id));
-      return Flag100 (Id);
+      return Flag100 (Implementation_Base_Type (Id));
    end Has_Specified_Layout;
 
    function Has_Storage_Size_Clause (Id : E) return B is
@@ -2238,8 +2241,8 @@ package body Einfo is
 
    procedure Set_Access_Disp_Table (Id : E; V : E) is
    begin
-      pragma Assert (Is_Tagged_Type (Id));
-      Set_Node16 (Base_Type (Id), V);
+      pragma Assert (Is_Tagged_Type (Id) and then Id = Base_Type (Id));
+      Set_Node16 (Id, V);
    end Set_Access_Disp_Table;
 
    procedure Set_Associated_Final_Chain (Id : E; V : E) is
@@ -2260,7 +2263,7 @@ package body Einfo is
 
    procedure Set_Associated_Storage_Pool (Id : E; V : E) is
    begin
-      pragma Assert (Is_Access_Type (Id));
+      pragma Assert (Is_Access_Type (Id) and then Id = Base_Type (Id));
       Set_Node22 (Id, V);
    end Set_Associated_Storage_Pool;
 
@@ -2346,12 +2349,13 @@ package body Einfo is
 
    procedure Set_Component_Size (Id : E; V : U) is
    begin
-      pragma Assert (Is_Array_Type (Id));
-      Set_Uint22 (Base_Type (Id), V);
+      pragma Assert (Is_Array_Type (Id) and then Id = Base_Type (Id));
+      Set_Uint22 (Id, V);
    end Set_Component_Size;
 
    procedure Set_Component_Type (Id : E; V : E) is
    begin
+      pragma Assert (Is_Array_Type (Id) and then Id = Base_Type (Id));
       Set_Node20 (Id, V);
    end Set_Component_Type;
 
@@ -2666,8 +2670,8 @@ package body Einfo is
 
    procedure Set_Finalize_Storage_Only (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Type (Id));
-      Set_Flag158 (Base_Type (Id), V);
+      pragma Assert (Is_Type (Id) and then Id = Base_Type (Id));
+      Set_Flag158 (Id, V);
    end Set_Finalize_Storage_Only;
 
    procedure Set_First_Entity (Id : E; V : E) is
@@ -2787,14 +2791,14 @@ package body Einfo is
 
    procedure Set_Has_Complex_Representation (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Record_Type (Id));
-      Set_Flag140 (Implementation_Base_Type (Id), V);
+      pragma Assert (Ekind (Id) = E_Record_Type);
+      Set_Flag140 (Id, V);
    end Set_Has_Complex_Representation;
 
    procedure Set_Has_Component_Size_Clause (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Array_Type (Id));
-      Set_Flag68 (Implementation_Base_Type (Id), V);
+      pragma Assert (Ekind (Id) = E_Array_Type);
+      Set_Flag68 (Id, V);
    end Set_Has_Component_Size_Clause;
 
    procedure Set_Has_Controlled_Component (Id : E; V : B := True) is
@@ -2921,13 +2925,20 @@ package body Einfo is
    procedure Set_Has_Pragma_Pack (Id : E; V : B := True) is
    begin
       pragma Assert (Is_Array_Type (Id) or else Is_Record_Type (Id));
-      Set_Flag121 (Implementation_Base_Type (Id), V);
+      pragma Assert (Id = Base_Type (Id));
+      Set_Flag121 (Id, V);
    end Set_Has_Pragma_Pack;
+
+   procedure Set_Has_Pragma_Pure_Function (Id : E; V : B := True) is
+   begin
+      pragma Assert (Is_Subprogram (Id));
+      Set_Flag179 (Id, V);
+   end Set_Has_Pragma_Pure_Function;
 
    procedure Set_Has_Primitive_Operations (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Type (Id));
-      Set_Flag120 (Base_Type (Id), V);
+      pragma Assert (Id = Base_Type (Id));
+      Set_Flag120 (Id, V);
    end Set_Has_Primitive_Operations;
 
    procedure Set_Has_Private_Declaration (Id : E; V : B := True) is
@@ -2942,7 +2953,7 @@ package body Einfo is
 
    procedure Set_Has_Record_Rep_Clause (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Record_Type (Id));
+      pragma Assert (Id = Base_Type (Id));
       Set_Flag65 (Id, V);
    end Set_Has_Record_Rep_Clause;
 
@@ -2964,7 +2975,7 @@ package body Einfo is
 
    procedure Set_Has_Specified_Layout (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Type (Id));
+      pragma Assert (Id = Base_Type (Id));
       Set_Flag100 (Id, V);
    end Set_Has_Specified_Layout;
 
@@ -3078,7 +3089,10 @@ package body Einfo is
 
    procedure Set_Is_Bit_Packed_Array (Id : E; V : B := True) is
    begin
-      Set_Flag122 (Implementation_Base_Type (Id), V);
+      pragma Assert ((not V)
+        or else (Is_Array_Type (Id) and then Id = Base_Type (Id)));
+
+      Set_Flag122 (Id, V);
    end Set_Is_Bit_Packed_Array;
 
    procedure Set_Is_Called (Id : E; V : B := True) is
@@ -3527,7 +3541,7 @@ package body Einfo is
 
    procedure Set_No_Pool_Assigned (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Access_Type (Id) and then Root_Type (Id) = Id);
+      pragma Assert (Is_Access_Type (Id) and then Base_Type (Id) = Id);
       Set_Flag131 (Id, V);
    end Set_No_Pool_Assigned;
 
@@ -3852,6 +3866,7 @@ package body Einfo is
 
    procedure Set_Suppress_Init_Proc (Id : E; V : B := True) is
    begin
+      pragma Assert (Id = Base_Type (Id));
       Set_Flag105 (Id, V);
    end Set_Suppress_Init_Proc;
 
@@ -4046,7 +4061,8 @@ package body Einfo is
 
    function Known_Alignment                       (E : Entity_Id) return B is
    begin
-      return Uint14 (E) /= Uint_0;
+      return Uint14 (E) /= Uint_0
+        and then Uint14 (E) /= No_Uint;
    end Known_Alignment;
 
    function Known_Component_Bit_Offset            (E : Entity_Id) return B is
@@ -4056,12 +4072,14 @@ package body Einfo is
 
    function Known_Component_Size                  (E : Entity_Id) return B is
    begin
-      return Uint22 (Base_Type (E)) /= Uint_0;
+      return Uint22 (Base_Type (E)) /= Uint_0
+        and then Uint22 (Base_Type (E)) /= No_Uint;
    end Known_Component_Size;
 
    function Known_Esize                           (E : Entity_Id) return B is
    begin
-      return Uint12 (E) /= Uint_0;
+      return Uint12 (E) /= Uint_0
+        and then Uint12 (E) /= No_Uint;
    end Known_Esize;
 
    function Known_Normalized_First_Bit            (E : Entity_Id) return B is
@@ -4081,8 +4099,9 @@ package body Einfo is
 
    function Known_RM_Size                         (E : Entity_Id) return B is
    begin
-      return Uint13 (E) /= Uint_0
-        or else Is_Discrete_Type (E);
+      return Uint13 (E) /= No_Uint
+        and then (Uint13 (E) /= Uint_0
+                    or else Is_Discrete_Type (E));
    end Known_RM_Size;
 
    function Known_Static_Component_Bit_Offset     (E : Entity_Id) return B is
@@ -4100,6 +4119,12 @@ package body Einfo is
    begin
       return Uint12 (E) > Uint_0;
    end Known_Static_Esize;
+
+   function Known_Static_Normalized_First_Bit     (E : Entity_Id) return B is
+   begin
+      return Uint8 (E) /= No_Uint
+        and then Uint8 (E) >= Uint_0;
+   end Known_Static_Normalized_First_Bit;
 
    function Known_Static_Normalized_Position      (E : Entity_Id) return B is
    begin
@@ -4121,7 +4146,8 @@ package body Einfo is
 
    function Unknown_Alignment                     (E : Entity_Id) return B is
    begin
-      return Uint14 (E) = Uint_0;
+      return Uint14 (E) = Uint_0
+        or else Uint14 (E) = No_Uint;
    end Unknown_Alignment;
 
    function Unknown_Component_Bit_Offset          (E : Entity_Id) return B is
@@ -4131,12 +4157,16 @@ package body Einfo is
 
    function Unknown_Component_Size                (E : Entity_Id) return B is
    begin
-      return Uint22 (Base_Type (E)) = Uint_0;
+      return Uint22 (Base_Type (E)) = Uint_0
+               or else
+             Uint22 (Base_Type (E)) = No_Uint;
    end Unknown_Component_Size;
 
    function Unknown_Esize                         (E : Entity_Id) return B is
    begin
-      return Uint12 (E) = Uint_0;
+      return Uint12 (E) = No_Uint
+               or else
+             Uint12 (E) = Uint_0;
    end Unknown_Esize;
 
    function Unknown_Normalized_First_Bit          (E : Entity_Id) return B is
@@ -4156,8 +4186,9 @@ package body Einfo is
 
    function Unknown_RM_Size                       (E : Entity_Id) return B is
    begin
-      return Uint13 (E) = Uint_0
-        and then not Is_Discrete_Type (E);
+      return (Uint13 (E) = Uint_0
+                and then not Is_Discrete_Type (E))
+        or else Uint13 (E) = No_Uint;
    end Unknown_RM_Size;
 
    --------------------
@@ -4799,7 +4830,7 @@ package body Einfo is
          --  happen in error situations and should avoid some error bombs.
 
          if Present (Imptyp) then
-            return Imptyp;
+            return Base_Type (Imptyp);
          else
             return Bastyp;
          end if;
@@ -5798,7 +5829,7 @@ package body Einfo is
       W ("Depends_On_Private",            Flag14  (Id));
       W ("Discard_Names",                 Flag88  (Id));
       W ("Elaborate_All_Desirable",       Flag146 (Id));
-      W ("Elaboration_Entity_Required",   Flag175 (Id));
+      W ("Elaboration_Entity_Required",   Flag174 (Id));
       W ("Entry_Accepted",                Flag152 (Id));
       W ("Finalize_Storage_Only",         Flag158 (Id));
       W ("From_With_Type",                Flag159 (Id));
@@ -5835,6 +5866,7 @@ package body Einfo is
       W ("Has_Pragma_Elaborate_Body",     Flag150 (Id));
       W ("Has_Pragma_Inline",             Flag157 (Id));
       W ("Has_Pragma_Pack",               Flag121 (Id));
+      W ("Has_Pragma_Pure_Function",      Flag179 (Id));
       W ("Has_Primitive_Operations",      Flag120 (Id));
       W ("Has_Private_Declaration",       Flag155 (Id));
       W ("Has_Qualified_Name",            Flag161 (Id));
@@ -6569,7 +6601,8 @@ package body Einfo is
          when E_Discriminant                             =>
             Write_Str ("Corresponding_Discriminant");
 
-         when E_Package                                  =>
+         when E_Package                                  |
+              E_Generic_Package                          =>
             Write_Str ("Body_Entity");
 
          when E_Package_Body                             |

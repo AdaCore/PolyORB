@@ -74,8 +74,9 @@ package body Validsw is
          Options (K) := ' ';
       end loop;
 
+      Add ('n', not Validity_Check_Default);
+
       Add ('c', Validity_Check_Copies);
-      Add ('d', Validity_Check_Default);
       Add ('f', Validity_Check_Floating_Point);
       Add ('i', Validity_Check_In_Params);
       Add ('m', Validity_Check_In_Out_Params);

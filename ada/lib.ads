@@ -488,9 +488,12 @@ package Lib is
    --  S2, and False otherwise. The result is undefined if S1 and S2 are
    --  not in the same extended unit.
 
+   function Compilation_Switches_Last return Nat;
+   --  Return the count of stored compilation switches
+
    function Get_Compilation_Switch (N : Pos) return String_Ptr;
    --  Return the Nth stored compilation switch, or null if less than N
-   --  switches have been stored. Used by ASIS.
+   --  switches have been stored. Used by ASIS and back ends written in Ada.
 
    function Get_Cunit_Unit_Number (N : Node_Id) return Unit_Number_Type;
    --  Return unit number of the unit whose N_Compilation_Unit node is the
@@ -625,8 +628,16 @@ private
 
    --  The following table stores strings from pragma Linker_Option lines
 
+   type Linker_Option_Entry is record
+      Option : String_Id;
+      --  The string for the linker option line
+
+      Unit : Unit_Number_Type;
+      --  The unit from which the linker option comes
+   end record;
+
    package Linker_Option_Lines is new Table.Table (
-     Table_Component_Type => String_Id,
+     Table_Component_Type => Linker_Option_Entry,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
      Table_Initial        => Alloc.Linker_Option_Lines_Initial,

@@ -40,6 +40,7 @@
 
 with Alloc;
 with Table;
+pragma Elaborate_All (Table);
 with Types; use Types;
 
 package Uintp is

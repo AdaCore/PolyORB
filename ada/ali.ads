@@ -81,7 +81,7 @@ package ALI is
    type Main_Program_Type is (None, Proc, Func);
    --  Indicator of whether unit can be used as main program
 
-   type Restrictions_String is array (Partition_Restrictions) of Character;
+   type Restrictions_String is array (All_Restrictions) of Character;
    --  Type used to hold string from R line
 
    type ALIs_Record is record
@@ -363,6 +363,12 @@ package ALI is
    --  Set to blank by Initialize_ALI. Set to the appropriate queuing policy
    --  character if an ali file contains a P line setting the queuing policy.
 
+   Restrictions : Restrictions_String := (others => 'n');
+   --  This array records the cumulative contributions of R lines in all
+   --  ali files. An entry is changed will be set to v if any ali file
+   --  indicates that the restriction is violated, and otherwise will be
+   --  set to r if the restriction is specified by some unit.
+
    Static_Elaboration_Model_Used : Boolean := False;
    --  Set to False by Initialize_ALI. Set to True if any ALI file for a
    --  non-internal unit compiled with the static elaboration model is
@@ -447,17 +453,29 @@ package ALI is
    -- Linker_Options Table --
    --------------------------
 
-   --  Each unique linker option (L line) in an ALI file generates
-   --  an entry in the Linker_Options table. Note that only unique
-   --  entries are stored, i.e. if the same entry appears twice, the
-   --  second entry is suppressed. Each entry is a character sequence
-   --  terminated by a NUL character.
+   --  If an ALI file has one of more Linker_Options lines, then a single
+   --  entry is made in this table. If more than one Linker_Options lines
+   --  appears in a given ALI file, then the arguments are concatenated
+   --  to form the entry in this table, using a NUL character as the
+   --  separator, and a final NUL character is appended to the end.
 
    type Linker_Option_Record is record
-      Name          : Name_Id;
-      Unit          : Unit_Id;
+      Name : Name_Id;
+      --  Name entry containing concatenated list of Linker_Options
+      --  arguments separated by NUL and ended by NUL as described above.
+
+      Unit : Unit_Id;
+      --  Unit_Id for the entry
+
       Internal_File : Boolean;
-      Original_Pos  : Positive;
+      --  Set True if the linker options are from an internal file. This is
+      --  used to insert certain standard entries after all the user entries
+      --  but before the entries from the run-time.
+
+      Original_Pos : Positive;
+      --  Keep track of original position in the linker options table. This
+      --  is used to implement a stable sort when we sort the linker options
+      --  table.
    end record;
 
    --  Declare the Linker_Options Table
@@ -517,10 +535,16 @@ package ALI is
       --  Name of source file
 
       Stamp : Time_Stamp_Type;
-      --  Time stamp value
+      --  Time stamp value. Note that this will be all zero characters
+      --  for the dummy entries for missing or non-dependent files.
 
       Checksum : Word;
-      --  Checksum value
+      --  Checksum value. Note that this will be all zero characters
+      --  for the dummy entries for missing or non-dependent files
+
+      Dummy_Entry : Boolean;
+      --  Set True for dummy entries that correspond to missing files
+      --  or files where no dependency relationship exists.
 
       Subunit_Name : Name_Id;
       --  Name_Id for subunit name if present, else No_Name
@@ -588,6 +612,15 @@ package ALI is
      Table_Increment      => 300,
      Table_Name           => "Xref_Section");
 
+   --  The following is used to indicate whether a typeref field is present
+   --  for the entity, and if so what kind of typeref field.
+
+   type Tref_Kind is (
+     Tref_None,    --  No typeref present
+     Tref_Access,  --  Access type typeref (points to designated type)
+     Tref_Derived, --  Derived type typeref (points to parent type)
+     Tref_Type);   --  All other cases
+
    --  The following table records entities for which xrefs are recorded
 
    type Xref_Entity_Record is record
@@ -607,23 +640,46 @@ package ALI is
       Entity : Name_Id;
       --  Name of entity
 
-      Ptype_File_Num : Sdep_Id;
-      --  This field is set to No_Sdep_Id if no ptype (parent type) entry
-      --  is present, otherwise it is the file dependency reference for
-      --  the parent type declaration.
+      Rref_Line : Nat;
+      --  This field is set to the line number of a renaming reference if
+      --  one is present, or to zero if no renaming reference is present
 
-      Ptype_Line : Nat;
-      --  Set to zero if no ptype (parent type) entry, otherwise this is
-      --  the line number of the declaration of the parent type.
+      Rref_Col : Nat;
+      --  This field is set to the column number of a renaming reference
+      --  if one is present, or to zero if no renaming reference is present.
 
-      Ptype_Type : Character;
-      --  Set to blank if no ptype (parent type) entry, otherwise this is
-      --  the identification character for the parent type. See section
+      Tref : Tref_Kind;
+      --  Indicates if a typeref is present, and if so what kind. Set to
+      --  Tref_None if no typeref field is present.
+
+      Tref_File_Num : Sdep_Id;
+      --  This field is set to No_Sdep_Id if no typeref is present, or
+      --  if the typeref refers to an entity in standard. Otherwise it
+      --  it is the dependency reference for the file containing the
+      --  declaration of the typeref entity.
+
+      Tref_Line : Nat;
+      --  This field is set to zero if no typeref is present, or if the
+      --  typeref refers to an entity in standard. Otherwise it contains
+      --  the line number of the declaration of the typeref entity.
+
+      Tref_Type : Character;
+      --  This field is set to blank if no typeref is present, or if the
+      --  typeref refers to an entity in standard. Otherwise it contains
+      --  the identification character for the typeref entity. See section
       --  "Cross-Reference Entity Indentifiers in lib-xref.ads for details.
 
-      Ptype_Col : Nat;
-      --  Set to zero if no ptype (parent type) entry, otherwise this is
+      Tref_Col : Nat;
+      --  This field is set to zero if no typeref is present, or if the
+      --  typeref refers to an entity in standard. Otherwise it contains
       --  the column number of the declaration of the parent type.
+
+      Tref_Standard_Entity : Name_Id;
+      --  This field is set to No_Name if no typeref is present or if the
+      --  typeref refers to a declared entity rather than an entity in
+      --  package Standard. If there is a typeref that references an
+      --  entity in package Standard, then this field is a Name_Id
+      --  reference for the entity name.
 
       First_Xref : Nat;
       --  Index into Xref table of first cross-reference
@@ -663,8 +719,11 @@ package ALI is
       --    i = implicit reference
       --  See description in lib-xref.ads for further details
 
-      Col : Pos;
+      Col : Nat;
       --  Column number for the reference
+
+      --  Note: for instantiation references, Rtype is set to ' ', and Col is
+      --  set to zero. One or more such entries can follow any other reference.
    end record;
 
    package Xref is new Table.Table (

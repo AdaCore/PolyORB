@@ -67,17 +67,11 @@ package Osint is
    --  in which case we look for the generated file only in the current
    --  directory, since that is where it is always built.
 
-   function Get_Switch_Character return Character;
-   pragma Import (C, Get_Switch_Character, "__gnat_get_switch_character");
-   Switch_Character : constant Character := Get_Switch_Character;
-   --  Set to the default switch character (note that minus is always an
-   --  acceptable alternative switch character)
-
    function Get_File_Names_Case_Sensitive return Int;
    pragma Import (C, Get_File_Names_Case_Sensitive,
-                    "__gnat_get_file_names_case_sensitive");
+                  "__gnat_get_file_names_case_sensitive");
    File_Names_Case_Sensitive : constant Boolean :=
-                               Get_File_Names_Case_Sensitive /= 0;
+                                 Get_File_Names_Case_Sensitive /= 0;
    --  Set to indicate whether the operating system convention is for file
    --  names to be case sensitive (e.g., in Unix, set True), or non case
    --  sensitive (e.g., in OS/2, set False).
@@ -101,9 +95,8 @@ package Osint is
    --  Called by the subprogram processing the command line when an
    --  output object file name is found.
 
-   type Program_Type is (Compiler, Binder, Make);
-   Program : Program_Type;
-   --  Program currently running (set by Initialize below)
+   type Program_Type is (Compiler, Binder, Make, Gnatls, Unspecified);
+   --  Program currently running (argument for Initialize below)
 
    procedure Initialize (P : Program_Type);
    --  This routine scans parameters and initializes for the first call to
@@ -111,14 +104,19 @@ package Osint is
    --  It also resets any of the variables in package Opt in response to
    --  command switch settings.
    --
-   --  Initialize may terminate execution if the parameters are invalid or some
-   --  other fatal error is encountered. The interface is set up to
-   --  accomodate scanning a series of files (e.g. as the result of
+   --  Initialize may terminate execution if the parameters are invalid or
+   --  some other fatal error is encountered. The interface is set up to
+   --  accommodate scanning a series of files (e.g. as the result of
    --  wild card references in DOS, or an expanded list of source files
-   --  in Unix). Of course it is perfectly possible to ignore this in
-   --  the implementation and provide for opening only one file.
-   --  The parameter P is the program (Compiler, Binder or Make) that is
-   --  actually running.
+   --  in Unix). Of course it is perfectly possible to ignore this in the
+   --  implementation and provide for opening only one file. When it is not
+   --  Unspecified, the parameter P is the program (Compiler, Binder, Make or
+   --  Gnatls) that is actually running.
+   --
+   --  Note: for the case of the compiler, Initialize also sets up the
+   --  addresses of the Repinfo output routines in the appropriate variables
+   --  in the Repinfo package so that Repinfo can reference these routines
+   --  without creating an unwanted dependence.
 
    procedure Find_Program_Name;
    --  Put simple name of current program being run (excluding the directory
@@ -136,6 +134,7 @@ package Osint is
    --  Writes name of program as invoked to standard output
 
    procedure Fail (S1 : String; S2 : String := ""; S3 : String := "");
+   pragma No_Return (Fail);
    --  Outputs error messages S1 & S2 & S3 preceeded by the name of the
    --  executing program and exits with E_Fatal.
 
@@ -178,25 +177,28 @@ package Osint is
    --  This function give an approximate number of minute from the last bind.
    --  It bases its computation on file stamp and therefore does gibe not
    --  any meaningful result before the new output binder file is written.
-   --  So it returns Nat'last if
+   --  So it returns Nat'last if:
+   --
    --   - it is the first bind of this  specific program
    --   - Record_Time_From_Last_Bind was not Called first
    --   - Close_Binder_Output was not called first
-   --  otherwise returns the number of minutes
-   --  till the last bind. The computation does not try to be completely
-   --  accurate and in particular does not take leap years into account.
+   --
+   --  otherwise it returns the number of minutes from the last bind. The
+   --  computation does not try to be completely accurate and in particular
+   --  does not take leap years into account.
 
    type String_Access_List is array (Positive range <>) of String_Access;
    --  Deferenced type used to return a list of file specs in
    --  To_Canonical_File_List.
 
    type String_Access_List_Access is access all String_Access_List;
-   --  Type used to return a String_Access_List  without dragging in secondary
+   --  Type used to return a String_Access_List without dragging in secondary
    --  stack.
 
    function To_Canonical_File_List
-     (Wildcard_Host_File : String; Only_Dirs : Boolean)
-   return String_Access_List_Access;
+     (Wildcard_Host_File : String;
+      Only_Dirs          : Boolean)
+      return               String_Access_List_Access;
    --  Expand a wildcard host syntax file or directory specification (e.g. on
    --  a VMS host, any file or directory spec that contains:
    --  "*", or "%", or "...")
@@ -206,7 +208,7 @@ package Osint is
    function To_Canonical_Dir_Spec
      (Host_Dir     : String;
       Prefix_Style : Boolean)
-      return String_Access;
+      return         String_Access;
    --  Convert a host syntax directory specification (e.g. on a VMS host:
    --  "SYS$DEVICE:[DIR]") to canonical (Unix) syntax (e.g. "/sys$device/dir").
    --  If Prefix_Style then make it a valid file specification prefix.
@@ -217,14 +219,14 @@ package Osint is
 
    function To_Canonical_File_Spec
      (Host_File : String)
-      return String_Access;
+      return      String_Access;
    --  Convert a host syntax file specification (e.g. on a VMS host:
    --  "SYS$DEVICE:[DIR]FILE.EXT;69 to canonical (Unix) syntax (e.g.
    --  "/sys$device/dir/file.ext.69").
 
    function To_Canonical_Path_Spec
      (Host_Path : String)
-      return String_Access;
+      return      String_Access;
    --  Convert a host syntax Path specification (e.g. on a VMS host:
    --  "SYS$DEVICE:[BAR],DISK$USER:[FOO] to canonical (Unix) syntax (e.g.
    --  "/sys$device/foo:disk$user/foo").
@@ -232,14 +234,14 @@ package Osint is
    function To_Host_Dir_Spec
      (Canonical_Dir : String;
       Prefix_Style  : Boolean)
-      return String_Access;
+      return          String_Access;
    --  Convert a canonical syntax directory specification to host syntax.
    --  The Prefix_Style flag is currently ignored but should be set to
    --  False.
 
    function To_Host_File_Spec
      (Canonical_File : String)
-      return String_Access;
+      return           String_Access;
    --  Convert a canonical syntax file specification to host syntax.
 
    -------------------------
@@ -267,9 +269,17 @@ package Osint is
    --  name, and calls to the function return sucessive directory names,
    --  with a null pointer marking the end of the list.
 
+   type Search_File_Type is (Include, Objects);
+
+   procedure Add_Search_Dirs
+     (Search_Path : String_Ptr;
+      Path_Type   : Search_File_Type);
+   --  These procedure adds all the search directories that are in Search_Path
+   --  in the proper file search path (library or source)
+
    function Get_Primary_Src_Search_Directory return String_Ptr;
    --  Retrieved the primary directory (directory containing the main source
-   --   file for Gnatmake.
+   --  file for Gnatmake.
 
    function Nb_Dir_In_Src_Search_Path return Natural;
    function Dir_In_Src_Search_Path (Position : Natural) return String_Ptr;
@@ -279,22 +289,43 @@ package Osint is
    function Dir_In_Obj_Search_Path (Position : Natural) return String_Ptr;
    --  Functions to access the directory names in the Object search path
 
-   Include_Search_File : constant String_Access
-     := new String'("ada_source_path");
-   Objects_Search_File : constant String_Access
-     := new String'("ada_object_path");
+   Include_Search_File : constant String_Access :=
+                           new String'("ada_source_path");
+   Objects_Search_File : constant String_Access :=
+                           new String'("ada_object_path");
+   --  The above need commenting ???
 
-   --  Files containg the default include or objects search directories.
+   --  Files containg the default include or objects search directories
 
    function Read_Default_Search_Dirs
-     (Search_Dir_Prefix : String_Access;
-      Search_File : String_Access;
+     (Search_Dir_Prefix       : String_Access;
+      Search_File             : String_Access;
       Search_Dir_Default_Name : String_Access)
-     return String_Access;
+      return                    String_Access;
    --  Read and return the default search directories from the file located
    --  in Search_Dir_Prefix (as modified by update_path) and named Search_File.
    --  If no such file exists or an error occurs then instead return the
    --  Search_Dir_Default_Name (as modified by update_path).
+
+   function Get_RTS_Search_Dir
+     (Search_Dir : String;
+      File_Type  : Search_File_Type)
+      return       String_Ptr;
+   --  This function retrieves the paths to the search (resp. lib) dirs and
+   --  return them. The search dir can be absolute or relative. If the search
+   --  dir contains Include_Search_File (resp. Object_Search_File), then this
+   --  function reads and returns the default search directories from the file.
+   --  Otherwise, if the directory is absolute, it will try to find 'adalib'
+   --  (resp. 'adainclude'). If found, null is returned. If the directory is
+   --  relative, the following directories for the directories 'adalib' and
+   --  'adainclude' will be scanned:
+   --
+   --   - current directory (from which the tool has been spawned)
+   --   - $GNAT_ROOT/gcc/gcc-lib/$targ/$vers/
+   --   - $GNAT_ROOT/gcc/gcc-lib/$targ/$vers/rts-
+   --
+   --  The scan will stop as soon as the directory being searched for (adalib
+   --  or adainclude) is found. If the scan fails, null is returned.
 
    -----------------------
    -- Source File Input --
@@ -425,7 +456,7 @@ package Osint is
    --    3. The information could be written to a separate file, whose name is
    --       related to the name of the source file by a fixed convention.
 
-   --  Which of these three methods is chosen depends on the contraints of the
+   --  Which of these three methods is chosen depends on the constraints of the
    --  host operating system. The interface described here is independent of
    --  which of these approaches is used.
 
@@ -560,8 +591,9 @@ package Osint is
    --  These routines are used by the compiler to generate the debug source
    --  file for the Debug_Generated_Code (-gnatD switch) option. Note that
    --  debug source file writing occurs at a completely different point in
-   --  the processing from library information output, so the code in the
-   --  body can assume these functions are never used at the same time.
+   --  the processing from library information output, or representation
+   --  output, so the code in the body can assume that no two of these
+   --  functions are ever used at the same time.
 
    function Create_Debug_File (Src : File_Name_Type) return File_Name_Type;
    --  Given the simple name of a source file, this routine creates the
@@ -569,16 +601,47 @@ package Osint is
 
    procedure Write_Debug_Info (Info : String);
    --  Writes contents of given string as next line of the current debug
-   --  source file created by the most recent call to Get_Debug_Name. Info
-   --  does not contain any end of line or other formatting characters.
+   --  source file created by the most recent call to Create_Debug_File.
+   --  Info does not contain end of line or other formatting characters.
 
    procedure Close_Debug_File;
    --  Close current debug file created by the most recent call to
-   --  Get_Debug_Name.
+   --  Create_Debug_File.
 
    function Debug_File_Eol_Length return Nat;
    --  Returns the number of characters (1 for NL, 2 for CR/LF) written
    --  at the end of each line by Write_Debug_Info.
+
+   --------------------------------
+   -- Representation File Output --
+   --------------------------------
+
+   --  These routines are used by the compiler to generate the representation
+   --  information to a file if this option is specified (-gnatR?s switch).
+   --  Note that the writing of this file occurs at a completely different
+   --  point in the processing from library information output, or from
+   --  debug file output, so the code in the body can assume that no two
+   --  of these functions are ever used at the same time.
+
+   --  Note: these routines are called from Repinfo, but are not called
+   --  directly, since we do not want Repinfo to depend on Osint. That
+   --  would cause a lot of unwanted junk to be dragged into ASIS. So
+   --  what we do is we have Initialize set the addresses of these three
+   --  procedures in appropriate variables in Repinfo, so that they can
+   --  be called indirectly without creating a dependence.
+
+   procedure Creat_Repinfo_File (Src : File_Name_Type);
+   --  Given the simple name of a source file, this routine creates the
+   --  corresponding file to hold representation information
+
+   procedure Write_Repinfo_Line (Info : String);
+   --  Writes contents of given string as next line of the current debug
+   --  source file created by the most recent call to Create_Repinfo_File.
+   --  Info does not contain end of line or other formatting characters.
+
+   procedure Close_Repinfo_File;
+   --  Close current debug file created by the most recent call to
+   --  Create_Repinfo_File.
 
    --------------------------------
    -- Semantic Tree Input-Output --
@@ -644,6 +707,7 @@ package Osint is
       E_Abort);     -- Internally detected compiler error
 
    procedure Exit_Program (Exit_Code : Exit_Code_Type);
+   pragma No_Return (Exit_Program);
    --  A call to Exit_Program terminates execution with the given status.
    --  A status of zero indicates normal completion, a non-zero status
    --  indicates abnormal termination.

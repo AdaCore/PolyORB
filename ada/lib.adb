@@ -397,6 +397,15 @@ package body Lib is
 
    end Check_Same_Extended_Unit;
 
+   -------------------------------
+   -- Compilation_Switches_Last --
+   -------------------------------
+
+   function Compilation_Switches_Last return Nat is
+   begin
+      return Compilation_Switches.Last;
+   end Compilation_Switches_Last;
+
    ------------------------------
    -- Earlier_In_Extended_Unit --
    ------------------------------
@@ -485,7 +494,7 @@ package body Lib is
 
    function Get_Compilation_Switch (N : Pos) return String_Ptr is
    begin
-      if N >= Compilation_Switches.Last then
+      if N <= Compilation_Switches.Last then
          return Compilation_Switches.Table (N);
 
       else
@@ -767,10 +776,10 @@ package body Lib is
    begin
       if Match_String'Length > 0 then
          for J in 1 .. Linker_Option_Lines.Last loop
-            String_To_Name_Buffer (Linker_Option_Lines.Table (J));
+            String_To_Name_Buffer (Linker_Option_Lines.Table (J).Option);
 
             if Match_String = Name_Buffer (1 .. Match_String'Length) then
-               Linker_Option_Lines.Table (J) := S;
+               Linker_Option_Lines.Table (J).Option := S;
                return;
             end if;
          end loop;
@@ -792,8 +801,8 @@ package body Lib is
    procedure Store_Compilation_Switch (Switch : String) is
    begin
       Compilation_Switches.Increment_Last;
-      Compilation_Switches.Table (Compilation_Switches.Last)
-        := new String'(Switch);
+      Compilation_Switches.Table (Compilation_Switches.Last) :=
+        new String'(Switch);
    end Store_Compilation_Switch;
 
    --------------------------------
@@ -803,7 +812,8 @@ package body Lib is
    procedure Store_Linker_Option_String (S : String_Id) is
    begin
       Linker_Option_Lines.Increment_Last;
-      Linker_Option_Lines.Table (Linker_Option_Lines.Last) := S;
+      Linker_Option_Lines.Table (Linker_Option_Lines.Last) :=
+        (Option => S, Unit => Current_Sem_Unit);
    end Store_Linker_Option_String;
 
    ---------------

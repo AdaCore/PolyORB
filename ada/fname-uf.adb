@@ -28,6 +28,7 @@
 
 with Alloc;
 with Debug;    use Debug;
+with Fmap;     use Fmap;
 with Krunch;
 with Namet;    use Namet;
 with Opt;      use Opt;
@@ -137,6 +138,10 @@ package body Fname.UF is
 
       N : Int;
 
+      Pname : File_Name_Type := No_File;
+      Fname : File_Name_Type := No_File;
+      --  Path name and File name for mapping
+
    begin
       --  Null or error name means that some previous error occured
       --  This is an unrecoverable error, so signal it.
@@ -144,6 +149,19 @@ package body Fname.UF is
       if Uname <= Error_Name then
          raise Unrecoverable_Error;
       end if;
+
+      --  Look in the map from unit names to file names
+
+      Fname := Mapped_File_Name (Uname);
+
+      --  If the unit name is already mapped, return the corresponding
+      --  file name from the map.
+
+      if Fname /= No_File then
+         return Fname;
+      end if;
+
+      --  If there is a specific SFN pragma, return the corresponding file name
 
       N := SFN_HTable.Get (Uname);
 
@@ -352,29 +370,47 @@ package body Fname.UF is
 
                   Fnam := File_Name_Type (Name_Find);
 
-                  --  If we are in the first search of the table, then
-                  --  we check if the file is present, and only accept
-                  --  the entry if it is indeed present. For the second
-                  --  search, we accept the entry without this check.
+                  --  If we are in the second search of the table, we accept
+                  --  the file name without checking, because we know that
+                  --  the file does not exist.
 
-                  --  If we only have two entries in the table, then there
-                  --  is no point in seeing if the file exists, since we
-                  --  will end up accepting it anyway on the second search,
-                  --  so just quit and accept it now to save time.
-
-                  if No_File_Check or else SFN_Patterns.Last = 2 then
+                  if No_File_Check then
                      return Fnam;
 
-                  --  Check if file exists and if so, return the entry
-
-                  elsif Find_File (Fnam, Source) /= No_File then
-                     return Fnam;
-
-                  --  This entry does not match after all, because this is
-                  --  the first search loop, and the file does not exist.
+                  --  Otherwise we check if the file exists
 
                   else
-                     Fnam := No_File;
+                     Pname := Find_File (Fnam, Source);
+
+                     --  If it does exist, we add it to the mappings and
+                     --  return the file name.
+
+                     if Pname /= No_File then
+
+                        --  Add to mapping, so that we don't do another
+                        --  path search in Find_File for this file name
+                        --  and, if we use a mapping file, we are ready
+                        --  to update it at the end of this compilation
+                        --  for the benefit of other compilation processes.
+
+                        Add_To_File_Map (Get_File_Name.Uname, Fnam, Pname);
+                        return Fnam;
+
+                     --  If there are only two entries, they are those of
+                     --  the default GNAT naming scheme. The file does
+                     --  not exist, but there is no point doing the
+                     --  second search, because we will end up with the
+                     --  same file name. Just return the file name.
+
+                     elsif SFN_Patterns.Last = 2 then
+                        return Fnam;
+
+                     --  The file does not exist, but there may be other
+                     --  naming scheme. Keep on searching.
+
+                     else
+                        Fnam := No_File;
+                     end if;
                   end if;
                end if;
 

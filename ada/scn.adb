@@ -39,6 +39,7 @@ with Snames;   use Snames;
 with Style;
 with Widechar; use Widechar;
 
+with System.CRC32;
 with System.WCh_Con; use System.WCh_Con;
 
 package body Scn is
@@ -72,6 +73,10 @@ package body Scn is
    --  code value instead of a character. This is used when wide characters
    --  are scanned. We use the character code rather than the ASCII characters
    --  so that the checksum is independent of wide character encoding method.
+
+   procedure Initialize_Checksum;
+   pragma Inline (Initialize_Checksum);
+   --  Initialize checksum value
 
    procedure Check_End_Of_Line;
    --  Called when end of line encountered. Checks that line is not
@@ -135,20 +140,13 @@ package body Scn is
 
    procedure Accumulate_Checksum (C : Character) is
    begin
-      Checksum := Checksum + Checksum + Character'Pos (C);
-
-      if Checksum > 16#8000_0000# then
-         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
-      end if;
+      System.CRC32.Update (System.CRC32.CRC32 (Checksum), C);
    end Accumulate_Checksum;
 
    procedure Accumulate_Checksum (C : Char_Code) is
    begin
-      Checksum := Checksum + Checksum + Char_Code'Pos (C);
-
-      if Checksum > 16#8000_0000# then
-         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
-      end if;
+      Accumulate_Checksum (Character'Val (C / 256));
+      Accumulate_Checksum (Character'Val (C mod 256));
    end Accumulate_Checksum;
 
    -----------------------
@@ -367,6 +365,15 @@ package body Scn is
       Error_Msg_S ("two consecutive underlines not permitted");
    end Error_No_Double_Underline;
 
+   -------------------------
+   -- Initialize_Checksum --
+   -------------------------
+
+   procedure Initialize_Checksum is
+   begin
+      System.CRC32.Initialize (System.CRC32.CRC32 (Checksum));
+   end Initialize_Checksum;
+
    ------------------------
    -- Initialize_Scanner --
    ------------------------
@@ -465,7 +472,8 @@ package body Scn is
       Token_Name                := No_Name;
       Start_Column              := Set_Start_Column;
       First_Non_Blank_Location  := Scan_Ptr;
-      Checksum                  := 0;
+
+      Initialize_Checksum;
 
       --  Set default for Comes_From_Source. All nodes built now until we
       --  reenter the analyzer will have Comes_From_Source set to True
@@ -1155,8 +1163,8 @@ package body Scn is
 
             else
                --  Upper half characters may possibly be identifier letters
-               --  but can never be digits, so Identifier_Character can be
-               --  used to test for a valid start of identifier character.
+               --  but can never be digits, so Identifier_Char can be used
+               --  to test for a valid start of identifier character.
 
                if Identifier_Char (Source (Scan_Ptr)) then
                   Name_Len := 0;
@@ -1349,30 +1357,44 @@ package body Scn is
                   Sptr : constant Source_Ptr := Scan_Ptr;
                   Code : Char_Code;
                   Err  : Boolean;
+                  Chr  : Character;
 
                begin
                   Scan_Wide (Source, Scan_Ptr, Code, Err);
-                  Accumulate_Checksum (Code);
+
+                  --  If error, signal error
 
                   if Err then
                      Error_Illegal_Wide_Character;
-                  else
-                     Store_Encoded_Character (Code);
-                  end if;
 
-                  --  Make sure we are allowing wide characters in identifiers.
-                  --  Note that we allow wide character notation for an OK
-                  --  identifier character. This in particular allows bracket
-                  --  or other notation to be used for upper half letters.
+                  --  If the character scanned is a normal identifier
+                  --  character, then we treat it that way.
 
-                  if Identifier_Character_Set /= 'w'
-                    and then
-                      (not In_Character_Range (Code)
-                         or else
-                       not Identifier_Char (Get_Character (Code)))
+                  elsif In_Character_Range (Code)
+                    and then Identifier_Char (Get_Character (Code))
                   then
-                     Error_Msg
-                       ("wide character not allowed in identifier", Sptr);
+                     Chr := Get_Character (Code);
+                     Accumulate_Checksum (Chr);
+                     Store_Encoded_Character
+                       (Get_Char_Code (Fold_Lower (Chr)));
+
+                  --  Character is not normal identifier character, store
+                  --  it in encoded form.
+
+                  else
+                     Accumulate_Checksum (Code);
+                     Store_Encoded_Character (Code);
+
+                     --  Make sure we are allowing wide characters in
+                     --  identifiers. Note that we allow wide character
+                     --  notation for an OK identifier character. This
+                     --  in particular allows bracket or other notation
+                     --  to be used for upper half letters.
+
+                     if Identifier_Character_Set /= 'w' then
+                        Error_Msg
+                          ("wide character not allowed in identifier", Sptr);
+                     end if;
                   end if;
                end;
 

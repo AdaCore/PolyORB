@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with Errout;    use Errout;
+with Namet;     use Namet;
 with Prj.Attr;  use Prj.Attr;
 with Prj.Tree;  use Prj.Tree;
 with Scans;     use Scans;
@@ -151,7 +152,7 @@ package body Prj.Strt is
    begin
       Reference :=  Default_Project_Node (Of_Kind => N_Attribute_Reference);
       Set_Location_Of (Reference, To => Token_Ptr);
-      Scan; -- past apostrophe
+      Scan; --  past apostrophe
       Expect (Tok_Identifier, "Identifier");
 
       if Token = Tok_Identifier then
@@ -165,15 +166,8 @@ package body Prj.Strt is
          end loop;
 
          if Current_Attribute = Empty_Attribute then
-            Error_Msg ("unknown attribute", Token_Ptr);
-            Reference := Empty_Node;
-
-         elsif
-           Attributes.Table (Current_Attribute).Kind_2 = Associative_Array
-         then
-            Error_Msg
-              ("associative array attribute cannot be referenced",
-               Token_Ptr);
+            Error_Msg_Name_1 := Token_Name;
+            Error_Msg ("unknown attribute %", Token_Ptr);
             Reference := Empty_Node;
 
          else
@@ -181,7 +175,30 @@ package body Prj.Strt is
             Set_Package_Node_Of (Reference, To => Current_Package);
             Set_Expression_Kind_Of
               (Reference, To => Attributes.Table (Current_Attribute).Kind_1);
+            Set_Case_Insensitive
+              (Reference, To => Attributes.Table (Current_Attribute).Kind_2 =
+                                          Case_Insensitive_Associative_Array);
             Scan;
+
+            if Attributes.Table (Current_Attribute).Kind_2 /= Single then
+               Expect (Tok_Left_Paren, "(");
+
+               if Token = Tok_Left_Paren then
+                  Scan;
+                  Expect (Tok_String_Literal, "literal string");
+
+                  if Token = Tok_String_Literal then
+                     Set_Associative_Array_Index_Of
+                       (Reference, To => Strval (Token_Node));
+                     Scan;
+                     Expect (Tok_Right_Paren, ")");
+
+                     if Token = Tok_Right_Paren then
+                        Scan;
+                     end if;
+                  end if;
+               end if;
+            end if;
          end if;
       end if;
    end Attribute_Reference;
@@ -319,7 +336,9 @@ package body Prj.Strt is
                Found := True;
 
                if Choices.Table (Choice).Already_Used then
-                  Error_Msg ("duplicate case label", Token_Ptr);
+                  String_To_Name_Buffer (Choice_String);
+                  Error_Msg_Name_1 := Name_Find;
+                  Error_Msg ("duplicate case label {", Token_Ptr);
                else
                   Choices.Table (Choice).Already_Used := True;
                end if;
@@ -329,7 +348,9 @@ package body Prj.Strt is
          end loop;
 
          if not Found then
-            Error_Msg ("illegal case label", Token_Ptr);
+            String_To_Name_Buffer (Choice_String);
+            Error_Msg_Name_1 := Name_Find;
+            Error_Msg ("illegal case label {", Token_Ptr);
          end if;
 
          Scan;
@@ -398,7 +419,9 @@ package body Prj.Strt is
          begin
             while Current /= Last_String loop
                if String_Equal (String_Value_Of (Current), String_Value) then
-                  Error_Msg ("duplicate value in type", Token_Ptr);
+                  String_To_Name_Buffer (String_Value);
+                  Error_Msg_Name_1 := Name_Find;
+                  Error_Msg ("duplicate value { in type", Token_Ptr);
                   exit;
                end if;
 
@@ -494,7 +517,8 @@ package body Prj.Strt is
                      end loop;
 
                      if The_Package = Empty_Node then
-                        Error_Msg ("package not yet defined",
+                        Error_Msg_Name_1 := The_Names (1).Name;
+                        Error_Msg ("package % not yet defined",
                                    The_Names (1).Location);
                      end if;
 
@@ -514,7 +538,8 @@ package body Prj.Strt is
                         if The_Project_Name_And_Node =
                                    Tree_Private_Part.No_Project_Name_And_Node
                         then
-                           Error_Msg ("unknown project",
+                           Error_Msg_Name_1 := The_Names (1).Name;
+                           Error_Msg ("unknown project %",
                                       The_Names (1).Location);
                         else
                            The_Project := The_Project_Name_And_Node.Node;
@@ -535,7 +560,8 @@ package body Prj.Strt is
                      end loop;
 
                      if With_Clause = Empty_Node then
-                        Error_Msg ("unknown project",
+                        Error_Msg_Name_1 := The_Names (1).Name;
+                        Error_Msg ("unknown project %",
                                    The_Names (1).Location);
                         The_Project := Empty_Node;
                         The_Package := Empty_Node;
@@ -551,7 +577,9 @@ package body Prj.Strt is
                         end loop;
 
                         if The_Package = Empty_Node then
-                           Error_Msg ("package not declared in project",
+                           Error_Msg_Name_1 := The_Names (2).Name;
+                           Error_Msg_Name_2 := The_Names (1).Name;
+                           Error_Msg ("package % not declared in project %",
                                       The_Names (2).Location);
                            First_Attribute := Attribute_First;
 
@@ -637,7 +665,8 @@ package body Prj.Strt is
                      end if;
 
                      if The_Project = Empty_Node then
-                        Error_Msg ("unknown package or project",
+                        Error_Msg_Name_1 := The_Names (1).Name;
+                        Error_Msg ("unknown package or project %",
                                    The_Names (1).Location);
                         Look_For_Variable := False;
                      else
@@ -675,7 +704,8 @@ package body Prj.Strt is
                   end if;
 
                   if The_Project = Empty_Node then
-                     Error_Msg ("unknown package or project",
+                     Error_Msg_Name_1 := The_Names (1).Name;
+                     Error_Msg ("unknown package or project %",
                                 The_Names (1).Location);
                      Look_For_Variable := False;
 
@@ -690,7 +720,8 @@ package body Prj.Strt is
                      end loop;
 
                      if The_Package = Empty_Node then
-                        Error_Msg ("unknown package",
+                        Error_Msg_Name_1 := The_Names (2).Name;
+                        Error_Msg ("unknown package %",
                                    The_Names (2).Location);
                         Look_For_Variable := False;
 
@@ -732,7 +763,8 @@ package body Prj.Strt is
          end if;
 
          if Current_Variable = Empty_Node then
-            Error_Msg ("unknown variable", The_Names (Last_Name).Location);
+            Error_Msg_Name_1 := Variable_Name;
+            Error_Msg ("unknown variable %", The_Names (Last_Name).Location);
          end if;
       end if;
 
@@ -743,6 +775,21 @@ package body Prj.Strt is
          if Kind_Of (Current_Variable) = N_Typed_Variable_Declaration then
             Set_String_Type_Of
               (Variable, To => String_Type_Of (Current_Variable));
+         end if;
+      end if;
+
+      if Token = Tok_Left_Paren then
+         Error_Msg ("\variables cannot be associative arrays", Token_Ptr);
+         Scan;
+         Expect (Tok_String_Literal, "literal string");
+
+         if Token = Tok_String_Literal then
+            Scan;
+            Expect (Tok_Right_Paren, ")");
+
+            if Token = Tok_Right_Paren then
+               Scan;
+            end if;
          end if;
       end if;
    end Parse_Variable_Reference;

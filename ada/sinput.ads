@@ -274,34 +274,18 @@ package Sinput is
    --  minus-minus sequence starting a comment, and all control characters
    --  except ESC.
 
-   --  These characters are used to compute a 31-bit checksum which is stored
-   --  in the variable Scans.Checksum, as follows:
-
-   --    If a character, C, is not part of a wide character sequence, then
-   --    either the character itself, or its lower case equivalent if it
-   --    is a letter outside a string literal is used in the computation:
-
-   --      Checksum := Checksum + Checksum + Character'Pos (C);
-   --      if Checksum > 16#8000_0000# then
-   --         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
-   --      end if;
-
-   --    For a wide character sequence, the checksum is computed using the
-   --    corresponding character code value C, as follows:
-
-   --      Checksum := Checksum + Checksum + Char_Code'Pos (C);
-   --      if Checksum > 16#8000_0000# then
-   --         Checksum := (Checksum + 1) and 16#7FFF_FFFF#;
-   --      end if;
+   --  The checksum algorithm used is the standard CRC-32 algorithm, as
+   --  implemented by System.CRC32, except that we do not bother with the
+   --  final XOR with all 1 bits.
 
    --  This algorithm ensures that the checksum includes all semantically
    --  significant aspects of the program represented by the source file,
    --  but is insensitive to layout, presence or contents of comments, wide
    --  character representation method, or casing conventions outside strings.
 
-   --  Scans.Checksum is initialized to zero at the start of scanning a file,
-   --  and copied into the Source_Checksum field of the file table entry when
-   --  the end of file is encountered.
+   --  Scans.Checksum is initialized appropriately at the start of scanning
+   --  a file, and copied into the Source_Checksum field of the file table
+   --  entry when the end of file is encountered.
 
    -------------------------------------
    -- Handling Generic Instantiations --
@@ -635,7 +619,7 @@ private
      (S       : in out Source_File_Record;
       New_Max : Nat);
    --  Allocate or reallocate the lines table for the given source file so
-   --  that it can accomodate at least New_Max lines. Also allocates or
+   --  that it can accommodate at least New_Max lines. Also allocates or
    --  reallocates logical lines table if source ref pragmas are present.
 
    procedure Add_Line_Tables_Entry

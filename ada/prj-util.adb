@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$
 --                                                                          --
 --             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
@@ -30,6 +30,7 @@ with Ada.Unchecked_Deallocation;
 
 with Namet;    use Namet;
 with Osint;
+with Output;   use Output;
 with Stringt;  use Stringt;
 
 package body Prj.Util is
@@ -187,6 +188,23 @@ package body Prj.Util is
    --------------
 
    function Value_Of
+     (Variable : Variable_Value;
+      Default  : String)
+      return     String
+   is
+   begin
+      if Variable.Kind /= Single
+        or else Variable.Default
+        or else Variable.Value = No_String then
+         return Default;
+
+      else
+         String_To_Name_Buffer (Variable.Value);
+         return Name_Buffer (1 .. Name_Len);
+      end if;
+   end Value_Of;
+
+   function Value_Of
      (Index    : Name_Id;
       In_Array : Array_Element_Id)
       return     Name_Id
@@ -237,7 +255,7 @@ package body Prj.Util is
      (Name                    : Name_Id;
       Attribute_Or_Array_Name : Name_Id;
       In_Package              : Package_Id)
-      return                   Variable_Value
+      return                    Variable_Value
    is
       The_Array     : Array_Element_Id;
       The_Attribute : Variable_Value := Nil_Variable_Value;
@@ -297,11 +315,12 @@ package body Prj.Util is
       return      Array_Element_Id
    is
       Current : Array_Id := In_Arrays;
-      The_Array : Array_Data;
+      The_Array          : Array_Data;
 
    begin
       while Current /= No_Array loop
          The_Array := Arrays.Table (Current);
+
          if The_Array.Name = Name then
             return The_Array.Value;
          else
@@ -323,8 +342,8 @@ package body Prj.Util is
    begin
       while Current /= No_Package loop
          The_Package := Packages.Table (Current);
-         exit when The_Package.Name /= No_Name and then
-           The_Package.Name = Name;
+         exit when The_Package.Name /= No_Name
+           and then The_Package.Name = Name;
          Current := The_Package.Next;
       end loop;
 
@@ -352,5 +371,64 @@ package body Prj.Util is
 
       return Nil_Variable_Value;
    end Value_Of;
+
+   ---------------
+   -- Write_Str --
+   ---------------
+
+   procedure Write_Str
+     (S          : String;
+      Max_Length : Positive;
+      Separator  : Character)
+   is
+      First : Positive := S'First;
+      Last  : Natural  := S'Last;
+
+   begin
+      --  Nothing to do for empty strings
+
+      if S'Length > 0 then
+
+         --  Start on a new line if current line is already longer than
+         --  Max_Length.
+
+         if Positive (Column) >= Max_Length then
+            Write_Eol;
+         end if;
+
+         --  If length of remainder is longer than Max_Length, we need to
+         --  cut the remainder in several lines.
+
+         while Positive (Column) + S'Last - First > Max_Length loop
+
+            --  Try the maximum length possible
+
+            Last := First + Max_Length - Positive (Column);
+
+            --  Look for last Separator in the line
+
+            while Last >= First and then S (Last) /= Separator loop
+               Last := Last - 1;
+            end loop;
+
+            --  If we do not find a separator, we output the maximum length
+            --  possible.
+
+            if Last < First then
+               Last := First + Max_Length - Positive (Column);
+            end if;
+
+            Write_Line (S (First .. Last));
+
+            --  Set the beginning of the new remainder
+
+            First := Last + 1;
+         end loop;
+
+         --  What is left goes to the buffer, without EOL
+
+         Write_Str (S (First .. S'Last));
+      end if;
+   end Write_Str;
 
 end Prj.Util;

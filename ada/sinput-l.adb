@@ -27,21 +27,30 @@
 ------------------------------------------------------------------------------
 
 with Alloc;
-with Atree;  use Atree;
-with Debug;  use Debug;
-with Einfo;  use Einfo;
-with Namet;  use Namet;
+with Atree;         use Atree;
+with Debug;         use Debug;
+with Einfo;         use Einfo;
+with Namet;         use Namet;
 with Opt;
-with Osint;  use Osint;
-with Output; use Output;
-with Scans;  use Scans;
-with Scn;    use Scn;
-with Sinfo;  use Sinfo;
-with System; use System;
+with Osint;         use Osint;
+with Output;        use Output;
+with Scans;         use Scans;
+with Scn;           use Scn;
+with Sinfo;         use Sinfo;
+with System.Memory; use System;
 
 with Unchecked_Conversion;
 
 package body Sinput.L is
+
+   --  Routines to support conversion between types Lines_Table_Ptr
+   --  and System.Address.
+
+   function To_Address is
+     new Unchecked_Conversion (Lines_Table_Ptr, Address);
+
+   function To_Pointer is
+     new Unchecked_Conversion (Address, Lines_Table_Ptr);
 
    Dfile : Source_File_Index;
    --  Index of currently active debug source file
@@ -142,16 +151,6 @@ package body Sinput.L is
            (S, Int (Source_File.Table (Source).Last_Source_Line * 3));
          S.Lines_Table (1) := Loc;
       end;
-
-      if Debug_Flag_GG then
-         Write_Str ("---> Create_Debug_Source (Source => ");
-         Write_Int (Int (Source));
-         Write_Str (", Loc => ");
-         Write_Int (Int (Loc));
-         Write_Str (");");
-         Write_Eol;
-      end if;
-
    end Create_Debug_Source;
 
    ---------------------------------
@@ -473,22 +472,16 @@ package body Sinput.L is
    ----------------------
 
    procedure Trim_Lines_Table (S : Source_File_Index) is
-
-      function realloc
-        (P        : Lines_Table_Ptr;
-         New_Size : Int)
-         return     Lines_Table_Ptr;
-      pragma Import (C, realloc);
-
       Max : constant Nat := Nat (Source_File.Table (S).Last_Source_Line);
 
    begin
       --  Release allocated storage that is no longer needed
 
-      Source_File.Table (S).Lines_Table :=
-        realloc
-          (Source_File.Table (S).Lines_Table,
-           Max * (Lines_Table_Type'Component_Size / System.Storage_Unit));
+      Source_File.Table (S).Lines_Table := To_Pointer
+        (Memory.Realloc
+          (To_Address (Source_File.Table (S).Lines_Table),
+           Memory.size_t
+            (Max * (Lines_Table_Type'Component_Size / System.Storage_Unit))));
       Source_File.Table (S).Lines_Table_Max := Physical_Line_Number (Max);
    end Trim_Lines_Table;
 
@@ -508,25 +501,10 @@ package body Sinput.L is
       --  Here we write the line, and update the source record entry
 
       else
-         Write_Debug_Info (Str);
+         Write_Debug_Info (Str (Str'First .. Str'Last - 1));
          Add_Line_Tables_Entry (S, Loc);
-         Loc := Loc + Source_Ptr (Str'Length + Debug_File_Eol_Length);
+         Loc := Loc - 1 + Source_Ptr (Str'Length + Debug_File_Eol_Length);
          S.Source_Last := Loc;
-
-         if Debug_Flag_GG then
-            declare
-               Lin : constant String := Str;
-
-            begin
-               Column := 1;
-               Write_Str ("---> Write_Debug_Line (Str => """);
-               Write_Str (Lin);
-               Write_Str (""", Loc => ");
-               Write_Int (Int (Loc));
-               Write_Str (");");
-               Write_Eol;
-            end;
-         end if;
       end if;
    end Write_Debug_Line;
 

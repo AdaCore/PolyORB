@@ -26,6 +26,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Fmap;     use Fmap;
 with Hostparm;
 with Namet;    use Namet;
 with Opt;      use Opt;
@@ -67,6 +68,17 @@ package body Osint is
    function OS_Time_To_GNAT_Time (T : OS_Time) return Time_Stamp_Type;
    --  Convert OS format time to GNAT format time stamp
 
+   function Concat (String_One : String; String_Two : String) return String;
+   --  Concatenates 2 strings and returns the result of the concatenation
+
+   function Create_Auxiliary_File
+     (Src    : File_Name_Type;
+      Suffix : String)
+      return   File_Name_Type;
+   --  Common processing for Creat_Repinfo_File and Create_Debug_File.
+   --  Src is the file name used to create the required output file and
+   --  Suffix is the desired suffic (dg/rep for debug/repinfo file).
+
    procedure Create_File_And_Check
      (Fdesc : out File_Descriptor;
       Fmode : Mode);
@@ -80,6 +92,10 @@ package body Osint is
    --  Sets a default ali file name from the main compiler source name.
    --  This is used by Create_Output_Library_Info, and by the version of
    --  Read_Library_Info that takes a default file name.
+
+   function Update_Path (Path : String_Ptr) return String_Ptr;
+   --  Update the specified path to replace the prefix with the location
+   --  where GNAT is installed. See the file prefix.c in GCC for details.
 
    procedure Write_Info (Info : String);
    --  Implementation of Write_Binder_Info, Write_Debug_Info and
@@ -139,7 +155,7 @@ package body Osint is
    type File_Name_Array is array (Int range <>) of String_Ptr;
    type File_Name_Array_Ptr is access File_Name_Array;
    File_Names : File_Name_Array_Ptr :=
-     new File_Name_Array (1 .. Int (Argument_Count) + 2);
+                  new File_Name_Array (1 .. Int (Argument_Count) + 2);
    --  As arguments are scanned in Initialize, file names are stored
    --  in this array. The string does not contain a terminating NUL.
    --  The array is "extensible" because when using project files,
@@ -185,7 +201,8 @@ package body Osint is
    In_Binder   : Boolean := False;
    In_Compiler : Boolean := False;
    In_Make     : Boolean := False;
-   --  Exactly one of these flags is set True to indicate which program
+   In_Gnatls   : Boolean := False;
+   --  At most, one of these flags is set True to indicate which program
    --  is bound and executing with Osint, which is used by all these programs.
 
    Output_FD : File_Descriptor;
@@ -309,11 +326,6 @@ package body Osint is
       --                             GNAT\Standard Libraries
       --  Return an empty string on other systems
 
-      function Update_Path (Path : String_Ptr) return String_Ptr;
-      --  Update the specified path to replace the prefix with
-      --  the location where GNAT is installed. See the file prefix.c
-      --  in GCC for more details.
-
       --------------------
       -- Add_Search_Dir --
       --------------------
@@ -354,40 +366,6 @@ package body Osint is
          Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
          return Out_String;
       end Get_Libraries_From_Registry;
-
-      -----------------
-      -- Update_Path --
-      -----------------
-
-      function Update_Path (Path : String_Ptr) return String_Ptr is
-
-         function C_Update_Path (Path, Component : Address) return Address;
-         pragma Import (C, C_Update_Path, "update_path");
-
-         function Strlen (Str : Address) return Integer;
-         pragma Import (C, Strlen, "strlen");
-
-         procedure Strncpy (X : Address; Y : Address; Length : Integer);
-         pragma Import (C, Strncpy, "strncpy");
-
-         In_Length      : constant Integer := Path'Length;
-         In_String      : String (1 .. In_Length + 1);
-         Component_Name : aliased String := "GNAT" & ASCII.NUL;
-         Result_Ptr     : Address;
-         Result_Length  : Integer;
-         Out_String     : String_Ptr;
-
-      begin
-         In_String (1 .. In_Length) := Path.all;
-         In_String (In_Length + 1) := ASCII.NUL;
-         Result_Ptr := C_Update_Path (In_String'Address,
-                                      Component_Name'Address);
-         Result_Length := Strlen (Result_Ptr);
-
-         Out_String := new String (1 .. Result_Length);
-         Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
-         return Out_String;
-      end Update_Path;
 
    --  Start of processing for Add_Default_Search_Dirs
 
@@ -460,7 +438,7 @@ package body Osint is
          end loop;
       end if;
 
-      if not Opt.No_Stdlib then
+      if not Opt.No_Stdlib and not Opt.RTS_Switch then
          Search_Path := Read_Default_Search_Dirs
            (String_Access (Update_Path (Search_Dir_Prefix)),
             Objects_Search_File,
@@ -613,6 +591,82 @@ package body Osint is
       Close (Output_FD);
    end Close_Output_Library_Info;
 
+   ------------------------
+   -- Close_Repinfo_File --
+   ------------------------
+
+   procedure Close_Repinfo_File is
+   begin
+      pragma Assert (In_Compiler);
+      Close (Output_FD);
+   end Close_Repinfo_File;
+
+   ------------
+   -- Concat --
+   ------------
+
+   function Concat (String_One : String; String_Two : String) return String is
+      Buffer : String (1 .. String_One'Length + String_Two'Length);
+
+   begin
+      Buffer (1 .. String_One'Length) := String_One;
+      Buffer (String_One'Length + 1 .. Buffer'Last) := String_Two;
+      return Buffer;
+   end Concat;
+
+   ---------------------------
+   -- Create_Auxiliary_File --
+   ---------------------------
+
+   function Create_Auxiliary_File
+     (Src    : File_Name_Type;
+      Suffix : String)
+      return   File_Name_Type
+   is
+      Result : File_Name_Type;
+
+   begin
+      Get_Name_String (Src);
+
+      if Hostparm.OpenVMS then
+         Name_Buffer (Name_Len + 1) := '_';
+      else
+         Name_Buffer (Name_Len + 1) := '.';
+      end if;
+
+      Name_Len := Name_Len + 1;
+      Name_Buffer (Name_Len + 1 .. Name_Len + Suffix'Length) := Suffix;
+      Name_Len := Name_Len + Suffix'Length;
+
+      if Output_Object_File_Name /= null then
+
+         for Index in reverse Output_Object_File_Name'Range loop
+
+            if Output_Object_File_Name (Index) = Directory_Separator then
+               declare
+                  File_Name : constant String := Name_Buffer (1 .. Name_Len);
+
+               begin
+                  Name_Len := Index - Output_Object_File_Name'First + 1;
+                  Name_Buffer (1 .. Name_Len) :=
+                    Output_Object_File_Name
+                      (Output_Object_File_Name'First .. Index);
+                  Name_Buffer (Name_Len + 1 .. Name_Len + File_Name'Length) :=
+                    File_Name;
+                  Name_Len := Name_Len + File_Name'Length;
+               end;
+
+               exit;
+            end if;
+         end loop;
+      end if;
+
+      Result := Name_Find;
+      Name_Buffer (Name_Len + 1) := ASCII.NUL;
+      Create_File_And_Check (Output_FD, Text);
+      return Result;
+   end Create_Auxiliary_File;
+
    --------------------------
    -- Create_Binder_Output --
    --------------------------
@@ -721,20 +775,8 @@ package body Osint is
    -----------------------
 
    function Create_Debug_File (Src : File_Name_Type) return File_Name_Type is
-      Result : File_Name_Type;
-
    begin
-      Get_Name_String (Src);
-      if Hostparm.OpenVMS then
-         Name_Buffer (Name_Len + 1 .. Name_Len + 3) := "_dg";
-      else
-         Name_Buffer (Name_Len + 1 .. Name_Len + 3) := ".dg";
-      end if;
-      Name_Len := Name_Len + 3;
-      Result := Name_Find;
-      Name_Buffer (Name_Len + 1) := ASCII.NUL;
-      Create_File_And_Check (Output_FD, Text);
-      return Result;
+      return Create_Auxiliary_File (Src, "dg");
    end Create_Debug_File;
 
    ---------------------------
@@ -781,6 +823,18 @@ package body Osint is
    begin
       return Current_Full_Obj_Stamp;
    end Current_Object_File_Stamp;
+
+   --------------------------
+   -- Creat_Repinfo_File --
+   --------------------------
+
+   procedure Creat_Repinfo_File (Src : File_Name_Type) is
+      S : constant File_Name_Type := Create_Auxiliary_File (Src, "rep");
+      pragma Warnings (Off, S);
+
+   begin
+      return;
+   end Creat_Repinfo_File;
 
    -------------------------------
    -- Current_Source_File_Stamp --
@@ -969,12 +1023,24 @@ package body Osint is
          --  directory where the user said it was.
 
          elsif Look_In_Primary_Directory_For_Current_Main
-           and then Current_Main = N then
+           and then Current_Main = N
+         then
             return Locate_File (N, T, Primary_Directory, File_Name);
 
          --  Otherwise do standard search for source file
 
          else
+            --  Check the mapping of this file name
+
+            File := Mapped_Path_Name (N);
+
+            --  If the file name is mapped to a path name, return the
+            --  corresponding path name
+
+            if File /= No_File then
+               return File;
+            end if;
+
             --  First place to look is in the primary directory (i.e. the same
             --  directory as the source) unless this has been disabled with -I-
 
@@ -1154,6 +1220,31 @@ package body Osint is
       Search_Path_Pos := Search_Path'First;
    end Get_Next_Dir_In_Path_Init;
 
+   ---------------------
+   -- Add_Search_Dirs --
+   ---------------------
+
+   procedure Add_Search_Dirs
+     (Search_Path : String_Ptr;
+      Path_Type   : Search_File_Type)
+   is
+      Current_Search_Path : String_Access;
+
+   begin
+      Get_Next_Dir_In_Path_Init (String_Access (Search_Path));
+      loop
+         Current_Search_Path :=
+           Get_Next_Dir_In_Path (String_Access (Search_Path));
+         exit when Current_Search_Path = null;
+
+         if Path_Type = Include then
+            Add_Src_Search_Dir (Current_Search_Path.all);
+         else
+            Add_Lib_Search_Dir (Current_Search_Path.all);
+         end if;
+      end loop;
+   end Add_Search_Dirs;
+
    --------------------------------------
    -- Get_Primary_Src_Search_Directory --
    --------------------------------------
@@ -1189,16 +1280,19 @@ package body Osint is
    --  Start of processing for Initialize
 
    begin
-      Program := P;
-
-      case Program is
-         when Binder   => In_Binder   := True;
-         when Compiler => In_Compiler := True;
-         when Make     => In_Make     := True;
+      case P is
+         when Binder      => In_Binder   := True;
+         when Compiler    => In_Compiler := True;
+         when Make        => In_Make     := True;
+         when Gnatls      => In_Gnatls   := True;
+         when Unspecified => null;
       end case;
 
       if In_Compiler then
          Adjust_OS_Resource_Limits;
+         Opt.Creat_Repinfo_File_Access := Creat_Repinfo_File'Access;
+         Opt.Write_Repinfo_Line_Access := Write_Repinfo_Line'Access;
+         Opt.Close_Repinfo_File_Access := Close_Repinfo_File'Access;
       end if;
 
       Src_Search_Directories.Init;
@@ -1219,15 +1313,6 @@ package body Osint is
       --  turning all of them on if -gnatp is specified).
 
       Suppress_Options := (others => False);
-
-      --  Set software overflow check flag. For now all targets require the
-      --  use of software overflow checks. Later on, this will have to be
-      --  specialized to the backend target. Also, if software overflow
-      --  checking mode is set, then the default for suppressing overflow
-      --  checks is True, since the software approach is expensive.
-
-      Software_Overflow_Checking := True;
-      Suppress_Options.Overflow_Checks := True;
 
       --  Reserve the first slot in the search paths table. This is the
       --  directory of the main source file or main library file and is
@@ -1414,7 +1499,7 @@ package body Osint is
 
    function More_Lib_Files return Boolean is
    begin
-      pragma Assert (In_Binder);
+      pragma Assert (In_Binder or In_Gnatls);
       return More_Files;
    end More_Lib_Files;
 
@@ -1501,7 +1586,7 @@ package body Osint is
             Look_In_Primary_Directory_For_Current_Main := True;
          end if;
 
-      else pragma Assert (In_Binder);
+      else pragma Assert (In_Binder or else In_Gnatls);
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
          Lib_Search_Directories.Table (Primary_Directory) := Dir_Name;
       end if;
@@ -1543,7 +1628,7 @@ package body Osint is
 
    function Next_Main_Lib_File return File_Name_Type is
    begin
-      pragma Assert (In_Binder);
+      pragma Assert (In_Binder or In_Gnatls);
       return Next_Main_File;
    end Next_Main_Lib_File;
 
@@ -1676,10 +1761,10 @@ package body Osint is
    ------------------------------
 
    function Read_Default_Search_Dirs
-     (Search_Dir_Prefix : String_Access;
-      Search_File : String_Access;
+     (Search_Dir_Prefix       : String_Access;
+      Search_File             : String_Access;
       Search_Dir_Default_Name : String_Access)
-     return String_Access
+      return                  String_Access
    is
       Prefix_Len : constant Integer := Search_Dir_Prefix.all'Length;
       Buffer     : String (1 .. Prefix_Len + Search_File.all'Length + 1);
@@ -1693,8 +1778,23 @@ package body Osint is
       Prev_Was_Separator : Boolean;
       Nb_Relative_Dir    : Integer;
 
-   begin
+      function Is_Relative (S : String; K : Positive) return Boolean;
+      pragma Inline (Is_Relative);
+      --  Returns True if a relative directory specification is found
+      --  in S at position K, False otherwise.
 
+      -----------------
+      -- Is_Relative --
+      -----------------
+
+      function Is_Relative (S : String; K : Positive) return Boolean is
+      begin
+         return not Is_Absolute_Path (S (K .. S'Last));
+      end Is_Relative;
+
+   --  Start of processing for Read_Default_Search_Dirs
+
+   begin
       --  Construct a C compatible character string buffer.
 
       Buffer (1 .. Search_Dir_Prefix.all'Length)
@@ -1737,12 +1837,13 @@ package body Osint is
             S (J) := Path_Separator;
          end if;
 
-         if  S (J) = Path_Separator then
+         if S (J) = Path_Separator then
             Prev_Was_Separator := True;
          else
-            if Prev_Was_Separator and S (J) /= Directory_Separator then
+            if Prev_Was_Separator and then Is_Relative (S.all, J) then
                Nb_Relative_Dir := Nb_Relative_Dir + 1;
             end if;
+
             Prev_Was_Separator := False;
          end if;
       end loop;
@@ -1757,11 +1858,11 @@ package body Osint is
       J1 := 1;
       Prev_Was_Separator := True;
       for J in 1 .. Len + 1 loop
-         if  S (J) = Path_Separator then
+         if S (J) = Path_Separator then
             Prev_Was_Separator := True;
 
          else
-            if Prev_Was_Separator and S (J) /= Directory_Separator then
+            if Prev_Was_Separator and then Is_Relative (S.all, J) then
                S1 (J1 .. J1 + Prefix_Len) := Search_Dir_Prefix.all;
                J1 := J1 + Prefix_Len;
             end if;
@@ -1775,6 +1876,176 @@ package body Osint is
       Free (S);
       return S1;
    end Read_Default_Search_Dirs;
+
+   -------------------------
+   --  Get_RTS_Search_Dir --
+   -------------------------
+
+   function Get_RTS_Search_Dir
+     (Search_Dir : String;
+      File_Type  : Search_File_Type)
+      return       String_Ptr
+   is
+      procedure Get_Current_Dir
+        (Dir    : System.Address;
+         Length : System.Address);
+      pragma Import (C, Get_Current_Dir, "__gnat_get_current_dir");
+
+      Max_Path : Integer;
+      pragma Import (C, Max_Path, "max_path_len");
+      --  Maximum length of a path name
+
+      Current_Dir        : String_Ptr;
+      Default_Search_Dir : String_Access;
+      Default_Suffix_Dir : String_Access;
+      Local_Search_Dir   : String_Access;
+      Norm_Search_Dir    : String_Access;
+      Result_Search_Dir  : String_Access;
+      Search_File        : String_Access;
+      Temp_String        : String_Ptr;
+
+   begin
+      --  Add a directory separator at the end of the directory if necessary
+      --  so that we can directly append a file to the directory
+
+      if Search_Dir (Search_Dir'Last) /= Directory_Separator then
+         Local_Search_Dir := new String'
+           (Concat (Search_Dir, String' (1 => Directory_Separator)));
+      else
+         Local_Search_Dir := new String' (Search_Dir);
+      end if;
+
+      if File_Type = Include then
+         Search_File := Include_Search_File;
+         Default_Suffix_Dir := new String'("adainclude");
+      else
+         Search_File := Objects_Search_File;
+         Default_Suffix_Dir := new String' ("adalib");
+      end if;
+
+      Norm_Search_Dir := To_Canonical_Path_Spec (Local_Search_Dir.all);
+
+      if Is_Absolute_Path (Norm_Search_Dir.all) then
+
+         --  We first verify if there is a directory Include_Search_Dir
+         --  containing default search directories
+
+         Result_Search_Dir
+           := Read_Default_Search_Dirs (Norm_Search_Dir,
+                                        Search_File,
+                                        null);
+         Default_Search_Dir := new String'
+           (Concat (Norm_Search_Dir.all, Default_Suffix_Dir.all));
+         Free (Norm_Search_Dir);
+
+         if Result_Search_Dir /= null then
+            return String_Ptr (Result_Search_Dir);
+         elsif Is_Directory (Default_Search_Dir.all) then
+            return String_Ptr (Default_Search_Dir);
+         else
+            return null;
+         end if;
+
+      else
+         --  Search in the current directory
+
+         --  Get the current directory
+
+         declare
+            Buffer   : String (1 .. Max_Path + 2);
+            Path_Len : Natural := Max_Path;
+
+         begin
+            Get_Current_Dir (Buffer'Address, Path_Len'Address);
+
+            if Buffer (Path_Len) /= Directory_Separator then
+               Path_Len := Path_Len + 1;
+               Buffer (Path_Len) := Directory_Separator;
+            end if;
+
+            Current_Dir := new String'(Buffer (1 .. Path_Len));
+         end;
+
+         Norm_Search_Dir :=
+           new String'
+             (Concat (Current_Dir.all, Local_Search_Dir.all));
+
+         Result_Search_Dir :=
+           Read_Default_Search_Dirs
+             (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
+              Search_File,
+              null);
+
+         Default_Search_Dir :=
+           new String'
+             (Concat (Norm_Search_Dir.all, Default_Suffix_Dir.all));
+
+         Free (Norm_Search_Dir);
+
+         if Result_Search_Dir /= null then
+            return String_Ptr (Result_Search_Dir);
+
+         elsif Is_Directory (Default_Search_Dir.all) then
+            return String_Ptr (Default_Search_Dir);
+
+         else
+            --  Search in Search_Dir_Prefix/Search_Dir
+
+            Norm_Search_Dir :=
+              new String'
+                (Concat (Search_Dir_Prefix.all, Local_Search_Dir.all));
+
+            Result_Search_Dir :=
+              Read_Default_Search_Dirs
+                (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
+                 Search_File,
+                 null);
+
+            Default_Search_Dir :=
+              new String'
+                (Concat (Norm_Search_Dir.all, Default_Suffix_Dir.all));
+
+            Free (Norm_Search_Dir);
+
+            if Result_Search_Dir /= null then
+               return String_Ptr (Result_Search_Dir);
+
+            elsif Is_Directory (Default_Search_Dir.all) then
+               return String_Ptr (Default_Search_Dir);
+
+            else
+               --  We finally search in Search_Dir_Prefix/rts-Search_Dir
+
+               Temp_String :=
+                 new String'(Concat (Search_Dir_Prefix.all, "rts-"));
+
+               Norm_Search_Dir :=
+                 new String' (Concat (Temp_String.all, Local_Search_Dir.all));
+
+               Result_Search_Dir :=
+                 Read_Default_Search_Dirs
+                   (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
+                    Search_File,
+                    null);
+
+               Default_Search_Dir :=
+                 new String'
+                   (Concat (Norm_Search_Dir.all, Default_Suffix_Dir.all));
+               Free (Norm_Search_Dir);
+
+               if Result_Search_Dir /= null then
+                  return String_Ptr (Result_Search_Dir);
+
+               elsif Is_Directory (Default_Search_Dir.all) then
+                  return String_Ptr (Default_Search_Dir);
+
+               else
+                  return null;
+               end if;
+            end if;
+         end if;
+      end if;
+   end Get_RTS_Search_Dir;
 
    -----------------------
    -- Read_Library_Info --
@@ -2112,7 +2383,9 @@ package body Osint is
       --  Make sure that the object file has the expected extension.
 
       if NL <= EL
-         or else Name (NL - EL + Name'First .. Name'Last) /= Ext
+         or else
+          (Name (NL - EL + Name'First .. Name'Last) /= Ext
+             and then Name (NL - 2 + Name'First .. Name'Last) /= ".o")
       then
          Fail ("incorrect object file extension");
       end if;
@@ -2638,6 +2911,40 @@ package body Osint is
       Tree_Write_Initialize (Output_FD);
    end Tree_Create;
 
+   -----------------
+   -- Update_Path --
+   -----------------
+
+   function Update_Path (Path : String_Ptr) return String_Ptr is
+
+      function C_Update_Path (Path, Component : Address) return Address;
+      pragma Import (C, C_Update_Path, "update_path");
+
+      function Strlen (Str : Address) return Integer;
+      pragma Import (C, Strlen, "strlen");
+
+      procedure Strncpy (X : Address; Y : Address; Length : Integer);
+      pragma Import (C, Strncpy, "strncpy");
+
+      In_Length      : constant Integer := Path'Length;
+      In_String      : String (1 .. In_Length + 1);
+      Component_Name : aliased String := "GNAT" & ASCII.NUL;
+      Result_Ptr     : Address;
+      Result_Length  : Integer;
+      Out_String     : String_Ptr;
+
+   begin
+      In_String (1 .. In_Length) := Path.all;
+      In_String (In_Length + 1) := ASCII.NUL;
+      Result_Ptr := C_Update_Path (In_String'Address,
+                                   Component_Name'Address);
+      Result_Length := Strlen (Result_Ptr);
+
+      Out_String := new String (1 .. Result_Length);
+      Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
+      return Out_String;
+   end Update_Path;
+
    ----------------
    -- Write_Info --
    ----------------
@@ -2696,6 +3003,12 @@ package body Osint is
       Name_Len := Save_Buffer'Last;
       Name_Buffer (1 .. Name_Len) := Save_Buffer;
    end Write_Program_Name;
+
+   ------------------------
+   -- Write_Repinfo_Line --
+   ------------------------
+
+   procedure Write_Repinfo_Line (Info : String) renames Write_Info;
 
    ----------------------
    -- Write_With_Check --

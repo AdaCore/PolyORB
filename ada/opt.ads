@@ -143,6 +143,11 @@ package Opt is
    --  Set to True if the binder needs to generate a file designed for
    --  building a library. May be set to True by Gnatbind.Scan_Bind_Arg.
 
+   Bind_Only : Boolean := False;
+   --  GNATMAKE
+   --  Set to True to skip compile and link steps
+   --  (except when Compile_Only and/or Link_Only are True).
+
    Brief_Output : Boolean := False;
    --  GNAT, GNATBIND
    --  Force brief error messages to standard error, even if verbose mode is
@@ -188,7 +193,7 @@ package Opt is
 
    Compile_Only : Boolean := False;
    --  GNATMAKE
-   --  Set to True to skip bind and link step.
+   --  Set to True to skip bind and link steps (except when Bind_Only is True)
 
    Compress_Debug_Names : Boolean := False;
    --  GNATMAKE
@@ -205,6 +210,11 @@ package Opt is
    Constant_Condition_Warnings : Boolean := False;
    --  GNAT
    --  Set to True to activate warnings on constant conditions
+
+   Create_Mapping_File : Boolean := False;
+   --  GNATMAKE
+   --  Set to True (-P or -C switch) to indicate that gnatmake
+   --  invokes the compiler with a mapping file (-gnatem compiler switch).
 
    subtype Debug_Level_Value is Nat range 0 .. 3;
    Debugger_Level : Debug_Level_Value := 0;
@@ -266,12 +276,19 @@ package Opt is
    --  GNAT
    --  Set to True to generate full elaboration warnings (-gnatwl)
 
+   Enable_Overflow_Checks : Boolean := False;
+   --  GNAT
+   --  Set to True if -gnato (enable overflow checks) switch is set
+
    type Exception_Mechanism_Type is (Setjmp_Longjmp, Front_End_ZCX, GCC_ZCX);
+   pragma Convention (C, Exception_Mechanism_Type);
+
    Exception_Mechanism : Exception_Mechanism_Type := Setjmp_Longjmp;
    --  GNAT
    --  Set to the appropriate value depending on the default as given in
    --  system.ads (ZCX_By_Default, GCC_ZCX_Support, Front_End_ZCX_Support)
-   --  and the use of -gnatL -gnatZ (and -gnatdX)
+   --  and the use of -gnatL -gnatZ (and -gnatdX). The C convention is
+   --  there to make this variable accessible to gigi.
 
    Exception_Tracebacks : Boolean := False;
    --  GNATBIND
@@ -331,6 +348,9 @@ package Opt is
    Force_RM_Elaboration_Order : Boolean := False;
    --  GNATBIND
    --  True if binding with forced RM elaboration order (-f switch set)
+   --  Note: this is considered an obsolescent option, to be removed in
+   --  some future release. it is no longer documented. The proper way
+   --  to get this effect is to use -gnatE and suppress elab checks.
 
    Full_List : Boolean := False;
    --  GNAT
@@ -425,6 +445,15 @@ package Opt is
    --  When True signals gnatmake to ignore compilation errors and keep
    --  processing sources until there is no more work.
 
+   Link_Only : Boolean := False;
+   --  GNATMAKE
+   --  Set to True to skip compile and bind steps
+   --  (except when Bind_Only is set to True).
+
+   List_Restrictions : Boolean := False;
+   --  GNATBIND
+   --  Set to True to list restrictions pragmas that could apply to partition
+
    List_Units : Boolean := False;
    --  GNAT
    --  List units in the active library
@@ -437,13 +466,35 @@ package Opt is
 
    List_Representation_Info : Int range 0 .. 3 := 0;
    --  GNAT
-   --  Set true by -gnatR switch to list representation information.
+   --  Set non-zero by -gnatR switch to list representation information.
    --  The settings are as follows:
    --
    --    0 = no listing of representation information (default as above)
    --    1 = list rep info for user defined record and array types
    --    2 = list rep info for all user defined types and objects
    --    3 = like 2, but variable fields are decoded symbolically
+
+   List_Representation_Info_To_File : Boolean := False;
+   --  GNAT
+   --  Set true by -gnatRs switch. Causes information from -gnatR/1/2/3
+   --  to be written to file.rep (where file is the name of the source
+   --  file) instead of stdout. For example, if file x.adb is compiled
+   --  using -gnatR2s then representation info is written to x.adb.ref.
+
+   type Creat_Repinfo_File_Proc is access procedure (Src : File_Name_Type);
+   type Write_Repinfo_Line_Proc is access procedure (Info : String);
+   type Close_Repinfo_File_Proc is access procedure;
+   --  Types used for procedure addresses below
+
+   Creat_Repinfo_File_Access : Creat_Repinfo_File_Proc := null;
+   Write_Repinfo_Line_Access : Write_Repinfo_Line_Proc := null;
+   Close_Repinfo_File_Access : Close_Repinfo_File_Proc := null;
+   --  These three locations are left null when operating in non-compiler
+   --  (e.g. ASIS mode), but when operating in compiler mode, they are
+   --  set to point to the three corresponding procedures in Osint. The
+   --  reason for this slightly strange interface is to prevent Repinfo
+   --  from dragging in Osint in ASIS mode, which would include a lot of
+   --  unwanted units in the ASIS build.
 
    Locking_Policy : Character := ' ';
    --  GNAT
@@ -456,6 +507,11 @@ package Opt is
    --  Set to False if a -I- was present on the command line.
    --  When True we are allowed to look in the primary directory to locate
    --  other source or library files.
+
+   Mapping_File_Name : String_Ptr := null;
+   --  GNAT
+   --  File name of mapping between unit names, file names and path names.
+   --  (given by switch -gnatem)
 
    Maximum_Errors : Int := 9999;
    --  GNAT, GNATBIND
@@ -554,18 +610,15 @@ package Opt is
    --  GNATMAKE
    --  Set to True if the list of compilation commands should not be output.
 
+   RTS_Switch : Boolean := False;
+   --  GNATMAKE, GNATBIND
+   --  Set to True when the --RTS switch is set
+
    Shared_Libgnat : Boolean;
    --  GNATBIND
    --  Set to True if a shared libgnat is requested by using the -shared
    --  option for GNATBIND and to False when using the -static option. The
    --  value of this switch is set by Gnatbind.Scan_Bind_Arg.
-
-   Software_Overflow_Checking : Boolean;
-   --  GNAT
-   --  Set to True by Osint.Initialize if the target requires the software
-   --  approach to integer arithmetic overflow checking (i.e. the use of
-   --  double length arithmetic followed by a range check). Set to False
-   --  if the target implements hardware overflow checking.
 
    Stack_Checking_Enabled : Boolean;
    --  GNAT
@@ -600,8 +653,13 @@ package Opt is
    --  be located as Chars (Expression (System_Extend_Pragma_Arg)).
 
    Subunits_Missing : Boolean := False;
+   --  GNAT
    --  This flag is set true if missing subunits are detected with code
    --  generation active. This causes code generation to be skipped.
+
+   Suppress_Checks : Boolean := False;
+   --  GNAT
+   --  Set to True if -gnatp (suppress all checks) switch present.
 
    Suppress_Options : Suppress_Record;
    --  GNAT
@@ -741,7 +799,6 @@ package Opt is
    --  handling mode set by argument switches (-gnatZ/-gnatL). If the
    --  value is set by one of these switches, then Zero_Cost_Exceptions_Set
    --  is set to True, and Zero_Cost_Exceptions_Val indicates the setting.
-   --  This value is used to reset ZCX_By_Default_On_Target.
 
    ----------------------------
    -- Configuration Settings --

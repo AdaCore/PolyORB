@@ -55,52 +55,79 @@ package body Prj is
 
    Standard_Dot_Replacement      : constant Name_Id :=
      First_Name_Id + Character'Pos ('-');
-   Standard_Specification_Append : Name_Id;
-   Standard_Body_Append          : Name_Id;
 
    Std_Naming_Data : Naming_Data :=
-     (Dot_Replacement      => Standard_Dot_Replacement,
-      Dot_Repl_Loc         => No_Location,
-      Casing               => All_Lower_Case,
-      Specification_Append => No_Name,
-      Spec_Append_Loc      => No_Location,
-      Body_Append          => No_Name,
-      Body_Append_Loc      => No_Location,
-      Separate_Append      => No_Name,
-      Sep_Append_Loc       => No_Location,
-      Specifications       => No_Array_Element,
-      Bodies               => No_Array_Element);
+     (Current_Language          => No_Name,
+      Dot_Replacement           => Standard_Dot_Replacement,
+      Dot_Repl_Loc              => No_Location,
+      Casing                    => All_Lower_Case,
+      Specification_Suffix      => No_Array_Element,
+      Current_Spec_Suffix       => No_Name,
+      Spec_Suffix_Loc           => No_Location,
+      Implementation_Suffix     => No_Array_Element,
+      Current_Impl_Suffix       => No_Name,
+      Impl_Suffix_Loc           => No_Location,
+      Separate_Suffix           => No_Name,
+      Sep_Suffix_Loc            => No_Location,
+      Specifications            => No_Array_Element,
+      Bodies                    => No_Array_Element,
+      Specification_Exceptions  => No_Array_Element,
+      Implementation_Exceptions => No_Array_Element);
 
-   Project_Empty : Project_Data :=
-     (First_Referred_By  => No_Project,
-      Name               => No_Name,
-      Path_Name          => No_Name,
-      Location           => No_Location,
-      Directory          => No_Name,
-      File_Name          => No_Name,
-      Library            => False,
-      Library_Dir        => No_Name,
-      Library_Name       => No_Name,
-      Library_Kind       => Static,
-      Lib_Internal_Name  => No_Name,
-      Lib_Elaboration    => False,
-      Sources            => Nil_String,
-      Source_Dirs        => Nil_String,
-      Object_Directory   => No_Name,
-      Modifies           => No_Project,
-      Modified_By        => No_Project,
-      Naming             => Std_Naming_Data,
-      Decl               => No_Declarations,
-      Imported_Projects  => Empty_Project_List,
-      Include_Path       => null,
-      Objects_Path       => null,
-      Config_File_Name   => No_Name,
-      Config_File_Temp   => False,
-      Config_Checked     => False,
-      Checked            => False,
-      Seen               => False,
-      Flag1              => False,
-      Flag2              => False);
+   Project_Empty : constant Project_Data :=
+     (First_Referred_By            => No_Project,
+      Name                         => No_Name,
+      Path_Name                    => No_Name,
+      Location                     => No_Location,
+      Directory                    => No_Name,
+      Library                      => False,
+      Library_Dir                  => No_Name,
+      Library_Name                 => No_Name,
+      Library_Kind                 => Static,
+      Lib_Internal_Name            => No_Name,
+      Lib_Elaboration              => False,
+      Sources_Present              => True,
+      Sources                      => Nil_String,
+      Source_Dirs                  => Nil_String,
+      Object_Directory             => No_Name,
+      Exec_Directory               => No_Name,
+      Modifies                     => No_Project,
+      Modified_By                  => No_Project,
+      Naming                       => Std_Naming_Data,
+      Decl                         => No_Declarations,
+      Imported_Projects            => Empty_Project_List,
+      Include_Path                 => null,
+      Objects_Path                 => null,
+      Config_File_Name             => No_Name,
+      Config_File_Temp             => False,
+      Config_Checked               => False,
+      Language_Independent_Checked => False,
+      Checked                      => False,
+      Seen                         => False,
+      Flag1                        => False,
+      Flag2                        => False);
+
+   Default_Specification_Suffixs  : Array_Element_Id := No_Array_Element;
+
+   Default_Implementation_Suffixs : Array_Element_Id := No_Array_Element;
+
+   --------------------------
+   -- Default_Impl_Suffixs --
+   --------------------------
+
+   function Default_Impl_Suffixs return Array_Element_Id is
+   begin
+      return Default_Implementation_Suffixs;
+   end Default_Impl_Suffixs;
+
+   --------------------------
+   -- Default_Spec_Suffixs --
+   --------------------------
+
+   function Default_Spec_Suffixs return Array_Element_Id is
+   begin
+      return Default_Specification_Suffixs;
+   end Default_Spec_Suffixs;
 
    -------------------
    -- Empty_Project --
@@ -192,22 +219,113 @@ package body Prj is
          The_Empty_String := End_String;
          Name_Len := 4;
          Name_Buffer (1 .. 4) := ".ads";
-         Canonical_Case_File_Name (Name_Buffer (1 .. 4));
-         Standard_Specification_Append := Name_Find;
-         Name_Buffer (4) := 'b';
-         Canonical_Case_File_Name (Name_Buffer (1 .. 4));
-         Standard_Body_Append := Name_Find;
-         Std_Naming_Data.Specification_Append := Standard_Specification_Append;
-         Std_Naming_Data.Body_Append          := Standard_Body_Append;
-         Std_Naming_Data.Separate_Append      := Standard_Body_Append;
-         Project_Empty.Naming                 := Std_Naming_Data;
+         Default_Ada_Spec_Suffix := Name_Find;
+         Name_Len := 4;
+         Name_Buffer (1 .. 4) := ".adb";
+         Default_Ada_Impl_Suffix := Name_Find;
+         Std_Naming_Data.Current_Spec_Suffix := Default_Ada_Spec_Suffix;
+         Std_Naming_Data.Current_Impl_Suffix := Default_Ada_Impl_Suffix;
+         Std_Naming_Data.Separate_Suffix     := Default_Ada_Impl_Suffix;
          Prj.Env.Initialize;
          Prj.Attr.Initialize;
-         Set_Name_Table_Byte (Name_Project,   Token_Type'Pos (Tok_Project));
-         Set_Name_Table_Byte (Name_Modifying, Token_Type'Pos (Tok_Modifying));
-         Set_Name_Table_Byte (Name_External,  Token_Type'Pos (Tok_External));
+         Set_Name_Table_Byte (Name_Project,  Token_Type'Pos (Tok_Project));
+         Set_Name_Table_Byte (Name_Extends,  Token_Type'Pos (Tok_Extends));
+         Set_Name_Table_Byte (Name_External, Token_Type'Pos (Tok_External));
       end if;
    end Initialize;
+
+   ------------------------------------
+   -- Register_Default_Naming_Scheme --
+   ------------------------------------
+
+   procedure Register_Default_Naming_Scheme
+     (Language            : Name_Id;
+      Default_Spec_Suffix : Name_Id;
+      Default_Impl_Suffix : Name_Id)
+   is
+      Lang : Name_Id;
+      Suffix : Array_Element_Id;
+      Found : Boolean := False;
+      Element : Array_Element;
+
+      Spec_Str : String_Id;
+      Impl_Str : String_Id;
+
+   begin
+      --  The following code is completely uncommented ???
+
+      Get_Name_String (Language);
+      Name_Buffer (1 .. Name_Len) := To_Lower (Name_Buffer (1 .. Name_Len));
+      Lang := Name_Find;
+
+      Get_Name_String (Default_Spec_Suffix);
+      Start_String;
+      Store_String_Chars (Name_Buffer (1 .. Name_Len));
+      Spec_Str := End_String;
+
+      Get_Name_String (Default_Impl_Suffix);
+      Start_String;
+      Store_String_Chars (Name_Buffer (1 .. Name_Len));
+      Impl_Str := End_String;
+
+      Suffix := Default_Specification_Suffixs;
+      Found := False;
+
+      while Suffix /= No_Array_Element and then not Found loop
+         Element := Array_Elements.Table (Suffix);
+
+         if Element.Index = Lang then
+            Found := True;
+            Element.Value.Value := Spec_Str;
+            Array_Elements.Table (Suffix) := Element;
+
+         else
+            Suffix := Element.Next;
+         end if;
+      end loop;
+
+      if not Found then
+         Element :=
+           (Index => Lang,
+            Value => (Kind     => Single,
+                      Location => No_Location,
+                      Default  => False,
+                      Value    => Spec_Str),
+            Next  => Default_Specification_Suffixs);
+         Array_Elements.Increment_Last;
+         Array_Elements.Table (Array_Elements.Last) := Element;
+         Default_Specification_Suffixs := Array_Elements.Last;
+      end if;
+
+      Suffix := Default_Implementation_Suffixs;
+      Found := False;
+
+      while Suffix /= No_Array_Element and then not Found loop
+         Element := Array_Elements.Table (Suffix);
+
+         if Element.Index = Lang then
+            Found := True;
+            Element.Value.Value := Impl_Str;
+            Array_Elements.Table (Suffix) := Element;
+
+         else
+            Suffix := Element.Next;
+         end if;
+      end loop;
+
+      if not Found then
+         Element :=
+           (Index => Lang,
+            Value => (Kind     => Single,
+                      Location => No_Location,
+                      Default  => False,
+                      Value    => Impl_Str),
+            Next  => Default_Implementation_Suffixs);
+         Array_Elements.Increment_Last;
+         Array_Elements.Table (Array_Elements.Last) := Element;
+         Default_Implementation_Suffixs := Array_Elements.Last;
+      end if;
+   end Register_Default_Naming_Scheme;
 
    ------------
    --  Reset --
@@ -236,9 +354,9 @@ package body Prj is
    begin
       return Left.Dot_Replacement = Right.Dot_Replacement
         and then Left.Casing = Right.Casing
-        and then Left.Specification_Append = Right.Specification_Append
-        and then Left.Body_Append = Right.Body_Append
-        and then Left.Separate_Append = Right.Separate_Append;
+        and then Left.Current_Spec_Suffix = Right.Current_Spec_Suffix
+        and then Left.Current_Impl_Suffix = Right.Current_Impl_Suffix
+        and then Left.Separate_Suffix = Right.Separate_Suffix;
    end Same_Naming_Scheme;
 
    ----------
@@ -283,4 +401,9 @@ package body Prj is
       raise Constraint_Error;
    end Value;
 
+begin
+   --  Make sure that the standard project file extension is compatible
+   --  with canonical case file naming.
+
+   Canonical_Case_File_Name (Project_File_Extension);
 end Prj;

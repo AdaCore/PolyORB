@@ -74,13 +74,13 @@ package body Debug is
    --  dD   Delete elaboration checks in inner level routines
    --  dE   Apply elaboration checks to predefined units
    --  dF   Front end data layout enabled.
-   --  dG   Generate input showing file creating info for debug file
+   --  dG
    --  dH   Hold (kill) call to gigi
    --  dI   Inhibit internal name numbering in gnatG listing
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK   Kill all error messages
    --  dL   Output trace information on elaboration checking
-   --  dM
+   --  dM   Modified ali file output
    --  dN   Do not generate file/line exception messages
    --  dO   Output immediate error messages
    --  dP   Do not check for controlled objects in preelaborable packages
@@ -124,7 +124,7 @@ package body Debug is
    --  do
    --  dp
    --  dq
-   --  dr  List additional restrictions that may be specified
+   --  dr
    --  ds
    --  dt
    --  du  List units as they are acquired
@@ -192,6 +192,10 @@ package body Debug is
    --       resolved, or evaluated. This option is useful for finding out
    --       exactly where a bomb during semantic analysis is occurring.
 
+   --  dA   Normally the output from -gnatR excludes private types and all
+   --       internal entities. This debug flag causes representation info
+   --       for these entities to be output as well.
+
    --  db   In Exp_Dbug, certain type names are encoded to include debugging
    --       information. This debug switch causes lines to be output showing
    --       the encodings used.
@@ -238,9 +242,6 @@ package body Debug is
    --       non-source generated null statements, and freeze nodes, which
    --       are normally omitted in -gnatG mode.
 
-   --  dG   Print trace information showing calls to Create_Debug_Source and
-   --       Write_Debug_Line. Used for debugging -gnatD operation problems.
-
    --  dh   Generates a table at the end of a compilation showing how the hash
    --       table chains built by the Namet package are loaded. This is useful
    --       in ensuring that the hashing algorithm (in Namet.Hash) is working
@@ -283,6 +284,11 @@ package body Debug is
    --       Of course they may not have any useful effect, and in particular
    --       attempting to generate code with this flag set may blow up.
    --       The flag also forces the use of 64-bits for Long_Integer.
+
+   --  dM   Generate modified ALI output. Several ALI extensions are being
+   --       developed for version 3.15w, and this switch is used to enable
+   --       these extensions. This switch will disappear when this work is
+   --       completed.
 
    --  dn   Generate messages for node/list allocation. Each time a node or
    --       list header is allocated, a line of output is generated. Certain
@@ -457,9 +463,6 @@ package body Debug is
    --  dn  List details of manipulation of Num_Pred values during execution of
    --      the algorithm used to determine a correct order of elaboration. This
    --      is useful in diagnosing any problems in its behavior.
-
-   --  dr  List restrictions which have not been specified, but could have
-   --      been without causing bind errors.
 
    --  du  List unit name and file name for each unit as it is read in
 

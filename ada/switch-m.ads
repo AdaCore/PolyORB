@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              P R J . D E C T                             --
+--                             S W I T C H - M                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--          Copyright (C) 2001 Free Software Foundation, Inc.               --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,16 +26,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Parse a list of declarative items in a project file
+--  This package scans make switches. Note that the body of Usage must be
+--  coordinated with the switches that are recognized by this package.
+--  The Usage package also acts as the official documentation for the
+--  switches that are recognized. In addition, package Debug documents
+--  the otherwise undocumented debug switches that are also recognized.
 
-with Prj.Tree;
+package Switch.M is
 
-private package Prj.Dect is
+   procedure Scan_Make_Switches (Switch_Chars : String);
+   --  Procedures to scan out binder switches stored in the given string.
+   --  The first character is known to be a valid switch character, and there
+   --  are no blanks or other switch terminator characters in the string, so
+   --  the entire string should consist of valid switch characters, except that
+   --  an optional terminating NUL character is allowed. A bad switch causes
+   --  a fatal error exit and control does not return. The call also sets
+   --  Usage_Requested to True if a ? switch is encountered.
 
-   procedure Parse
-     (Declarations    : out Prj.Tree.Project_Node_Id;
-      Current_Project : Prj.Tree.Project_Node_Id;
-      Extends         : Prj.Tree.Project_Node_Id);
-   --  Parse project declarative items. What are parameters ???
-
-end Prj.Dect;
+end Switch.M;

@@ -121,7 +121,7 @@ pragma Preelaborate (Types);
    --  Procedure for freeing dynamically allocated String values
 
    subtype Word_Hex_String is String (1 .. 8);
-   --  Type used to represent Word value as 8 hex digits, with upper case
+   --  Type used to represent Word value as 8 hex digits, with lower case
    --  letters for the alphabetic cases.
 
    function Get_Hex_String (W : Word) return Word_Hex_String;
@@ -199,7 +199,7 @@ pragma Preelaborate (Types);
    --  character in the source buffer. As noted above, diffferent source
    --  buffers have different ranges, so it is possible to tell from a
    --  Source_Ptr value which source it refers to. Note that negative numbers
-   --  are allowed to accomodate the following special values.
+   --  are allowed to accommodate the following special values.
 
    No_Location : constant Source_Ptr := -1;
    --  Value used to indicate no source position set in a node
@@ -621,6 +621,10 @@ pragma Preelaborate (Types);
    --  although this is not a private type, clients should not rely on the
    --  exact way in which this string is represented, and instead should
    --  use the subprograms below.
+
+   Dummy_Time_Stamp : constant Time_Stamp_Type := (others => '0');
+   --  This is used for dummy time stamp values used in the D lines for
+   --  non-existant files, and is intended to be an impossible value.
 
    function "="  (Left, Right : Time_Stamp_Type) return Boolean;
    function "<=" (Left, Right : Time_Stamp_Type) return Boolean;

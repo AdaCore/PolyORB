@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,7 +39,7 @@
 --    from tools that do not want to include the compiler front end.
 
 --  Note that this unit does depend on several of the compiler front-end
---  sources, including osint. If it is necesary to scan source file name
+--  sources, including osint. If it is necessary to scan source file name
 --  pragmas with less dependence on such sources, look at unit SFN_Scan.
 
 package Fname.SF is

@@ -35,7 +35,7 @@ with System.WCh_Con; use System.WCh_Con;
 procedure Usage is
 
    procedure Write_Switch_Char (Sw : String; Prefix : String := "gnat");
-   --  Output two spaces followed by default switch character followed
+   --  Output two spaces followed by the switch character minus followed
    --  Prefix, followed by the string given as the argument, and then
    --  enough blanks to tab to column 13, i.e. assuming Sw is not longer
    --  than 5 characters, the maximum allowed, Write_Switch_Char will
@@ -43,8 +43,7 @@ procedure Usage is
 
    procedure Write_Switch_Char (Sw : String; Prefix : String := "gnat") is
    begin
-      Write_Str ("  ");
-      Write_Char (Switch_Character);
+      Write_Str ("  -");
       Write_Str (Prefix);
       Write_Str (Sw);
 
@@ -155,6 +154,11 @@ begin
    Write_Switch_Char ("ec?");
    Write_Line ("Specify configuration pragmas file, e.g. -gnatec/x/f.adc");
 
+   --  Line for -gnatem switch
+
+   Write_Switch_Char ("em?");
+   Write_Line ("Specify mapping file, e.g. -gnatemmapping");
+
    --  Line for -gnatE switch
 
    Write_Switch_Char ("E");
@@ -188,7 +192,7 @@ begin
    --  Line for -gnati switch
 
    Write_Switch_Char ("i?");
-   Write_Line ("Identifier char set (?=1/2/3/4/8/p/f/n/w)");
+   Write_Line ("Identifier char set (?=1/2/3/4/5/8/p/f/n/w)");
 
    --  Line for -gnatk switch
 
@@ -287,9 +291,25 @@ begin
 
    --  Line for -gnatV switch
 
-   Write_Switch_Char ("V?");
+   Write_Switch_Char ("Vxx");
    Write_Line
-     ("Validity checking (?=ndcte or 0-4 None/Default/Copy/Test/Exprs)");
+     ("Enable selected validity checking mode, xx = list of parameters:");
+   Write_Line ("        a    turn on all validity checking options");
+   Write_Line ("        c    turn on validity checking for copies");
+   Write_Line ("        C    turn off validity checking for copies");
+   Write_Line ("        f    turn on validity checking for floating-point");
+   Write_Line ("        F    turn off validity checking for floating-point");
+   Write_Line ("        i    turn on validity checking for in params");
+   Write_Line ("        I    turn off validity checking for in params");
+   Write_Line ("        m    turn on validity checking for in out params");
+   Write_Line ("        M    turn off validity checking for in out params");
+   Write_Line ("        r    turn on validity checking for returns");
+   Write_Line ("        R    turn off validity checking for returns");
+   Write_Line ("        s    turn on validity checking for subscripts");
+   Write_Line ("        S    turn off validity checking for subscripts");
+   Write_Line ("        t    turn on validity checking for tests");
+   Write_Line ("        T    turn off validity checking for tests");
+   Write_Line ("        n    turn off all validity checks (including RM)");
 
    --  Lines for -gnatw switch
 
@@ -349,7 +369,7 @@ begin
    --  Lines for -gnaty switch
 
    Write_Switch_Char ("y");
-   Write_Line ("Enable all style checks");
+   Write_Line ("Enable all style checks except 'o', indent=3");
 
    Write_Switch_Char ("yxx");
    Write_Line ("Enable selected style checks xx = list of parameters:");

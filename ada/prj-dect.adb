@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with Errout;     use Errout;
+with Namet;      use Namet;
 with Prj.Strt;
 with Prj.Tree;   use Prj.Tree;
 with Scans;      use Scans;
@@ -88,14 +89,15 @@ package body Prj.Dect is
    procedure Parse
      (Declarations    : out Project_Node_Id;
       Current_Project : Project_Node_Id;
-      Modifying       : Project_Node_Id)
+      Extends         : Project_Node_Id)
    is
       First_Declarative_Item : Project_Node_Id := Empty_Node;
 
    begin
       Declarations := Default_Project_Node (Of_Kind => N_Project_Declaration);
       Set_Location_Of (Declarations, To => Token_Ptr);
-      Set_Modified_Project_Of (Declarations, To => Modifying);
+      Set_Modified_Project_Of (Declarations, To => Extends);
+      Set_Project_Declaration_Of (Current_Project, Declarations);
       Parse_Declarative_Items
         (Declarations    => First_Declarative_Item,
          In_Zone         => In_Project,
@@ -131,6 +133,13 @@ package body Prj.Dect is
       if Token = Tok_Identifier then
          Set_Name_Of (Attribute, To => Token_Name);
          Set_Location_Of (Attribute, To => Token_Ptr);
+
+         if Attributes.Table (Current_Attribute).Kind_2 =
+                            Case_Insensitive_Associative_Array
+         then
+            Set_Case_Insensitive (Attribute, To => True);
+         end if;
+
          while Current_Attribute /= Empty_Attribute
            and then
              Attributes.Table (Current_Attribute).Name /= Token_Name
@@ -139,7 +148,10 @@ package body Prj.Dect is
          end loop;
 
          if Current_Attribute = Empty_Attribute then
-            Error_Msg ("undefined attribute", Token_Ptr);
+            Error_Msg ("undefined attribute """ &
+                       Get_Name_String (Name_Of (Attribute)) &
+                       """",
+                       Token_Ptr);
          end if;
 
          Scan;
@@ -149,7 +161,10 @@ package body Prj.Dect is
          if Current_Attribute /= Empty_Attribute
            and then Attributes.Table (Current_Attribute).Kind_2 = Single
          then
-            Error_Msg ("this attribute cannot be an associative array",
+            Error_Msg ("the attribute """ &
+                       Get_Name_String
+                          (Attributes.Table (Current_Attribute).Name) &
+                       """ cannot be an associative array",
                        Location_Of (Attribute));
          end if;
 
@@ -170,9 +185,12 @@ package body Prj.Dect is
       else
          if Current_Attribute /= Empty_Attribute
            and then
-             Attributes.Table (Current_Attribute).Kind_2 = Associative_Array
+             Attributes.Table (Current_Attribute).Kind_2 /= Single
          then
-            Error_Msg ("this attribute need to be an associative array",
+            Error_Msg ("the attribute """ &
+                       Get_Name_String
+                          (Attributes.Table (Current_Attribute).Name) &
+                       """ needs to be an associative array",
                        Location_Of (Attribute));
          end if;
       end if;
@@ -204,7 +222,10 @@ package body Prj.Dect is
                                           Expression_Kind_Of (Expression)
             then
                Error_Msg
-                 ("wrong expression kind for the attribute",
+                 ("wrong expression kind for attribute """ &
+                  Get_Name_String
+                    (Attributes.Table (Current_Attribute).Name) &
+                  """",
                   Expression_Location);
             end if;
          end;
@@ -268,7 +289,10 @@ package body Prj.Dect is
          String_Type := String_Type_Of (Case_Variable);
 
          if String_Type = Empty_Node then
-            Error_Msg ("this variable is not typed", Variable_Location);
+            Error_Msg ("variable """ &
+                       Get_Name_String (Name_Of (Case_Variable)) &
+                       """ is not typed",
+                       Variable_Location);
          end if;
       end if;
 
@@ -528,7 +552,10 @@ package body Prj.Dect is
          end loop;
 
          if Current_Package  = Empty_Package then
-            Error_Msg ("not an allowed package name", Token_Ptr);
+            Error_Msg ("""" &
+                       Get_Name_String (Name_Of (Package_Declaration)) &
+                       """ is not an allowed package name",
+                       Token_Ptr);
 
          else
             Set_Package_Id_Of (Package_Declaration, To => Current_Package);
@@ -545,7 +572,10 @@ package body Prj.Dect is
 
                if Current /= Empty_Node then
                   Error_Msg
-                    ("package declared twice in the same project", Token_Ptr);
+                    ("package """ &
+                     Get_Name_String (Name_Of (Package_Declaration)) &
+                     """ is declared twice in the same project",
+                     Token_Ptr);
 
                else
                   --  Add the package to the project list
@@ -586,7 +616,9 @@ package body Prj.Dect is
                end loop;
 
                if Clause = Empty_Node then
-                  Error_Msg ("not an imported project", Token_Ptr);
+                  Error_Msg ("""" &
+                             Get_Name_String (Project_Name) &
+                             """ is not an imported project", Token_Ptr);
                else
                   Set_Project_Of_Renamed_Package_Of
                     (Package_Declaration, To => The_Project);
@@ -622,7 +654,9 @@ package body Prj.Dect is
 
                         if Current = Empty_Node then
                            Error_Msg
-                             ("not a package declared by the project",
+                             ("""" &
+                              Get_Name_String (Token_Name) &
+                              """ is not a package declared by the project",
                               Token_Ptr);
                         end if;
                      end;
@@ -719,7 +753,10 @@ package body Prj.Dect is
          end loop;
 
          if Current /= Empty_Node then
-            Error_Msg ("duplicate string type name", Token_Ptr);
+            Error_Msg ("duplicate string type name """ &
+                       Get_Name_String (Token_Name) &
+                       """",
+                       Token_Ptr);
          else
             Current := First_Variable_Of (Current_Project);
             while Current /= Empty_Node
@@ -729,7 +766,9 @@ package body Prj.Dect is
             end loop;
 
             if Current /= Empty_Node then
-               Error_Msg ("already a variable name", Token_Ptr);
+               Error_Msg ("""" &
+                          Get_Name_String (Token_Name) &
+                          """ is already a variable name", Token_Ptr);
             else
                Set_Next_String_Type
                  (String_Type, To => First_String_Type_Of (Current_Project));
@@ -843,7 +882,11 @@ package body Prj.Dect is
                         if The_Project_Name_And_Node =
                           Tree_Private_Part.No_Project_Name_And_Node
                         then
-                           Error_Msg ("unknown project", Project_Location);
+                           Error_Msg ("unknown project """ &
+                                      Get_Name_String
+                                         (Project_String_Type_Name) &
+                                      """",
+                                      Project_Location);
                            Current := Empty_Node;
                         else
                            Current :=
@@ -860,7 +903,10 @@ package body Prj.Dect is
                   end loop;
 
                   if Current = Empty_Node then
-                     Error_Msg ("unknown string type", Type_Location);
+                     Error_Msg ("unknown string type """ &
+                                Get_Name_String (String_Type_Name) &
+                                """",
+                                Type_Location);
                   else
                      Set_String_Type_Of
                        (Variable, To => Current);
@@ -929,7 +975,9 @@ package body Prj.Dect is
                   if Expression_Kind_Of (The_Variable) /=
                                                  Expression_Kind_Of (Variable)
                   then
-                     Error_Msg ("wrong expression kind for the variable",
+                     Error_Msg ("wrong expression kind for variable """ &
+                                Get_Name_String (Name_Of (The_Variable)) &
+                                """",
                                 Expression_Location);
                   end if;
                end if;

@@ -36,7 +36,7 @@ package Rident is
    --  identifiers not taking a parameter that are implemented in GNAT.
    --  To add a new restriction identifier, add an entry with the name
    --  to be used in the pragma, and add appropriate calls to the
-   --  Check_Restriction routine.
+   --  Restrict.Check_Restriction routine.
 
    type Restriction_Id is (
 
@@ -73,6 +73,7 @@ package Rident is
       No_Reentrancy,                           -- (RM H.4(23))
       No_Relative_Delay,                       -- GNAT
       No_Requeue,                              -- GNAT
+      No_Secondary_Stack,                      -- GNAT
       No_Select_Statements,                    -- GNAT (Ravenscar)
       No_Standard_Storage_Pools,               -- GNAT
       No_Streams,                              -- GNAT
@@ -80,6 +81,7 @@ package Rident is
       No_Task_Attributes,                      -- GNAT
       No_Task_Hierarchy,                       -- (RM D.7(3), H.4(3))
       No_Task_Termination,                     -- GNAT
+      No_Tasking,                              -- GNAT
       No_Terminate_Alternatives,               -- (RM D.7(6))
       No_Unchecked_Access,                     -- (RM H.4(18))
       No_Unchecked_Conversion,                 -- (RM H.4(16))
@@ -98,6 +100,10 @@ package Rident is
 
       Not_A_Restriction_Id);
 
+   subtype All_Restrictions is
+     Restriction_Id range Boolean_Entry_Barriers .. No_Elaboration_Code;
+   --  All restrictions except Not_A_Restriction_Id
+
    --  The following range of Restriction identifiers is checked for
    --  consistency across a partition. The generated ali file is marked
    --  for each entry to show one of three possibilities:
@@ -110,8 +116,9 @@ package Rident is
      Restriction_Id range Boolean_Entry_Barriers .. Static_Storage_Size;
 
    --  The following set of Restriction identifiers is not checked for
-   --  consistency across a partition, and the generated ali files does
-   --  not carry any indications with respect to such restrictions.
+   --  consistency across a partition. The generated ali file still
+   --  contains indications of the above three possibilities for the
+   --  purposes of listing applicable restrictions.
 
    subtype Compilation_Unit_Restrictions is
      Restriction_Id range Immediate_Reclamation .. No_Elaboration_Code;
@@ -120,7 +127,7 @@ package Rident is
    --  parameter identifiers taking a parameter that are implemented in
    --  GNAT. To add a new restriction parameter identifier, add an entry
    --  with the name to be used in the pragma, and add appropriate
-   --  calls to Check_Restriction.
+   --  calls to Restrict.Check_Restriction.
 
    --  Note: the GNAT implementation currently only accomodates restriction
    --  parameter identifiers whose expression value is a non-negative
@@ -136,4 +143,28 @@ package Rident is
      Max_Tasks,                               -- (RM D.7(19), H.4(3))
      Not_A_Restriction_Parameter_Id);
 
+   --  The following array defines those restrictions that should be output
+   --  if the gnatbind -r switch is used. Not all restrictions are output
+   --  for the reasons given below in the list, and this array is used to
+   --  test whether the corresponding pragma should be listed. True means
+   --  that it should not be listed.
+
+   No_Restriction_List : array (Restriction_Id) of Boolean :=
+     (
+      No_Implicit_Conditionals => True,
+      --  This could modify and pessimize generated code
+
+      No_Implicit_Dynamic_Code => True,
+      --  This could modify and pessimize generated code
+
+      No_Implicit_Loops        => True,
+      --  This could modify and pessimize generated code
+
+      No_Recursion             => True,
+      --  Not checkable at compile time
+
+      No_Reentrancy            => True,
+      --  Not checkable at compile time
+
+      others                   => False);
 end Rident;

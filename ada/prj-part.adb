@@ -51,8 +51,6 @@ package body Prj.Part is
 
    Dir_Sep  : Character renames GNAT.OS_Lib.Directory_Separator;
 
-   Project_File_Extension : String := ".gpr";
-
    Project_Path : String_Access;
    --  The project path; initialized during package elaboration.
 
@@ -136,7 +134,8 @@ package body Prj.Part is
          end if;
       end loop;
 
-      --  There is no directory separator in name. Return "./" or ".\".
+      --  There is no directory separator in name. Return "./" or ".\"
+
       Name_Len := 2;
       Name_Buffer (1) := '.';
       Name_Buffer (2) := Dir_Sep;
@@ -169,14 +168,9 @@ package body Prj.Part is
                                  Directory   => Current_Directory);
 
       begin
-         --  Initialize the tables
-
-         Tree_Private_Part.Project_Nodes.Set_Last (Empty_Node);
-         Tree_Private_Part.Projects_Htable.Reset;
-
          Errout.Initialize;
 
-         --  And parse the main project file
+         --  Parse the main project file
 
          if Path_Name = "" then
             Fail ("project file """ & Project_File_Name & """ not found");
@@ -227,41 +221,21 @@ package body Prj.Part is
       Context_Clause := Empty_Node;
       With_Loop :
 
-      --  If Token is not "with", there is no context clause,
+      --  If Token is not WITH, there is no context clause,
       --  or we have exhausted the with clauses.
 
       while Token = Tok_With loop
          Comma_Loop :
          loop
-            --  Scan past "with" or ","
+            Scan; -- scan past WITH or ","
 
-            Scan;
             Expect (Tok_String_Literal, "literal string");
 
             if Token /= Tok_String_Literal then
                return;
             end if;
 
-            --  New with clause
-
-            if Current_With_Clause = Empty_Node then
-
-               --  First with clause of the context clause
-
-               Current_With_Clause := Default_Project_Node
-                 (Of_Kind => N_With_Clause);
-               Context_Clause := Current_With_Clause;
-
-            else
-               Next_With_Clause := Default_Project_Node
-                 (Of_Kind => N_With_Clause);
-               Set_Next_With_Clause_Of (Current_With_Clause, Next_With_Clause);
-               Current_With_Clause := Next_With_Clause;
-            end if;
-
-            Set_String_Value_Of (Current_With_Clause, Strval (Token_Node));
-            Set_Location_Of     (Current_With_Clause, Token_Ptr);
-            String_To_Name_Buffer (String_Value_Of (Current_With_Clause));
+            String_To_Name_Buffer (Strval (Token_Node));
 
             declare
                Original_Path : constant String :=
@@ -285,7 +259,41 @@ package body Prj.Part is
 
                   Error_Msg ("unknown project file: {", Token_Ptr);
 
+                  --  If this is not imported by the main project file,
+                  --  display the import path.
+
+                  if Project_Stack.Last > 1 then
+                     for Index in reverse 1 .. Project_Stack.Last loop
+                        Error_Msg_Name_1 := Project_Stack.Table (Index);
+                        Error_Msg ("\imported by {", Token_Ptr);
+                     end loop;
+                  end if;
+
                else
+                  --  New with clause
+
+                  if Current_With_Clause = Empty_Node then
+
+                     --  First with clause of the context clause
+
+                     Current_With_Clause := Default_Project_Node
+                       (Of_Kind => N_With_Clause);
+                     Context_Clause := Current_With_Clause;
+
+                  else
+                     Next_With_Clause := Default_Project_Node
+                       (Of_Kind => N_With_Clause);
+                     Set_Next_With_Clause_Of
+                       (Current_With_Clause, Next_With_Clause);
+                     Current_With_Clause := Next_With_Clause;
+                  end if;
+
+                  Set_String_Value_Of
+                    (Current_With_Clause, Strval (Token_Node));
+                  Set_Location_Of (Current_With_Clause, Token_Ptr);
+                  String_To_Name_Buffer
+                    (String_Value_Of (Current_With_Clause));
+
                   --  Parse the imported project
 
                   Parse_Single_Project
@@ -312,9 +320,8 @@ package body Prj.Part is
             if Token = Tok_Semicolon then
 
                --  End of (possibly multiple) with clause;
-               --  Scan past the semicolon.
 
-               Scan;
+               Scan; -- scan past the semicolon.
                exit Comma_Loop;
 
             elsif Token /= Tok_Comma then
@@ -396,7 +403,7 @@ package body Prj.Part is
 
                if A_Project_Name_And_Node.Modified then
                   Error_Msg
-                    ("cannot modify several times the same project file",
+                    ("cannot modify the same project file several times",
                      Token_Ptr);
 
                else
@@ -472,11 +479,11 @@ package body Prj.Part is
 
       Expect (Tok_Project, "project");
 
-      --  Scan past "project"
+      --  Mark location of PROJECT token if present
 
       if Token = Tok_Project then
          Set_Location_Of (Project, Token_Ptr);
-         Scan;
+         Scan; -- scan past project
       end if;
 
       Expect (Tok_Identifier, "identifier");
@@ -529,20 +536,14 @@ package body Prj.Part is
             end if;
          end;
 
-         --  Scan past the project name
-
-         Scan;
-
+         Scan; -- scan past the project name
       end if;
 
-      if Token = Tok_Modifying then
+      if Token = Tok_Extends then
 
-         --  We are modifying another project
+         --  We are extending another project
 
-         --  Scan past "modifying"
-
-         Scan;
-
+         Scan; -- scan past EXTENDS
          Expect (Tok_String_Literal, "literal string");
 
          if Token = Tok_String_Literal then
@@ -570,6 +571,20 @@ package body Prj.Part is
 
                   Error_Msg ("unknown project file: {", Token_Ptr);
 
+                  --  If we are not in the main project file, display the
+                  --  import path.
+
+                  if Project_Stack.Last > 1 then
+                     Error_Msg_Name_1 :=
+                       Project_Stack.Table (Project_Stack.Last);
+                     Error_Msg ("\extended by {", Token_Ptr);
+
+                     for Index in reverse 1 .. Project_Stack.Last - 1 loop
+                        Error_Msg_Name_1 := Project_Stack.Table (Index);
+                        Error_Msg ("\imported by {", Token_Ptr);
+                     end loop;
+                  end if;
+
                else
                   Parse_Single_Project
                     (Project   => Modified_Project,
@@ -578,9 +593,7 @@ package body Prj.Part is
                end if;
             end;
 
-            --  Scan past the modified project path
-
-            Scan;
+            Scan; -- scan past the modified project path
          end if;
       end if;
 
@@ -590,18 +603,18 @@ package body Prj.Part is
          Project_Declaration : Project_Node_Id := Empty_Node;
 
       begin
-         --  No need to Scan past "is", Prj.Dect.Parse will do it.
+         --  No need to Scan past IS, Prj.Dect.Parse will do it.
 
          Prj.Dect.Parse
            (Declarations    => Project_Declaration,
             Current_Project => Project,
-            Modifying       => Modified_Project);
+            Extends         => Modified_Project);
          Set_Project_Declaration_Of (Project, Project_Declaration);
       end;
 
       Expect (Tok_End, "end");
 
-      --  Scan past "end"
+      --  Skip END if present
 
       if Token = Tok_End then
          Scan;
@@ -859,8 +872,6 @@ package body Prj.Part is
    end Simple_File_Name_Of;
 
 begin
-   Canonical_Case_File_Name (Project_File_Extension);
-
    if Prj_Path.all = "" then
       Project_Path := new String'(".");
 

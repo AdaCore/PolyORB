@@ -80,6 +80,7 @@ package body Stringt is
 
    procedure Add_String_To_Name_Buffer (S : String_Id) is
       Len : constant Natural := Natural (String_Length (S));
+
    begin
       for J in 1 .. Len loop
          Name_Buffer (Name_Len + J) :=
