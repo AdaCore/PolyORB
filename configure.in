@@ -1,4 +1,6 @@
-AC_INIT(src/polyorb.ads)
+AC_PREREQ(2.57)
+AC_INIT(polyorb, 1.2w, polyorb-bugs@lists.act-europe.fr)
+AC_CONFIG_SRCDIR(src/polyorb.ads)
 AC_CONFIG_AUX_DIR(support)
 
 # $Id$
@@ -8,7 +10,7 @@ AC_CONFIG_AUX_DIR(support)
 ##########################################
 
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(polyorb,1.2w)
+AM_INIT_AUTOMAKE
 LIBVERSIONINFO=1:2:0
 AC_SUBST(LIBVERSIONINFO)
 
@@ -19,13 +21,13 @@ AC_SUBST(LIBVERSIONINFO)
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_CXXCPP
+AC_PROG_AWK
 AC_CHECK_PROG(RM, rm, rm)
-AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_CHECK_PROG(SED, sed, sed)
 AC_CHECK_PROG(FIND, find, find)
 AC_CHECK_PROG(PYTHON, python, python)
 AC_CHECK_PROG(GREP, grep, grep)
-AC_CHECK_PROG(GNATCHOP, gnatchop, gnatchop)
+AM_PROG_GNATCHOP
 AM_PROG_ADA
 AM_CROSS_PROG_ADA
 AM_PROG_WORKING_ADA
