@@ -102,6 +102,11 @@ private
       Node : Node_Id);
    --  Generate the stubs code for a node.
 
+   procedure Gen_Constant_Value
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate the representation of a constant expression.
+
    ---------------
    -- Shortcuts --
    ---------------

@@ -168,6 +168,7 @@ Native
 
 Union <-- Scope
   Switch_Type : Node_Id
+  Default_Index : Long_Integer := -1
   Cases : Node_List
 
 Case

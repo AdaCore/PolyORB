@@ -46,6 +46,15 @@ package body Utils is
    -- Img --
    ---------
 
+   function Img (N : Long_Integer) return String is
+   begin
+      return Img (Long_Long_Integer (N));
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
    function Img (N : Integer) return String is
    begin
       return Img (Long_Long_Integer (N));

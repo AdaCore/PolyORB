@@ -204,6 +204,29 @@ package body Ada_Be.Idl2Ada.Helper is
             Add_Elaborate_Body (CU);
             Add_With (CU, "CORBA");
 
+         when K_Union =>
+            --  TypeCode generation
+            NL (CU);
+            PL (CU, Ada_TC_Name (Node)
+                & " : CORBA.TypeCode.Object := ");
+            II (CU);
+            PL (CU, "CORBA.TypeCode.TC_Union;");
+            DI (CU);
+
+            --  From_Any function
+            NL (CU);
+            Gen_From_Any_Profile (CU, Node);
+            PL (CU, ";");
+
+            --  To_Any function
+            NL (CU);
+            Gen_To_Any_Profile (CU, Node);
+            PL (CU, ";");
+
+            --  to fill in the typecode TC_<name of the type>
+            Add_Elaborate_Body (CU);
+            Add_With (CU, "CORBA");
+
          when others =>
             null;
 
@@ -786,6 +809,255 @@ package body Ada_Be.Idl2Ada.Helper is
                             & Ada_Name (Decl_Node)
                             & "));");
                      end loop;
+                  end;
+               end loop;
+            end;
+            DI (CU);
+            PL (CU, "end;");
+            Divert (CU, Visible_Declarations);
+
+         when K_Union =>
+            --  from_any function
+            Add_With (CU, "CORBA", Use_It => True);
+            NL (CU);
+            Gen_From_Any_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "Label_Any : CORBA.Any :=");
+            II (CU);
+            PL (CU, "CORBA.Get_Aggregate_Element (Item,");
+            PL (CU, "                             "
+                & Ada_TC_Name (Switch_Type (Node)) & ",");
+            PL (CU, "                             "
+                & "CORBA.Unsigned_Long (0));");
+            DI (CU);
+            PL (CU, "Label : "
+                & Ada_Type_Name (Switch_Type (Node))
+                & " := From_Any (Label_Any);");
+            PL (CU, "Result : "
+                & Ada_Type_Name (Node)
+                & " (Label);");
+            PL (CU, "Index : CORBA.Any;");
+            PL (CU, "I : Natural := 1;");
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "case Label is");
+            II (CU);
+            declare
+               It   : Node_Iterator;
+               Case_Node : Node_Id;
+               I : Long_Integer := 0;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Case_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Label_Node : Node_Id;
+                     First_Label : boolean := True;
+                  begin
+                     if Default_Index (Node) = I then
+                        Put (CU, "when others");
+                     else
+                        Init (It2, Labels (Case_Node));
+                        while not Is_End (It2) loop
+                           Get_Next_Node (It2, Label_Node);
+                           if First_Label then
+                              Put (CU, "when ");
+                              First_Label := False;
+                           else
+                              Put (CU, " | ");
+                           end if;
+                           Gen_Constant_Value (CU, Label_Node);
+                        end loop;
+                     end if;
+                     PL (CU, " =>");
+                     II (CU);
+                     PL (CU, "Index := CORBA.Get_Aggregate_Element");
+                     II (CU);
+                     PL (CU, "(Item,");
+                     PL (CU, " " & Ada_TC_Name (Case_Type (Case_Node)) & ",");
+                     PL (CU, " CORBA.Unsigned_Long (I));");
+                     I := I + 1;
+                     DI (CU);
+                     PL (CU, "I := I + 1;");
+                     PL (CU, "Result."
+                         & Ada_Name (Case_Decl (Case_Node))
+                         & " := From_Any (Index);");
+                     DI (CU);
+                  end;
+               end loop;
+            end;
+            DI (CU);
+            PL (CU, "end case;");
+            PL (CU, "return Result;");
+            DI (CU);
+            PL (CU, "end From_Any;");
+
+            --  to_any function
+            NL (CU);
+            Gen_To_Any_Profile (CU, Node);
+            PL (CU, " is");
+            II (CU);
+            PL (CU, "Result : CORBA.Any := ");
+            II (CU);
+            PL (CU, "CORBA.Get_Empty_Any_Aggregate ("
+                & Ada_TC_Name (Node)
+                & ");");
+            DI (CU);
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "CORBA.Add_Aggregate_Element");
+            II (CU);
+            PL (CU, "(Result, To_Any (Item.Switch));");
+            DI (CU);
+            PL (CU, "case Item.Switch is");
+            II (CU);
+            declare
+               It   : Node_Iterator;
+               Case_Node : Node_Id;
+               I : Long_Integer := 0;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Case_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Label_Node : Node_Id;
+                     First_Label : boolean := True;
+                  begin
+                     if Default_Index (Node) = I then
+                        Put (CU, "when others");
+                     else
+                        Init (It2, Labels (Case_Node));
+                        while not Is_End (It2) loop
+                           Get_Next_Node (It2, Label_Node);
+                           if First_Label then
+                              Put (CU, "when ");
+                              First_Label := False;
+                           else
+                              Put (CU, " | ");
+                           end if;
+                           Gen_Constant_Value (CU, Label_Node);
+                        end loop;
+                     end if;
+                     PL (CU, " =>");
+                     II (CU);
+                     PL (CU, "CORBA.Add_Aggregate_Element");
+                     II (CU);
+                     PL (CU, "(Result, To_Any (Item."
+                         & Ada_Name (Case_Decl (Case_Node))
+                         & "));");
+                     I := I + 1;
+                     DI (CU);
+                     DI (CU);
+                  end;
+               end loop;
+            end;
+            DI (CU);
+            PL (CU, "end case;");
+            PL (CU, "return Result;");
+            DI (CU);
+            PL (CU, "end To_Any;");
+
+            --  to fill in the typecode TC_<name of the type>
+            Divert (CU, Elaboration);
+            NL (CU);
+            PL (CU, "declare");
+            II (CU);
+            PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+                & Ada_Name (Node)
+                & """);");
+            PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+                & Idl_Repository_Id (Node)
+                & """);");
+            declare
+               It   : Node_Iterator;
+               Case_Node : Node_Id;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Case_Node);
+                  PL (CU, "Arg_Name_"
+                      & Ada_Name (Case_Decl (Case_Node))
+                      & " : CORBA.String := CORBA.To_CORBA_String ("""
+                      & Ada_Name (Case_Decl (Case_Node))
+                      & """);");
+               end loop;
+            end;
+            DI (CU);
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Name));");
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (Id));");
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any ("
+                & Ada_TC_Name (Switch_Type (Node))
+                & "));");
+            PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                & Ada_TC_Name (Node)
+                & ", CORBA.To_Any (CORBA.Long ("
+                & Img (Default_Index (Node))
+                & ")));");
+            declare
+               It   : Node_Iterator;
+               Case_Node : Node_Id;
+               I : Long_Integer := 0;
+            begin
+               Init (It, Cases (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Case_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Label_Node : Node_Id;
+                  begin
+                     if Default_Index (Node) = I then
+                        PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                            & Ada_TC_Name (Node)
+                            & ", CORBA.To_Any ("
+                            & Ada_Type_Name (Switch_Type (Node))
+                            & "'First));");
+                        PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                            & Ada_TC_Name (Node)
+                            & ", CORBA.To_Any ("
+                            & Ada_TC_Name (Case_Type (Case_Node))
+                            & "));");
+                        PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                            & Ada_TC_Name (Node)
+                            & ", CORBA.To_Any (Arg_Name_"
+                            & Ada_Name (Case_Decl (Case_Node))
+                            & "));");
+                     else
+                        Init (It2, Labels (Case_Node));
+                        while not Is_End (It2) loop
+                           Get_Next_Node (It2, Label_Node);
+                           Put (CU, "CORBA.TypeCode.Add_Parameter ("
+                                & Ada_TC_Name (Node)
+                                & ", CORBA.To_Any ("
+                                & Ada_Type_Name (Switch_Type (Node))
+                                & " (");
+                           Gen_Constant_Value (CU, Label_Node);
+                           PL (CU, ")));");
+                           PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                               & Ada_TC_Name (Node)
+                               & ", CORBA.To_Any ("
+                               & Ada_TC_Name (Case_Type (Case_Node))
+                               & "));");
+                           PL (CU, "CORBA.TypeCode.Add_Parameter ("
+                               & Ada_TC_Name (Node)
+                               & ", CORBA.To_Any (Arg_Name_"
+                               & Ada_Name (Case_Decl (Case_Node))
+                               & "));");
+                        end loop;
+                     end if;
+                     I := I + 1;
                   end;
                end loop;
             end;

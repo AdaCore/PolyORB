@@ -501,6 +501,14 @@ package CORBA is
          Label : in Any;
          Index : in CORBA.Unsigned_Long) return Object;
 
+      --  returns the number of members associated with a typecode of
+      --  kind union for a given label.
+      --  Raises badKind if Self is not an union typecode.
+      function Member_Count_With_Label
+        (Self : in Object;
+         Label : in Any)
+         return CORBA.Unsigned_Long;
+
       --  returns the parameter nb index in the list of Self's
       --  parameters. Raises Out_Of_Bounds_Index exception if
       --  this parameter does not exist
@@ -591,11 +599,13 @@ package CORBA is
       --  be alternatively a type and a name. So the number of
       --  parameters will be 2 * number_of_members + 2
       --    for the union, the third parameter will be the
-      --  discriminator type. Then we'll have alternatively a
+      --  discriminator type. The fourth will be the index of the
+      --  default case as a long. If there's no default case, then
+      --  you'll find -1. Then we'll have alternatively a
       --  member label, a member type and a member name. At least,
-      --  we could have a default label. In this case, the member
-      --  label would be an any containing the zero octet. So the number of
-      --  parameters will be 3 * number_of_members + 3
+      --  for the default label, the member label will contain a
+      --  valid label but without any semantic significance.
+      --  So the number of parameters will be 3 * number_of_members + 4
       --    for the enum, the next parameters will be names of the
       --  different members. So the number of parameters will be
       --  number_of_members + 2

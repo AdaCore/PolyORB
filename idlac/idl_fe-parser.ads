@@ -720,6 +720,7 @@ private
    --  <switch_body> ::= <case>+
    procedure Parse_Switch_Body (Result : out Node_List;
                                 Switch_Type : in Node_Id;
+                                Default_Index : out Long_Integer;
                                 Success : out Boolean);
 
    --  Rule 75

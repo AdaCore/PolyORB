@@ -141,11 +141,6 @@ package body Ada_Be.Idl2Ada is
    --  a GIOP Request message) corresponding
    --  to K_Operation node.
 
-   procedure Gen_Constant_Value
-     (CU : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the representation of a constant expression.
-
    ----------------------------------------------
    -- End of internal subprograms declarations --
    ----------------------------------------------

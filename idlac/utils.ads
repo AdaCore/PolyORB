@@ -31,6 +31,7 @@ with System;
 package Utils is
 
    function Img (N : Integer) return String;
+   function Img (N : Long_Integer) return String;
    function Img (N : Long_Long_Integer) return String;
    --  Return the image of an integer without the leading space
 

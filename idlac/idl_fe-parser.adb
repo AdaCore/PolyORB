@@ -5243,12 +5243,15 @@ package body Idl_Fe.Parser is
       Next_Token;
       declare
          Node : Node_List;
+         Default_Index : Long_Integer;
       begin
          Node := Cases (Result);
          Parse_Switch_Body (Node,
                             Switch_Type (Result),
+                            Default_Index,
                             Success);
          Set_Cases (Result, Node);
+         Set_Default_Index (Result, Default_Index);
       end;
       Pop_Scope;
       if not Success then
@@ -5346,12 +5349,14 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Parse_Switch_Body (Result : out Node_List;
                                 Switch_Type : in Node_Id;
+                                Default_Index : out Long_Integer;
                                 Success : out Boolean) is
-      Default_Clause : Boolean := False;
       Empty : Boolean := True;
+      I : Long_Integer := -1;
    begin
       pragma Debug (O2 ("Parse_Switch_Body : enter"));
       Result := Nil_List;
+      Default_Index := -1;
       loop
          declare
             Case_Clause : Node_Id;
@@ -5366,10 +5371,11 @@ package body Idl_Fe.Parser is
             if not Case_Success then
                Go_To_End_Of_Case;
             else
+               I := I + 1;
                Append_Node (Result, Case_Clause);
                if Kind (Case_Clause) /= K_Pragma then
                   Empty := False;
-                  if Default_Clause then
+                  if Default_Index /= -1 then
                      if Is_In_List (Labels (Case_Clause), No_Node) then
                         Errors.Error
                           ("default clause already appeared.",
@@ -5378,7 +5384,7 @@ package body Idl_Fe.Parser is
                      end if;
                   else
                      if Is_In_List (Labels (Case_Clause), No_Node) then
-                        Default_Clause := True;
+                        Default_Index := I;
                      end if;
                   end if;
                end if;

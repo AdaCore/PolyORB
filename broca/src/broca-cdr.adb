@@ -483,23 +483,34 @@ package body Broca.CDR is
             end;
          when Tk_Union =>
             declare
-               Nb : CORBA.Unsigned_Long :=
-                 CORBA.Get_Aggregate_Count (Data);
+               Nb : CORBA.Unsigned_Long;
                Value, Label_Value : CORBA.Any;
             begin
+               pragma Debug (O ("Marshall_From_Any : dealing with an union"));
                Label_Value := Get_Aggregate_Element
                  (Data,
                   CORBA.TypeCode.Discriminator_Type (Data_Type),
                   CORBA.Unsigned_Long (0));
+               pragma Debug (O ("Marshall_From_Any : got the label"));
                Marshall_From_Any (Buffer, Label_Value);
-               for I in 1 .. Nb - 1 loop
-                  Value := CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Member_Type_With_Label
-                     (Data_Type, Label_Value, I),
-                     I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               pragma Debug (O ("Marshall_From_Any : label marshalled"));
+               Nb := CORBA.Get_Aggregate_Count (Data);
+               pragma Debug (O ("Marshall_From_Any : aggregate count = "
+                                & CORBA.Unsigned_Long'Image (Nb)));
+               if Nb > 1 then
+                  for I in 1 .. Nb - 1 loop
+                     pragma Debug (O ("Marshall_From_Any : inside loop, I = "
+                                      & Unsigned_Long'Image (I)));
+                     Value := CORBA.Get_Aggregate_Element
+                       (Data,
+                        CORBA.TypeCode.Member_Type_With_Label
+                        (Data_Type, Label_Value, I - 1),
+                        I);
+                     pragma Debug (O ("Marshall_From_Any : about "
+                                      & "to marshall from any"));
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
          when Tk_Enum =>
             declare
@@ -1398,20 +1409,30 @@ package body Broca.CDR is
             end;
          when Tk_Union =>
             declare
-               Nb : Unsigned_Long :=
-                 TypeCode.Member_Count (Tc);
+               Nb : Unsigned_Long;
+               Label : CORBA.Any;
             begin
+               pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
                Result := Get_Empty_Any_Aggregate (Any_Type);
-               Add_Aggregate_Element
-                 (Result,
-                  Unmarshall_To_Any (Buffer,
-                                     TypeCode.Discriminator_Type (Tc)));
-               for I in 0 .. Nb - 1 loop
-                  Add_Aggregate_Element
-                    (Result,
-                     Unmarshall_To_Any (Buffer,
-                                        TypeCode.Member_Type (Tc, I)));
-               end loop;
+               Label := Unmarshall_To_Any
+                 (Buffer,
+                  TypeCode.Discriminator_Type (Tc));
+               pragma Debug (O ("Unmarshall_To_Any : about to call "
+                                & "member_count_with_label"));
+               Nb := CORBA.TypeCode.Member_Count_With_Label (Tc, Label);
+               pragma Debug (O ("Unmarshall_To_Any : about to call "
+                                & "add_aggregate"));
+               Add_Aggregate_Element (Result, Label);
+               if Nb > 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Add_Aggregate_Element
+                       (Result,
+                        Unmarshall_To_Any
+                        (Buffer,
+                         TypeCode.Member_Type_With_Label
+                         (Tc, Label, I)));
+                  end loop;
+               end if;
             end;
          when Tk_Enum =>
             Result := Get_Empty_Any_Aggregate (Any_Type);
@@ -1633,6 +1654,8 @@ package body Broca.CDR is
                  (Result, To_Any (Id));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Discriminator_Type));
+               CORBA.TypeCode.Add_Parameter
+                 (Result, To_Any (Default_Index));
                for I in 0 .. Nb - 1 loop
                   Member_Label := Unmarshall_To_Any
                     (Complex_Buffer'Access,

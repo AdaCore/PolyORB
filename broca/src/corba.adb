@@ -156,21 +156,32 @@ package body CORBA is
          Nb_Param : CORBA.Unsigned_Long;
          Res : CORBA.Boolean := True;
       begin
+         pragma Debug (O ("Equal (TypeCode) : enter"));
          if Right.Kind /= Left.Kind then
+            pragma Debug (O ("Equal (TypeCode) : end"));
             return False;
+         end if;
+         pragma Debug (O ("Equal (TypeCode) : parameter number comparison"));
+         Nb_Param := Parameter_Count (Right);
+         if Nb_Param /= Parameter_Count (Left) then
+            pragma Debug (O ("Equal (TypeCode) : end"));
+            return False;
+         end if;
+         if Nb_Param = 0 then
+            pragma Debug (O ("Equal (TypeCode) : end"));
+            return True;
          end if;
          --  recursive comparison
-         Nb_Param := Member_Count (Right);
-         if Nb_Param /= Member_Count (Left) then
-            return False;
-         end if;
+         pragma Debug (O ("Equal (TypeCode) : recursive comparison"));
          for I in 0 .. Nb_Param - 1 loop
             Res := Res and
               Equal (Get_Parameter (Left, I), Get_Parameter (Right, I));
             if Res = False then
+               pragma Debug (O ("Equal (TypeCode) : end"));
                return False;
             end if;
          end loop;
+         pragma Debug (O ("Equal (TypeCode) : end"));
          return Res;
       end "=";
 
@@ -269,8 +280,11 @@ package body CORBA is
          --  order are not considered structurally equivalent.
          if Kind (Left) = Tk_Union then
             for I in 0 .. Nb_Param - 1 loop
-               if Member_Label (Left, I) /= Member_Label (Right, I) then
-                  return False;
+               if CORBA.Long (I) /= Default_Index (Left) and
+                 CORBA.Long (I) /= Default_Index (Right) then
+                  if Member_Label (Left, I) /= Member_Label (Right, I) then
+                     return False;
+                  end if;
                end if;
             end loop;
          end if;
@@ -282,9 +296,12 @@ package body CORBA is
             return False;
          end if;
          --    * The results of the default_index operation are compared.
-         if Kind (Left) = Tk_Union and then
-           Default_Index (Left) /= Default_Index (Right) then
-            return False;
+         if Kind (Left) = Tk_Union then
+            if Default_Index (Left) > -1 and Default_Index (Right) > -1 then
+               if Default_Index (Left) /= Default_Index (Right) then
+                  return False;
+               end if;
+            end if;
          end if;
          --    * The results of the length operation are compared.
          case Kind (Left) is
@@ -439,7 +456,7 @@ package body CORBA is
               | Tk_Except =>
                return (Param_Nb / 2) - 1;
             when Tk_Union =>
-               return Param_Nb / 3 - 1;
+               return (Param_Nb - 4) / 3;
             when Tk_Enum =>
                return Param_Nb - 2;
             when Tk_Value =>
@@ -477,11 +494,11 @@ package body CORBA is
                Res := From_Any (Get_Parameter (Self, 2 * Index + 3));
                return Identifier (Res);
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 6 then
+               if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               Res := From_Any (Get_Parameter (Self, 3 * Index + 5));
+               Res := From_Any (Get_Parameter (Self, 3 * Index + 6));
                return Identifier (Res);
             when Tk_Enum =>
                if Param_Nb < Index + 3 then
@@ -528,11 +545,11 @@ package body CORBA is
                end if;
                return From_Any (Get_Parameter (Self, 2 * Index + 2));
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 6 then
+               if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 4));
+               return From_Any (Get_Parameter (Self, 3 * Index + 5));
             when Tk_Value =>
                if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
@@ -563,11 +580,11 @@ package body CORBA is
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
-               if Param_Nb < 3 * Index + 6 then
+               if Param_Nb < 3 * Index + 7 then
                   Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
                                                          Member);
                end if;
-               return From_Any (Get_Parameter (Self, 3 * Index + 3));
+               return From_Any (Get_Parameter (Self, 3 * Index + 4));
             when others =>
                declare
                   Member : BadKind_Members;
@@ -605,28 +622,13 @@ package body CORBA is
       ---------------------
       function Default_Index (Self : in Object)
                               return CORBA.Long is
-         Param_Nb : Unsigned_Long := Parameter_Count (Self);
       begin
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
          --  to understand the magic numbers used here.
          case Kind (Self) is
             when Tk_Union =>
-               Param_Nb := Param_Nb / 3 - 1;
-               for I in 1 .. Param_Nb loop
-                  if Kind (Get_Type (Get_Parameter (Self, 3 * I)))
-                    = Tk_Octet then
-                     declare
-                        Val : CORBA.Octet :=
-                          From_Any (Get_Parameter (Self, 3 * I));
-                     begin
-                        if Val = 0 then
-                           return CORBA.Long (I - 1);
-                        end if;
-                     end;
-                  end if;
-               end loop;
-               return -1;
+               return From_Any (Get_Parameter (Self, 3));
             when others =>
                declare
                   Member : BadKind_Members;
@@ -806,33 +808,118 @@ package body CORBA is
          Index : in CORBA.Unsigned_Long) return Object is
          Param_Nb : Unsigned_Long := Parameter_Count (Self);
          Current_Member : Unsigned_Long := 0;
-         Member_Index : Unsigned_Long := -1;
-         Member : Bounds_Members;
+         Default_Member : Unsigned_Long := -1;
+         Member_Nb : Long := -1;
+         Default_Nb : Long := -1;
       begin
+         pragma Debug (O ("Member_Type_With_Label : enter"));
+         pragma Debug (O ("Member_Type_With_Label : Param_Nb = "
+                          & Unsigned_Long'Image (Param_Nb)));
          --  See the big explanation after the declaration of
          --  typecode.object in the private part of corba.typecode
          --  to understand the magic numbers used here.
          if Kind (Self) = Tk_Union then
-            while Member_Index < Index loop
-               if Param_Nb < 3 * Current_Member + 6 then
-                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
-                                                         Member);
+            --  look at the member until we got enough with the
+            --  good label or we reach the end
+            while Member_Nb < Long (Index) and
+              Param_Nb > 3 * Current_Member + 6 loop
+               pragma Debug (O ("Member_Type_With_Label : enter loop"));
+               --  if it is a default label, add one to the count
+               if Default_Index (Self) = Long (Current_Member) then
+                  pragma Debug (O ("Member_Type_With_Label : default label"));
+                  Default_Nb := Default_Nb + 1;
+                  --  else if it has the right label, add one to the count
+               elsif Get_Parameter (Self, 3 * Current_Member + 4) = Label then
+                  pragma Debug (O ("Member_Type_With_Label : matching label"));
+                  Member_Nb := Member_Nb + 1;
                end if;
-               if Get_Parameter (Self, 3 * Current_Member + 6) = Label then
-                  Member_Index := Member_Index + 1;
+               --  if we have enough default labels, keep the right
+               --  parameter number in case we don't find any matching
+               --  label
+               if Default_Nb = Long (Index) then
+                  pragma Debug (O ("Member_Type_With_Label : "
+                                   & "default_member = "
+                                   & Unsigned_Long'Image (Current_Member)));
+                  Default_Member := Current_Member;
                end if;
+               --  next member please
                Current_Member := Current_Member + 1;
             end loop;
-            return From_Any (Get_Parameter (Self, 3 * Current_Member + 1));
+            --  if we got enough member with the right label
+            if Member_Nb = Long (Index) then
+               pragma Debug (O ("Member_Type_With_Label : end"));
+               return From_Any (Get_Parameter (Self, 3 * Current_Member + 2));
+               --  else if we didn't got any matching label but
+               --  we have enough default ones
+            elsif Member_Nb = -1 and Default_Nb >= Long (Index) then
+               pragma Debug (O ("Member_Type_With_Label : default end"));
+               return From_Any (Get_Parameter (Self, 3 * Default_Member + 5));
+               --  else raise error
+            else
+               declare
+                  Member : Bounds_Members;
+               begin
+                  pragma Debug (O ("Member_Type_With_Label : "
+                                   & "end with exception"));
+                  Broca.Exceptions.User_Raise_Exception (Bounds'Identity,
+                                                         Member);
+               end;
+            end if;
          else
             declare
                Member : BadKind_Members;
             begin
+               pragma Debug (O ("Member_Type_With_Label : "
+                                & "end with exception"));
                Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
                                                       Member);
             end;
          end if;
       end Member_Type_With_Label;
+
+      -------------------------------
+      --  Member_Count_With_Label  --
+      -------------------------------
+      function Member_Count_With_Label
+        (Self : in Object;
+         Label : in Any)
+         return Unsigned_Long is
+         Result : Unsigned_Long := 0;
+         Default_Nb : Unsigned_Long := 0;
+      begin
+         --  See the big explanation after the declaration of
+         --  typecode.object in the private part of corba.typecode
+         --  to understand the magic numbers used here.
+         pragma Debug (O ("Member_Count_With_Label : enter"));
+         if TypeCode.Kind (Self) = Tk_Union then
+            pragma Debug (O ("Member_Count_With_Label : Member_Count = "
+                             & Unsigned_Long'Image (Member_Count (Self))));
+            for I in 0 .. Member_Count (Self) - 1 loop
+               if Get_Parameter (Self, 3 * I + 4) = Label then
+                  Result := Result + 1;
+               end if;
+               if Default_Index (Self) = Long (I) then
+                  Default_Nb := Default_Nb + 1;
+               end if;
+            end loop;
+            if Result = 0 then
+               Result := Default_Nb;
+            end if;
+            pragma Debug (O ("Member_Count_With_Label : Result = "
+                             & Unsigned_Long'Image (Result)));
+            pragma Debug (O ("Member_Count_With_Label : end"));
+            return Result;
+         else
+            declare
+               Member : BadKind_Members;
+            begin
+               pragma Debug (O ("Member_Count_With_Label : end "
+                                & "with exception"));
+               Broca.Exceptions.User_Raise_Exception (BadKind'Identity,
+                                                      Member);
+            end;
+         end if;
+      end Member_Count_With_Label;
 
       ---------------------
       --  Get_Parameter  --
@@ -1175,58 +1262,74 @@ package body CORBA is
    -----------
    function "=" (Left, Right : in Any) return Boolean is
    begin
-      pragma Debug (O ("Equal : enter"));
+      pragma Debug (O ("Equal (Any) : enter"));
       if not TypeCode.Equal (Get_Type (Left), Get_Type (Right)) then
+         pragma Debug (O ("Equal (Any) : end"));
          return False;
       end if;
-      pragma Debug (O ("Equal : passed typecode test"));
+      pragma Debug (O ("Equal (Any) : passed typecode test"));
       case TypeCode.Kind (Get_Type (Left)) is
          when Tk_Null | Tk_Void =>
+            pragma Debug (O ("Equal (Any) : end"));
             return True;
          when Tk_Short =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Short_Ptr (Left.The_Value).Value =
               Content_Short_Ptr (Right.The_Value).Value;
          when Tk_Long =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Long_Ptr (Left.The_Value).Value =
               Content_Long_Ptr (Right.The_Value).Value;
          when Tk_Ushort =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_UShort_Ptr (Left.The_Value).Value =
               Content_UShort_Ptr (Right.The_Value).Value;
          when Tk_Ulong =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_ULong_Ptr (Left.The_Value).Value =
               Content_ULong_Ptr (Right.The_Value).Value;
          when Tk_Float =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Float_Ptr (Left.The_Value).Value =
               Content_Float_Ptr (Right.The_Value).Value;
          when Tk_Double =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Double_Ptr (Left.The_Value).Value =
               Content_Double_Ptr (Right.The_Value).Value;
          when Tk_Boolean =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Boolean_Ptr (Left.The_Value).Value =
               Content_Boolean_Ptr (Right.The_Value).Value;
          when Tk_Char =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Char_Ptr (Left.The_Value).Value =
               Content_Char_Ptr (Right.The_Value).Value;
          when Tk_Octet =>
-            pragma Debug (O ("comparing with a tk_octet"));
+            pragma Debug (O ("Equal (Any) : comparing with a tk_octet"));
+            pragma Debug (O ("Equal (Any) : end"));
             return Content_Octet_Ptr (Left.The_Value).Value =
               Content_Octet_Ptr (Right.The_Value).Value;
          when Tk_Any =>
+            pragma Debug (O ("Equal (Any) : end"));
             return Equal (Content_Any_Ptr (Left.The_Value).Value,
                           Content_Any_Ptr (Right.The_Value).Value);
          when Tk_TypeCode =>
+            pragma Debug (O ("Equal (Any) : end"));
             return TypeCode.Equal
               (Content_TypeCode_Ptr (Left.The_Value).Value,
                Content_TypeCode_Ptr (Right.The_Value).Value);
 
          when Tk_Principal =>
+            pragma Debug (O ("Equal (Any) : end"));
             return True;
 
          when Tk_Objref =>
+            pragma Debug (O ("Equal (Any) : end"));
             return True;
 --          return Object.Is_Equivalent (Object.From_Any (Left),
 --                                       Object.From_Any (Right));
          when Tk_Struct | Tk_Union =>
+            pragma Debug (O ("Equal (Any) : end"));
             return True;
             --  agregate comparison (recursive)
 --          declare
@@ -1263,6 +1366,7 @@ package body CORBA is
 --             end;
 
          when others =>
+            pragma Debug (O ("Equal (Any) : end"));
             --  unsupported type for comparison :
             --  tk_principal, tk_objref
             return False;
@@ -1394,15 +1498,11 @@ package body CORBA is
    end From_Any;
 
    function From_Any (Item : in Any) return Long is
-      Result : Any_Content_Ptr;
-      Result2 : Content_Long_Ptr;
    begin
       if (TypeCode.Kind (Item.The_Type) /= Tk_Long) then
          raise Bad_Typecode;
       end if;
-      Result := Item.The_Value;
-      Result2 := Content_Long_Ptr (Result);
-      return Result2.Value;
+      return Content_Long_Ptr (Item.The_Value).Value;
    end From_Any;
 
    function From_Any (Item : in Any) return Long_Long is
@@ -1503,6 +1603,9 @@ package body CORBA is
 
    function From_Any (Item : in Any) return TypeCode.Object is
    begin
+      pragma Debug (O ("From_Any (typeCode) : enter & end"));
+      pragma Debug (O ("From_Any (typeCode) : Kind (Item) is "
+                       & CORBA.TCKind'Image (TypeCode.Kind (Item.The_Type))));
       if (TypeCode.Kind (Item.The_Type) /= Tk_TypeCode) then
          raise Bad_Typecode;
       end if;
@@ -1612,6 +1715,11 @@ package body CORBA is
       Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
+      pragma Debug (O ("Get_Aggregate_Element : Index = "
+                       & CORBA.Unsigned_Long'Image (Index)
+                       & ", aggregate_count = "
+                       & CORBA.Unsigned_Long'Image
+                       (Get_Aggregate_Count (Value))));
       pragma Assert (Get_Aggregate_Count (Value) > Index);
       if Index > 0 then
          for I in 0 .. Index - 1 loop
