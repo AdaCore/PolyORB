@@ -60,7 +60,6 @@ begin
 
    Put_Line(Corba.To_Standard_String(Corba.Orb.Object_To_String(Myecho))) ;
 
-
    -- sending message
    Sent_Msg := Corba.To_Corba_String("Hello World !") ;
    Rcvd_Msg := Echo.EchoString(myecho, Sent_Msg) ;

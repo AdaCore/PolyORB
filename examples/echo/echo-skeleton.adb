@@ -29,6 +29,7 @@ package body Echo.Skeleton is
          declare
             Mesg : Corba.String ;
             Result : Corba.String ;
+            Mesg_Size : Corba.Unsigned_Long ;
          begin
             Mesg := Unmarshal(Orls) ;
 
@@ -38,11 +39,20 @@ package body Echo.Skeleton is
             -- call the implementation
             Result := Echo.Impl.EchoString(Self'access, Mesg) ;
 
+            -- computing the size of the replied message
+            Mesg_Size := Giop_S.Reply_Header_Size (Orls);
+            Mesg_Size := NetbufferedStream.Align_Size (Result,
+                                                       Mesg_Size) ;
 
-            -- marshaling the result
-            -- to be completed
+            -- Initialisation of the reply
+            Giop_S.Initialize_Reply (Orls, Mesg_Size) ;
 
-            -- exiting, all is ok
+            -- Marshall the arguments (here just a string)
+            NetbufferedStream.Marshall (Result, Orls) ;
+
+            -- inform the orb
+            Giop_S.Reply_Completed (Orls) ;
+
             Returns := True ;
             return ;
          end;
