@@ -770,6 +770,9 @@ package body CORBA.ORB is
       InterfaceRepository_IOR : constant Standard.String :=
         PolyORB.Parameters.Get_Conf
         (Section => "corba", Key => "ir_service", Default => "");
+      PolicyDomainManager_IOR : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "policy_domain_manager", Default => "");
 
    begin
       --  Register initial reference for NamingService
@@ -786,6 +789,14 @@ package body CORBA.ORB is
          Register_Initial_Reference
            (To_CORBA_String ("InterfaceRepository"),
             To_CORBA_String (InterfaceRepository_IOR));
+      end if;
+
+      --  Register initial reference for Policy Domain Manager
+
+      if PolicyDomainManager_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("PolyORBPolicyDomainManager"),
+            To_CORBA_String (PolicyDomainManager_IOR));
       end if;
 
       PolyORB.CORBA_P.ORB_Init.Register
