@@ -425,6 +425,12 @@ package body Exp_Dist is
    --  then nothing is added in the tree but the right values are returned
    --  anyhow and Existing is set to True.
 
+   procedure Add_RACW_Asynchronous_Flag
+     (Declarations : List_Id;
+      RACW_Type    : Entity_Id);
+   --  Declare a boolean constant associated with RACW_Type whose value
+   --  indicates at run time whether a pragma Asynchronous applies to it.
+
    procedure Add_RACW_Read_Attribute
      (RACW_Type           : Entity_Id;
       Stub_Type           : Entity_Id;
@@ -674,6 +680,31 @@ package body Exp_Dist is
             Parameter_Mode));
    end Add_Parameter_To_NVList;
 
+   --------------------------------
+   -- Add_RACW_Asynchronous_Flag --
+   --------------------------------
+
+   procedure Add_RACW_Asynchronous_Flag
+     (Declarations : List_Id;
+      RACW_Type    : Entity_Id)
+   is
+      Loc : constant Source_Location := Sloc (RACW_Type);
+      Asynchronous_Flag : constant Entity_Id :=
+        make_defining_identifier (Loc, New_External_Name (RACW_Type, 'A'));
+   begin
+      --  Declare the asynchronous flag. This flag will be changed to True
+      --  whenever it is known that the RACW type is asynchronous.
+
+      Append_To (Declarations,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier => Asynchronous_Flag,
+          Constant_Present    => True,
+          Object_Definition   => New_Occurrence_Of (Standard_Boolean, Loc),
+          Expression          => New_Occurrence_Of (Standard_False, Loc)));
+
+      Asynchronous_Flags_Table.Set (RACW_Type, Asynchronous_Flag);
+   end Add_RACW_Asynchronous_Flag;
+
    -----------------------
    -- Add_RACW_Features --
    -----------------------
@@ -730,6 +761,10 @@ package body Exp_Dist is
          Stub_Type_Access    => Stub_Type_Access,
          Object_RPC_Receiver => Object_RPC_Receiver,
          Existing            => Existing);
+
+      Add_RACW_Asynchronous_Flag
+        (Declarations        => Decls,
+         RACW_Type           => RACW_Type);
 
       Add_RACW_Read_Write_Attributes
         (RACW_Type           => RACW_Type,
@@ -1287,8 +1322,8 @@ package body Exp_Dist is
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
       Asynchronous_Flag : constant Entity_Id :=
-                            Make_Defining_Identifier
-                              (Loc, New_Internal_Name ('S'));
+                            Asynchronous_Flags_Table.Get (RACW_Type);
+      pragma Assert (Present (Asynchronous_Flag));
 
       --  Functions to create occurrences of the formal
       --  parameter names.
@@ -1310,21 +1345,6 @@ package body Exp_Dist is
       end Result;
 
    begin
-      --  Declare the asynchronous flag. This flag will be changed to True
-      --  whenever it is known that the RACW type is asynchronous. Also, the
-      --  node gets stored since it may be rewritten when we process the
-      --  asynchronous pragma.
-
-      Append_To (Declarations,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Asynchronous_Flag,
-          Constant_Present    => True,
-          Object_Definition   => New_Occurrence_Of (Standard_Boolean, Loc),
-          Expression          => New_Occurrence_Of (Standard_False, Loc)));
-      Set_Ekind (Asynchronous_Flag, E_Variable);
-      Set_Etype (Asynchronous_Flag, Standard_Boolean);
-      Asynchronous_Flags_Table.Set (RACW_Type, Asynchronous_Flag);
-
       --  Object declarations
 
       Decls := New_List (
