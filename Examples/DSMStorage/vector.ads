@@ -7,6 +7,11 @@ package Vector is
 
    type Content_Type is array (0 .. Length - 1) of Natural;
 
-   Content : Content_Type := (others => 0);
+   protected Content is
+      procedure Increment (N : Natural; I : Natural);
+      function Value (N : Natural) return Natural;
+   private
+      X : Content_Type := (others => 0);
+   end Content;
 
 end Vector;

@@ -14,7 +14,7 @@ begin
       Low  := (Block_Size * (Times + Partition - 1)) mod Length;
       High := (Block_Size * (Times + Partition) - 1) mod Length;
       for N in Low .. High loop
-         Content (N) := Content (N) + Partition;
+         Vector.Content.Increment (N, Partition);
       end loop;
       --  Suspend partitions until they have all completed the
       --  computation on their current block.

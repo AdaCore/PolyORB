@@ -8,9 +8,9 @@ begin
    Client;
 
    Put ("(");
-   for I in Content'Range loop
-      Put (Content (I)'Img);
-      if I /= Content'Last then
+   for I in Content_Type'Range loop
+      Put (Content.Value (I)'Img);
+      if I /= Content_Type'Last then
          Put (",");
       end if;
    end loop;
