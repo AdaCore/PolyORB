@@ -30,8 +30,11 @@
 
 --  $Id$
 
+with PolyORB.Any;
+
 with SOAP.Types;
 with SOAP.Utils;
+with SOAP.Message.Response;
 
 package body SOAP.Message is
 
@@ -114,11 +117,25 @@ package body SOAP.Message is
          P : constant SOAP.Parameters.List := Parameters (M);
       begin
          for K in 1 .. SOAP.Parameters.Argument_Count (P) loop
-            Append
-              (Message_Body,
-               "   "
-               & Types.XML_Image (SOAP.Parameters.Argument (P, K))
-               & NL);
+            declare
+               Param : constant PolyORB.Any.NamedValue
+                 := SOAP.Parameters.Argument (P, K);
+               use PolyORB.Any;
+            begin
+               if Param.Arg_Modes = ARG_INOUT
+                 or else
+                 (Param.Arg_Modes = ARG_IN
+                  xor
+                  (SOAP.Message.Object'Class (M)
+                   in SOAP.Message.Response.Object'Class))
+               then
+                  Append
+                    (Message_Body,
+                     "   "
+                     & Types.XML_Image (Param)
+                     & NL);
+               end if;
+            end;
          end loop;
       end;
 

@@ -156,8 +156,9 @@ package body SOAP.Message.XML is
       NV : in out PolyORB.Any.NamedValue);
 
    procedure Parse_ObjRef
-     (N  : in     DOM.Core.Node;
-      NV : in out PolyORB.Any.NamedValue);
+     (N       : in     DOM.Core.Node;
+      NV      : in out PolyORB.Any.NamedValue;
+      Type_Id : in     String);
 
    procedure Parse_Boolean
      (N  : in     DOM.Core.Node;
@@ -655,8 +656,9 @@ package body SOAP.Message.XML is
    end Parse_String;
 
    procedure Parse_ObjRef
-     (N  : in     DOM.Core.Node;
-      NV : in out PolyORB.Any.NamedValue)
+     (N       : in     DOM.Core.Node;
+      NV      : in out PolyORB.Any.NamedValue;
+      Type_Id : in     String)
    is
       P : PolyORB.Binding_Data.Profile_Access;
       R : PolyORB.References.Ref;
@@ -667,8 +669,7 @@ package body SOAP.Message.XML is
         (To_PolyORB_String (Node_Value (First_Child (N))));
       PolyORB.References.Create_Reference
         (Profiles => (1 => P),
-         Type_Id  => To_Standard_String
-         (TypeCode.Id (Get_Type (NV.Argument))),
+         Type_Id  => Type_Id,
          R        => R);
       PolyORB.Any.ObjRef.Set_Any_Value (NV.Argument, R);
    end Parse_ObjRef;
@@ -824,11 +825,9 @@ package body SOAP.Message.XML is
 
                      elsif xsd = Types.XML_Boolean then
                         Parse_Boolean (N, NV);
-                     elsif TypeCode.Kind (Expected_Type) = Tk_Objref
-                       and then xsd
-                       = To_Standard_String (TypeCode.Id (Expected_Type))
-                     then
-                        Parse_ObjRef (N, NV);
+
+                     elsif Expected_TCKind = Tk_Objref then
+                        Parse_ObjRef (N, NV, Type_Id => xsd);
                      else
                         Error (N, "Wrong or not supported type");
                      end if;

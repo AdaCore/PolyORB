@@ -33,6 +33,7 @@
 --  $Id$
 
 with Ada.Strings.Unbounded;
+with Ada.Exceptions;
 
 with AWS.Response;
 
@@ -113,7 +114,9 @@ package body PolyORB.Protocols.SOAP_Pr is
          pragma Debug (O ("SOAP message constructed: "));
          pragma Debug (O (SOAP.Message.XML.Image (P)));
       exception
-         when others =>
+         when E : others =>
+            pragma Debug (O ("SOAP message: exception in Image:"));
+            pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
             --  Cleanup before propagating exception to caller.
             S.Pending_Rq := null;
             raise;
