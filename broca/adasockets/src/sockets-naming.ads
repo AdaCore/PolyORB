@@ -114,4 +114,22 @@ package Sockets.Naming is
    function Any_Address return Address;
    --  Return the value of inaddr_any
 
+   function Get_Peer_Addr (Socket : Socket_FD) return Thin.In_Addr;
+   --  Return the address of the peer in a dotted form
+
+   function Get_Peer_Addr (Socket : Socket_FD) return Address;
+   --  Ditto
+
+   function Get_Peer_Port (Socket : Socket_FD) return Positive;
+   --  Return the port of the peer
+
+   function Get_Sock_Addr (Socket : Socket_FD) return Thin.In_Addr;
+   --  Return the local address of a bound socket
+
+   function Get_Sock_Addr (Socket : Socket_FD) return Address;
+   --  Ditto
+
+   function Get_Sock_Port (Socket : Socket_FD) return Positive;
+   --  Return the local port of a bound socket
+
 end Sockets.Naming;

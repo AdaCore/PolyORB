@@ -232,7 +232,7 @@ package Sockets.Thin is
 
    function C_Getpeername
      (S       : C.int;
-      Name    : Sockaddr_Access;
+      Name    : System.Address;
       Namelen : access C.int)
      return C.int;
 

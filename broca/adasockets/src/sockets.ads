@@ -71,8 +71,13 @@ package Sockets is
 
    procedure Bind
      (Socket : in Socket_FD;
-      Port   : in Positive);
-   --  Bind a socket on a given port
+      Port   : in Natural;
+      Host   : in String := "");
+   --  Bind a socket on a given port. Using 0 for the port will tell the
+   --  OS to allocate a non-privileged free port. The port can be later
+   --  retrieved using Get_Sock_Port on the bound socket.
+   --  If Host is not the empty string, it is used to designate the interface
+   --  to bind on.
 
    procedure Listen
      (Socket     : in Socket_FD;

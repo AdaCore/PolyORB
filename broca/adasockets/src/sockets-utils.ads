@@ -53,4 +53,8 @@ private package Sockets.Utils is
      return Interfaces.C.unsigned_short;
    pragma Inline (Port_To_Network);
 
+   function Network_To_Port (Port : Interfaces.C.unsigned_short)
+     return Interfaces.C.unsigned_short
+     renames Port_To_Network;
+
 end Sockets.Utils;

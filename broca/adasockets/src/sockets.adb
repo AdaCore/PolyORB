@@ -127,11 +127,15 @@ package body Sockets is
 
    procedure Bind
      (Socket : in Socket_FD;
-      Port   : in Positive)
+      Port   : in Natural;
+      Host   : in String := "")
    is
       Sin : aliased Sockaddr_In;
    begin
       Sin.Sin_Family := Constants.Af_Inet;
+      if Host /= "" then
+         Sin.Sin_Addr   := To_In_Addr (Address_Of (Host));
+      end if;
       Sin.Sin_Port   := Port_To_Network (unsigned_short (Port));
       if C_Bind (Socket.FD, Sin'Address, Sin'Size / 8) = Failure then
          Raise_With_Message ("Bind failed");

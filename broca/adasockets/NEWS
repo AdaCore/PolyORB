@@ -1,11 +1,38 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.14
+
+** Bug fix
+
+Get_Sock_Port and Get_Peer_Port did not return the right result on little
+endian machines. Reported and fixed by Stéphane Patureau
+<spaturea@meletu.univ-valenciennes.fr>.
+
+* New in AdaSockets 0.1.13
+
+** New functions Get_Sock_Addr and Get_Sock_Port
+
+This time, the new functions, that work locally, have been suggested by
+Alan Barnes <barnesa@aston.ac.uk>.
+
+** Bind enhancement
+
+Alan Barnes <barnesa@aston.ac.uk> also proposed a Bind enhancement to
+accept 0 as a valid port. In this case, a free one will be allocated
+by the system. Also, it is now possible to specify the bind address.
+
 * New in AdaSockets 0.1.12
+
+** New functions Get_Peer_Addr and Get_Peer_Port
+
+Two new functions allow a user to know the address and port used by the
+peer. Based on a suggestion from Sander Cox <sander.cox@philips.com>.
 
 ** Bug fix
 
 The split program had a forgotten incrementation, which made it fail on
-some machines. Fix sent by Thomas Quinot <thomas@cuivre.fr.eu.org>.
+some machines with long qualified names. Fix sent by Thomas Quinot
+<thomas@cuivre.fr.eu.org>.
 
 * New in AdaSockets 0.1.11
 

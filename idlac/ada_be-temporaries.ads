@@ -37,6 +37,16 @@ package Ada_Be.Temporaries is
    T_Impl_Object_Ptr     : constant String;
    T_Value_Operation     : constant String;
 
+   T_Request             : constant String;
+   T_Ctx                 : constant String;
+   T_Argument            : constant String;
+   T_Arg_Name            : constant String;
+   T_Arg_List            : constant String;
+   T_Excp_List           : constant String;
+   T_Result              : constant String;
+   T_Result_Name         : constant String;
+   T_Operation_Name      : constant String;
+
 private
 
    T_Handler             : constant String := "Handler_Ü";
@@ -47,5 +57,17 @@ private
    T_Members             : constant String := "Members_Ü";
    T_Impl_Object_Ptr     : constant String := "Object_Ü";
    T_Value_Operation     : constant String := "Op_Ü";
+
+
+   T_Request             : constant String := "Request_Ü";
+   T_Ctx                 : constant String := "Ctx_Ü";
+   T_Argument            : constant String := "Argument_Ü_";
+   T_Arg_Name            : constant String := "Arg_Name_Ü_";
+   T_Arg_List            : constant String := "Arg_List_Ü";
+   T_Excp_List           : constant String := "Excp_List_Ü";
+   T_Result              : constant String := "Result_Ü";
+   T_Result_Name         : constant String := "Result_Name_Ü";
+   T_Operation_Name      : constant String := "Operation_Name_Ü";
+
 
 end Ada_Be.Temporaries;

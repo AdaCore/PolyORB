@@ -45,6 +45,7 @@ with GNAT.OS_Lib;                use GNAT.OS_Lib;
 with Interfaces.C;               use Interfaces.C;
 with Interfaces.C.Strings;       use Interfaces.C.Strings;
 with Sockets.Constants;          use Sockets.Constants;
+with Sockets.Utils;              use Sockets.Utils;
 
 package body Sockets.Naming is
 
@@ -78,6 +79,9 @@ package body Sockets.Naming is
       Locked : Boolean := False;
    end Naming_Lock;
    --  A locking object
+
+   function Get_Peer (Socket : Socket_FD) return Sockaddr_In;
+   function Get_Sock (Socket : Socket_FD) return Sockaddr_In;
 
    ----------------
    -- Address_Of --
@@ -143,6 +147,88 @@ package body Sockets.Naming is
          Free (Aliases (I));
       end loop;
    end Finalize;
+
+   --------------
+   -- Get_Peer --
+   --------------
+
+   function Get_Peer (Socket : Socket_FD) return Sockaddr_In is
+      Name : aliased Sockaddr_In;
+      Len  : aliased int := Name'Size / 8;
+   begin
+      if C_Getpeername (Socket.FD, Name'Address, Len'Access) = Failure then
+         Raise_Naming_Error (Errno, "");
+      end if;
+      return Name;
+   end Get_Peer;
+
+   -------------------
+   -- Get_Peer_Addr --
+   -------------------
+
+   function Get_Peer_Addr (Socket : Socket_FD) return Thin.In_Addr is
+   begin
+      return Get_Peer (Socket) .Sin_Addr;
+   end Get_Peer_Addr;
+
+   -------------------
+   -- Get_Peer_Addr --
+   -------------------
+
+   function Get_Peer_Addr (Socket : Socket_FD) return Address is
+   begin
+      return To_Address (Get_Peer_Addr (Socket));
+   end Get_Peer_Addr;
+
+   -------------------
+   -- Get_Peer_Port --
+   -------------------
+
+   function Get_Peer_Port (Socket : Socket_FD) return Positive is
+   begin
+      return Positive (Network_To_Port (Get_Peer (Socket) .Sin_Port));
+   end Get_Peer_Port;
+
+   --------------
+   -- Get_Sock --
+   --------------
+
+   function Get_Sock (Socket : Socket_FD) return Sockaddr_In is
+      Name : aliased Sockaddr_In;
+      Len  : aliased int := Name'Size / 8;
+   begin
+      if C_Getsockname (Socket.FD, Name'Address, Len'Access) = Failure then
+         Raise_Naming_Error (Errno, "");
+      end if;
+      return Name;
+   end Get_Sock;
+
+   -------------------
+   -- Get_Sock_Addr --
+   -------------------
+
+   function Get_Sock_Addr (Socket : Socket_FD) return In_Addr is
+   begin
+      return Get_Sock (Socket) .Sin_Addr;
+   end Get_Sock_Addr;
+
+   -------------------
+   -- Get_Sock_Addr --
+   -------------------
+
+   function Get_Sock_Addr (Socket : Socket_FD) return Address is
+   begin
+      return To_Address (Get_Sock_Addr (Socket));
+   end Get_Sock_Addr;
+
+   -------------------
+   -- Get_Sock_Port --
+   -------------------
+
+   function Get_Sock_Port (Socket : Socket_FD) return Positive is
+   begin
+      return Positive (Network_To_Port (Get_Sock (Socket) .Sin_Port));
+   end Get_Sock_Port;
 
    ---------------
    -- Host_Name --
