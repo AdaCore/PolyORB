@@ -1,6 +1,7 @@
 --  $Id$
 
 with Droopi.Soft_Links;
+with Droopi.Channels;
 
 package body Droopi.ORB is
 
@@ -20,7 +21,7 @@ package body Droopi.ORB is
 
             --  A new connection.
 
-            Handle_New_Connection (O.Tasking_Policy, Event_Info);
+            Handle_New_Connection (O.Tasking_Policy, AS.Socket);
 
             --  Insert connection in list of active connections.
             --  If the threading policy is "thread-per-session",
@@ -33,7 +34,14 @@ package body Droopi.ORB is
 
             --  Data arrived on a communication channel.
 
-            Handle_Data (Channel);
+            declare
+               Channel : Droopi.Channels.Channel_Access
+                 := null;
+            begin
+               --  XXX Initialize Channel to the channel corresponding to
+               --  active socket AS.
+               Droopi.Channels.Handle_Data (Channel, AS);
+            end;
 
             --  Signal upper layers that data is available on this
             --  channel. Further processing and possible tasking decisions
@@ -128,14 +136,14 @@ package body Droopi.ORB is
                for I in Monitored_Set'Range loop
                   Set (R_Set, Monitored_Set (I).Socket);
                end loop;
-               Clear (Write_Set);
+               Empty (W_Set);
 
                if O.Selector = null then
                   Create_Selector (O.Selector);
                end if;
                pragma Assert (O.Selector /= null);
 
-               Select_Socket
+               Check_Selector
                  (Selector     => O.Selector,
                   R_Socket_Set => R_Set,
                   W_Socket_Set => W_Set,
