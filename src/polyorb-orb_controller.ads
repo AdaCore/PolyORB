@@ -143,6 +143,20 @@ package PolyORB.ORB_Controller is
 
    type ORB_Controller_Access is access all ORB_Controller'Class;
 
+   procedure Enter_ORB_Critical_Section
+     (O : access ORB_Controller)
+      is abstract;
+   --  Enter ORB critical section
+
+   procedure Leave_ORB_Critical_Section
+     (O : access ORB_Controller)
+      is abstract;
+   --  Leave ORB critical section
+
+   --  Implementation Note: the following functions make the
+   --  assumption they are called from within the ORB critical
+   --  section.
+
    procedure Register_Task
      (O  : access ORB_Controller;
       TI :        PTI.Task_Info_Access)
@@ -171,26 +185,17 @@ package PolyORB.ORB_Controller is
 
    procedure Disable_Polling (O : access ORB_Controller) is abstract;
    --  Disable polling on ORB's AES, abort polling task and waits for
-   --  its completion, if required. ORB Lock (see Initialize above)
-   --  is released when waiting for polling task completion: several
-   --  tasks may enter this procedure. ORB Lock ensures they will
-   --  leave it sequentially.
+   --  its completion, if required.
+   --
+   --  Implementation Note: the ORB critical section is exited
+   --  while waiting for polling task completion: several tasks may
+   --  enter this procedure.
 
    procedure Enable_Polling (O : access ORB_Controller) is abstract;
    --  Enable polling on AES. If Disable_Polling has been called N
    --  times, Enable_Polling must be called N times to actually enable
    --  polling. It is the user responsability to ensure that
    --  Enable_Polling actually enables polling in bounded time.
-
-   procedure Enter_ORB_Critical_Section
-     (O : access ORB_Controller)
-      is abstract;
-   --  Enter ORB critical section
-
-   procedure Leave_ORB_Critical_Section
-     (O : access ORB_Controller)
-      is abstract;
-   --  Leave ORB critical section
 
    function Is_A_Job_Pending
      (O : access ORB_Controller)
