@@ -32,6 +32,12 @@ with ALI;    use ALI;
 with Types;  use Types;
 package XE is
 
+   type Location_Type is record
+      Line  : Int;
+      First : Source_Ptr;
+      Last  : Source_Ptr;
+   end record;
+
    --  Several names are already predefined. For each of these names, a key
    --  is associated in the hash table. This allows to retrieve the nature
    --  of the name and especially its type. The key (an integer) is in

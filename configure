@@ -917,35 +917,62 @@ else
 fi
 
 
+#
+# Include or not launching facilities
+#
 # Check whether --with-embedded or --without-embedded was given.
 if test "${with_embedded+set}" = set; then
   withval="$with_embedded"
-  NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
- NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
+  
+NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
+NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
 
 else
-  NON_EMBEDDED_SOURCES="";
- NON_EMBEDDED_OBJECTS=""
+  
+NON_EMBEDDED_SOURCES="";
+NON_EMBEDDED_OBJECTS=""
+
 fi
 
 
 
+#
+# Protocol list
+#
 # Check whether --with-protocols or --without-protocols was given.
 if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
-  for P in "${withal}"; do
-    case ${P} in
-    TCP|tcp) 
-             PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
-             PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";;
-    no)     
-             PROTOCOLS_SOURCES=""; PROTOCOLS_OBJECTS="";;
-    *)       echo "Unknown ${P} protocol";;
-    esac;
-done
+  
+  echo $ac_n "checking for default protocols""... $ac_c" 1>&6
+  LIST="";
+  PROTOCOLS_SOURCES="";
+  PROTOCOLS_OBJECTS="";
+  TCP_INCLUDED="--  ";
+  for P in "${withval}"; do
+     case ${P} in
+     TCP|tcp) 
+        LIST="${LIST} tcp";
+        PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
+        PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";
+        TCP_INCLUDED="";;
+     no)
+        LIST="none";
+        ;;
+      *) 
+        { echo "configure: error: unknown protocol ${P}" 1>&2; exit 1; }
+        ;;
+      esac;
+  done
+  echo "$ac_t""${LIST}" 1>&6
+
 else
-  PROTOCOLS_SOURCES="\$(TCP_SOURCES)"; PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)"
+  
+PROTOCOLS_SOURCES="\$(TCP_SOURCES)";
+PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)";
+TCP_INCLUDED=""
+
 fi
+
 
 
 
@@ -1143,6 +1170,7 @@ ac_given_INSTALL="$INSTALL"
 trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
+           Garlic/s-gaprco.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
@@ -1204,6 +1232,7 @@ s%@NON_EMBEDDED_SOURCES@%$NON_EMBEDDED_SOURCES%g
 s%@NON_EMBEDDED_OBJECTS@%$NON_EMBEDDED_OBJECTS%g
 s%@PROTOCOLS_SOURCES@%$PROTOCOLS_SOURCES%g
 s%@PROTOCOLS_OBJECTS@%$PROTOCOLS_OBJECTS%g
+s%@TCP_INCLUDED@%$TCP_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
@@ -1216,6 +1245,7 @@ cat >> $CONFIG_STATUS <<EOF
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
+           Garlic/s-gaprco.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile

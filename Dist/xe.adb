@@ -62,6 +62,7 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind;
+         SLOC    : Location_Type;
          Name    : Name_Id;
          Node_1  : Node_Id;
          Node_2  : Node_Id;

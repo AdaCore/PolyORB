@@ -31,30 +31,57 @@ AC_ARG_ENABLE(debug,
 [GNATFLAGS="-g -gnata"],
 [GNATFLAGS="-O2 -gnatn"])
 AC_SUBST(GNATFLAGS)
+#
+# Include or not launching facilities
+#
 AC_ARG_WITH(embedded,
 [  --with-embedded         Don't include launching facilities],
-[NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
- NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"]
-,
-[NON_EMBEDDED_SOURCES="";
- NON_EMBEDDED_OBJECTS=""])
+[
+NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
+NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
+],
+[
+NON_EMBEDDED_SOURCES="";
+NON_EMBEDDED_OBJECTS=""
+])
 AC_SUBST(NON_EMBEDDED_SOURCES)
 AC_SUBST(NON_EMBEDDED_OBJECTS)
+#
+# Protocol list
+#
 AC_ARG_WITH(protocols,
 [  --with-protocols        Enumerate protocol list],
-[for P in "${withal}"; do
-    case ${P} in
-    TCP|tcp) 
-             PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
-             PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";;
-    no)     
-             PROTOCOLS_SOURCES=""; PROTOCOLS_OBJECTS="";;
-    *)       echo "Unknown ${P} protocol";;
-    esac;
-done],
-[PROTOCOLS_SOURCES="\$(TCP_SOURCES)"; PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)"])
+[
+  AC_MSG_CHECKING([for default protocols])
+  LIST="";
+  PROTOCOLS_SOURCES="";
+  PROTOCOLS_OBJECTS="";
+  TCP_INCLUDED="--  ";
+  for P in "${withval}"; do
+     case ${P} in
+     TCP|tcp) 
+        LIST="${LIST} tcp";
+        PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
+        PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";
+        TCP_INCLUDED="";;
+     no)
+        LIST="none";
+        ;;
+      *) 
+        AC_MSG_ERROR([unknown protocol ${P}])
+        ;;
+      esac;
+  done
+  AC_MSG_RESULT([${LIST}])
+],
+[
+PROTOCOLS_SOURCES="\$(TCP_SOURCES)";
+PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)";
+TCP_INCLUDED=""
+])
 AC_SUBST(PROTOCOLS_SOURCES)
 AC_SUBST(PROTOCOLS_OBJECTS)
+AC_SUBST(TCP_INCLUDED)
 #
 # Find GNAT sources
 #
@@ -119,6 +146,7 @@ AC_SUBST(EXTRA_LIBS)
 AC_OUTPUT([Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
+           Garlic/s-gaprco.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile

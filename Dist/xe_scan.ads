@@ -30,12 +30,6 @@ with Types;        use Types;
 with XE;           use XE;
 package XE_Scan is
 
-   type Location_Type is record
-      Line  : Int;
-      First : Source_Ptr;
-      Last  : Source_Ptr;
-   end record;
-
    procedure Initialize;
    --  Load all kind of keyworks
 

@@ -140,6 +140,8 @@ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
 
 Makefile: $(top_builddir)/config.status Makefile.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+s-gaprco.adb: $(top_builddir)/config.status s-gaprco.adb.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 tags: TAGS
 TAGS:
 
