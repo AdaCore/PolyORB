@@ -1,1 +1,11 @@
-iac -idl -b 10 $1 | pp-idl
+#!/bin/sh
+INCLUDES=
+FILENAME=
+for i in $*; do
+  case $i in
+  -I*) INCLUDES="$INCLUDES $i";;
+  -*) ;;
+  *) FILENAME="$i";;
+  esac;
+done
+iac $INCLUDES -idl -b 10 $FILENAME | pp-idl
