@@ -71,7 +71,9 @@ package body Broca.Inet_Server is
    procedure Get_Host_Address;
 
    function Htons (Val : Natural) return Interfaces.C.unsigned_short;
+   pragma Inline (Htons);
    function Ntohs (Val : Interfaces.C.unsigned_short) return Natural;
+   pragma Inline (Ntohs);
 
    procedure Signal_Poll_Set_Change;
    procedure Accept_Poll_Set_Change;
@@ -398,10 +400,10 @@ package body Broca.Inet_Server is
 
    procedure Signal_Poll_Set_Change
    is
-      C : aliased constant Character := Character'Val (0);
+      C : aliased constant Interfaces.Unsigned_32 := 0;
    begin
       pragma Debug (O ("Signalling poll set change."));
-      if C_Send (Signal_Fd_Write, C'Address, 1, 0) = Failure then
+      if C_Send (Signal_Fd_Write, C'Address, 4, 0) = Failure then
          pragma Debug (O ("--> failed!"));
          null;
       end if;
@@ -409,10 +411,10 @@ package body Broca.Inet_Server is
 
    procedure Accept_Poll_Set_Change
    is
-      C : aliased Character;
+      C : aliased Interfaces.Unsigned_32;
    begin
       pragma Debug (O ("Accepting poll set change."));
-      if C_Recv (Signal_Fd_Read, C'Address, 1, 0) = Failure then
+      if C_Recv (Signal_Fd_Read, C'Address, 4, 0) /= 4 then
          pragma Debug (O ("--> failed!"));
          null;
       end if;
@@ -511,7 +513,9 @@ package body Broca.Inet_Server is
       Broca.Server.New_Request (Fd_Server_Id);
 
       --  Try to obtain some work to be done.
+      Broca.Server.Log ("Waiting for something to do");
       Lock.Get_Job_And_Lock (A_Job);
+      Broca.Server.Log ("Got something to do");
 
       --  The pending work repository is now locked.
 
