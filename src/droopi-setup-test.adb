@@ -17,7 +17,8 @@ with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
-with Droopi.ORB.Task_Policies;
+--  with Droopi.ORB.Task_Policies;
+with Droopi.ORB.Thread_Pool;
 with Droopi.ORB.Interface;
 
 with Droopi.Binding_Data.Test;
@@ -51,6 +52,8 @@ is
    use Droopi.Sockets;
    use Droopi.Transport;
    use Droopi.Transport.Sockets;
+
+   --  package My_Thread_Pool is new Thread_Pool (4);
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
 
@@ -156,6 +159,7 @@ begin
    -------------------------------------------
    -- Initialize personality-specific stuff --
    -------------------------------------------
+
    Droopi.Binding_Data.IIOP.Initialize;
    Put (" binding-iiop");
 
@@ -164,8 +168,14 @@ begin
    --------------------------
 
    Setup.The_ORB := new ORB.ORB_Type
-     (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
+     (Tasking_Policy_Access'(new Thread_Pool.Thread_Pool_Policy));
+
+--     Setup.The_ORB := new ORB.ORB_Type
+--       (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
+
    Droopi.ORB.Create (Setup.The_ORB.all);
+
+   Thread_Pool.Initialize (Setup.The_ORB.all, 4, 10);
 
    Put (" ORB");
 
@@ -263,7 +273,6 @@ begin
       end;
 
 
-
       --  Check if we simply run the ORB to accept remote acccess
       --  or if we run a local request to the ORB
       if Ada.Command_Line.Argument_Count = 1
@@ -308,10 +317,11 @@ begin
                               Requestor => null,
                               Requesting_Task => null));
 
-            Run (The_ORB, (Condition =>
-                             Req.Completed'Access,
-                           Task_Info => Req.Requesting_Task'Access),
-                 May_Poll => False);
+            Run (The_ORB,
+                 (Condition =>
+                    Req.Completed'Access,
+                  Task_Info => Req.Requesting_Task'Access),
+                 May_Poll => True);
             --  Execute the ORB.
          end;
 

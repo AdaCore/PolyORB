@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Ada.Exceptions;
+
 with Droopi.Any;
 with Droopi.Any.NVList;
 
@@ -62,14 +64,22 @@ package body Droopi.Test_Object is
       use Droopi.Any.NVList;
       use Droopi.Any.NVList.Internals;
    begin
+      pragma Debug (O ("Handle Message : enter"));
       if Msg in Execute_Request then
          declare
-            Req : Request_Access renames Execute_Request (Msg).Req;
+            --            E : Execute_Request := Execute_Request (Msg);
+       --     pragma Debug (O ("Handle Message : getting e.req"));
+       --     Req : Request_Access := E.Req;
+       --     pragma Debug (O ("Handle Message : got e.req"));
+
+              Req : Request_Access
+              := Execute_Request (Msg).Req;
             Args_Sequence : Internals.NV_Sequence_Access :=
               Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (O ("The server is executing the request:"
                              & Droopi.Requests.Image (Req.all)));
+      --      null;
             if Req.all.Operation = To_Droopi_String ("echoString") then
                declare
                   echoString_Arg : Types.String :=
@@ -93,11 +103,19 @@ package body Droopi.Test_Object is
             else
                raise Droopi.Components.Unhandled_Message;
             end if;
-            return Executed_Request'(Req => Req);
+             return Executed_Request'(Req => Req);
          end;
       else
          raise Droopi.Components.Unhandled_Message;
       end if;
+
+   exception
+      when E : others =>
+         pragma Debug (O ("Handle_Message: Got exception "
+                          & Ada.Exceptions.Exception_Information (E)));
+         raise;
+
+
    end Handle_Message;
 
    function Get_Parameter_Profile

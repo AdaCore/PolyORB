@@ -39,12 +39,13 @@ package Droopi.ORB is
    type Tasking_Policy_Type is abstract tagged limited private;
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
 
-   procedure Run_Job
+   procedure Run_And_Free_Job
      (P : access Tasking_Policy_Type;
-      J : Jobs.Job_Access);
+      J : in out Jobs.Job_Access);
    --  Execute job J in the context of tasking policy P.
    --  J is ran in the context of the calling task, except in
    --  cases where the policy mandates otherwise.
+   --  J is freed afterwards.
 
    ---------------------
    -- A server object --
@@ -84,6 +85,7 @@ package Droopi.ORB is
       is abstract;
    --  Create the necessary processing resources for the execution
    --  of request execution job RJ, and start this execution.
+   --  RJ is freed after it is called.
 
    procedure Idle
      (P   : access Tasking_Policy_Type;

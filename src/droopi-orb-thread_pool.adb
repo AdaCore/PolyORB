@@ -3,7 +3,9 @@
 with Unchecked_Deallocation;
 
 with Droopi.Log;
+with Droopi.Jobs;
 
+--  with Droopi.Soft_Links;
 with Droopi.Locks;
 --  ??? : Since we use only writers locks, we could use a lighter
 --        implementation.
@@ -28,14 +30,16 @@ package body Droopi.ORB.Thread_Pool is
 
    use Droopi.Log;
    use Droopi.Locks;
+   use Droopi.Soft_Links;
+   use Droopi.Components;
 
    package L is new Droopi.Log.Facility_Log
-     ("droopi.orb.tasking_policies");
+     ("droopi.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
    task type Pool_Thread is
-      entry Start;
+      entry Start (N : in Natural);
    end Pool_Thread;
    type Pool_Thread_Access is access Pool_Thread;
 
@@ -112,12 +116,15 @@ package body Droopi.ORB.Thread_Pool is
       --  When execution reaches this, necessarily Queue.First /= null.
 
       Lock_W (Queue.State_Lock);
+
       declare
-         Old_First : Request_Queue_Node_Access := Queue.First;
+         --  Old_First : Request_Queue_Node_Access := Queue.First;
       begin
          Element := Queue.First.Request;
          Queue.First := Queue.First.Next;
-         Free (Old_First);
+
+         --  ??? Should free old elements.
+         --  Free (Old_First);
       end;
 
       Queue.Count := Queue.Count - 1;
@@ -125,7 +132,9 @@ package body Droopi.ORB.Thread_Pool is
 
       --  When execution reaches this, necessarily the queue is not full.
 
-      Unlock_W (Queue.Full_Lock);
+      if Queue.Count = Queue.Max_Count - 1 then
+         Unlock_W (Queue.Full_Lock);
+      end if;
 
       if Queue.Count > 0 then
          Unlock_W (Queue.Empty_Lock);
@@ -148,20 +157,21 @@ package body Droopi.ORB.Thread_Pool is
          Queue.Last := new Request_Queue_Node'
            (Request => Element,
             Next    => null);
+         Queue.First := Queue.Last;
       else
          Queue.Last.Next := new Request_Queue_Node'
            (Request => Element,
             Next    => null);
          Queue.Last := Queue.Last.Next;
       end if;
-
       Queue.Count := Queue.Count + 1;
       Unlock_W (Queue.State_Lock);
 
-      --  When execution reaches this, necessarily the queue is not empty.
-      Unlock_W (Queue.Empty_Lock);
+      if Queue.Count = 1 then
+         Unlock_W (Queue.Empty_Lock);
+      end if;
 
-      if Queue.Count < Queue.Max_Count then
+      if Queue.Count /= Queue.Max_Count then
          Unlock_W (Queue.Full_Lock);
       end if;
    end Add;
@@ -173,13 +183,27 @@ package body Droopi.ORB.Thread_Pool is
    task body Pool_Thread
    is
       Request : Request_Info;
+      Number  : Natural;
    begin
-      accept Start;
+      accept Start (N : in Natural) do
+         Number := N;
+         pragma Debug (O ("Thread"  & Integer'Image (Number) & " starts"));
+      end Start;
       loop
          Get_Head (The_Request_Queue, Request);
-         pragma Debug (O ("Thread Pool : Thread is executing request"));
+
+         pragma Debug (O ("Thread Pool : Thread"
+                          & Integer'Image (Number)
+                          & " is executing request"));
 
          Jobs.Run (Request.Job);
+
+         --  That's when we free jobs.
+         Jobs.Free (Request.Job);
+
+         pragma Debug (O ("Thread Pool : Thread"
+                          & Integer'Image (Number)
+                          & " has executed request"));
       end loop;
    end Pool_Thread;
 
@@ -234,7 +258,7 @@ package body Droopi.ORB.Thread_Pool is
       ORB : ORB_Access)
    is
    begin
-      pragma Debug (O ("Thread_Pool: Idle (BAD BAD!)"));
+      pragma Debug (O ("Idle : going Idle (BAD BAD!)"));
       raise Program_Error;
       --  When in Thread_Pool mode, threads should not be allowed
       --  to go idle, but should be blocked when the request queue is empty.
@@ -245,12 +269,13 @@ package body Droopi.ORB.Thread_Pool is
    ----------------
 
    procedure Initialize
-     (Number_Of_Threads : Positive;
+     (ORB               : ORB_Type;
+      Number_Of_Threads : Positive;
       Queue_Size        : Positive)
    is
       Dummy_Task : Pool_Thread_Access;
    begin
-      pragma Debug (O ("Thread_Pool : spawning pool."));
+      pragma Debug (O ("Initialize : enter"));
       The_Thread_Pool := new Thread_Array (1 .. Number_Of_Threads);
       The_Request_Queue := new Request_Queue;
       The_Request_Queue.Max_Count := Queue_Size;
@@ -263,9 +288,8 @@ package body Droopi.ORB.Thread_Pool is
 
       for J in The_Thread_Pool'Range loop
          Dummy_Task := new Pool_Thread;
-         Dummy_Task.Start;
+         Dummy_Task.Start (J);
       end loop;
-
    end Initialize;
 
 end Droopi.ORB.Thread_Pool;

@@ -41,9 +41,11 @@ package body Droopi.ORB is
 
    type Request_Job is new Job with record
       ORB       : ORB_Access;
-      Request   : Request_Access;
+      Request   : Requests.Request_Access;
       Requestor : Components.Component_Access;
    end record;
+
+   --  type Request_Job_Access is access all Request_Job;
 
    procedure Run (J : access Request_Job);
 
@@ -51,9 +53,9 @@ package body Droopi.ORB is
    -- Tasking policy generic operations --
    ---------------------------------------
 
-   procedure Run_Job
+   procedure Run_And_Free_Job
      (P : access Tasking_Policy_Type;
-      J : Jobs.Job_Access) is
+      J : in out Jobs.Job_Access) is
    begin
       if J.all in Request_Job then
          Handle_Request_Execution
@@ -62,8 +64,9 @@ package body Droopi.ORB is
             RJ  => J);
       else
          Run (J);
+         Free (J);
       end if;
-   end Run_Job;
+   end Run_And_Free_Job;
 
    ---------------------------
    -- ORB object operations --
@@ -117,8 +120,7 @@ package body Droopi.ORB is
             Leave (ORB.ORB_Lock.all);
 
             pragma Assert (Job /= null);
-            Run_Job (ORB.Tasking_Policy, Job);
-            Free (Job);
+            Run_And_Free_Job (ORB.Tasking_Policy, Job);
             return True;
          end;
       else
@@ -609,11 +611,13 @@ package body Droopi.ORB is
       declare
 --           Oid : constant Objects.Object_Id
 --             := Extract_Local_Object_Id (J.Req.Target);
+
+
          Servant : constant Objects.Servant_Access
            := References.Binding.Bind (J.Request.Target, J.ORB);
       begin
          pragma Debug (O ("Executing: "
-                          & Requests.Image (J.Request.all)));
+                           & Requests.Image (J.Request.all)));
          --  Setup_Environment (Oid);
 
          declare
@@ -634,7 +638,6 @@ package body Droopi.ORB is
 
             --  The client is responsible for destroying
             --  the request object after use.
-
          end;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;
