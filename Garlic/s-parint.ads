@@ -64,8 +64,10 @@ package System.Partition_Interface is
      (Name    : in Unit_Name;
       Version : in String;
       RCI     : in Boolean := True);
-   --  Use by the main subprogram to check that a remote receiver
-   --  unit has has the same version than the caller's one.
+   --  Use by the main subprogram to check that a remote receiver unit
+   --  has has the same version than the caller's one. It is also used
+   --  to check the consistency of a passive unit located on a passive
+   --  partition.
 
    procedure Register_Passive_Partition
      (Partition : out RPC.Partition_ID;

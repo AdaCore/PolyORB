@@ -574,6 +574,19 @@ package body System.Partition_Interface is
                Caller.Name.all & """");
 
          end if;
+
+         --  For shared passive units, check that their storage support
+         --  has been correctly setup.
+
+         if not Caller.RCI
+           and then Lookup_Package (Caller.Name.all) = null
+         then
+            Ada.Exceptions.Raise_Exception
+              (Program_Error'Identity,
+               "No shared support available for """ &
+               Caller.Name.all & """");
+         end if;
+
          Destroy (Caller.Version);
          Destroy (Caller.Name);
          Dummy  := Caller;
