@@ -65,7 +65,7 @@ with Rope ;
 package NetBufferedStream is
 
    type Object is tagged record
-      C_NetbufferedStream : System.Address ;
+      C_Object : System.Address ;
       -- C field : pointer on the underlying C netBufferedStream object
       Init_Ok : Sys_Dep.C_Boolean ;
       -- C field : state of the object (initialized or not)

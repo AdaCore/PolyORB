@@ -80,7 +80,7 @@ public:
   
 private:
 
-  omniRopeAndKey *C_omniRopeAndKey;
+  omniRopeAndKey *C_Object;
   // Pointer on the underlying Rope object
 
   bool Init_Ok;

@@ -92,7 +92,7 @@ package OmniObject is
       Implobj : Implemented_Object_Ptr  := null ;
       -- Ada field
       -- the pointer implobj is null for proxy object
-      Cptr : System.Address ;
+      C_Object : System.Address ;
       -- C field : Pointer on the underlying omniObject_C2Ada object
       Init_Ok : Sys_Dep.C_Boolean ;
       -- C field : state of the object (initialized or not)

@@ -56,7 +56,7 @@
 Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 {
   Init_Ok = false;
-  C_omniRopeAndKey = NULL;
+  C_Object = NULL;
 };
 
 
@@ -65,7 +65,7 @@ Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 void
 Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
 {
-  C_omniRopeAndKey = new omniRopeAndKey (r,k,ksize);
+  C_Object = new omniRopeAndKey (r,k,ksize);
   Init_Ok = true;
 };
 
@@ -75,7 +75,7 @@ Ada_OmniRopeAndKey::Init (Rope *r,_CORBA_Octet *k, _CORBA_ULong ksize)
 void
 Ada_OmniRopeAndKey::Init ()
 {
-  C_omniRopeAndKey = new omniRopeAndKey ();
+  C_Object = new omniRopeAndKey ();
   Init_Ok = true;
 };
 
@@ -87,8 +87,8 @@ Ada_OmniRopeAndKey::rope()
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_omniRopeAndKey
-    return C_omniRopeAndKey->rope();
+    // function on C_Object
+    return C_Object->rope();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::rope without initialising object.");
@@ -103,8 +103,8 @@ Ada_OmniRopeAndKey::key()
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_omniRopeAndKey
-    return C_omniRopeAndKey->key();
+    // function on C_Object
+    return C_Object->key();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::key without initialising object.");
@@ -119,8 +119,8 @@ Ada_OmniRopeAndKey::keysize()
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_omniRopeAndKey
-    return C_omniRopeAndKey->keysize();
+    // function on C_Object
+    return C_Object->keysize();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::keysize without initialising object.");
@@ -136,13 +136,13 @@ Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
     // if Initialisation was made then 
     // compare effectively the two objects
     // this code is pasted from corbaObject.cc L160
-    if (C_omniRopeAndKey->keysize() != other.C_omniRopeAndKey->keysize() ||
-	memcmp((void*)(C_omniRopeAndKey->key()),(void*)(other.C_omniRopeAndKey->key()),
-	       C_omniRopeAndKey->keysize()) != 0) {
+    if (C_Object->keysize() != other.C_Object->keysize() ||
+	memcmp((void*)(C_Object->key()),(void*)(other.C_Object->key()),
+	       C_Object->keysize()) != 0) {
       return 0 ;
     }
     
-    if (C_omniRopeAndKey->rope() == other.C_omniRopeAndKey->rope())
+    if (C_Object->rope() == other.C_Object->rope())
       return 1;
     else
       return 0;      

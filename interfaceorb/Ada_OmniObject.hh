@@ -146,7 +146,7 @@ private:
   void* Implobj ;
   // This pointer is only used by the Ada side of this object
   
-  omniObject_C2Ada *C_OmniObject;
+  omniObject_C2Ada *C_Object;
   // Pointer on the underlying omniObject_C2Ada object
   
   bool Init_Ok;

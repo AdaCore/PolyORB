@@ -63,7 +63,7 @@ Ada_OmniObject::Ada_OmniObject()
 //----------------
 Ada_OmniObject::~Ada_OmniObject()
 {
-  delete C_OmniObject ;
+  delete C_Object ;
 } ;
 
 
@@ -81,7 +81,7 @@ void
 Ada_OmniObject::Init ()
 {
   // Creation of the underlying omniobject_C2Ada object
-  C_OmniObject = new omniObject_C2Ada (this);
+  C_Object = new omniObject_C2Ada (this);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
@@ -99,7 +99,7 @@ Ada_OmniObject::Init (const char *repoId,
 		      _CORBA_Boolean release)
 {
   // Creation of the underlying omniobject_C2Ada object
-  C_OmniObject = new omniObject_C2Ada (repoId,
+  C_Object = new omniObject_C2Ada (repoId,
 				       r,
 				       key,
 				       keysize,
@@ -117,7 +117,7 @@ Ada_OmniObject::Init (const char *repoId,
 void
 Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
 {
-  C_OmniObject = omniobj;
+  C_Object = omniobj;
   Init_Ok = true;
   return;
 }
@@ -130,8 +130,8 @@ Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    C_OmniObject->setRopeAndKey(l,keepIOP);
+    // function on C_Object
+    C_Object->setRopeAndKey(l,keepIOP);
     return;
   } else {
     // else raise an Ada Exception
@@ -146,8 +146,8 @@ void
 Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success) {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    success = C_OmniObject->getRopeAndKey(l);
+    // function on C_Object
+    success = C_Object->getRopeAndKey(l);
     return ;
   } else {
     // else raise an Ada Exception
@@ -162,8 +162,8 @@ void
 Ada_OmniObject::assertObjectExistent() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    C_OmniObject->assertObjectExistent();
+    // function on C_Object
+    C_Object->assertObjectExistent();
     return;
   } else {
     // else raise an Ada Exception
@@ -178,8 +178,8 @@ _CORBA_Boolean
 Ada_OmniObject::is_proxy() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    return C_OmniObject->is_proxy();
+    // function on C_Object
+    return C_Object->is_proxy();
   } else {
     // else raise an Ada Exception
    raise_ada_exception ("Call of Ada_OmniObject::is_proxy without initialising object.");    
@@ -205,7 +205,7 @@ extern _CORBA_Boolean Ada_Is_A(const char* repoId) ;
 //--------------
 omniObject_C2Ada *
 Ada_OmniObject::getOmniObject() {
-  return C_OmniObject ;
+  return C_Object ;
 }
 
 
@@ -216,8 +216,8 @@ void
 Ada_OmniObject::setRepositoryID(const char* repoId) {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    C_OmniObject->PR_IRRepositoryId(repoId);
+    // function on C_Object
+    C_Object->PR_IRRepositoryId(repoId);
     return;
   } else {
     // else raise an Ada Exception
@@ -233,8 +233,8 @@ const char*
 Ada_OmniObject::getRepositoryID() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    return C_OmniObject->NP_IRRepositoryId();
+    // function on C_Object
+    return C_Object->NP_IRRepositoryId();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
@@ -264,7 +264,7 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
   if ( objptr == 0 ) {
     return omni::objectToString(0) ;
   } else {
-    return omni::objectToString(objptr->C_OmniObject) ;
+    return omni::objectToString(objptr->C_Object) ;
   }
 }
 
@@ -275,8 +275,8 @@ IOP::TaggedProfileList*
 Ada_OmniObject::iopProfiles() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_OmniObject
-    return C_OmniObject->iopProfiles();
+    // function on C_Object
+    return C_Object->iopProfiles();
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
