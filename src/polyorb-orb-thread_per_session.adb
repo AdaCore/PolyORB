@@ -99,7 +99,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       RI : Request_Info) is
    begin
       Request_Queues.Append (S.Request_List.all, RI);
-      Up (S.Request_Semaphore);
+      V (S.Request_Semaphore);
 
       pragma Debug (O ("A job has been queued"));
    end Add_Request;
@@ -336,7 +336,7 @@ package body PolyORB.ORB.Thread_Per_Session is
                           & Image (Current_Task)
                           & " is waiting"));
 
-         Down (Sem);
+         P (Sem);
          Request_Queues.Extract_First (L.all, Q);
          pragma Debug (O ("Thread number"
                           & Image (Current_Task)

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B - T A S K I N G - S E M A P H O R E S            --
+--           P O L Y O R B . T A S K I N G . S E M A P H O R E S            --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -29,12 +29,12 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
---  This package provides an implementation of semaphores
+
+--  This package provides an implementation of counting semaphores.
 
 --  $Id$
 
 with PolyORB.Tasking.Mutexes;
-
 with PolyORB.Tasking.Condition_Variables;
 
 package PolyORB.Tasking.Semaphores is
@@ -42,27 +42,26 @@ package PolyORB.Tasking.Semaphores is
    pragma Preelaborate;
 
    type Semaphore is private;
-
    type Semaphore_Access is access all Semaphore;
 
    procedure Create (S : out Semaphore_Access);
 
    procedure Destroy (S : in out Semaphore_Access);
 
-   procedure Up (S : Semaphore_Access);
-   --  Increment the value of the semaphore in a thread-safe way
+   procedure V (S : Semaphore_Access);
+   --  V-operation on the semaphore: increment the value of the
+   --  semaphore in a thread-safe way.
 
-   procedure Down (S : Semaphore_Access);
-   --  block until S.Value > 0; then decrement the
-   --  value in a thread-safe way.
+   procedure P (S : Semaphore_Access);
+   --  P-operation on the semaphore: block until S.Value > 0; then
+   --  decrement the value in a thread-safe way.
 
    function State (S : Semaphore_Access) return Natural;
-   --  return the current value of the semaphore.
+   --  Return the current value of the semaphore.
 
 private
 
    package PTM renames PolyORB.Tasking.Mutexes;
-
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    type Semaphore is record
@@ -74,7 +73,6 @@ private
 
       Condition : PTCV.Condition_Access;
       --  Used the implement the blocking call to Down.
-
    end record;
 
 end PolyORB.Tasking.Semaphores;

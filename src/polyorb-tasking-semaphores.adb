@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides an implementation of semaphores
+--  This package provides an implementation of counting semaphores.
 
 --  $Id$
 
@@ -40,10 +40,8 @@ with PolyORB.Log;
 package body PolyORB.Tasking.Semaphores is
 
    use PolyORB.Log;
-
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.tasking.semaphores");
-
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -82,40 +80,40 @@ package body PolyORB.Tasking.Semaphores is
       Free (S);
    end Destroy;
 
-   --------
-   -- Up --
-   --------
+   -------
+   -- V --
+   -------
 
-   procedure Up (S : Semaphore_Access) is
+   procedure V (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex);
 
-      pragma Debug (O ("Up semaphore, value ="
+      pragma Debug (O ("V (sem), value ="
                        & Integer'Image (S.Value)));
 
       S.Value := S.Value + 1;
       PTCV.Signal (S.Condition);
       PTM.Leave (S.Mutex);
-   end Up;
+   end V;
 
-   ----------
-   -- Down --
-   ----------
+   -------
+   -- P --
+   --------
 
-   procedure Down (S : Semaphore_Access) is
+   procedure P (S : Semaphore_Access) is
    begin
       PTM.Enter (S.Mutex);
-      pragma Debug (O ("Down semaphore"));
+      pragma Debug (O ("P (sem)"));
 
       while S.Value = 0 loop
-         pragma Debug (O ("Wait in Semaphore, value ="
-                          & Integer'Image (S.Value)));
+         pragma Debug (O ("Value is null, wait in semaphore"));
          PTCV.Wait (S.Condition, S.Mutex);
       end loop;
+
       S.Value := S.Value - 1;
 
       PTM.Leave (S.Mutex);
-   end Down;
+   end P;
 
    -----------
    -- State --
