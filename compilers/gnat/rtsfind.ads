@@ -1148,6 +1148,7 @@ package Rtsfind is
      RE_TC_Sequence,                     -- System.PolyORB_Interface,
      RE_TC_String,                       -- System.PolyORB_Interface,
      RE_TC_Struct,                       -- System.PolyORB_Interface,
+     RE_TC_Union,                        -- System.PolyORB_Interface,
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -2197,6 +2198,7 @@ package Rtsfind is
      RE_TC_Sequence                      => System_PolyORB_Interface,
      RE_TC_String                        => System_PolyORB_Interface,
      RE_TC_Struct                        => System_PolyORB_Interface,
+     RE_TC_Union                         => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 

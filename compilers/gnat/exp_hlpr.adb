@@ -121,7 +121,7 @@ package body Exp_Hlpr is
          Counter : Entity_Id;
          Datum   : Node_Id);
 
-   procedure Append_Array_Iterator
+   procedure Append_Array_Traversal
      (Stmts   : List_Id;
       Any     : Entity_Id;
       Counter : Entity_Id := Empty;
@@ -147,7 +147,7 @@ package body Exp_Hlpr is
          Counter : in out Int;
          Field   : Node_Id);
 
-   procedure Add_Component_List
+   procedure Append_Record_Traversal
      (Stmts     :        List_Id;
       Clist     :        Node_Id;
       Container :        Entity_Id;
@@ -158,10 +158,10 @@ package body Exp_Hlpr is
    --  TypeCode (for TC) to which the operation applies.
 
    ------------------------
-   -- Add_Component_List --
+   -- Append_Record_Traversal --
    ------------------------
 
-   procedure Add_Component_List
+   procedure Append_Record_Traversal
      (Stmts     :        List_Id;
       Clist     :        Node_Id;
       Container :        Entity_Id;
@@ -201,19 +201,10 @@ package body Exp_Hlpr is
 
    begin
       Add_Fields (CI);
-
       if Present (VP) then
-         raise Program_Error;
-         --  XXX Variant Part not implemented yet.
-
---          Process_Union (VP);
---          --> while Present (Variant) loop
---          -->    Process_Struct (Variant);
---          -->    Add_Component_List (Component_List_Of (Variant));
---          --> end;
---          end loop;
+         Add_Process_Element (Stmts, Container, Counter, VP);
       end if;
-   end Add_Component_List;
+   end Append_Record_Traversal;
 
    -------------------------
    -- Build_From_Any_Call --
@@ -424,38 +415,49 @@ package body Exp_Hlpr is
                Res_Definition : Node_Id :=
                  New_Occurrence_Of (Typ, Loc);
 
-               procedure From_Any_Add_Process_Element
+               procedure FA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
                   Field   : Entity_Id);
 
-               procedure From_Any_Add_Process_Element
+               procedure FA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
                   Field   : Node_Id)
                is
                begin
-                  Append_To (Stmts,
-                    Make_Assignment_Statement (Loc,
-                      Name => Field,
-                      Expression =>
-                        Build_From_Any_Call (Etype (Field),
-                          Build_Get_Aggregate_Element (Loc,
-                            Any => Any,
-                            Tc  => Build_TypeCode_Call
-                                     (Loc, Etype (Field), Decls),
-                            Idx => Make_Integer_Literal (Loc, Counter)),
-                          Decls)));
-                  Counter := Counter + 1;
-               end From_Any_Add_Process_Element;
+                  if Nkind (Field) = N_Selected_Component then
 
-               procedure FA_Add_Component_List is
-                  new Add_Component_List
+                     --  A regular component
+
+                     Append_To (Stmts,
+                       Make_Assignment_Statement (Loc,
+                         Name => Field,
+                         Expression =>
+                           Build_From_Any_Call (Etype (Field),
+                             Build_Get_Aggregate_Element (Loc,
+                               Any => Any,
+                               Tc  => Build_TypeCode_Call
+                                        (Loc, Etype (Field), Decls),
+                               Idx => Make_Integer_Literal (Loc, Counter)),
+                             Decls)));
+                  else
+
+                     --  A variant part
+
+                     null;
+
+                  end if;
+                  Counter := Counter + 1;
+               end FA_Rec_Add_Process_Element;
+
+               procedure FA_Append_Record_Traversal is
+                  new Append_Record_Traversal
                  (Subprogram          => Fnam,
                   Rec                 => Res,
-                  Add_Process_Element => From_Any_Add_Process_Element);
+                  Add_Process_Element => FA_Rec_Add_Process_Element);
 
             begin
 
@@ -523,7 +525,7 @@ package body Exp_Hlpr is
 
                --  ... then all components
 
-               FA_Add_Component_List (Stms,
+               FA_Append_Record_Traversal (Stms,
                  Clist     => Component_List (Rdef),
                  Container => Any_Parameter,
                  Counter   => Component_Counter);
@@ -540,7 +542,7 @@ package body Exp_Hlpr is
 
             Constrained : constant Boolean := Is_Constrained (Typ);
 
-            procedure From_Any_Add_Process_Element
+            procedure FA_Ary_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -551,7 +553,7 @@ package body Exp_Hlpr is
             --  If Datum is not an Any, a call to From_Any for its type
             --  is inserted.
 
-            procedure From_Any_Add_Process_Element
+            procedure FA_Ary_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -601,7 +603,7 @@ package body Exp_Hlpr is
                   end if;
                   Prepend_To (Stmts, Assignment);
                end if;
-            end From_Any_Add_Process_Element;
+            end FA_Ary_Add_Process_Element;
 
             Counter : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_J);
@@ -613,11 +615,11 @@ package body Exp_Hlpr is
               := Make_Defining_Identifier (Loc, Name_R);
 
             procedure Append_From_Any_Array_Iterator is
-              new Append_Array_Iterator (
+              new Append_Array_Traversal (
                 Subprogram => Fnam,
                 Arry       => Res,
                 Indices    => New_List,
-                Add_Process_Element => From_Any_Add_Process_Element);
+                Add_Process_Element => FA_Ary_Add_Process_Element);
 
             Res_Subtype_Indication : Node_Id
               := New_Occurrence_Of (Typ, Loc);
@@ -874,9 +876,7 @@ package body Exp_Hlpr is
       --  has not been set yet: try to use the Etype of the
       --  selector_name in that case.
 
-      if No (Typ)
-        and then Nkind (N) = N_Selected_Component
-      then
+      if No (Typ) and then Nkind (N) = N_Selected_Component then
          Typ := Etype (Selector_Name (N));
       end if;
       pragma Assert (Present (Typ));
@@ -1077,13 +1077,13 @@ package body Exp_Hlpr is
                Counter : Int := 0;
                Elements : List_Id := New_List;
 
-               procedure To_Any_Add_Process_Element
+               procedure TA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
                   Field   : Entity_Id);
 
-               procedure To_Any_Add_Process_Element
+               procedure TA_Rec_Add_Process_Element
                  (Stmts   : List_Id;
                   Any     : Entity_Id;
                   Counter : in out Int;
@@ -1091,21 +1091,31 @@ package body Exp_Hlpr is
                is
                   pragma Unreferenced (Counter);
                begin
-                  Append_To (Stmts,
-                    Make_Procedure_Call_Statement (Loc,
-                      Name =>
-                        New_Occurrence_Of (
-                          RTE (RE_Add_Aggregate_Element), Loc),
-                      Parameter_Associations => New_List (
-                        New_Occurrence_Of (Any, Loc),
-                        Build_To_Any_Call (Field, Decls))));
-               end To_Any_Add_Process_Element;
+                  if Nkind (Field) = N_Selected_Component then
 
-               procedure TA_Add_Component_List is
-                  new Add_Component_List
+                     --  A regular component.
+
+                     Append_To (Stmts,
+                       Make_Procedure_Call_Statement (Loc,
+                         Name =>
+                           New_Occurrence_Of (
+                             RTE (RE_Add_Aggregate_Element), Loc),
+                         Parameter_Associations => New_List (
+                           New_Occurrence_Of (Any, Loc),
+                           Build_To_Any_Call (Field, Decls))));
+                  else
+
+                     --  A variant part
+
+                     null;
+                  end if;
+               end TA_Rec_Add_Process_Element;
+
+               procedure TA_Append_Record_Traversal is
+                  new Append_Record_Traversal
                     (Subprogram          => Fnam,
                      Rec                 => Expr_Parameter,
-                     Add_Process_Element => To_Any_Add_Process_Element);
+                     Add_Process_Element => TA_Rec_Add_Process_Element);
 
             begin
 
@@ -1171,7 +1181,7 @@ package body Exp_Hlpr is
 
                --  ... then all components
 
-               TA_Add_Component_List (Stms,
+               TA_Append_Record_Traversal (Stms,
                  Clist     => Component_List (Rdef),
                  Container => Any,
                  Counter   => Counter);
@@ -1184,13 +1194,13 @@ package body Exp_Hlpr is
 
             Constrained : constant Boolean := Is_Constrained (Typ);
 
-            procedure To_Any_Add_Process_Element
+            procedure TA_Ary_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
                Datum   : Node_Id);
 
-            procedure To_Any_Add_Process_Element
+            procedure TA_Ary_Add_Process_Element
               (Stmts   : List_Id;
                Any     : Entity_Id;
                Counter : Entity_Id;
@@ -1213,14 +1223,14 @@ package body Exp_Hlpr is
                    Parameter_Associations => New_List (
                      New_Occurrence_Of (Any, Loc),
                      Element_Any)));
-            end To_Any_Add_Process_Element;
+            end TA_Ary_Add_Process_Element;
 
             procedure Append_To_Any_Array_Iterator is
-              new Append_Array_Iterator (
+              new Append_Array_Traversal (
                 Subprogram => Fnam,
                 Arry       => Expr_Parameter,
                 Indices    => New_List,
-                Add_Process_Element => To_Any_Add_Process_Element);
+                Add_Process_Element => TA_Ary_Add_Process_Element);
 
             Index : Node_Id;
          begin
@@ -1556,13 +1566,18 @@ package body Exp_Hlpr is
 
       procedure Add_String_Parameter
         (S              : String_Id;
-         Parameter_List : List_Id   := Parameters);
+         Parameter_List : List_Id);
       --  Add a literal for S to Parameters.
 
       procedure Add_TypeCode_Parameter
         (TC_Node        : Node_Id;
-         Parameter_List : List_Id := Parameters);
+         Parameter_List : List_Id);
       --  Add the typecode for Typ to Parameters.
+
+      procedure Add_Long_Parameter
+        (Expr_Node      : Node_Id;
+         Parameter_List : List_Id);
+      --  Add a signed long integer expression to Parameters.
 
       procedure Initialize_Parameter_List
         (Name_String    : String_Id;
@@ -1589,7 +1604,7 @@ package body Exp_Hlpr is
 
       procedure Add_String_Parameter
         (S              : String_Id;
-         Parameter_List : List_Id   := Parameters)
+         Parameter_List : List_Id)
       is
       begin
          Append_To (Parameter_List,
@@ -1601,8 +1616,8 @@ package body Exp_Hlpr is
       end Add_String_Parameter;
 
       procedure Add_TypeCode_Parameter
-        (TC_Node : Node_Id;
-         Parameter_List : List_Id   := Parameters)
+        (TC_Node        : Node_Id;
+         Parameter_List : List_Id)
       is
       begin
          Append_To (Parameter_List,
@@ -1612,6 +1627,18 @@ package body Exp_Hlpr is
              Parameter_Associations => New_List (
                TC_Node)));
       end Add_TypeCode_Parameter;
+
+      procedure Add_Long_Parameter
+        (Expr_Node      : Node_Id;
+         Parameter_List : List_Id)
+      is
+      begin
+         Append_To (Parameter_List,
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TA_LI), Loc),
+             Parameter_Associations => New_List (Expr_Node)));
+      end Add_Long_Parameter;
 
       procedure Initialize_Parameter_List
         (Name_String    : String_Id;
@@ -1628,7 +1655,7 @@ package body Exp_Hlpr is
         (Base_TypeCode  : Node_Id)
       is
       begin
-         Add_TypeCode_Parameter (Base_TypeCode);
+         Add_TypeCode_Parameter (Base_TypeCode, Parameters);
          Return_Constructed_TypeCode (RTE (RE_TC_Alias));
       end Return_Alias_TypeCode;
 
@@ -1662,13 +1689,13 @@ package body Exp_Hlpr is
       -- Record types --
       ------------------
 
-      procedure TypeCode_Add_Process_Element
+      procedure TC_Rec_Add_Process_Element
         (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
          Field   : Node_Id);
 
-      procedure TypeCode_Add_Process_Element
+      procedure TC_Rec_Add_Process_Element
         (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
@@ -1676,14 +1703,95 @@ package body Exp_Hlpr is
       is
          pragma Unreferenced (Any, Counter);
       begin
-         Add_TypeCode_Parameter (
-           Build_TypeCode_Call (Loc, Etype (Field), Decls), Params);
-         Get_Name_String (Chars (Field));
-         Add_String_Parameter (String_From_Name_Buffer, Params);
-      end TypeCode_Add_Process_Element;
+         if Nkind (Field) = N_Defining_Identifier then
 
-      procedure TC_Add_Component_List is
-         new Add_Component_List (TCNam, Empty, TypeCode_Add_Process_Element);
+            --  A regular component.
+
+            Add_TypeCode_Parameter (
+              Build_TypeCode_Call (Loc, Etype (Field), Decls), Params);
+            Get_Name_String (Chars (Field));
+            Add_String_Parameter (String_From_Name_Buffer, Params);
+
+         else
+
+            --  A variant part.
+
+            declare
+               Union_TC_Params  : List_Id;
+               U_Name : constant Name_Id
+                 := New_External_Name (Chars (Typ), 'U', -1);
+               Name_Str : String_Id;
+
+               S_Name : Name_Id;
+               Struct_TC_Params : List_Id;
+
+               Variant : Node_Id;
+               Choice  : Node_Id;
+               Default : constant Node_Id := Make_Integer_Literal (Loc, -1);
+            begin
+               Get_Name_String (U_Name);
+               Name_Str := String_From_Name_Buffer;
+
+               Initialize_Parameter_List
+                 (Name_Str, Name_Str, Union_TC_Params);
+
+               Add_String_Parameter (Name_Str, Params);
+               Add_TypeCode_Parameter
+                 (Make_Constructed_TypeCode
+                  (RTE (RE_TC_Union), Union_TC_Params),
+                  Parameters);
+               --  Add union in enclosing parameter list.
+
+               --  Build union parameters
+
+               Add_TypeCode_Parameter (
+                 Etype (Name (Field)),
+                 Union_TC_Params);
+               Add_Long_Parameter (Default, Union_TC_Params);
+
+               Variant := First_Non_Pragma (Variants (Field));
+               while Present (Variant) loop
+                  Choice := First (Discrete_Choices (Variant));
+                  while Present (Choice) loop
+                     if Nkind (Choice) = N_Others_Choice then
+                        Add_Long_Parameter (
+                          Make_Integer_Literal (Loc, 0),
+                          Union_TC_Params);
+                     else
+                        Append_To (Union_TC_Params,
+                          Build_To_Any_Call (Choice, Decls));
+                     end if;
+
+                     S_Name := New_External_Name (U_Name, 'S', -1);
+                     Get_Name_String (S_Name);
+                     Name_Str := String_From_Name_Buffer;
+                     Initialize_Parameter_List
+                       (Name_Str, Name_Str, Struct_TC_Params);
+
+                     --  Build struct parameters
+
+                     --  XXX process component list for VP
+                     null;
+
+                     Add_TypeCode_Parameter
+                       (Make_Constructed_TypeCode
+                        (RTE (RE_TC_Struct), Struct_TC_Params),
+                        Union_TC_Params);
+
+                     Add_String_Parameter (Name_Str, Union_TC_Params);
+                  end loop;
+
+                  Variant := Next_Non_Pragma (Variant);
+               end loop;
+
+            end;
+         end if;
+      end TC_Rec_Add_Process_Element;
+
+      procedure TC_Append_Record_Traversal is new Append_Record_Traversal (
+        Subprogram          => TCNam,
+        Rec                 => Empty,
+        Add_Process_Element => TC_Rec_Add_Process_Element);
 
       Type_Name_Str : String_Id;
    begin
@@ -1752,15 +1860,18 @@ package body Exp_Hlpr is
                end if;
                while Present (Disc) loop
                   Add_TypeCode_Parameter (
-                    Build_TypeCode_Call (Loc, Etype (Disc), Decls));
+                    Build_TypeCode_Call (Loc, Etype (Disc), Decls),
+                    Parameters);
                   Get_Name_String (Chars (Disc));
-                  Add_String_Parameter (String_From_Name_Buffer);
+                  Add_String_Parameter (
+                    String_From_Name_Buffer,
+                    Parameters);
                   Next_Discriminant (Disc);
                end loop;
 
                --  ... then all components
 
-               TC_Add_Component_List
+               TC_Append_Record_Traversal
                  (Parameters, Component_List (Rdef), Empty, Dummy_Counter);
                Return_Constructed_TypeCode (RTE (RE_TC_Struct));
             end;
@@ -1798,9 +1909,12 @@ package body Exp_Hlpr is
                   --  Unconstrained case: add low bound for each dimension.
 
                   Add_TypeCode_Parameter
-                    (Build_TypeCode_Call (Loc, Etype (Indx), Decls));
+                    (Build_TypeCode_Call (Loc, Etype (Indx), Decls),
+                     Parameters);
                   Get_Name_String (New_External_Name ('L', J));
-                  Add_String_Parameter (String_From_Name_Buffer);
+                  Add_String_Parameter (
+                    String_From_Name_Buffer,
+                    Parameters);
                   Next_Index (Indx);
 
                   Inner_TypeCode := Make_Constructed_TypeCode
@@ -1816,10 +1930,10 @@ package body Exp_Hlpr is
             if Constrained then
                Return_Alias_TypeCode (Inner_TypeCode);
             else
-               Add_TypeCode_Parameter (Inner_TypeCode);
+               Add_TypeCode_Parameter (Inner_TypeCode, Parameters);
                Start_String;
                Store_String_Char ('V');
-               Add_String_Parameter (End_String);
+               Add_String_Parameter (End_String, Parameters);
                Return_Constructed_TypeCode (RTE (RE_TC_Struct));
             end if;
          end;
@@ -2007,10 +2121,10 @@ package body Exp_Hlpr is
    end Find_Numeric_Representation;
 
    ---------------------------
-   -- Append_Array_Iterator --
+   -- Append_Array_Traversal --
    ---------------------------
 
-   procedure Append_Array_Iterator
+   procedure Append_Array_Traversal
      (Stmts   : List_Id;
       Any     : Entity_Id;
       Counter : Entity_Id := Empty;
@@ -2063,7 +2177,7 @@ package body Exp_Hlpr is
 
       end if;
 
-      Append_Array_Iterator (Inner_Stmts,
+      Append_Array_Traversal (Inner_Stmts,
         Any     => Inner_Any,
         Counter => Inner_Counter,
         Depth   => Depth + 1);
@@ -2182,7 +2296,7 @@ package body Exp_Hlpr is
                  Statements => Dimen_Stmts)));
       end;
 
-   end Append_Array_Iterator;
+   end Append_Array_Traversal;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --
