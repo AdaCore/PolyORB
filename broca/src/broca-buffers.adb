@@ -169,6 +169,15 @@ package body Broca.Buffers is
       end if;
    end Fix_Buffer_Size;
 
+   -------------------
+   -- Get_Endianess --
+   -------------------
+
+   function Get_Endianess (Buffer : Buffer_Descriptor) return Boolean is
+   begin
+      return Buffer.Little_Endian;
+   end Get_Endianess;
+
    ----------
    -- Read --
    ----------
@@ -217,7 +226,11 @@ package body Broca.Buffers is
 
    function Size (Buffer : in Buffer_Descriptor) return Buffer_Index_Type is
    begin
-      return Buffer.Buffer'Last + 1;
+      if Buffer.Buffer /= null then
+         return Buffer.Buffer'Last + 1;
+      else
+         return Buffer.Pos;
+      end if;
    end Size;
 
    ---------------
@@ -230,6 +243,17 @@ package body Broca.Buffers is
    begin
       return Buffer.Buffer'Last - Buffer.Pos + 1;
    end Size_Left;
+
+   ----------------
+   -- Skip_Bytes --
+   ----------------
+
+   procedure Skip_Bytes
+     (Buffer : in out Buffer_Descriptor;
+      Size   : in Buffer_Index_Type) is
+   begin
+      Buffer.Pos := Buffer.Pos + Size;
+   end Skip_Bytes;
 
    -----------
    -- Write --

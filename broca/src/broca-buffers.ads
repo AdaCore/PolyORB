@@ -77,6 +77,8 @@ package Broca.Buffers is
    procedure Free is
       new Ada.Unchecked_Deallocation (Buffer_Type, Buffer_Access);
 
+   function Get_Endianess (Buffer : Buffer_Descriptor) return Boolean;
+
    procedure Read
      (Buffer  : in out Buffer_Descriptor;
       Bytes   : out Buffer_Type);
@@ -89,6 +91,10 @@ package Broca.Buffers is
 
    function Size_Left (Buffer : Buffer_Descriptor) return  Buffer_Index_Type;
    function Size      (Buffer : Buffer_Descriptor) return Buffer_Index_Type;
+
+   procedure Skip_Bytes
+     (Buffer : in out Buffer_Descriptor;
+      Size   : in Buffer_Index_Type);
 
    procedure Write
      (Buffer  : in out Buffer_Descriptor;
