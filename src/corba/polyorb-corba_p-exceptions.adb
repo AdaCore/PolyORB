@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#23 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#24 $
 
 with CORBA;
 
@@ -96,6 +96,43 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O (Name & " is a PolyORB error ? "
                        & Boolean'Image (Is_Error)));
    end Exception_Name_To_Error_Id;
+
+   ------------------------
+   -- Is_Forward_Request --
+   ------------------------
+
+   function Is_Forward_Request
+     (Occurrence : in PolyORB.Any.Any)
+      return Boolean
+   is
+      use type PolyORB.Any.TypeCode.Object;
+   begin
+      return not Is_Empty (Occurrence)
+        and then Get_Type (Occurrence) = TC_ForwardRequest;
+   end Is_Forward_Request;
+
+   -------------------------
+   -- Is_System_Exception --
+   -------------------------
+
+   function Is_System_Exception
+     (Occurrence : in PolyORB.Any.Any)
+      return Boolean
+   is
+      Repository_Id : constant PolyORB.Types.RepositoryId
+        := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
+      EId           : constant String := To_Standard_String (Repository_Id);
+
+      Is_Error : Boolean;
+      Id       : Error_Id;
+
+   begin
+      Exception_Name_To_Error_Id (EId, Is_Error, Id);
+
+      return
+        Is_Error
+          and then Id in ORB_System_Error;
+   end Is_System_Exception;
 
    --------------------
    -- Raise_From_Any --

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  Exceptions management for the CORBA application personality of PolyORB.
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#13 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#14 $
 
 with Ada.Exceptions;
 
@@ -56,6 +56,18 @@ package PolyORB.CORBA_P.Exceptions is
      (Error : in out PolyORB.Exceptions.Error_Container);
    pragma No_Return (Raise_From_Error);
    --  Raise a CORBA specific exception from the data in 'Error'
+
+   --  Exceptions classification
+
+   function Is_Forward_Request
+     (Occurrence : in PolyORB.Any.Any)
+     return Boolean;
+   --  Return True iff Occurrence is a PolyORB forward request exception
+
+   function Is_System_Exception
+     (Occurrence : in PolyORB.Any.Any)
+      return Boolean;
+   --  Return True iff Occurrence is an ORB system exception
 
    ----------------------------
    -- Raise_From_Error Hooks --
