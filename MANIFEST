@@ -118,7 +118,6 @@
 ./InterfaceORB/adabroker-omni.ads
 ./InterfaceORB/adabroker-omniorb.adb
 ./InterfaceORB/adabroker-omniorb.ads
-./InterfaceORB/adabroker-omniowproxycalldesc.ads
 ./InterfaceORB/adabroker-omniproxycalldesc.adb
 ./InterfaceORB/adabroker-omniproxycalldesc.ads
 ./InterfaceORB/adabroker-omniproxycallwrapper.adb
@@ -134,12 +133,12 @@
 ./InterfaceORB/corba-command_line.adb
 ./InterfaceORB/corba-command_line.ads
 ./InterfaceORB/corba-context.ads
+./InterfaceORB/corba-context.adb
 ./InterfaceORB/corba-environment.ads
-./InterfaceORB/corba-exceptions.adb
-./InterfaceORB/corba-exceptions.ads
 ./InterfaceORB/corba-forward.adb
 ./InterfaceORB/corba-forward.ads
 ./InterfaceORB/corba-nvlist.ads
+./InterfaceORB/corba-nvlist.adb
 ./InterfaceORB/corba-object-omniorb.adb
 ./InterfaceORB/corba-object-omniorb.ads
 ./InterfaceORB/corba-object.adb
@@ -148,7 +147,9 @@
 ./InterfaceORB/corba-orb.ads
 ./InterfaceORB/corba-orb-omniorb.ads
 ./InterfaceORB/corba-principal.ads
+./InterfaceORB/corba-principal.adb
 ./InterfaceORB/corba-request.ads
+./InterfaceORB/corba-request.adb
 ./InterfaceORB/corba-sequences-bounded.adb
 ./InterfaceORB/corba-sequences-bounded.ads
 ./InterfaceORB/corba-sequences.ads
