@@ -217,6 +217,10 @@ package body System.RPC.Server is
       Version    : System.Garlic.Types.Version_Id;
 
    begin
+
+      --  Recycle an anonymous task from the task pool or allocate a
+      --  new one depending on the anonymous task pool.
+
       while not Terminated loop
          System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
          if Idle_Tasks_Count > 0 then
@@ -313,8 +317,13 @@ package body System.RPC.Server is
          Natural'Read (Self.Params, Priority);
          System.Garlic.Soft_Links.Set_Priority (Priority);
          When_Established;
+
          select
             Self.Stop.Enter;
+
+            --  This RPC is aborted. Send an abortion reply to recycle
+            --  properly RPC_Id.
+
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
                Header : constant RPC_Header := (Abortion_Reply, Self.RPC);
@@ -329,8 +338,13 @@ package body System.RPC.Server is
                end if;
                Cancelled := True;
             end;
+
          then abort
             pragma Debug (D ("Job to achieve"));
+
+            --  Execute locally remote procedure call. Extract RPC_Receiver
+            --  of the package and then dereference it.
+
             Receiver := Convert
                (System.Address (Interfaces.Unsigned_64'Input (Self.Params)));
             Receiver (Self.Params, Result);
@@ -365,6 +379,9 @@ package body System.RPC.Server is
             end;
          end if;
          pragma Debug (D ("Job finished, queuing"));
+
+         --  Recycle anonymous task or destroy depending on the
+         --  configuration of the anonymous task pool.
 
          System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
          if Self.Prev = null then
@@ -458,7 +475,7 @@ package body System.RPC.Server is
       end loop;
       System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
 
-      --  This handler will be finalized. We must initialized its
+      --  This handler will be finalized. We must initialize its
       --  internal values correctly.
 
       Handler.PID  := 0;
