@@ -50,6 +50,9 @@ private package System.RPC.Pool is
                          Id        : in Request_Id);
    --  Abort a running task.
 
+   procedure Initialize;
+   --  Initialize this package.
+
    procedure Shutdown;
    --  Called on shutdown.
 

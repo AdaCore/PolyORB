@@ -67,15 +67,11 @@ pragma Elaborate_All (System.Garlic.Filters);
 with System.Garlic.Trace;
 pragma Elaborate_All (System.Garlic.Trace);
 
-with System.RPC;
+with System.RPC.Initialization;
+pragma Elaborate_All (System.RPC.Initialization);
 
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
-
-with System.Secondary_Stack;
-pragma Elaborate_All (System.Secondary_Stack);
---  XXXXX This one is not used in the code directly but shows up during
---  the expansion.
 
 package body System.Garlic.Startup is
 
@@ -140,21 +136,22 @@ begin
          end if;
       end loop;
 
-      --  Phase (4.1)
+      --  Phase (5)
 
       Filters.Initialize;
 
-      --  Phase (4.2)
+      --  Phase (6)
 
       Trace.Initialize;
 
-      --  Phase (5) (see s-garlic.ads)
+      --  Phase (7) (see s-garlic.ads)
 
+      System.RPC.Initialization.Initialize;
       Termination.Initialize;
 
    end;
 
-   --  Phase (6) (see s-garlic.ads)
+   --  Phase (8) (see s-garlic.ads)
 
    declare
       Partition : constant System.RPC.Partition_ID := Get_My_Partition_ID;

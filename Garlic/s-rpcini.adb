@@ -2,9 +2,9 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---           S Y S T E M . P A R T I T I O N _ I N T E R F A C E            --
+--            S Y S T E M . R P C . I N I T I A L I Z A T I O N             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
@@ -33,67 +33,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.RPC;
+with System.RPC.Pool;
 
-package System.Partition_Interface is
+package body System.RPC.Initialization is
 
-   pragma Elaborate_Body;
+   ----------------
+   -- Initialize --
+   ----------------
 
-   type Subprogram_Id is new Natural;
-   --  This type is used exclusively by stubs.
+   procedure Initialize is
+   begin
+      Pool.Initialize;
+   end Initialize;
 
-   subtype Unit_Name is String;
-   type Unit_Name_Access is access String;
-   --  Name of RCI unit. The access type should be access Unit_Name. Will
-   --  be changed back for GNAT 3.10+ (XXXXX)
-
-   function Get_Local_Partition_ID return RPC.Partition_ID;
-   --  Return the Partition_ID of the current partition.
-
-   function Get_Active_Partition_ID
-     (Name : Unit_Name)
-      return RPC.Partition_ID;
-   --  Similar in some respects to RCI_Info.Get_Active_Partition_ID.
-
-   function Get_Passive_Partition_ID
-     (Name : Unit_Name)
-     return RPC.Partition_ID;
-   --  Return the Partition_ID of the given shared passive partition.
-
-   function Get_RCI_Package_Receiver
-     (Name : Unit_Name)
-      return RPC.RPC_Receiver;
-   --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver.
-
-   function Get_Active_Version
-      (Name : Unit_Name)
-       return String;
-   --  Similar in some respects to Get_Active_Partition_ID.
-
-   procedure Register_Receiving_Stub
-     (Name     : in Unit_Name;
-      Receiver : in RPC.RPC_Receiver;
-      Version  : in String := "");
-   --  Register the fact that the Name receiving stub is now elaborated.
-   --  Register the access value to the package RPC_Receiver procedure.
-
-   function Register_Receiving_Stub
-     (Name     : Unit_Name;
-      Receiver : RPC.RPC_Receiver;
-      Version  : String := "")
-      return Boolean;
-   --  Same than above, but may be used in a declarative part.
-
-   procedure Invalidate_Receiving_Stub
-     (Name     : in Unit_Name);
-   --  Declare this receiving stub as corrupted to the RCI Name Server.
-
-   generic
-      Name : String;
-   package RCI_Info is
-      function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver;
-      function Get_Active_Partition_ID  return System.RPC.Partition_ID;
-   end RCI_Info;
-   --  RCI package information caching.
-
-end System.Partition_Interface;
+end System.RPC.Initialization;

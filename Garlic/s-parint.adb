@@ -659,6 +659,21 @@ package body System.Partition_Interface is
 
    end Register_Receiving_Stub;
 
+   -----------------------------
+   -- Register_Receiving_Stub --
+   -----------------------------
+
+   function Register_Receiving_Stub
+     (Name     : Unit_Name;
+      Receiver : RPC_Receiver;
+      Version  : String := "")
+      return Boolean
+   is
+   begin
+      Register_Receiving_Stub (Name, Receiver, Version);
+      return True;
+   end Register_Receiving_Stub;
+
    -------------------------------
    -- Invalidate_Receiving_Stub --
    -------------------------------

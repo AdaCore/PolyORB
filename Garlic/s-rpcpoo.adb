@@ -165,12 +165,15 @@ package body System.RPC.Pool is
       Total_Tasks_Count    : Natural := 0;
    end Free_Tasks;
 
-   task Background_Creation is
+   task type Background_Creation is
       pragma Priority (Background_Creation_Priority);
       pragma Storage_Size (300_000);
    end Background_Creation;
    --  This task will have a low priority and create tasks in the background
    --  when they are needed.
+
+   type Background_Creation_Access is access Background_Creation;
+   Background_Task : Background_Creation_Access;
 
    ----------------
    -- Abort_Task --
@@ -451,6 +454,15 @@ package body System.RPC.Pool is
       end Wait;
 
    end Free_Tasks;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Background_Task := new Background_Creation;
+   end Initialize;
 
    --------------
    -- Shutdown --

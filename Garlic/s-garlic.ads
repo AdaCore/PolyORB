@@ -65,6 +65,11 @@ package System.Garlic is
    --    System.Garlic.Remote
    --       This package provides the necessary procedures needed to launch
    --       the slave partitions with the right options.
+   --    System.Garlic.Replay
+   --       This package provides the user with facilities to record and
+   --       replay the execution of a distributed program.
+   --    System.Garlic.Filters
+   --       This package implements data filtering.
    --
    --  At system startup, the operations occur in this order:
    --
@@ -87,8 +92,12 @@ package System.Garlic is
    --      to give them the Boot_Server data as well as a flag to indicate
    --      whether we are on the boot server or not.
    --
-   --  (5) It initializes the Termination code.
+   --  (5) It initializes the filtering system.
    --
-   --  (6) It asks for a partition ID.
+   --  (6) Initialize the tracing system.
+   --
+   --  (7) Initialize the Termination code.
+   --
+   --  (8) It asks for a partition ID.
 
 end System.Garlic;
