@@ -8,6 +8,8 @@ with CORBA.ORB.TypeCode;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.EnumDef.Skel;
+
 package body CORBA.Repository_Root.EnumDef.Impl is
 
 

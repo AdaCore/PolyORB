@@ -13,6 +13,9 @@ with CORBA.Repository_Root.IDLType.Impl;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.AliasDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.AliasDef.Skel);
+
 package body CORBA.Repository_Root.AliasDef.Impl is
 
 

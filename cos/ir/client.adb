@@ -46,13 +46,16 @@ with CORBA.Repository_Root.ModuleDef;
 
 with PolyORB.CORBA_P.Naming_Tools;
 
+with PolyORB.Setup.CORBA_Client;
+pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+
 procedure Client is
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
    Myrep : Repository.Ref;
 
 begin
-
+   CORBA.ORB.Initialize ("ORB");
    if Ada.Command_Line.Argument_Count = 1 then
       IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
       CORBA.ORB.String_To_Object (IOR, Myrep);

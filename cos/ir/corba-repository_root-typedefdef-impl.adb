@@ -8,6 +8,8 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.Helper;
 
+with CORBA.Repository_Root.TypedefDef.Skel;
+
 package body CORBA.Repository_Root.TypedefDef.Impl is
 
    ------------

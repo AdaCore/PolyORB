@@ -11,6 +11,9 @@ with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Exceptions;
 
+with CORBA.Repository_Root.IRObject.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.IRObject.Skel);
+
 package body CORBA.Repository_Root.IRObject.Impl is
 
    -----------

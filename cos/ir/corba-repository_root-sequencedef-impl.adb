@@ -13,6 +13,9 @@ with CORBA.Repository_Root.IDLType;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.SequenceDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.SequenceDef.Skel);
+
 package body CORBA.Repository_Root.SequenceDef.Impl is
 
    ----------------------

@@ -14,6 +14,8 @@ with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.ConstantDef.Skel;
+
 package body CORBA.Repository_Root.ConstantDef.Impl is
 
 

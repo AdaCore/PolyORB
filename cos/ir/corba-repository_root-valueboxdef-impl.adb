@@ -14,6 +14,8 @@ with CORBA.Repository_Root.IDLType.Impl;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.ValueBoxDef.Skel;
+
 package body CORBA.Repository_Root.ValueBoxDef.Impl is
 
 

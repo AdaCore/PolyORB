@@ -7,6 +7,9 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
+with CORBA.Repository_Root.PrimitiveDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.PrimitiveDef.Skel);
+
 package body CORBA.Repository_Root.PrimitiveDef.Impl is
 
    ----------------------

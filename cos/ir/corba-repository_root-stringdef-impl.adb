@@ -9,6 +9,9 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
 
+with CORBA.Repository_Root.StringDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.StringDef.Skel);
+
 package body CORBA.Repository_Root.StringDef.Impl is
 
 

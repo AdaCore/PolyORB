@@ -13,6 +13,8 @@ with CORBA.Repository_Root.IRObject.Impl;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.AttributeDef.Skel;
+
 package body CORBA.Repository_Root.AttributeDef.Impl is
 
 

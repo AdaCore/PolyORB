@@ -8,6 +8,9 @@ with CORBA.ORB;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.NativeDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.NativeDef.Skel);
+
 package body CORBA.Repository_Root.NativeDef.Impl is
 
    -----------------

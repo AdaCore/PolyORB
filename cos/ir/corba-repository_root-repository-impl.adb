@@ -27,6 +27,9 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
+with CORBA.Repository_Root.Repository.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.Repository.Skel);
+
 package body CORBA.Repository_Root.Repository.Impl is
 
    -----------
