@@ -480,6 +480,13 @@ package body Idl_Fe.Parser is
             end if;
             Parse_Definition (Definition, Definition_Result);
             if not Definition_Result then
+               --  we can be here for two reasons :
+               --    either the definition parsing crashed and we'd like to go
+               --  to the next one
+               --    either the definition was right but it was an already
+               --  existing module that was reopened. In this case,
+               --  go_to_next_definition won't have any effect since we are
+               --  on a definition
                Go_To_Next_Definition;
             elsif Definition /= No_Node then
                Def_Nb := Def_Nb + 1;
@@ -583,11 +590,22 @@ package body Idl_Fe.Parser is
             end if;
 
          when T_Module =>
-            Parse_Module (Result, Success);
-            if not Success then
-               pragma Debug (O2 ("Parse_Definition : end"));
-               return;
-            end if;
+            declare
+               Reopen : Boolean;
+            begin
+               Parse_Module (Result, Success, Reopen);
+               if not Success then
+                  pragma Debug (O2 ("Parse_Definition : end"));
+                  return;
+               end if;
+               --  if the module was reopened then we don't want its node to
+               --  be added again to the definition list of the current scope.
+               --  Thus, we put success to false, indicating that no node was
+               --  generated
+               if Reopen then
+                  Success := False;
+               end if;
+            end;
 
          when
            T_ValueType |
@@ -644,62 +662,75 @@ package body Idl_Fe.Parser is
    --  Parse_Module  --
    --------------------
    procedure Parse_Module (Result : out Node_Id;
-                           Success : out Boolean) is
+                           Success : out Boolean;
+                           Reopen : out boolean) is
    begin
       pragma Debug (O2 ("Parse_Module : enter"));
+      Reopen := False;
       --  Is there an identifier ?
       Next_Token;
       case Get_Token is
          when  T_Identifier =>
             case View_Next_Token is
                when T_Left_Cbracket =>
-                  --  See if the identifier is not already used
-                  if Is_Redefinable (Get_Token_String) then
-                     declare
-                        Ok : Boolean;
-                     begin
-                        --  Creation of the node
-                        Result := Make_Module;
-                        Set_Location
-                          (Result,
-                           Get_Previous_Token_Location);
-                        Ok := Add_Identifier
-                          (Result,
-                           Get_Token_String);
-                        pragma Assert (Ok = True);
-                        Set_Default_Repository_Id (Result);
-                        Set_Initial_Current_Prefix (Result);
-                     end;
-                  else
-                     --  there is a name collision with the module name
-                     declare
-                        Def : Node_Id;
-                     begin
-                        Def := Find_Identifier_Definition
-                          (Get_Token_String).Node;
-                        if Kind (Def) = K_Module then
-                           --  if the previous definition was a module,
-                           --  then reopen it
-                           pragma Debug (O ("Parse_Module : reopening a " &
-                                            "module"));
-                           Result := Def;
-                        else
-                           --  else raise an error
-                           declare
-                              Loc : Errors.Location;
-                           begin
-                              Loc := Types.Get_Location
-                                (Find_Identifier_Node (Get_Token_String));
-                              Errors.Error
-                                ("This module name is already defined in" &
-                                 " this scope : " &
-                                 Errors.Display_Location (Loc),
-                                 Errors.Error,
-                                 Get_Token_Location);
-                           end;
-                        end if;
-                     end;
-                  end if;
+                  declare
+                     --  true if we have to create a module
+                     Build_Module : Boolean := True;
+                  begin
+                     --  See if the identifier is not already used
+                     if not Is_Redefinable (Get_Token_String) then
+                        --  there is a name collision with the module name
+                        declare
+                           Def : Identifier_Definition_Acc;
+                        begin
+                           Def := Find_Identifier_Definition
+                             (Get_Token_String);
+                           if Kind (Def.Node) = K_Module and then
+                             Def.Parent_Scope = Get_Current_Scope then
+                              --  if the previous definition was a module in
+                              --  the same scope then reopen it.
+                              pragma Debug (O ("Parse_Module : reopening a " &
+                                               "module"));
+                              Reopen := True;
+                              Result := Def.Node;
+                              Build_Module := False;
+                           else
+                              --  else raise an error
+                              declare
+                                 Loc : Errors.Location;
+                              begin
+                                 Loc := Types.Get_Location
+                                   (Find_Identifier_Node (Get_Token_String));
+                                 Errors.Error
+                                   ("This module name is already defined in" &
+                                    " this scope : " &
+                                    Errors.Display_Location (Loc),
+                                    Errors.Error,
+                                    Get_Token_Location);
+                              end;
+                           end if;
+                        end;
+                     end if;
+                     if Build_Module then
+                        declare
+                           Ok : Boolean;
+                        begin
+                           --  Creation of the node
+                           Result := Make_Module;
+                           Set_Location
+                             (Result,
+                              Get_Previous_Token_Location);
+                           --  here, the addentifier is really added only if
+                           --  we're not in thhe case where the module name
+                           --  was already defined
+                           Ok := Add_Identifier
+                             (Result,
+                              Get_Token_String);
+                           Set_Default_Repository_Id (Result);
+                           Set_Initial_Current_Prefix (Result);
+                        end;
+                     end if;
+                  end;
                   --  consume the T_Left_Cbracket token
                   Next_Token;
                   --  parse the module body
@@ -822,7 +853,6 @@ package body Idl_Fe.Parser is
                   end;
                end if;
                Fd_Res := Get_Node (Definition);
-               --  FIXME: Is this interface not a forward declaration?
                if View_Next_Token /= T_Semi_Colon then
                   Set_Forward (Fd_Res, Res);
                   Set_Forward (Res, Fd_Res);

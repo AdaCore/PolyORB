@@ -168,7 +168,8 @@ private
    --  Rule 3
    --  <module> ::= "module" <identifier> "{" <definition>+ "}"
    procedure Parse_Module (Result : out Node_Id;
-                           Success : out Boolean);
+                           Success : out Boolean;
+                           Reopen : out Boolean);
 
    --  Rule 4
    --  <interface> ::= <interface_dcl> | <forward_dcl>

@@ -931,10 +931,13 @@ package body Idl_Fe.Types is
       --  Add these definition to the identifier_table of the current_scope
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
+         pragma Debug (O ("Pop_Scope: beginning of loop "));
          Old_Definition := Definition_List.Definition;
          --  remove the identifier from the id_table
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
+         pragma Debug (O ("Pop_Scope: test the presence of" &
+                          " the previous definition"));
          if Definition_List.Definition.Previous_Definition = null then
             pragma Debug (O ("Pop_Scope: removing "
                              & Definition_List.Definition.Name.all));
@@ -961,14 +964,15 @@ package body Idl_Fe.Types is
 
          Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
+         pragma Debug (O ("Pop_Scope: end of loop "));
       end loop;
+      pragma Debug (O ("Pop_Scope: all is removed "));
 
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
       --  Test if all forward definitions were implemented
-      if False
-        or else Kind (Old_Scope.Scope) = K_Repository
-      then
+      if Kind (Old_Scope.Scope) = K_Repository then
+         pragma Debug (O ("Pop_Scope: forward definitions still there "));
          Init (Forward_Defs,
                Unimplemented_Forwards (Get_Root_Scope));
 
@@ -1011,11 +1015,11 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Is_Redefinable : enter"));
       pragma Debug (O ("Is_Redefinable : the identifier is : " & Name));
       --  Checks if the identifier is already imported
-         if Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
-            pragma Debug (O2 ("Is_Redefinable : already imported"));
-            pragma Debug (O2 ("Is_Redefinable : end"));
-            return False;
-         end if;
+      if Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+         pragma Debug (O2 ("Is_Redefinable : already imported"));
+         pragma Debug (O2 ("Is_Redefinable : end"));
+         return False;
+      end if;
       A_Definition := Find_Identifier_Definition (Name);
       if A_Definition /= null then
          pragma Debug (O ("Is_Redefinable : " &
@@ -1248,6 +1252,7 @@ package body Idl_Fe.Types is
      (A_Definition : Identifier_Definition_Acc;
       Node : Node_Id) is
    begin
+      pragma Debug (O2 ("Redefine_Identifier : begin"));
       if A_Definition.Node = No_Node
         or else Definition (Node) /= null then
          raise Errors.Internal_Error;
@@ -1257,6 +1262,7 @@ package body Idl_Fe.Types is
       --  free????????
       A_Definition.Node := Node;
       Set_Definition (Node, A_Definition);
+      pragma Debug (O2 ("Redefine_Identifier : end"));
    end Redefine_Identifier;
 
    --------------------
