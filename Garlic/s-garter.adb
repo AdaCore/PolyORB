@@ -58,6 +58,8 @@ package body System.Garlic.Termination is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   Mutex : Mutex_Type;
+
    Non_Terminating_Tasks : Natural := 0;
    pragma Atomic (Non_Terminating_Tasks);
    --  Count non-terminating tasks. Counter is an Integer instead of a
@@ -189,9 +191,9 @@ package body System.Garlic.Termination is
 
    procedure Add_Non_Terminating_Task is
    begin
-      Enter_Critical_Section;
+      Enter (Mutex);
       Non_Terminating_Tasks := Non_Terminating_Tasks + 1;
-      Leave_Critical_Section;
+      Leave (Mutex);
    end Add_Non_Terminating_Task;
 
    ----------------------
@@ -281,19 +283,19 @@ package body System.Garlic.Termination is
 
             --  Send a wave
 
-            Enter_Critical_Section;
+            Enter (Mutex);
             pragma Debug (Dump_Partition_Table);
             Send_Wave;
 
             --  If we have no neighbour, then we can safely terminate
 
             if Neighbours_Contacted = 0 then
-               Leave_Critical_Section;
+               Leave (Mutex);
                Heart.Soft_Shutdown;
                exit Main_Loop;
             end if;
 
-            Leave_Critical_Section;
+            Leave (Mutex);
 
             --  Wait until we get all the answers
 
@@ -308,7 +310,9 @@ package body System.Garlic.Termination is
                   pragma Debug
                     (D ("Seeing that global termination is enabled"));
 
+                  Enter (Mutex);
                   Send_Shutdown;
+                  Leave (Mutex);
 
                   Heart.Soft_Shutdown;
                   exit Main_Loop;
@@ -346,7 +350,7 @@ package body System.Garlic.Termination is
          Raise_Exception (Constraint_Error'Identity, "Invalid control");
       end if;
 
-      Enter_Critical_Section;
+      Enter (Mutex);
       case Control is
          when Termination.Query =>
             if Stamp > Current_Stamp then
@@ -380,7 +384,7 @@ package body System.Garlic.Termination is
             Boolean'Read (Query, B);
             if not B'Valid then
                pragma Debug (D ("Invalid boolean received for answer"));
-               Leave_Critical_Section;
+               Leave (Mutex);
                Raise_Exception (Constraint_Error'Identity, "Invalid control");
             end if;
             pragma Debug (D ("Got answer " & Boolean'Image (B) &
@@ -412,16 +416,16 @@ package body System.Garlic.Termination is
             if not Shutdown_In_Progress then
                pragma Debug (D ("Propagating final shutdown message"));
                Send_Shutdown;
-               Leave_Critical_Section;
+               Leave (Mutex);
                Heart.Soft_Shutdown;
-               Enter_Critical_Section;
+               Enter (Mutex);
             else
                null;
                pragma Debug (D ("Ignoring redundant final shutdown message"));
             end if;
 
       end case;
-      Leave_Critical_Section;
+      Leave (Mutex);
    end Handle_Request;
 
    ----------------
@@ -478,12 +482,10 @@ package body System.Garlic.Termination is
          Shutdown_Rejected    := not Ready;
          return;
       end if;
-      Enter_Critical_Section;
       Stamp_Type'Write (Message'Access, Current_Stamp);
       Control_Type'Write (Message'Access, Answer);
       Boolean'Write (Message'Access, Ready);
       Send (Recipient, Shutdown_Service, Message'Access, Error);
-      Leave_Critical_Section;
    end Send_Answer;
 
    -------------------
@@ -497,7 +499,6 @@ package body System.Garlic.Termination is
       Error        : Error_Type;
       Partition    : Partition_ID;
    begin
-      Enter_Critical_Section;
       Stamp_Type'Write (Message'Access, Current_Stamp);
       Control_Type'Write (Message'Access, Perform_Shutdown);
       for I in Neighbours'Range loop
@@ -508,7 +509,6 @@ package body System.Garlic.Termination is
          end if;
       end loop;
       Deallocate (Message);
-      Leave_Critical_Section;
    end Send_Shutdown;
 
    ---------------
@@ -560,6 +560,7 @@ package body System.Garlic.Termination is
    end Sub_Non_Terminating_Task;
 
 begin
+   Create (Mutex);
    Register_Add_Non_Terminating_Task (Add_Non_Terminating_Task'Access);
    Register_Sub_Non_Terminating_Task (Sub_Non_Terminating_Task'Access);
    Register_Termination_Initialize (Initialize'Access);
