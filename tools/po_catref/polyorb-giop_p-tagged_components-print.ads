@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.GIOP_P.Tagged_Components.Print is
 
    procedure Output_Tagged_Components

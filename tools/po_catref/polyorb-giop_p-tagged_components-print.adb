@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with Output;
 
 with PolyORB.GIOP_P.Tagged_Components.Policies.Print;

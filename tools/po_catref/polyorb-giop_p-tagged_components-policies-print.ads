@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
    procedure Output_TC (TC : TC_Policies);
