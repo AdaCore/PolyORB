@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#4 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#5 $
 
 with System;
 --  For bit-order information.
@@ -229,11 +229,19 @@ package Droopi.Buffers is
    --  On return, Data contains an access to the retrieved
    --  Data, and the CDR current position is advanced by Size.
 
-
    function CDR_Position (Buffer : access Buffer_Type)
      return Stream_Element_Offset;
    --  return the current CDR position of the buffer
    --  in the marshalling stream.
+
+   ---------------------------------------
+   -- The input/output view of a buffer --
+   ---------------------------------------
+
+   procedure Send_Buffer
+     (Buffer : access Buffer_Type;
+      Socket : Sockets.Socket_Type);
+   --  Send the contents of Buffer onto Socket.
 
    -------------------------
    -- Utility subprograms --
@@ -353,7 +361,6 @@ private
          Iovec_Pool : access Iovec_Pool_Type);
       --  Write the contents of Iovec_Pool onto S.
 
-
       ---------------------------------------
       -- Low-level interfaces to the octet --
       -- stream of an Iovec_Pool.          --
@@ -365,13 +372,6 @@ private
       function Dump (Iovec_Pool : Iovec_Pool_Type) return Zone_Access;
       --  Dump the contents of Iovec_Pool into an array of octets. The result
       --  must be deallocated when not used anymore.
-
-      --  procedure Write_To_FD
-      --    (FD : Interfaces.C.int;
-      --     Iovec_Pool : access Iovec_Pool_Type);
-      --  Write the contents of Iovec_Pool to
-      --  the system file descriptor Fd. On
-      --  error, Write_Error is raised.
 
    private
 

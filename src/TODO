@@ -6,3 +6,4 @@ $Id$
 * Support logging to syslog (also for Java ?)
 * Unified configuration file (modifications to
   Droopi.Log).
+* Droopi.Buffers: remove mentions of CDR.

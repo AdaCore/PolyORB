@@ -344,6 +344,17 @@ package body Droopi.Buffers is
       return Buffer.CDR_Position;
    end CDR_Position;
 
+   ---------------------------------------
+   -- The input/output view of a buffer --
+   ---------------------------------------
+
+   procedure Send_Buffer
+     (Buffer : access Buffer_Type;
+      Socket : Sockets.Socket_Type) is
+   begin
+      Iovec_Pools.Write_To_Socket (Socket, Buffer.Contents'Access);
+   end Send_Buffer;
+
    -------------------------
    -- Utility subprograms --
    -------------------------

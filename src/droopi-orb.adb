@@ -36,7 +36,9 @@ package body Droopi.ORB is
                New_AS := (Kind     => Communication_Sk,
                           Socket   => No_Socket,
                           Session  => null,
+                          Channel  => null,
                           Protocol => AS.Protocol);
+
                Accept_Socket
                  (Server  => AS.Socket,
                   Socket  => New_AS.Socket,
@@ -51,6 +53,10 @@ package body Droopi.ORB is
                if New_AS.Protocol /= null then
                   New_AS.Session := Create_Session (New_AS.Protocol);
                end if;
+
+               New_AS.Channel := Channels.Create
+                 (Socket => New_AS.Socket,
+                  Session => New_AS.Session);
 
                Handle_New_Connection
                  (ORB.Tasking_Policy, ORB_Access (ORB), New_AS);
@@ -68,12 +74,10 @@ package body Droopi.ORB is
             --  Data arrived on a communication channel.
 
             declare
-               Channel : Droopi.Channels.Channel_Access
-                 := null;
+               Channel : constant Droopi.Channels.Channel_Access
+                 := AS.Channel;
             begin
-               --  XXX Initialize Channel to the channel corresponding to
-               --  active socket AS.
-               Droopi.Channels.Handle_Data (Channel, AS);
+               Droopi.Channels.Handle_Data (Channel, AS.Socket);
 
                --  Signal upper layers that data is available on this
                --  channel. Further processing and possible tasking decisions

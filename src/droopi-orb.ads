@@ -4,6 +4,7 @@
 
 with Sequences.Unbounded;
 
+with Droopi.Channels;
 with Droopi.Jobs;
 with Droopi.Protocols;
 with Droopi.Requests;
@@ -51,6 +52,7 @@ package Droopi.ORB is
       case Kind is
          when Communication_Sk =>
             Session  : Protocols.Session_Access;
+            Channel  : Channels.Channel_Access;
          when others =>
             null;
       end case;
