@@ -173,6 +173,8 @@ package body Test001_Client_Request_Info_Tests is
       Operation : constant String := "get_request_policy";
       Valid     : constant Boolean := Point /= Send_Poll;
       Pol       : CORBA.Policy.Ref;
+      pragma Unreferenced (Pol);
+      --  Assigned but never read
 
    begin
       --  XXX Functionality test not implemented

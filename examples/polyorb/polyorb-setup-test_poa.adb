@@ -78,6 +78,7 @@ package body PolyORB.Setup.Test_POA is
    procedure Initialize_Test_Object
    is
       My_Id  : Objects.Object_Id_Access;
+      URI    : PolyORB.Types.String;
       Error  : Error_Container;
    begin
       Put_Line ("Initializing OA configuration... ");
@@ -121,9 +122,12 @@ package body PolyORB.Setup.Test_POA is
       --  Obtain object reference.
 
       Put_Line ("Reference is     : " & References.Image (My_Ref));
+      PolyORB.POA_Types.Oid_To_Rel_URI (Obj_Adapter, My_Id, URI, Error);
+      if Found (Error) then
+         raise Program_Error;
+      end if;
       Put_Line ("URI is           : "
-                & PolyORB.Types.To_Standard_String
-                (PolyORB.POA_Types.Oid_To_Rel_URI (Obj_Adapter, My_Id)));
+                & PolyORB.Types.To_Standard_String (URI));
       begin
          Put_Line ("IOR is           : "
                    & PolyORB.References.IOR.Object_To_String (My_Ref));

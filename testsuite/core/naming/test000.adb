@@ -78,6 +78,8 @@ begin
    declare
       Obj_Name : PolyORB.Services.Naming.Name;
       Rcvd_Ref : PolyORB.References.Ref;
+      pragma Unreferenced (Rcvd_Ref);
+      --  Assigned but never read
       Root_Context : PolyORB.Services.Naming.NamingContext.Ref
         := To_Ref (Ref_Context);
 

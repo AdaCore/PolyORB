@@ -86,6 +86,8 @@ begin
    declare
       Obj_Name : CosNaming.Name;
       Rcvd_Ref : CORBA.Object.Ref;
+      pragma Unreferenced (Rcvd_Ref);
+      --  Assigned but never read
 
    begin
       Append (Obj_Name, NameComponent'(Id => To_CORBA_String ("object1"),

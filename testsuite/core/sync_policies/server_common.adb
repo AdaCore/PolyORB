@@ -77,6 +77,7 @@ package body Server_Common is
 
       Obj_Adapter : constant PolyORB.Obj_Adapters.Obj_Adapter_Access
         := PolyORB.ORB.Object_Adapter (PolyORB.Setup.The_ORB);
+      URI : PolyORB.Types.String;
 
    begin
       PolyORB.POA_Manager.Activate
@@ -106,12 +107,12 @@ package body Server_Common is
         (The_ORB, My_Id, "IDL:Ping:1.0", My_Ref);
       --  Obtain object reference
 
+      PolyORB.POA_Types.Oid_To_Rel_URI
+        (PolyORB.POA_Types.Obj_Adapter (Obj_Adapter.all)'Access,
+         My_Id, URI, Error);
       Put_Line ("Reference is     : " & PolyORB.References.Image (My_Ref));
       Put_Line ("URI is           : "
-                & PolyORB.Types.To_Standard_String
-                (PolyORB.POA_Types.Oid_To_Rel_URI
-                 (PolyORB.POA_Types.Obj_Adapter
-                  (Obj_Adapter.all)'Access, My_Id)));
+                & PolyORB.Types.To_Standard_String (URI));
       begin
          Put_Line ("IOR is           : "
                    & PolyORB.References.IOR.Object_To_String (My_Ref));
