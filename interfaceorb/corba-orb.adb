@@ -31,48 +31,8 @@ with Omniobject ;
 use type Omniobject.Object_Ptr ;
 
 with Corba.Object ; use Corba.Object ;
-with Corba.Dynamic_Type ;
 
 package body Corba.Orb is
-
-
-   --------------------------------------------------
-   ---         specification CORBA 2.0           ----
-   --------------------------------------------------
-
-   -- String_To_Object
-   -------------------
-   procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) is
-      RepoId : Corba.String ;
-      Tmp_Omniobj : Omniobject.Object_Ptr ;
-      Tmp_Dyn_Type : Corba.Object.Constant_Ref_Ptr ;
-   begin
-      -- Get the omniobject
-      Tmp_Omniobj := Omniobject.String_To_Object(From) ;
-
-      -- if the result is correct
-      if not (Tmp_Omniobj = null) then
-
-         -- check if the omniobject we got can be put into
-         -- To (type implied the repoId)
-         RepoId := Omniobject.Get_Repository_Id(Tmp_Omniobj.all) ;
-
-         if Is_A(To, RepoId) then
-            Tmp_Dyn_Type :=
-              Corba.Dynamic_Type.Get_Dynamic_Type_From_Repository_Id(From) ;
-            Set_Fields(To,Tmp_Omniobj, Tmp_Dyn_Type) ;
-            return ;
-         end if ;
-      end if ;
-
-      -- otherwise, the operation is illegal return Nil_Ref
-      -- in the right class
-      Set_Fields(To, null, null) ;
-
-   end ;
-
-
 
 
    --------------------------------------------------

@@ -117,7 +117,7 @@ corba-object.o : corba-object.ads corba-object.adb
 corba-boa.o : corba-boa.ads corba-boa.adb corba-object.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-boa.adb
 
-corba-orb.o: corba-orb.ads corba-orb.adb
+corba-orb.o: corba-orb.ads corba-orb.adb corba-object.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-orb.adb
 
 membufferedstream.o : membufferedstream.ads #membufferedstream.adb
@@ -150,7 +150,7 @@ corba-exceptions.o : corba-exceptions.ads corba-exceptions.adb
 # compilation of files that do not depend on C++
 ################################################
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
-netbufferedstream.ali corba-command_line.ali corba-dynamic_type.ali \
+netbufferedstream.ali corba-command_line.ali  \
 omniproxycalldesc.ali omniproxycallwrapper.ali
 
 .SUFFIXES: .adb .ali
@@ -171,8 +171,6 @@ omni.ali: omni.ads omni.adb
 netbufferedstream.ali: netbufferedstream.ads netbufferedstream.adb
 
 membufferedstream.ali: membufferedstream.ads membufferedstream.adb
-
-corba-dynamic_type.ali: corba.ali corba-object.ali
 
 omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb 
 

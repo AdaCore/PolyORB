@@ -173,6 +173,35 @@ package body Corba.Object is
       end if ;
    end ;
 
+   -- String_To_Object
+   -------------------
+   procedure String_to_Object (From : in CORBA.String;
+                               To : out CORBA.Object.Ref'class) is
+      RepoId : Corba.String ;
+   begin
+      -- Get the omniobject
+      To.Omniobj:= Omniobject.String_To_Object(From) ;
+
+      -- if the result is correct
+      if not (To.Omniobj = null) then
+
+         -- check if the omniobject we got can be put into
+         -- To (type implied the repoId)
+         RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
+
+         if Is_A(To, RepoId) then
+            To.Dynamic_Type := Get_Dynamic_Type_From_Repository_Id(From) ;
+            return ;
+         end if ;
+      end if ;
+
+      -- otherwise, the operation is illegal return Nil_Ref
+      -- in the right class
+      To.Omniobj := null ;
+      To.Dynamic_Type := null ;
+
+   end ;
+
    -- Set_Fields
    -------------
    procedure Set_Fields(Self : in out Ref'Class ;
@@ -350,9 +379,71 @@ package body Corba.Object is
    end ;
 
 
+   --------------------------------------------------
+   ---   The following lines concern the typing   ---
+   ---   of newly created Corba.Object.Ref'Class  ---
+   ---  This functiocs used to be in a seperate   ---
+   ---  package, but there was circular           ---
+   ---  referencs between packages                ---
+   --------------------------------------------------
+
+   type Cell ;
+   type Cell_Ptr is access all Cell ;
+   type Cell is  record
+      ID : Corba.String ;
+      Value : Corba.Object.Constant_Ref_Ptr ;
+      Next : Cell_Ptr ;
+   end record ;
+
+   Pd_List : Cell_Ptr := null ;
+   -- This is a static list that contains all the
+   -- pairs (repoID, static object ref)
+
+   -- Free : free the memory
+   procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
+
+
+   -- Register :
+   -------------
+   procedure Register (RepoId : in Corba.String ;
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
+      Temp : Cell_Ptr ;
+   begin
+      -- makes a new cell ...
+      Temp := new Cell'(ID => RepoID,
+                        Value => Dyn_Type,
+                        Next => Pd_list) ;
+      -- ... and add it in front of the list
+      Pd_List := Temp ;
+   end ;
+
+
+   -- Get_Dynamic_Type_From_Repository_Id
+   --------------------------------------
+   function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
+                                                return Corba.Object.Constant_Ref_Ptr is
+      Temp : Cell_Ptr := Pd_List ;
+   begin
+      loop
+         if Temp = null then
+            Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
+                                            "Corba.Get_Dynamic_Type_From_Repository_Id"
+                                            & Corba.CRLF
+                                            & "No match found for "
+                                            & Corba.To_Standard_String(RepoId)) ;
+         else if Temp.all.ID = repoID then
+            return Temp.all.Value ;
+         else
+            Temp := Temp.all.Next ;
+         end if ;
+         end if ;
+      end loop ;
+   end ;
+
+
 begin
 
-   Corba.Dynamic_Type.Register(Repository_Id, Nil_Ref'Access) ;
+   Register(Repository_Id, Nil_Ref'Access) ;
 
 end Corba.Object ;
 

@@ -43,7 +43,8 @@ package Corba.Orb is
    -- Object string_to_object (in string str);
    -- client-side
    procedure String_to_Object (From : in CORBA.String;
-                               To : out CORBA.Object.Ref'class) ;
+                               To : out CORBA.Object.Ref'class)
+     renames Corba.Object.String_To_Object ;
 
    -- string object_to_string (in Object obj);
    -- server-side

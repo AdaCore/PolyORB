@@ -71,10 +71,11 @@ package Corba.Object is
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
-   procedure Set_Fields(Self : in out Ref'Class ;
-                        O : in Omniobject.Object_Ptr  ;
-                        Dt : in Constant_Ref_Ptr ) ;
-   -- sets omniobj and Dynamic_Type for this object
+
+   procedure Register(RepoId : in Corba.String ;
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) ;
+   -- this procedure registers a new static object in the list
+   -- cf comment at the end of this file
 
    function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
    function Get_Nil_Ref(Self: in Ref) return Ref ;
@@ -91,9 +92,16 @@ package Corba.Object is
                               return CORBA.String ;
    -- returns the IOR corresponding to this object
 
+   procedure String_to_Object (From : in CORBA.String;
+                               To : out Ref'class) ;
+   -- returns a Ref'Class out of an IOR
+
+
    function Get_Profile_List (Obj : in Ref)
                               return Iop.Tagged_Profile_List ;
    -- return the Profile_List of an Object
+
+
 
    --------------------------------------------------
    ---        omniORB specific                    ---
@@ -243,6 +251,38 @@ private
                                        with Omniobj => null,
                                        Dynamic_Type => null) ;
 
+   --------------------------------------------------
+   ---   The following lines concern the typing   ---
+   ---   of newly created Corba.Object.Ref'Class  ---
+   ---  This functiocs used to be in a seperate   ---
+   ---  package, but there was circular           ---
+   ---  referencs between packages                ---
+   --------------------------------------------------
+-----------------------------------------------------------------------
+----     As a matter of fact, an omniobject.Object carries         ----
+----   information about its most derived type in its reposituryID ----
+----     In Corba.Object.Ref, the information of the most          ----
+----   derived type is stored as a pointer to a static variable    ----
+----   of the most derived clas of the object.                     ----
+----    It is easy to retrieve the repositoryID out of a static    ----
+----   object via the dispatching method Get_Repository_Id,        ----
+----   and this package provides a function Get_Dynamic_Type       ----
+----   to do the conversion the other way round.                   ----
+----                                                               ----
+----                                                               ----
+----     As for now, this package is implemented using a           ----
+----     list. It would probably be more efficient with a          ----
+----     hashtable.                                                ----
+----                                                               ----
+----     THE FUNCTIONS ARE NOT THREAD-SAFE                         ----
+----                                                               ----
+-----------------------------------------------------------------------
+
+   function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
+                                                return Corba.Object.Constant_Ref_ptr ;
+   -- This function takes a repository_id as input
+   -- and returns the static nil Ref of the class corresponding
+   -- to this repository_id
 
 
 end Corba.Object ;
