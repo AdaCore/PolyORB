@@ -23,4 +23,4 @@ AM_ADA_PREREQ(19990629, 3.12p)
 #
 # Output
 #
-AC_OUTPUT([Makefile])
+AC_OUTPUT([Makefile platform.ads])
