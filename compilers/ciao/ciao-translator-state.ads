@@ -17,7 +17,9 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#6 $
+
+with Asis;
 
 package CIAO.Translator.State is
 
@@ -45,8 +47,8 @@ package CIAO.Translator.State is
       --  The category (Pure, Remote_Types or Remote_Call_Interface)
       --  of the library unit being translated.
 
-      IDL_Tree     : Node_Id := No_Node;
-      --  The root of the translated IDL tree.
+      Repository   : Node_Id := No_Node;
+      --  The topmost IDL node (a container for all others).
 
       Current_Node : Node_Id := No_Node;
       --  The IDL node which is being constructed.
@@ -56,8 +58,10 @@ package CIAO.Translator.State is
    end record;
 
    procedure Initialize_Translator_State
-     (Category : in Unit_Categories;
-      State    : out Translator_State);
+     (Category   : in     Unit_Categories;
+      Unit       : in     Asis.Compilation_Unit;
+      Repository : in     Node_Id;
+      State      :    out Translator_State);
    --  Set the inital values of a Translator_State record.
 
    procedure Set_Translation

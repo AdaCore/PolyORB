@@ -2987,7 +2987,8 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Interface |
-           K_ValueType =>
+           K_ValueType |
+           K_Module    =>
             return (Ada_Full_Name (Node) & ".Helper");
 
          when
@@ -3031,12 +3032,11 @@ package body Ada_Be.Idl2Ada is
             return ("CORBA.Object.Helper");
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: Node is not mapped to an Ada type.
 
             Error
-              ("Helper_Unit: A " & NK'Img
-               & " does not denote a type.",
+              ("Helper_Unit: Node" & Node'Img & " (a "
+               & NK'Img & ") does not denote a type.",
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.

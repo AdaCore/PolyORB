@@ -17,26 +17,27 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#5 $
 
-with Asis;
-with Asis.Elements;
+with Asis.Elements; use Asis.Elements;
 
 with GNAT.HTable;
 
-with Idl_Fe.Tree;  use Idl_Fe.Tree;
 with Idl_Fe.Types; use Idl_Fe.Types;
-with Errors;       use Errors;
 
 package body CIAO.Translator.State is
 
    procedure Initialize_Translator_State
-     (Category : in Unit_Categories;
-      State    : out Translator_State) is
+     (Category   : in     Unit_Categories;
+      Unit       : in     Asis.Compilation_Unit;
+      Repository : in     Node_Id;
+      State      :    out Translator_State)
+   is
+      Success : Boolean;
    begin
+      State.Repository    := Repository;
       State.Unit_Category := Category;
-      State.IDL_Tree      := Make_Repository (No_Location);
-      State.Current_Node  := State.IDL_Tree;
+      State.Current_Node  := Repository;
       State.Pass          := Normal;
    end Initialize_Translator_State;
 

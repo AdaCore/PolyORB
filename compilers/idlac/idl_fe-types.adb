@@ -24,9 +24,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with System;
+
 with GNAT.Case_Util;
+
 with Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
@@ -973,8 +976,15 @@ package body Idl_Fe.Types is
 
          --  Remove the identifier from the Id_Table
 
-         Id_Table.Table (Definition_List.Definition.Id).Definition :=
-           Definition_List.Definition.Previous_Definition;
+         if Definition_List.Definition.Id
+           not in Id_Table.Table'Range
+         then
+            Ada.Text_IO.Put_Line ("@@0 Argh.");
+         end if;
+
+         Id_Table.Table (Definition_List.Definition.Id).Definition
+           := Definition_List.Definition.Previous_Definition;
+
          pragma Debug (O ("Pop_Scope: test the presence of" &
                           " the previous definition"));
          if Definition_List.Definition.Previous_Definition = null then

@@ -131,7 +131,7 @@ package body Idl_Fe.Display_Tree is
                          Expr.String_Value.all &
                          Ada.Characters.Latin_1.Quotation);
             when C_WString =>
-               Put ("wide string literal : " &
+               Put ("wide string literal: " &
                          Ada.Characters.Latin_1.Quotation);
                Ada.Wide_Text_IO.Put (Expr.WString_Value.all);
                Put_Line ("" & Ada.Characters.Latin_1.Quotation);
@@ -181,7 +181,7 @@ package body Idl_Fe.Display_Tree is
             when C_Enum =>
                Put_Line ("enum " &
                          Name (Expr.Enum_Name) &
-                         " : " &
+                         ": " &
                          Name (Expr.Enum_Value));
             when C_No_Kind =>
                Put_Line ("no_kind");
@@ -210,7 +210,7 @@ package body Idl_Fe.Display_Tree is
             Put ("scoped name: -> " & Img (Value (N))
                  & " " & Name (Value (N)));
             if S_Type (N) /= No_Node then
-               Put_Line (" (type : "
+               Put_Line (" (type: "
                          & Img (S_Type (N)) & " "
                          & Node_Kind'Image (Kind (S_Type (N))) &
                          ")");
@@ -242,7 +242,7 @@ package body Idl_Fe.Display_Tree is
             if Full then
                if Parents (N) /= Nil_List then
                   Disp_Indent (N_Indent);
-                  Put_Line ("parents :");
+                  Put_Line ("parents:");
                   Disp_List (Parents (N),
                              N_Indent + Offset,
                              False);
@@ -275,9 +275,9 @@ package body Idl_Fe.Display_Tree is
                if Parents (N) /= Nil_List then
                   Disp_Indent (N_Indent);
                   if Truncatable (N) then
-                     Put_Line ("parents (truncatable) :");
+                     Put_Line ("parents (truncatable):");
                   else
-                     Put_Line ("parents :");
+                     Put_Line ("parents:");
                   end if;
                   Disp_List (Parents (N),
                              N_Indent + Offset,
@@ -285,7 +285,7 @@ package body Idl_Fe.Display_Tree is
                end if;
                if Supports (N) /= Nil_List then
                   Disp_Indent (N_Indent);
-                  Put_Line ("supports :");
+                  Put_Line ("supports:");
                   Disp_List (Supports (N),
                              N_Indent + Offset,
                              False);
@@ -319,11 +319,11 @@ package body Idl_Fe.Display_Tree is
                Put ("private");
             end if;
             Put_Line (" statemember");
-            Disp_Indent (N_Indent, "type :");
+            Disp_Indent (N_Indent, "type:");
             Disp_Tree (State_Type (N),
                        N_Indent + Offset,
                        Full);
-            Disp_Indent (N_Indent, "declarators :");
+            Disp_Indent (N_Indent, "declarators:");
             Disp_List (State_Declarators (N),
                        N_Indent + Offset,
                        Full);
@@ -332,7 +332,7 @@ package body Idl_Fe.Display_Tree is
          when K_Initializer =>
             Put_Line ("initializer " & Name (N));
             if Param_Decls (N) /= Nil_List then
-               Disp_Indent (N_Indent, "parameters :");
+               Disp_Indent (N_Indent, "parameters:");
                Disp_List (Param_Decls (N), N_Indent + Offset, Full);
             end if;
 
@@ -350,15 +350,15 @@ package body Idl_Fe.Display_Tree is
                Disp_Indent (N_Indent, "type:");
                Disp_Tree (Operation_Type (N), N_Indent + Offset, Full);
                if Parameters (N) /= Nil_List then
-                  Disp_Indent (N_Indent, "parameters :");
+                  Disp_Indent (N_Indent, "parameters:");
                   Disp_List (Parameters (N), N_Indent + Offset, Full);
                end if;
                if Raises (N) /= Nil_List then
-                  Disp_Indent (N_Indent, "raises :");
+                  Disp_Indent (N_Indent, "raises:");
                   Disp_List (Raises (N), N_Indent + Offset, Full);
                end if;
                if Contexts (N) /= Nil_List then
-                  Disp_Indent (N_Indent, "contexts :");
+                  Disp_Indent (N_Indent, "contexts:");
                   Disp_List (Contexts (N), N_Indent + Offset, Full);
                end if;
             end;
@@ -371,7 +371,7 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("");
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (A_Type (N), N_Indent + Offset, Full);
-            Disp_Indent (N_Indent, "declarators :");
+            Disp_Indent (N_Indent, "declarators:");
             Disp_List (Declarators (N),
                        N_Indent + Offset, Full);
 
@@ -424,18 +424,20 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("any");
 
          when K_String =>
+            Put ("string ");
             if Bound (N) = No_Node then
-               Put_Line ("string (unbounded)");
+               Put_Line ("(unbounded)");
             else
-               Put_Line ("string bounds :");
+               Put_Line ("bounds:");
                Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
          when K_Wide_String =>
+            Put ("wide string ");
             if Bound (N) = No_Node then
-               Put_Line ("wide string (unbounded)");
+               Put_Line ("(unbounded)");
             else
-               Put_Line ("wide string bounds :");
+               Put_Line ("bounds:");
                Disp_Tree (Bound (N), N_Indent, Full);
             end if;
 
@@ -449,19 +451,19 @@ package body Idl_Fe.Display_Tree is
                when Mode_Inout =>
                   Put_Line ("inout");
             end case;
-            Disp_Indent (N_Indent, "name :");
+            Disp_Indent (N_Indent, "name:");
             Disp_Tree (Declarator (N), N_Indent + Offset, False);
             if Param_Type (N) /= No_Node then
                case (Kind (Param_Type (N))) is
                   when K_Interface | K_ValueType =>
-                     Disp_Indent (N_Indent, "type : "
+                     Disp_Indent (N_Indent, "type: "
                                   & Name (Param_Type (N)));
                   when others =>
-                     Disp_Indent (N_Indent, "type : ");
+                     Disp_Indent (N_Indent, "type: ");
                      Disp_Tree (Param_Type (N), N_Indent, Full);
                end case;
             else
-               Disp_Indent (N_Indent, "type : no valid type");
+               Disp_Indent (N_Indent, "type: no valid type");
             end if;
 
          when K_Exception =>
@@ -475,15 +477,15 @@ package body Idl_Fe.Display_Tree is
                   & """");
             end if;
             if Full then
-               Disp_Indent (N_Indent, "members :");
+               Disp_Indent (N_Indent, "members:");
                Disp_List (Members (N), N_Indent + Offset, Full);
             end if;
 
          when K_Member =>
             Put_Line ("member");
-            Disp_Indent (N_Indent, "declarator :");
+            Disp_Indent (N_Indent, "declarator:");
             Disp_List (Decl (N), N_Indent + Offset, Full);
-            Disp_Indent (N_Indent, "type :");
+            Disp_Indent (N_Indent, "type:");
             Disp_Tree (M_Type (N), N_Indent + Offset, Full);
 
 
@@ -507,7 +509,7 @@ package body Idl_Fe.Display_Tree is
 
          when K_Case =>
             Put_Line ("case");
-            Disp_Indent (N_Indent, "labels (*null* means default) :");
+            Disp_Indent (N_Indent, "labels (*null* means default):");
             Disp_List (Labels (N), N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (Case_Type (N), N_Indent + Offset, Full);
@@ -561,39 +563,39 @@ package body Idl_Fe.Display_Tree is
                        Full);
 
          when K_Lit_Integer =>
-            Put_Line ("integer literal : ");
+            Put_Line ("integer literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_String =>
-            Put_Line ("string literal : ");
+            Put_Line ("string literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Wide_String =>
-            Put_Line ("wide string literal : ");
+            Put_Line ("wide string literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Character =>
-            Put_Line ("character literal : ");
+            Put_Line ("character literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Wide_Character =>
-            Put_Line ("wide character literal : ");
+            Put_Line ("wide character literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Fixed_Point =>
-            Put_Line ("fixed point literal : ");
+            Put_Line ("fixed point literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Floating_Point =>
-            Put_Line ("floating point literal : ");
+            Put_Line ("floating point literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Boolean =>
-            Put_Line ("boolean literal : ");
+            Put_Line ("boolean literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Lit_Enum =>
-            Put_Line ("enum literal : ");
+            Put_Line ("enum literal: ");
             Disp_Const_Value (Expr_Value (N), N_Indent + Offset);
 
          when K_Struct =>
@@ -661,8 +663,11 @@ package body Idl_Fe.Display_Tree is
             Put_Line ("native:");
             Disp_Tree (Declarator (N), N_Indent + Offset, Full);
 
-            --  ************************** --
-            --  expansion nodes
+         -------------------------------------------------------
+         -- The following nodes are generated by the expander --
+         -- and have no equivalent in standard IDL syntax.    --
+         -------------------------------------------------------
+
          when K_Ben_Idl_File =>
             Put_Line ("ben_idl_file " & Name (N));
             Disp_List (Contents (N), N_Indent, Full);
@@ -680,7 +685,6 @@ package body Idl_Fe.Display_Tree is
             end if;
             Disp_Tree (Bound (N), N_Indent, Full);
 
-            --  ************************** --
          when others =>
             Put_Line ("not implemented yet");
       end case;

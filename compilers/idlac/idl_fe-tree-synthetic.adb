@@ -173,9 +173,14 @@ package body Idl_Fe.Tree.Synthetic is
       Repository_Id_Node : constant Node_Id
         := Repository_Id (Node);
    begin
-      pragma Assert (Repository_Id_Node /= No_Node);
+      --  XXX pragma Assert (Repository_Id_Node /= No_Node);
+      --  Not verified with current version of CIAO.
 
+      if Repository_Id_Node = No_Node then
+         return "<unknown repository id>";
+      end if;
       return String_Value (Repository_Id_Node);
+
    end Idl_Repository_Id;
 
    function All_Ancestors

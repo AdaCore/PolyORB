@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
@@ -361,6 +361,9 @@ package body Ada_Be.Expansion is
    --  Expand_Repository --
    ------------------------
 
+   Unknown_Filename : constant Errors.String_Ptr
+     := new String'("<unknown file>.idl");
+
    procedure  Expand_Repository (Node : in Node_Id) is
 
       Iterator : Node_Iterator;
@@ -406,7 +409,9 @@ package body Ada_Be.Expansion is
             Loc := Get_Location (Current);
             Filename := Loc.Filename;
 
-            pragma Assert (Filename /= null);
+            if Filename = null then
+               Filename := Unknown_Filename;
+            end if;
             pragma Debug (O ("node "
                              & Node_Kind'Image (Kind (Current))
                              & " in file "

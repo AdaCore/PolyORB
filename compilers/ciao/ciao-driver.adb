@@ -18,7 +18,8 @@
 
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#5 $
+
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#6 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
@@ -38,20 +39,15 @@ with GNAT.Command_Line;          use GNAT.Command_Line;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
 
 with CIAO.Filenames;             use CIAO.Filenames;
---  with CIAO.IDL_Tree;
---  with CIAO.Namet;
---  with CIAO.Nlists;
 with CIAO.Options;               use CIAO.Options;
 with CIAO.Translator;            use CIAO.Translator;
-
---  with CIAO.Generator;             use CIAO.Generator;
---  with CIAO.Generator.IDL;
---  with CIAO.Generator.Proxy;
---  with CIAO.Generator.Broca;
-
 with CIAO.Types; use CIAO.Types;
+
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Display_Tree;
+
+with Ada_Be.Expansion;
+with Ada_Be.Idl2Ada;
 
 procedure CIAO.Driver is
 
@@ -151,7 +147,13 @@ procedure CIAO.Driver is
       New_Line;
       Put_Line ("CIAO options:");
       New_Line;
-      Put_Line ("  -f     replace existing generated files");
+      Put_Line ("  -d     display constructed IDL tree");
+      Put_Line ("  -e     display expanded IDL tree");
+      Put_Line ("  -f     replace existing generated IDL file");
+      Put_Line ("  -t     overwrite the existing tree file");
+      Put_Line ("  -r     reuse existing tree file");
+      Put_Line ("  -k     do not delete tree file");
+      Put_Line ("         (-r also implies -k)");
       Put_Line ("  -Idir  source search dir, has the same meaning as for "
                        & "gcc and gnatmake");
       Put_Line ("  -I-    do not look for the sources in the default "
@@ -159,10 +161,6 @@ procedure CIAO.Driver is
       Put_Line ("  -in    (n in 1 .. 9) number of spaces used for identation "
                        & "in a generated file");
       Put_Line ("  -q     quiet mode - do not confirm creating a body");
-      Put_Line ("  -r     reuse existing tree file");
-      Put_Line ("  -k     do not delete tree file");
-      Put_Line ("         (-r also implies -k)");
-      Put_Line ("  -t     overwrite the existing tree file");
       Put_Line ("  -v     verbose mode - output the version information");
    end Brief_Help;
 
@@ -212,12 +210,22 @@ procedure CIAO.Driver is
 
          Command_Line :
          loop
-            case Getopt ("f I: i: k l: q r t v") is
+            case Getopt ("d e f I: i: k l: q r t v") is
                when ASCII.NUL =>
                   exit Command_Line;
 
+               when 'd' =>
+                  Disp_Tree := True;
+                  Expand    := False;
+                  Generate  := False;
+
+               when 'e' =>
+                  Disp_Tree := True;
+                  Expand    := True;
+                  Generate  := False;
+
                when 'f' =>
-                  Overwrite_Body := True;
+                  Overwrite_IDL := True;
                when 'I' =>
                   Free (I_Options_Tmp);
                   I_Options_Tmp :=
@@ -376,11 +384,12 @@ procedure CIAO.Driver is
                           IDL_File_Name (Short_File_Name.all));
       end if;
 
-      --  checking if a body already exists:
+      if Generate then
+         Expand := True;
+      end if;
 
-      if Is_Regular_File (IDL_Name.all) then
-
-         if Overwrite_Body then
+      if Generate and then Is_Regular_File (IDL_Name.all) then
+         if  Overwrite_IDL then
             Ada.Text_IO.Open (IDL_File, Ada.Text_IO.Out_File,
                               IDL_Name.all, Form);
             Ada.Text_IO.Delete (IDL_File);
@@ -390,16 +399,10 @@ procedure CIAO.Driver is
             Ada.Text_IO.Put_Line ("          use -f to overwrite it");
             raise Parameter_Error;
          end if;
-
       end if;
 
       --  now, checking the situation with the tree file:
       Tree_Name := new String'(Short_File_Name.all);
-
-      --  This was for ASIS-for-GNAT 3.11p
-      --  Tree_Name (Tree_Name'Last - 1) := 't';
-
-      --  This is for ASIS-for-GNAT 3.12p
       Tree_Name (Tree_Name'Last) := 't';
 
       if Is_Regular_File (Tree_Name.all) then
@@ -458,7 +461,7 @@ procedure CIAO.Driver is
    ---------------------
 
    Library_Unit : Asis.Compilation_Unit;
-   IDL_Tree     : Idl_Fe.Types.Node_Id;
+   IDL_Tree     : Idl_Fe.Types.Node_Id := No_Node;
 
 begin  --  CIAO.Driver's body.
 
@@ -532,8 +535,10 @@ begin  --  CIAO.Driver's body.
       end;
    end if;
 
-   IDL_Tree := Translate (Library_Unit);
+   Translate (Library_Unit, IDL_Tree);
    --  Translate service specification to IDL syntax tree.
+
+   Put_Line ("Successfully translated.");
 
 --    IDL.Generate (IDL_Tree, IDL_File);
 --    --  Produce IDL_Source_File.
@@ -541,7 +546,21 @@ begin  --  CIAO.Driver's body.
 --    Proxy_Generator.Generate (IDL_Tree);
 --    --  Generate proxy packages.
 
-   Idl_Fe.Display_Tree.Disp_Tree (IDL_Tree);
+   if Expand then
+      Ada_Be.Expansion.Expand_Repository (IDL_Tree);
+      pragma Assert (not Standard.Errors.Is_Error);
+   end if;
+
+   if Disp_Tree then
+      Idl_Fe.Display_Tree.Disp_Tree (IDL_Tree);
+   end if;
+
+   if Generate then
+      Ada_Be.Idl2Ada.Generate
+        (IDL_Tree,
+         Implement => False,
+         To_Stdout => True);
+   end if;
 
    Clean;
 

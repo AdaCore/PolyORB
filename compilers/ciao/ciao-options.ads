@@ -1,50 +1,27 @@
---  The package Options is a part of ASIS-for-GNAT
---  Copyright (C) 1997-1998 Free Software Foundation, Inc.
-
---  This modified version is a part of the CIAO project.
---  Copyright (C) 1999 École nationale supérieure des télécommunications.
-
-------------------------------------------------------------------------------
---                                                                          --
---                           GNATSTUB COMPONENTS                            --
---                                                                          --
---                       G N A T S T U B . O P T I O N S                    --
---                                                                          --
---                                  S p e c                                 --
---                                                                          --
---                                                                          --
---           Copyright (c) 1997-1998, Free Software Foundation, Inc.        --
---                                                                          --
--- Gnatstub is free software; you can redistribute it and/or modify it      --
--- under terms of the  GNU General Public License  as published by the Free --
--- Software Foundation;  either version 2,  or  (at your option)  any later --
--- version. Gnatstub is distributed  in the hope  that it will be useful,   --
--- but WITHOUT ANY WARRANTY; without even the implied warranty of MER-      --
--- CHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General  --
--- Public License for more details. You should have received a copy of the  --
--- GNU General Public License distributed with GNAT; see file COPYING. If   --
--- not, write to the Free Software Foundation, 59 Temple Place Suite 330,   --
--- Boston, MA 02111-1307, USA.                                              --
---                                                                          --
--- Gnatstub is distributed as a part of the ASIS implementation for GNAT    --
--- (ASIS-for-GNAT).                                                         --
---                                                                          --
--- Gnatstub  was  originally  developed  by  Alexei Kuchumov  as a part of  --
--- collaboration  between  Software  Engineering  Laboratory of  the Swiss  --
--- Federal  Institute  of  Technology  in  Lausanne, Switzerland, and  the  --
--- Scientific  Research  Computer  Center  of the  Moscow State University, --
--- Russia.  This  work  was  supported  by  a grant from the Swiss National --
--- Science Foundation,  no 7SUPJ048247, funding a project  "Development of  --
--- ASIS for GNAT with industry quality".                                    --
---                                                                          --
--- Gnatstub  is  now  maintained  by  Ada  Core  Technologies  Inc          --
--- (http://www.gnat.com).                                                   --
-------------------------------------------------------------------------------
+----------------------------------------
+--                                    --
+--       ----  ---     --  ----       --
+--       -      -     - -  -  -       --
+--       -      -    ----  -  -       --
+--       ----  ---  -   -  ----       --
+--                                    --
+----------------------------------------
+--  CORBA                             --
+--  Interface for                     --
+--  Ada'95 distributed systems annex  --
+--  Objects                           --
+----------------------------------------
+--  Copyright (c) 1999                --
+--  École nationale supérieure des    --
+--  télécommunications                --
+----------------------------------------
 
 --  This package defines variables for storing CIAO options and parameters,
 --  as well as some internal parameters used by CIAO.
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+--  $Id: //droopi/main/compilers/ciao/ciao-options.ads#3 $
+
+with GNAT.OS_Lib;
 
 with CIAO.Types;  use CIAO.Types;
 
@@ -70,19 +47,28 @@ package CIAO.Options is
    --  If this flag is set ON, gnatstub does not generate a confirmation
    --  in case when the samle body has successfully been created
 
-   Overwrite_Body : Boolean := False;
-   --  Should an existing body be overwritten
+   Overwrite_IDL : Boolean := False;
+   --  Indicates whether an existing IDL source file should be overwritten.
 
    Overwrite_Tree : Boolean := False;
-   --  in case, if the current directory already contains the tree file with
-   --  the name corresponding to Gnatstub parameter, indicates whethere or not
-   --  this file should be overwritten
-
-   Delete_Tree : Boolean := True;
-   --  indicates if Gnatstub should delete the tree file cerated by itself.
+   --  Indicates whether an existing tree file should be overwritten.
 
    Reuse_Tree : Boolean := False;
-   --  indicates if the existing tree should be reused
+   --  Indicates whether an existing tree should be reused
+
+   Delete_Tree : Boolean := False;
+   --  When CIAO creates a tree file itself, indicates whether that
+   --  file should be removed after use.
+
+   Expand : Boolean := True;
+   --  Indicates whether IDL tree expansion must be performed.
+
+   Disp_Tree : Boolean := False;
+   --  Indicates whether a textual IDL tree debug dump must be
+   --  performed.
+
+   Generate : Boolean := True;
+   --  Indicates whether stub code generation must be performed.
 
    Indent_Level : Positive := 3;
    Min_Indent_Level : constant Positive := 1;
@@ -114,7 +100,7 @@ package CIAO.Options is
    Destination_Dir : String_Ptr;
    --  directory to put the sampler body in
 
-   Arg_List : Argument_List_Access;
+   Arg_List : GNAT.OS_Lib.Argument_List_Access;
    --  -I options from the Gnatstub command line transformed into the
    --  form appropriate for calling gcc to create the tree file
 

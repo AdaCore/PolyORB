@@ -1043,40 +1043,6 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
    end Gen_Struct_Exception_Spec;
 
-   ------------------------------
-   -- Gen_String_Instance_Spec --
-   ------------------------------
-
-   procedure Gen_String_Instance_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-   begin
-      if Generate_Dyn then
-         --  Typecode generation
-         Add_With (CU, "CORBA");
-
-         NL (CU);
-         PL (CU, Ada_TC_Name (Node)
-             & " : CORBA.TypeCode.Object :=");
-         II (CU);
-         PL (CU, "CORBA.TypeCode.TC_String;");
-         DI (CU);
-
-         --  From_Any
-         NL (CU);
-         Gen_From_Any_Profile (CU, Node);
-         PL (CU, ";");
-
-         --  To_Any
-         NL (CU);
-         Gen_To_Any_Profile (CU, Node);
-         PL (CU, ";");
-
-         --  Fill in typecode TC_<name of the type>
-         Add_Elaborate_Body (CU);
-      end if;
-   end Gen_String_Instance_Spec;
-
    -------------------------------
    -- Gen_Struct_Exception_Body --
    -------------------------------
@@ -1349,9 +1315,43 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
    end Gen_Struct_Exception_Body;
 
-   -------------------------------
-   -- Gen_String_Instance_Body  --
-   -------------------------------
+   ------------------------------
+   -- Gen_String_Instance_Spec --
+   ------------------------------
+
+   procedure Gen_String_Instance_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+   begin
+      if Generate_Dyn then
+         --  Typecode generation
+         Add_With (CU, "CORBA");
+
+         NL (CU);
+         PL (CU, Ada_TC_Name (Node)
+             & " : CORBA.TypeCode.Object :=");
+         II (CU);
+         PL (CU, "CORBA.TypeCode.TC_String;");
+         DI (CU);
+
+         --  From_Any
+         NL (CU);
+         Gen_From_Any_Profile (CU, Node);
+         PL (CU, ";");
+
+         --  To_Any
+         NL (CU);
+         Gen_To_Any_Profile (CU, Node);
+         PL (CU, ";");
+
+         --  Fill in typecode TC_<name of the type>
+         Add_Elaborate_Body (CU);
+      end if;
+   end Gen_String_Instance_Spec;
+
+   ------------------------------
+   -- Gen_String_Instance_Body --
+   ------------------------------
 
    procedure Gen_String_Instance_Body
      (CU        : in out Compilation_Unit;

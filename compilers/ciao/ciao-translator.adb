@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#12 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#13 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -207,27 +207,12 @@ package body CIAO.Translator is
      return String;
    --  Return the IDL representation of Name.
 
---    procedure Translate_Defining_Name
---      (Name    : in Asis.Defining_Name;
---       State   : in out Translator_State);
-
---    procedure Translate_Subtype_Mark
---      (Exp     : in Asis.Expression;
---       State   : in out Translator_State);
-
    function Translate_Subtype_Mark
      (Exp : in Asis.Expression)
      return Node_Id;
    --  Return the node id corresponding to the definition of
    --  the type denoted by subtype_mark Exp.
 
---    procedure Translate_Discriminant_Part
---      (Def     : in Asis.Definition;
---       State   : in out Translator_State);
-
---    procedure Translate_Type_Definition
---      (Def     : in Asis.Definition;
---       State   : in out Translator_State);
    procedure Translate_List
      (List  : in     Asis.Element_List;
       State : in out Translator_State);
@@ -359,6 +344,7 @@ package body CIAO.Translator is
 
       procedure Process_Operation_Declaration
         (State                   : in out Translator_State;
+         Name                    : String;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
          Implicit_Self_Parameter : Asis.Element := Nil_Element);
@@ -367,6 +353,7 @@ package body CIAO.Translator is
       --  or a full_type_declaration that declares a RAS.
       --
       --  State              - The translator state.
+      --  Name               - The name of the operation.
       --  Parameter_Profile  - The calling profile of the operation.
       --  Result_Profile     - The return profile (for a funtion),
       --                       Nil_Element (for a procedure).
@@ -378,7 +365,7 @@ package body CIAO.Translator is
       --
       --  Pre-condition:  State.Current_Node is the <interface_dcl>.
       --  Post-condition: State.Current_Node is the <op_dcl> node
-      --  and its name has not been set.
+      --  and its name has been set to Name.
 
       procedure Process_Distributed_Object_Declaration
         (Element : in Asis.Element;
@@ -399,6 +386,7 @@ package body CIAO.Translator is
          --  XXX for now do not define the forward interface.
 
          Node := Make_Interface (No_Location);
+
 --          Set_Forward (Node, Forward_Node);
 --          Set_Forward (Forward_Node, Node);
 --          Set_Definition (Node, Idl_Fe.Tree.Definition (Forward_Node));
@@ -438,6 +426,7 @@ package body CIAO.Translator is
 
       procedure Process_Operation_Declaration
         (State                   : in out Translator_State;
+         Name                    : String;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
          Implicit_Self_Parameter : Asis.Element := Nil_Element) is
@@ -447,11 +436,13 @@ package body CIAO.Translator is
          Value_Type_Node : Node_Id;
          --  <param_type_spec> or "void", for use in <op_type_spec>.
 
+         Success : Boolean;
       begin
          Op_Node := Make_Operation (No_Location);
          Set_Is_Oneway (Op_Node, False);
          Append_Node_To_Contents (State.Current_Node, Op_Node);
-         Push_Scope (Op_Node);
+         Success := Add_Identifier (Op_Node, Name);
+         pragma Assert (Success);
 
          if  Is_Nil (Result_Profile) then
             Value_Type_Node := Make_Void (No_Location);
@@ -464,6 +455,7 @@ package body CIAO.Translator is
 
          State.Current_Node := Op_Node;
 
+         Push_Scope (State.Current_Node);
          for I in Parameter_Profile'Range loop
             if Is_Identical (Parameter_Profile (I),
                              Implicit_Self_Parameter) then
@@ -517,6 +509,7 @@ package body CIAO.Translator is
                      (Defining_Names (Defining_Names'First)));
                   pragma Assert (Success);
                   State.Current_Node := Node;
+                  Push_Scope (State.Current_Node);
 
                   case Access_Type_Kind (Type_Definition) is
                      when
@@ -524,6 +517,7 @@ package body CIAO.Translator is
                        An_Access_To_Protected_Procedure =>
                         Process_Operation_Declaration
                           (State,
+                           "Call",
                            Access_To_Subprogram_Parameter_Profile
                            (Type_Definition));
                      when
@@ -531,6 +525,7 @@ package body CIAO.Translator is
                        An_Access_To_Protected_Function =>
                         Process_Operation_Declaration
                           (State,
+                           "Call",
                            Access_To_Subprogram_Parameter_Profile
                            (Type_Definition),
                            Result_Profile =>
@@ -541,12 +536,13 @@ package body CIAO.Translator is
                         --  Access_Kind in Access_To_Subprogram_Definition
                         raise ASIS_Failed;
                   end case;
-                  Success := Add_Identifier (State.Current_Node, "Call");
-                  pragma Assert (Success);
 
                   Set_Translation (Element, State.Current_Node);
                   --  The translation of a RAS declaration is
                   --  an <op_dcl>.
+
+                  Pop_Scope;
+
                else
 
                   --  This is the definition of a normal type or
@@ -853,7 +849,7 @@ package body CIAO.Translator is
                Interface_Dcl_Node      : Node_Id := No_Node;
                Old_Current_Node        : constant Node_Id
                  := State.Current_Node;
-               Success : Boolean;
+               Need_To_Pop_Scope       : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
                --  Only one defining_name in a subprogram declaration.
@@ -924,24 +920,42 @@ package body CIAO.Translator is
 
                if Kind (Interface_Dcl_Node) = K_Interface then
                   State.Current_Node := Interface_Dcl_Node;
+
+                  if Get_Current_Scope /= State.Current_Node then
+                     Push_Scope (State.Current_Node);
+                     Need_To_Pop_Scope := True;
+                  else
+                     Need_To_Pop_Scope := False;
+                  end if;
+
                   if Is_Function then
                      Process_Operation_Declaration
-                       (State, Profile,
+                       (State,
+                        Map_Defining_Name (Defining_Name),
+                        Profile,
                         Result_Profile => Result_Profile (Element),
                         Implicit_Self_Parameter => Implicit_Self_Parameter);
                   else
                      Process_Operation_Declaration
-                       (State, Profile,
+                       (State,
+                        Map_Defining_Name (Defining_Name),
+                        Profile,
                         Result_Profile => Nil_Element,
                         Implicit_Self_Parameter => Implicit_Self_Parameter);
                   end if;
-                  Success := Add_Identifier
-                    (State.Current_Node, Map_Defining_Name (Defining_Name));
-                  pragma Assert (Success);
 
                   Set_Translation (Element, State.Current_Node);
                   --  The translation of a subprogram declaration is
                   --  an <op_dcl>.
+
+                  if Need_To_Pop_Scope then
+                     Pop_Scope;
+                  end if;
+               else
+                  --  An operation declaration within something
+                  --  that is not an INTERFACE???
+                  Raise_Translation_Error
+                    (Element, "Operation outside of an interface.");
                end if;
 
                State.Current_Node := Old_Current_Node;
@@ -1026,15 +1040,15 @@ package body CIAO.Translator is
 
                   Node := Make_Interface (No_Location);
                   Append_Node_To_Contents (State.Current_Node, Node);
+                  Success := Add_Identifier
+                    (Node, Map_Defining_Name (Defining_Name));
+                  pragma Assert (Success);
+
                   Push_Scope (Node);
 
                   --  Set_Is_Remote_Subprograms (Node, True);
                   --  XXX CANNOT BE REPRESENTED in idlac tree!
                   --  but will we need this in code gen phase?
-
-                  Success := Add_Identifier
-                    (Node, Map_Defining_Name (Defining_Name));
-                  pragma Assert (Success);
 
                   State.Current_Node := Node;
                else
@@ -1043,13 +1057,14 @@ package body CIAO.Translator is
                   --  declaration is a <module>
 
                   Node := Make_Module (No_Location);
-                  Append_Node_To_Contents (State.Current_Node, Node);
-                  Push_Scope (Node);
-
-                  Set_Translation (Element, Node);
                   Success := Add_Identifier
                     (Node, Map_Defining_Name (Defining_Name));
                   pragma Assert (Success);
+                  Append_Node_To_Contents (State.Current_Node, Node);
+
+                  Push_Scope (Node);
+                  State.Current_Node := Node;
+                  Set_Translation (Element, Node);
                end if;
 
                Translate_List (Visible_Part, State);
@@ -2040,25 +2055,11 @@ package body CIAO.Translator is
                            Unit_Declaration : constant Asis.Declaration
                              := Corresponding_Entity_Name_Declaration
                              (Units (J));
-                           Unit_Translation : constant Node_Id
-                             := Translate
-                             (Enclosing_Compilation_Unit (Unit_Declaration));
-                           Include_Node : constant Node_Id
-                             := Make_Ben_Idl_File (No_Location);
-                           Success : Boolean;
                         begin
-                           Append_Node_To_Contents
-                             (State.Current_Node, Include_Node);
-                           Success := Add_Identifier
-                             (Include_Node, IDL_Module_Name
-                              (Enclosing_Compilation_Unit
-                               (Unit_Declaration)));
-                           pragma Assert (Success);
-                           Set_Contents
-                             (Include_Node, Contents (Unit_Translation));
-                           Set_Translation (Unit_Declaration, Include_Node);
-                           --  The translation of the declaration of a
-                           --  withed unit is a Ben_Idl_File subtree.
+                           Translate
+                             (Enclosing_Compilation_Unit
+                              (Unit_Declaration),
+                              State.Repository);
                         end;
                      end loop;
                   end;
@@ -2077,35 +2078,32 @@ package body CIAO.Translator is
             Unit_Declaration : constant Asis.Declaration
               := Corresponding_Entity_Name_Declaration
               (Defining_Prefix (Name));
-            Unit_Translation : constant Node_Id
-              := Translate
-              (Enclosing_Compilation_Unit (Unit_Declaration));
-
-            Include_Node : constant Node_Id
-              := Make_Ben_Idl_File (No_Location);
-            Success : Boolean;
          begin
-            Append_Node_To_Contents (State.Current_Node, Include_Node);
-            Success := Add_Identifier
-              (Include_Node, IDL_Module_Name
-               (Enclosing_Compilation_Unit
-                (Unit_Declaration)));
-            pragma Assert (Success);
-
-            Set_Contents
-              (Include_Node, Contents (Unit_Translation));
-            Set_Translation (Unit_Declaration, Include_Node);
-            --  The translation of the declaration of a withed
-            --  unit is a #include preprocessor directive node.
+            Translate
+              (Enclosing_Compilation_Unit (Unit_Declaration),
+               State.Repository);
          end;
       end if;
 
    end Translate_Context_Clause;
 
-   function Translate (LU : in Compilation_Unit) return Node_Id is
+   procedure Translate
+     (LU : in Compilation_Unit;
+      Repository : in out Node_Id)
+   is
       Category : constant Unit_Categories
         := Unit_Category (LU);
+      Need_To_Pop_Scope : Boolean;
    begin
+      if Repository = No_Node then
+         Repository := Make_Repository (No_Location);
+         Push_Scope (Repository);
+         Need_To_Pop_Scope := True;
+      else
+         pragma Assert (Is_Repository (Repository));
+         Need_To_Pop_Scope := False;
+      end if;
+
       if Category = Other then
          Raise_Translation_Error
            (Nil_Element,
@@ -2116,23 +2114,24 @@ package body CIAO.Translator is
       declare
          D : constant Declaration
            := Unit_Declaration (LU);
-         N : constant Node_Id := Get_Translation (D);
          C : Traverse_Control := Continue;
          S : Translator_State;
       begin
-         if N /= No_Node then
-            --  Unit already translated.
-            return N;
+         if Get_Translation (D) = No_Node then
+            --  Unit not already translated.
+            Initialize_Translator_State
+              (Category   => Category,
+               Unit       => LU,
+               Repository => Repository,
+               State      => S);
+            Translate_Context_Clause (LU, S);
+            Translate_Tree (D, C, S);
          end if;
-         Initialize_Translator_State
-           (Category => Category,
-            State    => S);
-         Push_Scope (S.Current_Node);
-         Translate_Context_Clause (LU, S);
-         Translate_Tree (D, C, S);
-         Pop_Scope;
-         return S.IDL_Tree;
       end;
+      if Need_To_Pop_Scope then
+         Pop_Scope;
+      end if;
    end Translate;
 
 end CIAO.Translator;
+

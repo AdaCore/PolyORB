@@ -18,7 +18,7 @@
 
 --  This unit generates a decorated IDL tree by traversing
 --  the ASIS tree of a DSA package specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#3 $
 
 with Asis;
 
@@ -45,6 +45,8 @@ package CIAO.Translator is
    -- translation of the libray unit.           --
    -----------------------------------------------
 
-   function Translate (LU : in Asis.Compilation_Unit) return Node_Id;
+   procedure Translate
+     (LU : in Asis.Compilation_Unit;
+      Repository : in out Node_Id);
 
 end CIAO.Translator;
