@@ -1,8 +1,7 @@
 #include <iostream.h>
 #include "omnithread.h"
 
-#include "chicken.hh"
-#include "egg.hh"
+#include "chicken_egg.hh"
 
 
 class Egg_i ;

@@ -27,7 +27,7 @@ main:
 clean:
 	rm *.ali *.o *~
 
-server.o: server.cc
+server.o: server.cc chicken_egg.hh
 	/usr/local/egcs/bin/g++ -c -O2  -Wall -Wno-unused -D__OMNIORB2__ \
 $(OMNIORB_SYSDEP_FLAGS) -D_REENTRANT -I.  -I../../omniORB_2.7.0/include  -o server.o server.cc
 
