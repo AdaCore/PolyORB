@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -128,6 +128,12 @@ begin
 
    Write_Switch_Char;
    Write_Str ("q       Be quiet/terse");
+   Write_Eol;
+
+   --  Line for -s
+
+   Write_Switch_Char;
+   Write_Str ("s       Recompile if compiler switches have changed");
    Write_Eol;
 
    --  Line for -v

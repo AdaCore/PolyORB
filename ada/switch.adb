@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -215,7 +215,7 @@ package body Switch is
             while Ptr < Max loop
                Ptr := Ptr + 1;
                C := Switch_Chars (Ptr);
-               exit when C = Ascii.NUL or else C = '/' or else C = '-';
+               exit when C = ASCII.NUL or else C = '/' or else C = '-';
 
                if C in '1' .. '9' or else
                   C in 'a' .. 'z' or else
@@ -480,12 +480,15 @@ package body Switch is
 
          --  Processing for N switch
 
+         --  We treat this as equivalent to 'n' for back compatibility. It
+         --  used to mean inline all subprograms, but we abandoned this
+         --  capability, since it did not turn out to be useful.
+
          elsif C = 'N' then
             Ptr := Ptr + 1;
 
             if Program = Compiler then
-               Inline_All := True;
-               Inline_Processing_Required := True;
+               Inline_Active := True;
             else
                raise Bad_Switch;
             end if;
@@ -496,7 +499,8 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Compiler then
-               Suppress_Options.Overflow_Checks    := False;
+               Suppress_Options.Overflow_Checks := False;
+
             elsif Program = Binder or else Program = Make then
                if Output_Filename_Present then
                   raise Too_Many_Output_Files;
@@ -609,6 +613,9 @@ package body Switch is
             elsif Program = Binder then
                All_Sources := True;
                Check_Source_Files := True;
+
+            elsif Program = Make then
+               Check_Switches := True;
             else
                raise Bad_Switch;
             end if;
@@ -678,55 +685,85 @@ package body Switch is
          --  Processing for w switch
 
          elsif C = 'w' then
-            Ptr := Ptr + 1;
 
-            if Program = Compiler or else Program = Binder then
+            --  For the binder we only allow suppress/error cases
+
+            if Program = Binder then
+               Ptr := Ptr + 1;
 
                case Switch_Chars (Ptr) is
-
-                  when 'a' =>
-                     Constant_Condition_Warnings := True;
-                     Elab_Warnings               := True;
-                     Check_Unreferenced          := True;
-                     Check_Withs                 := True;
-
-                  when 'A' =>
-                     Constant_Condition_Warnings := False;
-                     Elab_Warnings               := False;
-                     Check_Unreferenced          := False;
-                     Check_Withs                 := False;
-
-                  when 'c' =>
-                     Constant_Condition_Warnings := True;
-
-                  when 'C' =>
-                     Constant_Condition_Warnings := False;
 
                   when 'e' =>
                      Warning_Mode  := Treat_As_Error;
 
-                  when 'l' =>
-                     Elab_Warnings := True;
-
-                  when 'L' =>
-                     Elab_Warnings := False;
-
                   when 's' =>
                      Warning_Mode  := Suppress;
-
-                  when 'u' =>
-                     Check_Unreferenced := True;
-                     Check_Withs        := True;
-
-                  when 'U' =>
-                     Check_Unreferenced := False;
-                     Check_Withs        := False;
 
                   when others =>
                      raise Bad_Switch;
                end case;
 
                Ptr := Ptr + 1;
+
+            --  For the compiler, we allow all the possible switches
+
+            elsif Program = Compiler then
+
+               while Ptr < Max loop
+                  Ptr := Ptr + 1;
+
+                     case Switch_Chars (Ptr) is
+
+                        when 'a' =>
+                           Constant_Condition_Warnings := True;
+                           Elab_Warnings               := True;
+                           Check_Unreferenced          := True;
+                           Check_Withs                 := True;
+
+                        when 'A' =>
+                           Constant_Condition_Warnings := False;
+                           Elab_Warnings               := False;
+                           Check_Unreferenced          := False;
+                           Check_Withs                 := False;
+
+                        when 'c' =>
+                           Constant_Condition_Warnings := True;
+
+                        when 'C' =>
+                           Constant_Condition_Warnings := False;
+
+                        when 'e' =>
+                           Warning_Mode  := Treat_As_Error;
+
+                        when 'l' =>
+                           Elab_Warnings := True;
+
+                        when 'L' =>
+                           Elab_Warnings := False;
+
+                        when 's' =>
+                           Warning_Mode  := Suppress;
+
+                        when 'u' =>
+                           Check_Unreferenced := True;
+                           Check_Withs        := True;
+
+                        when 'U' =>
+                           Check_Unreferenced := False;
+                           Check_Withs        := False;
+
+                        --  Allow and ignore 'w' so that the old
+                        --  format (e.g. -gnatwuwl) will work.
+
+                        when 'w' =>
+                           null;
+
+                        when others =>
+                           raise Bad_Switch;
+                     end case;
+               end loop;
+
+               return;
 
             else
                raise Bad_Switch;

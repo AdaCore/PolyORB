@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -68,6 +68,7 @@ package body Stylesw is
       Add ('k', Style_Check_Keyword_Casing);
       Add ('l', Style_Check_Layout);
       Add ('m', Style_Check_Max_Line_Length);
+      Add ('n', Style_Check_Standard);
       Add ('p', Style_Check_Pragma_Casing);
       Add ('r', Style_Check_References);
       Add ('s', Style_Check_Specs);
@@ -96,7 +97,7 @@ package body Stylesw is
    procedure Set_Default_Style_Check_Options is
    begin
       Reset_Style_Check_Options;
-      Set_Style_Check_Options ("3abcefhiklmprst");
+      Set_Style_Check_Options ("3abcefhiklmnprst");
    end Set_Default_Style_Check_Options;
 
    -------------------------------
@@ -119,6 +120,7 @@ package body Stylesw is
       Style_Check_Pragma_Casing    := False;
       Style_Check_References       := False;
       Style_Check_Specs            := False;
+      Style_Check_Standard         := False;
       Style_Check_Tokens           := False;
    end Reset_Style_Check_Options;
 
@@ -187,6 +189,9 @@ package body Stylesw is
             when 'm' =>
                Style_Check_Max_Line_Length  := True;
                Style_Max_Line_Length        := 79;
+
+            when 'n' =>
+               Style_Check_Standard         := True;
 
             when 'M' =>
                Style_Max_Line_Length := 0;

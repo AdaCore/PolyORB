@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -313,9 +313,9 @@ package Osint is
    --  Functions to access the directory names in the Object search path
 
    Include_Search_File : constant String_Access
-     := new String'("STD_ADA_INCLUDE_DIRS");
+     := new String'("ada_source_path");
    Objects_Search_File : constant String_Access
-     := new String'("STD_ADA_OBJECTS_DIRS");
+     := new String'("ada_object_path");
 
    --  Files containg the default include or objects search directories.
 

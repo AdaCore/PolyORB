@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -144,7 +144,7 @@ begin
    --  character sequence) since it's too much trouble to do this right ???
 
    for J in 1 .. Curlen loop
-      if Buffer (J) = Ascii.ESC then
+      if Buffer (J) = ASCII.ESC then
          return;
       end if;
    end loop;

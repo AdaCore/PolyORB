@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,8 @@
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+with Types; use Types;
 
 package Casing is
 
@@ -82,6 +84,7 @@ package Casing is
    --  On return, the identifier is converted to all upper case. The call is
    --  equivalent to Set_Casing (All_Upper_Case).
 
-   --  See also Scn.Determine_Token_Casing
+   function Determine_Casing (Ident : Text_Buffer) return Casing_Type;
+   --  Determines the casing of the identifier/keyword string Ident
 
 end Casing;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -121,7 +121,7 @@ package Namet is
    Name_Buffer : String (1 .. Hostparm.Max_Name_Length + 1);
    --  This buffer is used to set the name to be stored in the table for the
    --  Name_Find call, and to retrieve the name for the Get_Name_String call.
-   --  The plus 1 in the length allows for cases of adding Ascii.Nul.
+   --  The plus 1 in the length allows for cases of adding ASCII.NUL.
 
    Name_Len : Natural;
    --  Length of name stored in Name_Buffer. Used as an input parameter for

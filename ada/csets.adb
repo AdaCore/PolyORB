@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1012,7 +1012,7 @@ package body Csets is
       if Identifier_Character_Set = 'w'
         and then Wide_Character_Encoding_Method in WC_ESC_Encoding_Method
       then
-         Identifier_Char (Ascii.ESC) := True;
+         Identifier_Char (ASCII.ESC) := True;
       end if;
    end Initialize;
 

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -768,7 +768,7 @@ package body Namet is
          Name_Chars.Increment_Last;
          Name_Chars.Table (Name_Chars.Last) := C;
          Name_Chars.Increment_Last;
-         Name_Chars.Table (Name_Chars.Last) := Ascii.NUL;
+         Name_Chars.Table (Name_Chars.Last) := ASCII.NUL;
       end loop;
 
       --  Clear hash table
@@ -875,7 +875,7 @@ package body Namet is
       end loop;
 
       Name_Chars.Increment_Last;
-      Name_Chars.Table (Name_Chars.Last) := Ascii.NUL;
+      Name_Chars.Table (Name_Chars.Last) := ASCII.NUL;
 
       return Name_Entries.Last;
    end Name_Enter;
@@ -979,7 +979,7 @@ package body Namet is
          end loop;
 
          Name_Chars.Increment_Last;
-         Name_Chars.Table (Name_Chars.Last) := Ascii.NUL;
+         Name_Chars.Table (Name_Chars.Last) := ASCII.NUL;
 
          return Name_Entries.Last;
       end if;

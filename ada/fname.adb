@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -198,7 +198,7 @@ package body Fname is
             Name_Buffer (J) := '-';
             J := J + 1;
 
-         elsif Name_Buffer (J) = Ascii.ESC
+         elsif Name_Buffer (J) = ASCII.ESC
            or else (Upper_Half_Encoding
                      and then Name_Buffer (J) in Upper_Half_Character)
          then

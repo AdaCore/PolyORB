@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,6 +41,74 @@ with Widechar; use Widechar;
 
 package body Casing is
 
+   ----------------------
+   -- Determine_Casing --
+   ----------------------
+
+   function Determine_Casing (Ident : Text_Buffer) return Casing_Type is
+
+      All_Lower : Boolean := True;
+      --  Set False if upper case letter found
+
+      All_Upper : Boolean := True;
+      --  Set False if lower case letter found
+
+      Mixed : Boolean := True;
+      --  Set False if exception to mixed case rule found (lower case letter
+      --  at start or after underline, or upper case letter elsewhere).
+
+      Decisive : Boolean := False;
+      --  Set True if at least one instance of letter not after underline
+
+      After_Und : Boolean := True;
+      --  True at start of string, and after an underline character
+
+   begin
+      for S in Ident'Range loop
+         if Ident (S) = '_' or else Ident (S) = '.' then
+            After_Und := True;
+
+         elsif Is_Lower_Case_Letter (Ident (S)) then
+            All_Upper := False;
+
+            if not After_Und then
+               Decisive := True;
+            else
+               After_Und := False;
+               Mixed := False;
+            end if;
+
+         elsif Is_Upper_Case_Letter (Ident (S)) then
+            All_Lower := False;
+
+            if not After_Und then
+               Decisive := True;
+               Mixed := False;
+            else
+               After_Und := False;
+            end if;
+         end if;
+      end loop;
+
+      --  Now we can figure out the result from the flags we set in that loop
+
+      if All_Lower then
+         return All_Lower_Case;
+
+      elsif not Decisive then
+         return Unknown;
+
+      elsif All_Upper then
+         return All_Upper_Case;
+
+      elsif Mixed then
+         return Mixed_Case;
+
+      else
+         return Unknown;
+      end if;
+   end Determine_Casing;
+
    ----------------
    -- Set_Casing --
    ----------------
@@ -65,7 +133,7 @@ package body Casing is
       Ptr := 1;
 
       while Ptr <= Name_Len loop
-         if Name_Buffer (Ptr) = Ascii.ESC
+         if Name_Buffer (Ptr) = ASCII.ESC
            or else Name_Buffer (Ptr) = '['
            or else (Upper_Half_Encoding
                      and then Name_Buffer (Ptr) in Upper_Half_Character)

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,7 +35,7 @@ with Output;  use Output;
 
 package body ALI is
 
-   use Ascii;
+   use ASCII;
    --  Make control characters visible
 
    --------------------
@@ -88,11 +88,12 @@ package body ALI is
       Err       : Boolean)
       return      ALI_Id
    is
-      P        : Text_Ptr := T'First;
-      Line     : Logical_Line_Number := 1;
-      Id       : ALI_Id;
-      C        : Character;
-      NS_Found : Boolean;
+      P         : Text_Ptr := T'First;
+      Line      : Logical_Line_Number := 1;
+      Id        : ALI_Id;
+      C         : Character;
+      NS_Found  : Boolean;
+      First_Arg : Arg_Id;
 
       function At_Eol return Boolean;
       --  Test if at end of line
@@ -513,6 +514,8 @@ package body ALI is
 
       --  Acquire argument lines
 
+      First_Arg := Args.Last + 1;
+
       Arg_Loop : while C = 'A' loop
          Checkc (' ');
          Name_Len := 0;
@@ -661,7 +664,7 @@ package body ALI is
          Units.Table (Units.Last).Elaborate_Body := False;
          Units.Table (Units.Last).Version        := "00000000";
          Units.Table (Units.Last).First_With     := Withs.Last + 1;
-         Units.Table (Units.Last).First_Arg      := Args.Last + 1;
+         Units.Table (Units.Last).First_Arg      := First_Arg;
          Units.Table (Units.Last).Elab_Position  := 0;
 
          if Debug_Flag_U then
@@ -981,15 +984,51 @@ package body ALI is
          loop
             C := Getc;
 
-            if C < ' ' then
+            if C < Character'Val (16#20#)
+              or else C > Character'Val (16#7E#)
+            then
                Fatal_Error;
-            end if;
 
-            exit when C = '"';
-            Add_Char_To_Name_Buffer (C);
+            elsif C = '{' then
+               C := Character'Val (0);
+
+               declare
+                  V : Natural;
+
+               begin
+                  V := 0;
+                  for J in 1 .. 2 loop
+                     C := Getc;
+
+                     if C in '0' .. '9' then
+                        V := V * 16 +
+                               Character'Pos (C) - Character'Pos ('0');
+
+                     elsif C in 'A' .. 'F' then
+                        V := V * 16 +
+                               Character'Pos (C) - Character'Pos ('A') + 10;
+
+                     else
+                        Fatal_Error;
+                     end if;
+                  end loop;
+
+                  Checkc ('}');
+
+                  Add_Char_To_Name_Buffer (Character'Val (V));
+               end;
+
+            else
+               if C = '"' then
+                  exit when Nextc /= '"';
+                  C := Getc;
+               end if;
+
+               Add_Char_To_Name_Buffer (C);
+            end if;
          end loop;
 
-         Add_Char_To_Name_Buffer (Ascii.NUL);
+         Add_Char_To_Name_Buffer (nul);
 
          Skip_Eol;
          C := Getc;

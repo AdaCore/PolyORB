@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -165,6 +165,11 @@ package Stylesw is
    --  all procedures except parameterless library level procedures.
    --  The exception means that typical main programs do not require
    --  separate specs.
+
+   Style_Check_Standard : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyn switches. If
+   --  it is True, then any references to names in Standard have to be
+   --  in mixed case mode (e.g. Integer, Boolean).
 
    Style_Check_Tokens : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatyt switches. If

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -124,6 +124,10 @@ package Opt is
    --  are present (i.e. date must match the date in the library info file).
    --  Set to False for object file consistency check only. This flag is
    --  directly modified by gnatmake, to affect the shared binder routines.
+
+   Check_Switches : Boolean := False;
+   --  GNATMAKE
+   --  Set to True to check compiler options during the make process.
 
    Check_Unreferenced : Boolean := False;
    --  GNAT
@@ -305,13 +309,6 @@ package Opt is
    --  Set True if inline processing is required. Inline processing is
    --  required if an active Inline pragma is processed. The flag is set
    --  for a pragma Inline or Inline_Always that is actually active.
-   --  This flag is also set True if Inline_All is set.
-
-   Inline_All : Boolean := False;
-   --  GNAT
-   --  Set True to activate Inline processing across modules for all
-   --  subprograms, regardless of whether a pragma Inline appears for
-   --  a subprogram or not.
 
    In_Place_Mode : Boolean := False;
    --  GNATMAKE

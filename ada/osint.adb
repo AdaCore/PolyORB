@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -137,7 +137,7 @@ package body Osint is
    Object_Suffix : constant String := Get_Object_Suffix.all;
    --  The suffix used for the object files.
 
-   EOL : constant Character := Ascii.LF;
+   EOL : constant Character := ASCII.LF;
    --  End of line character
 
    Argument_Count : constant Integer := Arg_Count - 1;
@@ -408,7 +408,7 @@ package body Osint is
 
       if Output_Filename /= "" then
          Name_Buffer (Output_Filename'Range) := Output_Filename;
-         Name_Buffer (Output_Filename'Last + 1) := Ascii.NUL;
+         Name_Buffer (Output_Filename'Last + 1) := ASCII.NUL;
 
          if Typ = 's' then
             Name_Buffer (Output_Filename'Last) := 's';
@@ -462,7 +462,7 @@ package body Osint is
          if Typ = 'c' then
             Name_Buffer (2) := '_';
             Name_Buffer (Flength + 4) := 'c';
-            Name_Buffer (Flength + 5) := Ascii.NUL;
+            Name_Buffer (Flength + 5) := ASCII.NUL;
             Name_Len := Flength + 4;
 
          --  Ada bind file, name is b~xxx.adb or b~xxx.ads
@@ -478,7 +478,7 @@ package body Osint is
             Name_Buffer (Flength + 4) := 'a';
             Name_Buffer (Flength + 5) := 'd';
             Name_Buffer (Flength + 6) := Typ;
-            Name_Buffer (Flength + 7) := Ascii.NUL;
+            Name_Buffer (Flength + 7) := ASCII.NUL;
             Name_Len := Flength + 6;
          end if;
       end if;
@@ -508,7 +508,7 @@ package body Osint is
       end if;
       Name_Len := Name_Len + 3;
       Result := Name_Find;
-      Name_Buffer (Name_Len + 1) := Ascii.NUL;
+      Name_Buffer (Name_Len + 1) := ASCII.NUL;
       Create_File_And_Check (Output_FD, Text);
       return Result;
    end Create_Debug_File;
@@ -674,7 +674,7 @@ package body Osint is
       if not Is_Regular_File (Name_Buffer (1 .. Name_Len)) then
          return Empty_Time_Stamp;
       else
-         Name_Buffer (Name_Len + 1) := Ascii.NUL;
+         Name_Buffer (Name_Len + 1) := ASCII.NUL;
          return OS_Time_To_GNAT_Time (File_Time_Stamp (Name_Buffer));
       end if;
    end File_Stamp;
@@ -1327,7 +1327,7 @@ package body Osint is
 
       begin
          In_String (1 .. In_Length) := Path.all;
-         In_String (In_Length + 1) := Ascii.NUL;
+         In_String (In_Length + 1) := ASCII.NUL;
          Result_Ptr := C_Update_Path (In_String'Address,
                                       Component_Name'Address);
          Result_Length := Strlen (Result_Ptr);
@@ -1480,12 +1480,18 @@ package body Osint is
       Search_Dir_Default_Name : String_Access)
      return String_Access
    is
-      Buffer : String (1 .. Search_Dir_Prefix.all'Length +
-                             Search_File.all'Length + 1);
-      File_FD : File_Descriptor;
-      S : String_Access;
-      Hi, Lo : Integer;
-      Len, Actual_Len : Integer;
+      Prefix_Len : constant Integer := Search_Dir_Prefix.all'Length;
+      Buffer     : String (1 .. Prefix_Len + Search_File.all'Length + 1);
+      File_FD    : File_Descriptor;
+      S, S1      : String_Access;
+      Len        : Integer;
+      Curr       : Integer;
+      Actual_Len : Integer;
+      J1         : Integer;
+
+      Prev_Was_Separator : Boolean;
+      Nb_Relative_Dir    : Integer;
+
    begin
 
       --  Construct a C compatible character string buffer.
@@ -1506,32 +1512,67 @@ package body Osint is
       --  An extra character for a trailing Path_Separator is allocated
 
       S := new String (1 .. Len + 1);
+      S (Len + 1) := Path_Separator;
 
-      --  Read and process the file, translating line and file ending
-      --  control characters to a path separator character.
+      --  Read the file. Note that the loop is not necessary since the
+      --  whole file is read at once except on VMS.
 
-      Hi := 1;
-      Lo := Hi;
-      loop
-         Actual_Len := Read (File_FD, S (Hi)'Address, Len);
-         Hi := Hi + Actual_Len;
-         exit when Actual_Len = 0;
-         if Actual_Len < 0 then
-            return Search_Dir_Default_Name;
-         end if;
-         while Hi > Lo and then
-           (S (Hi - 1) in ASCII.NUL .. ASCII.US
-            or else S (Hi - 1) = Path_Separator)
-         loop
-            Hi := Hi - 1;
-         end loop;
-         S (Hi) := Path_Separator;
-         Hi := Hi + 1;
+      Curr := 1;
+      Actual_Len := Len;
+      while Actual_Len /= 0 loop
+         Actual_Len := Read (File_FD, S (Curr)'Address, Len);
+         Curr := Curr + Actual_Len;
       end loop;
 
-      --  Hi always points to the first unused character, so return one less
+      --  Process the file, translating line and file ending
+      --  control characters to a path separator character.
 
-      return new String'(S (1 .. Hi - 1));
+      Prev_Was_Separator := True;
+      Nb_Relative_Dir := 0;
+      for J in 1 .. Len loop
+         if S (J) in ASCII.NUL .. ASCII.US
+           or else S (J) = ' '
+         then
+            S (J) := Path_Separator;
+         end if;
+
+         if  S (J) = Path_Separator then
+            Prev_Was_Separator := True;
+         else
+            if Prev_Was_Separator and S (J) /= Directory_Separator then
+               Nb_Relative_Dir := Nb_Relative_Dir + 1;
+            end if;
+            Prev_Was_Separator := False;
+         end if;
+      end loop;
+
+      if Nb_Relative_Dir = 0 then
+         return S;
+      end if;
+
+      --  Add the Search_Dir_Prefix to all relative paths
+
+      S1 := new String (1 .. S'Length + Nb_Relative_Dir * Prefix_Len);
+      J1 := 1;
+      Prev_Was_Separator := True;
+      for J in 1 .. Len + 1 loop
+         if  S (J) = Path_Separator then
+            Prev_Was_Separator := True;
+
+         else
+            if Prev_Was_Separator and S (J) /= Directory_Separator then
+               S1 (J1 .. J1 + Prefix_Len) := Search_Dir_Prefix.all;
+               J1 := J1 + Prefix_Len;
+            end if;
+
+            Prev_Was_Separator := False;
+         end if;
+         S1 (J1) := S (J);
+         J1 := J1 + 1;
+      end loop;
+
+      Free (S);
+      return S1;
    end Read_Default_Search_Dirs;
 
    -------------------
@@ -1558,7 +1599,7 @@ package body Osint is
 
       Name_Buffer (Fptr) := '.';
       Name_Buffer (Fptr + 1 .. Fptr + ALI_Suffix'Length) := ALI_Suffix.all;
-      Name_Buffer (Fptr + ALI_Suffix'Length + 1) := Ascii.NUL;
+      Name_Buffer (Fptr + ALI_Suffix'Length + 1) := ASCII.NUL;
       Name_Len := Fptr + ALI_Suffix'Length;
       return Name_Find;
    end Lib_File_Name;
@@ -1817,7 +1858,7 @@ package body Osint is
       end if;
 
       Get_Name_String (Current_Full_Lib_Name);
-      Name_Buffer (Name_Len + 1) := Ascii.NUL;
+      Name_Buffer (Name_Len + 1) := ASCII.NUL;
 
       --  Open the library FD, note that we open in binary mode, because as
       --  documented in the spec, the caller is expected to handle either
@@ -1968,7 +2009,7 @@ package body Osint is
       end if;
 
       Get_Name_String (Current_Full_Source_Name);
-      Name_Buffer (Name_Len + 1) := Ascii.NUL;
+      Name_Buffer (Name_Len + 1) := ASCII.NUL;
 
       --  Open the source FD, note that we open in binary mode, because as
       --  documented in the spec, the caller is expected to handle either
@@ -2089,7 +2130,7 @@ package body Osint is
 
       Name_Buffer (Dot_Index) := '.';
       Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
-      Name_Buffer (Dot_Index + 4) := Ascii.NUL;
+      Name_Buffer (Dot_Index + 4) := ASCII.NUL;
       Name_Len := Dot_Index + 3;
    end Set_Library_Info_Name;
 
@@ -2298,7 +2339,7 @@ package body Osint is
    function To_Canonical_File_List
      (Wildcard_Host_File : String;
       Only_Dirs          : Boolean)
-   return String_Access_List_Access
+      return               String_Access_List_Access
    is
       function To_Canonical_File_List_Init
         (Host_File : Address;
@@ -2317,11 +2358,11 @@ package body Osint is
 
       Num_Files            : Integer;
       C_Wildcard_Host_File : String (1 .. Wildcard_Host_File'Length + 1);
+
    begin
-      C_Wildcard_Host_File (1 .. Wildcard_Host_File'Length)
-        := Wildcard_Host_File;
-      C_Wildcard_Host_File (C_Wildcard_Host_File'Last)
-        := Ascii.NUL;
+      C_Wildcard_Host_File (1 .. Wildcard_Host_File'Length) :=
+        Wildcard_Host_File;
+      C_Wildcard_Host_File (C_Wildcard_Host_File'Last) := ASCII.NUL;
 
       --  Do the expansion and say how many there are
 
@@ -2332,14 +2373,14 @@ package body Osint is
          Canonical_File_List : String_Access_List (1 .. Num_Files);
          Canonical_File_Addr : Address;
          Canonical_File_Len  : Integer;
-      begin
 
+      begin
          --  Retrieve the expanded directoy names and build the list
 
-         for I in 1 .. Num_Files loop
+         for J in 1 .. Num_Files loop
             Canonical_File_Addr := To_Canonical_File_List_Next;
             Canonical_File_Len  := C_String_Length (Canonical_File_Addr);
-            Canonical_File_List (I) := To_Path_String_Access
+            Canonical_File_List (J) := To_Path_String_Access
                   (Canonical_File_Addr, Canonical_File_Len);
          end loop;
 
@@ -2372,7 +2413,7 @@ package body Osint is
 
    begin
       C_Host_Dir (1 .. Host_Dir'Length) := Host_Dir;
-      C_Host_Dir (C_Host_Dir'Last)      := Ascii.NUL;
+      C_Host_Dir (C_Host_Dir'Last)      := ASCII.NUL;
 
       if Prefix_Style then
          Canonical_Dir_Addr := To_Canonical_Dir_Spec (C_Host_Dir'Address, 1);
@@ -2410,7 +2451,7 @@ package body Osint is
 
    begin
       C_Host_File (1 .. Host_File'Length) := Host_File;
-      C_Host_File (C_Host_File'Last)      := Ascii.NUL;
+      C_Host_File (C_Host_File'Last)      := ASCII.NUL;
 
       Canonical_File_Addr := To_Canonical_File_Spec (C_Host_File'Address);
       Canonical_File_Len  := C_String_Length (Canonical_File_Addr);
@@ -2445,7 +2486,7 @@ package body Osint is
 
    begin
       C_Host_Path (1 .. Host_Path'Length) := Host_Path;
-      C_Host_Path (C_Host_Path'Last)      := Ascii.NUL;
+      C_Host_Path (C_Host_Path'Last)      := ASCII.NUL;
 
       Canonical_Path_Addr := To_Canonical_Path_Spec (C_Host_Path'Address);
       Canonical_Path_Len  := C_String_Length (Canonical_Path_Addr);
@@ -2482,7 +2523,7 @@ package body Osint is
 
    begin
       C_Canonical_Dir (1 .. Canonical_Dir'Length) := Canonical_Dir;
-      C_Canonical_Dir (C_Canonical_Dir'Last)      := Ascii.NUL;
+      C_Canonical_Dir (C_Canonical_Dir'Last)      := ASCII.NUL;
 
       if Prefix_Style then
          Host_Dir_Addr := To_Host_Dir_Spec (C_Canonical_Dir'Address, 1);
@@ -2515,7 +2556,7 @@ package body Osint is
 
    begin
       C_Canonical_File (1 .. Canonical_File'Length) := Canonical_File;
-      C_Canonical_File (C_Canonical_File'Last)      := Ascii.NUL;
+      C_Canonical_File (C_Canonical_File'Last)      := ASCII.NUL;
 
       Host_File_Addr := To_Host_File_Spec (C_Canonical_File'Address);
       Host_File_Len  := C_String_Length (Host_File_Addr);
@@ -2589,7 +2630,7 @@ package body Osint is
       Name_Buffer (Dot_Index + 1) := 'a';
       Name_Buffer (Dot_Index + 2) := 'd';
       Name_Buffer (Dot_Index + 3) := 't';
-      Name_Buffer (Dot_Index + 4) := Ascii.NUL;
+      Name_Buffer (Dot_Index + 4) := ASCII.NUL;
       Name_Len := Dot_Index + 3;
       Create_File_And_Check (Output_FD, Binary);
 
@@ -2748,7 +2789,7 @@ package body Osint is
          Write_Name_Decoded (Output_File_Name);
          Write_Eol;
          Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := Ascii.Nul;
+         Name_Buffer (Name_Len) := ASCII.NUL;
          Delete_File (Name_Buffer'Address, Ignore);
          Exit_Program (E_Fatal);
       end if;

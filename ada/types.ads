@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -90,7 +90,7 @@ pragma Preelaborate (Types);
    --  character code as required in Ada 95. This section defines a few
    --  general use constants and subtypes.
 
-   EOF : constant Character := Ascii.SUB;
+   EOF : constant Character := ASCII.SUB;
    --  The character SUB (16#1A#) is used in DOS and other systems derived
    --  from DOS (OS/2, NT etc) to signal the end of a text file. Internally
    --  all source files are ended by an EOF character, even on Unix systems.
@@ -103,7 +103,7 @@ pragma Preelaborate (Types);
    subtype Graphic_Character is Character range ' ' .. '~';
    --  Graphic characters, as defined in ARM
 
-   subtype Line_Terminator is Character range Ascii.LF .. Ascii.CR;
+   subtype Line_Terminator is Character range ASCII.LF .. ASCII.CR;
    --  Line terminator characters (LF, VT, FF, CR)
 
    subtype Upper_Half_Character is
@@ -197,12 +197,12 @@ pragma Preelaborate (Types);
 
    Standard_Location : constant Source_Ptr := -2;
    --  Used for all nodes in the representation of package Standard other
-   --  than nodes representing the contents of Standard.Ascii. Note that
+   --  than nodes representing the contents of Standard.ASCII. Note that
    --  testing for <= Standard_Location tests for both Standard_Location
-   --  and for Standard_Ascii_Location.
+   --  and for Standard_ASCII_Location.
 
-   Standard_Ascii_Location : constant Source_Ptr := -3;
-   --  Used for all nodes in the presentation of package Standard.Ascii
+   Standard_ASCII_Location : constant Source_Ptr := -3;
+   --  Used for all nodes in the presentation of package Standard.ASCII
 
    First_Source_Ptr : constant Source_Ptr := 0;
    --  Starting source pointer index value for first source program
@@ -553,15 +553,6 @@ pragma Preelaborate (Types);
 
    No_Source_File : constant Source_File_Index := 0;
    --  Value used to indicate no source file present
-
-   type Lines_Table_Type is array (Pos) of Source_Ptr;
-   --  Type used for lines table. The entries are indexed by physical line
-   --  numbers. The values are the starting Source_Ptr values for the start
-   --  of the corresponding physical line. Note that we make this a bogus
-   --  big array, sized as required, so that we avoid the use of fat pointers.
-
-   type Lines_Table_Ptr is access all Lines_Table_Type;
-   --  Type used for pointers to line tables
 
    subtype File_Name_Type is Name_Id;
    --  File names are stored in the names table and this synonym is used to

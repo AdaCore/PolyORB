@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -76,7 +76,7 @@ package body Debug is
    --  dF
    --  dG
    --  dH
-   --  dI
+   --  dI   Inhibit internal name numbering in gnatG listing
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK
    --  dL   Output trace information on elaboration checking
@@ -317,6 +317,12 @@ package body Debug is
    --  dE   Apply compile time elaboration checking for with relations between
    --       predefined units. Normally no checks are made (it seems that at
    --       least on the SGI, such checks run into trouble).
+
+   --  dI   Inhibit internal name numbering in gnatDG listing. For internal
+   --       names of the form <uppercase-letters><digits><suffix>, the output
+   --       will be modified to <uppercase-letters>...<suffix>. This is used
+   --       in the fixed bugs run to minimize system and version dependency
+   --       in filed -gnatDG output.
 
    --  dL   Output trace information on elaboration checking. This debug
    --       switch causes output to be generated showing each call or

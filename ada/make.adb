@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,7 +49,7 @@ with Switch;   use Switch;
 
 package body Make is
 
-   use Ascii;
+   use ASCII;
    --  Make control characters visible
 
    -------------------------------------
@@ -135,6 +135,23 @@ package body Make is
      Table_Increment      => 100,
      Table_Name           => "Make.Bad_Compilation");
    --  Full name of all the source files for which compilation fails.
+
+   type Special_Argument is record
+      File : String_Access;
+      Args : Argument_List_Access;
+   end record;
+   --  File is the name of the file for which a special set of compilation
+   --  arguments (Args) is required.
+
+   package Special_Args is new Table.Table (
+     Table_Component_Type => Special_Argument,
+     Table_Index_Type     => Natural,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100,
+     Table_Name           => "Make.Special_Args");
+   --  Compilation arguments of all the source files for which an entry has
+   --  been found in the project file.
 
    ----------------------
    -- Marking Routines --
@@ -547,6 +564,21 @@ package body Make is
       Source_Name : Name_Id;
       Text : Text_Buffer_Ptr;
 
+      Prev_Switch : Character;
+      --  First character of previous switch processed
+
+      Arg : Arg_Id;
+      --  Current index in Args.Table for a given unit
+
+      Switch_Found : Boolean;
+      --  True if a given switch has been found
+
+      Num_Args : Integer;
+      --  Number of compiler arguments processed
+
+      Special_Arg : Argument_List_Access;
+      --  Special arguments if any of a given compilation file
+
    --  Start of processing for Check
 
    begin
@@ -600,12 +632,137 @@ package body Make is
          --  Don't take Ali file into account if it was generated without
          --  object.
 
-         if  Opt.Operating_Mode /= Opt.Check_Semantics
+         if Opt.Operating_Mode /= Opt.Check_Semantics
            and then ALIs.Table (ALI).No_Object
          then
             Verbose_Msg (Full_Lib_File, "has no corresponding object");
             ALI := No_ALI_Id;
             return;
+         end if;
+
+         --  Check for matching compiler switches if needed
+
+         if Opt.Check_Switches then
+            Prev_Switch := ASCII.Nul;
+            Num_Args    := 0;
+
+            Get_Name_String (ALIs.Table (ALI).Sfile);
+
+            for J in 1 .. Special_Args.Last loop
+               if Special_Args.Table (J).File.all =
+                 Name_Buffer (1 .. Name_Len)
+               then
+                  Special_Arg := Special_Args.Table (J).Args;
+                  exit;
+               end if;
+            end loop;
+
+            if Special_Arg = null then
+               for J in Gcc_Switches.First .. Gcc_Switches.Last loop
+                  --  Skip non switches, -I and -o switches
+
+                  if (Gcc_Switches.Table (J) (1) = '-'
+                    or else Gcc_Switches.Table (J) (1) = Switch_Character)
+                    and then Gcc_Switches.Table (J) (2) /= 'o'
+                    and then Gcc_Switches.Table (J) (2) /= 'I'
+                  then
+                     Num_Args := Num_Args + 1;
+
+                     --  Comparing switches is delicate because gcc reorders
+                     --  a number of switches, according to lang-specs.h, but
+                     --  gnatmake doesn't have the sufficient knowledge to
+                     --  perform the same reordering.
+                     --  Instead, ignore orders between different
+                     --  "first letter" switches, but keep orders between same
+                     --  switches, e.g -O -O2 is different than -O2 -O, but
+                     --  -g -O is equivalent to -O -g.
+
+                     if Gcc_Switches.Table (J) (2) /= Prev_Switch then
+                        Prev_Switch := Gcc_Switches.Table (J) (2);
+
+                        Arg :=
+                          Units.Table (ALIs.Table (ALI).First_Unit).First_Arg;
+                     end if;
+
+                     Switch_Found := False;
+
+                     for K in Arg ..
+                       Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg
+                     loop
+                        if Gcc_Switches.Table (J).all = Args.Table (K).all then
+                           Arg := K + 1;
+                           Switch_Found := True;
+                           exit;
+                        end if;
+                     end loop;
+
+                     if not Switch_Found then
+                        if Opt.Verbose_Mode then
+                           Verbose_Msg (ALIs.Table (ALI).Sfile,
+                             "switch mismatch");
+                        end if;
+
+                        ALI := No_ALI_Id;
+                        return;
+                     end if;
+                  end if;
+               end loop;
+
+            else
+               for J in Special_Arg'Range loop
+                  --  Skip non switches, -I and -o switches
+
+                  if (Special_Arg (J) (1) = '-'
+                    or else Special_Arg (J) (1) = Switch_Character)
+                    and then Special_Arg (J) (2) /= 'o'
+                    and then Special_Arg (J) (2) /= 'I'
+                  then
+                     Num_Args := Num_Args + 1;
+
+                     if Special_Arg (J) (2) /= Prev_Switch then
+                        Prev_Switch := Special_Arg (J) (2);
+
+                        Arg :=
+                          Units.Table (ALIs.Table (ALI).First_Unit).First_Arg;
+                     end if;
+
+                     Switch_Found := False;
+
+                     for K in Arg ..
+                       Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg
+                     loop
+                        if Special_Arg (J).all = Args.Table (K).all then
+                           Arg := K + 1;
+                           Switch_Found := True;
+                           exit;
+                        end if;
+                     end loop;
+
+                     if not Switch_Found then
+                        if Opt.Verbose_Mode then
+                           Verbose_Msg (ALIs.Table (ALI).Sfile,
+                             "switch mismatch");
+                        end if;
+
+                        ALI := No_ALI_Id;
+                        return;
+                     end if;
+                  end if;
+               end loop;
+            end if;
+
+            if Num_Args /=
+              Integer (Units.Table (ALIs.Table (ALI).First_Unit).Last_Arg -
+                Units.Table (ALIs.Table (ALI).First_Unit).First_Arg + 1)
+            then
+               if Opt.Verbose_Mode then
+                  Verbose_Msg (ALIs.Table (ALI).Sfile,
+                    "different number of switches");
+               end if;
+
+               ALI := No_ALI_Id;
+               return;
+            end if;
          end if;
 
          --  Get the source files and their time stamps. Note that some
@@ -685,13 +842,19 @@ package body Make is
 
          for Ptr in Template'Range loop
             case Template (Ptr) is
-               when '*'       => Add_Str_To_Name_Buffer (Name);
-               when ';'       => File := Full_Lib_File_Name (Name_Find);
-                                 exit when File /= No_File;
-                                 Name_Len := 0;
-               when Ascii.Nul => exit;
+               when '*'    =>
+                  Add_Str_To_Name_Buffer (Name);
 
-               when others    => Add_Char_To_Name_Buffer (Template (Ptr));
+               when ';'    =>
+                  File := Full_Lib_File_Name (Name_Find);
+                  exit when File /= No_File;
+                  Name_Len := 0;
+
+               when NUL    =>
+                  exit;
+
+               when others =>
+                  Add_Char_To_Name_Buffer (Template (Ptr));
             end case;
          end loop;
 
@@ -718,10 +881,10 @@ package body Make is
       begin
          Get_Name_String (Name);
 
-         --  Remove any trailing Ascii.NUL characters
+         --  Remove any trailing NUL characters
 
          while Name_Len >= Name_Buffer'First
-           and then Name_Buffer (Name_Len) = Ascii.NUL
+           and then Name_Buffer (Name_Len) = NUL
          loop
             Name_Len := Name_Len - 1;
          end loop;
@@ -766,11 +929,11 @@ package body Make is
             O_Stamp := Stamp;
             O_File := Name;
 
-            --  Strip the trailing Ascii.Nul if present
+            --  Strip the trailing NUL if present
 
             Get_Name_String (O_File);
 
-            if Name_Buffer (Name_Len) = Ascii.Nul then
+            if Name_Buffer (Name_Len) = NUL then
                Name_Len := Name_Len - 1;
                O_File := Name_Find;
             end if;
@@ -829,10 +992,11 @@ package body Make is
       Initialize_ALI_Data   : Boolean  := True;
       Max_Process           : Positive := 1)
    is
-      function Compile (S : Name_Id; L : Name_Id) return Process_Id;
-      --  Compiles S using Args above. If S is a GNAT predefined source
-      --  "-gnatg" is added to Args. Non blocking call. L correponds to the
-      --  expected library filename.  Process_Id of the process spawned to
+      function Compile (S : Name_Id; L : Name_Id; Args : Argument_List)
+        return Process_Id;
+      --  Compiles S using Args. If S is a GNAT predefined source
+      --  "-gnatpg" is added to Args. Non blocking call. L corresponds to the
+      --  expected library filename. Process_Id of the process spawned to
       --  execute the compile.
 
       type Compilation_Data is record
@@ -994,8 +1158,9 @@ package body Make is
       -- Compile --
       -------------
 
-      function Compile (S : Name_Id; L : Name_Id) return Process_Id is
-
+      function Compile (S : Name_Id; L : Name_Id; Args : Argument_List)
+        return Process_Id
+      is
          Comp_Args : Argument_List (Args'First .. Args'Last + 7);
          Comp_Next : Integer := Args'First;
          Comp_Last : Integer;
@@ -1037,7 +1202,7 @@ package body Make is
             Comp_Args (Comp_Next .. Comp_Last) := Args;
          end if;
 
-         --  Set -gnatg for predefined files (for this purpose the renamings
+         --  Set -gnatpg for predefined files (for this purpose the renamings
          --  such as Text_IO do not count as predefined). Note that we strip
          --  the directory name from the source file name becase the call to
          --  Fname.Is_Predefined_File_Name cannot deal with directory prefixes.
@@ -1194,6 +1359,9 @@ package body Make is
       Pid  : Process_Id;
       Text : Text_Buffer_Ptr;
 
+      Arg_Index : Natural;
+      --  Index in Special_Args.Table of a given compilation file
+
    --  Start of processing for Compile_Sources
 
    begin
@@ -1339,10 +1507,10 @@ package body Make is
                      if Full_Lib_File = No_File then
                         Get_Name_String (Full_Source_File);
 
-                        for I in reverse 1 .. Name_Len loop
-                           if Name_Buffer (I) = '.' then
-                              Name_Buffer (I + 1 .. I + 3) := "ali";
-                              Name_Len := I + 3;
+                        for J in reverse 1 .. Name_Len loop
+                           if Name_Buffer (J) = '.' then
+                              Name_Buffer (J + 1 .. J + 3) := "ali";
+                              Name_Len := J + 3;
                               exit;
                            end if;
                         end loop;
@@ -1358,10 +1526,29 @@ package body Make is
 
                   end if;
 
+                  --  Check for special compilation flags
+
+                  Arg_Index := 0;
+                  Get_Name_String (Source_File);
+
+                  for J in 1 .. Special_Args.Last loop
+                     if Special_Args.Table (J).File.all =
+                       Name_Buffer (1 .. Name_Len)
+                     then
+                        Arg_Index := J;
+                        exit;
+                     end if;
+                  end loop;
+
                   --  Start the compilation and record it. We can do this
                   --  because there is at least one free process.
 
-                  Pid := Compile (Full_Source_File, Lib_File);
+                  if Arg_Index = 0 then
+                     Pid := Compile (Full_Source_File, Lib_File, Args);
+                  else
+                     Pid := Compile (Full_Source_File, Lib_File,
+                       Special_Args.Table (Arg_Index).Args.all);
+                  end if;
 
                   --  Make sure we could successfully start the compilation
 
@@ -2411,7 +2598,7 @@ package body Make is
             Opt.Minimal_Recompilation := True;
 
          --  -S (Assemble)
-         --  Since no object file is created, don't check object objecct
+         --  Since no object file is created, don't check object
          --  consistency.
 
          elsif Argv (2) = 'S'
@@ -2442,6 +2629,10 @@ package body Make is
             Opt.Compile_Only             := True;
 
          elsif Argv (2 .. Argv'Last) = "nostdlib" then
+
+            --  Don't pass -nostdlib to gnatlink, it will disable
+            --  linking with all standard library files.
+
             Opt.No_Stdlib := True;
             Add_Switch (Argv, Binder);
 
