@@ -4,7 +4,8 @@
 	corresponds to Current_Scope. Add atttribute Is_Local_Interface.
 
 	* parser.adb: Parse local interface. Do not forget to set sequence
-	size to its value. Parse correctly state members.
+	size to its value. Parse correctly state members and value
+	declaration.
 
 	* backend-be_idl.adb: Generate fully qualified name for
 	enumerators. Fix indentation for elements. Generate abstract

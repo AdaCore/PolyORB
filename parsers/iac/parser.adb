@@ -1059,17 +1059,15 @@ package body Parser is
             Export := P_Operation_Declaration;
       end case;
 
-      if Present (Export) then
-         Save_Lexer (State);
-         Scan_Token (T_Semi_Colon);
-         if Token = T_Error then
-            Export := No_Node;
-         end if;
+      Scan_Token (T_Semi_Colon);
+      if Token = T_Error then
+         Export := No_Node;
       end if;
 
       if No (Export) then
          Restore_Lexer (State);
          Skip_Declaration (T_Semi_Colon);
+         return No_Node;
       end if;
 
       return Export;
@@ -2802,6 +2800,10 @@ package body Parser is
             when T_Public | T_Private =>
                Value_Element := P_State_Member;
 
+            when T_Right_Brace =>
+               Scan_Token;  -- past "}"
+               exit;
+
             when others =>
                Value_Element := P_Export;
          end case;
@@ -2813,11 +2815,6 @@ package body Parser is
          end if;
 
          Append_Node_To_List (Value_Element, Value_Body);
-
-         if Next_Token = T_Right_Brace then
-            Scan_Token; --  past '}'
-            exit;
-         end if;
       end loop;
 
       return Node;
@@ -2867,14 +2864,12 @@ package body Parser is
       Interface_Names : List_Id;
       Scoped_Name     : Node_Id;
       Interface_Name  : Node_Id;
-      State           : Location;
-   begin
-      Save_Lexer (State);
-      Scan_Token;
 
+   begin
       Value_Spec := New_Node (K_Value_Spec, Token_Location);
 
-      if Token = T_Colon then
+      if Next_Token = T_Colon then
+         Scan_Token; --  past ":"
          if Next_Token = T_Truncatable then
             Scan_Token; --  past "truncatable"
             Set_Is_Truncatable (Value_Spec, True);
@@ -2894,12 +2889,10 @@ package body Parser is
             exit when Next_Token /= T_Comma;
             Scan_Token; --  past ','
          end loop;
-
-         Save_Lexer (State);
-         Scan_Token;
       end if;
 
-      if Token = T_Supports then
+      if Next_Token = T_Supports then
+         Scan_Token;  --  past "supports"
          Interface_Names := New_List (K_Interface_Name_List, Token_Location);
          Set_Interface_Names (Value_Spec, Interface_Names);
 
@@ -2911,13 +2904,10 @@ package body Parser is
 
             Append_Node_To_List (Interface_Name, Interface_Names);
 
-            Save_Lexer (State);
-            Scan_Token;
-            exit when Token /= T_Comma;
+            exit when Next_Token /= T_Comma;
+            Scan_Token;  --  past ','
          end loop;
       end if;
-
-      Restore_Lexer (State);
 
       return Value_Spec;
    end P_Value_Spec;
