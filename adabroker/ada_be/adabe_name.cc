@@ -169,16 +169,15 @@ adabe_name::compute_ada_name()
 	    case AST_Decl::NT_except:
 	    case AST_Decl::NT_struct:
 	    case AST_Decl::NT_union:
-	      pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
-	    case AST_Decl::NT_root:
 	    case AST_Decl::NT_interface:
 	    case AST_Decl::NT_module:
+	      pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
+	    case AST_Decl::NT_root:
 	      already_used = is_name_already_used(pd_ada_local_name, parent_scope);
 	      break;
 	    default:
 	      throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 	    }
-	  
 #ifdef DEBUG_NAME
 	  cout << "In adabe_name, in compute_ada_name after the switch\n";
 #endif
@@ -462,21 +461,21 @@ adabe_name::is_imported (dep_list& with)
       bool temp;
       temp = with.check (get_ada_full_name()); 
       if (!temp) with.add (get_ada_full_name());
-      return temp;
+      return 1;
     }
   if (NT == AST_Decl::NT_module)
     {
       bool temp;
       temp = with.check (get_ada_full_name());
       if (!temp) with.add (get_ada_full_name());
-      return temp;
+      return 1;
     }
   if (NT == AST_Decl::NT_root)
     {
       bool temp;
       temp = with.check (get_ada_full_name());
       if (!temp) with.add (get_ada_full_name());
-      return temp;
+      return 1;
     }
   if (defined_in() == NULL) return 0;
   return (dynamic_cast<adabe_name *>(defined_in()))->is_imported (with); 

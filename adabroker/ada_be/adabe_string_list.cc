@@ -22,18 +22,23 @@ bool string_list::check (string str) {
   return false;
 }
 
-void string_list::add (string str) {
-  if (nb_item_in_list == max_item_in_list) {
-    int i=0;
-    string **temp_list;
-    temp_list = new str_ptr[max_item_in_list*2];
-    for (i=0; i<max_item_in_list ; i++){
-      temp_list[i] = str_list[i];
+void string_list::add (string str) 
+{
+  if (check(str)) 
+    return;
+  if (nb_item_in_list == max_item_in_list) 
+    {
+      int i=0;
+      string **temp_list;
+      temp_list = new str_ptr[max_item_in_list*2];
+      for (i=0; i<max_item_in_list ; i++)
+	{
+	  temp_list[i] = str_list[i];
+	}
+      max_item_in_list *=2;
+      delete str_list; 
+      str_list = temp_list;
     }
-    max_item_in_list *=2;
-    delete str_list; 
-    str_list = temp_list;
-  }
   str_list[nb_item_in_list] = new string(str);
   nb_item_in_list++;
 }
@@ -53,7 +58,7 @@ string *string_list::produce (string repeat) {
   string *output;
   output = new string("");
   for (i = 0; i < nb_item_in_list; i++) {
-    (*output) += repeat + *str_list[i] +"\n";
+    (*output) += repeat + *str_list[i] +";\n";
   }
   return output;
 }

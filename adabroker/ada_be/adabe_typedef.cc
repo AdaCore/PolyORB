@@ -212,7 +212,8 @@ adabe_typedef::dump_name(dep_list& with, string &previous)
 	}
       return get_ada_local_name();
     }
-  return get_ada_full_name();	   
+  return get_ada_full_name(); 
+
 }
 
 string
