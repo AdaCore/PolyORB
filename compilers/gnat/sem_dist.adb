@@ -105,6 +105,56 @@ package body Sem_Dist is
       end if;
    end Add_Stub_Constructs;
 
+   ---------------------------------------
+   -- Build_RAS_Primitive_Specification --
+   ---------------------------------------
+
+   function Build_RAS_Primitive_Specification
+     (Subp_Spec          : Node_Id;
+      Remote_Object_Type : Node_Id)
+      return Node_Id
+   is
+      Loc : constant Source_Ptr := Sloc (Subp_Spec);
+
+      Primitive_Spec : constant Node_Id
+        := Copy_Specification (Loc,
+             Spec     => Subp_Spec,
+             New_Name => Name_Call);
+
+      Subtype_Mark_For_Self : Node_Id;
+
+   begin
+      if No (Parameter_Specifications (Primitive_Spec)) then
+         Set_Parameter_Specifications (Primitive_Spec, New_List);
+      end if;
+
+      if Nkind (Remote_Object_Type) in N_Entity then
+         Subtype_Mark_For_Self :=
+           New_Occurrence_Of (Remote_Object_Type, Loc);
+      else
+         Subtype_Mark_For_Self := Remote_Object_Type;
+      end if;
+
+      Prepend_To (
+        Parameter_Specifications (Primitive_Spec),
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc, Name_uS),
+          Parameter_Type      =>
+            Make_Access_Definition (Loc,
+              Subtype_Mark =>
+                Subtype_Mark_For_Self)));
+
+      --  Trick later semantic analysis into considering this
+      --  operation as a primitive (dispatching) operation of
+      --  tagged type Obj_Type.
+
+      Set_Comes_From_Source (
+        Defining_Unit_Name (Primitive_Spec), True);
+
+      return Primitive_Spec;
+   end Build_RAS_Primitive_Specification;
+
    -------------------------
    -- Full_Qualified_Name --
    -------------------------
@@ -433,26 +483,10 @@ package body Sem_Dist is
               Component_List   => Empty,
               Null_Present     => True));
 
-      Prim_Decl :=
-        Make_Abstract_Subprogram_Declaration (Loc,
-          Specification    =>
-            Copy_Specification (Loc,
-              Spec     => Type_Def,
-              New_Name => Name_Call));
-      Prepend_To (
-        Parameter_Specifications (Specification (Prim_Decl)),
-        Make_Parameter_Specification (Loc,
-          Defining_Identifier =>
-            Make_Defining_Identifier (Loc, Name_uS),
-          Parameter_Type      =>
-            Make_Access_Definition (Loc,
-              Subtype_Mark =>
-                New_Occurrence_Of (Obj_Type, Loc))));
-      Set_Comes_From_Source (
-        Defining_Unit_Name (Specification (Prim_Decl)), True);
-      --  Trick later semantic analysis into considering this
-      --  operation as a primitive (dispatching) operation of
-      --  tagged type Obj_Type.
+      Prim_Decl := Make_Abstract_Subprogram_Declaration (Loc,
+        Specification => Build_RAS_Primitive_Specification (
+          Subp_Spec          => Type_Def,
+          Remote_Object_Type => Obj_Type));
 
       RACW_Type_Decl := Make_Full_Type_Declaration (Loc,
         Defining_Identifier => RACW_Type,
