@@ -1,3 +1,12 @@
+2004-06-25  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada.adb: When re-entering a module, re-introduce all
+	the scoped identifiers in the new scope, in their homonyms chain
+	and make them visible.
+
+	* backend-be_idl.adb: When visiting a scoped name which designates
+	a constant, output its value instead of the scoped name.
+
 2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-generator.adb: Do invoke specific Generate, use

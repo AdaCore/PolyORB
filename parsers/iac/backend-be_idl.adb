@@ -285,7 +285,6 @@ package body Backend.BE_IDL is
 
       --  The array sizes attribute is never empty
 
-      Write_Space;
       Write (T_Left_Bracket);
       C := First_Entity (Array_Sizes (E));
       loop
@@ -725,9 +724,13 @@ package body Backend.BE_IDL is
       end Generate_Reference_Name;
 
       P : constant Node_Id := Parent_Entity (E);
+      R : constant Node_Id := Reference (E);
 
    begin
-      if Present (P) then
+      if Kind (R) = K_Constant_Declaration then
+         Generate (Value (R));
+
+      elsif Present (P) then
          if Kind (Reference (P)) /= K_Specification then
             Generate (P);
             Write (T_Colon_Colon);
