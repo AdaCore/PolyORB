@@ -1,11 +1,8 @@
 package body CORBA.AbstractBase is
 
-   procedure Set
-     (The_Ref : in out Ref;
-      The_Object : CORBA.Impl.Object_Ptr) is
-   begin
-      Set (The_Ref, Broca.Refs.Ref_Ptr (The_Object));
-   end Set;
+   ---------------
+   -- Object_Of --
+   ---------------
 
    function Object_Of
      (The_Ref : Ref)
@@ -13,5 +10,16 @@ package body CORBA.AbstractBase is
    begin
       return CORBA.Impl.Object_Ptr (Entity_Of (The_Ref));
    end Object_Of;
+
+   ---------
+   -- Set --
+   ---------
+
+   procedure Set
+     (The_Ref : in out Ref;
+      The_Object : CORBA.Impl.Object_Ptr) is
+   begin
+      Set (The_Ref, Broca.Refs.Ref_Ptr (The_Object));
+   end Set;
 
 end CORBA.AbstractBase;

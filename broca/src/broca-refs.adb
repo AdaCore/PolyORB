@@ -193,9 +193,9 @@ package body Broca.Refs is
       The_Ref := Nil_Ref;
    end Release;
 
-   ----------------
-   -- Object_Ptr --
-   ----------------
+   ---------------
+   -- Entity_Of --
+   ---------------
 
    function Entity_Of (The_Ref : Ref) return Ref_Ptr is
    begin
