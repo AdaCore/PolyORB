@@ -153,9 +153,8 @@ package PolyORB.ORB_Controller is
       is abstract;
    --  Leave ORB critical section
 
-   --  Implementation Note: the following functions make the
-   --  assumption they are called from within the ORB critical
-   --  section.
+   --  The following subprograms must be called from within the
+   --  ORB critical section.
 
    procedure Register_Task
      (O  : access ORB_Controller;
@@ -187,9 +186,11 @@ package PolyORB.ORB_Controller is
    --  Disable polling on ORB's AES, abort polling task and waits for
    --  its completion, if required.
    --
-   --  Implementation Note: the ORB critical section is exited
-   --  while waiting for polling task completion: several tasks may
-   --  enter this procedure.
+   --  The ORB critical section is exited temporarily while waiting
+   --  for completion of any ongoing polling operation: several
+   --  tasks might be blocked concurrently in this procedure. The
+   --  critical section is re-entered after the ongoing polling
+   --  operation has been completed.
 
    procedure Enable_Polling (O : access ORB_Controller) is abstract;
    --  Enable polling on AES. If Disable_Polling has been called N
