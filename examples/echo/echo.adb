@@ -56,9 +56,9 @@ package body Echo is
    begin
       Output(Debug, "Echo.echoString : creating call desc") ;
       Echo.Proxies.Init(Opcd, Message) ;
-      Output(Debug, "Echo.echoString : call desc created, invoking method") ;
+      Output(Debug, "Echo.echoString : call desc created, invoking method !!!!!") ;
       OmniProxyCallWrapper.Invoke(Self, Opcd) ;
-      Output(Debug, "Echo.echoString : method echoString invoked") ;
+      Output(Debug, "Echo.echoString : method echoString invoked !!!!") ;
       Result :=  Echo.Proxies.Get_Result(Opcd) ;
       Output(Debug,
              "Echo.echoString : got the result : "

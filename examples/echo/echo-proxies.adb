@@ -44,7 +44,7 @@ package body Echo.Proxies is
 
 
    -- Aligned_Size
-   --------------
+   ---------------
    function Align_Size(Self: in EchoString_Proxy;
                        Size_In: in Corba.Unsigned_Long)
                        return Corba.Unsigned_Long is
@@ -53,7 +53,7 @@ package body Echo.Proxies is
    end;
 
    -- Marshal_Arguments
-   -------------------
+   --------------------
    procedure Marshal_Arguments(Self: in EchoString_Proxy ;
                                Giop_Client: in out Giop_C.Object ) is
    begin
@@ -61,7 +61,7 @@ package body Echo.Proxies is
    end;
 
    -- UnMarshal_Return_Values
-   ------------------------
+   --------------------------
    procedure Unmarshal_Returned_Values(Self: in out EchoString_proxy ;
                                        Giop_Client: in out Giop_C.Object) is
       Result : Corba.String ;
