@@ -226,11 +226,17 @@ package body Backend.BE_Ada.Skels is
                   C := Base_Type_TC
                     (FEN.Kind (BEN.FE_Node (Parameter_Type (Param))));
                else
-                     C := Identifier (FE_Node (Parameter_Type (Param)));
-                     C := Helper_Node
-                       (BE_Node
-                        (Identifier (Reference (Corresponding_Entity (C)))));
-                     C := Expand_Designator (Next_Node (Next_Node (C)));
+                  C := Corresponding_Entity
+                    (Identifier (FE_Node (Parameter_Type (Param))));
+
+                  if Kind (C) = FEN.K_Scoped_Name then
+                     C := Reference (C);
+                  end if;
+
+                  C := Helper_Node
+                    (BE_Node
+                     (Identifier (C)));
+                  C := Expand_Designator (Next_Node (Next_Node (C)));
                end if;
 
                C :=  Make_Subprogram_Call
@@ -360,7 +366,6 @@ package body Backend.BE_Ada.Skels is
                Make_Literal
                (New_String_Value
                 (Operation_Name, False)));
-
          end;
 
          N := Make_Block_Statement

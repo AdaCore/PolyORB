@@ -103,8 +103,9 @@ package Backend.BE_Ada.Runtime is
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object_Of,                 --  CORBA.Object.Object_Of
       RE_Is_A,                      --  CORBA.Object.Is_A
-      RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_From_Any_1,                --  CORBA.Object.Helper.From_Any
+      RE_TC_Object_0,               --  CORBA.Object.Helper.TC_Object
+      RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_To_PolyORB_Ref,            --  CORBA.Object.To_PolyORB_Ref
       RE_Create_List,               --  CORBA.ORB.Create_List,
       RE_Object,                    --  CORBA.TypeCode.Object
@@ -123,7 +124,7 @@ package Backend.BE_Ada.Runtime is
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_Add_Item_1,                --  PolyORB.Any.NVList.Add_Item
-      RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
+      RE_TC_Object_1,                 --  PolyORB.Any.TypeCode.TC_Object
       RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
       RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
       RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
@@ -214,8 +215,9 @@ package Backend.BE_Ada.Runtime is
          RE_Is_A                    => RU_CORBA_Object,
          RE_Is_Nil                  => RU_CORBA_Object,
          RE_To_PolyORB_Ref          => RU_CORBA_Object,
-         RE_To_Any_3                => RU_CORBA_Object_Helper,
          RE_From_Any_1              => RU_CORBA_Object_Helper,
+         RE_TC_Object_0             => RU_CORBA_Object_Helper,
+         RE_To_Any_3                => RU_CORBA_Object_Helper,
          RE_Create_List             => RU_CORBA_ORB,
          RE_Arguments               => RU_CORBA_ServerRequest,
          RE_Object_Ptr              => RU_CORBA_ServerRequest,
@@ -235,7 +237,7 @@ package Backend.BE_Ada.Runtime is
          RE_TC_Alias                => RU_PolyORB_Any_TypeCode,
          RE_TC_Array                => RU_PolyORB_Any_TypeCode,
          RE_TC_Enum                 => RU_PolyORB_Any_TypeCode,
-         RE_TC_Object               => RU_PolyORB_Any_TypeCode,
+         RE_TC_Object_1             => RU_PolyORB_Any_TypeCode,
          RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
          RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
          RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,

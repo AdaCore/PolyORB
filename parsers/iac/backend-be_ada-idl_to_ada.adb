@@ -36,6 +36,8 @@ package body Backend.BE_Ada.IDL_To_Ada is
          when FEN.K_String              => return RE (RE_TC_String);
          when FEN.K_Wide_String         => return RE (RE_TC_Wide_String);
          when FEN.K_Boolean             => return RE (RE_TC_Boolean);
+         when FEN.K_Octet               => return RE (RE_TC_Octet);
+         when FEN.K_Object              => return RE (RE_TC_Object_0);
          when others                    =>
             raise Program_Error;
       end case;
@@ -469,7 +471,10 @@ package body Backend.BE_Ada.IDL_To_Ada is
             Set_Corresponding_Node (N, D);
             Set_Parent (D, M);
             Set_Implementation_Package (P, D);
-            Append_Node_To_List (D, L);
+
+            if Impl_Packages_Gen then
+               Append_Node_To_List (D, L);
+            end if;
          end if;
       end if;
 

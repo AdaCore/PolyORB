@@ -233,6 +233,7 @@ package body Backend.BE_Ada.Nutils is
          when FEN.K_Wide_String         => return RE_Wide_String;
          when FEN.K_Boolean             => return RE_Boolean;
          when FEN.K_Octet               => return RE_Octet;
+         when FEN.K_Object              => return RE_Ref_2;
          when others                    =>
             raise Program_Error;
       end case;

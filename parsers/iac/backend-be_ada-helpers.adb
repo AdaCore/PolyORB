@@ -2,14 +2,17 @@ with Namet;     use Namet;
 with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
---  with Frontend.Debug;
+
 
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
---  with Backend.BE_Ada.Debug;
+pragma Warnings (off);
+with Frontend.Debug;
+with Backend.BE_Ada.Debug;
+pragma Warnings (on);
 
 package body Backend.BE_Ada.Helpers is
 
@@ -149,7 +152,7 @@ package body Backend.BE_Ada.Helpers is
             when K_Interface_Declaration =>
                N := Package_Declaration
                  (BEN.Parent (Stub_Node (BE_Node (Identifier (E)))));
-               P := RE (RE_TC_Object);
+               P := RE (RE_TC_Object_1);
 
             when  K_Simple_Declarator =>
                T := Type_Spec
@@ -545,15 +548,19 @@ package body Backend.BE_Ada.Helpers is
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
                declare
-                  Enumerators : constant List_Id :=
-                    Enumeration_Literals (Stub);
-                  Enum_Item   : Node_Id := First_Node (Enumerators);
+                  Enumerators : List_Id;
+                  Enum_Item   : Node_Id;
                   Var_Name    : Name_Id;
                begin
+                  Enumerators := Enumeration_Literals
+                    (Type_Definition (Stub));
+                  Enum_Item := First_Node (Enumerators);
                   loop
                      Var_Name := Add_Prefix_To_Name
-                        (Image (BEN.Value (Enum_Item)), VN (V_Name));
-                     N := Declare_Name (Var_Name, BEN.Value (Enum_Item));
+                        (Get_Name_String (BEN.Name (Enum_Item)), VN (V_Name));
+                     N := Declare_Name
+                       (Var_Name,
+                        New_String_Value (BEN.Name (Enum_Item), False));
                      Append_Node_To_List (N, Declarative_Part);
                      N := Add_Parameter (Entity_TC_Name, Var_Name);
                      Append_Node_To_List (N, Statements);
