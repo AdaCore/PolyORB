@@ -113,6 +113,9 @@ procedure Client is
    myecho : Echo.Ref;
 
 begin
+   --  Note: per construction of this test, client and server must use
+   --  the same PriorityMapping construct to ensure results consistency.
+
    if Argument_Count /= 1 then
       Put_Line ("usage : client <IOR_string_from_server>|-i");
       return;
@@ -138,6 +141,8 @@ begin
       return;
    end if;
 
+   --  Test #0, invocation without setting client's priority
+
    --  Sending message
 
    Sent_Msg := CORBA.To_CORBA_String (Standard.String'("Hello Ada !"));
@@ -148,6 +153,12 @@ begin
    Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
    Put_Line ("Request executed at priority:"
              & CORBA.Short'Image (Running_Priority));
+
+   Output ("Running priority is correct",
+           Running_Priority = CORBA.Short (0));
+   --  Note: per construction of this test, 0 the expected result of
+   --  the mapping of the CORBA priority onto the native priority as
+   --  defined on the server side.
 
    declare
       Current : RTCORBA.Current.Ref
