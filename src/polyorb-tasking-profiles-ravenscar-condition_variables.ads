@@ -37,10 +37,13 @@
 
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
+generic
+   with package Threads_For_CV is
+     new PolyORB.Tasking.Profiles.Ravenscar.Threads (<>);
+   Number_Of_Conditions : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    use PolyORB.Tasking.Condition_Variables;
@@ -86,8 +89,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    --  Initialize the package.
 
 private
-   use PolyORB.Tasking.Profiles.Ravenscar.Configuration;
-   use PolyORB.Tasking.Profiles.Ravenscar.Threads;
+   use Threads_For_CV;
 
    subtype Extended_Synchro_Index is Integer
      range Integer (Synchro_Index_Type'First) - 1 ..
@@ -98,7 +100,7 @@ private
 
    package Condition_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Configuration.Number_Of_Conditions);
+     (Number_Of_Conditions);
 
    subtype Condition_Index_Type is Condition_Index_Manager.Index_Type;
 

@@ -67,7 +67,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package Thread_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads - 1);
+     (Number_Of_Threads - 1);
 
    subtype Task_Index_Type is Thread_Index_Manager.Index_Type;
    --  Type of the Ids of the Threads that are not the one of the main task.
@@ -128,11 +128,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    task type Simple_Task is
       pragma Storage_Size (131072);
+      pragma Priority (Task_Priority);
    end Simple_Task;
    --  Type of the task that run the submitted threads
-   --  XXX We should use a facade package to some pools.
-   --      The pool packages will generated from the configuration
-   --      file.
 
    protected type Barrier is
       --  Type of the internal synchronisation object of the tasks
@@ -141,7 +139,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  a call to Resume will result in a call to Signal.
 
       procedure Prepare_Wait (State : Boolean);
-      --  If State:= True, initialize the barrier for a call to
+      --  If State = True, initialize the barrier for a call to
       --  Wait. If State is set to False, it abort the previous
       --  call to Prepare_Wait.
 

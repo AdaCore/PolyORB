@@ -724,7 +724,6 @@ src/polyorb-profiles-full_tasking.adb
 src/polyorb-profiles-full_tasking.ads
 src/polyorb-profiles-no_tasking.adb
 src/polyorb-profiles-no_tasking.ads
-src/polyorb-profiles-ravenscar.adb
 src/polyorb-profiles-ravenscar.ads
 src/polyorb-profiles.ads
 src/polyorb-protocols-echo.adb
@@ -802,7 +801,6 @@ src/polyorb-tasking-profiles-no_tasking-threads.ads
 src/polyorb-tasking-profiles-no_tasking.ads
 src/polyorb-tasking-profiles-ravenscar-condition_variables.adb
 src/polyorb-tasking-profiles-ravenscar-condition_variables.ads
-src/polyorb-tasking-profiles-ravenscar-configuration.ads
 src/polyorb-tasking-profiles-ravenscar-index_manager.adb
 src/polyorb-tasking-profiles-ravenscar-index_manager.ads
 src/polyorb-tasking-profiles-ravenscar-mutexes.adb

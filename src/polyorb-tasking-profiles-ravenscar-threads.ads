@@ -48,8 +48,10 @@ with System;
 
 with PolyORB.Tasking.Threads;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 
+generic
+   Number_Of_Threads : Integer;
+   Task_Priority     : System.Priority;
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    pragma Elaborate_Body;
@@ -160,7 +162,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    package Synchro_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (PolyORB.Tasking.Profiles.Ravenscar.Configuration.Number_Of_Threads + 3);
+     (Number_Of_Threads + 3);
    --  XXX + 3 is a temporary workaround for thet leak of Sync objects.
 
    type Synchro_Index_Type is new Synchro_Index_Manager.Index_Type;

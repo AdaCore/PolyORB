@@ -35,10 +35,13 @@
 --  Ravenscar profile. For more comments see PolyORB.Tasking.Mutexes
 
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
+generic
+   with package Threads_For_Mutexes is
+     new PolyORB.Tasking.Profiles.Ravenscar.Threads (<>);
+   Number_Of_Mutexes : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    use PolyORB.Tasking.Mutexes;
@@ -75,8 +78,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    --  Initialize the package.
 
 private
-   use PolyORB.Tasking.Profiles.Ravenscar.Configuration;
-   use PolyORB.Tasking.Profiles.Ravenscar.Threads;
+   use Threads_For_Mutexes;
 
    subtype Extended_Synchro_Index is Integer
      range Integer (Synchro_Index_Type'First) - 1 ..
@@ -87,7 +89,7 @@ private
 
    package Mutex_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Configuration.Number_Of_Mutexes);
+     (Number_Of_Mutexes);
 
    subtype Mutex_Index_Type is Mutex_Index_Manager.Index_Type;
 

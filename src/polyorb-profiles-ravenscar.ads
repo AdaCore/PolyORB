@@ -29,10 +29,43 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
---  Set up a ravenscar profile
+--  You should instanciate this package to set up a ravenscar profile.
 
 --  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.ads
 
+with System;
+with PolyORB.Tasking.Profiles.Ravenscar.Threads;
+with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
+with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
+
+generic
+   Number_Of_Threads    : Integer;
+   --  Number of preallocated tasks.
+
+   Number_Of_Conditions : Integer;
+   --  Number of preallocated conditions.
+
+   Number_Of_Mutexes    : Integer;
+   --  Number of preallocated mutexes.
+
+   Task_Priority        : System.Priority;
+   --  Priority affected  to the tasks of the pool.
+
 package PolyORB.Profiles.Ravenscar is
-   pragma Elaborate_Body;
+
+   package Threads_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Threads
+     (Number_Of_Threads,
+      Task_Priority);
+
+   package Conditions_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
+     (Threads_Package,
+      Number_Of_Conditions);
+
+   package Mutexes_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Mutexes
+     (Threads_Package,
+      Number_Of_Mutexes);
+
 end PolyORB.Profiles.Ravenscar;
