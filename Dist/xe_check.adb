@@ -854,7 +854,7 @@ package body XE_Check is
          Main_Unit             => Main,
          Compilation_Failures  => Count,
          Check_Readonly_Files  => Opt.Check_Readonly_Files,
-         Dont_Execute          => No_Recompilation,
+         Do_Not_Execute        => No_Recompilation,
          Force_Compilations    => Opt.Force_Compilations,
          Keep_Going            => True,
          In_Place_Mode         => Opt.In_Place_Mode,

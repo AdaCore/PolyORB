@@ -93,6 +93,7 @@ package body XE_Parse is
 
       --  A literal is a variable which is not linked into the
       --  configuration declaration list.
+
       Create_Variable    (L, Literal_Name);
       Set_Variable_Type  (L, Literal_Type);
       Set_Node_Location  (XE.Node_Id (L), Literal_Sloc);
@@ -1191,10 +1192,10 @@ package body XE_Parse is
          end if;
       end if;
 
-      --  Check that the expression has the correct type.
+      --  Check that the expression has the correct type
       Expr_Type := Get_Variable_Type (Expr_Node);
 
-      --  Special case for functions and procedures.
+      --  Special case for functions and procedures
       if Expr_Type = Ada_Unit_Type_Node and then
         Is_Variable_Initialized (Expr_Node) then
          declare
@@ -1204,7 +1205,7 @@ package body XE_Parse is
             S := Subprogram_Id (Get_Variable_Value (Expr_Node));
             if Is_Subprogram_A_Procedure (S) then
 
-               --  XXXXX: Very ugly kludge.
+               --  ??? Very ugly kludge
                Expr_Type := Main_Procedure_Type_Node;
 
             else
@@ -1270,8 +1271,8 @@ package body XE_Parse is
          Variable_Name := Token_Name;
          Variable_Sloc := Get_Token_Location;
 
-         --  Declare a temporary variable of any type.
-         --  XXXXX: Should not use partition_type.
+         --  Declare a temporary variable of any type
+         --  ??? Should not use partition_type
 
          Declare_Variable
            (Previous_Name,

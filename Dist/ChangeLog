@@ -1,3 +1,12 @@
+1998-08-20  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.adb: Change instances of Dont_Execute by Do_Not_Execute 
+	to match GNAT sources.
+
+	* xe_check.adb: Likewise.
+
+	* xe_parse.adb: Minor reformatting.
+
 1998-08-18  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Don't check version on RCI generic unit. Bug

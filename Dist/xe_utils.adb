@@ -275,12 +275,11 @@ package body XE_Utils is
       Dir_Name_Len : Natural := Strlen (To);
       Dir_Name     : String (1 .. Dir_Name_Len);
    begin
-
       Get_Name_String (To);
       Dir_Name := Name_Buffer (1 .. Name_Len);
       for Index in Dir_Name'Range loop
 
-         --  XXXXX
+         --  ???
          if Dir_Name (Index) = Directory_Separator and then Index > 1 and then
             not Is_Directory (Dir_Name (1 .. Index - 1)) then
             Execute (Mkdir, (1 => new String'(Dir_Name (1 .. Index - 1))));
@@ -346,7 +345,8 @@ package body XE_Utils is
    procedure Execute
      (Prog  : in String_Access;
       Args  : in Argument_List;
-      Fatal : in Boolean := True) is
+      Fatal : in Boolean := True)
+   is
       Success : Boolean := False;
    begin
 
@@ -390,9 +390,8 @@ package body XE_Utils is
    procedure Execute_Bind
      (Lib   : in File_Name_Type;
       Args  : in Argument_List;
-      Fatal : in Boolean := True) is
-
-
+      Fatal : in Boolean := True)
+   is
       Length : constant Positive :=
         Args'Length + Binder_Switches.Last - Binder_Switches.First + 3;
 
@@ -401,7 +400,6 @@ package body XE_Utils is
       Lib_Name     : String (1 .. Strlen (Lib));
 
       N_Bind_Flags : Natural range 0 .. Length := 0;
-
    begin
 
       N_Bind_Flags := N_Bind_Flags + 1;
@@ -440,8 +438,8 @@ package body XE_Utils is
      (File   : in File_Name_Type;
       Object : in File_Name_Type;
       Args   : in Argument_List;
-      Fatal  : in Boolean := True) is
-
+      Fatal  : in Boolean := True)
+   is
       Max_Length  : constant Natural
         := Gcc_Switches.Last - Gcc_Switches.First + 6 + Args'Length + 2;
 
@@ -451,7 +449,6 @@ package body XE_Utils is
       Gcc_Flags   : Argument_List (1 .. Max_Length);
 
       N_Gcc_Flags : Natural range 0 .. Max_Length := 0;
-
    begin
       if not Has_Standard_Extension (File) then
          N_Gcc_Flags := N_Gcc_Flags + 1;
@@ -507,9 +504,8 @@ package body XE_Utils is
      (Lib   : in File_Name_Type;
       Exec  : in File_Name_Type;
       Args  : in Argument_List;
-      Fatal : in Boolean := True) is
-
-
+      Fatal : in Boolean := True)
+   is
       Length : constant Positive :=
         2 +            --  -o <executable name>
         1 +            --  <unit_name>
@@ -522,9 +518,7 @@ package body XE_Utils is
       Exec_Name    : String (1 .. Strlen (Exec));
 
       N_Link_Flags : Natural range 0 .. Length := 0;
-
    begin
-
       --  -o <executable name>
 
       Get_Name_String (Exec);
@@ -564,9 +558,9 @@ package body XE_Utils is
    -------------------
 
    procedure Execute_Strip
-     (Executable : in File_Name_Type) is
+     (Executable : in File_Name_Type)
+   is
       File : Argument_List (1 .. 1);
-
    begin
       Get_Name_String (Executable);
       File (1) := new String'(Name_Buffer (1 .. Name_Len));
@@ -623,15 +617,13 @@ package body XE_Utils is
 
    procedure Initialize is
       GARLIC_Included : Boolean := False;
-
    begin
-
       --  Default initialization of the flags affecting gnatdist
 
       Opt.Check_Readonly_Files     := False;
       Opt.Check_Object_Consistency := True;
       Opt.Compile_Only             := False;
-      Opt.Dont_Execute             := False;
+      Opt.Do_Not_Execute           := False;
       Opt.Force_Compilations       := False;
       Opt.Quiet_Output             := False;
       Opt.Minimal_Recompilation    := False;
@@ -757,7 +749,7 @@ package body XE_Utils is
       Debug_Mode         := Debug.Debug_Flag_Q;
       Optimization_Mode  := Optimization_Mode and then Debug.Debug_Flag_S;
       Quiet_Output       := Opt.Quiet_Output;
-      No_Recompilation   := Opt.Dont_Execute;
+      No_Recompilation   := Opt.Do_Not_Execute;
       Building_Script    := Opt.List_Dependencies;
 
       --  Use -dq and -ds for Gnatdist internal debugging.
