@@ -1,0 +1,97 @@
+--  A generic package to manage an object map (a map of associations between
+--  a servant an an object_id. The entries are stored in an unbounded sequence
+--  and when an entry is removed, it is actually replaced by a null value.
+--  Four functions are to be provided:
+--  Is_Servant_Equal   : compares a servant with an entry;
+--                       returns true if equality
+--  Is_Object_Id_Equal : compares an object_id with an entry;
+--                       returns true if equality
+--  Is_Null            : returns true if the entry is null
+--  Null_Entry         : returns a null entry
+--
+--  Note: the remove_by_index and get_by_index may raise an INDEX_ERROR
+--  exception.
+
+with Sequences.Unbounded;
+
+generic
+
+   type Map_Entry is private;
+   type Servant is private;
+   type Object_Id is private;
+   with function Is_Servant_Equal (Item : in Map_Entry;
+                                   To   : in Servant)
+                                  return Boolean is <>;
+
+   with function Is_Object_Id_Equal (Item : in Map_Entry;
+                                     To   : in Object_Id)
+                                    return Boolean is <>;
+
+   with function Is_Null (Item : in Map_Entry) return Boolean is <>;
+   with function Null_Entry return Map_Entry is <>;
+
+package Droopi.Object_Map is
+
+   type Object_Map is private;
+   type Object_Map_Access is access all Object_Map;
+
+   function Add (O_Map : in Object_Map_Access;
+                 Obj : in Map_Entry)
+                return Integer;
+   --  Adds a new entry in the map
+   --  and returns it's index
+
+   function Is_Servant_In (O_Map  : in Object_Map_Access;
+                           Item   : in Servant)
+                          return Boolean;
+   --  Checks if a servant is already in the map
+   --  (and return True if it is the case)
+
+   function Is_Object_Id_In (O_Map  : in Object_Map_Access;
+                             Item   : in Object_Id)
+                            return Boolean;
+   --  Checks if an object_id is already used in the map
+   --  (and return True if it is the case)
+
+   function Get_By_Id (O_Map  : in Object_Map_Access;
+                       Item   : in Object_Id)
+                      return Map_Entry;
+   --  Given an Object_Id, looks for the corresponding map entry
+
+   function Get_By_Servant (O_Map  : in Object_Map_Access;
+                            Item   : in Servant)
+                           return Map_Entry;
+   --  Given a servant, looks for the corresponding map entry
+   --  Doesn't check that the servant is only once in the map
+
+   function Get_By_Index (O_Map : in Object_Map_Access;
+                          Index : in Natural)
+                         return Map_Entry;
+   --  Given an index, returns the corrsponding map entry
+
+   function Remove (O_Map  : in Object_Map_Access;
+                    Item   : in Object_Id)
+                   return Map_Entry;
+   --  Given an object_Id, removes an entry from the map
+   --  and returns it (for the function). A null value means
+   --  that the object_id wasn't in the map.
+
+   function Remove_By_Index (O_Map : in Object_Map_Access;
+                             Index : in Natural)
+                            return Map_Entry;
+   --  Given an index, removes an entry from the map
+   --  and returns it. A null value means that the index
+   --  points to an empty value.
+
+private
+   package Object_Map_Entry_Seqs is new Sequences.Unbounded
+     (Map_Entry);
+   subtype Object_Map_Entry_Seq is Object_Map_Entry_Seqs.Sequence;
+
+   type Object_Map is
+      record
+         Map : Object_Map_Entry_Seq;
+      end record;
+
+end Droopi.Object_Map;
+
