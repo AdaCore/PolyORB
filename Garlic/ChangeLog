@@ -1,3 +1,65 @@
+1997-12-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garnam.adb: Use Mutex from System.Garlic.Utils
+
+	* s-ganata.adb: Qualify parameters of table Nodes
+	Remove useless use Ascii clause
+
+	* s-garuti.ads: (Mutex_Type.Wait): remove useless default
+	parameter on private entry.
+	Add pragma Elaborate_Body
+
+	* s-garuti.adb: (Mutex_Type.Wait): accord with the spec
+	Remove redundant with Ada.Task_Identification (duplicated from the 
+	spec).
+	(Not_Null_Version): simplified and integrated into Different
+
+	* s-ganata.ads: Defer constant Null_Name and First_Name until the
+	private part.
+
+	* s-garhea.ads: Change Is_Boot_Partition into
+	Set_Is_Boot_Partition.
+
+	* s-garhea.adb: Idem
+
+	* s-garsta.adb: Use it
+
+1997-12-14  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-garuti.adb, s-garuti.ads: Rename Semaphore_Type into
+ 	Mutex_Type (because it is a mutex and not a semaphore). Rename
+ 	Critical_Section into Adv_Mutex_Type because it is a specific
+ 	implementation of a mutex. It allows recursion. Improve also the
+ 	implementation of these mutexes.
+
+	* s-gartab.adb, s-gartab.ads: Use Global_Mutex from Utils. Change
+ 	package Concurrent into package Complex. Change package Sequential
+ 	into Simple. Complex does not depend from Simple anymore. Complex
+ 	exports its table, data can be read directly from this
+ 	table. Change most of the subprogram names into more explicit
+ 	ones.
+
+	* s-garhea.adb, s-garhea.ads: Export Partition_Data and add a new
+ 	field Name to store the name of a partition. Exchange Name during
+ 	the usual location registration messages. Change
+ 	Get_Partition_Location into Get_Partition_Data. "with" and "use"
+ 	Physical_Location to simplify coding. Fix hack concerning replay
+ 	and remove warning about this hack. Remove procedure
+ 	Replay_Handle_Internal (no longer needed). Remove procedure
+ 	Register (never used). Clean up in debugging messages.
+
+	* s-gaphlo.adb, s-gaphlo.ads: Change Location into
+	Location_Type. Add a new constant Null_Location.
+
+	* s-ganata.adb: Rewrite Get (more efficient).
+
+	* s-ganata.adb, s-ganata.ads, s-gaphlo.adb, s-gaphlo.ads,
+ 	s-garhea.adb, s-garhea.ads, s-garsta.adb, s-gartab.adb,
+ 	s-gartab.ads, s-gartcp.adb, s-garuni.ads, s-garuti.adb,
+ 	s-garuti.ads, s-gastha.adb, s-gastha.ads, s-parint.adb,
+ 	s-rpstio.adb, s-rpstio.ads: Modified because of the previous
+ 	changes.
+	
 1997-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Add RACW_Stub_Type and RACW_Stub_Type_Access for
