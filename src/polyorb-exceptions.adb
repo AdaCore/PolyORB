@@ -144,6 +144,12 @@ package body PolyORB.Exceptions is
    --  assigned to Exc_Mbr, else the object is discarded and no
    --  assignment is made.
 
+   function Get_ExcepId_By_RepositoryId
+     (RepoId  : Standard.String)
+      return Ada.Exceptions.Exception_Id;
+   --  Return the corresponding Ada Exception_Id for
+   --  a repository id.
+
    --------------------------
    -- Dump_All_Occurrences --
    --------------------------
@@ -510,7 +516,6 @@ package body PolyORB.Exceptions is
 
       return To_Exception_Id
         (System.Exception_Table.Internal_Exception (Internal_Name));
-
    end Get_ExcepId_By_RepositoryId;
 
    ------------------------
