@@ -86,7 +86,7 @@ package MOMA.Destinations is
                      return Destination;
 
    --  XXX check the conformance and pertinence of the above spec.
-   
+
    procedure Delete;
    --  XXX really useful in this context ?
 
