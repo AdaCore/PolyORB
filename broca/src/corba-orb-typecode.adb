@@ -33,28 +33,28 @@
 
 package body CORBA.ORB.Typecode is
 
+   use CORBA.TypeCode;
+
    function Create_Struct_Tc
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.Repository_Root.StructMemberSeq)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
       package SMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
    begin
-      Result := CORBA.TypeCode.TC_Struct;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := TC_Struct;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       declare
          Memb_Array : SMS.Element_Array
            := SMS.To_Element_Array (SMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            CORBA.TypeCode.Add_Parameter (Result,
-                                          To_Any (Memb_Array (I).IDL_Type));
-            CORBA.TypeCode.Add_Parameter
-              (Result,
-               To_Any (CORBA.String (Memb_Array (I).Name)));
+            Add_Parameter (Result, To_Any (Memb_Array (I).IDL_Type));
+            Add_Parameter (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -65,27 +65,24 @@ package body CORBA.ORB.Typecode is
       Name               : in CORBA.Identifier;
       Discriminator_Type : in CORBA.TypeCode.Object;
       Members            : in CORBA.Repository_Root.UnionMemberSeq)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
       package UMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
    begin
-      Result := CORBA.TypeCode.TC_Union;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Discriminator_Type));
+      Result := TC_Union;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Add_Parameter (Result, To_Any (Discriminator_Type));
       declare
          Memb_Array : UMS.Element_Array
            := UMS.To_Element_Array (UMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            CORBA.TypeCode.Add_Parameter (Result,
-                                          To_Any (Memb_Array (I).IDL_Type));
-            CORBA.TypeCode.Add_Parameter (Result,
-                                          To_Any (Memb_Array (I).Label));
-            CORBA.TypeCode.Add_Parameter
-              (Result,
-               To_Any (CORBA.String (Memb_Array (I).Name)));
+            Add_Parameter (Result, To_Any (Memb_Array (I).IDL_Type));
+            Add_Parameter (Result, To_Any (Memb_Array (I).Label));
+            Add_Parameter (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -95,18 +92,19 @@ package body CORBA.ORB.Typecode is
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.Repository_Root.EnumMemberSeq)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
       package EMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Identifier;
       Memb_Array : EMS.Element_Array
         := EMS.To_Element_Array (EMS.Sequence (Members));
    begin
-      Result := CORBA.TypeCode.TC_Enum;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := TC_Enum;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       for I in Memb_Array'Range loop
-         CORBA.TypeCode.Add_Parameter
+         Add_Parameter
            (Result, To_Any (CORBA.String (Memb_Array (I))));
       end loop;
       return Result;
@@ -116,13 +114,14 @@ package body CORBA.ORB.Typecode is
      (Id            : in CORBA.RepositoryId;
       Name          : in CORBA.Identifier;
       Original_Type : in CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Alias;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Original_Type));
+      Result := TC_Alias;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Add_Parameter (Result, To_Any (Original_Type));
       return Result;
    end Create_Alias_Tc;
 
@@ -130,89 +129,92 @@ package body CORBA.ORB.Typecode is
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
       Members : in CORBA.Repository_Root.StructMemberSeq)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
       package SMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
-  begin
-      Result := CORBA.TypeCode.TC_Except;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+   begin
+      Result := TC_Except;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       declare
          Memb_Array : SMS.Element_Array
            := SMS.To_Element_Array (SMS.Sequence (Members));
-       begin
+      begin
          for I in Memb_Array'Range loop
-            CORBA.TypeCode.Add_Parameter (Result,
-                                          To_Any (Memb_Array (I).IDL_Type));
-            CORBA.TypeCode.Add_Parameter
-              (Result,
-               To_Any (CORBA.String (Memb_Array (I).Name)));
+            Add_Parameter (Result, To_Any (Memb_Array (I).IDL_Type));
+            Add_Parameter (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
-       end;
+      end;
       return Result;
    end Create_Exception_Tc;
 
    function Create_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Objref;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := TC_Objref;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Interface_Tc;
 
    function Create_String_Tc
      (Bound : in CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_String;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Bound));
+      Result := TC_String;
+      Add_Parameter (Result, To_Any (Bound));
       return Result;
    end Create_String_Tc;
 
    function Create_Wstring_Tc
      (Bound : in CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Wide_String;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Bound));
+      Result := TC_Wide_String;
+      Add_Parameter (Result, To_Any (Bound));
       return Result;
    end Create_Wstring_Tc;
 
    function Create_Fixed_Tc
      (IDL_Digits : in CORBA.Unsigned_Short;
       Scale  : in CORBA.Short)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Fixed;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (IDL_Digits));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Scale));
+      Result := TC_Fixed;
+      Add_Parameter (Result, To_Any (IDL_Digits));
+      Add_Parameter (Result, To_Any (Scale));
       return Result;
    end Create_Fixed_Tc;
 
    function Create_Sequence_Tc
      (Bound       : in CORBA.Unsigned_Long;
       Elementtype : in CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Sequence;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Bound));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Elementtype));
+      Result := TC_Sequence;
+      Add_Parameter (Result, To_Any (Bound));
+      Add_Parameter (Result, To_Any (Elementtype));
       return Result;
    end Create_Sequence_Tc;
 
    function Create_Recursive_Sequence_Tc
      (Bound  : in CORBA.Unsigned_Long;
       Offset : in CORBA.Unsigned_Long)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object is
    begin
       return TC_Null;
    end Create_Recursive_Sequence_Tc;
@@ -220,12 +222,13 @@ package body CORBA.ORB.Typecode is
    function Create_Array_Tc
      (Length       : in CORBA.Unsigned_Long;
       Element_Type : in CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Array;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Length));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Element_Type));
+      Result := TC_Array;
+      Add_Parameter (Result, To_Any (Length));
+      Add_Parameter (Result, To_Any (Element_Type));
       return Result;
    end Create_Array_Tc;
 
@@ -235,29 +238,31 @@ package body CORBA.ORB.Typecode is
       Type_Modifier : in CORBA.ValueModifier;
       Concrete_Base : in CORBA.TypeCode.Object;
       Members       : in CORBA.Repository_Root.ValueMemberSeq)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
+
       package VMS renames
         CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+
    begin
-      Result := CORBA.TypeCode.TC_Value;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.Short (Type_Modifier)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Concrete_Base));
+      Result := TC_Value;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Add_Parameter (Result, To_Any (CORBA.Short (Type_Modifier)));
+      Add_Parameter (Result, To_Any (Concrete_Base));
+
       declare
          Memb_Array : VMS.Element_Array
            := VMS.To_Element_Array (VMS.Sequence (Members));
       begin
          for I in Memb_Array'Range loop
-            CORBA.TypeCode.Add_Parameter
-              (Result,
-               To_Any (CORBA.Short (Memb_Array (I).IDL_Access)));
-            CORBA.TypeCode.Add_Parameter (Result,
-                                          To_Any (Memb_Array (I).IDL_Type));
-            CORBA.TypeCode.Add_Parameter
-              (Result,
-               To_Any (CORBA.String (Memb_Array (I).Name)));
+            Add_Parameter
+              (Result, To_Any (CORBA.Short (Memb_Array (I).IDL_Access)));
+            Add_Parameter
+              (Result, To_Any (Memb_Array (I).IDL_Type));
+            Add_Parameter
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -267,31 +272,33 @@ package body CORBA.ORB.Typecode is
      (Id         : in CORBA.RepositoryId;
       Name       : in CORBA.Identifier;
       Boxed_Type : in CORBA.TypeCode.Object)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Valuebox;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (Boxed_Type));
+      Result := TC_Valuebox;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Add_Parameter (Result, To_Any (Boxed_Type));
       return Result;
    end Create_Value_Box_Tc;
 
    function Create_Native_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Native;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := TC_Native;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Native_Tc;
 
    function Create_Recursive_Tc
      (Id   : in CORBA.RepositoryId)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object is
    begin
       return TC_Null;
    end Create_Recursive_Tc;
@@ -299,12 +306,13 @@ package body CORBA.ORB.Typecode is
    function Create_Abstract_Interface_Tc
      (Id   : in CORBA.RepositoryId;
       Name : in CORBA.Identifier)
-      return CORBA.TypeCode.Object is
+     return CORBA.TypeCode.Object
+   is
       Result : CORBA.TypeCode.Object;
    begin
-      Result := CORBA.TypeCode.TC_Abstract_Interface;
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Name)));
-      CORBA.TypeCode.Add_Parameter (Result, To_Any (CORBA.String (Id)));
+      Result := TC_Abstract_Interface;
+      Add_Parameter (Result, To_Any (CORBA.String (Name)));
+      Add_Parameter (Result, To_Any (CORBA.String (Id)));
       return Result;
    end Create_Abstract_Interface_Tc;
 
