@@ -106,12 +106,13 @@ is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (U_Oid);
       pragma Warnings (On);
+
+   begin
       null;
    end Etherealize_All;
 
@@ -125,16 +126,16 @@ is
       U_Oid : Unmarshalled_Oid)
      return Servants.Servant_Access
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+
       use PolyORB.Exceptions;
       use PolyORB.POA_Policies.Servant_Retention_Policy;
       use type PolyORB.Servants.Servant_Access;
 
       Servant : Servants.Servant_Access;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       Servant := Retained_Id_To_Servant
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
          OA, U_Oid);
