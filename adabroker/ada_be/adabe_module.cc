@@ -35,7 +35,6 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
-	case AST_Decl::NT_interface_fwd:
 	case AST_Decl::NT_pre_defined:
 	case AST_Decl::NT_const:
 	case AST_Decl::NT_except:
@@ -44,11 +43,12 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
 	  if (first) {
-	    body = "Package " + get_ada_full_name();
+	    body = "Package " + get_ada_full_name()+ " is\n";
 	    first = false;    
 	  }
 	  previousdefinition += body;
 	  body ="";
+	case AST_Decl::NT_interface_fwd:
 	  dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previousdefinition);
 	  break;
 	case AST_Decl::NT_module:
@@ -99,7 +99,7 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	}
     }
   if (!first) {
-    body += "end " + get_ada_full_name();
+    body += "end " + get_ada_full_name() + " ;";
   }
 
 }
@@ -211,8 +211,6 @@ adabe_module::produce_impl_ads(dep_list& with,string &body, string &previousdefi
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-impl.ads";
-	    cout << 	      remove_dot(interface->get_ada_full_name()) + "-impl.ads" <<endl;
-
 	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
@@ -560,7 +558,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
 	  if (first) {
-	    body = "Package " + get_ada_full_name() + "-marshal is";
+	    body = "Package " + get_ada_full_name() + "-marshal is\n";
 	    first = false;
 	  }
 	  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, body, previousdefinition);
@@ -612,7 +610,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	}
     }
   if (!first) {
-    body += "end " + get_ada_full_name();
+    body += "end " + get_ada_full_name() + " ;";
   }
 
 }
@@ -641,7 +639,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_string:
 	  if (first == true)
 	    {
-	      body = "Package " + get_ada_full_name() + "-marshal is \n";
+	      body = "Package body " + get_ada_full_name() + "-marshal is \n";
 	      first = false;
 	    }
 	  previousdefinition += body;
@@ -696,7 +694,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	}
     }
   if (!first) {
-    body += "end " + get_ada_full_name();
+    body += "end " + get_ada_full_name() + " ;";
   }
 }
 

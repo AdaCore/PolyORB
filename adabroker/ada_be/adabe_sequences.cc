@@ -48,6 +48,8 @@ void
 adabe_sequence::produce_ads(dep_list& with, string &body,
 			    string &previous)
 {
+  static int count = 0;
+  char count_str[4];
   no_fixed_size();
   // set a flag of this object and its ancestors saying
   // they have not a fixed size.
@@ -75,14 +77,21 @@ adabe_sequence::produce_ads(dep_list& with, string &body,
       short_type_name = type_name.substr(type_name.find_first_of('_') + 1) ;
       short_type_name = short_type_name.substr(0,short_type_name.length()-9);
     }
+  if (count > 0)
+    {
+      sprintf(count_str,"%d",count);
+      short_type_name += "_";
+      short_type_name += count_str;
+    }
+  count ++;
   set_ada_local_name("IDL_SEQUENCE_" + short_type_name + ".Sequence");
-  body += "   type IDL_SEQUENCE_" + short_type_name +"_Array is ";
-  if (bounded)
-    body += "array (1.." + seq_size_st + ") of " + type_name +" ;\n";
-  else 
-    body += "array (Integer range <>) of " + type_name +" ;\n";
-  body += "\n";
-  body += "   package IDL_SEQUENCE_" + short_type_name + " is new\n";
+  //  body += "   type IDL_SEQUENCE_" + short_type_name +"_Array is ";
+  //  if (bounded)
+  //    body += "array (1.." + seq_size_st + ") of " + type_name +" ;\n";
+  //  else 
+  //    body += "array (Integer range <>) of " + type_name +" ;\n";
+  //  body += "\n";
+  body += "\n   package IDL_SEQUENCE_" + short_type_name + " is new\n";
   body += "      Corba.Sequences." + is_bounded;
   if (bounded) {
     body += "(" + type_name + ", ";

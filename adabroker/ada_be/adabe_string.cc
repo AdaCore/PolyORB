@@ -188,7 +188,8 @@ adabe_string::dump_name (dep_list &with, string &previous)
     {
       if (evaluate(max_size()->ev())==0)
 	{
-	  if (dynamic_cast<AST_Decl *> (defined_in())->node_type() != AST_Decl::NT_typedef)
+	  if ((defined_in() == NULL) || (dynamic_cast<AST_Decl *> (defined_in())->node_type() 
+					 != AST_Decl::NT_typedef))
 	    {
 	      set_already_defined();
 	      with.check("CORBA.String");
