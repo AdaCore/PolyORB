@@ -4,12 +4,14 @@ with RT;
 with SP;
 
 with PolyORB.Initialization;
+with System.RPC;
 
 pragma Warnings (Off);
 with PolyORB.ORB.No_Tasking;
 with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Setup.Client;
+with PolyORB.DSA_P.Partitions;
 pragma Warnings (On);
 
 procedure Client is
@@ -31,10 +33,13 @@ procedure Client is
    end Try_RACW;
 
    Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
+   This_Partition_ID : System.RPC.Partition_ID;
 
 begin
    --  XXX BEGIN PolyORB INITIAL SETUP
    PolyORB.Initialization.Initialize_World;
+   This_Partition_ID := System.RPC.Partition_ID
+     (PolyORB.DSA_P.Partitions.Allocate_Partition_ID ("serverp"));
    --  XXX END PolyORB INITIAL SETUP
 
    SP.Shared_Integer := 42;
