@@ -55,7 +55,7 @@ package body Droopi.Transport.Sockets is
    end Create_Event_Source;
 
    procedure Read
-     (TE     : Socket_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffer_Access;
       Size   : in out Stream_Element_Count)
    is
@@ -66,6 +66,7 @@ package body Droopi.Transport.Sockets is
 
       if Data_Received = 0 then
          O ("Connection closed on fd " & Image (TE.Socket));
+         Close (TE);
 
          raise Connection_Closed;
       end if;
@@ -74,16 +75,17 @@ package body Droopi.Transport.Sockets is
    end Read;
 
    procedure Write
-     (TE     : Socket_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffer_Access)
    is
    begin
       Droopi.Buffers.Send_Buffer (Buffer, TE.Socket);
    end Write;
 
-   procedure Close (TE : Socket_Endpoint) is
+   procedure Close (TE : in out Socket_Endpoint) is
    begin
       Close_Socket (TE.Socket);
+      TE.Socket := No_Socket;
    end Close;
 
 end Droopi.Transport.Sockets;

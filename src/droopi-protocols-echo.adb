@@ -6,7 +6,7 @@ with Ada.Exceptions;
 
 with Droopi.Buffers;
 with Droopi.Log;
-with Droopi.Schedulers;
+with Droopi.Schedulers; use Droopi.Schedulers;
 with Droopi.Requests; use Droopi.Requests;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
@@ -113,8 +113,15 @@ package body Droopi.Protocols.Echo is
 --                 Target    => Argv (2),
 --                 Operation => Argv (1).all,
 --                 Args      => Argv (3).all);
---
-            Schedulers.Queue_Request (Server_Of (S), Req);
+
+            --  XXX hack
+            if Server_Of (S) = null then
+               pragma Debug (O ("XXX Ooops! null scheduler."));
+               null;
+            else
+               Schedulers.Queue_Request (Server_Of (S), Req);
+            end if;
+
          exception
             when E : others =>
                O ("Got exception: "

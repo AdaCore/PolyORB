@@ -36,26 +36,26 @@ package Droopi.Transport.Sockets is
       return Asynch_Ev_Source_Access;
 
    procedure Read
-     (TE     : Socket_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffer_Access;
       Size   : in out Stream_Element_Count);
 
    procedure Write
-     (TE     : Socket_Endpoint;
+     (TE     : in out Socket_Endpoint;
       Buffer : Buffer_Access);
 
-   procedure Close (TE : Socket_Endpoint);
+   procedure Close (TE : in out Socket_Endpoint);
 
 private
 
    type Socket_Access_Point is new Transport_Access_Point
      with record
-        Socket : Socket_Type;
+        Socket : Socket_Type := No_Socket;
      end record;
 
    type Socket_Endpoint is new Transport_Endpoint
      with record
-        Socket : Socket_Type;
+        Socket : Socket_Type := No_Socket;
         Addr   : Sock_Addr_Type;
      end record;
 

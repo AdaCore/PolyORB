@@ -19,22 +19,22 @@ package body Droopi.Components is
      renames L.Output;
 
    procedure Connect
-     (Signal : out Component_Access;
+     (Port : out Component_Access;
       Target : Component_Access) is
    begin
-      Signal := Target;
+      Port := Target;
    end Connect;
 
    procedure Emit
-     (Signal : Component_Access;
+     (Port : Component_Access;
       Msg    : Message'Class)
    is
       Dummy : Boolean;
    begin
       pragma Debug (O ("Sending message " & External_Tag (Msg'Tag)
-                       & " to target " & External_Tag (Signal.all'Tag)));
-      if Signal /= null then
-         Dummy := Handle_Message (Signal, Msg);
+                       & " to target " & External_Tag (Port.all'Tag)));
+      if Port /= null then
+         Dummy := Handle_Message (Port, Msg);
       end if;
    end Emit;
 

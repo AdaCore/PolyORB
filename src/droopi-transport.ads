@@ -66,7 +66,7 @@ package Droopi.Transport is
    --  Create a view of TE as an asyncrhonous event source.
 
    procedure Read
-     (TE     : Transport_Endpoint;
+     (TE     : in out Transport_Endpoint;
       Buffer : Buffer_Access;
       Size   : in out Stream_Element_Count)
       is abstract;
@@ -75,12 +75,12 @@ package Droopi.Transport is
    --  On return, Size is set to the effective amount of data received.
 
    procedure Write
-     (TE     : Transport_Endpoint;
+     (TE     : in out Transport_Endpoint;
       Buffer : Buffer_Access)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 
-   procedure Close (TE : Transport_Endpoint) is abstract;
+   procedure Close (TE : in out Transport_Endpoint) is abstract;
 
 private
 

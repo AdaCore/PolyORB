@@ -40,7 +40,7 @@ package body Droopi.Protocols is
       In_Buf : Buffers.Buffer_Access;
       Max    : Ada.Streams.Stream_Element_Count) is
    begin
-      Emit (Signal => Lower (S),
+      Emit (Port   => Lower (S),
             Msg    => Data_Expected'(In_Buf => In_Buf, Max => 1024));
    end Expect_Data;
 

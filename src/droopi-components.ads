@@ -24,15 +24,15 @@ package Droopi.Components is
    --  Return True if M has been handled, false otherwise.
 
    procedure Connect
-     (Signal : out Component_Access;
+     (Port : out Component_Access;
       Target : Component_Access);
-   --  Connect Signal to Target: when Signal is emitted with message
+   --  Connect Port to Target: when Port is emitted with message
    --  M, Target receives M.
 
    procedure Emit
-     (Signal : Component_Access;
+     (Port : Component_Access;
       Msg    : Message'Class);
-   --  Emit message Msg on Signal.
+   --  Emit message Msg on Port.
 
    -------------------------
    -- Component factories --

@@ -174,9 +174,26 @@ package body Droopi.ORB is
                   Active_Connection'(AES => New_AES, TE => New_TE));
                --  Assign execution resources to the newly-created connection.
             end;
+
+            Insert_Source (ORB, AES);
+            --  Continue monitoring this source.
+
          when A_TE_AES =>
-            Emit (Component_Access (Note.D.TE),
-                  Filters.Data_Units.Data_Indication'(null record));
+            declare
+               --  Keep Ada-Mode happy.
+            begin
+               Emit (Component_Access (Note.D.TE),
+                     Filters.Data_Units.Data_Indication'(null record));
+               Insert_Source (ORB, AES);
+               --  Continue monitoring this source.
+
+            exception
+               when E : others =>
+                  O ("Got exception while sending Data_Indication");
+                  O (Ada.Exceptions.Exception_Information (E));
+                  --  XXX What to do?
+                  --  raise; ???
+            end;
       end case;
    end Handle_Event;
 
@@ -212,20 +229,27 @@ package body Droopi.ORB is
 
             begin
 
-               ORB.Polling := True;
-               Leave (ORB.ORB_Lock.all);
-
                if Monitors'Length = 1 then
                   Timeout := Droopi.Asynch_Ev.Forever;
                else
                   Timeout := 0.0;
                end if;
 
+               --  ORB.ORB_Lock is held.
+
                for I in Monitors'Range loop
+                  ORB.Polling := True;
+                  ORB.Selector := Monitors (I);
+                  Leave (ORB.ORB_Lock.all);
+
                   declare
                      Events : constant AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
+                     Enter (ORB.ORB_Lock.all);
+                     ORB.Polling := False;
+                     ORB.Selector := null;
+
                      if Events'Length > 0 then
                         Event_Happened := True;
                      end if;
@@ -235,77 +259,21 @@ package body Droopi.ORB is
                   end;
                end loop;
 
-               if not (Event_Happened or else Monitors'Length = 1) then
-                  delay Poll_Interval;
-               end if;
+               --  ORB.ORB_Lock is held.
 
-               Enter (ORB.ORB_Lock.all);
-               ORB.Polling := False;
                if Event_Happened then
                   Update (ORB.Idle_Tasks);
                end if;
+               Leave (ORB.ORB_Lock);
+
+               --  Waiting for an event to happend when in polling
+               --  situation: ORB.ORB_Lock is not held.
+
+               if not (Event_Happened or else Monitors'Length = 1) then
+                  delay Poll_Interval;
+               end if;
             end;
 
---  XXX remove.
---
---              declare
---                 Monitored_Set : constant Sock_Seqs.Element_Array
---                   := Sock_Seqs.To_Element_Array (ORB.ORB_Sockets);
---
---                 R_Set : Socket_Set_Type;
---                 W_Set : Socket_Set_Type;
---                 Status : Selector_Status;
---
---              begin
---                 ORB.Polling := True;
---                 Leave (ORB.ORB_Lock.all);
---
---                 for I in Monitored_Set'Range loop
---                    Set (R_Set, Monitored_Set (I).Socket);
---                    pragma Debug
---                      (O ("Monitoring socket"
---                          & Image (Monitored_Set (I).Socket)));
---                 end loop;
---                 Empty (W_Set);
---
---                 if ORB.Selector = null then
---                    ORB.Selector := new Selector_Type;
---                    pragma Assert (ORB.Selector /= null);
---                    Create_Selector (ORB.Selector.all);
---                 end if;
---
---                 pragma Debug (O ("Checking selector..."));
---                 Check_Selector
---                   (Selector     => ORB.Selector.all,
---                    R_Socket_Set => R_Set,
---                    W_Socket_Set => W_Set,
---                    Status       => Status);
---                 pragma Debug (O ("Selector returned status "
---                                  & Status'Img));
---
---                 Enter (ORB.ORB_Lock.all);
---                 ORB.Polling := False;
---
---                 for I in Monitored_Set'Range loop
---                    if Is_Set (R_Set, Monitored_Set (I).Socket) then
---                       Delete_Socket (ORB, Monitored_Set (I));
---                       pragma Debug
---                         (O ("Got event on socket"
---                             & Image (Monitored_Set (I).Socket)));
---                       declare
---                          J : constant Job_Access := new Socket_Ev_Job;
---                       begin
---                          Socket_Ev_Job (J.all).ORB := ORB_Access (ORB);
---                          Socket_Ev_Job (J.all).AS  := Monitored_Set (I);
---
---                          Queue_Job (ORB.Job_Queue, J);
---                       end;
---                    end if;
---                 end loop;
---                 Update (ORB.Idle_Tasks);
---                 --  Wake up any task that is waiting for something to do.
---                 Leave (ORB.ORB_Lock.all);
---              end;
          else
 
             --  This task is going idle.
@@ -415,13 +383,8 @@ package body Droopi.ORB is
       end;
 
       if ORB.Polling then
-         if ORB.Selector = null then
-            --  XXX Should really not happen!
-            pragma Debug (O ("Ooops! Null Selector (1)."));
-            null;
-         else
-            Abort_Check_Sources (ORB.Selector.all);
-         end if;
+         pragma Assert (ORB.Selector /= null);
+         Abort_Check_Sources (ORB.Selector.all);
       end if;
       Leave (ORB.ORB_Lock.all);
    end Insert_Source;
@@ -435,20 +398,9 @@ package body Droopi.ORB is
       Unregister_Source (AES);
 
       if ORB.Polling then
-         if ORB.Selector = null then
-            --  XXX Should really not happen!
-            pragma Debug (O ("Ooops! Null Selector (2)."));
-            null;
-         else
-            Abort_Check_Sources (ORB.Selector.all);
-         end if;
+         pragma Assert (ORB.Selector /= null);
+         Abort_Check_Sources (ORB.Selector.all);
       end if;
-      --  XXX Destroy AES.
-      --  XXX Destroy associated TE, associated TAP ?
-      --  The requirement to destroy all associated resources
-      --  would advocate the creation of a type "ORB Entity"
-      --  catpuring the association of a set of resources,
-      --  eg (AES + TAP) or (AES + TE).
       Leave (ORB.ORB_Lock.all);
    end Delete_Source;
 
