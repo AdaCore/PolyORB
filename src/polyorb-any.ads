@@ -30,13 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#22 $
+--  $Id: //droopi/main/src/polyorb-any.ads#23 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Locks;
-with PolyORB.Storage_Pools;
 with PolyORB.Types;
 
 package PolyORB.Any is
@@ -49,13 +48,10 @@ package PolyORB.Any is
 
    type Any is private;
    type Any_Ptr is access all Any;
-   for Any_Ptr'Storage_Pool use PolyORB.Storage_Pools.Debug_Pool;
    --  The end of this part is after the typecode part;
 
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access all Content'Class;
-   for Any_Content_Ptr'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
 
    function Duplicate
      (Object : access Content)

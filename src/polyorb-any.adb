@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#37 $
+--  $Id: //droopi/main/src/polyorb-any.adb#38 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2609,7 +2609,7 @@ package body PolyORB.Any is
          if Dest.The_Value.all /= null then
             Deallocate (Dest.The_Value.all);
             --  We can do a simple deallocate/replacement here
-            --  because The_Value.all.all is not alised (ie
+            --  because The_Value.all.all is not aliased (ie
             --  it is pointed to only by the Any_Content_Ptr
             --  The_Value.all).
          end if;
@@ -3150,6 +3150,9 @@ package body PolyORB.Any is
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
       Lock_W (Obj.Any_Lock);
+      if Obj.The_Value.all /= null then
+         Deallocate (Obj.The_Value.all);
+      end if;
       Obj.The_Value.all := The_Value;
       Unlock_W (Obj.Any_Lock);
    end Set_Value;
@@ -3231,7 +3234,7 @@ package body PolyORB.Any is
          end if;
          pragma Debug (O2 ("Dec_Usage: content released"));
          Deallocate_Any_Content_Ptr (Obj.The_Value);
-         pragma Debug (O2 ("Dec_Usage: content_Ptr released"));
+         pragma Debug (O2 ("Dec_Usage: content_ptr released"));
          Deallocate (Obj.Ref_Counter);
          pragma Debug (O2 ("Dec_Usage: counter deallocated"));
          Unlock_W (Obj.Any_Lock);
