@@ -40,6 +40,8 @@ package System.Garlic.Filters.Zip is
 
 private
 
+   pragma Linker_Options ("-lz");
+
    type Compress_Filter_Type is new Filter_Type with null record;
 
    type Compress_Filter_Params_Type is new Filter_Params_Type with null record;
