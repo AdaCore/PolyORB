@@ -310,9 +310,6 @@ We now give a more detailed description of these functional areas:
 
 \item[Binding]\mbox{}
 
-  %% XXX Warning: revoir la notion de surrogate vs. binding object
-  %%   il n'est pas certain du tout que la terminologie utilisée
-  %%   ici soit conforme à celle d'objectweb.
   \begin{description}
   \item[Definition]
   When a method is to be invoked on a remote object, a transport
@@ -619,7 +616,8 @@ Invoking this method involves the following steps:
   the reference and creates a connection to the object's ORB.
 
 \item[Binding] The object reference and transport connection
-  is implicitly associated with a client-side surrogate
+  is implicitly associated with a client-side \emph{bound surrogate}
+  (i.e. a surrogate which is part of a \emph{binding object})
   that will process requests by forwarding them to the actual
   remote object.
 
@@ -839,10 +837,17 @@ Cf. figure \ref{fig:func-binding}.}
 
 Étant donnée une référence désignant un objet distant, le service
 de liaison (\emph{binding}) a pour rôle de créer, sur un client, une structure qui
-représente l'objet désigné, et qui est capable de traiter des appels
-de méthode (en les transmettant à l'objet réel). Cette structure,
-appelée \emph{subrogé} de l'objet réel, encapsule l'association de
-la référence avec un point de terminaison du service de transport.
+représente l'objet désigné et le fait qu'une liaison avec lui a été établie
+(\emph{binding object}), et qui est capable de traiter des appels
+de méthode (en les transmettant à l'objet réel). Cette structure
+est un \emph{subrogé} de l'objet réel (car elle contient son identité, le
+moyen de le contacter, i.e. son adresse au sein d'un service de transport,
+et une information de typage permettant de savoir quelles méthodes sont supportées
+par l'objet). De plus, un subrogé qui est un \emph{binding object} contient
+la désignation d'un point de terminaison du service de transport et du protocole~:
+il s'agit d'un subrogé \emph{lié}. (Une référence d'objet contient les mêmes informations,
+mais ne contient pas d'association avec un point de terminaison de transport et
+un protocole. Elle constitue donc un subrogé \emph{non lié}).
 
 Le mécanisme d'établissement de cette association peut soit être implicite
 (comme c'est le cas notamment dans CORBA), lorsque l'établissement d'une
@@ -1366,7 +1371,7 @@ de mémoire~:
 Les appels de méthodes et leurs paramètres doivent être représentés
 par des objects que le middleware peut manipuler.
 
-\bein{description}
+\begin{description}
 \item[Droopi.Any] permet de manipuler toute donnée
   de l'utilisateur (argument d'un appel de méthode, valeur de
   retour ou exception) sous forme d'un type conteneur universel.
