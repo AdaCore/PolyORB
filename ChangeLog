@@ -1,3 +1,13 @@
+Tue Aug 12 13:07:16 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Added support for libtool. Removed detection of
+	  minimal recompilation capabilities in gnatmake since they are
+	  always present.
+
+	* ltconfig: Added libtool specific files.
+
+	* ltmain.sh: ditto.
+
 Thu May 29 18:09:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Set -O2 even when debugging, since it can detect

@@ -1,3 +1,22 @@
+Changes since GLADE 1.02
+========================
+
+New Functionnalities
+--------------------
+
+  * Shared libraries
+    If shared libraries are available on the target system, then a
+    shared version of GLADE library is built along with the static
+    version. The static version will be chosen if -static flag has
+    been given to GNATDIST.
+
+  * Task pools
+    Up to GLADE 1.01, a new task was created for each incoming
+    request. Now, tasks are reused and are pre-created using a
+    low-priority background allocator to allow requests to be served
+    sooner. The number of awaiting tasks is configurable through
+    GNATDIST configuration files on a per-partition basis or system-wide.
+
 Changes since GLADE 1.01
 ========================
 
