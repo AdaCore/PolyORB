@@ -285,7 +285,7 @@ package body Ada_Be.Idl2Ada.Stream is
             Add_With (CU, Ada_Full_Name (Forward (Node)));
             PL (CU, "  ("
                 & Ada_Full_Name (Forward (Node))
-                & "." & Repository_Id_Name (Node)
+                & "." & Repository_Id_Name (Forward (Node))
                 & "),");
             PL (CU, "New_Ref);");
             PL (CU, "return New_Ref;");
@@ -342,6 +342,8 @@ package body Ada_Be.Idl2Ada.Stream is
                declare
                   It : Node_Iterator;
                   Current : Node_Id;
+                  ValueType_Node : Node_Id;
+
                begin
                   Init (It, Contents (Node));
                   while not Is_End (It) loop
@@ -365,21 +367,19 @@ package body Ada_Be.Idl2Ada.Stream is
                                & ",");
                            PL (CU, "   CORBA.To_CORBA_String");
                            Put (CU, "     (");
+
                            if Kind (Value (State_Type (Current)))
                              = K_ValueType then
-                              Put (CU, Ada_Full_Name
-                                   (Value (State_Type (Current))));
+                              ValueType_Node := Value (State_Type (Current));
                            else
                               --  Forward valuetype
-                              Add_With (CU, Ada_Full_Name
-                                        (Forward
-                                         (Value
-                                          (State_Type
-                                           (Current)))));
-                              Put (CU, Ada_Full_Name
-                                   (Forward (Value (State_Type (Current)))));
+                              ValueType_Node :=
+                                Forward (Value (State_Type (Current)));
                            end if;
-                           PL (CU, "." & Repository_Id_Name (Current) & "),");
+                           Add_With_Entity (CU, ValueType_Node);
+                           PL (CU, Ada_Full_Name (ValueType_Node) &
+                               "." & Repository_Id_Name (ValueType_Node)
+                               & "),");
                            PL (CU, "   Already_Marshalled,");
                            PL (CU, "   Nesting_Depth + 1);");
 
@@ -477,6 +477,7 @@ package body Ada_Be.Idl2Ada.Stream is
                declare
                   It : Node_Iterator;
                   Current : Node_Id;
+                  ValueType_Node : Node_Id;
                begin
                   Init (It, Contents (Node));
                   while not Is_End (It) loop
@@ -498,21 +499,18 @@ package body Ada_Be.Idl2Ada.Stream is
                            PL (CU,
                                "   CORBA.To_CORBA_String");
                            Put (CU, "     (");
+
                            if Kind (Value (State_Type (Current)))
                              = K_ValueType then
-                              Put (CU, Ada_Full_Name
-                                   (Value (State_Type (Current))));
+                              ValueType_Node := Value (State_Type (Current));
                            else
-                              --  forward valuetype
-                              Add_With (CU,
-                                        Ada_Full_Name
-                                        (Forward
-                                         (Value (State_Type (Current)))));
-                              Put (CU, Ada_Full_Name
-                                   (Forward (Value (State_Type (Current)))));
+                              --  Forward valuetype
+                              ValueType_Node :=
+                                Forward (Value (State_Type (Current)));
                            end if;
-                           PL (CU,  "."
-                               & Repository_Id_Name (Current)
+                           Add_With_Entity (CU, ValueType_Node);
+                           PL (CU,  Ada_Full_Name (ValueType_Node) & "."
+                               & Repository_Id_Name (ValueType_Node)
                                & "),");
                            PL (CU,
                                "   Obj."
