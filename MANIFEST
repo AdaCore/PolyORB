@@ -2,6 +2,7 @@ COPYING
 Dist/Makefile.am
 Dist/Makefile.in
 Dist/config.sdefault
+Dist/b_xe_defs.adb
 Dist/xe.adb
 Dist/xe.ads
 Dist/xe_back.adb
