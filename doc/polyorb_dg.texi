@@ -30,14 +30,13 @@ Here shall lie the licence of this document
 @menu
 * About this guide::
 * Introduction::
-* Coding rules::
 * Main packages::
 * Application personalities::
 * Protocol layer::
 * Neutral layer::
 * Services::
+* Coding rules::
 * GNU Free Documentation License::
-* Index::
 @end menu
 
 @c -------------------------------------------------------------------
@@ -73,6 +72,7 @@ personalities provide, it is called ``neutral core''.
 What is very special in the PolyORB architecture, is that there can be
 multiple application and protocol personalities in the same configuration.
 Thus, PolyORB is said to have a ``schizophrenic architecture''.
+@cindex schizophrenic architecture
 
 The architecture of a PolyORB personalisation is made of three layers:
 @itemize @bullet
@@ -90,29 +90,18 @@ nearly a middleware implementation in itself. Above and below thei
 neutral inner core lie the mechanisms to operate with the
 personalities.
 
-@node Coding rules
-@chapter Coding rules
-
-You have to follow a few coding rules, in order to preserve harmony in
-the code.  Basically, you must follow the GNAT coding style, and a few
-others that are mentionned in a file named @code{CODING_GUIDELINES},
-located in the @code{doc/} subdirectory.
-
 @node Main packages
 @chapter Main packages
 
-As PolyORB is a rather big program, here is a short description of the
+As PolyORB is rather a big program, here is a short description of the
 main packages, in order to help you find what functionnality you
-search.  This description was taken from @code{src/ROADMAP}
+search. All these packages are located in @code{src/}.
 
-@section Support components used throughout PolyORRB
+@c -------------------
+@section Tool packages
 
-All these packages are located in @code{src/}
-
-@subsection @code{PolyORB}
-
-Empty package, provides a common namespace for generic ORB
-components.
+Those packages provide various tools and facilities, which can be used
+by all other PolyORB packages.
 
 @subsection @code{PolyORB.Calendar}
 
@@ -124,6 +113,46 @@ A calendar implementation that works with all tasking policies. See
 Logging facility. Provides a unified means for other units
 to output debugging, diagnostics and error messages.
 
+@subsection @code{PolyORB.Utils.Chained_Lists}
+
+Generic chain list facility with generic iterator.
+
+@subsection @code{PolyORB.Utils.Dynamic_Tables}, @code{PolyORB.Utils.Htables.*}
+
+Functions to handle arrays of variable size, and hash tables.
+
+@subsection @code{PolyORB.Utils.Simple_Flags}
+
+Utility functions to provide binary flag sets.
+
+@subsection @code{PolyORB.Utils.Strings.Lists}, @code{PolyORB.Utils.Strings}
+
+Handling of dynamic string allocation and chained lists of strings.
+
+@subsection @code{PolyORB.Sequences.*}
+
+@{Bounded,unbounded@} variable length arrays (cf. CORBA.Sequences.)
+Notionally based on Ada.Strings.Unbounded.
+
+@subsection @code{PolyORB.Dynamic_Dict}
+
+Efficient dictionnary of key-value pairs.
+
+@subsection @code{PolyORB.Utils.Random}
+
+A random number generator, which is meant to replace
+Ada.Numerics.Discrete_Random.
+
+@subsection @code{PolyORB.Fixed_Point}
+
+A package to represent fixed point numbers.
+
+@c --------------------------------
+@section Configuration packages
+
+Those packages support the main configuration functionalities of
+PolyORB.
+
 @subsection @code{PolyORB.Configuration}
 
 User control of various middleware aspects is implemented
@@ -134,9 +163,52 @@ containing application profiles. See 'polyorb.conf' for a detail
 of PolyORB generic configuration, 'moma/*.conf' for MOMA specific
 configuration files.
 
+@subsection @code{PolyORB.Initialization}
+
+Software modules manager for initialization of the middleware.  Each
+module is registered with this package, indicating its
+dependencies. Initialization is performed as a topological sort of the
+dependency lattice. A check is performed to control consistency of the
+tree.
+
+@subsection @code{PolyORB.Tasking.*}
+
+Tasking runtime, support full tasking, ravenscar tasking subset and no
+tasking modes. Provides advanced mutexes, mutexes, watchers, r/w locks
+abstractions.
+
+@subsection @code{PolyORB.Setup.*}
+
+Handle the initialization of a PolyORB node.
+
+@subsection @code{PolyORB.Parameters.*}
+
+Facilities to read and handle configuration parameters. Among other
+things, those packages are used to manage the configuration file
+@code{polyorb.conf}.
+
+@c ------------------------
+@section Data manipulation packages
+
+Those package gather all functions and definition concerning the data
+handled within the neutral layer.
+
 @subsection @code{PolyORB.Types}
 
 Base data types used throughout PolyORB.
+
+@subsection @code{PolyORB.Any.*}
+
+Neutral, self-descriptive data representation. See @ref{any types} for
+details.
+
+
+
+@c -------------------------
+@section Architectural packages
+
+Those packages do not correspond to functional parts of PolyORB: they
+provide architectural components.
 
 @subsection @code{PolyORB.Annotations}
 
@@ -150,66 +222,42 @@ The Component pattern, which allows objects to exchange
 synchronous messages through connections, thus decoupling
 behaviour profiles from Ada typing.
 
-@subsection @code{PolyORB.Dynamic_Dict}
+@subsection @code{PolyORB.Smart_Pointers}
 
-Efficient dictionnary of key-value pairs.
+The smart pointers are used to reproduce a garbage collecting process.
 
-@subsection @code{PolyORB.Initialization}
+@c -----------
+@section Application layer framework and support functionalities
 
-Software modules manager for initialization of the middleware.  Each
-module is registered with this package, indicating its
-dependencies. Initialization is performed as a topological sort of the
-dependency lattice. A check is performed to control consistency of the
-tree.
+@subsection @code{PolyORB.Call_Back}
 
-@subsection @code{PolyORB.Utils.Chained_Lists}
+Interceptor for request processing completion signalling.
 
-Generic chain list facility with generic iterator
+@subsection @code{PolyORB.Obj_Adapters}
 
-@subsection @code{PolyORB.Utils.Dynamic_Tables}, @code{PolyORB.Utils.Htables.Perfect}, @code{PolyORB.Utils.Htables}, @code{PolyORB.Utils.Semaphores}
+The abstract interface of object adapters in PolyORB.
 
-@subsection @code{PolyORB.Utils.Simple_Flags}
+@subsection @code{PolyORB.Poa}
 
-Utility functions to provide binary flag sets.
+The base class for all Portable Object Adapter implementations (generic
+hierarchical object adapters modeled after the CORBA POA.)
 
-@subsection @code{PolyORB.Utils.Strings.Lists}, @code{PolyORB.Utils.Strings}
+@subsection @code{PolyORB.Poa_Types}
 
-Handling of dynamic string allocation and chained lists of strings.
+Base data structures handled by PolyORB.POA.
 
-@subsection @code{PolyORB.Sequences}, @code{PolyORB.Sequences.Bounded}, @code{PolyORB.Sequences.Unbounded}
+@subsection @code{PolyORB.Poa_Policies}
 
-@{Bounded,unbounded@} variable length arrays (cf. CORBA.Sequences.)
-Notionally based on Ada.Strings.Unbounded.
+Children of this unit define various policy objects that can be used
+to customise the behaviour of portable object adapters.
 
-@subsection @code{PolyORB.Tasking.*}
+@subsection @code{PolyORB.Servants}, @code{PolyORB.Minimal_Servants}
 
-Tasking runtime, support full tasking, ravenscar tasking subset and no
-tasking modes. Provides advanced mutexes, mutexes, watchers, r/w locks
-abstractions.
+Base class for all application objects.
 
-@section Neutral Layer
 
-@subsection @code{PolyORB.Any.*}
-
-Neutral, self-descriptive data representation. See @ref{any types} for
-details.
-
-@subsection @code{PolyORB.Requests}
-
-The central data structure in PolyORB: an object representing a method
-invocation request to be executed by an object in a way that is independant
-of the application and protocol personalities.
-
-@subsection @code{PolyORB.Jobs}
-
-A Job is anything that can keep a task busy (like a Runnable
-in Java). This unit declares an abstract Job type, and a means
-to maintain job queues.
-
-@subsection @code{PolyORB.Asynch_Ev}
-
-Asynchronous event sources objects, which can trigger asynchronous
-ORB activities to react to external stimuli.
+@c -----------------------------
+@section Neutral Core
 
 @subsection @code{PolyORB.Orb}
 
@@ -217,19 +265,34 @@ The core component: provides the global ORB activites scheduler,
 as well as registries for personality components (binding object
 factories, transport access points, object adapters).
 
-@subsection @code{PolyORB.Binding_Data}
+@subsection @code{PolyORB.Requests}
 
-Client-side remote binding object factories.
+The central data structure in PolyORB: an object representing a method
+invocation request to be executed by an object in a way that is independant
+of the application and protocol personalities.
 
 @subsection @code{PolyORB.References}
 
-Object reference management
+Object reference management.
 
 @subsection @code{PolyORB.References.Binding}
 
 Client-side binding factory. Either binds directly
 or creates a binding to a remote object.
 
+@subsection @code{PolyORB.Scheduler}
+
+Coordinates the shceduling policies for the tasks that have been
+created by the ORB.
+
+@subsection @code{PolyORB.Jobs}
+
+A Job is anything that can keep a task busy (like a Runnable
+in Java). This unit declares an abstract Job type, and a means
+to maintain job queues.
+
+
+@c -------------
 @section Protocol layer framework and support functionalities
 
 @subsection @code{PolyORB.Opaque.Chunk_Pools}, @code{PolyORB.Opaque}, @code{PolyORB.Buffers}
@@ -282,33 +345,26 @@ is the actual object that implements one particular
 protocols. Protocols are factories of Sessions, and are used as parts
 of binding object factories.
 
-@section Application layer framework and support functionalities
+@subsection @code{PolyORB.Binding_Data}
 
-@subsection @code{PolyORB.Call_Back}
+Client-side remote binding object factories.
 
-Interceptor for request processing completion signalling.
 
-@subsection @code{PolyORB.Obj_Adapters}
+@c ---------
+@section Socket manipulation
 
-The abstract interface of object adapters in PolyORB.
+Those package handle low-level operations.
 
-@subsection @code{PolyORB.Poa}
+@subsection @code{PolyORB.Sockets.*}
 
-The base class for all Portable Object Adapter implementations (generic
-hierarchical object adapters modeled after the CORBA POA.)
+Socket management. Protocol personalities are placed between those
+packages and the lower part of the neutral layer.
 
-@subsection @code{PolyORB.Poa_Types}
+@subsection @code{PolyORB.Asynch_Ev.*}
 
-Base data structures handled by PolyORB.POA.
+Asynchronous event sources objects, which can trigger asynchronous
+ORB activities to react to external stimuli.
 
-@subsection @code{PolyORB.Poa_Policies}
-
-Children of this unit define various policy objects that can be used
-to customise the behaviour of portable object adapters.
-
-@subsection @code{PolyORB.Servants}, @code{PolyORB.Minimal_Servants}
-
-Base class for all application objects.
 
 @node Application personalities
 @chapter Application personalities
@@ -905,12 +961,15 @@ the time may uselessly use the memory. You should use the package
 @code{Ada.Calendar}, and the implementation of which depends on the
 tasking policy.
 
+@node Coding rules
+@chapter Coding rules
+
+You should follow a few coding rules, in order to preserve harmony in
+the code.  Basically, you must follow the GNAT coding style, and a few
+others that are mentionned in a file named @code{CODING_GUIDELINES},
+located in the @code{doc/} subdirectory.
+
 @include gfdl.texi
-
-@node Index
-@unnumbered Index
-
-@printindex cp
 
 
 @bye
