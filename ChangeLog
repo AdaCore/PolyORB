@@ -1,3 +1,9 @@
+2004-02-14  Pascal Obry  <obry@gnat.com>
+
+	* aclocal.m4, configure:
+	Fix sed rule on Windows.
+	Part of work for D211-003.
+
 2004-01-08  Samuel Tardieu  <sam@rfc1149.net>
 
 	* NEWS: Fix typo.
