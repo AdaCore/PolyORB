@@ -16,6 +16,7 @@ module Frontend::Nodes {
 
   interface Node_Id {
     Node_Id    Next_Node;
+    Node_Id    BE_Node;
     // Link nodes together
   };
 
@@ -80,7 +81,6 @@ module Frontend::Nodes {
   interface Array_Size_List : List_Id {};
   interface Simple_Declarator : Definition {
     Node_Id    Declaration;
-    Node_Id    Ada_Node; 
   };
 
   /* 
@@ -134,7 +134,6 @@ module Frontend::Nodes {
   interface Definition_List : List_Id {};
   interface _Module : Scope_Definition {
     List_Id     Definitions;
-    Node_Id     Ada_Node;  
   }; 
 
   interface Specification : Definition {
@@ -460,7 +459,6 @@ module Frontend::Nodes {
   interface Enumerator_List : List_Id {};
   interface Enumeration_Type : Definition {
     List_Id     Enumerators;
-    Node_Id     Ada_Node; 
   };
 
 

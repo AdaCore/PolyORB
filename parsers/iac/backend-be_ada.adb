@@ -20,7 +20,7 @@ package body Backend.BE_Ada is
    Ada_Packages : List_Id;
    D_Tree       : Boolean := False;
 
-   package BE renames Backend.BE_Ada.Nodes;
+   package BEN renames Backend.BE_Ada.Nodes;
 
    function All_Interfaces_Abstract (L : List_Id) return Boolean;
    --  Return False when L is empty or when one interface is concrete
@@ -31,16 +31,13 @@ package body Backend.BE_Ada is
    procedure Attribute_Setter_Procedure_Spec (N : Node_Id; L : in out List_Id);
    --  XXX comments
 
-   procedure Declare_Base_Type (Type_Str : String; K : BE.Node_Kind);
-   --  XXX comments
+   procedure Declare_CORBA_Type (K : BEN.Node_Kind; S : String := "");
+   --  Declare CORBA type as predefined Ada type.
 
    function Generate_Package (E : Node_Id) return Node_Id;
    --  XXX comments
 
    function Get_Mapped_Type (E : Node_Id) return Node_Id;
-   --  XXX comments
-
-   procedure Insert_Base_Type;
    --  XXX comments
 
    procedure Insert_Type_Ref (L : in out List_Id; Inheritance_List : List_Id;
@@ -79,9 +76,7 @@ package body Backend.BE_Ada is
    -- All_Interfaces_Abstract --
    -----------------------------
 
-   function All_Interfaces_Abstract
-     (L : List_Id)
-      return Boolean
+   function All_Interfaces_Abstract (L : List_Id) return Boolean
    is
       N : Node_Id;
    begin
@@ -193,11 +188,11 @@ package body Backend.BE_Ada is
       end loop;
    end Attribute_Setter_Procedure_Spec;
 
-   -----------------------
-   -- Declare_Base_Type --
-   -----------------------
+   ------------------------
+   -- Declare_CORBA_Type --
+   ------------------------
 
-   procedure Declare_Base_Type (Type_Str : String; K : BE.Node_Kind) is
+   procedure Declare_CORBA_Type (K : BEN.Node_Kind; S : String := "") is
       E : Node_Id;
       N : Name_Id;
    begin
@@ -209,11 +204,17 @@ package body Backend.BE_Ada is
 
       --  Accumulate token names and store node id as table info
 
-      Set_Str_To_Name_Buffer (Type_Str);
+      if S'Length = 0 then
+         Name_Len := 4;
+         Add_Str_To_Name_Buffer (BEN.Node_Kind'Image (K));
+         Name_Buffer (1 .. 6) := "CORBA.";
+      else
+         Set_Str_To_Name_Buffer (S);
+      end if;
       N := Name_Find;
       Set_Name_Table_Info (N, Int (E));
-      BE.Set_Image (Base_Type (E), N);
-   end Declare_Base_Type;
+      BEN.Set_Image (Base_Type (E), N);
+   end Declare_CORBA_Type;
 
    ---------------
    -- Configure --
@@ -247,17 +248,17 @@ package body Backend.BE_Ada is
       Parent_Node : Node_Id;
 
    begin
-      Node := New_Node (BE.K_Ada_Packages, No_Location);
+      Node := New_Node (BEN.K_Ada_Packages, No_Location);
       Id := Make_Ada_Identifier (IDL_Name (Identifier (E)));
-      BE.Set_Identifier (Node, Id);
+      BEN.Set_Identifier (Node, Id);
       Parent_Node := Current_Package;
-      BE.Set_Parent (Node, Parent_Node);
+      BEN.Set_Parent (Node, Parent_Node);
       case Kind (E) is
          when K_Module =>
             Pkg_Spec := No_Node;
-            BE.Set_Package_Spec (Node, Pkg_Spec);
+            BEN.Set_Package_Spec (Node, Pkg_Spec);
             Pkg_Body := No_Node;
-            BE.Set_Package_Body (Node, Pkg_Body);
+            BEN.Set_Package_Body (Node, Pkg_Body);
          when K_Interface_Declaration =>
             null;
          when others =>
@@ -272,12 +273,6 @@ package body Backend.BE_Ada is
 
    procedure Generate (E : Node_Id) is
    begin
-      Space_Increment := 3;
-      N_Space := 0;
-
-      Insert_Base_Type;
-      Set_Standard_Output;
-      Ada_Packages := New_List (BE.K_Ada_Package_List, No_Location);
       case Kind (E) is
          when K_Specification =>
             Visit_Specification (E);
@@ -305,7 +300,7 @@ package body Backend.BE_Ada is
             Node := Node_Id (Get_Name_Table_Info (Name_Find));
 
          when K_Scoped_Name =>
-            Node := Ada_Node (Reference (E));
+            Node := BE_Node (Reference (E));
          when K_Enumeration_Type =>
             Node := No_Node;
          when others =>
@@ -332,29 +327,6 @@ package body Backend.BE_Ada is
       return S (3 .. S'Last);
    end Image;
 
-   ----------------------
-   -- Insert_Base_Type --
-   ----------------------
-
-   procedure Insert_Base_Type is
-   begin
-      Declare_Base_Type ("CORBA.Float", BE.K_Float);
-      Declare_Base_Type ("CORBA.Double", BE.K_Double);
-      Declare_Base_Type ("CORBA.Long_Double", BE.K_Long_Double);
-      Declare_Base_Type ("CORBA.Short", BE.K_Short);
-      Declare_Base_Type ("CORBA.Long", BE.K_Long);
-      Declare_Base_Type ("CORBA.Long_Long", BE.K_Long_Long);
-      Declare_Base_Type ("CORBA.Unsigned_Short", BE.K_Unsigned_Short);
-      Declare_Base_Type ("CORBA.Unsigned_Long", BE.K_Unsigned_Long);
-      Declare_Base_Type ("CORBA.Unsigned_Long_Long", BE.K_Unsigned_Long_Long);
-      Declare_Base_Type ("CORBA.Char", BE.K_Char);
-      Declare_Base_Type ("CORBA.WChar", BE.K_Wide_Char);
-      Declare_Base_Type ("CORBA.String", BE.K_String);
-      Declare_Base_Type ("CORBA.Wide_String", BE.K_Wide_String);
-      Declare_Base_Type ("CORBA.Boolean", BE.K_Boolean);
-      Declare_Base_Type ("CORBA.Octet", BE.K_Octet);
-   end Insert_Base_Type;
-
    ---------------------
    -- Insert_Type_Ref --
    ---------------------
@@ -375,13 +347,13 @@ package body Backend.BE_Ada is
       Type_Spec_Node : Node_Id;
       pragma Unreferenced (Local_Ref_Str, Type_Ref_Name);
    begin
-      Type_Spec_Node := New_Node (BE.K_Derived_Type_Definition, No_Location);
-      BE.Set_Identifier (Type_Spec_Node,
-                         New_Node (BE.K_Ada_Identifier, No_Location));
-      BE.Set_Record_Extention_Part
-        (Type_Spec_Node, New_Node (BE.K_Record_Type_Spec, No_Location));
-      BE.Set_Is_Null_Record
-        (BE.Record_Extention_Part (Type_Spec_Node), True);
+      Type_Spec_Node := New_Node (BEN.K_Derived_Type_Definition, No_Location);
+      BEN.Set_Identifier (Type_Spec_Node,
+                          New_Node (BEN.K_Ada_Identifier, No_Location));
+      BEN.Set_Record_Extention_Part
+        (Type_Spec_Node, New_Node (BEN.K_Record_Type_Spec, No_Location));
+      BEN.Set_Is_Null_Record
+        (BEN.Record_Extention_Part (Type_Spec_Node), True);
 
       if (Inheritance_List = No_List)
         or
@@ -389,12 +361,12 @@ package body Backend.BE_Ada is
       then
          if Interface_Is_Abstract then
             Set_Str_To_Name_Buffer (Ancestor_Type_Abstract);
-            BE.Set_Name (BE.Identifier (Type_Spec_Node), Name_Find);
+            BEN.Set_Name (BEN.Identifier (Type_Spec_Node), Name_Find);
             Type_Ref_Node :=
               Make_Ada_Typedef_Node (Abstract_Ref_Str, Type_Spec_Node);
          else
             Set_Str_To_Name_Buffer (Ancestor_Type);
-            BE.Set_Name (BE.Identifier (Type_Spec_Node), Name_Find);
+            BEN.Set_Name (BEN.Identifier (Type_Spec_Node), Name_Find);
             Type_Ref_Node := Make_Ada_Typedef_Node (Ref_Str, Type_Spec_Node);
             Append_Node_To_List (Type_Ref_Node, L);
          end if;
@@ -414,12 +386,12 @@ package body Backend.BE_Ada is
       Id_Node : Node_Id;
       Type_Def : Node_Id;
    begin
-      Id_Node := New_Node (BE.K_Ada_Identifier, No_Location);
+      Id_Node := New_Node (BEN.K_Ada_Identifier, No_Location);
       Set_Str_To_Name_Buffer (Identifier_Name);
-      BE.Set_Name (Id_Node, Name_Find);
-      Type_Def := New_Node (BE.K_Type_Declaration, No_Location);
-      BE.Set_Identifier (Type_Def, Id_Node);
-      BE.Set_Type_Spec (Type_Def, Type_Spec);
+      BEN.Set_Name (Id_Node, Name_Find);
+      Type_Def := New_Node (BEN.K_Type_Declaration, No_Location);
+      BEN.Set_Identifier (Type_Def, Id_Node);
+      BEN.Set_Type_Spec (Type_Def, Type_Spec);
 
       return Type_Def;
    end Make_Ada_Typedef_Node;
@@ -474,7 +446,7 @@ package body Backend.BE_Ada is
         (To_Ada_Name (IDL_Name (Identifier (E))));
       Type_Declaration :=
         Make_Type_Declaration (Type_Identifier, Type_Spec_Node);
-      Set_Ada_Node (E, Type_Declaration);
+      Set_BE_Node (E, Type_Declaration);
       return Type_Declaration;
    end Visit_Enumeration_Type;
 
@@ -497,14 +469,14 @@ package body Backend.BE_Ada is
    begin
       Pkg := Generate_Package (E);
       --   Package creation
-      Pkg_Spec := New_Node (BE.K_Ada_Package_Spec, No_Location);
+      Pkg_Spec := New_Node (BEN.K_Ada_Package_Spec, No_Location);
       I_Spec := Interface_Spec (E);
-      Public_Decl := New_List (BE.K_List_Id, No_Location);
-      BE.Set_Public_Part (Pkg_Spec, Public_Decl);
-      --   Package_With_Node := New_List (BE.K_Ada_With_List, No_Location);
-      --   BE.Set_Package_With (Pkg_Spec, Package_With_Node);
+      Public_Decl := New_List (BEN.K_List_Id, No_Location);
+      BEN.Set_Public_Part (Pkg_Spec, Public_Decl);
+      --   Package_With_Node := New_List (BEN.K_Ada_With_List, No_Location);
+      --   BEN.Set_Package_With (Pkg_Spec, Package_With_Node);
       Set_Str_To_Name_Buffer ("--   None ");
-      BE.Set_Prologue (Pkg_Spec, Name_Find);
+      BEN.Set_Prologue (Pkg_Spec, Name_Find);
       I_Body := Interface_Body (E);
       Insert_Type_Ref (Public_Decl, I_Spec, False);
       if I_Body /= No_List then
@@ -522,7 +494,7 @@ package body Backend.BE_Ada is
                when K_Type_Declaration =>
                   Ada_Public_List := Visit_Type_Declaration (N);
                   Append_Node_To_List
-                    (BE.First_Node (Ada_Public_List), Public_Decl);
+                    (BEN.First_Node (Ada_Public_List), Public_Decl);
                when K_Enumeration_Type =>
                   Ada_Public_Node := Visit_Enumeration_Type (N);
                   Append_Node_To_List (Ada_Public_Node, Public_Decl);
@@ -537,7 +509,7 @@ package body Backend.BE_Ada is
             N := Next_Node (N);
          end loop;
       end if;
-      BE.Set_Package_Spec (Pkg, Pkg_Spec);
+      BEN.Set_Package_Spec (Pkg, Pkg_Spec);
       return Pkg;
    end Visit_Interface;
 
@@ -620,20 +592,36 @@ package body Backend.BE_Ada is
 
    procedure Visit_Specification (E : Node_Id) is
       List_Def : List_Id;
-      D      : Node_Id;
-      Ada_Node : Node_Id;
-      Ada_List : List_Id;
-      pragma Unreferenced (Ada_List);
+      D        : Node_Id;
+      BE_Node : Node_Id;
    begin
+      Declare_CORBA_Type (BEN.K_Float);
+      Declare_CORBA_Type (BEN.K_Double);
+      Declare_CORBA_Type (BEN.K_Long_Double);
+      Declare_CORBA_Type (BEN.K_Short);
+      Declare_CORBA_Type (BEN.K_Long);
+      Declare_CORBA_Type (BEN.K_Long_Long);
+      Declare_CORBA_Type (BEN.K_Unsigned_Short);
+      Declare_CORBA_Type (BEN.K_Unsigned_Long);
+      Declare_CORBA_Type (BEN.K_Unsigned_Long_Long);
+      Declare_CORBA_Type (BEN.K_Char);
+      Declare_CORBA_Type (BEN.K_Wide_Char, "CORBA.WChar");
+      Declare_CORBA_Type (BEN.K_String);
+      Declare_CORBA_Type (BEN.K_Wide_String);
+      Declare_CORBA_Type (BEN.K_Boolean);
+      Declare_CORBA_Type (BEN.K_Octet);
+
+      Ada_Packages := New_List (BEN.K_Ada_Package_List, No_Location);
+
       List_Def := Definitions (E);
       D := First_Node (List_Def);
       while Present (D) loop
          case Kind (D) is
 
             when K_Module =>
-               Ada_Node := Visit_Module (D);
-               Append_Node_To_List (Ada_Node, Ada_Packages);
-               Push_Package (Ada_Node);
+               BE_Node := Visit_Module (D);
+               Append_Node_To_List (BE_Node, Ada_Packages);
+               Push_Package (BE_Node);
                Visit_Specification (D); -- Visit  definitions of the module
                Pop_Package;
 
@@ -641,8 +629,8 @@ package body Backend.BE_Ada is
                --    Ada_List := Visit_Type_Declaration (D);
                null;
             when K_Interface_Declaration =>
-               Ada_Node := Visit_Interface (D);
-               Append_Node_To_List (Ada_Node, Ada_Packages);
+               BE_Node := Visit_Interface (D);
+               Append_Node_To_List (BE_Node, Ada_Packages);
             when others =>
                Display_Error ("Definition not recongnized");
 
@@ -671,7 +659,7 @@ package body Backend.BE_Ada is
            Make_Derived_Type_Declaration
            (Make_Ada_Identifier
             (IDL_Name (Identifier (D))), Type_Spec_Node);
-         Set_Ada_Node (D, Ada_Type_Declaration);
+         Set_BE_Node (D, Ada_Type_Declaration);
          --   Link Idl node  with Ada node.
          Append_Node_To_List
            (Ada_Type_Declaration, Result_List);

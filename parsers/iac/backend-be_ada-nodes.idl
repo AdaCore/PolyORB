@@ -13,6 +13,7 @@ module Backend::BE_Ada::Nodes {
 
   interface Node_Id {
     Node_Id    Next_Node;
+    Node_Id    FE_Node;
   };
 
   interface Definition : Node_Id {

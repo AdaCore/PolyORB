@@ -140,7 +140,9 @@ package body Backend.BE_Ada.Debug is
    is
       C : Node_Id;
    begin
-      if A = "Next_Node" then
+      if A = "Next_Node"
+        or else A = "FE_Node"
+      then
          return;
       end if;
       N_Indents := N_Indents + 1;

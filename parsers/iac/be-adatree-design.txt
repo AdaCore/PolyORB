@@ -1,109 +1,131 @@
-Building the Ada tree : 
+Building the Ada tree
+---------------------
+
+The Ada tree is built by applying the Ada mapping, which maps
+completely any legal set of definitions in the IDL language to
+equivalent Ada definitions.
 
 
-The Ada tree is built by applying the Ada mapping, which map
-completely and correctly any legal set of definitions in the IDL
-language to equivalent Ada definitions. 
+1 - Root Node
+-------------
 
-
-
-
-1- Root node : 
-
-The root node of the ada tree is an Ada_Package_List. Which contain
+The root node of the Ada tree is an Ada_Package_List. Which contains
 the list of all generated packages.
 
 
-2- Packages Generation : 
+2 - Package Generation
+----------------------
 
-    - In the first stage, client stub packages are generated (See the
-      section 3). Then for each  client stub package, a helper
-      package, a skeleton package and an implementation package are
-      generated. 
+  - In the first stage, stub packages are generated (See section
+  3). Then for each client stub package, a helper package, a skeleton
+  package and an implementation package are generated.
+
+LP: ce n'est pas pour chaque stub qu'il y a un helper etc ... Il
+semble un peu bizarre de tout faire partir des stubs. Par ailleurs, il
+faut connecter l'arbre IDL et l'arbre Ada. ie etre capable de
+retrouver le noeud IDL correspondant a un noeud Ada et vice versa.
 
 
+3 - Stub Generation
+-------------------
 
-3- Client Stub Generation : 
+  - In this stage, stub packages are generated, following the Ada
+  Language Mapping Specification. For each IDL definition an Ada
+  package or an Ada structure are generated and attached to the tree.
 
-    - In this phase, client stub packages are generated, following the
-      Ada Language Mapping Specification. For each Idl definition an
-      Ada package or an Ada structure are generated and linked to the
-      Ada tree. 
-    - Here are the rules of the tree translation:         
+LP: les stubs ne sont generes que pour les interfaces.
+
+  - Here are the rules of the tree translation:
+
  
-3.1- IDL Identifier : 
+3.1 - IDL Identifier
+--------------------
 
-    - The IDL Identifier will be mapped to an Ada_Identifier node,
-      with the following restrictions regarding to underscore use: 
-        *  Remove any leading underscore.
-        *  Where  '_'  is followed by another underscore, replace the
-	second underscore with  the character  'U'.
-        *  Where  '_'  is at the end of an identifier, add the character  'U'
-        after the underscore.  
-	*  When an IDL identifier clashes with an Ada reserved word,
-	insert the string "IDL_"  before the identifier.
+  - The IDL Identifier will be mapped to an Ada_Identifier node, with
+  the following restrictions regarding to underscore use:
+
+    * Remove any leading underscore.
+
+    *  When there are two consecutive '_', replace the second
+       underscore with the character 'U'.
+
+    *  Where '_' is at the end of an identifier, add the character 'U'
+       after the underscore.
+    
+    *  When an IDL identifier clashes with an Ada reserved word,
+       insert the string "IDL_" before the identifier.
 
 
-3.2- Module : 
+3.2 - Module
+------------
 
-   - Create an Ada_Packages node. Map its Identifier to the Module Identifier
-     node. Add it to the Ada_Package_List. Set the
-     Ada_Node attribute of the module node of the IDL tree to the
-     defined Ada_Packages. Set the IDL_Node attribute of the
-     Ada_Packages node, to the processed Module node.  
-   - If the module is nested within another module, set its Parent to
-     the Packages node corresponding to this module by using the
-     Ada_Node attribute information of the parent Module node. 
-   - Process the definitions      
+  - Create an Ada_Packages node. Map its Identifier to the Module
+  Identifier node. Add it to the Ada_Package_List. Set the BE_Node
+  attribute of the module node of the IDL tree to the defined
+  Ada_Packages. Set the FE_Node attribute of the Ada_Packages node,
+  to the processed Module node.
 
-3.3- Interface:  
-   - Create an Ada_Packages node. Map its identifier to the Interface
-   Identifier node. Add the generated package to the
-   Ada_Package_List. 
-   - If the interface is nested in an other interface or module, set
-   its Parent node to the enclosing package by using the Ada_Node of the
-   enclosing Name Scope node.
+LP: Ce ne sera pas BE_Node mais BE_Node car on pourrait avoir un BE
+autre que Ada. Par analogie, pas FE_Node mais FE_Node.
 
-   - Set The IDL_Node attribute to the processed interface node. 
+  - If the module is nested within another module, set its Parent to
+  the Packages node corresponding to this module by using the BE_Node
+  attribute information of the parent Module node.
+
+  - Process the definitions
+
+
+3.3 - Interface
+---------------
+
+  - Create an Ada_Packages node. Map its identifier to the Interface
+  Identifier node. Add the generated package to the Ada_Package_List.
+
+  - If the interface is nested in an other interface or module, set
+  its Parent node to the enclosing package by using the BE_Node of
+  the enclosing Name Scope node.
+
+  - Set The FE_Node attribute to the processed interface node.
    
-   - Create Package_Spec node. Add to the Public_List node the Reference
-     Type Definition, following this rules: 
+  - Create Package_Spec node. Add to the Public_List node the
+  Reference Type Definition, following this rules:
  
-     * Create a Type_Declaration node. Set its identifier name to
-     "Ref" if the processed interface is unconstrained, to
-     "Abstract_Ref" if the interface is Abstract, or to "Local_Ref" if
-     the interface is Local. 
+    * Create a Type_Declaration node. Set its identifier name to "Ref"
+      if the corresponding interface is unconstrained (???), to
+      "Abstract_Ref" if the interface is Abstract, or to "Local_Ref"
+      if the interface is Local.
+
      * Create a Derived_Type. Set its Identifier Name to
      "CORBA.AbstractBase.Ref" if the interface is abstract or to
      "CORBA.Object.Ref" if the interface is unconstrained or
      local. Set Is_Record_Null node of the Record_Extension_Part node
      to true. 
+
      * Finally, set the Type_Spec of Type_Declaration to the
      Derived_Type. 
 
-   - Add to the Public_List node the accessors functions specification of 
-     attributes nodes. 
-   - Add to the Public_List node the procedures spec and functions
-     spec corresponding to the Operation_Spec Nodes.      
+  - Add to the Public_List node the accessors functions specification
+  of attributes nodes.
+
+  - Add to the Public_List node the procedures spec and functions spec
+  corresponding to the Operation_Spec Nodes.
      
    	  
-3.4- Base Type Mapping : 
+3.4 - Base Type Mapping
+-----------------------
 
-   - If the Type_Spec is an IDL Base_Type (Node_Kind in {K_Float
-     .. F_Octet}). We add to the image of the Type, "CORBA." as a
-     prefix, and replace all spaces by underscores.
+  - If the Type_Spec is an IDL Base_Type (Node_Kind in {K_Float
+  .. F_Octet}). We add to the image of the Type, "CORBA." as a prefix,
+  and replace all spaces by underscores.
           
   
-3.5- Type Declaration : 
+3.5 - Type Declaration
+----------------------
 
-   - Create a Type_Declaration Node. Set its Identifier to the mapped
-     Type_Declaration Identifier. Create Type_Spec node. Set the
-     Type_Spec Field of Type_Declaration to the created Type_Spec.    
-   - For Each declarator Update the Ada_Node which is used to link between the
-     Ada_Type_Declaration and the Idl Type_Declaration, and so manage
-     the Reference of the Scoped_Name.     
+  - Create a Type_Declaration Node. Set its Identifier to the mapped
+  Type_Declaration Identifier. Create Type_Spec node. Set the
+  Type_Spec Field of Type_Declaration to the created Type_Spec.
 
-
--- Not Completed yet. 
-
-  
+  - For each declarator Update the BE_Node which is used to link
+  between the Ada_Type_Declaration and the Idl Type_Declaration, and
+  so manage the Reference of the Scoped_Name.
