@@ -94,23 +94,23 @@ package body PortableInterceptor.ServerRequestInfo is
 --           (Entity_Of (Self)));
 --   end Get_Adapter_Id;
 
---   -------------------
---   -- Get_Object_Id --
---   -------------------
---
---   function Get_Object_Id (Self : in Local_Ref) return ObjectId is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return
---        PortableInterceptor.ServerRequestInfo.Impl.Get_Object_Id
---         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
---           (Entity_Of (Self)));
---   end Get_Object_Id;
+   -------------------
+   -- Get_Object_Id --
+   -------------------
+
+   function Get_Object_Id (Self : in Local_Ref) return ObjectId is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return
+        PortableInterceptor.ServerRequestInfo.Impl.Get_Object_Id
+         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
+           (Entity_Of (Self)));
+   end Get_Object_Id;
 
    ----------------
    -- Get_ORB_Id --

@@ -31,12 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+with Ada.Unchecked_Conversion;
+
 with CORBA;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
+with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
+with PolyORB.Objects;
+with PolyORB.References;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
 
@@ -163,11 +169,60 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Forward_Reference;
 
---   -------------------
---   -- Get_Object_Id --
---   -------------------
---
---   function Get_Object_Id (Self : access Object) return ObjectId;
+   -------------------
+   -- Get_Object_Id --
+   -------------------
+
+   function Get_Object_Id
+     (Self : access Object)
+      return ObjectId
+   is
+      use Ada.Streams;
+      use PolyORB.Binding_Data;
+      use PolyORB.Objects;
+      use PolyORB.References;
+
+   begin
+      if Self.Point = Receive_Request_Service_Contexts then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      --  In Send_Exception and Send_Other interception points if servant
+      --  locator caused a location forward, or raised an exception, this
+      --  operation may not be available. NO_RESOURCES with a standard minor
+      --  code of 1 will be raised if it is not available.
+
+      --  CORBA3 can't describe the value returned by this operation if
+      --  servant locator or portable interceptor caused location forward,
+      --  so NO_RESOURCES exception is always raised in Send_Exception and
+      --  Send_Other interception points.
+
+      if Self.Point = Send_Exception or else Self.Point = Send_Other then
+         CORBA.Raise_No_Resources
+          (CORBA.No_Resources_Members'(Minor     => 1,
+                                       Completed => CORBA.Completed_No));
+      end if;
+
+      declare
+         Profiles : constant Profile_Array
+           := Profiles_Of (Self.Request.Target);
+         Key      : constant Object_Id_Access
+           := Get_Object_Key (Profiles (Profiles'First).all);
+         Id       : IDL_Sequence_Octet.Element_Array (1 .. Key'Length);
+
+         function To_Octet is new Ada.Unchecked_Conversion
+           (Ada.Streams.Stream_Element, CORBA.Octet);
+
+      begin
+         for J in Key'Range loop
+            Id (Integer (J - Key'First + 1)) := To_Octet (Key (J));
+         end loop;
+
+         return ObjectId (IDL_Sequence_Octet.To_Sequence (Id));
+      end;
+   end Get_Object_Id;
 
    ---------------------------
    -- Get_Operation_Context --
