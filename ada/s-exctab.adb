@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---            Copyright (C) 1996 Free Software Foundation, Inc.             --
+--          Copyright (C) 1996-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,24 +33,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Htable;
---  For the Exception Htable
+with GNAT.HTable;
+
+pragma Elaborate_All (GNAT.HTable);
 
 package body System.Exception_Table is
 
    use System.Standard_Library;
 
-   type Htable_Headers is range 1 .. 37;
+   type HTable_Headers is range 1 .. 37;
 
    procedure Set_HT_Link (T : Exception_Data_Ptr; Next : Exception_Data_Ptr);
    function  Get_HT_Link (T : Exception_Data_Ptr) return Exception_Data_Ptr;
 
-   function Hash (F : Big_String_Ptr) return Htable_Headers;
+   function Hash (F : Big_String_Ptr) return HTable_Headers;
    function Equal (A, B : Big_String_Ptr) return Boolean;
    function Get_Key (T : Exception_Data_Ptr) return Big_String_Ptr;
 
-   package Exception_Htable is new GNAT.Htable.Static_Htable (
-     Header_Num => Htable_Headers,
+   package Exception_HTable is new GNAT.HTable.Static_HTable (
+     Header_Num => HTable_Headers,
      Element    => Exception_Data,
      Elmt_Ptr   => Exception_Data_Ptr,
      Null_Ptr   => null,
@@ -70,7 +71,7 @@ package body System.Exception_Table is
       Next : Exception_Data_Ptr)
    is
    begin
-      T.Htable_Ptr := Next;
+      T.HTable_Ptr := Next;
    end Set_HT_Link;
 
    -----------------
@@ -79,17 +80,17 @@ package body System.Exception_Table is
 
    function  Get_HT_Link (T : Exception_Data_Ptr) return Exception_Data_Ptr is
    begin
-      return T.Htable_Ptr;
+      return T.HTable_Ptr;
    end Get_HT_Link;
 
    ----------
    -- Hash --
    ----------
 
-   function Hash (F : Big_String_Ptr) return Htable_Headers is
+   function Hash (F : Big_String_Ptr) return HTable_Headers is
       type S is mod 2**8;
 
-      Size : constant S := S (Htable_Headers'Last - Htable_Headers'First + 1);
+      Size : constant S := S (HTable_Headers'Last - HTable_Headers'First + 1);
       Tmp  : S := 0;
       J    : Positive;
 
@@ -97,7 +98,7 @@ package body System.Exception_Table is
       J := 1;
       loop
          if F (J) = Ascii.Nul then
-            return Htable_Headers'First + Htable_Headers'Base (Tmp mod Size);
+            return HTable_Headers'First + HTable_Headers'Base (Tmp mod Size);
          else
             Tmp := Tmp xor S (Character'Pos (F (J)));
          end if;
@@ -149,7 +150,7 @@ package body System.Exception_Table is
    begin
       Copy (X'Range) := X;
       Copy (Copy'Last) := Ascii.NUL;
-      Res := Exception_Htable.Get (To_Ptr (Copy'Address));
+      Res := Exception_HTable.Get (To_Ptr (Copy'Address));
 
       --  If unknown exception, create it on the heap. This is a legitimate
       --  situation in the distributed case when an exception is defined only
@@ -165,7 +166,7 @@ package body System.Exception_Table is
               C3                => 'a',
               Name_Length       => Copy'Length,
               Full_Name         => To_Ptr (Dyn_Copy.all'Address),
-              Htable_Ptr        => null);
+              HTable_Ptr        => null);
 
          Register_Exception (Res);
       end if;
@@ -179,7 +180,7 @@ package body System.Exception_Table is
 
    procedure Register_Exception (X : Exception_Data_Ptr) is
    begin
-      Exception_Htable.Set (X);
+      Exception_HTable.Set (X);
    end Register_Exception;
 
 begin

@@ -52,7 +52,7 @@ package Osint is
    --  bounds definitely need to be 1 to match the requirement that the
    --  argument array prepared for Spawn must have a lower bound of 1.
 
-   package Gcc_Switches is new Table (
+   package Gcc_Switches is new Table.Table (
      Table_Component_Type => String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
@@ -60,7 +60,7 @@ package Osint is
      Table_Increment      => 100,
      Table_Name           => "Osint.Gcc_Switches");
 
-   package Binder_Switches is new Table (
+   package Binder_Switches is new Table.Table (
      Table_Component_Type => String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
@@ -68,7 +68,7 @@ package Osint is
      Table_Increment      => 100,
      Table_Name           => "Osint.Binder_Switches");
 
-   package Linker_Switches is new Table (
+   package Linker_Switches is new Table.Table (
      Table_Component_Type => String_Access,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
@@ -131,6 +131,11 @@ package Osint is
    procedure Fail (S1 : String; S2 : String := ""; S3 : String := "");
    --  Outputs error messages S1 & S2 & S3 preceeded by the name of the
    --  executing program and exits with E_Fatal.
+
+   function Get_Directory (Name : File_Name_Type) return File_Name_Type;
+   --  Get the prefix directory name (if any) from Name. The last separator
+   --  is preserved. Return No_File if there is no directory part in the
+   --  name.
 
    function Strip_Directory (Name : File_Name_Type) return File_Name_Type;
    --  Strips the prefix directory name (if any) from Name. Returns the

@@ -63,7 +63,8 @@ package Opt is
    All_Errors_Mode : Boolean := False;
    --  GNAT, GNATF
    --  Flag set to force display of multiple errors on a single line and
-   --  also repeated error messages for references to undefined identifiers.
+   --  also repeated error messages for references to undefined identifiers
+   --  and certain other repeated error messages.
 
    All_Sources : Boolean := False;
    --  GNATBIND
@@ -136,6 +137,15 @@ package Opt is
       --  The unit being compiled is the RCI spec, and the compiler will
       --  generate the body for the caller stubs.
 
+   subtype Debug_Level_Value is Nat range 0 .. 3;
+   Debugger_Level : Debug_Level_Value := 0;
+   --  GNATBIND
+   --  The value given to the -g parameter.
+   --  The default value for -g with no value is 2
+   --  This is usually ignored by GNATBIND, except in the VMS version
+   --  where it is passed as an argument to __gnat_initialize to trigger
+   --  the activation of the remote debugging interface.
+
    Distribution_Stub_Mode : Distribution_Stub_Mode_Type := No_Stubs;
    --  GNAT
    --  This enumeration variable indicates the five states of distribution
@@ -152,6 +162,10 @@ package Opt is
    Elab_Order_Output : Boolean := False;
    --  GNATBIND
    --  Set to True to output chosen elaboration order
+
+   Elab_Warnings : Boolean := False;
+   --  GNAT, GNATF
+   --  Set to True to generate full elaboration warnings (-gnatwl)
 
    Force_Compilations : Boolean := False;
    --  GNATMAKE
@@ -177,6 +191,10 @@ package Opt is
    --  of this variable is irrelevant if Float_Format is set to IEEE).
    --  The setting may be changed by the use of the configuraqtion
    --  pragma Long_Float.
+
+   Full_Elaboration_Semantics : Boolean := False;
+   --  GNATBIND
+   --  True if binding with full Ada elaboration semantics (-f switch set)
 
    GNAT_Mode : Boolean := False;
    --  GNAT, GNATF

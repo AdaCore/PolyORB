@@ -140,7 +140,7 @@ package ALI is
    No_Main_Priority : constant Int := -1;
    --  Code for no main priority set
 
-   package ALIs is new Table (
+   package ALIs is new Table.Table (
      Table_Component_Type => ALIs_Record,
      Table_Index_Type     => ALI_Id,
      Table_Low_Bound      => First_ALI_Entry,
@@ -227,7 +227,7 @@ package ALI is
 
    end record;
 
-   package Unit is new Table (
+   package Unit is new Table.Table (
      Table_Component_Type => Unit_Record,
      Table_Index_Type     => Unit_Id,
      Table_Low_Bound      => First_Unit_Entry,
@@ -264,9 +264,12 @@ package ALI is
       Elaborate_All : Boolean;
       --  Indicates presence of EA parameter
 
+      Elab_All_Desirable : Boolean;
+      --  Indicates presence of ED parameter
+
    end record;
 
-   package Withs is new Table (
+   package Withs is new Table.Table (
      Table_Component_Type => With_Record,
      Table_Index_Type     => With_Id,
      Table_Low_Bound      => First_With_Entry,
@@ -284,7 +287,7 @@ package ALI is
    --  second entry is suppressed. Each entry is a character sequence
    --  terminated by a NUL character.
 
-   package Linker_Options is new Table (
+   package Linker_Options is new Table.Table (
      Table_Component_Type => Character,
      Table_Index_Type     => Integer,
      Table_Low_Bound      => 1,
@@ -322,7 +325,7 @@ package ALI is
 
    end record;
 
-   package Sdep is new Table (
+   package Sdep is new Table.Table (
      Table_Component_Type => Sdep_Record,
      Table_Index_Type     => Sdep_Id,
      Table_Low_Bound      => First_Sdep_Entry,
@@ -388,7 +391,7 @@ package ALI is
 
    end record;
 
-   package Source is new Table (
+   package Source is new Table.Table (
      Table_Component_Type => Source_Record,
      Table_Index_Type     => Source_Id,
      Table_Low_Bound      => First_Source_Entry,

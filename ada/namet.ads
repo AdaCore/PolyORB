@@ -35,7 +35,6 @@
 
 with Hostparm; use Hostparm;
 with Types;    use Types;
-with Table;
 
 with System;  use System;
 

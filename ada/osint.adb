@@ -38,12 +38,12 @@ with Namet;         use Namet;
 with Output;        use Output;
 with Switch;        use Switch;
 with Opt;           use Opt;
-with GNAT.OS_Lib;   use GNAT.OS_Lib;
-with GNAT.Htable;
 with Sdefault;      use Sdefault;
-with Table;
 with Tree_IO;       use Tree_IO;
 with Unchecked_Conversion;
+
+with GNAT.OS_Lib;   use GNAT.OS_Lib;
+with GNAT.HTable;
 
 package body Osint is
 
@@ -179,7 +179,7 @@ package body Osint is
    --  directory containing the latest main input file (a source file for
    --  the compiler or a library file for the binder).
 
-   package Src_Search_Directories is new Table (
+   package Src_Search_Directories is new Table.Table (
      Table_Component_Type => String_Ptr,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => Primary_Directory,
@@ -190,7 +190,7 @@ package body Osint is
    --  files. This table is filled in the order in which the directories are
    --  to be searched, and then used in that order.
 
-   package Lib_Search_Directories is new Table (
+   package Lib_Search_Directories is new Table.Table (
      Table_Component_Type => String_Ptr,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => Primary_Directory,
@@ -223,9 +223,9 @@ package body Osint is
    type File_Hash_Num is range 0 .. 1020;
 
    function File_Hash (F : File_Name_Type) return File_Hash_Num;
-   --  Compute hash index for use by Simple_Htable
+   --  Compute hash index for use by Simple_HTable
 
-   package File_Name_Hash_Table is new GNAT.Htable.Simple_Htable (
+   package File_Name_Hash_Table is new GNAT.HTable.Simple_HTable (
      Header_Num => File_Hash_Num,
      Element    => File_Name_Type,
      No_Element => No_File,
@@ -233,7 +233,7 @@ package body Osint is
      Hash       => File_Hash,
      Equal      => "=");
 
-   package File_Stamp_Hash_Table is new GNAT.Htable.Simple_Htable (
+   package File_Stamp_Hash_Table is new GNAT.HTable.Simple_HTable (
      Header_Num => File_Hash_Num,
      Element    => Time_Stamp_Type,
      No_Element => Empty_Time_Stamp,
@@ -595,6 +595,28 @@ package body Osint is
          return OS_Time_To_GNAT_Time (File_Time_Stamp (Name_Buffer));
       end if;
    end File_Stamp;
+
+   -------------------
+   -- Get_Directory --
+   -------------------
+
+   function Get_Directory (Name : File_Name_Type) return File_Name_Type is
+   begin
+      Get_Name_String (Name);
+
+      for I in reverse 1 .. Name_Len loop
+         if Name_Buffer (I) = Directory_Separator
+           or else Name_Buffer (I) = '/'
+         then
+            Name_Len := I;
+            return Name_Find;
+         end if;
+      end loop;
+
+      Name_Len := Hostparm.Normalized_CWD'Length;
+      Name_Buffer (1 .. Name_Len) := Hostparm.Normalized_CWD;
+      return Name_Find;
+   end Get_Directory;
 
    -----------------
    -- Locate_File --

@@ -168,7 +168,10 @@ package body Switch is
                C := Switches (Ptr);
                exit when C = Ascii.NUL or else C = '/' or else C = '-';
 
-               if C in '1' .. '9' or else C in 'a' .. 'z' then
+               if C in '1' .. '9' or else
+                  C in 'a' .. 'z' or else
+                  C in 'A' .. 'Z'
+               then
                   Set_Debug_Flag (C);
                else
                   raise Bad_Switch;
@@ -199,6 +202,8 @@ package body Switch is
                All_Errors_Mode := True;
             elsif Program = Make then
                Force_Compilations := True;
+            elsif Program = Binder then
+               Full_Elaboration_Semantics := True;
             else
                raise Bad_Switch;
             end if;
@@ -217,16 +222,19 @@ package body Switch is
             elsif Program = Make then
                raise Bad_Switch;
 
-            --  Ignore -g<0-3> and -g on binder, does nothing (not needed
-            --  at all by the binder but it is friendly to allow the debug
-            --  switch on all the compile commands).
+            --  For binder, we accept -gx where x is 0-3. If no level is
+            --  given (i.e. -g not followed by 0-3, then -g2 is assumed.
 
             elsif Program = Binder then
                if Ptr <= Max then
                   C := Switches (Ptr);
                   if C in '0' .. '3' then
+                     Debugger_Level :=
+                       Character'Pos (Switches (Ptr)) - Character'Pos ('0');
                      Ptr := Ptr + 1;
                   end if;
+               else
+                  Debugger_Level := 2;
                end if;
             end if;
 
@@ -497,8 +505,9 @@ package body Switch is
             if Program = Compiler or else Program = Binder then
 
                case Switches (Ptr) is
-                  when 's' => Warning_Mode := Suppress;
-                  when 'e' => Warning_Mode := Treat_As_Error;
+                  when 's' => Warning_Mode  := Suppress;
+                  when 'e' => Warning_Mode  := Treat_As_Error;
+                  when 'l' => Elab_Warnings := True;
 
                   when others =>
                      raise Bad_Switch;

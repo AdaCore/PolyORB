@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---     Copyright (C) 1992,1993,1994,1995 Free Software Foundation, Inc.     --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,6 +36,7 @@
 with Types; use Types;
 
 package Debug is
+pragma Preelaborate (Debug);
 
 --  This package contains global flags used to control the inclusion
 --  of debugging code in various phases of the compiler.
@@ -80,6 +81,33 @@ package Debug is
    Debug_Flag_Y : Boolean := False;
    Debug_Flag_Z : Boolean := False;
 
+   Debug_Flag_AA : Boolean := False;
+   Debug_Flag_BB : Boolean := False;
+   Debug_Flag_CC : Boolean := False;
+   Debug_Flag_DD : Boolean := False;
+   Debug_Flag_EE : Boolean := False;
+   Debug_Flag_FF : Boolean := False;
+   Debug_Flag_GG : Boolean := False;
+   Debug_Flag_HH : Boolean := False;
+   Debug_Flag_II : Boolean := False;
+   Debug_Flag_JJ : Boolean := False;
+   Debug_Flag_KK : Boolean := False;
+   Debug_Flag_LL : Boolean := False;
+   Debug_Flag_MM : Boolean := False;
+   Debug_Flag_NN : Boolean := False;
+   Debug_Flag_OO : Boolean := False;
+   Debug_Flag_PP : Boolean := False;
+   Debug_Flag_QQ : Boolean := False;
+   Debug_Flag_RR : Boolean := False;
+   Debug_Flag_SS : Boolean := False;
+   Debug_Flag_TT : Boolean := False;
+   Debug_Flag_UU : Boolean := False;
+   Debug_Flag_VV : Boolean := False;
+   Debug_Flag_WW : Boolean := False;
+   Debug_Flag_XX : Boolean := False;
+   Debug_Flag_YY : Boolean := False;
+   Debug_Flag_ZZ : Boolean := False;
+
    Debug_Flag_1 : Boolean := False;
    Debug_Flag_2 : Boolean := False;
    Debug_Flag_3 : Boolean := False;
@@ -102,8 +130,8 @@ package Debug is
    --  (it does not work to try to access a constant object directly).
 
    procedure Set_Debug_Flag (C : Character; Val : Boolean := True);
-   --  Where C is 0-9 or a-z, sets the corresponding debug flag to the
-   --  given value. In the checks off version of debug, the call to
+   --  Where C is 0-9, A-Z, or a-z, sets the corresponding debug flag to
+   --  the given value. In the checks off version of debug, the call to
    --  Set_Debug_Flag is always a null operation.
 
 end Debug;

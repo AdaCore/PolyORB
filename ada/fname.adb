@@ -41,7 +41,7 @@ with Opt;      use Opt;
 with Table;
 with Widechar; use Widechar;
 
-with GNAT.Htable;
+with GNAT.HTable;
 
 package body Fname is
 
@@ -54,7 +54,7 @@ package body Fname is
       F : File_Name_Type;
    end record;
 
-   package SFN_Table is new Table (
+   package SFN_Table is new Table.Table (
      Table_Component_Type => SFN_Entry,
      Table_Index_Type     => Int,
      Table_Low_Bound      => 0,
@@ -65,9 +65,9 @@ package body Fname is
    type SFN_Header_Num is range 0 .. 100;
 
    function SFN_Hash (F : Unit_Name_Type) return SFN_Header_Num;
-   --  Compute hash index for use by Simple_Htable
+   --  Compute hash index for use by Simple_HTable
 
-   package SFN_Htable is new GNAT.Htable.Simple_Htable (
+   package SFN_HTable is new GNAT.HTable.Simple_HTable (
      Header_Num => SFN_Header_Num,
      Element    => File_Name_Type,
      No_Element => No_File,
@@ -137,7 +137,7 @@ package body Fname is
       N : File_Name_Type;
 
    begin
-      N := SFN_Htable.Get (Uname);
+      N := SFN_HTable.Get (Uname);
 
       if N /= No_File then
          return N;
@@ -238,6 +238,31 @@ package body Fname is
       SFN_Table.Release;
    end Lock;
 
+   ---------------------------
+   -- Is_Internal_File_Name --
+   ---------------------------
+
+   function Is_Internal_File_Name
+     (Fname              : File_Name_Type;
+      Renamings_Included : Boolean := True)
+      return               Boolean
+   is
+   begin
+      if Is_Predefined_File_Name (Fname, Renamings_Included) then
+         return True;
+
+      --  Once Is_Predefined_File_Name has been called and returns False,
+      --  Name_Buffer contains Fname and Name_Len is set to 8.
+
+      elsif Name_Buffer (1 .. 2) = "g-"
+        or else Name_Buffer (1 .. 8) = "gnat    " then
+         return True;
+
+      else
+         return False;
+      end if;
+   end Is_Internal_File_Name;
+
    -----------------------------
    -- Is_Predefined_File_Name --
    -----------------------------
@@ -325,7 +350,7 @@ package body Fname is
    begin
       SFN_Table.Increment_Last;
       SFN_Table.Table (SFN_Table.Last) := (U, F);
-      SFN_Htable.Set (U, F);
+      SFN_HTable.Set (U, F);
    end Set_File_Name;
 
    --------------
@@ -348,7 +373,7 @@ package body Fname is
       --  Reestablish the hash table
 
       for J in SFN_Table.First .. SFN_Table.Last loop
-         SFN_Htable.Set (SFN_Table.Table (J).U, SFN_Table.Table (J).F);
+         SFN_HTable.Set (SFN_Table.Table (J).U, SFN_Table.Table (J).F);
       end loop;
    end Tree_Read;
 

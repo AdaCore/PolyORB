@@ -68,6 +68,33 @@ package body Debug is
    --  dy   Print tree of package Standard
    --  dz   Print source of package Standard
 
+   --  dA
+   --  dB
+   --  dC
+   --  dD
+   --  dE
+   --  dF
+   --  dG   Compile generics
+   --  dH
+   --  dI
+   --  dJ
+   --  dK
+   --  dL
+   --  dM
+   --  dN
+   --  dO
+   --  dP
+   --  dQ
+   --  dR
+   --  dS
+   --  dT
+   --  dU
+   --  dV
+   --  dW
+   --  dX
+   --  dY
+   --  dZ
+
    --  d1   Error msgs have node numbers where possible
    --  d2   Eliminate error flags in verbose form error messages
    --  d3   Dump bad node in Comperr on an abort
@@ -273,6 +300,10 @@ package body Debug is
    --       This switch forces output of the source recreated from the internal
    --       tree built for Standard.
 
+   --  dG   Compile generics. Normally generics are not compiled, this switch
+   --       causes them to be compiled and treated as first class citizens
+   --       from the point of view of binding, elaboration order choice etc.
+
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when
    --       debugging errors caused by expanded code, where the source location
@@ -351,8 +382,9 @@ package body Debug is
    --------------------
 
    procedure Set_Debug_Flag (C : Character; Val : Boolean := True) is
-      subtype Dig is Character range '1' .. '9';
-      subtype Let is Character range 'a' .. 'z';
+      subtype Dig  is Character range '1' .. '9';
+      subtype LLet is Character range 'a' .. 'z';
+      subtype ULet is Character range 'A' .. 'Z';
 
    begin
       if C in Dig then
@@ -368,8 +400,38 @@ package body Debug is
             when '9' => Debug_Flag_9 := Val;
          end case;
 
+      elsif C in ULet then
+         case ULet (C) is
+            when 'A' => Debug_Flag_AA := Val;
+            when 'B' => Debug_Flag_BB := Val;
+            when 'C' => Debug_Flag_CC := Val;
+            when 'D' => Debug_Flag_DD := Val;
+            when 'E' => Debug_Flag_EE := Val;
+            when 'F' => Debug_Flag_FF := Val;
+            when 'G' => Debug_Flag_GG := Val;
+            when 'H' => Debug_Flag_HH := Val;
+            when 'I' => Debug_Flag_II := Val;
+            when 'J' => Debug_Flag_JJ := Val;
+            when 'K' => Debug_Flag_KK := Val;
+            when 'L' => Debug_Flag_LL := Val;
+            when 'M' => Debug_Flag_MM := Val;
+            when 'N' => Debug_Flag_NN := Val;
+            when 'O' => Debug_Flag_OO := Val;
+            when 'P' => Debug_Flag_PP := Val;
+            when 'Q' => Debug_Flag_QQ := Val;
+            when 'R' => Debug_Flag_RR := Val;
+            when 'S' => Debug_Flag_SS := Val;
+            when 'T' => Debug_Flag_TT := Val;
+            when 'U' => Debug_Flag_UU := Val;
+            when 'V' => Debug_Flag_VV := Val;
+            when 'W' => Debug_Flag_WW := Val;
+            when 'X' => Debug_Flag_XX := Val;
+            when 'Y' => Debug_Flag_YY := Val;
+            when 'Z' => Debug_Flag_ZZ := Val;
+         end case;
+
       else
-         case Let (C) is
+         case LLet (C) is
             when 'a' => Debug_Flag_A := Val;
             when 'b' => Debug_Flag_B := Val;
             when 'c' => Debug_Flag_C := Val;

@@ -42,7 +42,8 @@ with Table;
 with Types;    use Types;
 
 with Ada.Command_Line; use Ada.Command_Line;
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
+
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 package body Make is
 
@@ -91,7 +92,7 @@ package body Make is
    Q_Front : Natural;
    --  Points to the first valid element in the Q.
 
-   package Q is new Table (
+   package Q is new Table.Table (
      Table_Component_Type => File_Name_Type,
      Table_Index_Type     => Natural,
      Table_Low_Bound      => 0,
@@ -159,34 +160,39 @@ package body Make is
    -- Gnatmake Routines --
    -----------------------
 
-   package Ada_Lib_Search_Directories is new Table (
-     Table_Component_Type => String_Ptr,
-     Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
-     Table_Initial        => 10,
-     Table_Increment      => 100,
-     Table_Name           => "Osint.Ada_Lib_Search_Directories");
-   --  Table of names of directories containing Ada libraries.  This table
-   --  is set in Osint.Initialize upon encounter of an "-Adir" switch and is
-   --  searched in routine Belongs_To_Ada_Library which is invoked by Gnatmake.
-   --  See the spec for Belongs_To_Ada_Library to see what an Ada library
-   --  directory is.
+   subtype Lib_Mark_Type is Byte;
 
-   procedure Add_Ada_Lib_Search_Dir (Dir : String);
-   --  Add Dir at the end of the Ada library file search path
+   Ada_Lib_Dir  : constant Lib_Mark_Type := 1;
+   GNAT_Lib_Dir : constant Lib_Mark_Type := 2;
 
-   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type;
-   --  Given an ali file File, this routine returns the its full name (ie
-   --  including the directory) of File, if File is in some Ada library
-   --  directory.  An Ada library directory is a directory containing ali
-   --  and object files but no source files for the bodies (the specs can be
-   --  in the same or some other directory). These directories are specified
+   --  Note that the notion of GNAT lib dir is no longer used. The code
+   --  related to it has not been removed to give an idea on how to use
+   --  the directory prefix marking mechanism.
+
+   --  An Ada library directory is a directory containing ali and object
+   --  files but no source files for the bodies (the specs can be in the
+   --  same or some other directory). These directories are specified
    --  in the Gnatmake command line with the switch "-Adir" (to specify the
    --  spec location -Idir cab be used).  Gnatmake skips the missing sources
    --  whose ali are in Ada library directories. For an explanation of why
    --  Gnatmake behaves that way, see the spec of Make.Compile_Sources.
    --  The directory lookup penalty is incurred every single time this
    --  routine is called.
+
+   function In_Ada_Lib_Dir  (File : in File_Name_Type) return Boolean;
+   --  Get directory prefix of this file and get lib mark stored in name
+   --  table for this directory. Then check if an Ada lib mark has been set.
+
+   procedure Mark_Dir_Path
+     (Path : in String_Access;
+      Mark : in Lib_Mark_Type);
+   --  Invoke Mark_Directory on each directory of the path.
+
+   procedure Mark_Directory
+     (Dir  : in String;
+      Mark : in Lib_Mark_Type);
+   --  Store Dir in name table and set lib mark as name info to identify
+   --  Ada libraries.
 
    ----------------------------------------------------
    -- Compiler, Binder & Linker Data and Subprograms --
@@ -265,70 +271,6 @@ package body Make is
    procedure Scan_Make_Arg (Argv : String);
    --  Scan make arguments. Argv is a single argument to be processed.
 
-   ------------------------
-   -- Ada_Library_Lookup --
-   ------------------------
-
-   function Ada_Library_Lookup (File : File_Name_Type) return File_Name_Type is
-
-      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type;
-      --  Returns the full name of file F if F is in directory D.
-
-      function Lookup (F : String_Ptr; D : String_Ptr) return File_Name_Type is
-         Name : String (1 .. D'Length + F'Length);
-
-      begin
-         Name (1 .. D'Length) := D.all;
-         Name (D'Length + 1 .. D'Length + F'Length) := F.all;
-
-         if Is_Regular_File (Name) then
-            Name_Len := Name'Last;
-            Name_Buffer (1 .. Name_Len) := Name;
-            return Name_Enter;
-         else
-            return No_File;
-         end if;
-      end Lookup;
-
-   --  Start of processing for Ada_Library_Lookup
-
-   begin
-      Get_Name_String (File);
-
-      declare
-         F : String_Ptr := new String'(Name_Buffer (1 .. Name_Len));
-         File_Name : File_Name_Type;
-
-      begin
-         for D in
-           Ada_Lib_Search_Directories.First .. Ada_Lib_Search_Directories.Last
-         loop
-            File_Name := Lookup (F, Ada_Lib_Search_Directories.Table (D));
-
-            if File_Name /= No_File then
-               return File_Name;
-            end if;
-         end loop;
-      end;
-
-      return No_File;
-   end Ada_Library_Lookup;
-
-   ----------------------------
-   -- Add_Ada_Lib_Search_Dir --
-   ----------------------------
-
-   procedure Add_Ada_Lib_Search_Dir (Dir : String) is
-   begin
-      if Dir'Length = 0 then
-         Fail ("missing external Ada library directory name");
-      end if;
-
-      Ada_Lib_Search_Directories.Increment_Last;
-      Ada_Lib_Search_Directories.Table (Ada_Lib_Search_Directories.Last) :=
-        Normalize_Directory_Name (Dir);
-   end Add_Ada_Lib_Search_Dir;
-
    ----------------
    -- Add_Switch --
    ----------------
@@ -359,11 +301,17 @@ package body Make is
    ----------------
 
    procedure Add_Switch
-     (S1, S2 : String; T : Make_Program_Type; Pos : Integer) is
+     (S1  : String;
+      S2  : String;
+      T   : Make_Program_Type;
+      Pos : Integer)
+   is
       Tmp : String (1 .. S1'Length + S2'Length);
+
    begin
       Tmp (1 .. S1'Length) := S1;
       Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
+
       case T is
          when Compiler =>
             pragma Assert
@@ -402,7 +350,11 @@ package body Make is
    -- Add_Switch --
    ----------------
 
-   procedure Add_Switch (S1, S2 : String; T : Make_Program_Type) is
+   procedure Add_Switch
+     (S1 : String;
+      S2 : String;
+      T  : Make_Program_Type)
+   is
       Tmp : String (1 .. S1'Length + S2'Length);
 
    begin
@@ -444,6 +396,7 @@ package body Make is
         and then Ali_File = Strip_Directory (Ali_File)
       then
          Bind_Last := Args'First - 1;
+
       else
          Bind_Last := Args'Last;
          Bind_Args (Args'Range) := Args;
@@ -619,8 +572,10 @@ package body Make is
       if Text = null then
          if Full_Lib_File = No_File then
             Verbose_Msg (Lib_File, "missing.");
+
          elsif Obj_Stamp (Obj_Stamp'First) = ' ' then
             Verbose_Msg (Full_Obj_File, "missing.");
+
          else
             Verbose_Msg
               (Full_Lib_File, "(", String (Lib_Stamp), ") newer than",
@@ -636,11 +591,13 @@ package body Make is
          Set_Source_Table (Ali);
 
          Modified_Source := Time_Stamp_Mismatch (Ali);
+
          if Modified_Source /= No_File then
             Ali := No_ALI_Id;
 
             if Opt.Verbose_Mode then
                Source_Name := Full_Source_Name (Modified_Source);
+
                if Source_Name /= No_File then
                   Verbose_Msg (Source_Name, "time stamp mismatch");
                else
@@ -650,11 +607,13 @@ package body Make is
 
          else
             New_Spec := First_New_Spec (Ali);
+
             if New_Spec /= No_File then
                Ali := No_ALI_Id;
 
                if Opt.Verbose_Mode then
                   Source_Name := Full_Source_Name (New_Spec);
+
                   if Source_Name /= No_File then
                      Verbose_Msg (Source_Name, "new spec");
                   else
@@ -714,7 +673,7 @@ package body Make is
       --  file. OK is set to True if the compilation succeeded. Note that S
       --  and L could be No_File if there were no compilations to wait for.
 
-      package Good_Ali is new Table (
+      package Good_Ali is new Table.Table (
         Table_Component_Type => ALI_Id,
         Table_Index_Type     => Natural,
         Table_Low_Bound      => 1,
@@ -740,7 +699,7 @@ package body Make is
       --  Found is False if the compilation failed because the file
       --  could not be found.
 
-      package Bad_Compilation is new Table (
+      package Bad_Compilation is new Table.Table (
         Table_Component_Type => Bad_Compilation_Info,
         Table_Index_Type     => Natural,
         Table_Low_Bound      => 1,
@@ -872,18 +831,19 @@ package body Make is
            and then S = Strip_Directory (S)
          then
             Comp_Last := Args'Last - 1;
-            Comp_Args (Args'First + 1 .. Comp_Last)
-              := Args (Args'First + 1 .. Args'Last - 1);
+            Comp_Args (Args'First + 1 .. Comp_Last) :=
+                                 Args (Args'First + 1 .. Args'Last - 1);
+
          else
             Comp_Last := Args'Last + 1;
             Comp_Args (Args'First + 1 .. Comp_Last) := Args;
          end if;
 
          --  The directory name needs to be stripped from the source file S
-         --  because Fname.Is_Predefined_File_Name cannot deal with directory
+         --  because Fname.Is_Internal_File_Name cannot deal with directory
          --  prefixes.
 
-         if Is_Predefined_File_Name (Strip_Directory (S)) then
+         if Is_Internal_File_Name (Strip_Directory (S)) then
             Comp_Last := Comp_Last + 1;
             Comp_Args (Comp_Last) := GNAT_Flag;
          end if;
@@ -999,8 +959,8 @@ package body Make is
       Lib_File         : File_Name_Type;
       --  Current library file
 
-      Ada_Lib_File     : File_Name_Type;
-      --  Full name of current library file if it is in some Ada library
+      Full_Lib_File    : File_Name_Type;
+      --  Full name of the current library file
 
       Obj_File         : File_Name_Type;
       --  Full name of the object file corresponding to Lib_File.
@@ -1082,12 +1042,13 @@ package body Make is
             Source_File      := Extract_From_Q;
             Full_Source_File := Osint.Full_Source_Name (Source_File);
             Lib_File         := Osint.Lib_File_Name (Source_File);
-            Ada_Lib_File     := Ada_Library_Lookup (Lib_File);
+            Full_Lib_File    := Osint.Full_Lib_File_Name (Lib_File);
 
-            --  If the library file is is an Ada library skip it
+            --  If the library file is an Ada library skip it
 
-            if Ada_Lib_File /= No_File then
-               Verbose_Msg (Ada_Lib_File, "in Ada library", Ind => No_Indent);
+            if Full_Lib_File /= No_File and then
+              In_Ada_Lib_Dir (Full_Lib_File) then
+               Verbose_Msg (Lib_File, "in Ada library", Ind => No_Indent);
 
             --  The source file that we are checking cannot be located
 
@@ -1101,6 +1062,7 @@ package body Make is
 
                Obj_Stamp       := Empty_Time_Stamp;
                Need_To_Compile := Force_Compilations;
+
                if not Force_Compilations then
                   Check (Lib_File, Ali, Obj_File, Obj_Stamp);
                   Need_To_Compile := (Ali = No_ALI_Id);
@@ -1157,8 +1119,8 @@ package body Make is
 
          if Outstanding_Compiles = Max_Process
            or else (Empty_Q
-                    and then not Good_Ali_Present
-                    and then Outstanding_Compiles > 0)
+                     and then not Good_Ali_Present
+                     and then Outstanding_Compiles > 0)
          then
             Await_Compile (Full_Source_File, Lib_File, Compilation_OK);
 
@@ -1176,6 +1138,7 @@ package body Make is
                if Text /= null then
                   Ali := Scan_ALI (Lib_File, Text);
                   Record_Good_Ali (Ali);
+
                else
                   Inform (Lib_File, "WARNING file not found after compile");
                   Missing_Alis := True;
@@ -1219,7 +1182,7 @@ package body Make is
                      Debug_Msg ("Skipping marked file:", Sfile);
 
                   elsif not Check_Internal_Files
-                    and then Is_Predefined_File_Name (Sfile)
+                    and then Is_Internal_File_Name (Sfile)
                   then
                      Debug_Msg ("Skipping language defined file:", Sfile);
 
@@ -1318,6 +1281,20 @@ package body Make is
       return Elmt;
    end Extract_From_Q;
 
+   --------------------
+   -- In_Ada_Lib_Dir --
+   --------------------
+
+   function In_Ada_Lib_Dir (File : in File_Name_Type) return Boolean is
+      B : Byte;
+      D : Name_Id;
+
+   begin
+      D := Get_Directory (File);
+      B := Get_Name_Table_Byte (D);
+      return (B and Ada_Lib_Dir) /= 0;
+   end In_Ada_Lib_Dir;
+
    ------------
    -- Inform --
    ------------
@@ -1343,12 +1320,11 @@ package body Make is
    ----------------
 
    procedure Initialize is
-
       Next_Arg    : Positive;
       Search_Dir  : String_Access;
       Search_Path : String_Access;
-   begin
 
+   begin
       --  Default initialization of the flags affecting gnatmake
 
       Opt.Check_Internal_Files     := False;
@@ -1368,7 +1344,9 @@ package body Make is
       Gcc_Switches.Init;
       Binder_Switches.Init;
       Linker_Switches.Init;
-      Ada_Lib_Search_Directories.Init;
+
+      Csets.Initialize;
+      Namet.Initialize;
 
       Next_Arg := 1;
       Scan_Args : loop
@@ -1379,29 +1357,7 @@ package body Make is
 
       Osint.Add_Default_Search_Dirs;
 
-      --  Add the default object directory to the -aL list in case the
-      --  objects are in a library.  This isn't necessary for the predefined
-      --  units, but the g- (GNAT.) units are no longer considered predefined
-      --  but are still precompiled.  Also other systems (notably VMS) have
-      --  multiple default source and object search paths which will have
-      --  non-predefined units that may be in a library.
-
-      --  Note that there still may be a problem where GNAT is not installed
-      --  in the default (sdefault) directories, but instead the environment
-      --  variable ADA_OBJECTS_PATH points to the RTL objects.  Should
-      --  these units also be in the -aL list ???
-
-      Search_Path := String_Access (Sdefault.Object_Dir_Default_Name);
-
-      Osint.Get_Next_Dir_In_Path_Init (Search_Path);
-      loop
-         Search_Dir := Osint.Get_Next_Dir_In_Path (Search_Path);
-         exit when Search_Dir = null;
-         Add_Ada_Lib_Search_Dir (Search_Dir.all);
-      end loop;
-
-      Csets.Initialize;
-      Namet.Initialize;
+      --  Mark the GNAT libraries if needed.
 
       --  Source file lookups should be cached for efficiency.
       --  Source files are not supposed to change.
@@ -1533,6 +1489,12 @@ package body Make is
          Write_Str ("q       Be quiet/terse");
          Write_Eol;
 
+         --  Line for -s
+
+         Write_Switch_Char;
+         Write_Str ("s       Smart recompilation");
+         Write_Eol;
+
          --  Line for -v
 
          Write_Switch_Char;
@@ -1642,7 +1604,6 @@ package body Make is
    --  Start of processing for Gnatmake
 
    begin
-
       Initialize;
 
       if Opt.Verbose_Mode then
@@ -1727,12 +1688,12 @@ package body Make is
          end if;
       end if;
 
-      --  Consider GNAT predefined files only if -a switch is set.
+      --  Consider GNAT internal files only if -a switch is set.
 
-      if Fname.Is_Predefined_File_Name (Main_Source_File)
+      if Fname.Is_Internal_File_Name (Main_Source_File)
         and then not Opt.Check_Internal_Files
       then
-         Fail ("use the -a switch to compile GNAT predefined files");
+         Fail ("use the -a switch to compile GNAT internal files");
       end if;
 
       Display_Commands (not Opt.Quiet_Output);
@@ -1750,6 +1711,7 @@ package body Make is
          Executable          : File_Name_Type := No_File;
          Executable_Stamp    : Time_Stamp_Type;
          Executable_Obsolete : Boolean := True;
+
          --  Executable is the final executable program.
 
       begin
@@ -1779,18 +1741,19 @@ package body Make is
             Executable := Executable_Name (Strip_Suffix (Main_Source_File));
          end if;
 
-         Compile_Sources (Main_Source           => Main_Source_File,
-                          Args                  => Args,
-                          First_Compiled_File   => First_Compiled_File,
-                          Most_Recent_Obj_File  => Youngest_Obj_File,
-                          Most_Recent_Obj_Stamp => Youngest_Obj_Stamp,
-                          Main_Unit             => Is_Main_Unit,
-                          Check_Internal_Files  => Opt.Check_Internal_Files,
-                          Dont_Execute          => Opt.Dont_Execute,
-                          Force_Compilations    => Opt.Force_Compilations,
-                          Keep_Going            => Opt.Keep_Going,
-                          Initialize_Ali_Data   => True,
-                          Max_Process           => Opt.Maximum_Processes);
+         Compile_Sources
+           (Main_Source           => Main_Source_File,
+            Args                  => Args,
+            First_Compiled_File   => First_Compiled_File,
+            Most_Recent_Obj_File  => Youngest_Obj_File,
+            Most_Recent_Obj_Stamp => Youngest_Obj_Stamp,
+            Main_Unit             => Is_Main_Unit,
+            Check_Internal_Files  => Opt.Check_Internal_Files,
+            Dont_Execute          => Opt.Dont_Execute,
+            Force_Compilations    => Opt.Force_Compilations,
+            Keep_Going            => Opt.Keep_Going,
+            Initialize_Ali_Data   => True,
+            Max_Process           => Opt.Maximum_Processes);
 
          if Opt.List_Dependencies then
             if First_Compiled_File /= No_File then
@@ -1835,6 +1798,7 @@ package body Make is
             else
                if Executable_Stamp (1) = ' ' then
                   Verbose_Msg (Executable, "missing.", Ind => No_Indent);
+
                else
                   Verbose_Msg (Executable, "obsolete.", Ind => No_Indent);
                   Verbose_Msg (Youngest_Obj_File,
@@ -1890,7 +1854,7 @@ package body Make is
       if not First_Q_Initialization then
          First_Q_Initialization := False;
 
-         --  unmark source files which were previously marked & enqueued.
+         --  Unmark source files which were previously marked & enqueued.
 
          for I in Q.First .. Q.Last - 1 loop
             Unmark (Source_File => Q.Table (I));
@@ -1977,7 +1941,7 @@ package body Make is
          for D in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
             Src_Name := Sdep.Table (D).Sfile;
 
-            if not Fname.Is_Predefined_File_Name (Src_Name)
+            if not Fname.Is_Internal_File_Name (Src_Name)
               or else Opt.Check_Internal_Files
             then
                if not Opt.Quiet_Output then
@@ -2015,6 +1979,59 @@ package body Make is
       Set_Name_Table_Byte (Source_File, 1);
    end Mark;
 
+   --------------------
+   -- Mark_Directory --
+   --------------------
+
+   procedure Mark_Directory
+     (Dir  : in String;
+      Mark : in Lib_Mark_Type)
+   is
+      N : Name_Id;
+      B : Byte;
+
+   begin
+      --  Dir last character is supposed to be a directory separator.
+
+      Name_Len := Dir'Length;
+      Name_Buffer (1 .. Name_Len) := Dir;
+
+      if Name_Buffer (Name_Len) /= Directory_Separator
+           or else
+         Name_Buffer (Name_Len) /= '/'
+      then
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := Directory_Separator;
+      end if;
+
+      --  Add flags to the alredy existing flags.
+
+      N := Name_Find;
+      B := Get_Name_Table_Byte (N);
+      Set_Name_Table_Byte (N, B or Mark);
+   end Mark_Directory;
+
+   -------------------
+   -- Mark_Dir_Path --
+   -------------------
+
+   procedure Mark_Dir_Path
+     (Path : in String_Access;
+      Mark : in Lib_Mark_Type) is
+      Dir : String_Access;
+
+   begin
+      if Path /= null then
+         Osint.Get_Next_Dir_In_Path_Init (Path);
+
+         loop
+            Dir := Osint.Get_Next_Dir_In_Path (Path);
+            exit when Dir = null;
+            Mark_Directory (Dir.all, Mark);
+         end loop;
+      end if;
+   end Mark_Dir_Path;
+
    ------------
    -- Unmark --
    ------------
@@ -2050,12 +2067,12 @@ package body Make is
             Add_Switch (Argv, Linker);
          end if;
 
-         --  Then check if we are dealing with a -cargs, -bargs or -largs
+      --  Then check if we are dealing with a -cargs, -bargs or -largs
 
       elsif (Argv (1) = Switch_Character or else Argv (1) = '-')
         and then (Argv (2 .. Argv'Last) = "cargs"
-                  or else Argv (2 .. Argv'Last) = "bargs"
-                  or else Argv (2 .. Argv'Last) = "largs")
+                   or else Argv (2 .. Argv'Last) = "bargs"
+                   or else Argv (2 .. Argv'Last) = "largs")
       then
          if not File_Name_Seen then
             Fail ("-cargs, -bargs, -largs ",
@@ -2072,9 +2089,9 @@ package body Make is
                null;
          end case;
 
-         --  A special test is needed for the -o switch within a -largs
-         --  since that is another way to specify the name of the final
-         --  executable.
+      --  A special test is needed for the -o switch within a -largs
+      --  since that is another way to specify the name of the final
+      --  executable.
 
       elsif Program_Args = Linker
         and then (Argv (1) = Switch_Character or else Argv (1) = '-')
@@ -2082,74 +2099,77 @@ package body Make is
       then
          Fail ("Switch -o not allowed within a -largs. Use -o directly.");
 
-         --  Check to see if we are reading switches after a -cargs,
-         --  -bargs or -largs switch. If yes save it.
+      --  Check to see if we are reading switches after a -cargs,
+      --  -bargs or -largs switch. If yes save it.
 
       elsif Program_Args /= None then
          Add_Switch (Argv, Program_Args);
 
-         --  If we have seen a regular switch process it
+      --  If we have seen a regular switch process it
 
       elsif Argv (1) = Switch_Character or else Argv (1) = '-' then
 
          if Argv'Length = 1 then
             Fail ("switch character cannot be followed by a blank");
 
-            --  -I-
+         --  -I-
 
          elsif Argv (2 .. Argv'Last) = "I-" then
             Opt.Look_In_Primary_Dir := False;
 
-            --  Forbid  -?-  or  -??-  where ? is any character
+         --  Forbid  -?-  or  -??-  where ? is any character
 
          elsif (Argv'Length = 3 and then Argv (3) = '-')
            or else (Argv'Length = 4 and then Argv (4) = '-')
          then
             Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
 
-            --  -Idir
+         --  -Idir
 
          elsif Argv (2) = 'I' then
             Add_Src_Search_Dir (Argv (3 .. Argv'Last));
             Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
             Add_Switch (Argv, Compiler);
             Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
+
             --  No need to pass any source dir to the binder
             --  since gnatmake call it with the -x flag
             --  (ie do not check source time stamp)
 
-            --  -aIdir (to gcc this is like a -I switch)
+         --  -aIdir (to gcc this is like a -I switch)
 
          elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aI" then
             Add_Src_Search_Dir (Argv (4 .. Argv'Last));
             Add_Switch ("-I", Argv (4 .. Argv'Last), Compiler);
 
-            --  -aOdir
+         --  -aOdir
 
          elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aO" then
             Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
             Add_Switch (Argv, Binder);
 
-            --  -aLdir (to gnatbind this is like a -aO switch)
+         --  -aLdir (to gnatbind this is like a -aO switch)
 
          elsif Argv'Length >= 3 and then Argv (2 .. 3) = "aL" then
-            Add_Ada_Lib_Search_Dir (Argv (4 .. Argv'Last));
+            Mark_Directory (Argv (4 .. Argv'Last), Ada_Lib_Dir);
+            Add_Lib_Search_Dir (Argv (4 .. Argv'Last));
             Add_Switch ("-aO", Argv (4 .. Argv'Last), Binder);
 
-            --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
+         --  -Adir (to gnatbind this is like a -aO switch, to gcc like a -I)
 
          elsif Argv (2) = 'A' then
+            Mark_Directory (Argv (3 .. Argv'Last), Ada_Lib_Dir);
             Add_Src_Search_Dir (Argv (3 .. Argv'Last));
-            Add_Ada_Lib_Search_Dir (Argv (3 .. Argv'Last));
+            Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
             Add_Switch ("-I", Argv (3 .. Argv'Last), Compiler);
             Add_Switch ("-aO", Argv (3 .. Argv'Last), Binder);
 
-            --  -Ldir
+         --  -Ldir
 
          elsif Argv (2) = 'L' then
             Add_Switch (Argv, Linker);
 
-            --  -g
+         --  -g
 
          elsif Argv (2) = 'g'
            and then (Argv'Last = 2
@@ -2158,16 +2178,17 @@ package body Make is
             Add_Switch (Argv, Compiler);
             Add_Switch (Argv, Linker);
 
-            --  -s
+         --  -s
+
          elsif Argv (2) = 's'
            and then (Argv'Last = 2)
          then
             Opt.Smart_Compilations := True;
 
-            --  By default all switches with more than one character
-            --  or one character switches which are not in 'a' .. 'z'
-            --  are passed to the compiler, unless we are dealing
-            --  with a -jnum switch or a debug switch (starts with 'd')
+         --  By default all switches with more than one character
+         --  or one character switches which are not in 'a' .. 'z'
+         --  are passed to the compiler, unless we are dealing
+         --  with a -jnum switch or a debug switch (starts with 'd')
 
          elsif Argv (2) /= 'j'
            and then Argv (2) /= 'd'
@@ -2176,13 +2197,13 @@ package body Make is
          then
             Add_Switch (Argv, Compiler);
 
-            --  All other options are handled by Scan_Switches.
+         --  All other options are handled by Scan_Switches.
 
          else
             Scan_Switches (Argv);
          end if;
 
-         --  If not a switch it must be a file name
+      --  If not a switch it must be a file name
 
       else
          File_Name_Seen := True;

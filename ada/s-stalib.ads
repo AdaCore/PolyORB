@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -84,7 +84,7 @@ package System.Standard_Library is
       C3                : Character;
       Name_Length       : Natural;
       Full_Name         : Big_String_Ptr;
-      Htable_Ptr        : Exception_Data_Ptr;
+      HTable_Ptr        : Exception_Data_Ptr;
    end record;
 
    --  Definitions for standard predefined exceptions defined in Standard.
@@ -109,7 +109,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Constraint_Error_Name'Length,
          Full_Name         => To_Ptr (Constraint_Error_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    Numeric_Error_Def : aliased Exception_Data :=
         (Handled_By_Others => False,
@@ -118,7 +118,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Numeric_Error_Name'Length,
          Full_Name         => To_Ptr (Numeric_Error_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    Program_Error_Def : aliased Exception_Data :=
         (Handled_By_Others => False,
@@ -127,7 +127,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Program_Error_Name'Length,
          Full_Name         => To_Ptr (Program_Error_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    Storage_Error_Def : aliased Exception_Data :=
         (Handled_By_Others => False,
@@ -136,7 +136,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Storage_Error_Name'Length,
          Full_Name         => To_Ptr (Storage_Error_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    Tasking_Error_Def : aliased Exception_Data :=
         (Handled_By_Others => False,
@@ -145,7 +145,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Tasking_Error_Name'Length,
          Full_Name         => To_Ptr (Tasking_Error_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    Abort_Signal_Def : aliased Exception_Data :=
         (Handled_By_Others => True,
@@ -154,7 +154,7 @@ package System.Standard_Library is
          C3                => 'a',
          Name_Length       => Abort_Signal_Name'Length,
          Full_Name         => To_Ptr (Abort_Signal_Name'Address),
-         Htable_Ptr        => null);
+         HTable_Ptr        => null);
 
    pragma Export (C, Constraint_Error_Def, "constraint_error");
    pragma Export (C, Numeric_Error_Def,    "numeric_error");

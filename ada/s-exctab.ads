@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---            Copyright (C) 1996 Free Software Foundation, Inc.             --
+--          Copyright (C) 1996-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,7 +41,7 @@ pragma Elaborate_Body;
    package SSL renames System.Standard_Library;
 
    procedure Register_Exception (X : SSL.Exception_Data_Ptr);
-   --  Register an exception in the Htable mapping
+   --  Register an exception in the hash table mapping
 
    function Internal_Exception (X : String) return SSL.Exception_Data_Ptr;
    --  Given an exception_name X, returns a pointer to the actual internal

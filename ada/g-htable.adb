@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,13 +33,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package body Gnat.Htable is
+package body GNAT.HTable is
 
    --------------------
-   --  Static_Htable --
+   --  Static_HTable --
    --------------------
 
-   package body Static_Htable is
+   package body Static_HTable is
 
       Table : array (Header_Num) of Elmt_Ptr;
 
@@ -125,13 +125,13 @@ package body Gnat.Htable is
             end loop;
          end if;
       end Remove;
-   end Static_Htable;
+   end Static_HTable;
 
    --------------------
-   --  Simple_Htable --
+   --  Simple_HTable --
    --------------------
 
-   package body Simple_Htable is
+   package body Simple_HTable is
 
       type Element_Wrapper;
       type Elmt_Ptr is access all Element_Wrapper;
@@ -145,7 +145,7 @@ package body Gnat.Htable is
       function  Next     (E : Elmt_Ptr) return Elmt_Ptr;
       function Get_Key   (E : Elmt_Ptr) return Key;
 
-      package Tab is new Static_Htable (
+      package Tab is new Static_HTable (
         Header_Num => Header_Num,
         Element    => Element_Wrapper,
         Elmt_Ptr   => Elmt_Ptr,
@@ -193,7 +193,7 @@ package body Gnat.Htable is
             return Tab.Get (K).E;
          end if;
       end Get;
-   end Simple_Htable;
+   end Simple_HTable;
 
    ----------
    -- Hash --
@@ -201,6 +201,7 @@ package body Gnat.Htable is
 
    function Hash (Key : String) return Header_Num is
       type S is mod 2**8;
+
       Size : constant S := S (Header_Num'Last - Header_Num'First + 1);
       Tmp  : S := 0;
 
@@ -208,7 +209,8 @@ package body Gnat.Htable is
       for J in Key'Range loop
          Tmp := Tmp xor S (Character'Pos (Key (J)));
       end loop;
+
       return Header_Num'First + Header_Num'Base (Tmp mod Size);
    end Hash;
 
-end Gnat.Htable;
+end GNAT.HTable;

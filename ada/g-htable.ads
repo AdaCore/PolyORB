@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,16 +33,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package Gnat.Htable is
+package GNAT.HTable is
+pragma Preelaborate (HTable);
 
    -------------------
-   -- Simple_Htable --
+   -- Simple_HTable --
    -------------------
 
-   --  A simple Hash-Table abstraction, easy to instanciate, easy to use.
-   --  The table associates one element to one key with the procedure SET.
-   --  GET retreives the Element stored for a given Key. The efficiency of
-   --  retreival is function of the size of the Table parameterized by
+   --  A simple hash table abstraction, easy to instanciate, easy to use.
+   --  The table associates one element to one key with the procedure Set.
+   --  Get retreives the Element stored for a given Key. The efficiency of
+   --  retrieval is function of the size of the Table parameterized by
    --  Header_Num and the hashing function Hash.
 
    generic
@@ -60,7 +61,7 @@ package Gnat.Htable is
       with function Hash  (F : Key)      return Header_Num;
       with function Equal (F1, F2 : Key) return Boolean;
 
-   package Simple_Htable is
+   package Simple_HTable is
 
       procedure Set (K : Key; E : Element);
       --  Associate an element with a given key. Overrides any previously
@@ -70,18 +71,18 @@ package Gnat.Htable is
       --  Returns the Element associated wtih a key or No_Element if the
       --  given key has not associated element
 
-   end Simple_Htable;
+   end Simple_HTable;
 
    -------------------
-   -- Static_Htable --
+   -- Static_HTable --
    -------------------
 
    --  A low-level Hash-Table abstraction, not as easy to instantiate as
-   --  Simple_Htable but designed to allow complete control over the
+   --  Simple_HTable but designed to allow complete control over the
    --  allocation of necessary data structures. Particularly useful when
    --  dynamic allocation is not desired. The model is that "Element"
    --  contains its own Key that can be retreived by "Get_Key". Furthermore,
-   --  "Element" provides a link that can be used by the Htable for linking
+   --  "Element" provides a link that can be used by the HTable for linking
    --   elements with same hash codes:
 
    --       Element
@@ -111,21 +112,21 @@ package Gnat.Htable is
       with procedure Set_Next (E : Elmt_Ptr; Next : Elmt_Ptr);
       with function  Next     (E : Elmt_Ptr) return Elmt_Ptr;
       --  The type must provide an internal link for the sake of the
-      --  staticness of the Htable.
+      --  staticness of the HTable.
 
       type Key is limited private;
       with function Get_Key (E : Elmt_Ptr) return Key;
       with function Hash    (F : Key)      return Header_Num;
       with function Equal   (F1, F2 : Key) return Boolean;
 
-   package Static_Htable is
+   package Static_HTable is
 
       procedure Reset;
-      --  Reset the Htable. This is only needed if the same table is reused
-      --  in a new context.
+      --  Reset the HTable. This is only needed if the same table is reused
+      --  in a new context. It removes all elements from the table.
 
       procedure Set (E : Elmt_Ptr);
-      --  Insert the element pointer in the Htable
+      --  Insert the element pointer in the HTable
 
       function  Get (K : Key) return Elmt_Ptr;
       --  Returns the latest inserted element pointer with the given Key
@@ -135,7 +136,7 @@ package Gnat.Htable is
       --  Remove the latest inserted element pointer associated with the
       --  given key if any, does nothing if none.
 
-   end Static_Htable;
+   end Static_HTable;
 
    ----------
    -- Hash --
@@ -147,4 +148,4 @@ package Gnat.Htable is
       type Header_Num is range <>;
    function Hash (Key : String) return Header_Num;
 
-end Gnat.Htable;
+end GNAT.HTable;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -121,6 +121,7 @@ procedure Krunch
    Len       : in out Natural;
    Maxlen    : Natural;
    No_Predef : Boolean);
+pragma Elaborate_Body (Krunch);
 --  The full file name is stored in Buffer (1 .. Len) on entry. The file
 --  name is crunched in place and on return Len is updated, so that the
 --  resulting krunched name is in Buffer (1 .. Len) where Len <= Maxlen.

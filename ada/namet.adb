@@ -40,6 +40,7 @@
 with Alloc;
 with Debug;    use Debug;
 with Output;   use Output;
+with Table;
 with Tree_IO;  use Tree_IO;
 with Widechar; use Widechar;
 
@@ -50,7 +51,7 @@ package body Namet is
    --  in the name entry table), we still store a NUL character at the end
    --  of every name (for convenience in interfacing to the C world).
 
-   package Name_Chars is new Table (
+   package Name_Chars is new Table.Table (
      Table_Component_Type => Character,
      Table_Index_Type     => Int,
      Table_Low_Bound      => 0,
@@ -81,7 +82,7 @@ package body Namet is
    --  This is the table that is referenced by Name_Id entries.
    --  It contains one entry for each unique name in the table.
 
-   package Name_Entries is new Table (
+   package Name_Entries is new Table.Table (
      Table_Component_Type => Name_Entry,
      Table_Index_Type     => Name_Id,
      Table_Low_Bound      => First_Name_Id,

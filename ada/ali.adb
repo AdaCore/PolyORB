@@ -889,9 +889,10 @@ package body ALI is
          With_Loop : while C = 'W' loop
             Checkc (' ');
             Withs.Increment_Last;
-            Withs.Table (Withs.Last).Uname         := Get_Name;
-            Withs.Table (Withs.Last).Elaborate     := False;
-            Withs.Table (Withs.Last).Elaborate_All := False;
+            Withs.Table (Withs.Last).Uname              := Get_Name;
+            Withs.Table (Withs.Last).Elaborate          := False;
+            Withs.Table (Withs.Last).Elaborate_All      := False;
+            Withs.Table (Withs.Last).Elab_All_Desirable := False;
 
             --  Generic case
 
@@ -915,10 +916,24 @@ package body ALI is
 
                      if At_End_Of_Field then
                         Withs.Table (Withs.Last).Elaborate := True;
-                     else
-                        Checkc ('A');
+
+                     elsif Nextc = 'A' then
+                        P := P + 1;
                         Check_At_End_Of_Field;
                         Withs.Table (Withs.Last).Elaborate_All := True;
+
+                     else
+                        Checkc ('D');
+                        Check_At_End_Of_Field;
+
+                        --  ED is ignored if full elaboration semantics forced
+                        --  and also in horrible elaboration order mode.
+
+                        if not Full_Elaboration_Semantics
+                          and then not Horrible_Elab_Order
+                        then
+                           Withs.Table (Withs.Last).Elab_All_Desirable := True;
+                        end if;
                      end if;
                   end if;
                end loop;

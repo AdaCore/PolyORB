@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,157 +33,166 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types; use Types;
-
-generic
-   type Table_Component_Type is private;
-   type Table_Index_Type     is range <>;
-
-   Table_Low_Bound  : Table_Index_Type;
-   Table_Initial    : Pos;
-   Table_Increment  : Nat;
-   Table_Name       : String;
-
-package Table is
-
 --  This package provides an implementation of dynamically resizable one
 --  dimensional arrays. The idea is to mimic the normal Ada semantics for
 --  arrays as closely as possible with the one additional capability of
 --  dynamically modifying the value of the Last attribute.
 
-   --  Table_Component_Type and Table_Index_Type specify the type of the array,
-   --  Table_Low_Bound is the lower bound. Index_type must be an integer type.
-   --  The effect is roughly to declare:
+with Types; use Types;
 
-   --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
+package Table is
+pragma Elaborate_Body (Table);
 
-   --  The Table_Initial values controls the allocation of the table when it
-   --  is first allocated, either by default, or by an explicit Init call.
-   --  The value used is Opt.Table_Factor * Table_Initial.
+   --  Note. We make the outer Table non-generic, to avoid having generic
+   --  library packages in the compiler, which caused a bootstrap path
+   --  problem from 3.09 to 3.10.
 
-   --  The Table_Increment value controls the amount of increase, if the
-   --  table has to be increased in size. The value given is a percentage
-   --  value (e.g. 100 = increase table size by 100%, i.e. double it).
+   generic
+      type Table_Component_Type is private;
+      type Table_Index_Type     is range <>;
 
-   --  The Table_Name parameter is simply use in debug output messages it has
-   --  no other usage, and is not referenced in non-debugging mode.
+      Table_Low_Bound  : Table_Index_Type;
+      Table_Initial    : Pos;
+      Table_Increment  : Nat;
+      Table_Name       : String;
 
-   --  The Last and Set_Last subprograms provide control over the current
-   --  logical allocation. They are quite efficient, so they can be used
-   --  freely (expensive reallocation occurs only at major granularity
-   --  chunks controlled by the allocation parameters).
+   package Table is
 
-   --  Note: we do not make the table components aliased, since this would
-   --  restict the use of table for discriminated types. If it is necessary
-   --  to take the access of a table element, use Unrestricted_Access.
+      --  Table_Component_Type and Table_Index_Type specify the type of the
+      --  array, Table_Low_Bound is the lower bound. Index_type must be an
+      --  integer type. The effect is roughly to declare:
 
-   type Table_Type is
-     array (Table_Index_Type range <>) of Table_Component_Type;
+      --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
 
-   subtype Big_Table_Type is
-     Table_Type (Table_Low_Bound .. Table_Index_Type'Last);
-   --  We work with pointers to a bogus array type that is constrained
-   --  with the maximum possible range bound. This means that the pointer
-   --  is a thin pointer, which is more efficient. Since subscript checks
-   --  in any case must be on the logical, rather than physical bounds,
-   --  safety is not compromised by this approach.
+      --  The Table_Initial values controls the allocation of the table when
+      --  it is first allocated, either by default, or by an explicit Init
+      --  call. The value used is Opt.Table_Factor * Table_Initial.
 
-   type Table_Ptr is access all Big_Table_Type;
-   --  The table is actually represented as a pointer to allow reallocation
+      --  The Table_Increment value controls the amount of increase, if the
+      --  table has to be increased in size. The value given is a percentage
+      --  value (e.g. 100 = increase table size by 100%, i.e. double it).
 
-   Table : aliased Table_Ptr := null;
-   --  The table itself. The lower bound is the value of Low_Bound. Logically
-   --  the upper bound is the current value of Last (although the actual size
-   --  of the allocated table may be larger than this). The program may only
-   --  access and modify Table entries in the range First .. Last.
+      --  The Table_Name parameter is simply use in debug output messages it
+      --  has no other usage, and is not referenced in non-debugging mode.
 
-   Locked : Boolean := False;
-   --  Table expansion is permitted only if this switch is set to False. A
-   --  client may set Locked to True, in which case any attempt to expand
-   --  the table will cause an assertion failure. Note that while a table
-   --  is locked, its address in memory remains fixed and unchanging. This
-   --  feature is used to control table expansion during Gigi processing.
-   --  Gigi assumes that tables other than the Uint and Ureal tables do
-   --  not move during processing, which means that they cannot be expanded.
-   --  The Locked flag is used to enforce this restriction.
+      --  The Last and Set_Last subprograms provide control over the current
+      --  logical allocation. They are quite efficient, so they can be used
+      --  freely (expensive reallocation occurs only at major granularity
+      --  chunks controlled by the allocation parameters).
 
-   procedure Init;
-   --  This procedure allocates a new table of size Initial (freeing any
-   --  previously allocated larger table). It is not necessary to call
-   --  Init when a table is first instantiated (since the instantiation does
-   --  the same initialization steps). However, it is harmless to do so, and
-   --  Init is convenient in reestablishing a table for new use.
+      --  Note: we do not make the table components aliased, since this would
+      --  restict the use of table for discriminated types. If it is necessary
+      --  to take the access of a table element, use Unrestricted_Access.
 
-   function Last return Table_Index_Type;
-   pragma Inline (Last);
-   --  Returns the current value of the last used entry in the table, which
-   --  can then be used as a subscript for Table. Note that the only way to
-   --  modify Last is to call the Set_Last procedure. Last must always be
-   --  used to determine the logically last entry.
+      type Table_Type is
+        array (Table_Index_Type range <>) of Table_Component_Type;
 
-   procedure Release;
-   --  Storage is allocated in chunks according to the values given in the
-   --  Initial and Increment parameters. A call to Release releases all
-   --  storage that is allocated, but is not logically part of the current
-   --  array value. Current array values are not affected by this call.
+      subtype Big_Table_Type is
+        Table_Type (Table_Low_Bound .. Table_Index_Type'Last);
+      --  We work with pointers to a bogus array type that is constrained
+      --  with the maximum possible range bound. This means that the pointer
+      --  is a thin pointer, which is more efficient. Since subscript checks
+      --  in any case must be on the logical, rather than physical bounds,
+      --  safety is not compromised by this approach.
 
-   First : constant Table_Index_Type := Table_Low_Bound;
-   --  Export First as synonym for Low_Bound (to be parallel with use of Last)
+      type Table_Ptr is access all Big_Table_Type;
+      --  The table is actually represented as a pointer to allow reallocation
 
-   procedure Set_Last (New_Val : Table_Index_Type);
-   pragma Inline (Set_Last);
-   --  This procedure sets Last to the indicated value. If necessary the
-   --  table is reallocated to accomodate the new value (i.e. on return
-   --  the allocated table has an upper bound of at least Last). If Set_Last
-   --  reduces the size of the table, then logically entries are removed from
-   --  the table. If Set_Last increases the size of the table, then new entries
-   --  are logically added to the table.
+      Table : aliased Table_Ptr := null;
+      --  The table itself. The lower bound is the value of Low_Bound.
+      --  Logically the upper bound is the current value of Last (although
+      --  the actual size of the allocated table may be larger than this).
+      --  The program may only access and modify Table entries in the range
+      --  First .. Last.
 
-   procedure Increment_Last;
-   pragma Inline (Increment_Last);
-   --  Adds 1 to Last (same as Set_Last (Last + 1).
+      Locked : Boolean := False;
+      --  Table expansion is permitted only if this switch is set to False. A
+      --  client may set Locked to True, in which case any attempt to expand
+      --  the table will cause an assertion failure. Note that while a table
+      --  is locked, its address in memory remains fixed and unchanging. This
+      --  feature is used to control table expansion during Gigi processing.
+      --  Gigi assumes that tables other than the Uint and Ureal tables do
+      --  not move during processing, which means that they cannot be expanded.
+      --  The Locked flag is used to enforce this restriction.
 
-   procedure Decrement_Last;
-   pragma Inline (Decrement_Last);
-   --  Subtracts 1 from Last (same as Set_Last (Last - 1).
+      procedure Init;
+      --  This procedure allocates a new table of size Initial (freeing any
+      --  previously allocated larger table). It is not necessary to call
+      --  Init when a table is first instantiated (since the instantiation does
+      --  the same initialization steps). However, it is harmless to do so, and
+      --  Init is convenient in reestablishing a table for new use.
 
-   function Allocate (Num : Int := 1) return Table_Index_Type;
-   pragma Inline (Allocate);
-   --  Adds Num to Last, and returns the old value of Last + 1.
+      function Last return Table_Index_Type;
+      pragma Inline (Last);
+      --  Returns the current value of the last used entry in the table, which
+      --  can then be used as a subscript for Table. Note that the only way to
+      --  modify Last is to call the Set_Last procedure. Last must always be
+      --  used to determine the logically last entry.
 
-   type Saved_Table is private;
-   --  Type used for Save/Restore subprograms
+      procedure Release;
+      --  Storage is allocated in chunks according to the values given in the
+      --  Initial and Increment parameters. A call to Release releases all
+      --  storage that is allocated, but is not logically part of the current
+      --  array value. Current array values are not affected by this call.
 
-   function Save return Saved_Table;
-   --  Resets table to empty, but saves old contents of table in returned
-   --  value, for possible later restoration by a call to Restore.
+      First : constant Table_Index_Type := Table_Low_Bound;
+      --  Export First as synonym for Low_Bound (parallel with use of Last)
 
-   procedure Restore (T : Saved_Table);
-   --  Given a Saved_Table value returned by a prior call to Save, restores
-   --  the table to the state it was in at the time of the Save call.
+      procedure Set_Last (New_Val : Table_Index_Type);
+      pragma Inline (Set_Last);
+      --  This procedure sets Last to the indicated value. If necessary the
+      --  table is reallocated to accomodate the new value (i.e. on return
+      --  the allocated table has an upper bound of at least Last). If Set_Last
+      --  reduces the size of the table, then logically entries are removed
+      --  from the table. If Set_Last increases the size of the table, then
+      --  new entries are logically added to the table.
 
-   procedure Tree_Write;
-   --  Writes out contents of table using Tree_IO
+      procedure Increment_Last;
+      pragma Inline (Increment_Last);
+      --  Adds 1 to Last (same as Set_Last (Last + 1).
 
-   procedure Tree_Read;
-   --  Initializes table by reading contents previously written
-   --  with the Tree_Write call (also using Tree_IO)
+      procedure Decrement_Last;
+      pragma Inline (Decrement_Last);
+      --  Subtracts 1 from Last (same as Set_Last (Last - 1).
 
-private
+      function Allocate (Num : Int := 1) return Table_Index_Type;
+      pragma Inline (Allocate);
+      --  Adds Num to Last, and returns the old value of Last + 1.
 
-   Last_Val : Int;
-   --  Current value of Last. Note that we declare this in the private part
-   --  because we don't want the client to modify Last except through one of
-   --  the official interfaces (since a modification to Last may require a
-   --  reallocation of the table).
+      type Saved_Table is private;
+      --  Type used for Save/Restore subprograms
 
-   Max : Int;
-   --  Subscript of the maximum entry in the currently allocated table
+      function Save return Saved_Table;
+      --  Resets table to empty, but saves old contents of table in returned
+      --  value, for possible later restoration by a call to Restore.
 
-   type Saved_Table is record
+      procedure Restore (T : Saved_Table);
+      --  Given a Saved_Table value returned by a prior call to Save, restores
+      --  the table to the state it was in at the time of the Save call.
+
+      procedure Tree_Write;
+      --  Writes out contents of table using Tree_IO
+
+      procedure Tree_Read;
+      --  Initializes table by reading contents previously written
+      --  with the Tree_Write call (also using Tree_IO)
+
+   private
+
       Last_Val : Int;
-      Max      : Int;
-      Table    : Table_Ptr;
-   end record;
+      --  Current value of Last. Note that we declare this in the private part
+      --  because we don't want the client to modify Last except through one of
+      --  the official interfaces (since a modification to Last may require a
+      --  reallocation of the table).
 
+      Max : Int;
+      --  Subscript of the maximum entry in the currently allocated table
+
+      type Saved_Table is record
+         Last_Val : Int;
+         Max      : Int;
+         Table    : Table_Ptr;
+      end record;
+
+   end Table;
 end Table;
