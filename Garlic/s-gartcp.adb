@@ -255,7 +255,7 @@ package body System.Garlic.TCP is
    ------------
 
    function Create return Protocol_Access is
-      Self : Protocol_Access := new TCP_Protocol;
+      Self : constant Protocol_Access := new TCP_Protocol;
    begin
       Register_Protocol (Self);
       return Self;

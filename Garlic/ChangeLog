@@ -1,3 +1,7 @@
+Sat Nov 23 16:57:56 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Added missing constant.
+
 Thu Nov 21 19:45:25 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gartcp.adb: Protect against very early internal error which
