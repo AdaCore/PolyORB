@@ -297,10 +297,21 @@ package body XE_Check is
       Sdep.Init;
       Source.Init;
 
-      Load_Units (Main_Subprogram);
-      for U in CUnit.First .. CUnit.Last loop
-         Load_Units (CUnit.Table (U).CUname);
-      end loop;
+      declare
+         Old_Check_Object_Consistency : Boolean
+           := Opt.Check_Object_Consistency;
+      begin
+         --  Supress object consistency because of Ada libraries. Anyway,
+         --  we know that the application is consistent. Somehow, it is an
+         --  optimization.
+
+         Opt.Check_Object_Consistency := False;
+         Load_Units (Main_Subprogram);
+         for U in CUnit.First .. CUnit.Last loop
+            Load_Units (CUnit.Table (U).CUname);
+         end loop;
+         Opt.Check_Object_Consistency := Old_Check_Object_Consistency;
+      end;
 
       --  Set configured unit name key to No_Ali_Id.       (1)
 

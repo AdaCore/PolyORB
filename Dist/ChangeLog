@@ -1,3 +1,12 @@
+1998-06-12  Laurent Pautet <pautet@dorine.enst.fr>
+
+	* xe_stubs.ads, xe_stubs.adb: Spec *and* body of a RCI are now
+	marked as RCI in an ali file. This new behaviour arose a
+	bug in the version check code.
+
+	* xe_check.adb: We reload ali files after a first step of
+	compilation. Unfortunatly, this reload was also done on Ada lib.
+
 1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make-ada-dir: Updated.

@@ -499,7 +499,7 @@ package body XE_Stubs is
       Stdout := Building_Script;
       Create (FD, Main_File);
 
-      --  Force the RCI receivers to be present on the partition.
+      --  First pass to map RCI receivers on the partition.
       UID := Partitions.Table (PID).First_Unit;
       while UID /= Null_CUID loop
          Set_PID (Unit.Table (CUnit.Table (UID).My_Unit).Uname,
@@ -511,7 +511,7 @@ package body XE_Stubs is
       --  Need the RCI callers to compare their version with the
       --  receiver version.
 
-      --  First pass to 'with' the RCI callers.
+      --  Second pass to 'with' the RCI callers.
       for U in CUnit.First .. CUnit.Last loop
          if Unit.Table (CUnit.Table (U).My_Unit).RCI then
             if CUnit.Table (U).Partition /= PID and then
@@ -570,6 +570,11 @@ package body XE_Stubs is
          --  Checks perform on all the rci caller stubs.
 
          for U in CUnit.First .. CUnit.Last loop
+
+            --  Check if unit is RCI and if it is in the
+            --  partition closure and if the unit is configured
+            --  on another partition.
+
             if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
               CUnit.Table (U).Partition /= PID and then
               Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
@@ -952,14 +957,12 @@ package body XE_Stubs is
                      --  partition). Note that an unit name key is
                      --  a partition id if unit is RCI.
                      if Get_PID (Unit.Table (K).Uname) /= PID then
-                        Get_Name_String (Unit.Table (K).Uname);
                         Set_PID (Unit.Table (K).Uname, PID);
                      end if;
 
                      --  No need to search deeper. This unit is not
                      --  on this partition.
                      Continue := False;
-                     exit;
 
                   elsif Get_PID (Unit.Table (K).Uname) = PID then
 
