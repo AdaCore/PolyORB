@@ -1,5 +1,8 @@
 Mon Aug 12 16:13:54 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garthi.ads: Fixed (it won't compile (from R. Dewar) in the
+	  newest GNAT release).
+
 	* s-gaphlo.ads: Use pointers instead of controlled objects for
 	  efficiency.
 

@@ -92,7 +92,6 @@ package System.Garlic.Thin is
    --  Access to host entry.
 
    type Caddr_T is new Strings.chars_ptr;
-   pragma Convention (C, Caddr_T);
    --  Type Caddr_T is in fact a (char *).
 
    type Iovec is record
