@@ -50,8 +50,8 @@ s-gafino.o\
 s-garthi.o\
 s-gaphlo.o\
 s-gaosli.o\
+s-garcac.o\
 s-garcon.o\
-s-garser.o\
 s-gardeb.o\
 s-garfil.o\
 s-garhea.o\
@@ -61,6 +61,7 @@ s-garela.o\
 s-garpri.o\
 s-garpro.o\
 s-garrep.o\
+s-garser.o\
 s-garsta.o\
 s-gartra.o\
 s-garloo.o\

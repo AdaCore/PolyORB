@@ -54,8 +54,8 @@ private package System.RPC.Util is
    --  may occur in case of cancellation.
 
    package Receiver_Map is
-      new System.Garlic.Caching (Index_Type => Partition_ID,
-                                 Data_Type  => RPC_Receiver,
-                                 Unset      => null);
+      new System.Garlic.Caching.Cache (Index_Type => Partition_ID,
+                                       Data_Type  => RPC_Receiver,
+                                       Unset      => null);
 
 end System.RPC.Util;

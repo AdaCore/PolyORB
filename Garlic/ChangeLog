@@ -1,3 +1,32 @@
+Wed Sep 17 18:33:27 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Added a new target s-garcac.o
+
+	* s-rpcuti.ads: Added Cache to the generic package name
+
+	* s-rpc.adb: Removed useless dependency on System.Garlic.Caching
+
+	* s-garcac.ads: Put the generic package into a sub-package to
+	  allow generation of an ALI file and solve elaboration
+	  problems.
+
+	* s-garcac.adb: Ditto
+
+	* s-garpoi.adb: Replaced Unchecked_Conversion by
+	  Ada.Unchecked_Conversion.
+
+Wed Sep 17 17:03:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garnam.adb: Use type Interfaces.Unsigned_32 instead of
+	  Interfaces.C.Unsigned_Long. Fixes bug on Alpha.
+
+	* s-garthi.ads: Ditto
+
+Wed Sep 17 15:11:39 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garrem.adb: Recognize special host names (imported from shell) 
+	  that must not be resolved by the name resolver.
+
 Sun Sep 14 15:55:58 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Set System.Standard_Library.Local_Partition_ID as

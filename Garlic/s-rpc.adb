@@ -36,7 +36,6 @@
 with Ada.Dynamic_Priorities;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Caching;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Termination;

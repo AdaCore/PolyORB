@@ -36,16 +36,16 @@
 with Interfaces.C.Strings;
 with System;
 
-with Unchecked_Conversion;
+with Ada.Unchecked_Conversion;
 
 package body System.Garlic.Pointers is
 
    type Addr is mod Memory_Size;
 
-   function To_Pointer is new Unchecked_Conversion (Addr,      Pointer);
-   function To_Addr    is new Unchecked_Conversion (Pointer,   Addr);
-   function To_Addr    is new Unchecked_Conversion (ptrdiff_t, Addr);
-   function To_Ptrdiff is new Unchecked_Conversion (Addr,      ptrdiff_t);
+   function To_Pointer is new Ada.Unchecked_Conversion (Addr,      Pointer);
+   function To_Addr    is new Ada.Unchecked_Conversion (Pointer,   Addr);
+   function To_Addr    is new Ada.Unchecked_Conversion (ptrdiff_t, Addr);
+   function To_Ptrdiff is new Ada.Unchecked_Conversion (Addr,      ptrdiff_t);
 
    use type ptrdiff_t;
 
@@ -201,7 +201,7 @@ package body System.Garlic.Pointers is
             subtype A is Element_Array (L .. H);
 
             type PA is access A;
-            function To_PA is new Unchecked_Conversion (Pointer, PA);
+            function To_PA is new Ada.Unchecked_Conversion (Pointer, PA);
 
          begin
             return To_PA (Ref).all;
@@ -244,7 +244,7 @@ package body System.Garlic.Pointers is
             subtype A is Element_Array (L .. H);
 
             type PA is access A;
-            function To_PA is new Unchecked_Conversion (Pointer, PA);
+            function To_PA is new Ada.Unchecked_Conversion (Pointer, PA);
 
          begin
             return To_PA (Ref).all;
