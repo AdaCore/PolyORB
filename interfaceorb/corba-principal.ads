@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
+--
+--  not scurrently supported
+--  only basic management functions are implemented
+--
+
 package CORBA.Principal is
 
    type Object is private;
@@ -51,6 +57,9 @@ private
          Dummy : Integer;
       end record;
 
+
+   --  types used for management with any
+   --  see corba.ads for comments on any implementation
    type C_Principal is new CORBA.Content with
      record
         Value : Object;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--
+--  First see comments at the beginning of dynamic-proxy.ads
+--
 
 with CORBA;
 with CORBA.NVList;
@@ -67,18 +70,18 @@ package body Dynamic_Proxy is
       Self.Op_Name := Op;
       Self.Op_Type := Ot;
       Self.Args := Args;
-      NVList.Revert (Self.Args);
+--      NVList.Revert (Self.Args);
       Self.Private_Result := Res;
 
-      --  to fix
+      --  to fix : exceptions are currently not supported in DII
       Set_User_Exceptions (Self, False);
 
    end Init;
 
 
-   ------------------
-   --  Get_Result  --
-   ------------------
+   ---------------------------
+   --  Get_Function_Result  --
+   ---------------------------
 
    function Get_Function_Result
      (Self : in Operation_Proxy)
@@ -87,6 +90,11 @@ package body Dynamic_Proxy is
    begin
       return Self.Private_Result;
    end Get_Function_Result;
+
+
+   ----------------------------
+   --  Get_Procedure_Result  --
+   ----------------------------
 
    function Get_Procedure_Result
      (Self : in Operation_Proxy)
@@ -112,8 +120,6 @@ package body Dynamic_Proxy is
    ------------------
    --  Align_Size  --
    ------------------
-
-
 
    function Align_Size
      (Self    : in Operation_Proxy;
@@ -154,6 +160,8 @@ package body Dynamic_Proxy is
    begin
       pragma Debug (O ("entering Marshal_Arguments"));
       --  assumes that the arguments are in a correct order in the list
+      --  (the spec allows to suppose that the client has built a list
+      --  of args in the right order)
       NVList.Start (It, Self.Args);
       while not NVList.Done (It) loop
          Nv := NVList.Get (It);
@@ -177,36 +185,18 @@ package body Dynamic_Proxy is
      (Self        : in out Operation_Proxy;
       GIOP_Client : in out AdaBroker.GIOP_C.Object)
    is
-      A : Any;
+      Tc : TypeCode.Object;
    begin
       pragma Debug (O ("entering Unmarshal_Arguments"));
       case Self.Op_Type is
          when Operation_Function =>
-            pragma Debug (O ("operation is a function"));
-            Unmarshall_To_Any (GIOP_Client,
-                               Self.Private_Result.Argument);
-
-            if (Self.Op_Name = To_CORBA_String ("inverseStruct")) then
-               declare
-                  Ma : Any := Self.Private_Result.Argument;
-                  Tc : TypeCode.Object := Get_Type (Ma);
-                  Mb1 : Any := TypeCode.Parameter (Tc, 0);
-                  Mb2 : Any := TypeCode.Parameter (Tc, 1);
-                  A : CORBA.Boolean := From_Any (Mb1);
-                  B : CORBA.Long := From_Any (Mb2);
-               begin
-                  null;
-                  if (TypeCode.Kind (Tc) /= Tk_Struct) then
-                     pragma Debug (O ("pb on tk_struct"));
-                     null;
-                  end if;
-                  pragma Debug (O (" i read : "
-                                   & A'Img & " " & B'Img));
-               end;
-            end if;
+            --  only one element to unmarshall, save in Private_Result
+            Tc := Get_Type (Self.Private_Result.Argument);
+            Unmarshall_To_Any (GIOP_Client, Self.Private_Result.Argument, Tc);
          when Operation_Procedure =>
-            pragma Debug (O ("operation is a procedure"));
+            --  a list of elements to unmarshall, saved in the args NVList
             declare
+               A  : Any;
                It : CORBA.NVList.Iterator;
                Nv : CORBA.NamedValue;
             begin
@@ -219,8 +209,8 @@ package body Dynamic_Proxy is
                      pragma Debug
                        (O ("unmarshalling "
                            & CORBA.To_Standard_String (Nv.Name)));
-                     Unmarshall_To_Any (GIOP_Client,
-                                        Nv.Argument);
+                     Tc := Get_Type (Nv.Argument);
+                     Unmarshall_To_Any (GIOP_Client, A, Tc);
                      CORBA.NVList.Set_Argument (It, A);
                   end if;
                   CORBA.NVList.Next (It);
@@ -245,141 +235,236 @@ package body Dynamic_Proxy is
    begin
       pragma Debug (O ("entering Align_From_Any"));
       case Tck is
+         --  we call AdaBroker.NetBufferedStream.Align_Size which is
+         --  able to compute alignement for all basic types (overriden)
          when Tk_Boolean =>
+            --  for basic types (that have a well-known size), we dont need
+            --  to look at their actual value
             declare
-               Tmp : CORBA.Boolean := From_Any (A);
+               Tmp : CORBA.Boolean := True;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Char =>
             declare
-               Tmp : CORBA.Char := From_Any (A);
+               Tmp : CORBA.Char := 'A';
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Short =>
             declare
-               Tmp : CORBA.Short := From_Any (A);
+               Tmp : CORBA.Short := 0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Ushort =>
             declare
-               Tmp : CORBA.Unsigned_Short := From_Any (A);
+               Tmp : CORBA.Unsigned_Short := 0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Long =>
             declare
-               Tmp : CORBA.Long := From_Any (A);
+               Tmp : CORBA.Long := 0;
             begin
-               pragma Debug (O ("align size for tk_long"));
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Ulong =>
             declare
-               Tmp : CORBA.Unsigned_Long := From_Any (A);
+               Tmp : CORBA.Unsigned_Long := 0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Float =>
             declare
-               Tmp : CORBA.Float := From_Any (A);
+               Tmp : CORBA.Float := 0.0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Double =>
             declare
-               Tmp : CORBA.Double := From_Any (A);
+               Tmp : CORBA.Double := 0.0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_Octet =>
             declare
-               Tmp : CORBA.Octet := From_Any (A);
+               Tmp : CORBA.Octet := 0;
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
          when Tk_String =>
+            --  this type has an unknown size, so we look at its actual
+            --  value
             declare
                Tmp : CORBA.String := From_Any (A);
             begin
                S_Tmp :=
                  AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
             end;
-         when Tk_Union =>
-            --  the type code contains a list of 2 anys
-            --  the first one acontains the discrimant
-            --  the second contains the value
-            declare
-               Discriminant : Any := TypeCode.Parameter (Tc, 0);
-               Actual_Value : Any := TypeCode.Parameter (Tc, 1);
-            begin
-               S_Tmp := Align_From_Any (Discriminant, S_Tmp);
-               S_Tmp := Align_From_Any (Actual_Value, S_Tmp);
-            end;
-         when Tk_Enum =>
-            declare
-               Actual_Value : Any := TypeCode.Parameter (Tc, 0);
-            begin
-               S_Tmp := Align_From_Any (Actual_Value, S_Tmp);
-            end;
          when Tk_Struct =>
-            --  the type code contains a list of any
-            --  which contain the members of the struct
+            --  to be able to use recursion, we make an any from each
+            --  member (which may be of a complex type as well) and we
+            --  call recursively this function with the anyfied member
+            --  as the argument
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               Nb_Members   : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 1) / 2;
+               Tc_Mb : TypeCode.Object;
             begin
                pragma Debug (O ("align size for tk_struct"));
                for I in 0 .. Nb_Members - 1 loop
-                  S_Tmp := Align_From_Any (TypeCode.Parameter (Tc, I), S_Tmp);
+                  declare
+                     Member : Any;
+                  begin
+                     Tc_Mb := TypeCode.From_Any
+                       (TypeCode.Parameter (Tc, 2 * (I + 1)));
+                     Member :=
+                       Get_Any_Agregate_Member (A, Tc_Mb, I);
+                     S_Tmp := Align_From_Any (Member, S_Tmp);
+                  end;
                end loop;
             end;
-         when Tk_Sequence =>
-            --  same for bounded or unbounded sequences
+         when Tk_Union =>
+            --  first get and align discriminant
+            --  then find out in which case we are to find the type of
+            --  the actual value, then align it recusively
+            pragma Debug (O ("aligning size for an union"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               --  nb_member gives the number of cases in the union
+               Nb_Members : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 2) / 3;
+               Tc_Discriminant, Tc_Member : TypeCode.Object;
+               Discriminant, Member, Label : Any;
+               Cpt : CORBA.Long := 0;  --  counter
+               Tc_Other_Cpt : CORBA.Long := -1;  -- counter memory
+               --  others_any is a special value for the switch in the
+               --  union that corresponds to the 'others' case
+               --  see CORBA 2.2 spec chap 8.7.1
+               Others_Any : Any := To_Any (CORBA.Octet (0));
             begin
-               pragma Debug (O ("align size for tk_sequence"));
-               --  the first element is actually the number of real elements
-               for I in 0 .. Nb_Members - 1 loop
-                  S_Tmp := Align_From_Any (TypeCode.Parameter (Tc, I), S_Tmp);
+               --  get the type of the discriminant : we don't check if
+               --  it is an authorized one
+               Tc_Discriminant :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 1));
+               --  get the value of the discriminant
+               Discriminant :=
+                 Get_Any_Agregate_Member (A, Tc_Discriminant, 0);
+               --  align the discriminant (recursively, also this should
+               --  not be necessary if it is of an authorized type)
+               S_Tmp := Align_From_Any (Discriminant, S_Tmp);
+               --  find out the type of the actual value, by scanning
+               --  all the defined label values
+               while Cpt < Nb_Members loop
+                  --  get label value
+                  Label := TypeCode.Parameter (Tc, 3 * Cpt + 2);
+                  --  compare it to the discriminant
+                  if Any_Equal (Label, Discriminant) then
+                     --  if equal, exit the loop, cpt will tell us where
+                     --  to find the corresponding typecode for the actual
+                     --  value carried in the union
+                     exit;
+                  end if;
+                  --  save 'others' case position (in case we get no match)
+                  if Any_Equal (Label, Others_Any) then
+                     Tc_Other_Cpt := Cpt;  -- positive or 0
+                  end if;
+                  Cpt := Cpt + 1;
+                  --  keep on looping...
+               end loop;
+               if Cpt = Nb_Members then
+                  --  it means that we got no match, so we check if there was
+                  --  was an 'others' label found
+                  if Tc_Other_Cpt >= 0 then --  if there was one
+                     pragma Debug (O ("use of 'others' case"));
+                     Cpt := Tc_Other_Cpt; --  then we use it
+                  else  --  else we have a problem
+                     --  it means that we found no match for the dicriminant
+                     --  value, and the union has no 'others' case defined
+                     raise CORBA.Adabroker_DII_Union_Interpretation_Error;
+                  end if;
+               end if;
+               --  get the type code of the actual value
+               Tc_Member := TypeCode.From_Any
+                 (TypeCode.Parameter (Tc, 3 * Cpt + 4));
+               --  get and align the actual value recursively
+               Member :=
+                 Get_Any_Agregate_Member (A, Tc_Member, 1);
+               S_Tmp := Align_From_Any (Member, S_Tmp);
+            end;
+         when Tk_Enum =>
+            pragma Debug (O ("aligning size for an enum"));
+            declare
+               --  enums are coded as unsigned long in any
+               Tmp : CORBA.Unsigned_Long := 0;
+            begin
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Tmp, S_Tmp);
+            end;
+         when Tk_Sequence =>
+            pragma Debug (O ("aligning size for a sequence"));
+            declare
+               --  get the type of the elements of the sequence
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               --  get the number of elements in the sequence (stored in A)
+               N : CORBA.Long := Any_Agregate_Size (A);
+               Elt : Any;
+            begin
+               --  first the size (that will be sent too)
+               S_Tmp :=
+                 AdaBroker.NetBufferedStream.Align_Size (Unsigned_Long (N),
+                                                         S_Tmp);
+               --  then the elements
+               --  BEWARE : although all the elements are of the same type,
+               --  we have to align all of them one by one (and not just align
+               --  N times one of them to save time), because elements of same
+               --  type can have different alignement (think of unions)
+               for I in 0 .. N - 1 loop
+                  --  get into an any each element (possibly complex)
+                  Elt := Get_Any_Agregate_Member (A, Elts_Type, I);
+                  --  align it recursively
+                  S_Tmp := Align_From_Any (Elt, S_Tmp);
                end loop;
             end;
          when Tk_Array =>
-            --  the typecode contains a list of any
-            --  which  contain the values in the array
+            pragma Debug (O ("aligning size for an array"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               --  elements type
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               --  number of elements
+               N : CORBA.Unsigned_Long :=
+                 From_Any (TypeCode.Parameter (Tc, 1));
+               Elt : Any;
             begin
-               pragma Debug (O ("align size for tk_array; nbm = "
-                                & Nb_Members'Img));
-               for I in 0 .. Nb_Members - 1 loop
-                  S_Tmp := Align_From_Any (TypeCode.Parameter (Tc, I), S_Tmp);
+               for I in 0 .. N - 1 loop
+                  --  get and align each element
+                  Elt :=
+                    Get_Any_Agregate_Member (A, Elts_Type, CORBA.Long (I));
+                  S_Tmp := Align_From_Any (Elt, S_Tmp);
                end loop;
             end;
          when Tk_Objref =>
             declare
                Tmp : CORBA.Object.Ref := CORBA.Object.From_Any (A);
             begin
-               pragma Debug (O ("align size for tk_objref"));
+               pragma Debug (O ("aligning size for tk_objref"));
                S_Tmp := CORBA.Object.OmniORB.Align_Size (Tmp, S_Tmp);
             end;
-         when Tk_Any =>
-            null;
-            --  ?
          when others =>
-            --  should never be reached ?
-            null;
+            --  unsupported : typecode, principal
+            --  not in CORBA 2.0 : tk_except, tk_alias
+            raise CORBA.AdaBroker_DII_Unsupported_Type;
       end case;
       return S_Tmp;
    end Align_From_Any;
@@ -396,8 +481,12 @@ package body Dynamic_Proxy is
       Tc    : TypeCode.Object := Get_Type (A);
       Tck   : TCKind := TypeCode.Kind (Tc);
    begin
+      --  basically the same structure than align_from_any
+      --  so redundant comments were not reproduced here
       case Tck is
          when Tk_Boolean =>
+            --  contrary to align_size, we obviously need to get the
+            --  actual value for basic types to marshall it
             declare
                Tmp : CORBA.Boolean := From_Any (A);
             begin
@@ -413,7 +502,6 @@ package body Dynamic_Proxy is
             declare
                Tmp : CORBA.Short := From_Any (A);
             begin
-               pragma Debug (O ("marshalling a Short"));
                AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
             end;
          when Tk_Ushort =>
@@ -426,7 +514,6 @@ package body Dynamic_Proxy is
             declare
                Tmp : CORBA.Long := From_Any (A);
             begin
-               pragma Debug (O ("marshalling a Long"));
                AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
             end;
          when Tk_Ulong =>
@@ -459,73 +546,119 @@ package body Dynamic_Proxy is
             begin
                AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
             end;
-         when Tk_Union =>
-            --  the type code contains a list of 2 anys
-            --  the first one acontains the discriminant
-            --  the second contains the value
-            declare
-               Actual_Value : CORBA.Any := TypeCode.Parameter (Tc, 1);
-               Discriminant : CORBA.Any := TypeCode.Parameter (Tc, 0);
-            begin
-               pragma Debug (O ("marshalling tk_union, tc -> " &
-                                TypeCode.Param_Count (Tc)'Img &
-                                " members"));
-               Marshall_From_Any (Discriminant, GIOP_Client);
-               Marshall_From_Any (Actual_Value, GIOP_Client);
-            end;
-         when Tk_Enum =>
-            declare
-               Actual_Value : CORBA.Any := TypeCode.Parameter (Tc, 0);
-            begin
-               Marshall_From_Any (Actual_Value, GIOP_Client);
-            end;
          when Tk_Struct =>
-            --  see Align_From_Any for comments
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               Nb_Members   : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 1) / 2;
+               Tc_Mb : TypeCode.Object;
             begin
+               pragma Debug (O ("marshalling for tk_struct"));
                for I in 0 .. Nb_Members - 1 loop
-                  Marshall_From_Any (CORBA.TypeCode.Parameter (Tc, I),
-                                     GIOP_Client);
+                  declare
+                     Member : Any;
+                  begin
+                     Tc_Mb := TypeCode.From_Any
+                       (TypeCode.Parameter (Tc, 2 * (I + 1)));
+                     Member :=
+                       Get_Any_Agregate_Member (A, Tc_Mb, I);
+                     Marshall_From_Any (Member, GIOP_Client);
+                  end;
                end loop;
             end;
-         when Tk_Sequence =>
+         when Tk_Union =>
+            --  see tk_union for align_size_from_any
+            pragma Debug (O ("marshalling for an union"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               Nb_Members : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 2) / 3;
+               Tc_Discriminant, Tc_Member : TypeCode.Object;
+               Discriminant, Member, Label : Any;
+               Cpt : CORBA.Long := 0;
+               Tc_Other_Cpt : CORBA.Long := -1;
+               Others_Any : Any := To_Any (CORBA.Octet (0));
             begin
-               pragma Debug (O ("marshalling sequence with "
-                                & Nb_Members'Img
-                                & " elements"));
-               for I in 0 .. Nb_Members - 1 loop
-                  Marshall_From_Any (CORBA.TypeCode.Parameter (Tc, I),
-                                     GIOP_Client);
+               Tc_Discriminant :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 1));
+               Discriminant :=
+                 Get_Any_Agregate_Member (A, Tc_Discriminant, 0);
+               Marshall_From_Any (Discriminant, GIOP_Client);
+               while Cpt < Nb_Members loop
+                  Label := TypeCode.Parameter (Tc, 3 * Cpt + 2);
+                  if Any_Equal (Label, Discriminant) then
+                     exit;
+                  end if;
+                  if Any_Equal (Label, Others_Any) then
+                     Tc_Other_Cpt := Cpt;
+                     pragma Debug (O ("found 'others' position in "
+                                      & Cpt'Img));
+                  end if;
+                  Cpt := Cpt + 1;
+               end loop;
+               if Cpt = Nb_Members then
+                  if Tc_Other_Cpt >= 0 then
+                     pragma Debug (O ("use of 'others' case"));
+                     Cpt := Tc_Other_Cpt;
+                  else
+                     --  see align_size_from_any for comments
+                     raise CORBA.Adabroker_DII_Union_Interpretation_Error;
+                  end if;
+               end if;
+               Tc_Member := TypeCode.From_Any
+                 (TypeCode.Parameter (Tc, 3 * Cpt + 4));
+               Member :=
+                 Get_Any_Agregate_Member (A, Tc_Member, 1);
+               Marshall_From_Any (Member, GIOP_Client);
+            end;
+         when Tk_Enum =>
+            pragma Debug (O ("marshalling from any an enum"));
+            declare
+               Tmp : CORBA.Unsigned_Long := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Marshall (Tmp, GIOP_Client);
+            end;
+         when Tk_Sequence =>
+            pragma Debug (O ("marshalling from any a sequence"));
+            declare
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               N : CORBA.Long := Any_Agregate_Size (A);
+               Elt : Any;
+            begin
+               --  first marshall length
+               AdaBroker.NetBufferedStream.Marshall (Unsigned_Long (N),
+                                                     GIOP_Client);
+               --  then marshall elements
+               for I in 0 .. N - 1 loop
+                  Elt := Get_Any_Agregate_Member (A, Elts_Type, I);
+                  Marshall_From_Any (Elt, GIOP_Client);
                end loop;
             end;
          when Tk_Array =>
-            --  see Align_From_Any for comments
+            pragma Debug (O ("marshalling from any an array"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               N : CORBA.Unsigned_Long :=
+                 From_Any (TypeCode.Parameter (Tc, 1));
+               Elt : Any;
             begin
-               pragma Debug (O ("marshalling an array of "
-                                & Nb_Members'Img));
-               for I in 0 .. Nb_Members - 1 loop
-                  Marshall_From_Any (CORBA.TypeCode.Parameter (Tc, I),
-                                     GIOP_Client);
+               for I in 0 .. N - 1 loop
+                  Elt :=
+                    Get_Any_Agregate_Member (A, Elts_Type, CORBA.Long (I));
+                  Marshall_From_Any (Elt, GIOP_Client);
                end loop;
             end;
          when Tk_Objref =>
             declare
                Tmp : CORBA.Object.Ref := CORBA.Object.From_Any (A);
             begin
-               pragma Debug (O ("marshalling an objref"));
+               pragma Debug (O ("marshalling from any an objref"));
                CORBA.Object.OmniORB.Marshall (Tmp, GIOP_Client);
             end;
-         when Tk_Any =>
-            null;
-            --  ?
          when others =>
-            --  should never be reached ?
-            null;
+            --  unsupported : typecode, principal
+            --  not in CORBA 2.0 : tk_except, tk_alias
+            raise CORBA.AdaBroker_DII_Unsupported_Type;
       end case;
    end Marshall_From_Any;
 
@@ -536,11 +669,13 @@ package body Dynamic_Proxy is
 
    procedure Unmarshall_To_Any
      (GIOP_Client : in out AdaBroker.GIOP_C.Object;
-      A           : in out CORBA.Any)
+      A           :    out Any;
+      Tc          : in TypeCode.Object)
    is
-      Tc  : CORBA.TypeCode.Object := CORBA.Get_Type (A);
       Tck : CORBA.TCKind := CORBA.TypeCode.Kind (Tc);
    begin
+      --  basically the same structure than align_from_any
+      --  so redundant comments were not reproduced here
       case Tck is
          when Tk_Boolean =>
             declare
@@ -612,103 +747,141 @@ package body Dynamic_Proxy is
                Tmp : CORBA.String;
             begin
                AdaBroker.NetBufferedStream.Unmarshall (Tmp, GIOP_Client);
+               pragma Debug (O ("unmarshalled to any a string : "
+                                & To_Standard_String (Tmp)));
                A := To_Any (Tmp);
             end;
-         when Tk_Union =>
-            declare
-               Discrimant : Any := TypeCode.Parameter (Tc, 0);
-               --  the discriminant is really useless since the
-               --  client must already now how the returned union is used
-               Actual_Value : Any := TypeCode.Parameter (Tc, 1);
-               Tc2 : TypeCode.Object;
-            begin
-               pragma Debug (O ("unmarshalling an union"));
-               TypeCode.Set (Tc2, Tk_Union);
-               Unmarshall_To_Any (GIOP_Client, Discrimant);
-               Unmarshall_To_Any (GIOP_Client, Actual_Value);
-               TypeCode.Add_Parameter (Tc2, Actual_Value);
-               TypeCode.Add_Parameter (Tc2, Discrimant);
-               SetAny (A, Tc2);
-            end;
-         when Tk_Enum =>
-            declare
-               Actual_Value : Any := TypeCode.Parameter (Tc, 0);
-               Tc2 : TypeCode.Object;
-            begin
-               pragma Debug (O ("unmarshalling an enum"));
-               TypeCode.Set (Tc2, Tk_Enum);
-               Unmarshall_To_Any (GIOP_Client, Actual_Value);
-               TypeCode.Add_Parameter (Tc2, Actual_Value);
-               SetAny (A, Tc2);
-            end;
          when Tk_Struct =>
-            --  see Align_From_Any for comments
             pragma Debug (O ("unmarshalling a struct"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
-               Member       : CORBA.Any;
-               Tc2          : CORBA.TypeCode.Object;
+               Nb_Members : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 1) / 2;
             begin
-               TypeCode.Set (Tc2, Tk_Struct);
+               A := Prepare_Any_From_Agregate_Tc (Tc);
+               --  build a shallow any with one level of recursion
+               --  set its type code
                for I in 0 .. Nb_Members - 1 loop
-                  Member := CORBA.TypeCode.Parameter (Tc, I);
-                  Unmarshall_To_Any (GIOP_Client, Member);
-                  TypeCode.Add_Parameter (Tc2, Member);
+                  declare
+                     Member : Any;
+                     Tc_Mb : TypeCode.Object :=
+                       TypeCode.From_Any
+                       (TypeCode.Parameter (Tc, 2 * (I + 1)));
+                  begin
+                     Unmarshall_To_Any (GIOP_Client,
+                                        Member,
+                                        Tc_Mb);
+                     Add_Agregate_Any_Member (A, Member);
+                  end;
                end loop;
-               TypeCode.Reverse_Parameters (Tc2);
-               SetAny (A, Tc2);
+               Force_Any_TypeCode (A, Tc);
+            end;
+         when Tk_Union =>
+            pragma Debug (O ("unmarshalling an union"));
+            declare
+               Nb_Members : CORBA.Long :=
+                 (CORBA.TypeCode.Param_Count (Tc) - 2) / 3;
+               Tc_Discriminant, Tc_Member : TypeCode.Object;
+               Discriminant, Member, Label : Any;
+               Cpt : CORBA.Long := 0;
+               Tc_Other_Cpt : CORBA.Long := -1;
+               Others_Any : Any := To_Any (CORBA.Octet (0));
+            begin
+               A := Prepare_Any_From_Agregate_Tc (Tc);
+               --  get and set discriminant
+               Tc_Discriminant :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 1));
+               Unmarshall_To_Any (GIOP_Client,
+                                  Discriminant,
+                                  Tc_Discriminant);
+               Add_Agregate_Any_Member (A, Discriminant);
+               --  find out the type of the actual value
+               while Cpt < Nb_Members loop
+                  --  label value
+                  Label := TypeCode.Parameter (Tc, 3 * Cpt + 2);
+                  if Any_Equal (Label, Discriminant) then
+                     exit;
+                  end if;
+                  --  save 'others' case position
+                  if Any_Equal (Label, Others_Any) then
+                     Tc_Other_Cpt := Cpt;  -- positive or 0
+                  end if;
+                  Cpt := Cpt + 1;
+               end loop;
+               if Cpt = Nb_Members then
+                  --  check if not 'others' case
+                  if Tc_Other_Cpt >= 0 then --  if there was one
+                     Cpt := Tc_Other_Cpt; --  then we use it
+                  else  --  else we have a problem
+                     raise CORBA.Adabroker_DII_Union_Interpretation_Error;
+                  end if;
+               end if;
+               --  get the type code of the actual value
+               Tc_Member := TypeCode.From_Any
+                 (TypeCode.Parameter (Tc, 3 * Cpt + 4));
+               --  get and set the actual value
+               Unmarshall_To_Any (GIOP_Client,
+                                  Member,
+                                  Tc_Member);
+               Add_Agregate_Any_Member (A, Member);
+               Force_Any_TypeCode (A, Tc);
+            end;
+         when Tk_Enum =>
+            pragma Debug (O ("unmarshalling to any an enum"));
+            declare
+               Tmp : CORBA.Unsigned_Long := From_Any (A);
+            begin
+               AdaBroker.NetBufferedStream.Unmarshall (Tmp, GIOP_Client);
+               A := To_Any (Tmp);
+               Force_Any_TypeCode (A, Tc);
             end;
          when Tk_Sequence =>
-            pragma Debug (O ("unmarshalling a sequence"));
+            pragma Debug (O ("unmarshalling to any a sequence"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
-               Member       : CORBA.Any;
-               Tc2          : CORBA.TypeCode.Object;
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               Elt : Any;
+               N : CORBA.Unsigned_Long;
             begin
-               TypeCode.Set (Tc2, Tk_Sequence);
-               for I in 0 .. Nb_Members - 1 loop
-                  Member := CORBA.TypeCode.Parameter (Tc, I);
-                  Unmarshall_To_Any (GIOP_Client, Member);
-                  TypeCode.Add_Parameter (Tc2, Member);
+               A := Prepare_Any_From_Agregate_Tc (Tc);
+               --  first unmarshall length
+               AdaBroker.NetBufferedStream.Unmarshall (N, GIOP_Client);
+               --  then unmarshall elements
+               for I in 0 .. N - 1 loop
+                  Unmarshall_To_Any (GIOP_Client, Elt, Elts_Type);
+                  Add_Agregate_Any_Member (A, Elt);
                end loop;
-               TypeCode.Reverse_Parameters (Tc2);
-               SetAny (A, Tc2);
+               Force_Any_TypeCode (A, Tc);
             end;
          when Tk_Array =>
-            --  see Align_From_Any for comments
-            pragma Debug (O ("unmarshalling an array"));
             declare
-               Nb_Members   : CORBA.Long := CORBA.TypeCode.Param_Count (Tc);
-               Member       : CORBA.Any;
-               Tc2          : CORBA.TypeCode.Object;
+               Elts_Type : TypeCode.Object :=
+                 TypeCode.From_Any (TypeCode.Parameter (Tc, 0));
+               N : CORBA.Unsigned_Long :=
+                 From_Any (TypeCode.Parameter (Tc, 1));
+               Elt : Any;
             begin
-               TypeCode.Set (Tc2, Tk_Array);
-               for I in 0 .. Nb_Members - 1 loop
-                  Member := CORBA.TypeCode.Parameter (Tc, I);
-                  Unmarshall_To_Any (GIOP_Client, Member);
-                  TypeCode.Add_Parameter (Tc2, Member);
+               pragma Debug (O ("unmarshalling to any an array; n = "
+                                & N'Img));
+               A := Prepare_Any_From_Agregate_Tc (Tc);
+               for I in 0 .. N - 1 loop
+                  Unmarshall_To_Any (GIOP_Client, Elt, Elts_Type);
+                  Add_Agregate_Any_Member (A, Elt);
                end loop;
-               TypeCode.Reverse_Parameters (Tc2);
-               SetAny (A, Tc2);
+               Force_Any_TypeCode (A, Tc);
             end;
          when Tk_Objref =>
             declare
                Tmp : CORBA.Object.Ref;
-               begin
-                  pragma Debug (O ("unmarshalling an objref"));
+            begin
+               pragma Debug (O ("unmarshalling to any an objref"));
                   CORBA.Object.OmniORB.Unmarshall (Tmp, GIOP_Client);
                   A := CORBA.Object.To_Any (Tmp);
-               end;
-
-
-         when Tk_Any =>
-            null;
-            --  ?
-            when others =>
-               --  should never be reached ?
-               null;
+            end;
+         when others =>
+            --  unsupported : typecode, principal
+            --  not in CORBA 2.0 : tk_except, tk_alias
+            raise CORBA.AdaBroker_DII_Unsupported_Type;
       end case;
    end Unmarshall_To_Any;
-
 
 end Dynamic_Proxy;

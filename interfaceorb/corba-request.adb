@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Dynamic_Proxy;
-use Dynamic_Proxy;
 with AdaBroker.OmniProxyCallWrapper;
 
 with AdaBroker.Debug;
@@ -54,6 +53,7 @@ package body CORBA.Request is
      (Self : in out Object;
       Arg  : in     NamedValue)
    is
+      --  appends a NamedValue to the list of arguments
    begin
       CORBA.NVList.Add_Item (Self.Args_List, Arg);
    end Add_Arg;
@@ -66,35 +66,38 @@ package body CORBA.Request is
      (Self         : in out Object;
       Invoke_Flags : in     Flags)
    is
-      Operation : Operation_Proxy;
-      Op_Type   : Operation_Type;
+      Operation : Dynamic_Proxy.Operation_Proxy;
+      Op_Type   : Dynamic_Proxy.Operation_Type;
    begin
-      --  set a proxy for the operation
+      --  set a generic proxy for the operation
       if CORBA.TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
-         Op_Type := Operation_Procedure;
+         Op_Type := Dynamic_Proxy.Operation_Procedure;
       else
-         Op_Type := Operation_Function;
+         Op_Type := Dynamic_Proxy.Operation_Function;
       end if;
-      Init (Operation,
-            Self.Operation,
-            Self.Args_List,
-            Self.Result,
-            Op_Type);
+      --  init the generic proxy with the data of the request
+      Dynamic_Proxy.Init (Operation,
+                          Self.Operation,
+                          Self.Args_List,
+                          Self.Result,
+                          Op_Type);
       pragma Debug (O ("Request.Invoke : dynamic proxy initialized"));
       --  invoke
       AdaBroker.OmniProxyCallWrapper.Invoke (Self.Target, Operation);
-
+      --  get the return value(s) from the generic proxy
       case Op_Type is
-         when Operation_Function =>
+         when Dynamic_Proxy.Operation_Function =>
             --  we have a function
-            Self.Result := Get_Function_Result (Operation);
-         when Operation_Procedure =>
+            Self.Result :=
+              Dynamic_Proxy.Get_Function_Result (Operation);
+         when Dynamic_Proxy.Operation_Procedure =>
             --  we have a procedure
-            Self.Args_List := Get_Procedure_Result (Operation);
+            Self.Args_List :=
+              Dynamic_Proxy.Get_Procedure_Result (Operation);
       end case;
-
       pragma Debug (O ("Request.Invoke : dynamic invocation done"));
    end Invoke;
+
 
    ------------
    -- Delete --
@@ -103,9 +106,11 @@ package body CORBA.Request is
    procedure Delete
      (Self : in out Object)
    is
+      --  found nothing to implement
    begin
       null;
    end Delete;
+
 
    ----------
    -- Send --
@@ -144,6 +149,7 @@ package body CORBA.Request is
      (Self           : in out Object;
       Response_Flags : in     Flags)
    is
+      --  not implemented
    begin
       null;
    end Get_Response;
@@ -163,7 +169,7 @@ package body CORBA.Request is
       Arg_List   : in     CORBA.NVList.Object;
       Result     : in     CORBA.NamedValue;
       Req_Flags  : in     CORBA.Flags;
-      Returns    : in     Status) is
+      Returns    : in     CORBA.Status) is
    begin
       Self := (OmniObj,
                Operation,
@@ -177,6 +183,7 @@ package body CORBA.Request is
         (O ("id = " & CORBA.To_Standard_String (Result.Name)));
    end Set;
 
+
    --------------------
    --  Return_Value  --
    --------------------
@@ -185,14 +192,21 @@ package body CORBA.Request is
      (Self : in CORBA.Request.Object)
       return CORBA.NamedValue
    is
+      --  when it was a function
    begin
       return Self.Result;
    end Return_Value;
+
+
+   ------------------------
+   --  Return_Arguments  --
+   ------------------------
 
    function Return_Arguments
      (Self : in CORBA.Request.Object)
       return CORBA.NVList.Object
    is
+      --  when it was a procedure
    begin
       return Self.Args_List;
    end Return_Arguments;

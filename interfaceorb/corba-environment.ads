@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--
+--  environments are currently not supported
+--
+
 package CORBA.Environment is
 
    type Object is private;
@@ -40,7 +44,7 @@ package CORBA.Environment is
 private
 
    --  implementation defined
-   --  Dummy delcaration to compile unit.
+   --  Dummy declaration to compile unit.
    type Object is new Integer;
 
 end CORBA.Environment;

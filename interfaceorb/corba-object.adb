@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.68 $
+--                            $Revision: 1.69 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -214,15 +214,24 @@ package body CORBA.Object is
    --  DII related functions  --
    -----------------------------
 
+   --------------
+   --  To_Any  --
+   --------------
+
    function To_Any (From : in Ref)
                     return CORBA.Any is
       The_Any : CORBA.Any;
       Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Objref);
+      CORBA.TypeCode.Set (Tco, Tk_Objref); -- spec CORBA 2.0 chap 8.7.1
       The_Any := (new Content_Object_Ref' (Value => From), Tco);
       return The_Any;
    end To_Any;
+
+
+   ----------------
+   --  From_any  --
+   ----------------
 
    function From_Any (From : in Any)
                       return Ref is
@@ -235,6 +244,11 @@ package body CORBA.Object is
       return Tmp.Value;
    end From_Any;
 
+
+   ----------------------
+   --  Create_Request  --
+   ----------------------
+
    procedure Create_Request (Self      : in     Ref;
                              Ctx       : in     CORBA.Context.Object;
                              Operation : in     CORBA.Identifier;
@@ -243,7 +257,6 @@ package body CORBA.Object is
                              Request   :    out CORBA.Request.Object;
                              Req_Flags : in     CORBA.Flags;
                              Returns   :    out Status) is
-      --  to be fixed
       Target : AdaBroker.OmniORB.OmniObject_Ptr := Self.OmniObj;
    begin
       pragma Debug (O ("Create_Request : enter"));
@@ -254,11 +267,9 @@ package body CORBA.Object is
                          Result,
                          Req_Flags,
                          Returns);
-      Returns := 0; --  temporary (for compil)
+      Returns := 0; --  temporary (for compil, don't see how to use it...)
       --  we don't use the context now
       pragma Debug (O ("Create_Request : leave"));
    end Create_Request;
-
-
 
 end CORBA.Object;

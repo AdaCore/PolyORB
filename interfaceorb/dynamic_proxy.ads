@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+
+--
+--  This package is used in the implementation of the DII.
+--
+--  It is used to emulate the work that was done by the generated files in
+--  static invocation that are used on the client side (i.e. for a xxx.idl
+--  file : xxx.ad?, xxx-proxy.ad?, xxx-stream.ad?).
+--  It means that this package is a sort of generic stub. By type dispatching,
+--  its functions are called in a transparent way by the general invocation
+--  mecanism (invoke in adabroker-omniproxucallwrapper) exactly the same way
+--  the generated ones are in static invocation.
+--
+--  A good way to understand how it works is to trace the calls in the static
+--  invocation example Echo (from example/echo/client.adb, and then trace the
+--  calls in the corresponding dynamic example (dii_client.adb in
+--  examples/dii_echo) which uses the same Echo server.
+--
+
 with CORBA;
 with CORBA.NVList;
 with AdaBroker.OmniProxyCallDesc;
@@ -43,8 +61,11 @@ package Dynamic_Proxy is
 
    type Operation_Proxy is
      new AdaBroker.OmniProxyCallDesc.Object with private;
+   --  a generic proxy object
 
    type Operation_Type is (Operation_Function, Operation_Procedure);
+   --  used to know if we will have to get one return value (function)
+   --  or a list of return values (procedure with OUT/INOUT arguments)
 
    procedure Init
      (Self : in out Operation_Proxy;
@@ -52,31 +73,41 @@ package Dynamic_Proxy is
       Args : in     CORBA.NVList.Object;
       Res  : in     NamedValue;
       Ot   : in     Operation_Type);
+   --  Inits an operation proxy, given the name of the operation,
+   --  the nvlist of arguments, the named value of the return value,
+   --  and the type of operation (precedure or function).
+   --  Called by CORBA.Request.Invoke
 
    function Get_Function_Result
      (Self : in Operation_Proxy)
       return NamedValue;
-   --  Returns the return value for remote functions
+   --  Returns the return value for function operations : retrieve it from
+   --  the Operation_Proxy fields.
+   --  Called by CORBA.Request.Return_Value
 
    function Get_Procedure_Result
      (Self     : in Operation_Proxy)
       return NVList.Object;
-   --  Returns the OUT values for remore procedures
+   --  Returns the OUT/INOUT values for procedure operations
+   --  Called by  CORBA.Request.Return_Arguments
 
-   --
+
+
+   --------------------------------------------------------------
    --  the functions below override the ones of OmniProxyCallDesc
-   --
+   --------------------------------------------------------------
 
    function Operation
      (Self : in Operation_Proxy)
       return CORBA.String;
-   --  Returns the name of the subprogram
+   --  Returns the name of the operation
 
    function Align_Size
      (Self    : in Operation_Proxy;
       Size_In : in CORBA.Unsigned_Long)
       return CORBA.Unsigned_Long;
-   --  Computes the size needed to marshall the arguments contained in the NV
+   --  Computes the size needed to marshall the arguments contained
+   --  in the NVList
 
    procedure Marshal_Arguments
      (Self        : in     Operation_Proxy;
@@ -86,7 +117,8 @@ package Dynamic_Proxy is
    procedure Unmarshal_Returned_Values
      (Self        : in out Operation_Proxy;
       GIOP_Client : in out AdaBroker.GIOP_C.Object);
-   --  Unmarshall the returned value (to a NamedValue)
+   --  Unmarshall the returned values (to a NamedValue if function, to a
+   --  NVList if procedure)
 
 private
 
@@ -94,27 +126,33 @@ private
      (A       : in Any;
       Size_In : in Unsigned_Long)
       return Unsigned_Long;
-   --  Computes recusively the size needed to marshall the content of an Any
-   --  Called by Align_Size
+   --  Computes (recusively for complex types) the size needed to marshall
+   --  the content of an Any. Called by Align_Size
 
    procedure Marshall_From_Any
      (A           : in      Any;
       GIOP_Client : in out AdaBroker.GIOP_C.Object);
-   --  Marshalls recursively the content of an Any
+   --  Marshalls (recursively for complex types) the content of an Any
    --  Called by Marshal_Arguments
 
-   procedure Unmarshall_To_Any
+   procedure  Unmarshall_To_Any
      (GIOP_Client : in out AdaBroker.GIOP_C.Object;
-      A           : in out Any);
+      A           :    out Any;
+      Tc          : in TypeCode.Object);
    --  Creates an Any from the given typecode and the unmarshalled things
    --  Called by Unmarshal_Returned_Values
 
    type Operation_Proxy is  new AdaBroker.OmniProxyCallDesc.Object with
+   --  Generic proxy definition
       record
          Op_Type        : Operation_Type;
+         --  function or procedure
          Op_Name        : CORBA.Identifier;
+         --  name of the operation
          Args           : NVList.Object;
+         --  arguments
          Private_Result : NamedValue;
+         --  return value
       end record;
 
 end Dynamic_Proxy;

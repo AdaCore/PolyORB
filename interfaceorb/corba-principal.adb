@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,6 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--
+--  not scurrently supported
+--  only basic management functions are implemented
+--
+
 package body CORBA.Principal is
 
    --------------
@@ -42,10 +47,9 @@ package body CORBA.Principal is
    function To_Any (From : in Object) return Any
    is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Principal);
-      The_Any := (new C_Principal' (Value => From), Tco);
+      The_Any := (new C_Principal' (Value => From),
+                  CORBA.TypeCode.TC_Principal);
       return The_Any;
    end To_Any;
 

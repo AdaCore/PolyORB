@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -58,11 +58,8 @@ package CORBA.NVList is
 
    --  implementation defined
 
-   procedure Revert
-     (Self : in out Object);
-   --  revert a list
-
    type Iterator is limited private;
+   --  just an Iterator to save code...
 
    procedure Start
      (I   : in out Iterator;
@@ -82,6 +79,8 @@ package CORBA.NVList is
    procedure Set_Argument
      (I   : in out Iterator;
       A   : in     CORBA.Any);
+   --  change the value of the any pointed by the iterator without
+   --  disturbing the NVList
 
 private
    --  implementation defined
@@ -102,6 +101,7 @@ private
    type Object is
       record
          Args_Count : Long := 0;
+         --  number of elements in the list
          List       : Cell_Ptr := null;
       end record;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA.NVList;
---  with CORBA.Context;
 with AdaBroker.OmniORB;
 
 
@@ -45,21 +44,28 @@ package CORBA.Request is
    procedure Add_Arg
      (Self : in out Object;
       Arg  : in     NamedValue);
+   --  add an argument to the list of arguments for the operation
 
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags); --  no legal value listed in the spec !
+   --  basic invocation
 
    procedure Delete
      (Self : in out Object);
+   --  delete the request : what does it mean ?
 
    procedure Send
      (Self         : in out Object;
       Invoke_Flags : in     Flags);
+   --  incation, returns control to the caller without waiting for the
+   --  operation to finish
+   --  no fully implemented
 
    procedure Get_Response
      (Self           : in out Object;
       Response_Flags : in     Flags);
+   --  not implementaed : to be used with send
 
    --  implementation defined
 
@@ -75,12 +81,12 @@ package CORBA.Request is
    function Return_Value
      (Self : in CORBA.Request.Object)
      return CORBA.NamedValue;
-   --  to get the return value when request was a function
+   --  to get the return value when operation was a function
 
    function Return_Arguments
      (Self : in CORBA.Request.Object)
       return CORBA.NVList.Object;
-   --  to get the arguments when requestwas a procedure
+   --  to get the arguments when operation  was a procedure
 
 
 private

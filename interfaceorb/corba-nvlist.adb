@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -54,12 +54,14 @@ package body CORBA.NVList is
    is
       Nv : NamedValue;
    begin
-      Nv := (Item_Name,
-             Item,
-             1, --  to do
-             Item_Flags);
+      Nv :=
+        (Item_Name,
+         Item,
+         1, --  dumb value : current implemantation makes no use of this field
+         Item_Flags);
       Add_Item (Self, Nv);
    end Add_Item;
+
 
    --------------
    -- Add_Item --
@@ -69,11 +71,20 @@ package body CORBA.NVList is
      (Self : in out Object;
       Item : in     NamedValue)
    is
-      Tmp : Cell_Ptr := new Cell'(Item, Self.List);
+      Tmp : Cell_Ptr := Self.List;
    begin
-      Self.List := Tmp;
+      --  _appends_ an element (to keep the right order in arguments)
+      if Tmp = null then
+         Self.List := new Cell'(Item, null);
+      else
+         while Tmp.Next /= null loop
+            Tmp := Tmp.Next;
+         end loop;
+         Tmp.Next := new Cell'(Item, null);
+      end if;
       Self.Args_Count := Self.Args_Count + 1;
    end Add_Item;
+
 
    ---------------
    -- Get_Count --
@@ -85,25 +96,10 @@ package body CORBA.NVList is
    is
    begin
       Count := Self.Args_Count;
+      --  the value of Self.Args_Count should be maintained to avoid
+      --  recalculation
    end Get_Count;
 
-   --------------
-   --  Revert  --
-   --------------
-
-   procedure Revert
-     (Self : in out Object)
-   is
-      Tmp : Object := Null_Object;
-      It  : Iterator;
-   begin
-      Start (It, Self);
-      while not Done (It) loop
-         Add_Item (Tmp, Get (It));
-         Next (It);
-      end loop;
-      Self := Tmp;
-   end Revert;
 
    ----------------
    --  Iterator  --
@@ -143,6 +139,5 @@ package body CORBA.NVList is
    begin
       I.This.Value.Argument := A;
    end Set_Argument;
-
 
 end CORBA.NVList;

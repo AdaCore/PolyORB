@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.26 $
+--                            $Revision: 1.27 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with AdaBroker.Exceptions; use AdaBroker.Exceptions;
+--  with CORBA.Object;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);
@@ -122,11 +123,27 @@ package body CORBA is
 
       function Equal (Self : in Object;
                       TC   : in Object)
-                      return CORBA.Boolean is
+                      return CORBA.Boolean
+      is
+         Nb_Param : CORBA.Long;
+         Res : CORBA.Boolean := True;
       begin
-         --  does shallow comparison, should be deep ??? see later
-         return ((Self.Kind = TC.Kind)
-                 and (Self.Parameters = TC.Parameters));
+         if Self.Kind /= TC.Kind then
+            return False;
+         end if;
+         --  recursive comparison
+         Nb_Param := Param_Count (Self);
+         if Nb_Param /= Param_Count (TC) then
+            return False;
+         end if;
+         for I in 0 .. Nb_Param - 1 loop
+            Res := Res and
+              Any_Equal (Parameter (TC, I), Parameter (Self, I));
+            if Res = False then
+               return False;
+            end if;
+         end loop;
+         return Res;
       end Equal;
 
       function Kind (Self : in Object)
@@ -173,24 +190,55 @@ package body CORBA is
         (Self  : in out Object;
          Param : in     CORBA.Any)
       is
-         C_Ptr : Cell_Ptr := new Cell' (Param, Self.Parameters);
+         C_Ptr : Cell_Ptr := Self.Parameters;
       begin
-         Self.Parameters := C_Ptr;
+         if C_Ptr = null then
+            Self.Parameters := new Cell' (Param, null);
+         else
+            while C_Ptr.Next /= null loop
+               C_Ptr := C_Ptr.Next;
+            end loop;
+            C_Ptr.Next := new Cell' (Param, null);
+         end if;
       end Add_Parameter;
 
-      procedure Reverse_Parameters
-        (Self : in out Object)
+      function From_Any (From : in CORBA.Any)
+                         return CORBA.TypeCode.Object
       is
-         Result : TypeCode.Object;
-         Cp     : Cell_Ptr := Self.Parameters;
+         Tmp : Content_TypeCode_Ptr;
       begin
-         Result.Kind := Self.Kind;
-         while (Cp /= null) loop
-            Add_Parameter (Result, Cp.Parameter);
-            Cp := Cp.Next;
-         end loop;
-         Self := Result;
-      end Reverse_Parameters;
+         if (TypeCode.Kind (From.The_Type) /= Tk_TypeCode) then
+            raise Bad_Typecode;
+         end if;
+         Tmp := Content_TypeCode_Ptr (From.The_Value);
+         return Tmp.Value;
+      end From_Any;
+
+      function To_Any (From : in CORBA.TypeCode.Object)
+                       return CORBA.Any is
+         The_Any : CORBA.Any;
+      begin
+         The_Any := (new Content_TypeCode' (Value => From),
+                     TypeCode.TC_TypeCode);
+         return The_Any;
+      end To_Any;
+
+      function  Member_Index
+        (Tck : in TCKind;
+         N   : in CORBA.Long)
+         return CORBA.Long
+      is
+      begin
+         case Tck is
+            when Tk_Struct =>
+               return 2 * (N + 1);
+            when Tk_Union =>
+               return 3 * N + 4;
+            when others =>
+               return 0;
+         end case;
+      end Member_Index;
+
    end TypeCode;
 
    function Get_Type (The_Any : in CORBA.Any)
@@ -207,70 +255,56 @@ package body CORBA is
    function To_Any (From : in CORBA.Octet)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Octet);
-      The_Any := (new Content_Octet' (Value => From), Tco);
+      The_Any := (new Content_Octet' (Value => From), TypeCode.TC_Octet);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Short)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Short);
-      The_Any := (new Content_Short' (Value => From), Tco);
+      The_Any := (new Content_Short' (Value => From), TypeCode.TC_Short);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Long)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Long);
-      The_Any := (new Content_Long' (Value => From), Tco);
+      The_Any := (new Content_Long' (Value => From), TypeCode.TC_Long);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Unsigned_Short)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Ushort);
-      The_Any := (new Content_UShort' (Value => From), Tco);
+      The_Any := (new Content_UShort' (Value => From), TypeCode.TC_Ushort);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Unsigned_Long)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Ulong);
-      The_Any := (new Content_ULong' (Value => From), Tco);
+      The_Any := (new Content_ULong' (Value => From), TypeCode.TC_Ulong);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Boolean)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Boolean);
-      The_Any := (new Content_Boolean' (Value => From), Tco);
+      The_Any := (new Content_Boolean' (Value => From), TypeCode.TC_Boolean);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Char)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Char);
-      The_Any := (new Content_Char' (Value => From), Tco);
+      The_Any := (new Content_Char' (Value => From), TypeCode.TC_Char);
       return The_Any;
    end To_Any;
 
@@ -280,6 +314,8 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_String);
+      CORBA.TypeCode.Add_Parameter (Tco, To_Any (CORBA.Long (0)));
+      --  the string is supposed to be unbounded
       The_Any := (new Content_String' (Value => From), Tco);
       return The_Any;
    end To_Any;
@@ -287,20 +323,16 @@ package body CORBA is
    function To_Any (From : in CORBA.Float)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Float);
-      The_Any := (new Content_Float' (Value => From), Tco);
+      The_Any := (new Content_Float' (Value => From), TypeCode.TC_Float);
       return The_Any;
    end To_Any;
 
    function To_Any (From : in CORBA.Double)
                     return CORBA.Any is
       The_Any : CORBA.Any;
-      Tco : CORBA.TypeCode.Object;
    begin
-      CORBA.TypeCode.Set (Tco, Tk_Double);
-      The_Any := (new Content_Double' (Value => From), Tco);
+      The_Any := (new Content_Double' (Value => From), TypeCode.TC_Double);
       return The_Any;
    end To_Any;
 
@@ -356,7 +388,10 @@ package body CORBA is
                       return CORBA.Unsigned_Long is
       Tmp : Content_ULong_Ptr;
    begin
-      if (TypeCode.Kind (From.The_Type) /= Tk_Ulong) then
+      if TypeCode.Kind (From.The_Type) /= Tk_Ulong
+        and TypeCode.Kind (From.The_Type) /= Tk_Enum then
+         --  enum's any also carry an unsigned long
+         --  so we use the same from_any function
          raise Bad_Typecode;
       end if;
       Tmp := Content_ULong_Ptr (From.The_Value);
@@ -418,14 +453,239 @@ package body CORBA is
       return Tmp.Value;
    end From_Any;
 
-   procedure SetAny
+   procedure Force_Any_TypeCode
      (A : in out CORBA.Any;
       T : in     CORBA.TypeCode.Object)
    is
    begin
-      A.The_Value := null;
       A.The_Type := T;
-   end SetAny;
+   end Force_Any_TypeCode;
+
+
+   function Prepare_Any_From_Agregate_Tc
+     (Tc : in TypeCode.Object)
+      return Any
+   is
+      A : Any;
+      Cl : Content_List;
+   begin
+      A.The_Type := Tc;
+      --  copy typecode
+      A.The_Value :=
+       new Content_Agregat' (Value => Cl);
+      --  this any will be an agregate
+      return A;
+   end Prepare_Any_From_Agregate_Tc;
+
+
+   procedure Add_Agregate_Any_Member
+     (A      : in out Any;
+      Member : in     Any)
+   is
+      Cl : Content_List;
+   begin
+      --  this append to a list a cell containing a pointer to the
+      --  value of the new member
+      Cl := Content_Agregat_Ptr (A.The_Value).Value;
+      if Cl = null then
+         Content_Agregat_Ptr (A.The_Value).Value
+           := new Content_Cell' (Member.The_Value, null);
+      else
+         while Cl.Next /= null loop
+            Cl := Cl.Next;
+         end loop;
+         Cl.Next := new Content_Cell' (Member.The_Value, null);
+      end if;
+   end Add_Agregate_Any_Member;
+
+   function Get_Any_Agregate_Member
+     (A      : in Any;
+      Tc     : in TypeCode.Object;
+      N      : in CORBA.Long)
+      return Any
+   is
+      Res : Any;
+      Ptr : Content_List := Content_Agregat_Ptr (A.The_Value).Value;
+   begin
+      pragma Debug (O ("entering Get_Any_Agregate_Member"));
+      for I in 0 .. N - 1 loop
+         if Ptr.Next = null then
+            raise Adabroker_DII_Any_Agregate_Error;
+         else
+            Ptr := Ptr.Next;
+         end if;
+      end loop;
+      pragma Debug (O ("before res update"));
+      Res := (Ptr.The_Value, Tc);
+      pragma Debug (O ("leaving Get_Any_Agregate_Member"));
+      return Res;
+   end Get_Any_Agregate_Member;
+
+   function Simple_Any_Equal
+     (A1 : in Any;
+      A2 : in Any)
+      return CORBA.Boolean
+   is
+   begin
+      if TypeCode.Kind (Get_Type (A1)) /= TypeCode.Kind (Get_Type (A2)) then
+         return False;
+      end if;
+      case TypeCode.Kind (Get_Type (A1)) is
+         when Tk_Null =>
+            return True;
+         when Tk_Void =>
+            return True;
+         when Tk_Float =>
+            return Content_Float_Ptr (A1.The_Value).Value =
+              Content_Float_Ptr (A2.The_Value).Value;
+         when Tk_Double =>
+            return Content_Double_Ptr (A1.The_Value).Value =
+              Content_Double_Ptr (A2.The_Value).Value;
+         when Tk_Long =>
+            return Content_Long_Ptr (A1.The_Value).Value =
+              Content_Long_Ptr (A2.The_Value).Value;
+         when Tk_Ulong =>
+            return Content_ULong_Ptr (A1.The_Value).Value =
+              Content_ULong_Ptr (A2.The_Value).Value;
+         when Tk_Short =>
+            return Content_Short_Ptr (A1.The_Value).Value =
+              Content_Short_Ptr (A2.The_Value).Value;
+         when Tk_Ushort =>
+            return Content_UShort_Ptr (A1.The_Value).Value =
+              Content_UShort_Ptr (A2.The_Value).Value;
+         when Tk_Boolean =>
+            return Content_Boolean_Ptr (A1.The_Value).Value =
+              Content_Boolean_Ptr (A2.The_Value).Value;
+         when Tk_Char =>
+            return Content_Char_Ptr (A1.The_Value).Value =
+              Content_Char_Ptr (A2.The_Value).Value;
+         when Tk_Octet =>
+            return Content_Octet_Ptr (A1.The_Value).Value =
+              Content_Octet_Ptr (A2.The_Value).Value;
+         when others =>
+            --  unsupported type for comparison
+            return False;
+      end case;
+   end Simple_Any_Equal;
+
+   function Any_Equal
+     (A1 : in Any;
+      A2 : in Any)
+      return CORBA.Boolean
+   is
+      Tck : TCKind;
+   begin
+      pragma Debug (O ("entering any_equal"));
+      if not TypeCode.Equal (Get_Type (A1), Get_Type (A2)) then
+         return False;
+      end if;
+      pragma Debug (O ("passed typecode test"));
+      Tck := TypeCode.Kind (Get_Type (A1));
+      case TypeCode.Kind (Get_Type (A1)) is
+         when Tk_Null | Tk_Void =>
+            return True;
+         when Tk_Float =>
+            return Content_Float_Ptr (A1.The_Value).Value =
+              Content_Float_Ptr (A2.The_Value).Value;
+         when Tk_Double =>
+            return Content_Double_Ptr (A1.The_Value).Value =
+              Content_Double_Ptr (A2.The_Value).Value;
+         when Tk_Long =>
+            return Content_Long_Ptr (A1.The_Value).Value =
+              Content_Long_Ptr (A2.The_Value).Value;
+         when Tk_Ulong =>
+            return Content_ULong_Ptr (A1.The_Value).Value =
+              Content_ULong_Ptr (A2.The_Value).Value;
+         when Tk_Short =>
+            return Content_Short_Ptr (A1.The_Value).Value =
+              Content_Short_Ptr (A2.The_Value).Value;
+         when Tk_Ushort =>
+            return Content_UShort_Ptr (A1.The_Value).Value =
+              Content_UShort_Ptr (A2.The_Value).Value;
+         when Tk_Boolean =>
+            return Content_Boolean_Ptr (A1.The_Value).Value =
+              Content_Boolean_Ptr (A2.The_Value).Value;
+         when Tk_Char =>
+            return Content_Char_Ptr (A1.The_Value).Value =
+              Content_Char_Ptr (A2.The_Value).Value;
+         when Tk_Octet =>
+            pragma Debug (O ("comparing with a tk_octet"));
+            return Content_Octet_Ptr (A1.The_Value).Value =
+              Content_Octet_Ptr (A2.The_Value).Value;
+         when Tk_Any =>
+            return Any_Equal (Content_Any_Ptr (A1.The_Value).Value,
+                              Content_Any_Ptr (A2.The_Value).Value);
+         when Tk_TypeCode =>
+            return TypeCode.Equal (Content_TypeCode_Ptr (A1.The_Value).Value,
+                                   Content_TypeCode_Ptr (A2.The_Value).Value);
+--         when Tk_Objref =>
+--            return Object.Is_Equivalent (Object.From_Any (A1),
+--                                         Object.From_Any (A2));
+         when Tk_Struct | Tk_Union =>
+            --  agregate comparison (recursive)
+            declare
+               N : CORBA.Long;
+               Cl1, Cl2 : Content_List;
+            begin
+               Cl1 := Content_Agregat_Ptr (A1.The_Value).Value;
+               Cl2 := Content_Agregat_Ptr (A2.The_Value).Value;
+               N := Agregate_Count (Cl1);
+               if (N /= Agregate_Count (Cl2)) then
+                  return False;
+               end if;
+               declare
+                  Res : CORBA.Boolean := True;
+                  Tc : TypeCode.Object := Get_Type (A1);
+                  Any_Member_Tc : TypeCode.Object;
+               begin
+                  for I in 0 .. N - 1 loop
+                     Any_Member_Tc :=
+                       TypeCode.From_Any
+                       (TypeCode.Parameter (Tc,
+                                            TypeCode.Member_Index (Tck, I)));
+                     Res := Res and
+                       Any_Equal
+                       (Get_Any_Agregate_Member (A1, Any_Member_Tc, I),
+                        Get_Any_Agregate_Member (A2, Any_Member_Tc, I));
+                     if Res = False then
+                        return False;
+                     end if;
+                  end loop;
+                  return True;
+               end;
+            end;
+
+         when others =>
+            --  unsupported type for comparison :
+            --  tk_principal, tk_objref
+            return False;
+      end case;
+   end Any_Equal;
+
+   function Any_Agregate_Size
+     (A : in Any)
+      return CORBA.Long
+   is
+      Cl : Content_List := Content_Agregat_Ptr (A.The_Value).Value;
+   begin
+      return Agregate_Count (Cl);
+   end Any_Agregate_Size;
+
+   function Agregate_Count
+     (Cl : in Content_List)
+      return CORBA.Long
+   is
+      N : CORBA.Long := 0;
+      Ptr : Content_List := Cl;
+   begin
+      while Ptr /= null loop
+         N := N + 1;
+         Ptr := Ptr.Next;
+      end loop;
+      return N;
+   end Agregate_Count;
+
 
 
 end CORBA;
+

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.74 $
+--                            $Revision: 1.75 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -100,7 +100,7 @@ package CORBA.Object is
    function From_Any (From : in CORBA.Any) return CORBA.Object.Ref;
 
 
-   --  the 2 following functions will be implemented later
+   --  the 2 following functions are not currently supported
 
    --   function Get_Implementation
    --  deprecated,  will be removed in CORBA 2.2
@@ -114,7 +114,7 @@ package CORBA.Object is
 
    procedure Create_Request
    --  the only way for a client to build dynamically a request
-   --  he may use Add_Arg method (corba-request) after that
+   --  you may use Add_Arg method (corba-request) after that
      (Self      : in     Ref;
       Ctx       : in     CORBA.Context.Object;
       Operation : in     Identifier;
@@ -150,6 +150,8 @@ private
    --  DII  --
    -----------
 
+   --  this is used to have an any carrying an Object.Ref
+   --  see corba.ads for comments on the implementation of any
    type Content_Object_Ref is new Content with
       record
          Value : CORBA.Object.Ref;
