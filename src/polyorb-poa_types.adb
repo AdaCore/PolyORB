@@ -40,8 +40,9 @@ with PolyORB.Types;
 package body PolyORB.POA_Types is
 
    use Ada.Streams;
-   use PolyORB.Types;
+
    use PolyORB.Log;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -86,21 +87,18 @@ package body PolyORB.POA_Types is
      return Stream_Element_Array;
    --  Store a string.
 
-   ----------
-   -- Left --
-   ----------
+   ---------
+   -- "=" --
+   ---------
 
    function "="
      (Left, Right : in Unmarshalled_Oid)
      return Standard.Boolean is
    begin
-      if Left.Id = Right.Id
+      return True
+        and then Left.Id = Right.Id
         and then Left.System_Generated = Right.System_Generated
-        and then Left.Persistency_Flag = Right.Persistency_Flag
-      then
-         return True;
-      end if;
-      return False;
+        and then Left.Persistency_Flag = Right.Persistency_Flag;
    end "=";
 
    -----------
@@ -127,8 +125,8 @@ package body PolyORB.POA_Types is
      return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
-        (Creator => Creator,
-         Id => Name,
+        (Creator          => Creator,
+         Id               => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag);
    end Create_Id;
@@ -141,8 +139,8 @@ package body PolyORB.POA_Types is
      return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
-        (Creator => Creator,
-         Id => Name,
+        (Creator          => Creator,
+         Id               => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag);
    end Create_Id;
@@ -157,10 +155,10 @@ package body PolyORB.POA_Types is
    begin
       return U_Oid_To_Oid
         (Unmarshalled_Oid'
-         (Id               => Name,
+         (Creator          => Creator,
+          Id               => Name,
           System_Generated => System_Generated,
-          Persistency_Flag => Persistency_Flag,
-          Creator          => Creator));
+          Persistency_Flag => Persistency_Flag));
    end Create_Id;
 
    --------------
@@ -187,10 +185,11 @@ package body PolyORB.POA_Types is
    is
       R : Types.Unsigned_Long := 0;
    begin
-      for I in 0 .. 3 loop
+      for J in 0 .. 3 loop
          R := R * 256 + Types.Unsigned_Long
-           (SEA (SEI + Stream_Element_Offset (I)));
+           (SEA (SEI + Stream_Element_Offset (J)));
       end loop;
+
       ULo := R;
       SEI := SEI + 4;
    end Get_ULong;
@@ -205,10 +204,11 @@ package body PolyORB.POA_Types is
       R : Stream_Element_Array (0 .. 3);
       U : Types.Unsigned_Long := ULo;
    begin
-      for I in reverse R'Range loop
-         R (I) := Stream_Element (U mod 256);
+      for J in reverse R'Range loop
+         R (J) := Stream_Element (U mod 256);
          U := U / 256;
       end loop;
+
       return R;
    end Put_ULong;
 
@@ -229,6 +229,7 @@ package body PolyORB.POA_Types is
          when others =>
             raise Constraint_Error;
       end case;
+
       SEI := SEI + 1;
    end Get_Boolean;
 
@@ -241,7 +242,12 @@ package body PolyORB.POA_Types is
    is
       R : Stream_Element_Array (0 .. 0);
    begin
-      if Boo then R (0) := 1; else R (0) := 0; end if;
+      if Boo then
+         R (0) := 1;
+      else
+         R (0) := 0;
+      end if;
+
       return R;
    end Put_Boolean;
 
@@ -257,16 +263,19 @@ package body PolyORB.POA_Types is
       Len : Types.Unsigned_Long;
    begin
       Get_ULong (SEA, SEI, Len);
+
       declare
          S : Standard.String (1 .. Integer (Len));
       begin
-         for I in S'Range loop
-            S (I) := Standard.Character'Val
+         for J in S'Range loop
+            S (J) := Standard.Character'Val
               (SEA (SEI + Stream_Element_Offset
-                    (I - S'First)));
+                    (J - S'First)));
          end loop;
+
          Str := To_PolyORB_String (S);
       end;
+
       SEI := SEI + Stream_Element_Offset (Len);
    end Get_String;
 
@@ -279,13 +288,14 @@ package body PolyORB.POA_Types is
    is
       S : constant Standard.String := To_Standard_String (Str);
       R : Stream_Element_Array
-        (Stream_Element_Offset (S'First)
-         .. Stream_Element_Offset (S'Last));
+        (Stream_Element_Offset (S'First) .. Stream_Element_Offset (S'Last));
+
    begin
-      for I in S'Range loop
-         R (Stream_Element_Offset (I))
-           := Stream_Element (Standard.Character'Pos (S (I)));
+      for J in S'Range loop
+         R (Stream_Element_Offset (J))
+           := Stream_Element (Standard.Character'Pos (S (J)));
       end loop;
+
       return Put_ULong (S'Length) & R;
    end Put_String;
 
@@ -305,6 +315,7 @@ package body PolyORB.POA_Types is
       Persistency_Flag : PolyORB.Types.Unsigned_Long;
    begin
       Index := Oid'First;
+
       Get_String
         (Stream_Element_Array (Oid), Index, Creator);
       Get_String
@@ -313,11 +324,12 @@ package body PolyORB.POA_Types is
         (Stream_Element_Array (Oid), Index, System_Generated);
       Get_ULong
         (Stream_Element_Array (Oid), Index, Persistency_Flag);
+
       pragma Assert (Index = Oid'Last + 1);
 
       return Unmarshalled_Oid'
-        (Creator => Creator,
-         Id => Id,
+        (Creator          => Creator,
+         Id               => Id,
          System_Generated => System_Generated,
          Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
    end Oid_To_U_Oid;
@@ -325,7 +337,6 @@ package body PolyORB.POA_Types is
    function Oid_To_U_Oid
      (Oid : access Object_Id)
      return Unmarshalled_Oid is
-
    begin
       return Oid_To_U_Oid (Oid.all);
    end Oid_To_U_Oid;
@@ -340,11 +351,9 @@ package body PolyORB.POA_Types is
    is
       Oid   : constant Object_Id := U_Oid_To_Oid (U_Oid);
 
-      Oid_A : Object_Id_Access;
+      Oid_A : constant Object_Id_Access := new Object_Id'(Oid);
 
    begin
-      Oid_A := new Object_Id'(Oid);
-
       pragma Debug (O ("Oid is " & Image (Oid)));
       return Oid_A;
    end U_Oid_To_Oid;

@@ -57,18 +57,30 @@ package PolyORB.POA_Types is
      renames PolyORB.Obj_Adapters.Invalid_Object_Id;
    Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
 
+   ----------------
+   -- Time_Stamp --
+   ----------------
+
    subtype Time_Stamp is Unsigned_Long;
+
+   Null_Time_Stamp : constant Time_Stamp;
    --  A time marker.
 
    subtype Lifespan_Cookie is Unsigned_Long;
    --  A piece of information embedded in an object id by the lifespan
    --  policy for control of reference validity across ORB executions.
 
-   --  Base types for the PolyORB POA.
+   -----------------
+   -- Obj_Adapter --
+   -----------------
 
    type Obj_Adapter is abstract new PolyORB.Obj_Adapters.Obj_Adapter
       with null record;
    type Obj_Adapter_Access is access all Obj_Adapter'Class;
+
+   ----------------------------------
+   -- Object Interface description --
+   ----------------------------------
 
    type Parameter_Profile_Description is
      access function (Method : String)
@@ -86,10 +98,18 @@ package PolyORB.POA_Types is
       RP_Desc : Result_Profile_Description;
    end record;
 
+   -------------
+   -- POAList --
+   -------------
+
    package POA_Sequences is new PolyORB.Sequences.Unbounded
      (Obj_Adapter_Access);
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
+
+   --------------
+   -- POATable --
+   --------------
 
    package POA_HTables is new PolyORB.Utils.HTables.Perfect
      (Obj_Adapter_Access,
@@ -102,6 +122,10 @@ package PolyORB.POA_Types is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (POATable, POATable_Access);
+
+   ----------------
+   -- Object Ids --
+   ----------------
 
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
@@ -179,5 +203,9 @@ package PolyORB.POA_Types is
 
    procedure Free (X : in out PolyORB.POA_Types.Object_Id_Access)
      renames PolyORB.Objects.Free;
+
+private
+
+   Null_Time_Stamp : constant Time_Stamp := 0;
 
 end PolyORB.POA_Types;
