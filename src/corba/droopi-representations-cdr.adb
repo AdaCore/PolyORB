@@ -98,8 +98,8 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type       := 1);
    --  Align Buffer on Alignment, then marshall a copy of
    --  Octets into it.
    --  The data in Octets shall be presented in big-endian
@@ -108,8 +108,8 @@ package body Droopi.Representations.CDR is
 
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type       := 1)
      return Stream_Element_Array;
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
@@ -117,8 +117,8 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type       := 1);
    --  Align Buffer on Alignment, then marshall a copy of
    --  Octets into it.
    --  The data in Octets shall be presented in the
@@ -135,15 +135,15 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : in Stream_Element_Array;
-      Alignment : Alignment_Type := 1);
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type       := 1);
    --  Align Buffer on Alignment, then marshall a copy
    --  of Octets into Buffer, as is.
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type       := 1)
      return Stream_Element_Array;
    --  Align Buffer on Alignment, then unmarshall a copy
    --  of Size octets from Buffer's data, as is.
@@ -208,7 +208,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Boolean
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Boolean) is
+      Data   :        CORBA.Boolean) is
    begin
       pragma Debug (O ("Marshall (Boolean) : enter"));
       Marshall (Buffer, CORBA.Octet'(CORBA.Boolean'Pos (Data)));
@@ -218,7 +218,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a character
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Char) is
+      Data   :        CORBA.Char) is
    begin
       pragma Debug (O ("Marshall (Char) : enter"));
       Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Data)));
@@ -228,7 +228,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a wide character
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wchar)
+      Data   :        CORBA.Wchar)
    is
 
    begin
@@ -243,7 +243,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Octet
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Octet) is
+      Data   :        CORBA.Octet) is
    begin
       pragma Debug (O ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => Stream_Element
@@ -254,7 +254,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of an unsigned short
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Short)
+      Data   :        CORBA.Unsigned_Short)
    is
 
    begin
@@ -270,7 +270,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of an unsigned long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long)
+      Data   :        CORBA.Unsigned_Long)
    is
 
    begin
@@ -288,9 +288,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of an unsigned long long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Unsigned_Long_Long)
-   is
-
+      Data   :        CORBA.Unsigned_Long_Long) is
    begin
       pragma Debug (O ("Marshall (ULongLong) : enter"));
       Align_Marshall_Big_Endian_Copy
@@ -310,7 +308,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a long long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long_Long) is
+      Data   :        CORBA.Long_Long) is
    begin
       pragma Debug (O ("Marshall (LongLong) : enter"));
       Marshall (Buffer, To_Unsigned_Long_Long (Data));
@@ -320,7 +318,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a long
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Long) is
+      Data   :        CORBA.Long) is
    begin
       pragma Debug (O ("Marshall (Long) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
@@ -330,7 +328,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a short
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Short) is
+      Data   :        CORBA.Short) is
    begin
       pragma Debug (O ("Marshall (Short) : enter"));
       Marshall (Buffer, To_Unsigned_Short (Data));
@@ -340,7 +338,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a float
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Float) is
+      Data   :        CORBA.Float) is
    begin
       pragma Debug (O ("Marshall (Float) : enter"));
       Marshall (Buffer, To_Unsigned_Long (Data));
@@ -350,7 +348,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a double
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Double)
+      Data   :        CORBA.Double)
    is
       Buf : Double_Buf := To_Double_Buf (Data);
    begin
@@ -361,8 +359,8 @@ package body Droopi.Representations.CDR is
 
    --  Marshalling of a long double
    procedure Marshall
-      (Buffer : access Buffer_Type;
-       Data   : in CORBA.Long_Double)
+     (Buffer : access Buffer_Type;
+      Data   :        CORBA.Long_Double)
    is
       --  FIXME LONG DOUBLE
       --   Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
@@ -376,7 +374,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a standard string
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Standard.String) is
+      Data   :        Standard.String) is
    begin
       pragma Debug (O ("Marshall (String) : enter"));
 
@@ -392,7 +390,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba String
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.String) is
+      Data   :        CORBA.String) is
    begin
       pragma Debug (O ("Marshall (CORBA.String) : enter"));
       Marshall (Buffer, CORBA.To_Standard_String (Data));
@@ -406,7 +404,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a wide string
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wide_String)
+      Data   :        CORBA.Wide_String)
    is
       Equiv : constant Wide_String
         := CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
@@ -428,7 +426,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba Identifier
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Identifier) is
+      Data   :        CORBA.Identifier) is
    begin
       pragma Debug (O ("Marshall (Identifier) : enter"));
       Marshall (Buffer, CORBA.String (Data));
@@ -438,7 +436,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba Scoped Name
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.ScopedName) is
+      Data   :        CORBA.ScopedName) is
    begin
       pragma Debug (O ("Marshall (ScopedName) : enter"));
       Marshall (Buffer, CORBA.String (Data));
@@ -448,7 +446,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba Repository Identifier
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.RepositoryId) is
+      Data   :        CORBA.RepositoryId) is
    begin
       pragma Debug (O ("Marshall (RepositoryId) : enter"));
       Marshall (Buffer, CORBA.String (Data));
@@ -458,7 +456,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba Value Modifier type (short)
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.ValueModifier) is
+      Data   :        CORBA.ValueModifier) is
    begin
       pragma Debug (O ("Marshall (ValueModifier) : enter"));
       Marshall (Buffer, CORBA.Short (Data));
@@ -468,7 +466,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of a Corba Visibility Type (short)
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Visibility) is
+      Data   :        CORBA.Visibility) is
    begin
       pragma Debug (O ("Marshall (Visibility) : enter"));
       Marshall (Buffer, CORBA.Short (Data));
@@ -479,7 +477,7 @@ package body Droopi.Representations.CDR is
    --  Marshalling of Corba Any Type
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Any) is
+      Data   :        CORBA.Any) is
    begin
       pragma Debug (O ("Marshall (Any) : enter"));
       Marshall (Buffer, Get_Type (Data));
@@ -490,7 +488,7 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Any)
+      Data   :        CORBA.Any)
    is
       Data_Type : CORBA.TypeCode.Object := CORBA.Get_Precise_Type (Data);
    begin
@@ -797,7 +795,8 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.TypeCode.Object) is
+      Data   :        CORBA.TypeCode.Object)
+   is
       Complex_Buffer : Buffer_Access;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
@@ -1072,7 +1071,7 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.NamedValue) is
+      Data   : CORBA.NamedValue) is
    begin
       pragma Debug (O ("Marshall (NamedValue) : enter"));
       Marshall_From_Any (Buffer, Data.Argument);
@@ -1285,24 +1284,28 @@ package body Droopi.Representations.CDR is
    -- Unmarshall-by-copy subprograms --
    ------------------------------------
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Boolean is
    begin
       pragma Debug (O ("Unmarshall (Boolean) : enter & end"));
       return CORBA.Boolean'Val (CORBA.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Char is
    begin
       pragma Debug (O ("Unmarshall (Char) : enter & end"));
       return CORBA.Char'Val (CORBA.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Wchar is
-      Octets : constant Stream_Element_Array :=
-        Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Wchar
+   is
+      Octets : constant Stream_Element_Array
+        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
       pragma Debug (O ("Unmarshall (WChar) : enter & end"));
       return CORBA.Wchar'Val
@@ -1310,8 +1313,10 @@ package body Droopi.Representations.CDR is
          CORBA.Unsigned_Long (Octets (Octets'First + 1)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Octet is
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Octet
+   is
       Result : constant Stream_Element_Array
         := Align_Unmarshall_Copy (Buffer, 1, 1);
    begin
@@ -1319,22 +1324,24 @@ package body Droopi.Representations.CDR is
       return CORBA.Octet (Result (Result'First));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Unsigned_Short
    is
-      Octets : constant Stream_Element_Array :=
-        Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
+      Octets : constant Stream_Element_Array
+        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
    begin
       pragma Debug (O ("Unmarshall (UShort) : enter & end"));
       return CORBA.Unsigned_Short (Octets (Octets'First)) * 256 +
         CORBA.Unsigned_Short (Octets (Octets'First + 1));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Unsigned_Long
    is
-      Octets : constant Stream_Element_Array :=
-        Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
+      Octets : constant Stream_Element_Array
+        := Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
    begin
       pragma Debug (O ("Unmarshall (ULong) : enter & end"));
       return CORBA.Unsigned_Long (Octets (Octets'First)) * 256**3
@@ -1345,10 +1352,12 @@ package body Droopi.Representations.CDR is
       --  as shifts+adds.
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Unsigned_Long_Long is
-      Octets : constant Stream_Element_Array :=
-        Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Unsigned_Long_Long
+   is
+      Octets : constant Stream_Element_Array
+        := Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
       return CORBA.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
@@ -1394,10 +1403,12 @@ package body Droopi.Representations.CDR is
       return To_Float (Unmarshall (Buffer));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.Double is
-      Octets : constant Stream_Element_Array :=
-        Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.Double
+   is
+      Octets : constant Stream_Element_Array
+        := Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
    begin
       pragma Debug (O ("Unmarshall (Double) : enter & end"));
       return To_Double (Double_Buf (Octets));
@@ -1414,7 +1425,8 @@ package body Droopi.Representations.CDR is
       return CORBA.Long_Double (0);
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return Standard.String
    is
       Length : constant CORBA.Unsigned_Long
@@ -1426,12 +1438,14 @@ package body Droopi.Representations.CDR is
       pragma Debug (O ("Unmarshall (String): length is " &
                     CORBA.Unsigned_Long'Image (Length)));
       for I in Equiv'Range loop
-         Equiv (I) := Character'Val (CORBA.Char'Pos
-                                     (Unmarshall (Buffer)));
+         Equiv (I) := Character'Val
+           (CORBA.Char'Pos
+            (Unmarshall (Buffer)));
       end loop;
 
       if Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)))
-        /= ASCII.Nul then
+        /= ASCII.Nul
+      then
          Droopi.CORBA_P.Exceptions.Raise_Marshal;
       end if;
 
@@ -1466,51 +1480,53 @@ package body Droopi.Representations.CDR is
         (Equiv (1 .. Equiv'Length - 1));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Identifier is
-      Result : CORBA.String := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
-      return CORBA.Identifier (Result);
+      return CORBA.Identifier (CORBA.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.ScopedName is
-      Result : CORBA.String := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (ScopedName) : enter & end"));
-      return CORBA.ScopedName (Result);
+      return CORBA.ScopedName (CORBA.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.RepositoryId is
-      Result : CORBA.String := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (RepositoryId) : enter & end"));
-      return CORBA.RepositoryId (Result);
+      return CORBA.RepositoryId (CORBA.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.ValueModifier is
-      Result : CORBA.Short := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (ValueModifier) : enter & end"));
-      return CORBA.ValueModifier (Result);
+      return CORBA.ValueModifier (CORBA.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Visibility is
-      Result : CORBA.Short := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Visibility) : enter & end"));
-      return CORBA.Visibility (Result);
+      return CORBA.Visibility (CORBA.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
-   function Unmarshall (Buffer : access Buffer_Type)
+   function Unmarshall
+     (Buffer : access Buffer_Type)
      return CORBA.Any
    is
       Result : CORBA.Any;
-      Tc : CORBA.TypeCode.Object := Unmarshall (Buffer);
+      Tc     : constant CORBA.TypeCode.Object
+        := Unmarshall (Buffer);
    begin
       pragma Debug (O ("Unmarshall (Any) : enter"));
       Result := Get_Empty_Any (Tc);
@@ -1519,16 +1535,23 @@ package body Droopi.Representations.CDR is
       return Result;
    end Unmarshall;
 
-   procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
-                                Result : in out CORBA.Any)
+   procedure Unmarshall_To_Any
+     (Buffer : access Buffer_Type;
+      Result : in out CORBA.Any)
    is
-      Tc : CORBA.TypeCode.Object := Get_Precise_Type (Result);
-      Is_Empty : Boolean := CORBA.Is_Empty (Result);
+      Tc       : constant CORBA.TypeCode.Object
+        := Get_Precise_Type (Result);
+      Is_Empty : constant Boolean
+        := CORBA.Is_Empty (Result);
+
       use CORBA;
+
    begin
       pragma Debug (O ("Unmarshall_To_Any : enter"));
-      pragma Debug (O ("Unmarshall_To_Any : Any_Type is " &
-                       CORBA.TCKind'Image (TypeCode.Kind (Tc))));
+      pragma Debug
+        (O ("Unmarshall_To_Any : Any_Type is " &
+            CORBA.TCKind'Image (TypeCode.Kind (Tc))));
+
       case TypeCode.Kind (Tc) is
          when Tk_Null | Tk_Void =>
             null;
@@ -1944,11 +1967,15 @@ package body Droopi.Representations.CDR is
       pragma Debug (O ("Unmarshall_To_Any : end"));
    end Unmarshall_To_Any;
 
-   function Unmarshall (Buffer : access Buffer_Type)
-     return CORBA.TypeCode.Object is
+   function Unmarshall
+     (Buffer : access Buffer_Type)
+     return CORBA.TypeCode.Object
+   is
       Nb : CORBA.Unsigned_Long := Unmarshall (Buffer);
       Result : CORBA.TypeCode.Object;
    begin
+      --  XXX The hardcoded values in this case should be replaced
+      --  by symbolic constants.
       pragma Debug (O ("Unmarshall (TypeCode) : enter"));
       case Nb is
          when 0 =>
@@ -2308,8 +2335,9 @@ package body Droopi.Representations.CDR is
       return Result;
    end Unmarshall;
 
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         NV : in out CORBA.NamedValue) is
+   procedure Unmarshall
+     (Buffer : access Buffer_Type;
+      NV     : in out CORBA.NamedValue) is
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
@@ -2345,7 +2373,8 @@ package body Droopi.Representations.CDR is
    -- Rev --
    ---------
 
-   function Rev (Octets : Stream_Element_Array)
+   function Rev
+     (Octets : Stream_Element_Array)
      return Stream_Element_Array
    is
       Result : Stream_Element_Array (Octets'Range);
@@ -2362,8 +2391,8 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type       := 1)
    is
    begin
       if Endianness (Buffer.all) = Big_Endian then
@@ -2379,8 +2408,8 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : Stream_Element_Array;
-      Alignment : Alignment_Type := 1)
+      Octets    :        Stream_Element_Array;
+      Alignment :        Alignment_Type       := 1)
    is
    begin
       if Endianness (Buffer.all) = Host_Order then
@@ -2396,7 +2425,7 @@ package body Droopi.Representations.CDR is
 
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
-      Octets    : in Stream_Element_Array;
+      Octets    : Stream_Element_Array;
       Alignment : Alignment_Type := 1)
    is
 
@@ -2422,8 +2451,8 @@ package body Droopi.Representations.CDR is
 
    function Align_Unmarshall_Big_Endian_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type       := 1)
      return Stream_Element_Array
    is
    begin
@@ -2460,8 +2489,8 @@ package body Droopi.Representations.CDR is
 
    function Align_Unmarshall_Copy
      (Buffer    : access Buffer_Type;
-      Size      : Stream_Element_Count;
-      Alignment : Alignment_Type := 1)
+      Size      :        Stream_Element_Count;
+      Alignment :        Alignment_Type       := 1)
      return Stream_Element_Array is
 
       Data_Address : Opaque_Pointer;
@@ -2555,7 +2584,7 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Excpt  : in CORBA.Exception_Occurrence)
+      Excpt  :        CORBA.Exception_Occurrence)
    is
       Members : CORBA.System_Exception_Members;
    begin
@@ -2610,7 +2639,7 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in Stream_Element_Array)
+      Data   :        Stream_Element_Array)
    is
 
    begin
@@ -2715,7 +2744,7 @@ package body Droopi.Representations.CDR is
 
       procedure Marshall
         (Buffer : access Buffer_Type;
-         Data   : in F)
+         Data   :        F)
       is
          N_Digits : Integer
            := 0;
