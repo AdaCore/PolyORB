@@ -1,9 +1,16 @@
 //File: RTCosScheduling.idl
 #ifndef _RT_COS_SCHEDULING_
 #define _RT_COS_SCHEDULING_
-#include <orb.idl>
 
+#ifdef _PRE_3_0_COMPILER_
+#pragma prefix "omg.org"
+
+#include <orb.idl>
 #include <PortableServer.idl>
+#else
+import ::CORBA;
+import ::PortableServer;
+#endif
 
 // IDL
 module RTCosScheduling {
@@ -32,4 +39,4 @@ module RTCosScheduling {
 
   };
 };
-#endif  // _RT_COS_SCHEDULING_IDL_
+#endif // _RT_COS_SCHEDULING_IDL_
