@@ -5,6 +5,17 @@ with Types; use Types;
 
 package body Locations is
 
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (Op1, Op2 : Location) return Boolean is
+   begin
+      return Op1.File = Op2.File
+        and then Op1.Dir = Op2.Dir
+        and then Op1.Scan < Op2.Scan;
+   end "<";
+
    -----------
    -- Image --
    -----------

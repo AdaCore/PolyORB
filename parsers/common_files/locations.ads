@@ -20,4 +20,6 @@ package Locations is
       Name : Name_Id;
       Line : Int);
 
+   function "<" (Op1, Op2 : Location) return Boolean;
+
 end Locations;
