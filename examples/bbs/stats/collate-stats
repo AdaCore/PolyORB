@@ -48,8 +48,8 @@ for d in "$@"; do
                 END { if (sum > 0 && NR == '"$nmax"') {
                         print "status=OK"
                         avg = sum / NR;
-                        printf "moy=%.12g\nect=%.12g\n",
-                          (sum / NR), sqrt(sqsum/NR - (avg * avg))
+                        printf "inf=%.12g\nsup=%.12g\nmoy=%.12g\nect=%.12g\n",
+                          inf, sup, (sum / NR), sqrt(sqsum/NR - (avg * avg))
                       } else { print "status=FAILED"; } }'
     ) >> $d/99RESULTS
   fi
