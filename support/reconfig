@@ -53,8 +53,15 @@ then
   rm -f configure.in.orig
 fi
 
+rm -f aclocal.m4 support/libtool.m4
+
 echo "Libtoolizing"
-libtoolize --copy --force
+libtool_m4=`libtoolize --copy --force | sed -n -e '/You should add the contents of \`\([^'\'']*\)'\''.*$/s//\1/p'`
+if [ -n "$libtool_m4" ]; then
+  cp $libtool_m4 support/libtool.m4
+else
+  touch support/libtool.m4
+fi
 
 echo "Running aclocal"
 aclocal -I support

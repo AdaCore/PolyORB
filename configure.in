@@ -350,6 +350,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 host_tmp=$host
 host=$target
 AM_PROG_LIBTOOL
+AC_LIBTOOL_HAS_TAG
 host=$host_tmp
 
 ##########################################
