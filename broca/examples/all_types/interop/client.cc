@@ -29,9 +29,24 @@
 //
 // Usage: client <object reference>
 
+#ifdef _OMNIORB_SOURCE
+#include "all_types.hh"
+#define ORBNAME "omniORB2"
+#define NILP(instance) (all_types_Helper::is_nil (instance))
+#endif
+
+#ifdef _TAO_SOURCE
+#include "all_typesS.h"
+#define ORBNAME "TAO"
+#define NILP(instance) (CORBA::is_nil (instance))
+#endif
+
+#ifndef ORBNAME
+#error Please #define an ORB kind!
+#endif
+
 #include <iostream.h>
 #include <string.h>
-#include "all_types.hh"
 
 #define Max 60
 
@@ -54,7 +69,7 @@ bool True = 1;
 int
 main (int argc, char **argv) 
 {
-  CORBA::ORB_ptr orb = CORBA::ORB_init(argc,argv,"omniORB2");
+  CORBA::ORB_ptr orb = CORBA::ORB_init(argc,argv,ORBNAME);
 
   if (argc < 2) {
     cerr << "usage: client <object reference>" << endl;
@@ -66,12 +81,12 @@ main (int argc, char **argv)
     all_types_var at = all_types::_narrow(obj);
 
     // Here comes the hot chou-fleur
-    if (all_types_Helper::is_nil (at)) {
+
+    if (NILP (at)) {
       cout << "main : cannot invoke on a nil reference" << endl;
       return -1;
     }
-
-    Output ("test not null", ! all_types_Helper::is_nil (at));
+    Output ("test not null", 1);
 
     for (;;) {
       Output ("test boolean", at->echoBoolean (True) == True);
@@ -263,17 +278,21 @@ main (int argc, char **argv)
   } catch(CORBA::COMM_FAILURE& ex) {
     cerr << "Caught system exception COMM_FAILURE, unable to contact the "
          << "object." << endl;
+#ifdef OMNIORB
   } catch(omniORB::fatalException& ex) {
     cerr << "Caught omniORB2 fatalException. This indicates a bug is caught "
          << "within omniORB2.\nPlease send a bug report.\n"
          << "The exception was thrown in file: " << ex.file() << "\n"
          << "                            line: " << ex.line() << "\n"
          << "The error message is: " << ex.errmsg() << endl;
+#endif
   } catch(...) {
     cerr << "Caught a system exception." << endl;
   }
 
+#ifdef _OMNIORB_SOURCE
   orb->NP_destroy();
+#endif
 
   return 0;
 }

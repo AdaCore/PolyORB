@@ -75,8 +75,23 @@ Features
 
     - Debian GNU/Linux 2.2 (Potato) on Intel and Sparc
     - FreeBSD 4.0 and 5.0-CURRENT (with GNAT 3.13a1)
-    _ HP/UX 10.20 (client without tasking)
+    - HP/UX 10.20 (client without tasking)
     - Solaris 2.5.1, 2.6 and 2.7 on Sparc
+
+- The following interoperability configurations have been reported
+  to work, at least to some extent:
+
+  AdaBroker client, MICO server
+  AdaBroker client, omniORB server
+  AdaBroker client, ORBit server
+  AdaBroker client, TAO server
+
+  AdaBroker server, omniORB client
+  AdaBroker server, ORBit client
+
+  If you are in any other situation, please let us know what works
+  and what does not. Do not hesitate to report any problem that you
+  encounter (see section "Bug reports" below.)
 
 - If you need to debug AdaBroker, you can create a file broca.opt in
   your current directory. This file should contain lines with package
