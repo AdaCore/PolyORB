@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -54,11 +54,6 @@ package body System.Garlic.Remote is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARREM", "(s-garrem): ");
-
-   procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
 
    function Is_Local_Host (Host : String) return Boolean;
    --  Return True if the Host we are trying to contact is the same as the
