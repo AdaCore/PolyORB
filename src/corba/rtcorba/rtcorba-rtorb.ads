@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -50,13 +50,11 @@ package RTCORBA.RTORB is
 
    type Ref is new CORBA.Object.Ref with private;
 
-   function Create_Mutex
-     (Self : in Ref)
-     return RTCORBA.Mutex.Ref;
+   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
 
-   procedure Destroy_Mutex
-     (Self      : in Ref;
-      The_Mutex : in RTCORBA.Mutex.Ref);
+   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Ref;
+
+   procedure Destroy_Mutex (Self : in Ref; The_Mutex : in RTCORBA.Mutex.Ref);
 
    InvalidThreadpool : exception;
 
@@ -95,6 +93,11 @@ package RTCORBA.RTORB is
      (Self       : in Ref;
       Threadpool : in RTCORBA.ThreadpoolId)
      return RTCORBA.ThreadpoolPolicy.Ref;
+   --  Implementation Note: RT-CORBA specifications (formal/03-11-01)
+   --  defines no return exception for this function. However,
+   --  creating a Threadpool_Policy from an invalid ThreadpoolId shall
+   --  be an error, as the user has no control on generated
+   --  ThreadpoolIds.
 
    -----------------------------------------
    -- RTCORBA.RTORB Exceptions Management --
