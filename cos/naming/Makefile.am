@@ -2,10 +2,15 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-PROGS= ab_names test_naming
+if ENABLE_IR
+IR_AB_NAMES=		ir_ab_names
+IR_GNATMAKE_FLAGS=	-I../ir -I$(srcdir)/../ir
+endif
+
+PROGS= ab_names test_naming $(IR_AB_NAMES)
 
 COS_DIRS=../../idls/cos/naming
-COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
+COS_GNATMAKE_FLAGS=-I../../idls/cos/naming $(IR_GNATMAKE_FLAGS)
 
 COS_IMPL=\
   cosnaming-bindingiterator-impl.adb \
@@ -37,17 +42,8 @@ stamp-gen: $(IDL) $(IDLAC)
 	touch stamp-gen
 	$(IDLAC) $(IDL)
 
-test_naming: force $(GEN) $(IMPL) $(COS_IMPL)
+$(PROGS): force
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
-ab_names: force $(GEN) $(IMPL) $(COS_IMPL) ab_names.adb
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
-naming_tools.o:
-	$(GNATMAKE) -c naming_tools $(GNATMAKE_FLAGS)
-
-naming_tools.o: naming_tools.ads naming_tools.adb cosnaming.ads
-naming_tools.o: cosnaming-namingcontext.ads cosnaming-namingcontext-helper.ads
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin

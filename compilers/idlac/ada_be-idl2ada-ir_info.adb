@@ -45,6 +45,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
    pragma Unreferenced (O);
    pragma Warnings (On);
 
+   Registration : constant Source_Streams.Diversion
+     := Source_Streams.Allocate_User_Diversion;
+
    CRR : constant String := "CORBA.Repository_Root";
 
    procedure Gen_IR_Function_Prologue
@@ -103,6 +106,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for an operation declaration
 
+   procedure Gen_Attribute_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate the body of the helper package for an attribute declaration
+
    procedure Gen_Module_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
@@ -149,11 +157,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
    --  Generate the body of the helper package for an union declaration
-
-   procedure Gen_Type_Declarator_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the spec of the helper package for an array declaration
 
    procedure Gen_Type_Declarator_Body
      (CU        : in out Compilation_Unit;
@@ -403,6 +406,19 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      :        Node_Id) is
    begin
       case Kind (Node) is
+         when K_Attribute =>
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Decl_Node);
+                  Gen_IR_Function_Prologue
+                    (CU, Decl_Node, For_Body => False);
+               end loop;
+            end;
+
          when K_Operation =>
             if Original_Node (Node) /= No_Node then
                return;
@@ -434,7 +450,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, Decl_Node);
-                     Gen_Type_Declarator_Spec (CU, Decl_Node);
+                     Gen_IR_Function_Prologue
+                       (CU, Decl_Node, For_Body => False);
                   end loop;
                end;
             end if;
@@ -476,6 +493,18 @@ package body Ada_Be.Idl2Ada.IR_Info is
 
          when K_Interface =>
             Gen_Interface_Body (CU, Node);
+
+         when K_Attribute =>
+            declare
+               It   : Node_Iterator;
+               Decl_Node : Node_Id;
+            begin
+               Init (It, Declarators (Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Decl_Node);
+                  Gen_Attribute_Body (CU, Decl_Node);
+               end loop;
+            end;
 
          when K_Operation =>
             if Original_Node (Node) /= No_Node then
@@ -606,6 +635,19 @@ package body Ada_Be.Idl2Ada.IR_Info is
          DI (CU);
          PL (CU, "end if;");
          NL (CU);
+
+         Divert (CU, Registration);
+         PL (CU, "declare");
+         II (CU);
+         PL (CU, "Dummy : CORBA.Object.Ref'Class");
+         PL (CU, "  := " & Name & ";");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "null;");
+         DI (CU);
+         PL (CU, "end;");
+         Divert (CU, Visible_Declarations);
       end if;
    end Gen_IR_Function_Prologue;
 
@@ -771,7 +813,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
    is
       It : Node_Iterator;
       IRN : constant String := Ada_IR_Name (Node);
-      OT_Node : Node_Id := Operation_Type (Node);
+      OT_Node : constant Node_Id := Operation_Type (Node);
    begin
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
@@ -807,14 +849,17 @@ package body Ada_Be.Idl2Ada.IR_Info is
             II (CU);
             PL (CU, Ada_Full_TC_Name (T_Node) & ",");
             DI (CU);
-            PL (CU, " type_def =>");
+
             Add_With (CU, CRR & ".IDLType");
-            Add_With (CU, CRR & ".IDLType.Helper");
+            PL (CU, " type_def => "
+                & "IDLType.Convert_Forward.To_Forward");
             II (CU);
-            PL (CU, "IDLType.Convert_Forward.To_Forward");
-            PL (CU, "  (IDLType.Helper.To_Ref");
-            PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & ")),");
+            Put (CU, "(");
+            Gen_IDLType
+              (CU, T_Node => T_Node, D_Node => Node);
+            PL (CU, "),");
             DI (CU);
+
             Put (CU, " mode => ");
             case Mode (P_Node) is
                when Mode_In =>
@@ -868,6 +913,50 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "end " & IRN & ";");
 
    end Gen_Operation_Body;
+
+   ------------------------
+   -- Gen_Attribute_Body --
+   ------------------------
+
+   procedure Gen_Attribute_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id)
+   is
+      IRN : constant String := Ada_IR_Name (Node);
+      A_Node  : constant Node_Id := Parent (Node);
+      AT_Node : constant Node_Id := A_Type (A_Node);
+   begin
+      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+      Gen_Parent_Container_Lookup (CU, Node);
+
+      Add_With (CU, CRR & ".InterfaceDef.Helper");
+      Add_With (CU, CRR & ".IRObject.Helper");
+      PL (CU, "Cached_" & IRN);
+      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".InterfaceDef.Create_Attribute");
+      PL (CU, "  (" & CRR & ".InterfaceDef.Helper.To_Ref");
+      II (CU);
+      PL (CU, "(Container_Ref),");
+      Gen_Standard_Create_Parameters (CU, Node);
+
+      PL (CU, "IDL_type =>");
+      Gen_IDLType (CU, AT_Node, No_Node);
+      PL (CU, ",");
+
+      Put (CU, "mode => ");
+      if Is_Readonly (A_Node) then
+         Put (CU, "ATTR_READONLY");
+      else
+         Put (CU, "ATTR_NORMAL");
+      end if;
+
+      PL (CU, "));");
+      DI (CU);
+      PL (CU, "return Cached_" & IRN & ";");
+      DI (CU);
+      PL (CU, "end " & IRN & ";");
+
+   end Gen_Attribute_Body;
 
    ------------------------
    -- Gen_Module_Body --
@@ -1038,7 +1127,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   PL (CU, Ada_Full_TC_Name (T_Node) & ",");
                   DI (CU);
                   Add_With (CU, CRR & ".IDLType");
-                  Add_With (CU, CRR & ".IDLType.Helper");
                   PL (CU, " type_def => "
                       & "IDLType.Convert_Forward.To_Forward");
                   II (CU);
@@ -1190,19 +1278,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       DI (CU);
       PL (CU, "end " & IRN & ";");
    end Gen_Union_Body;
-
-   ------------------------------
-   -- Gen_Type_Declarator_Spec --
-   ------------------------------
-
-   procedure Gen_Type_Declarator_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
-   is
-   begin
-      pragma Assert (Kind (Node) = K_Declarator);
-      Gen_IR_Function_Prologue (CU, Node, For_Body => False);
-   end Gen_Type_Declarator_Spec;
 
    -----------------
    -- Gen_IDLType --
@@ -1494,6 +1569,16 @@ package body Ada_Be.Idl2Ada.IR_Info is
    end Gen_Sequence_IR;
 
    ----------------------
+   -- Gen_Spec_Prelude --
+   ----------------------
+
+   procedure Gen_Spec_Prelude (CU : in out Compilation_Unit) is
+   begin
+      NL (CU);
+      PL (CU, "procedure Register_IR_Info;");
+   end Gen_Spec_Prelude;
+
+   ----------------------
    -- Gen_Body_Prelude --
    ----------------------
 
@@ -1503,6 +1588,27 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
       NL (CU);
       PL (CU, "pragma Warnings (Off);");
+      Divert (CU, Registration);
+      NL (CU);
+      PL (CU, "procedure Register_IR_Info is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "null;");
+      Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;
+
+   -----------------------
+   -- Gen_Body_Postlude --
+   -----------------------
+
+   procedure Gen_Body_Postlude (CU : in out Compilation_Unit) is
+   begin
+      Divert (CU, Registration);
+      DI (CU);
+      PL (CU, "end Register_IR_Info;");
+
+      Divert (CU, Visible_Declarations);
+      Undivert (CU, Registration);
+   end Gen_Body_Postlude;
 
 end Ada_Be.Idl2Ada.IR_Info;

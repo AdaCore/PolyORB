@@ -1,6 +1,6 @@
 if ENABLE_IR
-SUBDIRS = naming ir
-else
-SUBDIRS = naming
+IR=	ir
 endif
+
+SUBDIRS = naming $(IR)
 # event time

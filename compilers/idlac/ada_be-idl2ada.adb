@@ -319,6 +319,7 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Node_Spec (Helper_Spec, Node);
       Helper.Gen_Node_Body (Helper_Body, Node);
 
+      IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
       IR_Info.Gen_Body_Prelude (IR_Info_Body);
       IR_Info.Gen_Node_Spec (IR_Info_Spec, Node);
       IR_Info.Gen_Node_Body (IR_Info_Body, Node);
@@ -382,6 +383,7 @@ package body Ada_Be.Idl2Ada is
 
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
+      IR_Info.Gen_Body_Postlude (IR_Info_Body);
 
       if not Is_Empty (Supports (Node)) then
          Skel.Gen_Body_Common_End (Skel_Body, Skeleton, Node);
@@ -617,6 +619,7 @@ package body Ada_Be.Idl2Ada is
       --  Work-around for GNAT bug 9530-011.
 
       Helper.Gen_Body_Prelude (Helper_Body);
+      IR_Info.Gen_Spec_Prelude (IR_Info_Spec);
       IR_Info.Gen_Body_Prelude (IR_Info_Body);
 
       case Kind (Node) is
@@ -858,6 +861,7 @@ package body Ada_Be.Idl2Ada is
 
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
+      IR_Info.Gen_Body_Postlude (IR_Info_Body);
 
       if Kind (Node) = K_Ben_Idl_File
         and then Is_Unknown (Node) then
@@ -2075,7 +2079,8 @@ package body Ada_Be.Idl2Ada is
                            Gen_Forward_Conversion
                              (CU, Original_Operation_Type (Node),
                               "To_Forward",
-                              Prefix & ".From_Any ("
+                              Prefix & ".From_Any"
+                              & ASCII.LF & "  ("
                               & T_Result & ".Argument)");
                            PL (CU, ";");
                         end;
@@ -2107,7 +2112,8 @@ package body Ada_Be.Idl2Ada is
                                    (CU, Param_Type (P_Node),
                                     "To_Forward",
                                     Helper_Unit (Param_Type (P_Node))
-                                    & ".From_Any ("
+                                    & ".From_Any"
+                                    & ASCII.LF & "  ("
                                     & T_Argument
                                     & Arg_Name);
                                  PL (CU, ");");

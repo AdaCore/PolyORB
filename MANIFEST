@@ -203,7 +203,6 @@ cos/ir/typecode.sh
 cos/naming/File.idl
 cos/naming/Makefile.am
 cos/naming/Makefile.in
-cos/naming/ab_names
 cos/naming/ab_names.adb
 cos/naming/cosnaming-bindingiterator-impl.adb
 cos/naming/cosnaming-bindingiterator-impl.ads
@@ -214,6 +213,8 @@ cos/naming/file-impl.ads
 cos/naming/file_idl_file-helper.adb
 cos/naming/file_idl_file-helper.ads
 cos/naming/header.txt
+cos/naming/ir_ab_names.adb
+cos/naming/ir_ab_names_setup.adb
 cos/naming/menu.adb
 cos/naming/menu.ads
 cos/naming/polyorb-corba_p-naming_tools.adb
@@ -257,6 +258,7 @@ examples/all_types/client.adb
 examples/all_types/dynclient.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
+examples/all_types/ir_server.adb
 examples/all_types/server.adb
 examples/corba-test_object.adb
 examples/corba-test_object.ads

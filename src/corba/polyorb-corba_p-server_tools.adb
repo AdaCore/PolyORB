@@ -148,6 +148,10 @@ package body PolyORB.CORBA_P.Server_Tools is
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (Root_POA));
 
+      if Initiate_Server_Hook /= null then
+         Initiate_Server_Hook.all;
+      end if;
+
       if Start_New_Task then
          PolyORB.Soft_Links.Create_Task (CORBA.ORB.Run'Access);
       else

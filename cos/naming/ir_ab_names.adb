@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           ADABROKER SERVICES                             --
 --                                                                          --
---               A D A _ B E . I D L 2 A D A . I R _ I N F O                --
+--                             A B _ N A M E S                              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -19,32 +19,25 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
 --             AdaBroker is maintained by ENST Paris University.            --
 --                     (email: broker@inf.enst.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with AB_Names;
+with IR_AB_Names_Setup;
+with PolyORB.CORBA_P.Server_Tools;
 
-with Idl_Fe.Types;          use Idl_Fe.Types;
-with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
-pragma Elaborate_All (Ada_Be.Source_Streams);
-
-private package Ada_Be.Idl2Ada.IR_Info is
-
-   Suffix : constant String
-     := ".IR_Info";
-
-   procedure Gen_Spec_Prelude (CU : in out Compilation_Unit);
-   procedure Gen_Body_Prelude (CU : in out Compilation_Unit);
-   procedure Gen_Body_Postlude (CU : in out Compilation_Unit);
-
-   procedure Gen_Node_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   procedure Gen_Node_Body
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate an Interface Repository information package
-
-end Ada_Be.Idl2Ada.IR_Info;
+procedure IR_AB_Names is
+begin
+   PolyORB.CORBA_P.Server_Tools.Initiate_Server_Hook
+     := IR_AB_Names_Setup'Access;
+   AB_Names;
+end IR_AB_Names;
