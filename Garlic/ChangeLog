@@ -46,6 +46,30 @@
 	* s-gaphlo.adb, s-garexc.adb, s-garrep.adb, s-gartcp.adb,
  	s-garter.adb, s-garuti.ads: Minor reformatting.
 
+	* s-shamem.adb: Implement an interface for shared passive units in
+ 	such a way it is possible to configure the data storage support.
+  	Or to have several supports at the same time
+ 	(like protocols).
+
+	* s-garsto.adb, s-garsto.ads: Define an abstract tagged type
+ 	Storage_Type with its primitives in order to provide concrete
+ 	implementation of a data storage support for shared passive units
+ 	and passive partitions. Define several subprograms to associate a
+ 	data storage object with a data storage name in order to resolve
+ 	shared variable location.
+
+	* s-gastco.adb, s-gastco.adb: Provide a dummy configuration for
+ 	data storages. By default, there is no data storage in a partition
+ 	because by default, a partition is active without any shared
+ 	passive units. It is up to gnatdist to create a new implementation
+ 	of this unit for a given partition when this partition needs a
+ 	data storage support. This occurs when shared passive units are
+ 	configured on this partition or when this partition has visibility
+ 	onto this partition.
+
+ 	* s-gardfs.ads, s-gardfs.adb: Implementation of a data storage
+	support for a Distributed File System like NFS.
+	
 2000-03-28  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5hgarcon.ads: New file, part of fix for 7524-016.
