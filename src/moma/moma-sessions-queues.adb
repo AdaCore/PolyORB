@@ -78,6 +78,10 @@ package body MOMA.Sessions.Queues is
    is
       Queue : MOMA.Sessions.Queues.Queue;
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Connection);
+      pragma Warnings (On);
+      --  XXX ??? Why
       Queue.Transacted := Transacted;
       Queue.Acknowledge_Mode := Acknowledge_Mode;
       return Queue;
