@@ -2,13 +2,98 @@
 # @configure_input@
 
 prefix="@prefix@"
-exec_prefix="@exec_prefix@"
-includedir="@includedir@"
-libdir="@libdir@"
 appli="@APPLI_LIST@"
 proto="@PROTO_LIST@"
 services="@SERVICE_LIST@"
+MAJOR=@POLYORB_MAJOR_VERSION@
+MINOR=@POLYORB_MINOR_VERSION@
 
+usage()
+{
+   cat <<EOF
+Usage: polyorb-config [OPTIONS]
+Options:
+        No option:
+            Output all the flags (compiler and linker) required
+            to compile your program.
+        [--prefix[=DIR]]
+            Output the directory in which PolyORB architecture-independent 
+           files are installed, or set this directory to DIR.
+        [--exec-prefix[=DIR]]
+            Output the directory in which PolyORB architecture-dependent 
+           files are installed, or set this directory to DIR.
+        [--version|-v]
+            Output the version of PolyORB.
+        [--config]
+            Output PolyORB's configuration parameters.
+        [--libs]
+            Output the linker flags to use for PolyORB.
+        [--cflags]
+            Output the compiler flags to use for PolyORB.
+        [--idls]
+            Output flags to set up path to CORBA's IDL for idlac.
+        [--help]
+            Output this message
+EOF
+}
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --help|-h)
+      usage 1>&2
+      exit 1
+      ;;
+    --prefix=*)
+      prefix=$optarg;
+      if test "x$exec_prefix_set" = x ; then
+	  exec_prefix=$prefix
+      fi
+      ;;
+    --prefix)
+      echo_prefix=true      
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=true
+      ;;
+    --version|-v)
+      echo PolyORB ${MAJOR}.${MINOR}
+      exit 0
+      ;;
+    --config)
+      echo "Personalities built :" 
+      echo "* Application personalities : " $appli
+      echo "* Protocol    personalities : " $proto
+      echo "* Services                  : " $services
+      exit 0
+      ;;  
+    --libs)
+      echo_libs=true
+      ;;
+    --idls)
+      echo_idls=true
+      ;;
+    --cflags)
+      echo_cflags=true
+      ;;
+    *)
+      usage 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+exec_prefix="@exec_prefix@"
+includedir="@includedir@"
+libdir="@libdir@"
 polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
 polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
 corba_idl_dir=""
@@ -55,80 +140,26 @@ do
  fi
 done
 
-MAJOR=@POLYORB_MAJOR_VERSION@
-MINOR=@POLYORB_MINOR_VERSION@
+if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
+   echo $polyorb_dir -largs $polyorb_lib
+fi
 
-usage()
-{
-   cat <<EOF
-Usage: polyorb-config [OPTIONS]
-Options:
-        No option:
-            Output all the flags (compiler and linker) required
-            to compile your program.
-        [--prefix]
-            Output the directory in which PolyORB is installed.
-        [--version|-v]
-            Output the version of PolyORB.
-        [--config]
-            Output PolyORB's configuration parameters.
-        [--libs]
-            Output the linker flags to use for PolyORB.
-        [--cflags]
-            Output the compiler flags to use for PolyORB.
-        [--idls]
-            Output flags to set up path to CORBA's IDL for idlac.
-        [--help]
-            Output this message
-EOF
-}
+if test x"$echo_prefix" = x"true" ; then
+    echo $prefix
+fi
+if test x"$echo_exec_prefix" = x"true" ; then
+    echo $exec_prefix
+fi
 
-output_type=full
+if test x"$echo_cflags" = x"true"; then
+    echo $polyorb_dir 
+fi
 
-while test $# -gt 0; do
-  case "$1" in
-  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
-  *) optarg= ;;
-  esac
+if test x"$echo_libs" = x"true"; then
+    echo $polyorb_lib
+fi
 
-  case $1 in
-    --help|-h)
-      usage 1>&2
-      exit 1
-      ;;
-    --prefix)
-      echo $prefix
-      exit 0
-      ;;
-    --version|-v)
-      echo PolyORB ${MAJOR}.${MINOR}
-      exit 0
-      ;;
-    --config)
-      echo "Personalities built :" 
-      echo "* Application personalities : " $appli
-      echo "* Protocol    personalities : " $proto
-      echo "* Services                  : " $services
-      exit 0
-      ;;  
-    --libs)
-      echo $polyorb_lib
-      exit 0
-      ;;
-    --idls)
-      echo $corba_idl_dir
-      exit 0
-      ;;
-    --cflags)
-      echo $polyorb_dir
-      exit 0
-      ;;
-    *)
-      usage 1>&2
-      exit 1
-      ;;
-  esac
-  shift
-done
+if test x"$echo_idls" = x"true"; then
+    echo $corba_idl_dir
+fi
 
-echo $polyorb_dir -largs $polyorb_lib
