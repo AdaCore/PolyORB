@@ -98,7 +98,7 @@ package body Scopes is
       end if;
       Set_Potential_Scope     (N, S);
       Set_Explicitely_Visible (N, True);
-      Set_Next_Node           (N, Scoped_Identifiers (S));
+      Set_Next_Entity         (N, Scoped_Identifiers (S));
       Set_Scoped_Identifiers  (S, N);
    end Enter_Name_In_Scope;
 
@@ -110,7 +110,7 @@ package body Scopes is
    begin
       Init;
       Increment_Last;
-      Root_Name := No_Name;
+      IDL_Spec_Name := No_Name;
    end Initialize;
 
    --------------------------
@@ -196,7 +196,7 @@ package body Scopes is
          then
             return Node (C);
          end if;
-         C := Next_Node (C);
+         C := Next_Entity (C);
       end loop;
 
       return No_Node;
@@ -300,7 +300,7 @@ package body Scopes is
                   Enter_Name_In_Scope  (N);
                end if;
             end if;
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
       end;
 
@@ -486,7 +486,7 @@ package body Scopes is
          W_Str (" [");
          W_Homonyms (C);
          W_Str ("]");
-         C := Next_Node (C);
+         C := Next_Entity (C);
          exit when No (C);
          W_Str (" ");
       end loop;

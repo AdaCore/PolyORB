@@ -15,7 +15,7 @@ module Frontend::Nodes {
   /******************/
 
   interface Node_Id {
-    Node_Id    Next_Node;
+    Node_Id    Next_Entity;
     Node_Id    BE_Node;
     // Link nodes together
   };
@@ -31,8 +31,8 @@ module Frontend::Nodes {
   };
 
   interface List_Id {
-    Node_Id    First_Node;
-    Node_Id    Last_Node;
+    Node_Id    First_Entity;
+    Node_Id    Last_Entity;
   };
 
   interface Scope_Definition : Definition {
@@ -151,7 +151,7 @@ module Frontend::Nodes {
   */
 
   interface Forward_Interface_Declaration : Forward_Declaration {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Interface;
   };
 
   /*
@@ -159,7 +159,7 @@ module Frontend::Nodes {
   */
 
   interface Value_Forward_Declaration : Forward_Declaration {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Value;
   };
 
   /*
@@ -184,7 +184,7 @@ module Frontend::Nodes {
   interface Interface_Name_List : List_Id {};
   interface Interface_Body : List_Id {};
   interface Interface_Declaration : Scope_Definition {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Interface;
     List_Id     Interface_Spec;
     List_Id     Interface_Body;
   };

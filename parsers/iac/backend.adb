@@ -42,10 +42,10 @@ package body Backend is
    -- Generate --
    --------------
 
-   procedure Generate (Root : Node_Id) is
+   procedure Generate (IDL_Spec : Node_Id) is
    begin
       if Current /= 0 then
-         Table (Current).Generate (Root);
+         Table (Current).Generate (IDL_Spec);
       end if;
    end Generate;
 

@@ -68,8 +68,8 @@ package Scopes is
    --  Detect naming conflict with N. In case of success, add N to the
    --  current scope.
 
-   Root      : Node_Id;
-   Root_Name : Name_Id;
+   IDL_Spec           : Node_Id;
+   IDL_Spec_Name      : Name_Id;
 
 end Scopes;
 

@@ -101,12 +101,12 @@ package body Frontend.Debug is
    -----------------
 
    procedure W_Full_Tree is
-      D : Node_Id := First_Node (Definitions (Root));
+      D : Node_Id := First_Entity (Definitions (IDL_Spec));
    begin
       N_Indents := 0;
       while Present (D) loop
          W_Node_Id (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end W_Full_Tree;
 
@@ -132,10 +132,10 @@ package body Frontend.Debug is
          return;
       end if;
 
-      E := First_Node (L);
+      E := First_Entity (L);
       while E /= No_Node loop
          W_Node_Id (E);
-         E := Next_Node (E);
+         E := Next_Entity (E);
       end loop;
    end W_List_Id;
 
@@ -151,7 +151,7 @@ package body Frontend.Debug is
    is
       C : Node_Id;
    begin
-      if A = "Next_Node"
+      if A = "Next_Entity"
         or else A = "BE_Node"
         or else A = "Homonym"
         or else A = "Name"

@@ -92,12 +92,12 @@ package body Backend.BE_Ada is
       if Is_Empty (L) then
          return False;
       end if;
-      N := First_Node (L);
+      N := First_Entity (L);
       while Present (N)  loop
-         if Is_Abstract (N) then
+         if Is_Abstract_Interface (N) then
             return False;
          end if;
-         N := Next_Node (N);
+         N := Next_Entity (N);
       end loop;
       return True;
    end All_Interfaces_Abstract;
@@ -138,14 +138,14 @@ package body Backend.BE_Ada is
 
       --  For all <A> create a getter
 
-      Attribute := First_Node (Declarators (N));
+      Attribute := First_Entity (Declarators (N));
       while Present (Attribute) loop
          Attr_Name  := IDL_Name (Identifier (Attribute));
          Subprogram :=
            Make_Ada_Identifier ("Get_" & Get_Name_String (Attr_Name));
          Append_Node_To_List
            (Make_Subprogram_Spec (Subprogram, Param_List, Attr_Type), L);
-         Attribute := Next_Node (Attribute);
+         Attribute := Next_Entity (Attribute);
       end loop;
    end Attribute_Getter_Function_Spec;
 
@@ -186,14 +186,14 @@ package body Backend.BE_Ada is
       Param_Node := Make_Ada_Parameter (Param_Name, Param_Type);
       Append_Node_To_List (Param_Node, Param_List);
 
-      Attribute := First_Node (Declarators (N));
+      Attribute := First_Entity (Declarators (N));
       while Present (Attribute) loop
          Attr_Name  := IDL_Name (Identifier (Attribute));
          Subprogram :=
            Make_Ada_Identifier ("Set_" & Get_Name_String (Attr_Name));
          Append_Node_To_List
            (Make_Subprogram_Spec (Subprogram, Param_List), L);
-         Attribute := Next_Node (Attribute);
+         Attribute := Next_Entity (Attribute);
       end loop;
    end Attribute_Setter_Procedure_Spec;
 
@@ -464,14 +464,14 @@ package body Backend.BE_Ada is
       Type_Identifier : Node_Id;
       Type_Declaration : Node_Id;
    begin
-      D := First_Node (L);
+      D := First_Entity (L);
       while Present (D) loop
          Enumerator_Node :=
            Make_Ada_Identifier
            (To_Ada_Name (IDL_Name (Identifier (D))));
          Append_Node_To_List
            (Enumerator_Node, Enumerators_List);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
       Type_Spec_Node := Make_Enumeration_Type (Enumerators_List);
       Type_Identifier := Make_Ada_Identifier
@@ -508,7 +508,7 @@ package body Backend.BE_Ada is
       I_Body := Interface_Body (E);
       Insert_Type_Ref (Public_Decl, I_Spec, False);
       if I_Body /= No_List then
-         N := First_Node (I_Body);
+         N := First_Entity (I_Body);
          while Present (N) loop
             case Kind (N) is
                when K_Attribute_Declaration =>
@@ -534,7 +534,7 @@ package body Backend.BE_Ada is
                   Error_Name (1) := Name_Find;
                   DE ("Visit_Interface : Pas encore implemente! %");
             end case;
-            N := Next_Node (N);
+            N := Next_Entity (N);
          end loop;
       end if;
       BEN.Set_Package_Specification (Pkg, Pkg_Spec);
@@ -571,7 +571,7 @@ package body Backend.BE_Ada is
       --   Argument List
       Append_Node_To_List (Ada_Argument, Ada_Argument_List);
       if L /= No_List then
-         N := First_Node (L);
+         N := First_Entity (L);
          while Present (N) loop
             Declarator_Node := Identifier (Declarator (N));
             Param_Id :=
@@ -581,7 +581,7 @@ package body Backend.BE_Ada is
             Ada_Argument :=
               Make_Ada_Parameter (Param_Id, Param_Type, Param_Mode);
             Append_Node_To_List (Ada_Argument, Ada_Argument_List);
-            N := Next_Node (N);
+            N := Next_Entity (N);
             if Is_Oneway (E) and
               Param_Mode /= Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In))
             then
@@ -624,7 +624,7 @@ package body Backend.BE_Ada is
    begin
 
       Ada_Packages := New_List (BEN.K_Declaration_List, No_Location);
-      D := First_Node (Definitions (E));
+      D := First_Entity (Definitions (E));
       while Present (D) loop
          case Kind (D) is
             when K_Module =>
@@ -646,7 +646,7 @@ package body Backend.BE_Ada is
                Display_Error ("Definition not recongnized");
 
          end case;
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Visit_Specification;
 
@@ -665,7 +665,7 @@ package body Backend.BE_Ada is
    begin
       Type_Spec_Node := Get_Mapped_Type (Type_Spec (E));
       Declarators_List := Declarators (E);
-      D := First_Node (Declarators_List);
+      D := First_Entity (Declarators_List);
       while Present (D) loop
          Ada_Type_Declaration :=
            Make_Derived_Type_Declaration
@@ -675,7 +675,7 @@ package body Backend.BE_Ada is
          --   Link Idl node  with Ada node.
          Append_Node_To_List
            (Ada_Type_Declaration, Result_List);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
       return Result_List;
    end Visit_Type_Declaration;

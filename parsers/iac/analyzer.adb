@@ -200,12 +200,12 @@ package body Analyzer is
 
    procedure Analyze_Attribute_Declaration (E : Node_Id)
    is
-      D : Node_Id := First_Node (Declarators (E));
+      D : Node_Id := First_Entity (Declarators (E));
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Analyze_Attribute_Declaration;
 
@@ -221,10 +221,10 @@ package body Analyzer is
 
       --  The array sizes attribute is never empty
 
-      C := First_Node (Array_Sizes (E));
+      C := First_Entity (Array_Sizes (E));
       while Present (C) loop
          Analyze (C);
-         C := Next_Node (C);
+         C := Next_Entity (C);
       end loop;
    end Analyze_Complex_Declarator;
 
@@ -285,7 +285,7 @@ package body Analyzer is
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      C := First_Node (Enumerators (E));
+      C := First_Entity (Enumerators (E));
       while Present (C) loop
          --  Define scoped name referencing enumeration type
 
@@ -306,7 +306,7 @@ package body Analyzer is
          --  This declaration is already analyzed as reference is set
 
          Enter_Name_In_Scope (I);
-         C := Next_Node (C);
+         C := Next_Entity (C);
       end loop;
    end Analyze_Enumeration_Type;
 
@@ -323,10 +323,10 @@ package body Analyzer is
       L := Members (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -437,7 +437,7 @@ package body Analyzer is
             else
                Make_Implicitely_Visible (N, True);
             end if;
-            N := Next_Node (N);
+            N := Next_Entity (N);
          end loop;
       end Inherit_From_Interface;
 
@@ -456,7 +456,7 @@ package body Analyzer is
       Push_Scope (E);
       S := Interface_Spec (E);
       if not Is_Empty (S) then
-         I := First_Node (S);
+         I := First_Entity (S);
          while Present (I) loop
             Analyze (I);
             C := Reference (I);
@@ -477,16 +477,16 @@ package body Analyzer is
                   end if;
                end if;
             end if;
-            I := Next_Node (I);
+            I := Next_Entity (I);
          end loop;
       end if;
 
       --  We append and analyze the new entities of the current interface
 
-      N := First_Node (Interface_Body (E));
+      N := First_Entity (Interface_Body (E));
       while Present (N) loop
          Analyze (N);
-         N := Next_Node (N);
+         N := Next_Entity (N);
       end loop;
       Pop_Scope;
 
@@ -494,13 +494,13 @@ package body Analyzer is
 
       S := Interface_Spec (E);
       if not Is_Empty (S) then
-         I := First_Node (S);
+         I := First_Entity (S);
          while Present (I) loop
             C := Reference (I);
             if Present (C) then
                null;
             end if;
-            I := Next_Node (I);
+            I := Next_Entity (I);
          end loop;
       end if;
    end Analyze_Interface_Declaration;
@@ -520,12 +520,12 @@ package body Analyzer is
 
    procedure Analyze_Member (E : Node_Id)
    is
-      D : Node_Id := First_Node (Declarators (E));
+      D : Node_Id := First_Entity (Declarators (E));
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Analyze_Member;
 
@@ -545,10 +545,10 @@ package body Analyzer is
       L := Definitions (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -596,7 +596,7 @@ package body Analyzer is
       List := Parameters (E);
       if not Is_Empty (List) then
          Push_Scope (E);
-         Node := First_Node (List);
+         Node := First_Entity (List);
          while Present (Node) loop
             Analyze (Node);
             if Oneway and then Parameter_Mode (Node) /= T_In then
@@ -604,7 +604,7 @@ package body Analyzer is
                Error_Loc (1) := Loc (Node);
                DE ("oneway operation can only have ""in"" parameters");
             end if;
-            Node := Next_Node (Node);
+            Node := Next_Entity (Node);
          end loop;
          Pop_Scope;
       end if;
@@ -613,7 +613,7 @@ package body Analyzer is
 
       List := Exceptions (E);
       if not Is_Empty (List) then
-         Node := First_Node (List);
+         Node := First_Entity (List);
          while Present (Node) loop
             Analyze (Node);
             if Oneway then
@@ -621,7 +621,7 @@ package body Analyzer is
                Error_Loc (1) := Loc (Node);
                DE ("oneway operation cannot raise exceptions");
             end if;
-            Node := Next_Node (Node);
+            Node := Next_Entity (Node);
          end loop;
       end if;
 
@@ -629,10 +629,10 @@ package body Analyzer is
 
       List := Contexts (E);
       if not Is_Empty (List) then
-         Node := First_Node (List);
+         Node := First_Entity (List);
          while Present (Node) loop
             Analyze (Node);
-            Node := Next_Node (Node);
+            Node := Next_Entity (Node);
          end loop;
       end if;
    end Analyze_Operation_Declaration;
@@ -670,8 +670,8 @@ package body Analyzer is
       --  correct.
 
       if No (P) then
-         if Name (N) = Root_Name then
-            Set_Reference (E, Root);
+         if Name (N) = No_Name then
+            Set_Reference (E, IDL_Spec);
 
          else
             C := Visible_Node (N);
@@ -761,10 +761,10 @@ package body Analyzer is
       L := Members (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -776,12 +776,12 @@ package body Analyzer is
 
    procedure Analyze_Type_Declaration (E : Node_Id)
    is
-      D : Node_Id := First_Node (Declarators (E));
+      D : Node_Id := First_Entity (Declarators (E));
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Analyze_Type_Declaration;
 
@@ -816,29 +816,29 @@ package body Analyzer is
 
       --  Resolve labels and elements
 
-      Alternative := First_Node (Switch_Type_Body (E));
+      Alternative := First_Entity (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Labels (Alternative));
+         Label := First_Entity (Labels (Alternative));
          while Present (Label) loop
             Analyze (Expression (Label));
             Resolve_Expr (Label, Switch_Type);
-            Label := Next_Node (Label);
+            Label := Next_Entity (Label);
          end loop;
          Analyze (Element (Alternative));
-         Alternative := Next_Node (Alternative);
+         Alternative := Next_Entity (Alternative);
       end loop;
 
       --  Check there is no duplicated choice
 
       LT.Init;
-      Alternative := First_Node (Switch_Type_Body (E));
+      Alternative := First_Entity (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Labels (Alternative));
+         Label := First_Entity (Labels (Alternative));
          while Present (Label) loop
             LT.Append (Label);
-            Label := Next_Node (Label);
+            Label := Next_Entity (Label);
          end loop;
-         Alternative := Next_Node (Alternative);
+         Alternative := Next_Entity (Alternative);
       end loop;
 
       GNAT.Bubble_Sort.Sort (LT.Last, Exchange'Access, Less_Than'Access);
