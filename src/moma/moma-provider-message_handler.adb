@@ -310,6 +310,11 @@ package body MOMA.Provider.Message_Handler is
       Message : MOMA.Messages.Message'Class)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Message_Queue);
+      pragma Unreferenced (Message);
+      pragma Warnings (On);
+
       pragma Debug (O ("Message_Handler is handling message"));
       null;
    end Template_Handler;
@@ -322,6 +327,10 @@ package body MOMA.Provider.Message_Handler is
       Message_Queue : MOMA.Message_Consumers.Queues.Queue)
    is
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Message_Queue);
+      pragma Warnings (On);
+
       pragma Debug (O ("Message_Handler is being notified of a message"));
       null;
    end Template_Notifier;

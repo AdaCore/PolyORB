@@ -102,7 +102,7 @@ package body MOMA.Sessions.Queues is
 
       MOMA_Ref : PolyORB.References.Ref;
 
-      Consumer : MOMA.Message_Consumers.Queues.Queue_Acc :=
+      Consumer : constant MOMA.Message_Consumers.Queues.Queue_Acc :=
          new MOMA.Message_Consumers.Queues.Queue;
 
    begin
