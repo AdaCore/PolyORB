@@ -3,7 +3,7 @@
 ----                                                               ----
 ----                         AdaBroker                             ----
 ----                                                               ----
-----                       package Giop                            ----
+----                    package Corba.Orb                          ----
 ----                                                               ----
 ----                                                               ----
 ----   Copyright (C) 1999 ENST                                     ----
