@@ -27,5 +27,6 @@ package RCI is
    function Get_Obj (Name : String) return RT.RACW;
 
    function echoString (S : String) return String;
+   type echo_RAS is access function (S : String) return String;
 
 end RCI;
