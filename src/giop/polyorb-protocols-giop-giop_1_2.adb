@@ -375,8 +375,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Ctx  : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (S.Ctx.all);
 
-      ORB         : ORB_Access;
-      Object_Key  : Objects.Object_Id_Access;
+      ORB         : constant ORB_Access := ORB_Access (S.Server);
       Sync        : Sync_Scope;
       Target_Addr : Target_Address_Access;
       Request_Id  : Unsigned_Long;
@@ -395,13 +394,12 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          raise Bidirectionnal_GIOP_Not_Implemented;
       end if;
 
-      ORB := ORB_Access (S.Server);
-
       pragma Debug (O ("Request_Received: entering"));
 
       --  Set Request_Id if packet is fragmented
 
       Request_Id := Ctx.Frag_Req_Id;
+
       Unmarshall_Request_Message
         (S.Buffer_In,
          Request_Id,
@@ -409,17 +407,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          Target_Addr,
          Operation);
 
-      if Target_Addr.Address_Type = Key_Addr then
-         Object_Key := Target_Addr.Object_Key;
-      end if;
-
       case Sync is
          when WITH_TARGET =>
             Req_Flags := Sync_With_Target;
+
          when WITH_TRANSPORT =>
             Req_Flags := Sync_With_Transport;
+
          when WITH_SERVER =>
             Req_Flags := Sync_With_Server;
+
          when others =>
             null;
       end case;
@@ -429,11 +426,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       case Target_Addr.Address_Type is
          when Key_Addr =>
-            pragma Debug (O ("Object Key : " & To_String (Object_Key.all)));
+
+            pragma Debug (O ("Object Key : "
+                             & To_String (Target_Addr.Object_Key.all)));
 
             Args := Get_Empty_Arg_List
               (Object_Adapter (ORB),
-               Object_Key,
+               Target_Addr.Object_Key,
                To_Standard_String (Operation));
 
             if not Is_Nil (Args) then
@@ -463,6 +462,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                --  have to resolve the (local) object id through the object
                --  adapter, and query the target object for its most derived
                --  type.
+
+               Free (Target_Addr.Object_Key);
             end;
 
          when Profile_Addr =>
@@ -492,7 +493,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
           Requestor => Component_Access (S)));
 
       Free (Target_Addr);
-      Free (Object_Key);
       pragma Debug (O ("Request queued."));
    end Process_Request;
 
@@ -726,15 +726,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Address_Disp := Unmarshall (Buffer);
 
       pragma Debug (O ("Addr_Type  : "
-                       & Address_Disp'Img));
+                       & Addressing_Disposition'Image (Address_Disp)));
 
       case Address_Disp is
          when Key_Addr  =>
             declare
                Obj : constant Stream_Element_Array := Unmarshall (Buffer);
 
-               Obj_Id : constant Object_Id_Access := new
-                 Object_Id'(Object_Id (Obj));
+               Obj_Id : Object_Id_Access := new Object_Id'(Object_Id (Obj));
 
                Target_Profile : constant Binding_Data.Profile_Access :=
                  new Local_Profile_Type;
@@ -744,17 +743,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Local_Profile_Type (Target_Profile.all));
 
                Create_Reference ((1 => Target_Profile), "", Target);
+
+               Free (Obj_Id);
             end;
 
          when Profile_Addr  =>
             declare
-               use PolyORB.Binding_Data;
                use PolyORB.References.IOR;
 
-               Pro : Binding_Data.Profile_Access;
-            begin
-               Pro := Unmarshall_Profile (Buffer);
+               Pro : constant Binding_Data.Profile_Access  :=
+                 Unmarshall_Profile (Buffer);
 
+            begin
                if Pro = null then
                   pragma Debug (O ("Incorrect profile"));
                   raise GIOP_Error;
