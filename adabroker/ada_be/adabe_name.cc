@@ -114,7 +114,7 @@ adabe_name::dump_name(dep_list&, string&)
 string
 adabe_name::local_type(void)
 {
-  throw adabe_internal_error(__FILE__,__LINE__,"Unxecpected local type");
+  throw adabe_internal_error(__FILE__,__LINE__,"Unxepected local type");
 }
 
 string 
@@ -185,6 +185,7 @@ adabe_name::compute_ada_name()
 	    try with another name */
       }
       while (already_used == 1);
+    pd_ada_full_name += "."+pd_ada_local_name;
 #ifdef DEBUG_NAME
     cout << "End of compute_ada_name from "<< pd_ada_local_name <<endl;
 #endif
@@ -411,12 +412,16 @@ adabe_name::is_imported (dep_list& with)
       if (!temp) with.add (get_ada_full_name());
       return temp;
     }
-  //  if  ((NT == AST_Decl::NT_root)
-  //       || (NT ==  AST_Decl::NT_except)
-  //       || (NT ==  AST_Decl::NT_struct)
-  //       || (NT ==  AST_Decl::NT_union))	
+  if (NT == AST_Decl::NT_root)
+    {
+      bool temp;
+      temp = with.check (get_ada_full_name());
+      if (!temp) with.add (get_ada_full_name());
+      return temp;
+    }
+  if (defined_in() == NULL) return 0;
   return (dynamic_cast<adabe_name *>(defined_in()))->is_imported (with); 
-      //    }
+
 }
 
 bool
@@ -433,6 +438,13 @@ adabe_name::is_marshal_imported (dep_list& with)
       return temp;
     }
   if (NT == AST_Decl::NT_module)
+    {
+      bool temp = true;
+      temp = with.check (get_ada_full_name()+".marshal");
+      if (!temp) with.add (get_ada_full_name()+".marshal");
+      return temp;
+    }
+   if (NT == AST_Decl::NT_root)
     {
       bool temp = true;
       temp = with.check (get_ada_full_name()+".marshal");

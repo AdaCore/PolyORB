@@ -572,7 +572,7 @@ private:
   static adabe_name* pd_adabe_current_file;
 
 
-  static void set_adabe_current_file(adabe_name *new_file) {/* pd_adabe_current_file = new_file;*/ };
+  static void set_adabe_current_file(adabe_name *new_file) { pd_adabe_current_file = new_file; };
  
   static void set_root(adabe_root *v) { myself = v; };
   // set the root from the AST
@@ -580,7 +580,7 @@ private:
   static adabe_root *root() { return myself; };
   
   static adabe_name *adabe_current_file() {
-    /*return pd_adabe_current_file;*/
+    return pd_adabe_current_file;
   };
   
   

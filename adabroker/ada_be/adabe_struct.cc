@@ -17,7 +17,7 @@ adabe_structure::produce_ads(dep_list& with, string &body, string &previous)
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_field)
-	dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
+	dynamic_cast<adabe_field *>(d)->produce_ads(with, body, previous);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }

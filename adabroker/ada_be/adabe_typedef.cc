@@ -12,17 +12,46 @@ void
 adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
-  body += "   type " + get_ada_local_name() + " is new ";
   AST_Decl *b = base_type();
-  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
-  body += name;
-  body += " ;\n";
-  body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
-  body += "   procedure Free is new Unchecked_Deallocation(";
-  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
-  set_already_defined();
+  if (((string) b->local_name()->get_string()) == "local type")
+    {
+      switch (b->node_type())
+	{
+	case AST_Decl::NT_array:
+	case AST_Decl::NT_sequence:
+	case AST_Decl::NT_string:
+	case AST_Decl::NT_union:
+	  {
+	    adabe_name *c = dynamic_cast<adabe_name *>(b);
+	    c->set_ada_local_name(get_ada_local_name());
+	    c->set_ada_full_name(get_ada_full_name());
+	    c->produce_ads(with, body, previous);
+	    break;
+	  }
+	default:      
+	  body += "   type " + get_ada_local_name() + " is new ";
+	  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
+	  body += name;
+	  body += ";\n";
+	  body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
+	  body += "   procedure free is new Unchecked_Deallocation(";
+	  body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
+	  set_already_defined();
+	  break;
+	}
+    }
+  else
+    {
+      body += "   type " + get_ada_local_name() + " is new ";
+      string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
+      body += name;
+      body += ";\n";
+      body += "   type" + get_ada_local_name() + "_Ptr is access all " + get_ada_local_name() + ";\n";
+      body += "   procedure free is new Unchecked_Deallocation(";
+      body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";
+      set_already_defined();
+    }
 }
-
 /*
   void
   adabe_typedef::produce_adb(dep_list& with,string &body, string &previous)

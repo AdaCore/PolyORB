@@ -2,6 +2,13 @@
 
 #include <adabe.h>
  
+static string remove_dot(string  name)
+{
+  char c;
+  while ((c = name.find(".")) != -1) 
+    name[c]='-';
+  return name;
+}
 
 adabe_root::adabe_root(UTL_ScopedName *n, UTL_StrList *p)
   : AST_Root(n,p),
@@ -15,34 +22,21 @@ adabe_root::adabe_root(UTL_ScopedName *n, UTL_StrList *p)
   return;
 }
 
-
+adabe_name *adabe_global::pd_adabe_current_file = NULL;
 
 void
 adabe_root::produce() {
-  try {
+  try {    
     string name      = idl_global->stripped_filename()->get_string();
     int end_of_name = name.find(".idl");
     if (end_of_name > 0) name = name.substr(0, end_of_name);
     string idl_file_name = "";
 #ifdef DEBUG_ROOT
-<<<<<<< adabe_root.cc
-    cout << "Here is the produce" << endl;
-    {
-      UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
-      while (!header_activator.is_done())
-	{
-	  AST_Decl *d = header_activator.item();
-	  if (d->in_main_file()) cout << "In root scope, list of the node types encountered :" << (int) d->node_type() << endl;
-	  header_activator.next();
-	}
-    }
-=======
     cout << "Here is the produce of the file : "<< name << endl;
->>>>>>> 1.4
 #endif
     idl_file_name =  name + "_IDL_FILE";
-    set_ada_local_name (name);
-    set_ada_full_name (name);
+    set_ada_local_name (idl_file_name);
+    set_ada_full_name (idl_file_name);
     
     // **************************
     // CREATION OF THE MAIN FILES
@@ -53,6 +47,7 @@ adabe_root::produce() {
       string header_includes      = "";
       string header_previous      = "";
       string header_body          = "";
+      bool   first = true;
       dep_list header_with;
       UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
       while (!header_activator.is_done())
@@ -76,7 +71,15 @@ adabe_root::produce() {
 	      case AST_Decl::NT_enum:
 	      case AST_Decl::NT_typedef:
 	      case AST_Decl::NT_interface_fwd:
-		dynamic_cast<adabe_name *>(d)->produce_ads(header_with, header_body, header_previous);
+		{
+		  if (first) {
+		    header_body = "Package " + get_ada_full_name();
+		    first = false;    
+		  }
+		  header_previous += header_body;
+		  header_body ="";
+		  dynamic_cast<adabe_name *>(d)->produce_ads(header_with, header_body, header_previous);
+		}
 		break;
 		
 	      case AST_Decl::NT_module:	    
@@ -90,7 +93,8 @@ adabe_root::produce() {
 		  module->produce_ads(module_with,module_body,module_previous);
 		  module_with_string = *module_with.produce("with ");
 		  
-		  string module_file_name = module->get_ada_full_name()+".ads";
+		  string module_file_name =
+		    remove_dot(module->get_ada_full_name())+".ads";
 		  ofstream module_file(module_file_name.c_str()); 	// Open the ads module file	
 		  module_file << module_with_string;
 		  module_file << module_previous; 
@@ -111,7 +115,7 @@ adabe_root::produce() {
 #endif 		  
 
 		  interface_with_string = *interface_with.produce("with ");
-		  string interface_file_name = interface->get_ada_full_name()+".ads";
+		  string interface_file_name = remove_dot(interface->get_ada_full_name())+".ads";
 		  ofstream interface_file(interface_file_name.c_str());	
 		  interface_file << interface_with_string;
 		  interface_file << interface_previous;    
@@ -136,13 +140,17 @@ adabe_root::produce() {
 #ifdef DEBUG_ROOT
       cout << "In root, main ads file : " << ada_file_name.c_str() << endl;
 #endif
-      header_with.add("essai");
-      ofstream header(ada_file_name.c_str());
-      header_includes = *header_with.produce ("with ");
-      header << header_includes;
-      header << header_previous;
-      header << header_body;
-      header.close();
+      if (!first)
+	{
+	  ofstream header(ada_file_name.c_str());
+	  
+	  header_includes = *header_with.produce ("with ");
+	  header << header_includes;
+	  header << header_previous;
+	  header << header_body;
+	  header << "end " << get_ada_full_name() <<endl;
+	  header.close();
+	}
     }
     
 
@@ -185,7 +193,7 @@ adabe_root::produce() {
 		    interface->produce_adb(interface_with,interface_body,interface_previous);
 		    interface_with_string = *interface_with.produce("with ");
 		    
-		    string interface_file_name = interface->get_ada_full_name()+".adb";
+		    string interface_file_name = remove_dot(interface->get_ada_full_name())+".adb";
 		    ofstream interface_file(interface_file_name.c_str());	
 		    interface_file << interface_with_string;
 		    interface_file << interface_previous;    
@@ -241,7 +249,8 @@ adabe_root::produce() {
 		    interface->produce_impl_ads(impl_header_interface_with,impl_header_interface_body,impl_header_interface_previous);
 		    impl_header_interface_with_string = *impl_header_interface_with.produce("with ");
 		    
-		    string impl_header_interface_file_name = interface->get_ada_full_name()+"-impl.ads";
+		    string impl_header_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-impl.ads";
 		    ofstream impl_header_interface_file(impl_header_interface_file_name.c_str());	
 		    impl_header_interface_file << impl_header_interface_with_string;
 		    impl_header_interface_file << impl_header_interface_previous;    
@@ -293,7 +302,8 @@ adabe_root::produce() {
 		    interface->produce_impl_adb(impl_body_interface_with,impl_body_interface_body,impl_body_interface_previous);
 		    impl_body_interface_with_string = *impl_body_interface_with.produce("with ");
 		    
-		    string impl_body_interface_file_name = interface->get_ada_full_name()+"-impl.adb";
+		    string impl_body_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-impl.adb";
 		    ofstream impl_body_interface_file(impl_body_interface_file_name.c_str());	
 		    impl_body_interface_file << impl_body_interface_with_string;
 		    impl_body_interface_file << impl_body_interface_previous;    
@@ -348,7 +358,8 @@ adabe_root::produce() {
 		    interface->produce_proxies_ads(proxy_header_interface_with,proxy_header_interface_body,proxy_header_interface_previous);
 		    proxy_header_interface_with_string = *proxy_header_interface_with.produce("with ");
 		    
-		    string proxy_header_interface_file_name = interface->get_ada_full_name()+"-proxies.ads";
+		    string proxy_header_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-proxies.ads";
 		    ofstream proxy_header_interface_file(proxy_header_interface_file_name.c_str());	
 		    proxy_header_interface_file << proxy_header_interface_with_string;
 		    proxy_header_interface_file << proxy_header_interface_previous;    
@@ -400,7 +411,8 @@ adabe_root::produce() {
 		    interface->produce_proxies_adb(proxy_body_interface_with,proxy_body_interface_body,proxy_body_interface_previous);
 		    proxy_body_interface_with_string = *proxy_body_interface_with.produce("with ");
 		    
-		    string proxy_body_interface_file_name = interface->get_ada_full_name()+"-proxies.adb";
+		    string proxy_body_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-proxies.adb";
 		    ofstream proxy_body_interface_file(proxy_body_interface_file_name.c_str());	
 		    proxy_body_interface_file << proxy_body_interface_with_string;
 		    proxy_body_interface_file << proxy_body_interface_previous;    
@@ -455,7 +467,8 @@ adabe_root::produce() {
 		    interface->produce_proxies_ads(skel_header_interface_with,skel_header_interface_body,skel_header_interface_previous);
 		    skel_header_interface_with_string = *skel_header_interface_with.produce("with ");
 		    
-		    string skel_header_interface_file_name = interface->get_ada_full_name()+"-skel.ads";
+		    string skel_header_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-skel.ads";
 		    ofstream skel_header_interface_file(skel_header_interface_file_name.c_str());	
 		    skel_header_interface_file << skel_header_interface_with_string;
 		    skel_header_interface_file << skel_header_interface_previous;    
@@ -507,7 +520,8 @@ adabe_root::produce() {
 		    interface->produce_proxies_adb(skel_body_interface_with,skel_body_interface_body,skel_body_interface_previous);
 		    skel_body_interface_with_string = *skel_body_interface_with.produce("with ");
 		    
-		    string skel_body_interface_file_name = interface->get_ada_full_name()+"-skel.adb";
+		    string skel_body_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-skel.adb";
 		    ofstream skel_body_interface_file(skel_body_interface_file_name.c_str());	
 		    skel_body_interface_file << skel_body_interface_with_string;
 		    skel_body_interface_file << skel_body_interface_previous;    
@@ -532,6 +546,7 @@ adabe_root::produce() {
       string marshal_header_includes      = "";
       string marshal_header_previous      = "";
       string marshal_header_body          = "";
+      bool   first = true;
       dep_list marshal_header_with;
       UTL_ScopeActiveIterator marshal_header_activator(this,UTL_Scope::IK_decls);
       while (!marshal_header_activator.is_done())
@@ -553,7 +568,14 @@ adabe_root::produce() {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		case AST_Decl::NT_interface_fwd:
-		  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(marshal_header_with, marshal_header_body, marshal_header_previous);
+		  {
+		    if (first) {
+		      marshal_header_previous = "Package " + get_ada_full_name() + "-marshal";
+		      first = false;    
+		    }
+		    marshal_header_previous += marshal_header_body ="";
+		    dynamic_cast<adabe_name *>(d)->produce_marshal_ads(marshal_header_with, marshal_header_body, marshal_header_previous);
+		  }
 		  break;
 		  
 		case AST_Decl::NT_module:	    
@@ -567,8 +589,9 @@ adabe_root::produce() {
 		    module->produce_marshal_ads(marshal_module_with,marshal_module_body,marshal_module_previous);
 		    marshal_module_with_string = *marshal_module_with.produce("with ");
 		    
-		    string marshal_module_file_name = module->get_ada_full_name()+"-marshal.ads";  //...
-		    ofstream marshal_module_file(marshal_module_file_name.c_str()); 	// Open the ads module file	
+		    string marshal_module_file_name =
+		      remove_dot(module->get_ada_full_name())+"-marshal.ads";
+		    ofstream marshal_module_file(marshal_module_file_name.c_str());
 		    marshal_module_file << marshal_module_with_string;
 		    marshal_module_file << marshal_module_previous; 
 		    marshal_module_file << marshal_module_body;
@@ -587,7 +610,8 @@ adabe_root::produce() {
 		    interface->produce_marshal_ads(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
 		    marshal_interface_with_string = *marshal_interface_with.produce("with ");
 		    
-		    string marshal_interface_file_name = interface->get_ada_full_name()+"-marshal.ads";
+		    string marshal_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-marshal.ads";
 		    ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
@@ -604,14 +628,17 @@ adabe_root::produce() {
 	}
 
       // Opening of the header file
-      
-      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-      ofstream marshal_header(marshal_ada_file_name.c_str());
-      marshal_header_includes = *marshal_header_with.produce ("with ");
-      marshal_header << marshal_header_includes;
-      marshal_header << marshal_header_previous;
-      marshal_header << marshal_header_body;
-      marshal_header.close();
+      if (!first)
+	{
+	  string marshal_ada_file_name = idl_file_name+"-marshal.ads";
+	  ofstream marshal_header(marshal_ada_file_name.c_str());
+	  marshal_header_includes = *marshal_header_with.produce ("with ");
+	  marshal_header << marshal_header_includes;
+	  marshal_header << marshal_header_previous;
+	  marshal_header << marshal_header_body;
+	  marshal_header << "end " << get_ada_full_name() << "-marshal";
+	  marshal_header.close();
+	}
     }
 
     set_undefined();
@@ -620,6 +647,7 @@ adabe_root::produce() {
     
     {
       UTL_ScopeActiveIterator marshal_body_activator(this,UTL_Scope::IK_decls);
+      bool   first =true;
       string marshal_body_includes      = "";
       string marshal_body_previous      = "";
       string marshal_body_body          = "";
@@ -644,7 +672,15 @@ adabe_root::produce() {
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
 		case AST_Decl::NT_interface_fwd:
-		  dynamic_cast<adabe_name *>(d)->produce_marshal_adb(marshal_body_with, marshal_body_body, marshal_body_previous);
+		  {
+		    if (first) {
+		      marshal_body_previous = "Package " + get_ada_full_name() + "-marshal";
+		      first = false;    
+		    }
+		    marshal_body_previous += marshal_body_body ="";
+		    dynamic_cast<adabe_name *>(d)->produce_marshal_adb
+		      (marshal_body_with, marshal_body_body, marshal_body_previous);
+		  }
 		  break;
 		case AST_Decl::NT_module:
 		  {
@@ -657,7 +693,13 @@ adabe_root::produce() {
 		    module->produce_marshal_adb(marshal_body_module_with,marshal_body_module_body,marshal_body_module_previous);
 		    marshal_body_module_with_string = *marshal_body_module_with.produce("with ");
 		    
-		    string marshal_body_module_file_name = module->get_ada_full_name()+"-marshal.adb";
+		    string marshal_module_file_name =
+		      remove_dot(module->get_ada_full_name())+"-marshal.adb";
+		    ofstream marshal_module_file(marshal_module_file_name.c_str());
+		    marshal_module_file << marshal_body_module_with_string;
+		    marshal_module_file << marshal_body_module_previous; 
+		    marshal_module_file << marshal_body_module_body;
+		    marshal_module_file.close();
 		    
 		  }
 		  break;
@@ -673,7 +715,8 @@ adabe_root::produce() {
 		    interface->produce_marshal_adb(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
 		    marshal_interface_with_string = *marshal_interface_with.produce("with ");
 		    
-		    string marshal_interface_file_name = interface->get_ada_full_name()+"-marshal.adb";
+		    string marshal_interface_file_name =
+		      remove_dot(interface->get_ada_full_name())+"-marshal.adb";
 		    ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
@@ -686,14 +729,18 @@ adabe_root::produce() {
 	    }
 	}
       // Opening of the marshal body file
-      
-      string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-      ofstream marshal_body(marshal_ada_file_name.c_str());
-      marshal_body_includes = *marshal_body_with.produce ("with ");
-      marshal_body << marshal_body_includes;
-      marshal_body << marshal_body_previous;
-      marshal_body << marshal_body_body;
-      marshal_body.close();
+      if (!first)
+	{ 
+	  string marshal_ada_file_name =
+	    remove_dot(idl_file_name)+"-marshal.adb";
+	  ofstream marshal_body(marshal_ada_file_name.c_str());
+	  marshal_body_includes = *marshal_body_with.produce ("with ");
+	  marshal_body << marshal_body_includes;
+	  marshal_body << marshal_body_previous;
+	  marshal_body << marshal_body_body;
+	  marshal_body << "end " << get_ada_full_name() <<"-marshal";
+	  marshal_body.close();
+	}
     }
 
   }
