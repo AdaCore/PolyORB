@@ -45,38 +45,61 @@ package System.Garlic.Storages is
 
    type Shared_Data_Access is access all Shared_Data_Type'Class;
 
-   type Access_Mode is (Read, Write, Lock, Unlock);
+   type Request_Type is (Read, Write, Lock);
 
-   --  Management subprograms
+   --  Primitives of Shared_Data_Type
 
    procedure Create_Storage
      (Master   : in out Shared_Data_Type;
-      Location : in  String;
-      Storage  : out Shared_Data_Access) is abstract;
+      Location : in     String;
+      Storage  : out    Shared_Data_Access) is abstract;
+   --  Provide the Master factory with a location and return another
+   --  Storage factory initialized with the data from the
+   --  location. This factory is supposed to be used into the
+   --  Create_Package routine.
 
    procedure Create_Package
-     (Storage  : in  Shared_Data_Type;
-      Pkg_Name : in  String;
-      Pkg_Data : out Shared_Data_Access) is abstract;
+     (Storage  : in out Shared_Data_Type;
+      Pkg_Name : in     String;
+      Pkg_Data : out    Shared_Data_Access) is abstract;
+   --  Return a Pkg_Data factory which is supposed to be used in the
+   --  Create_Variable routine. This intermediate layer between
+   --  Create_Storage and Create_Variable is used to configure a
+   --  shared passive unit on a storage.
 
    procedure Create_Variable
-     (Pkg_Data : in  Shared_Data_Type;
-      Var_Name : in  String;
-      Var_Data : out Shared_Data_Access) is abstract;
+     (Pkg_Data : in out Shared_Data_Type;
+      Var_Name : in     String;
+      Var_Data : out    Shared_Data_Access) is abstract;
+   --  Return a stream to use when any read or write operation is
+   --  performed.
 
-   procedure Initialize (Default : in String) is abstract;
-
-   procedure Set_Access_Mode
+   procedure Initiate_Request
      (Var_Data : in out Shared_Data_Type;
-      Var_Mode : in  Access_Mode;
-      Failure  : out Boolean) is abstract;
+      Request  : in     Request_Type;
+      Success  : out    Boolean) is abstract;
+   --  Initiate an operation on a variable. This routine can be thread
+   --  blocking in order to serialize several concurrent requests and
+   --  should be protected against abortion. Success returns whether
+   --  the request can be performed on the variable. Typically, if
+   --  there is no storage available on a read operation, Success is
+   --  set to False. Any exception must be caught inside the
+   --  routine. Note also that primitives Read and Write must catch
+   --  all the potential exceptions.
 
-   procedure Enter_Variable (Var_Data : in out Shared_Data_Type) is abstract;
-   procedure Leave_Variable (Var_Data : in out Shared_Data_Type) is abstract;
+   procedure Complete_Request
+     (Var_Data : in out Shared_Data_Type) is abstract;
+   --  Complete the request previously initiated by the routine above.
+
+   --  Any storage implementation must provide an Initialize routine.
+   --     procedure Initialize (Default : in String);
+   --  where Default is the default location to use for the master storage.
+
+
+   --  General services
 
    function  Lookup_Variable
-     (Var_Name : in String;
-      Var_Mode : in Access_Mode)
+     (Var_Name : in String)
      return Shared_Data_Access;
 
    function  Lookup_Storage

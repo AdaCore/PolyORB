@@ -37,49 +37,78 @@ with System.Garlic.Storages; use System.Garlic.Storages;
 
 package body System.Shared_Storage is
 
-   -----------------------
+   ----------------------
    -- Shared_Var_ROpen --
-   -----------------------
+   ----------------------
 
-   function Shared_Var_ROpen (Var : in String) return SIO.Stream_Access is
+   function Shared_Var_ROpen (Var : in String) return SIO.Stream_Access
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+
    begin
-      return SIO.Stream_Access (Lookup_Variable (Var, Read));
+      VS := Lookup_Variable (Var);
+      Initiate_Request (VS.all, Read, Ok);
+      if Ok then
+         return SIO.Stream_Access (VS);
+      else
+         return null;
+      end if;
    end Shared_Var_ROpen;
 
    ----------------------
    -- Shared_Var_WOpen --
    ----------------------
 
-   function Shared_Var_WOpen (Var : in String) return SIO.Stream_Access is
+   function Shared_Var_WOpen (Var : in String) return SIO.Stream_Access
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+
    begin
-      return SIO.Stream_Access (Lookup_Variable (Var, Write));
+      VS := Lookup_Variable (Var);
+      Initiate_Request (VS.all, Write, Ok);
+      return SIO.Stream_Access (VS);
    end Shared_Var_WOpen;
 
    ---------------------
    -- Shared_Var_Lock --
    ---------------------
 
-   procedure Shared_Var_Lock (Var : in String) is
+   procedure Shared_Var_Lock (Var : in String)
+   is
+      VS : Shared_Data_Access;
+      Ok : Boolean;
+
    begin
-      Enter_Variable (Lookup_Variable (Var, Lock).all);
+      VS := Lookup_Variable (Var);
+      Initiate_Request (VS.all, Lock, Ok);
    end Shared_Var_Lock;
 
    -----------------------
    -- Shared_Var_Unlock --
    -----------------------
 
-   procedure Shared_Var_Unlock (Var : in String) is
+   procedure Shared_Var_Unlock (Var : in String)
+   is
+      VS : Shared_Data_Access;
+
    begin
-      Leave_Variable (Lookup_Variable (Var, Unlock).all);
+      VS := Lookup_Variable (Var);
+      Complete_Request (VS.all);
    end Shared_Var_Unlock;
 
    ----------------------
    -- Shared_Var_Close --
    ----------------------
 
-   procedure Shared_Var_Close (Var : in out SIO.Stream_Access) is
+   procedure Shared_Var_Close (Var : in out SIO.Stream_Access)
+   is
+      VS : Shared_Data_Access;
+
    begin
-      null;
+      VS := Shared_Data_Access (Var);
+      Complete_Request (VS.all);
    end Shared_Var_Close;
 
 end System.Shared_Storage;

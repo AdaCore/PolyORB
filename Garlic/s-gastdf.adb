@@ -66,7 +66,7 @@ package body System.Garlic.Storages.Dfs is
      renames Print_Debug_Info;
 
    use type SIO.File_Mode;
-   use type SGS.Access_Mode;
+   use type System.Global_Locks.Lock_Type;
 
    package IOX renames Ada.IO_Exceptions;
 
@@ -91,18 +91,16 @@ package body System.Garlic.Storages.Dfs is
    -- Variables for Shared Memory Access Files --
    ----------------------------------------------
 
-   Max_Shared_Data_Files_Open : constant := 20;
+   Max_Shared_Files_Open : constant := 20;
    --  Maximum number of lock files that can be open
 
-   Shared_Data_Files_Open : Natural := 0;
+   Shared_Files_Open : Natural := 0;
    --  Number of shared memory access files currently open
 
-   To_File_Mode : constant array (SGS.Read .. SGS.Write) of SIO.File_Mode
-     := (SGS.Read => SIO.In_File, SGS.Write => SIO.Out_File);
+   To_File_Mode : constant array (Read .. Write) of SIO.File_Mode
+     := (Read => SIO.In_File, Write => SIO.Out_File);
 
-   function  Lock_Name
-     (Var_Data : DFS_Data_Type)
-     return String;
+   function  Lock_Name (Var_Data : DFS_Data_Type) return String;
 
    --------------------
    -- Create_Storage --
@@ -110,21 +108,27 @@ package body System.Garlic.Storages.Dfs is
 
    procedure Create_Storage
      (Master   : in out DFS_Data_Type;
-      Location : in  String;
-      Storage  : out SGS.Shared_Data_Access)
+      Location : in     String;
+      Storage  : out    Shared_Data_Access)
    is
       Result   : DFS_Data_Access;
 
    begin
       Result := new DFS_Data_Type;
+
+      --  Location is a directory. Add a separator if the location is
+      --  not empty.
+
       if Location'Length /= 0 then
-         Result.Data_Name := new String'(Location & Sep);
+         Result.Name := new String'(Location & Sep);
       else
-         Result.Data_Name := new String'(Location);
+         Result.Name := new String'(Location);
       end if;
+
       pragma Debug
-        (D ("create storage dfs with data """ & Result.Data_Name.all & """"));
-      Storage := SGS.Shared_Data_Access (Result);
+        (D ("create storage dfs with data """ & Result.Name.all & """"));
+
+      Storage := Shared_Data_Access (Result);
    end Create_Storage;
 
    --------------------
@@ -132,19 +136,19 @@ package body System.Garlic.Storages.Dfs is
    --------------------
 
    procedure Create_Package
-     (Storage  : in  DFS_Data_Type;
-      Pkg_Name : in  String;
-      Pkg_Data : out SGS.Shared_Data_Access)
+     (Storage  : in out DFS_Data_Type;
+      Pkg_Name : in     String;
+      Pkg_Data : out    Shared_Data_Access)
    is
       Result : DFS_Data_Access;
 
    begin
       pragma Debug (D ("create package file " & Pkg_Name &
-                       " on support " & Storage.Data_Name.all));
+                       " on support " & Storage.Name.all));
 
-      Result := new DFS_Data_Type;
-      Result.Data_Name := Storage.Data_Name;
-      Pkg_Data := SGS.Shared_Data_Access (Result);
+      Result      := new DFS_Data_Type;
+      Result.Name := Storage.Name;
+      Pkg_Data    := Shared_Data_Access (Result);
    end Create_Package;
 
    ---------------------
@@ -152,47 +156,20 @@ package body System.Garlic.Storages.Dfs is
    ---------------------
 
    procedure Create_Variable
-     (Pkg_Data : in  DFS_Data_Type;
-      Var_Name : in  String;
-      Var_Data : out SGS.Shared_Data_Access)
+     (Pkg_Data : in out DFS_Data_Type;
+      Var_Name : in     String;
+      Var_Data : out    Shared_Data_Access)
    is
       Var : DFS_Data_Access := new DFS_Data_Type;
 
    begin
-      Var.Data_Name  := new String'(Pkg_Data.Data_Name.all & Var_Name);
-      Var.Lock_Count := 0;
-      Var.Lock       := SGL.Null_Lock;
-      Var.Self       := Var;
-      Var_Data       := SGS.Shared_Data_Access (Var);
+      Var.Name  := new String'(Pkg_Data.Name.all & Var_Name);
+      Var.Self  := Var;
+      Var.Count := 0;
+      Create (Var.Mutex);
+      Var.Lock  := SGL.Null_Lock;
+      Var_Data  := Shared_Data_Access (Var);
    end Create_Variable;
-
-   --------------------
-   -- Enter_Variable --
-   --------------------
-
-   procedure Enter_Variable (Var_Data : in out DFS_Data_Type) is
-      use type SGL.Lock_Type;
-
-   begin
-      pragma Debug (D ("enter protected variable file " &
-                       Lock_Name (Var_Data)));
-
-      Enter_Critical_Section;
-      if Var_Data.Lock_Count /= 0 then
-         Var_Data.Lock_Count := Var_Data.Lock_Count + 1;
-         Leave_Critical_Section;
-
-      else
-         Var_Data.Lock_Count := 1;
-         Leave_Critical_Section;
-         if Var_Data.Lock = SGL.Null_Lock then
-            SGL.Create_Lock (Var_Data.Lock, Lock_Name (Var_Data));
-         end if;
-         SGL.Acquire_Lock (Var_Data.Lock);
-      end if;
-
-      pragma Debug (D ("lock count =" & Var_Data.Lock_Count'Img));
-   end Enter_Variable;
 
    ----------------
    -- Initialize --
@@ -216,36 +193,141 @@ package body System.Garlic.Storages.Dfs is
             Data_Dir := OS.Getenv ("DFS_DATA_DIR");
          end if;
          if Data_Dir'Length = 0 then
-            Root.Data_Name := new String'(Data_Dir.all);
+            Root.Name := new String'(Data_Dir.all);
          else
-            Root.Data_Name := new String'(Data_Dir.all & Sep);
+            Root.Name := new String'(Data_Dir.all & Sep);
          end if;
          Free (Data_Dir);
-         pragma Debug (D ("root data name is """ & Root.Data_Name.all & """"));
-         SGS.Register_Storage
-           (Dfs_Storage_Name,
-            SGS.Shared_Data_Access (Root));
+         pragma Debug (D ("root data name is """ & Root.Name.all & """"));
+         Register_Storage (Dfs_Storage_Name, Shared_Data_Access (Root));
       end if;
    end Initialize;
 
-   --------------------
-   -- Leave_Variable --
-   --------------------
+   ----------------------
+   -- Initiate_Request --
+   ----------------------
 
-   procedure Leave_Variable (Var_Data : in out DFS_Data_Type) is
+   procedure Initiate_Request
+     (Var_Data : in out DFS_Data_Type;
+      Request  : in Request_Type;
+      Success  : out Boolean)
+   is
+      Done : Boolean := True;
+      Free : DFS_Data_Access;
+
    begin
-      pragma Debug (D ("leave protected variable file " &
-                       Lock_Name (Var_Data)));
+      Enter (Var_Data.Mutex);
+      case Request is
+         when Read | Write =>
+            declare
+               Fname : constant String := Var_Data.Name.all;
+               Fmode : SIO.File_Mode   := To_File_Mode (Request);
 
-      Enter_Critical_Section;
-      Var_Data.Lock_Count := Var_Data.Lock_Count - 1;
+            begin
+               if not SIO.Is_Open (Var_Data.File) then
+                  begin
+                     SIO.Open (Var_Data.File, Fmode, Name => Fname);
+                     SFI.Make_Unbuffered (To_AFCB_Ptr (Var_Data.File));
 
-      if Var_Data.Lock_Count = 0 then
-         SGL.Release_Lock (Var_Data.Lock);
+                     pragma Debug (D ("open variable file " & Fname));
+
+                  exception
+                     when IOX.Name_Error =>
+
+                        if Request = Read then
+                           Leave (Var_Data.Mutex);
+                           Done := False;
+
+                        else
+                           SIO.Create (Var_Data.File, Fmode, Name => Fname);
+                           pragma Debug (D ("create variable file " & Fname));
+                        end if;
+                  end;
+
+                  if Done then
+                     Enter_Critical_Section;
+                     Shared_Files_Open := Shared_Files_Open + 1;
+
+                     if Shared_Files_Open = Max_Shared_Files_Open then
+                        Free := LRU_Head;
+
+                        if Free.Next /= null then
+                           Free.Next.Prev := null;
+                        end if;
+
+                        LRU_Head  := Free.Next;
+                        Free.Next := null;
+                        Free.Prev := null;
+                        SIO.Close (Free.File);
+                        pragma Debug
+                          (D ("close variable file " & Free.Name.all));
+                     end if;
+
+                     --  Add new entry at end of LRU chain
+
+                     if LRU_Head = null then
+                        LRU_Head := Var_Data.Self;
+                        LRU_Tail := Var_Data.Self;
+
+                     else
+                        Var_Data.Prev := LRU_Tail;
+                        LRU_Tail.Next := Var_Data.Self;
+                        LRU_Tail      := Var_Data.Self;
+                     end if;
+                     Leave_Critical_Section;
+                  end if;
+
+                  --  Here if file is already open, set file for reading
+
+               else
+                  if SIO.Mode (Var_Data.File) /= Fmode then
+                     pragma Debug
+                       (D ("reset variable file " &
+                           Var_Data.Name.all &
+                           " mode to " & Request'Img));
+
+                     SIO.Set_Mode (Var_Data.File, Fmode);
+                     SFI.Make_Unbuffered (To_AFCB_Ptr (Var_Data.File));
+                  end if;
+
+                  SIO.Set_Index (Var_Data.File, 1);
+               end if;
+            end;
+
+         when Lock =>
+            Var_Data.Count := Var_Data.Count + 1;
+            if Var_Data.Lock = SGL.Null_Lock then
+               SGL.Create_Lock (Var_Data.Lock, Lock_Name (Var_Data));
+            end if;
+            if Var_Data.Count = 1 then
+               SGL.Acquire_Lock (Var_Data.Lock);
+            end if;
+
+            pragma Debug (D ("lock count =" & Var_Data.Count'Img));
+
+      end case;
+      Success := Done;
+   end Initiate_Request;
+
+   ----------------------
+   -- Complete_Request --
+   ----------------------
+
+   procedure Complete_Request
+     (Var_Data : in out DFS_Data_Type) is
+   begin
+      if Var_Data.Count > 0 then
+         Var_Data.Count := Var_Data.Count - 1;
+
+         if Var_Data.Count = 0 then
+            SGL.Release_Lock (Var_Data.Lock);
+         end if;
+
+         pragma Debug (D ("lock count =" & Var_Data.Count'Img));
       end if;
-      pragma Debug (D ("lock count =" & Var_Data.Lock_Count'Img));
-      Leave_Critical_Section;
-   end Leave_Variable;
+
+      Leave (Var_Data.Mutex);
+   end Complete_Request;
 
    ---------------
    -- Lock_Name --
@@ -253,7 +335,7 @@ package body System.Garlic.Storages.Dfs is
 
    function Lock_Name (Var_Data : DFS_Data_Type) return String is
    begin
-      return Var_Data.Data_Name.all & ".entry";
+      return ".entry";
    end Lock_Name;
 
    ----------
@@ -265,111 +347,12 @@ package body System.Garlic.Storages.Dfs is
       Item : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset) is
    begin
-      pragma Debug (D ("read variable file " & Data.Data_Name.all));
+      pragma Debug (D ("read variable file " & Data.Name.all));
 
-      SIO.Read (Data.Data_File, Item, Last);
+      SIO.Read (Data.File, Item, Last);
+   exception when others =>
+      Last := Item'Last;
    end Read;
-
-   ---------------------
-   -- Set_Access_Mode --
-   ---------------------
-
-   procedure Set_Access_Mode
-     (Var_Data : in out DFS_Data_Type;
-      Var_Mode : in SGS.Access_Mode;
-      Failure  : out Boolean)
-   is
-      Free : DFS_Data_Access;
-
-   begin
-      Enter_Critical_Section;
-      Failure := False;
-
-      if Var_Mode in SGS.Read .. SGS.Write then
-         declare
-            Fname : constant String := Var_Data.Data_Name.all;
-            Fmode : SIO.File_Mode   := To_File_Mode (Var_Mode);
-
-         begin
-            if not SIO.Is_Open (Var_Data.Data_File) then
-               begin
-                  SIO.Open (Var_Data.Data_File, Fmode, Name => Fname);
-                  SFI.Make_Unbuffered (To_AFCB_Ptr (Var_Data.Data_File));
-
-                  pragma Debug (D ("open variable file " & Fname));
-
-               exception
-                  when IOX.Name_Error =>
-
-                     if Var_Mode = SGS.Read then
-                        Failure := True;
-
-                     else
-                        begin
-                           SIO.Create
-                             (Var_Data.Data_File, Fmode, Name => Fname);
-                           pragma Debug (D ("create variable file " & Fname));
-
-                        exception when others =>
-                           Failure := True;
-                        end;
-                     end if;
-               end;
-
-               Shared_Data_Files_Open := Shared_Data_Files_Open + 1;
-
-               --  Here if file is already open, set file for reading
-
-            else
-               if SIO.Mode (Var_Data.Data_File) /= Fmode then
-                  pragma Debug
-                    (D ("reset variable file " &
-                        Var_Data.Data_Name.all &
-                        " mode to " & Var_Mode'Img));
-
-                  SIO.Set_Mode (Var_Data.Data_File, Fmode);
-                  SFI.Make_Unbuffered (To_AFCB_Ptr (Var_Data.Data_File));
-               end if;
-
-               SIO.Set_Index (Var_Data.Data_File, 1);
-            end if;
-         end;
-      end if;
-
-      if Failure then
-         pragma Debug (D ("reject mode " & Var_Mode'Img &
-                          " for variable file " & Var_Data.Data_Name.all));
-         Leave_Critical_Section;
-         return;
-      end if;
-
-      if Shared_Data_Files_Open = Max_Shared_Data_Files_Open then
-         Free := LRU_Head;
-
-         if Free.Next /= null then
-            Free.Next.Previous := null;
-         end if;
-
-         LRU_Head       := Free.Next;
-         Free.Next     := null;
-         Free.Previous := null;
-         SIO.Close (Free.Data_File);
-         pragma Debug (D ("close variable file " & Free.Data_Name.all));
-      end if;
-
-      --  Add new entry at end of LRU chain
-
-      if LRU_Head = null then
-         LRU_Head := Var_Data.Self;
-         LRU_Tail := Var_Data.Self;
-
-      else
-         Var_Data.Previous := LRU_Tail;
-         LRU_Tail.Next     := Var_Data.Self;
-         LRU_Tail          := Var_Data.Self;
-      end if;
-      Leave_Critical_Section;
-   end Set_Access_Mode;
 
    -----------
    -- Write --
@@ -379,9 +362,11 @@ package body System.Garlic.Storages.Dfs is
      (Data : in out DFS_Data_Type;
       Item : in Ada.Streams.Stream_Element_Array) is
    begin
-      pragma Debug (D ("write variable " & Data.Data_Name.all));
+      pragma Debug (D ("write variable " & Data.Name.all));
 
-      SIO.Write (Data.Data_File, Item);
+      SIO.Write (Data.File, Item);
+   exception when others =>
+      null;
    end Write;
 
 end System.Garlic.Storages.Dfs;

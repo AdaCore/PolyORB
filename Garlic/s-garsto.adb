@@ -131,13 +131,11 @@ package body System.Garlic.Storages is
    ---------------------
 
    function Lookup_Variable
-     (Var_Name : in String;
-      Var_Mode : in Access_Mode)
+     (Var_Name : in String)
      return Shared_Data_Access
    is
       Var_Data : Shared_Data_Access;
       Pkg_Data : Shared_Data_Access;
-      Failure  : Boolean;
 
    begin
       pragma Debug (D ("lookup variable " & Var_Name));
@@ -206,16 +204,9 @@ package body System.Garlic.Storages is
 
          SST.Set (new String'(Var_Name), Var_Data);
       end if;
-
-      Set_Access_Mode (Var_Data.all, Var_Mode, Failure);
       Leave_Critical_Section;
 
-      if Failure then
-         return null;
-
-      else
-         return Var_Data;
-      end if;
+      return Var_Data;
    end Lookup_Variable;
 
    --------------------

@@ -1,3 +1,10 @@
+2000-09-12  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gastdf.adb, s-gastdf.ads, s-garsto.ads, s-garsto.adb,
+ 	s-shasto.adb: Take advantage of the call to Shared_Var_Close
+ 	introduced by 8102-004. Protect the stream operations against
+ 	exception, abortion and concurrent access.
+
 2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am, Makefile.in, s-gastdf.ads, s-gastdf.adb: Move
