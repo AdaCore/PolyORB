@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,8 +50,6 @@ with MOMA.Messages;
 with MOMA.Messages.MExecutes;
 with MOMA.Types;
 
-with PolyORB.Any;
-
 procedure Client_MOMA is
 
    use Ada.Command_Line;
@@ -70,10 +68,7 @@ procedure Client_MOMA is
 
    procedure Test_MExecute;
 
-   procedure Test_MExecute
-   is
-      use PolyORB.Any;
-
+   procedure Test_MExecute is
       MExecute_Message_Sent : MOMA.Messages.MExecutes.MExecute;
 
       Method_Name   : Map_Element;
