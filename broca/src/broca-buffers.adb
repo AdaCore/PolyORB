@@ -88,6 +88,8 @@ package body Broca.Buffers is
       Release (Buffer.Contents);
       Release (Buffer.Storage'Access);
       Buffer.CDR_Position := 0;
+      Buffer.Initial_CDR_Position := 0;
+      Buffer.Endianness := Host_Order;
    end Release;
 
    procedure Initialize_Buffer
