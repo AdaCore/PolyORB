@@ -459,15 +459,6 @@ package Opt is
    --  in the gcc backend (see Frontend) and may be referenced throughout
    --  the compilation phases.
 
-   Stack_Check_Probes_Val : Boolean;
-   --  GNAT (gigi)
-   --  This flag is set from the entity Stack_Check_Probes in the *target*
-   --  version of System. It indicates whether or not the target system
-   --  uses stack probes (True) or the alternative comparison scheme (False).
-   --  This value is obtained using Rtsfind by Sem_Util.Set_Stack_Check_Flags.
-   --  Note that this value is NOT set until after semantic analysis of the
-   --  main unit is complete, so it cannot be referenced during this analysis.
-
    Strict_Math : aliased Boolean := False;
    --  GNAT
    --  This switch is set True if the current unit is to be compiled in
@@ -607,25 +598,13 @@ package Opt is
    --  Set if cross-referencing is enabled (i.e. xref info in ali files)
 
    Zero_Cost_Exceptions_Val : Boolean;
-   --  GNAT
-   --  Shows whether zero cost exception mode is active. This value can
-   --  be read only if Zero_Cost_Exceptions_Set is True, indicating that
-   --  the value has been set. This flag can be set either by Switch
-   --  or by the processing in Sem_Util.Zero_Cost_Exceptions. Note
-   --  that gigi may freely reference this swich, since the call to
-   --  Sem_Util.Zero_Cost_Exceptions in Frontend guarantees that the
-   --  value has been properly set. Note that in the compiler itself,
-   --  clients should use the function in Sem_Util, rather than accessing
-   --  this value directly.
-
    Zero_Cost_Exceptions_Set : Boolean := False;
    --  GNAT
-   --  If this flag is False, then the value of Zero_Cost_Exceptions_Val
-   --  has not been set yet, and cannot be read. If this flag is True,
-   --  then Zero_Cost_Exceptions_Val is properly set. This flag can be
-   --  set either by Switch or by Sem_Util.Zero_Cost_Exceptions. Note
-   --  that when Gigi is called, this switch always has the value True
-   --  as a result of the Frontend call to Sem_Util.Zero_Cost_Exceptions.
+   --  These values are to record the setting of the zero cost exception
+   --  handling mode set by argument switches (-gnatZ/-gnatL). If the
+   --  value is set by one of these switches, then Zero_Cost_Exceptions_Set
+   --  is set to True, and Zero_Cost_Exceptions_Val indicates the setting.
+   --  This value is used to reset Zero_Cost_Exceptions_On_Target.
 
    ----------------------------
    -- Configuration Settings --

@@ -74,7 +74,7 @@ package body Debug is
    --  dD
    --  dE   Apply elaboration checks to predefined units
    --  dF
-   --  dG   Do not compile generics
+   --  dG
    --  dH
    --  dI
    --  dJ
@@ -312,10 +312,6 @@ package body Debug is
    --  dE   Apply compile time elaboration checking for with relations between
    --       predefined units. Normally no checks are made (it seems that at
    --       least on the SGI, such checks run into trouble).
-
-   --  dG   Do not compile generics. Normally generics are compiled, this
-   --       switch is provided to cause GNAT to operate in a manner compatible
-   --       with earlier versions of GNAT which did not compile generics.
 
    --  dL   Output trace information on elaboration checking. This debug
    --       switch causes output to be generated showing each call or

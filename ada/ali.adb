@@ -644,6 +644,7 @@ package body ALI is
 
          Units.Table (Units.Last).Uname          := Get_Name;
          Units.Table (Units.Last).Predefined     := Is_Predefined_Unit;
+         Units.Table (Units.Last).Internal       := Is_Internal_Unit;
          Units.Table (Units.Last).My_ALI         := Id;
          Units.Table (Units.Last).Sfile          := Get_Name (Lower => True);
          Units.Table (Units.Last).Pure           := False;

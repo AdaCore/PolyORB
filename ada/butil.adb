@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---        Copyright (C) 1992,1993,1994 Free Software Foundation, Inc.       --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,14 +26,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;  use Namet;
-with Output; use Output;
+with Hostparm; use Hostparm;
+with Namet;    use Namet;
+with Output;   use Output;
 
 package body Butil is
+
+   ----------------------
+   -- Is_Internal_Unit --
+   ----------------------
+
+   --  Note: the reason we do not use the Fname package for this function
+   --  is that it would drag too much junk into the binder.
+
+   function Is_Internal_Unit return Boolean is
+   begin
+      return Is_Predefined_Unit
+        or else (Name_Len > 4
+                   and then (Name_Buffer (1 .. 5) = "gnat%"
+                               or else
+                             Name_Buffer (1 .. 5) = "gnat."))
+        or else
+          (OpenVMS
+             and then Name_Len > 3
+             and then (Name_Buffer (1 .. 4) = "dec%"
+                         or else
+                       Name_Buffer (1 .. 5) = "dec."));
+
+   end Is_Internal_Unit;
 
    ------------------------
    -- Is_Predefined_Unit --
    ------------------------
+
+   --  Note: the reason we do not use the Fname package for this function
+   --  is that it would drag too much junk into the binder.
 
    function Is_Predefined_Unit return Boolean is
    begin

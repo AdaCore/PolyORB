@@ -26,10 +26,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;  use Namet;
-with Osint;  use Osint;
-with Output; use Output;
-
+with Hostparm;
+with Namet;          use Namet;
+with Osint;          use Osint;
+with Output;         use Output;
 with System.WCh_Con; use System.WCh_Con;
 
 procedure Usage is
@@ -67,7 +67,7 @@ begin
                Name_Buffer (Name_Len - 7 .. Name_Len) = "GNATMAKE")
    then
       Write_Eol;
-      Write_Line ("Switches for gcc (passed on to gcc by gnatmake):");
+      Write_Line ("Compiler switches (passed to the compiler by gnatmake):");
 
    else
       --  Usage line
@@ -86,13 +86,17 @@ begin
 
    Write_Eol;
 
-   --  Common GCC switches
+   --  Common GCC switches not available in JGNAT
 
-   Write_Switch_Char ("fstack-check ", "");
-   Write_Line ("Generate stack checking code");
+   if not Hostparm.Java_VM then
+      Write_Switch_Char ("fstack-check ", "");
+      Write_Line ("Generate stack checking code");
 
-   Write_Switch_Char ("fno-inline   ", "");
-   Write_Line ("Inhibit all inlining (makes executable smaller)");
+      Write_Switch_Char ("fno-inline   ", "");
+      Write_Line ("Inhibit all inlining (makes executable smaller)");
+   end if;
+
+   --  Common switches available to both GCC and JGNAT
 
    Write_Switch_Char ("g            ", "");
    Write_Line ("Generate debugging information");

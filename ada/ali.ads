@@ -246,6 +246,9 @@ package ALI is
       Predefined : Boolean;
       --  Indicates if unit is language predefined (or a child of such a unit)
 
+      Internal : Boolean;
+      --  Indicates if unit is an internal unit (or a child of such a unit)
+
       First_With : With_Id;
       --  Id of first withs table entry for this file
 

@@ -66,7 +66,9 @@ package Rident is
       No_Fixed_Point,                          -- (RM H.4(15))
       No_Floating_Point,                       -- (RM H.4(14))
       No_IO,                                   -- (RM H.4(20))
+      No_Implicit_Conditionals,                -- GNAT
       No_Implicit_Heap_Allocations,            -- (RM D.8(8), H.4(3))
+      No_Implicit_Loops,                       -- GNAT
       No_Local_Allocators,                     -- (RM H.4(8))
       No_Local_Protected_Objects,              -- GNAT
       No_Nested_Finalization,                  -- (RM D.7(4))
@@ -96,6 +98,7 @@ package Rident is
       Immediate_Reclamation,                   -- (RM H.4(10))
       No_Implementation_Attributes,            -- GNAT
       No_Implementation_Pragmas,               -- GNAT
+      No_Implementation_Restrictions,          -- GNAT
       No_Elaboration_Code,                     -- GNAT
       No_Entry_Queue,                          -- GNAT
 

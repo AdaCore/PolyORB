@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -550,10 +550,6 @@ pragma Preelaborate (Types);
 
    type Source_File_Index is new Nat;
    --  Type used to index the source file table (see package Sinput)
-
-   Main_Source : constant Source_File_Index := 1;
-   --  Source_File table index of entry for initial main source file (i.e.
-   --  the source file that corresponds to Main_Unit for the compiler case)
 
    No_Source_File : constant Source_File_Index := 0;
    --  Value used to indicate no source file present
