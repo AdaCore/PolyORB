@@ -178,7 +178,7 @@ exception
       Message ("*** parsing failed");
       Exit_Program (E_Fatal);
    when Partitioning_Error =>
-      Message ("*** partitionning failed");
+      Message ("*** partitioning failed");
       Exit_Program (E_Fatal);
    when Usage_Error =>
       Message ("*** wrong argument(s)");
