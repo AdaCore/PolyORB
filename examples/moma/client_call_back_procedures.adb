@@ -77,13 +77,14 @@ package body Client_Call_Back_Procedures is
    -- Handle_Then_Notify --
    ------------------------
 
-   procedure Handle_Then_Notify (
-      Handler : access Message_Handler;
+   procedure Handle_Then_Notify
+     (Handler : access Message_Handler;
       Message : MOMA.Messages.Message'Class)
    is
       Data : Byte_Test_Note;
       Id : constant Byte := Get_Byte_Value (Message);
       Ok : Boolean := False;
+
    begin
       Output ("Handling message ", True);
       Get_Call_Back_Data (Handler, Data);
@@ -98,12 +99,13 @@ package body Client_Call_Back_Procedures is
    -- Notify_And_Receive --
    ------------------------
 
-   procedure Notify_And_Receive (
-      Handler : access Message_Handler)
+   procedure Notify_And_Receive
+     (Handler : access Message_Handler)
    is
       Data : Byte_Test_Note;
       Id : constant Byte := Receive_MByte (Get_Consumer (Handler));
       Ok : Boolean := False;
+
    begin
       Output ("Notified", True);
       Get_Call_Back_Data (Handler, Data);
@@ -117,8 +119,8 @@ package body Client_Call_Back_Procedures is
    -- Notify_Then_Handle --
    ------------------------
 
-   procedure Notify_Then_Handle (
-      Handler : access Message_Handler)
+   procedure Notify_Then_Handle
+     (Handler : access Message_Handler)
    is
       Data : Byte_Test_Note;
    begin
@@ -146,10 +148,12 @@ package body Client_Call_Back_Procedures is
    -- Send_MByte --
    ----------------
 
-   procedure Send_MByte (MOMA_Producer : Message_Producer;
-                         Id : MOMA.Types.Byte)
+   procedure Send_MByte
+     (MOMA_Producer : Message_Producer;
+      Id : MOMA.Types.Byte)
    is
       MByte_Message_Sent : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
+
    begin
       Set_Byte (MByte_Message_Sent, Id);
       Send (MOMA_Producer, MByte_Message_Sent);
@@ -160,12 +164,13 @@ package body Client_Call_Back_Procedures is
    -- Set_Byte_Test_Note --
    ------------------------
 
-   procedure Set_Byte_Test_Note (Handler : access Message_Handler;
-                                 Proceed : Boolean;
-                                 Byte_Value : MOMA.Types.Byte) is
+   procedure Set_Byte_Test_Note
+     (Handler : access Message_Handler;
+      Proceed : Boolean;
+      Byte_Value : MOMA.Types.Byte) is
    begin
-      Set_Call_Back_Data (
-         Handler,
+      Set_Call_Back_Data
+        (Handler,
          Byte_Test_Note'(Note with
             Byte_Value => Byte_Value,
             Proceed => Proceed));

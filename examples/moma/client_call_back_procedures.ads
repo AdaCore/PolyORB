@@ -60,19 +60,19 @@ package Client_Call_Back_Procedures is
    --  The following procedures also set the Proceed Boolean to True to allow
    --  the client to proceed with next test.
 
-   procedure Handle_Then_Notify (
-      Handler : access Message_Handler;
+   procedure Handle_Then_Notify
+     (Handler : access Message_Handler;
       Message : MOMA.Messages.Message'Class);
    --  Handle the message, compare its Id with current Byte_Value in
    --  Call_Back_Byte_test and set the behavior to Notify.
 
-   procedure Notify_And_Receive (
-      Handler : access Message_Handler);
+   procedure Notify_And_Receive
+     (Handler : access Message_Handler);
    --  Receive notified message, compare its Id with current Byte_Value in
    --  Call_Back_Byte_test. Does not change behavior.
 
-   procedure Notify_Then_Handle (
-      Handler : access Message_Handler);
+   procedure Notify_Then_Handle
+     (Handler : access Message_Handler);
    --  Change the behavior to Handle.
 
    function Receive_MByte (MOMA_Consumer : Message_Consumer)
