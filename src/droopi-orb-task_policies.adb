@@ -12,7 +12,7 @@ package body Droopi.ORB.Task_Policies is
       Insert_Socket (ORB, AS);
       --  The newly-created channel will be monitored
       --  by general-purpose ORB tasks.
-   end;
+   end Handle_New_Connection;
 
    procedure Handle_Request
      (P   : access No_Tasking;
@@ -22,6 +22,6 @@ package body Droopi.ORB.Task_Policies is
       --  J := Create_Job_For_Request (R);
       --  Schedule_Job (J);
       raise Not_Implemented;
-   end;
+   end Handle_Request;
 
 end Droopi.ORB.Task_Policies;

@@ -1,7 +1,8 @@
 --  $Id$
 
 with Droopi.Log;
-with Droopi.ORB.Task_Policies;
+--  XXX Remove?
+--  with Droopi.ORB.Task_Policies;
 with Droopi.Soft_Links;
 with Droopi.Channels;
 
@@ -12,7 +13,8 @@ package body Droopi.ORB is
    use Droopi.Protocols;
    use Droopi.Sockets;
    use Droopi.Soft_Links;
-   use Droopi.ORB.Task_Policies;
+   --  XXX Remove?
+   --  use Droopi.ORB.Task_Policies;
 
    package L is new Droopi.Log.Facility_Log ("droopi.orb");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -25,7 +27,7 @@ package body Droopi.ORB is
    procedure Handle_Event (ORB : access ORB_Type; AS : Active_Socket) is
    begin
       case AS.Kind is
-         when Listening_SK =>
+         when Listening_Sk =>
 
             --  A new connection.
 
@@ -69,7 +71,7 @@ package body Droopi.ORB is
                --  through select() by general-purpose ORB tasks.
             end;
 
-         when Communication_SK =>
+         when Communication_Sk =>
 
             --  Data arrived on a communication channel.
 
@@ -80,15 +82,17 @@ package body Droopi.ORB is
                Droopi.Channels.Handle_Data (Channel, AS.Socket);
 
                --  Signal upper layers that data is available on this
-               --  channel. Further processing and possible tasking decisions
-               --  are delegated to the upstream protocol, since they may depend
-               --  upon the particular messages received.
+               --  channel. Further processing and possible tasking
+               --  decisions are delegated to the upstream protocol,
+               --  since they may depend upon the particular messages
+               --  received.
 
             end;
 
-         when Invalid_SK =>
+         when Invalid_Sk =>
 
-            --  An error condition (AS is not a valid active socket descriptor).
+            --  An error condition (AS is not a valid
+            --  active socket descriptor).
 
             pragma Assert (False);
             null;
@@ -258,7 +262,7 @@ package body Droopi.ORB is
      (ORB : access ORB_Type;
       AS  : Active_Socket) is
    begin
-      pragma Assert (AS.Kind /= Invalid_SK);
+      pragma Assert (AS.Kind /= Invalid_Sk);
 
       Enter_Critical_Section;
       Sock_Seqs.Append (ORB.ORB_Sockets, AS);
@@ -277,7 +281,7 @@ package body Droopi.ORB is
          Sockets : constant Sock_Seqs.Element_Array
            := Sock_Seqs.To_Element_Array (ORB.ORB_Sockets);
       begin
-     All_Sockets:
+         All_Sockets :
          for I in Sockets'Range loop
             if Sockets (I).Socket = S then
                Sock_Seqs.Delete

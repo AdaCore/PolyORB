@@ -41,11 +41,11 @@ package Droopi.ORB is
    ------------------------
 
    type Socket_Kind is
-     (Invalid_SK,
-      Listening_SK,
-      Communication_SK);
+     (Invalid_Sk,
+      Listening_Sk,
+      Communication_Sk);
 
-   type Active_Socket (Kind : Socket_Kind := Invalid_SK) is record
+   type Active_Socket (Kind : Socket_Kind := Invalid_Sk) is record
       Socket   : Sockets.Socket_Type;
       Protocol : Protocols.Protocol_Access;
 

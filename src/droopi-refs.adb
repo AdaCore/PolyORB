@@ -39,10 +39,15 @@ with Droopi.Soft_Links;
 
 package body Droopi.Refs is
 
+   use Droopi.Log;
    use Droopi.Soft_Links;
 
    Counter_Lock : Mutex_Access;
    --  XXX Initialize!
+
+   package L is new Droopi.Log.Facility_Log ("droopi.refs");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Entity_Ptr);
 
@@ -62,20 +67,20 @@ package body Droopi.Refs is
    procedure Inc_Usage (Obj : Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
-      --  pragma Debug (O ("Inc_Usage: Obj is a "
-      --                   & Ada.Tags.External_Tag (Obj.all'Tag)));
+      pragma Debug (O ("Inc_Usage: Obj is a "
+                       & Ada.Tags.External_Tag (Obj.all'Tag)));
 
       Enter (Counter_Lock);
-      --  pragma Debug (O ("Inc_Usage: Counter"
-      --                   & Obj.Counter'Img
-      --                   & " -> "
-      --                   & Img (Obj.Counter + 1)));
+      pragma Debug (O ("Inc_Usage: Counter"
+                       & Obj.Counter'Img
+                       & " -> "
+                       & Img (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
       Leave (Counter_Lock);
    exception
       when E : others =>
-         --  pragma Debug (O ("Inc_Usage: caught "
-         --                   & Ada.Exceptions.Exception_Information (E)));
+         pragma Debug (O ("Inc_Usage: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
          raise;
    end Inc_Usage;
 
@@ -86,37 +91,37 @@ package body Droopi.Refs is
    procedure Dec_Usage (Obj : in out Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
-      --  pragma Debug (O ("Dec_Usage: Obj is a "
-      --                   & Ada.Tags.External_Tag (Obj.all'Tag)));
+      pragma Debug (O ("Dec_Usage: Obj is a "
+                       & Ada.Tags.External_Tag (Obj.all'Tag)));
 
       Enter (Counter_Lock);
-      --  pragma Debug (O ("Dec_Usage: Counter"
-      --                   & Obj.Counter'Img
-      --                   & " -> "
-      --                   & Img (Obj.Counter - 1)));
+      pragma Debug (O ("Dec_Usage: Counter"
+                       & Obj.Counter'Img
+                       & " -> "
+                       & Img (Obj.Counter - 1)));
       Obj.Counter := Obj.Counter - 1;
       Leave (Counter_Lock);
 
       if Obj.Counter = 0 then
-         --  pragma Debug
-         --    (O ("Dec_Usage: deallocating."));
+         pragma Debug
+           (O ("Dec_Usage: deallocating."));
          Free (Obj);
       end if;
 
-      --  pragma Debug (O ("Leaving Dec_Usage"));
+      pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
    procedure Set
      (The_Ref : in out Ref;
       The_Entity : Entity_Ptr) is
    begin
-      --  pragma Debug (O ("Set: enter."));
+      pragma Debug (O ("Set: enter."));
 
       Finalize (The_Ref);
       The_Ref.A_Ref := The_Entity;
       Adjust (The_Ref);
 
-      --  pragma Debug (O ("Set: leave."));
+      pragma Debug (O ("Set: leave."));
    end Set;
 
    ----------------
@@ -135,11 +140,11 @@ package body Droopi.Refs is
 
    procedure Adjust (The_Ref : in out Ref) is
    begin
-      --  pragma Debug (O ("Adjust: enter"));
+      pragma Debug (O ("Adjust: enter"));
       if The_Ref.A_Ref /= null then
          Inc_Usage (The_Ref.A_Ref);
       else
-         --  pragma Debug (O ("Adjust: null ref"));
+         pragma Debug (O ("Adjust: null ref"));
          null;
       end if;
    end Adjust;
@@ -150,18 +155,18 @@ package body Droopi.Refs is
 
    procedure Finalize (The_Ref : in out Ref) is
    begin
-      --  pragma Debug (O ("Finalize: enter"));
+      pragma Debug (O ("Finalize: enter"));
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       else
-         --  pragma Debug (O ("Finalize: null ref"));
+         pragma Debug (O ("Finalize: null ref"));
          null;
       end if;
       The_Ref.A_Ref := null;
    exception
       when E : others =>
-         --  pragma Debug (O ("Finalize: caught "
-         --                   & Ada.Exceptions.Exception_Information (E)));
+         pragma Debug (O ("Finalize: caught "
+                          & Ada.Exceptions.Exception_Information (E)));
          raise;
    end Finalize;
 

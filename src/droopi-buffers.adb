@@ -34,32 +34,25 @@
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
-with Interfaces.C;
---  For Interfaces.C.int.
+with Droopi.Log;
 
 --  with CORBA;
 --  --  For CORBA.Octet and CORBA.Bool in Decapsulate.
 
 package body Droopi.Buffers is
 
+   use Droopi.Log;
    use Buffer_Chunk_Pools;
    use Iovec_Pools;
 
-   procedure O (X : String) is
-   begin
-      null;
-   end;
+   package L is new Droopi.Log.Facility_Log ("droopi.buffers");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    subtype Output_Line is String (1 .. 48);
 
    Hex : constant String      := "0123456789ABCDEF";
    Nil : constant Output_Line := (others => ' ');
-
-   ---------------------------
-   -- Interface with Iovecs --
-   ---------------------------
-
-   subtype C_int is Interfaces.C.int;
 
    ------------------------
    -- General operations --
@@ -339,7 +332,9 @@ package body Droopi.Buffers is
    end Extract_Data;
 
 
-   function CDR_Position (Buffer : access Buffer_Type) return Stream_Element_Offset is
+   function CDR_Position
+     (Buffer : access Buffer_Type)
+     return Stream_Element_Offset is
    begin
       return Buffer.CDR_Position;
    end CDR_Position;
@@ -367,9 +362,6 @@ package body Droopi.Buffers is
    is
       Output : Output_Line;
       Index  : Natural := 1;
-
-      use Interfaces;
-      --  For operations on Unsigned_8.
 
    begin
       for J in Octets'Range loop
@@ -422,8 +414,6 @@ package body Droopi.Buffers is
          Size         : Stream_Element_Count;
          Data         : out Opaque_Pointer)
       is
-
-         use Interfaces.C;
 
          function First_Address_After (An_Iovec : Iovec)
            return Opaque_Pointer;
@@ -587,7 +577,9 @@ package body Droopi.Buffers is
             Length := Length + Iovecs (I).Iov_Len;
          end loop;
          Result := new Stream_Element_Array (1 .. Length);
-         Dump (Iovecs, Opaque_Pointer'(Zone => Result, Offset => Result'First));
+         Dump (Iovecs, Opaque_Pointer'
+               (Zone => Result,
+                Offset => Result'First));
          return Result;
       end Dump;
 
@@ -647,8 +639,6 @@ package body Droopi.Buffers is
          Offset     : Stream_Element_Offset;
          Size       : Stream_Element_Count)
       is
-         use Interfaces.C;
-
          Vecs             : constant Iovec_Array  := Iovecs (Iovec_Pool);
          Offset_Remainder : Stream_Element_Offset := Offset;
          Index            : Natural               := Vecs'First;
@@ -699,7 +689,7 @@ package body Droopi.Buffers is
 
       begin
          for I in Vecs'Range loop
-         Rest := Rest + Vecs (I).Iov_Len;
+            Rest := Rest + Vecs (I).Iov_Len;
          end loop;
 
          while Rest > 0 loop

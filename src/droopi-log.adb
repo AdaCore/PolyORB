@@ -4,7 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Ada.Characters.Handling;
 
-with GNAT.Htable;
+with GNAT.HTable;
 
 package body Droopi.Log is
 
@@ -21,11 +21,11 @@ package body Droopi.Log is
    function Hash (S : String_Ptr) return Hash_Val;
    function Equal (S1, S2 : String_Ptr) return Boolean;
    --  Simple {hash,equality} functions operating on a string access.
-   --  Used in instanciation of GNAT.Htable.
+   --  Used in instanciation of GNAT.HTable.
 
    function Hash (S : String_Ptr) return Hash_Val
    is
-      function Hash_String is new GNAT.Htable.Hash (Hash_Val);
+      function Hash_String is new GNAT.HTable.Hash (Hash_Val);
    begin
       pragma Assert (S /= null);
       return Hash_String (S.all);
@@ -42,9 +42,10 @@ package body Droopi.Log is
       Level   : Log_Level;
    end record;
 
-   Null_Log_Level_Info : constant Log_Level_Info := (Key_Ptr => null, Level => Info);
+   Null_Log_Level_Info : constant Log_Level_Info
+     := (Key_Ptr => null, Level => Info);
 
-   package HT is new GNAT.Htable.Simple_Htable
+   package HT is new GNAT.HTable.Simple_HTable
      (Header_Num => Hash_Val,
       Element    => Log_Level_Info,
       No_Element => Null_Log_Level_Info,
@@ -218,6 +219,6 @@ package body Droopi.Log is
    exception
       when others =>
       null;
-   end;
+   end Initialize;
 
 end Droopi.Log;

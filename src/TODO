@@ -7,3 +7,10 @@ $Id$
 * Unified configuration file (modifications to
   Droopi.Log).
 * Droopi.Buffers: remove mentions of CDR.
+* Data reception: when the protocol knows how much data will
+  arrive, preallocate so that unmarshalling is guaranteed
+  to be presented with contiguous data.
+  When it does not, Receive_Buffer should call Receive_Socket
+  with Length no greater than the available space in the
+  chunk, and advance the current position by the exact
+  size of the received data.
