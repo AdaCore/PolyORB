@@ -171,8 +171,8 @@ package body Backend.BE_Ada.Helpers is
            (BEN.Name (Defining_Identifier (N)));
          TC := Name_Find;
          C := Make_Subprogram_Call
-           (Defining_Identifier   => P,
-            Actual_Parameter_Part => No_List);
+           (Defining_Identifier   => RE (RE_To_CORBA_Object),
+            Actual_Parameter_Part => Make_List_Id (P));
          N := Make_Object_Declaration
            (Defining_Identifier =>
               Make_Defining_Identifier (TC),

@@ -12,6 +12,7 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_AbstractBase,
       RU_CORBA_Object,
       RU_CORBA_TypeCode,
+      RU_CORBA_TypeCode_Internals,
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
@@ -54,13 +55,14 @@ package Backend.BE_Ada.Runtime is
       RE_Is_Nil,                    --  CORBA.Object.Is_Nil
       RE_Ref_2,                     --  CORBA.Object.Ref
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_TC_Alias,                  --  CORBA.TypeCode.TC_Alias
-      RE_TC_Enum,                   --  CORBA.TypeCode.TC_Enum
-      RE_TC_Struct,                 --  CORBA.TypeCode.TC_Struct
+      RE_To_CORBA_Object,        -- CORBA.TypeCode.Internals.To_CORBA_Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
       RE_Create,                    --  PolyORB.Any.NVList.Create
       RE_TC_Object,                 --  PolyORB.Any.TypeCode.TC_Object
+      RE_TC_Alias,                  --  PolyORB.Any.TypeCode.TC_Alias
+      RE_TC_Enum,                   --  PolyORB.Any.TypeCode.TC_Enum
+      RE_TC_Struct,                 --  PolyORB.Any.TypeCode.TC_Struct
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
@@ -99,13 +101,14 @@ package Backend.BE_Ada.Runtime is
          RE_Ref_2                 => RU_CORBA_Object,
          RE_Is_Nil                => RU_CORBA_Object,
          RE_Object                => RU_CORBA_TypeCode,
-         RE_TC_Alias              => RU_CORBA_TypeCode,
-         RE_TC_Enum               => RU_CORBA_TypeCode,
-         RE_TC_Struct             => RU_CORBA_TypeCode,
+         RE_To_CORBA_Object       => RU_CORBA_TypeCode_Internals,
          RE_NamedValue            => RU_PolyORB_Any,
          RE_Ref_3                 => RU_PolyORB_Any_NVList,
          RE_Create                => RU_PolyORB_Any_NVList,
          RE_TC_Object             => RU_PolyORB_Any_TypeCode,
+         RE_TC_Alias              => RU_PolyORB_Any_TypeCode,
+         RE_TC_Enum               => RU_PolyORB_Any_TypeCode,
+         RE_TC_Struct             => RU_PolyORB_Any_TypeCode,
          RE_Request_Access        => RU_PolyORB_Requests,
          RE_Identifier            => RU_PolyORB_Types,
          RE_To_PolyORB_String     => RU_PolyORB_Types,
