@@ -33,10 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Here, you must 'with' and 'pragma Elaborate_All' all the protocols you
---  want to use. Look for other sections called "Protocol section" below
---  to make sure you initialize the protocols you want to use.
-
 with System.Garlic.Debug; use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 
@@ -138,11 +134,11 @@ begin
          end if;
       end loop;
 
-      --  Phase (5)
+      --  Phase (5) (see s-garlic.ads)
 
       Filters.Initialize;
 
-      --  Phase (6)
+      --  Phase (6) (see s-garlic.ads)
 
       Trace.Initialize;
 
@@ -150,26 +146,24 @@ begin
 
       Termination.Initialize;
 
+      --  Phase (8) (see s-garlic.ads)
+
+      declare
+         --  First, let boot server know about this partition
+
+         pragma Warnings (Off);
+         P : constant Types.Partition_ID := Get_My_Partition_ID;
+         pragma Warnings (On);
+
+         --  Then, let this partition know about boot server
+
+         pragma Warnings (Off);
+         D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
+         pragma Warnings (On);
+      begin
+         null;
+      end;
    end;
-
-   --  Phase (8) (see s-garlic.ads)
-
-   declare
-      --  First, let boot server know about this partition
-
-      pragma Warnings (Off);
-      P : constant Types.Partition_ID := Get_My_Partition_ID;
-      pragma Warnings (On);
-
-      --  Then, let this partition know about boot server
-
-      pragma Warnings (Off);
-      D : constant Partition_Data := Get_Partition_Data (Get_Boot_Server);
-      pragma Warnings (On);
-   begin
-      null;
-   end;
-
    pragma Debug (D (D_Elaborate, "Startup phase terminated"));
 
 end System.Garlic.Startup;
