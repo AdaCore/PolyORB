@@ -141,8 +141,8 @@ procedure Test000 is
       --  ORB Initialization.
       CORBA.ORB.Initialize ("ORB");
 
-      Initiate_Server (True);
       --  Run the ORB instance in a separated task.
+      Initiate_Server (True);
 
       PolyORB.Report.Output ("ORB initialized", True);
    end Test_Init;
@@ -203,9 +203,10 @@ procedure Test000 is
    begin
       PolyORB.Report.New_Test ("RootPOA");
 
-      --  Get a reference on the RootPOA.
-      --  XXX should use Get_Initial_References !
-      Root_POA := Get_Root_POA;
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
       PolyORB.Report.Output ("Get Root_POA reference", True);
 
       Attach_Servant (Root_POA, Obj_Ref);
@@ -227,7 +228,10 @@ procedure Test000 is
         := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
                                        (PortableServer.ORB_CTRL_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref := Get_Root_POA;
+      Root_POA : constant PortableServer.POA.Ref :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA : PortableServer.POA.Ref;
 
@@ -324,7 +328,10 @@ procedure Test000 is
         := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
                                        (PortableServer.SINGLE_THREAD_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref := Get_Root_POA;
+      Root_POA : constant PortableServer.POA.Ref :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA : PortableServer.POA.Ref;
       Obj_Ref, Obj_Ref2  : Echo.Ref;
@@ -394,7 +401,10 @@ procedure Test000 is
         := new CORBA.Policy.Ref'Class'(Create_Thread_Policy
                                        (PortableServer.MAIN_THREAD_MODEL));
 
-      Root_POA : constant PortableServer.POA.Ref := Get_Root_POA;
+      Root_POA : constant PortableServer.POA.Ref :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA : PortableServer.POA.Ref;
       Obj_Ref, Obj_Ref2 : Echo.Ref;
@@ -644,7 +654,10 @@ procedure Test000 is
       Request_Processing_Policy : CORBA.Policy.Ref_Access
         := new CORBA.Policy.Ref'Class'(Create_Request_Processing_Policy (Rp));
 
-      Root_POA : constant PortableServer.POA.Ref := Get_Root_POA;
+      Root_POA : constant PortableServer.POA.Ref :=
+        PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       Child_POA : PortableServer.POA.Ref;
    begin

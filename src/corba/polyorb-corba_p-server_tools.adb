@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.POA;
@@ -43,8 +44,8 @@ with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Tasking.Threads;
 
-with PolyORB.POA_Config.Minimum;
---  The configuration for the root POA.
+with PolyORB.POA_Config.Root_POA;
+--  The configuration for the RootPOA.
 
 with PolyORB.Setup.Proxies_POA;
 --  XXX should be depended upon only when proxies are desired.
@@ -56,11 +57,9 @@ with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
 with CORBA.Object;
-pragma Warnings (Off, CORBA.Object);
+--  pragma Warnings (Off, CORBA.Object);
 
 with CORBA.ORB;
-
-with PolyORB.Log;
 
 with PortableServer.POA;
 pragma Elaborate_All (PortableServer.POA);
@@ -77,36 +76,44 @@ package body PolyORB.CORBA_P.Server_Tools is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Root_POA : PortableServer.POA.Ref;
-   Root_POA_Object : POA.Obj_Adapter_Access;
-
    procedure Initiate_RootPOA;
 
    ----------------------
    -- Initiate_RootPOA --
    ----------------------
 
+   Root_POA        : PortableServer.POA.Ref;
+   Root_POA_Object : PolyORB.POA.Obj_Adapter_Access;
+
    procedure Initiate_RootPOA is
    begin
       pragma Assert (Root_POA_Object = null);
-      pragma Debug (O ("Initializing default POA configuration..."));
-      POA_Config.Set_Configuration
-        (new POA_Config.Minimum.Minimum_Configuration);
+      pragma Debug (O ("Initializing Root POA configuration..."));
+      PolyORB.POA_Config.Set_Configuration
+        (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
 
-      pragma Debug (O ("Initializing root POA..."));
-      Root_POA_Object := new POA.Basic_POA.Basic_Obj_Adapter;
-      POA.Create (Root_POA_Object);
+      pragma Debug (O ("Initializing Root POA..."));
+      Root_POA_Object := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
+      PolyORB.POA.Create (Root_POA_Object);
 
       --  Link object adapter with ORB.
-      ORB.Set_Object_Adapter
-        (Setup.The_ORB,
+
+      PolyORB.ORB.Set_Object_Adapter
+        (PolyORB.Setup.The_ORB,
          PolyORB.Obj_Adapters.Obj_Adapter_Access (Root_POA_Object));
 
       PortableServer.POA.Set
         (Root_POA, Smart_Pointers.Entity_Ptr (Root_POA_Object));
 
-      Setup.Proxies_POA (Root_POA_Object);
+      PolyORB.Setup.Proxies_POA (Root_POA_Object);
 
+      --  Register initial reference for "RootPOA".
+
+      pragma Debug (O ("Registering Root POA initial reference."));
+
+      CORBA.ORB.Register_Initial_Reference
+        (CORBA.ORB.To_CORBA_String ("RootPOA"),
+         CORBA.Object.Ref (Root_POA));
    end Initiate_RootPOA;
 
    ------------------
@@ -120,7 +127,9 @@ package body PolyORB.CORBA_P.Server_Tools is
          Initiate_RootPOA;
       end if;
 
-      return Root_POA;
+      return PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
    end Get_Root_POA;
 
    ---------------------

@@ -54,7 +54,6 @@ with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
-with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
@@ -77,9 +76,6 @@ package body CORBA.ORB is
       IOR        : String);
    --  Register an initial reference from an IOR given
    --  through the configuration subsystem.
-
-   Initialized : Boolean := False;
-   --  True iff the CORBA personality has been initialized.
 
    ---------------------
    -- Create_Alias_TC --
@@ -455,38 +451,20 @@ package body CORBA.ORB is
 
    procedure Initialize;
 
-   procedure Initialize is
-      RootPOA : CORBA.Object.Ref;
+   procedure Initialize
+   is
+      Naming_IOR : constant Standard.String
+        := PolyORB.Configuration.Get_Conf
+        (Section => "corba", Key => "naming_ior", Default => "");
    begin
-      if Initialized then
-         return;
-      end if;
-
-      --  Register initial reference for "RootPOA".
-
-      --  XXX FIX ME, requires to solve a chicken and egg problem
-
-      CORBA.Object.Set
-        (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
-           (Object_Adapter (The_ORB)));
-      Register_Initial_Reference
-        (To_CORBA_String ("RootPOA"), RootPOA);
 
       --  Register initial reference for "NamingService".
+      if Naming_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("NamingService"),
+            To_CORBA_String (Naming_IOR));
+      end if;
 
-      declare
-         Naming_IOR : constant Standard.String
-           := PolyORB.Configuration.Get_Conf
-           (Section => "corba", Key => "naming_ior", Default => "");
-      begin
-         if Naming_IOR /= "" then
-            Register_Initial_Reference
-              (To_CORBA_String ("NamingService"),
-               To_CORBA_String (Naming_IOR));
-         end if;
-      end;
-
-      Initialized := True;
    end Initialize;
 
    use PolyORB.Initialization;
