@@ -1678,12 +1678,13 @@ trap 'rm -fr `echo "Makefile
            Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
+           Examples/Bank/Makefile
            Examples/Eratho/Makefile
            Examples/Eratho/absolute/Makefile
            Examples/Eratho/cycle/Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
-           Examples/Bank/Makefile
+           Examples/Messages/Makefile
            Examples/LightBank/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -1810,12 +1811,13 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
+           Examples/Bank/Makefile
            Examples/Eratho/Makefile
            Examples/Eratho/absolute/Makefile
            Examples/Eratho/cycle/Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
-           Examples/Bank/Makefile
+           Examples/Messages/Makefile
            Examples/LightBank/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

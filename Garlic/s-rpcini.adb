@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.RPC.Pool;
+with System.RPC.Stream_IO;
 
 package body System.RPC.Initialization is
 
@@ -44,6 +45,7 @@ package body System.RPC.Initialization is
    procedure Initialize is
    begin
       Pool.Initialize;
+      Stream_IO.Initialize;
    end Initialize;
 
 end System.RPC.Initialization;

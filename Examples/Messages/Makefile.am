@@ -14,11 +14,11 @@ CFGFILE = pingpong.cfg
 CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
 DISTCLEANFILES = $(CLEANFILES)
 
-all-local: ../../check-stamp ${EXTRA_PROGS}
+all-local: ../check-stamp ${EXTRA_PROGS}
 
-../../check-stamp:
-	IN_MAKE=yes ${SHELL} ../../check-config
-	echo "It worked on `date`" > ../../check-stamp
+../check-stamp:
+	IN_MAKE=yes ${SHELL} ../check-config
+	echo "It worked on `date`" > ../check-stamp
 
 $(EXTRA_PROGS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)

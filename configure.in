@@ -235,10 +235,11 @@ AC_OUTPUT([Makefile
            Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
+           Examples/Bank/Makefile
            Examples/Eratho/Makefile
            Examples/Eratho/absolute/Makefile
            Examples/Eratho/cycle/Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
-           Examples/Bank/Makefile
+           Examples/Messages/Makefile
            Examples/LightBank/Makefile])

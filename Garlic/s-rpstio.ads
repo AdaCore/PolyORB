@@ -23,6 +23,9 @@ package System.RPC.Stream_IO is
       Deferred : in Boolean := False);
    --  Defer or not write operations.
 
+   procedure Initialize;
+   --  Initialize this module.
+
 private
 
    type Partition_Stream_Type

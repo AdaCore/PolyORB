@@ -1,3 +1,7 @@
+Wed May  7 18:17:54 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Added Examples/Messages/Makefile in target list.
+
 Sun May  4 22:16:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Do not check for ssh anymore since it is never
@@ -25,6 +29,11 @@ Mon Apr 22 10:34:24 1997  Laurent Pautet <pautet@inf.enst.fr>
 
 	* NEWS: Reformat and fix typos.
 
+Tue Apr 22 10:01:27 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Fixed bug reported by Cyrille Comar.
+
+Thu Apr 10 15:13:10 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: New file.
 
@@ -101,7 +110,7 @@ Wed Feb 12 10:49:41 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 	* README (Introduction): Typo.
 
 Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
-Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
+
 	* README (Introduction): Change references to mailing lists.
 	  Suppress last 2 paragraphs.
 
@@ -127,11 +136,11 @@ Thu Dec 19 14:36:31 1996  Samuel Tardieu  <sam@inf.enst.fr>
 	  error on Linux instead of producing bad assembly code.
 
 Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
-Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
+
 	* INSTALL: Fix minor typos.
 
 Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
-Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
+
 	* INSTALL: Rewrite completely and move all non obvious stuff
 	  in Doc/install_guide.txt.
 

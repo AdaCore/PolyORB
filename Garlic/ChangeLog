@@ -1,3 +1,12 @@
+Wed May  7 18:04:11 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpstio.ads: New procedure Initialize.
+
+	* s-rpstio.adb: New procedure Initialize to avoid doing suspect
+	things at elaboration time. Removed the Elaborate_All clauses.
+
+	* s-rpcini.adb: Added call to Initialize procedure of Stream_IO.
+
 Wed May  7 15:00:33 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-rpstio.adb, s-rpstio.ads, Makefile.am, Makefile.in, Makefile:

@@ -3,10 +3,6 @@ with System.RPC;           use System.RPC;
 with System.Garlic.Heart;  use System.Garlic.Heart;
 with System.Garlic.Utils;  use System.Garlic.Utils;
 
-pragma Elaborate_All (System.Garlic.Heart);
-pragma Elaborate_All (System.Garlic.Utils);
-pragma Elaborate_All (System.RPC);
-
 package body System.RPC.Stream_IO is
 
    type Partition_Stream_Record is
@@ -47,6 +43,15 @@ package body System.RPC.Stream_IO is
          Streams_Semaphore.Unlock;
       end if;
    end Check_Availability;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Receive (Msgcode, Public_Receiver'Access);
+   end Initialize;
 
    ---------------------
    -- Public_Receiver --
@@ -138,6 +143,4 @@ package body System.RPC.Stream_IO is
 
    end Set_Mode;
 
-begin
-   Receive (Msgcode, Public_Receiver'Access);
 end System.RPC.Stream_IO;
