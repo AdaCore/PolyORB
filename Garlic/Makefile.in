@@ -123,7 +123,6 @@ s-gaosli.o\
 s-garcon.o\
 s-gardeb.o\
 s-garfil.o\
-s-gafino.o\
 s-garhea.o\
 s-garlic.o\
 s-garopt.o\
@@ -157,7 +156,6 @@ ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
         ./s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garfil.ads ${srcdir}/s-garfil.adb \
-${srcdir}/s-gafino.ads ${srcdir}/s-gafino.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
 ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
@@ -410,16 +408,16 @@ s-garsta.o: s-garlic.ads s-gardeb.ads s-garela.ads s-garfil.ads s-garhea.ads s-g
 s-garstr.o: s-garlic.ads s-gardeb.ads s-gastha.ads s-gastha.adb s-garstr.ads s-garstr.adb s-garuti.ads s-rpc.ads
 s-gartab.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-gartab.ads s-gartab.adb s-garuti.ads
 s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-gartcp.adb s-gtplsp.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads s-rpc.ads
-s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-garter.adb s-gartyp.ads s-garuti.ads s-rpc.ads
+s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-garter.adb s-gartyp.ads s-rpc.ads
 s-garthi.o: s-garlic.ads s-garthi.ads
 s-gartra.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gartra.ads s-gartra.adb s-gartyp.ads s-rpc.ads
-s-gartyp.o: s-garlic.ads s-gartyp.ads
+s-gartyp.o: s-garlic.ads s-gartyp.ads s-gartyp.adb
 s-garuni.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-garsta.ads s-gartab.ads s-gartab.adb s-garter.ads s-gartyp.ads s-garuni.ads s-garuni.adb s-garuti.ads s-rpc.ads
 s-garuti.o: s-garlic.ads s-gaosli.ads s-garuti.ads s-garuti.adb s-rpc.ads
 s-gtplsp.o: s-garlic.ads s-garpro.ads s-gartcp.ads s-gtplsp.ads s-garthi.ads s-rpc.ads
 s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-garsta.ads s-gartab.ads s-garter.ads s-gartyp.ads s-garuni.ads s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads
-s-rpc.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-garter.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpc.adb s-rpcpoo.ads s-rpcuti.ads
-s-rpcini.o: s-rpc.ads s-rpcini.ads s-rpcini.adb s-rpcpoo.ads s-rpstio.ads s-rpcuti.ads
+s-rpc.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpc.adb s-rpcpoo.ads s-rpcuti.ads
+s-rpcini.o: s-rpc.ads s-rpcini.ads s-rpcini.adb s-rpcpoo.ads s-rpstio.ads
 s-rpcpoo.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-gartyp.ads s-rpc.ads s-rpcpoo.ads s-rpcpoo.adb s-rpcuti.ads
 s-rpcuti.o: s-rpc.ads s-rpcuti.ads s-rpcuti.adb
 s-rpstio.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpstio.ads s-rpstio.adb

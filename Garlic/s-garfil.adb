@@ -597,25 +597,12 @@ package body System.Garlic.Filters is
 
       if Register.Filter /= null then
 
-         --  The call to Filter_Outgoing makes GNAT crash. For this reason,
-         --  it is replaced by a block that aborts the current program if
-         --  we go through this piece of code ???
-         --  When uncommenting this code and removing the hack, remove the
-         --  "with" of Interfaces.C in this file ???
-
          Params := Filter_Outgoing
            (Register.Filter.all,
             Register.Outgoing.Local,
             Stream'Access);
          Write (Stream, Params.all);
          Free (Params);
-
---          declare
---             procedure C_Exit (Code : Interfaces.C.int);
---             pragma Import (C, C_Exit, "exit");
---          begin
---             C_Exit (1);
---          end;
 
       end if;
 
