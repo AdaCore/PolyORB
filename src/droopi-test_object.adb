@@ -3,7 +3,6 @@
 --  $Id$
 
 with Ada.Exceptions;
--- with Ada.Calendar;
 
 with Droopi.Any;
 with Droopi.Any.NVList;
@@ -41,9 +40,10 @@ package body Droopi.Test_Object is
       T : Types.Long)
      return Types.String is
    begin
-      pragma Debug (L.Output ("waitAndEchoString is being executed with arguments "
-                              & To_Standard_String (S)
-                              & Integer'Image (Integer (T))));
+      pragma Debug
+        (L.Output ("waitAndEchoString is being executed with arguments "
+                   & To_Standard_String (S)
+                   & Integer'Image (Integer (T))));
 
       delay (Duration (T));
       return S;
@@ -99,7 +99,9 @@ package body Droopi.Test_Object is
                     (echoString (Obj.all, echoString_Arg));
                   pragma Debug (O ("Result: " & Image (Req.Result)));
                end;
-            elsif Req.all.Operation = To_Droopi_String ("waitAndEchoString") then
+            elsif
+              Req.all.Operation = To_Droopi_String ("waitAndEchoString")
+            then
                declare
                   waitAndEchoString_Arg1 : Types.String :=
                     From_Any (NV_Sequence.Element_Of
@@ -171,6 +173,13 @@ package body Droopi.Test_Object is
          Add_Item (Result, (Name => To_Droopi_String ("I"),
                             Argument => Get_Empty_Any (TypeCode.TC_Long),
                             Arg_Modes => ARG_IN));
+      elsif Method = "waitAndEchoString" then
+         Add_Item (Result, (Name => To_Droopi_String ("S"),
+                            Argument => Get_Empty_Any (TypeCode.TC_String),
+                            Arg_Modes => ARG_IN));
+         Add_Item (Result, (Name => To_Droopi_String ("I"),
+                            Argument => Get_Empty_Any (TypeCode.TC_Long),
+                            Arg_Modes => ARG_IN));
       else
          raise Program_Error;
       end if;
@@ -189,6 +198,8 @@ package body Droopi.Test_Object is
          return Get_Empty_Any (TypeCode.TC_String);
       elsif Method = "echoInteger" then
          return Get_Empty_Any (TypeCode.TC_Long);
+      elsif Method = "waitAndEchoString" then
+         return Get_Empty_Any (TypeCode.TC_String);
       else
          raise Program_Error;
       end if;
