@@ -35,6 +35,7 @@
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
+with System.Garlic.Debug;
 with System.Garlic.Storage_Handling;
 pragma Elaborate_All (System.Garlic.Storage_Handling);
 with System.RPC;
@@ -53,6 +54,13 @@ package System.Garlic.Streams is
    procedure Free is
       new Ada.Unchecked_Deallocation (Ada.Streams.Stream_Element_Array,
                                       Stream_Element_Access);
+
+   procedure Dump
+     (Level  : in System.Garlic.Debug.Debug_Level;
+      Stream : in Ada.Streams.Stream_Element_Array;
+      Key    : in System.Garlic.Debug.Debug_Key);
+   --  Same as Print_Debug_info except that this procedure prints
+   --  Stream content.
 
    function To_Stream_Element_Array
      (Params : access System.RPC.Params_Stream_Type;

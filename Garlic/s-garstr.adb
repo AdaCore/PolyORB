@@ -33,9 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;         use Ada.Streams;
+with System.Garlic.Debug; use System.Garlic.Debug;
+with System.RPC;          use System.RPC;
+
 package body System.Garlic.Streams is
 
-   use Ada.Streams, System.RPC;
+   Hex : constant String (1 .. 16) := "0123456789ABCDEF";
+   Nil : constant String (1 .. 48) := (others => ' ');
 
    Node_Size : constant Stream_Element_Count := 4096;
 
@@ -50,6 +55,38 @@ package body System.Garlic.Streams is
 
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
+
+   ----------
+   -- Dump --
+   ----------
+
+   procedure Dump
+     (Level  : in System.Garlic.Debug.Debug_Level;
+      Stream : in Ada.Streams.Stream_Element_Array;
+      Key    : in System.Garlic.Debug.Debug_Key) is
+      Index   : Natural := 1;
+      Output  : String (1 .. 48);
+
+   begin
+      if Debug_Mode (Level, Key) then
+         for I in Stream'Range loop
+            Output (Index)     := ' ';
+            Output (Index + 1) := Hex (Natural (Stream (I) / 16) + 1);
+            Output (Index + 2) := Hex (Natural (Stream (I) mod 16) + 1);
+            Index := Index + 3;
+
+            if Index > Output'Length then
+               Print_Debug_Info (Level, Output, Key);
+               Index := 1;
+               Output := Nil;
+            end if;
+         end loop;
+
+         if Index /= 1 then
+            Print_Debug_Info (Level, Output (1 .. Index - 1), Key);
+         end if;
+      end if;
+   end Dump;
 
    ---------------------------
    -- To_Params_Stream_Type --
