@@ -1,7 +1,7 @@
 with CORBA;
 with CORBA.ORB;
 with CORBA.Object;
-with Broca.Poa;
+with Broca.POA;
 with Broca.Buffers;
 pragma Elaborate_All (CORBA);
 
@@ -23,14 +23,14 @@ package Broca.ORB is
    procedure Run (ORB : in out Orb_Type) is abstract;
    --  A state of a poa has changed.
    procedure Poa_State_Changed
-     (ORB : in out Orb_Type; Poa : Broca.Poa.POA_Object_Access) is
+     (ORB : in out Orb_Type; POA : Broca.POA.POA_Object_Access) is
       abstract;
 
    type Orb_Access is access all Orb_Type'Class;
 
    procedure Register_Orb (ORB : Orb_Access);
    procedure Run;
-   procedure Poa_State_Changed (Poa : Broca.Poa.POA_Object_Access);
+   procedure Poa_State_Changed (POA : Broca.POA.POA_Object_Access);
 
    --  Well known ObjectIds.
    Root_Poa_Objectid : constant CORBA.ORB.ObjectId;

@@ -51,7 +51,7 @@ package body Broca.Sequences is
       Unmarshall (Buffer, CORBA.Unsigned_Long (Length));
       declare
          subtype Sub_Element_Array is S.Element_Array (1 .. Natural (Length));
-           subtype Sub_Buffer_Type is Buffer_Type (0 .. Length - 1);
+         subtype Sub_Buffer_Type is Buffer_Type (0 .. Length - 1);
          function Buffer_Type_To_Element_Array is
            new Ada.Unchecked_Conversion (Sub_Buffer_Type, Sub_Element_Array);
          Bytes : Sub_Buffer_Type;

@@ -184,7 +184,7 @@ package body Broca.IIOP is
       use Interfaces.C;
       Length : Buffer_Index_Type := Size (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.Int;
+      Result : Interfaces.C.int;
    begin
       Read (Buffer, Bytes);
       pragma Debug (O ("Dump outgoing buffer of length" & Length'Img));
@@ -192,8 +192,8 @@ package body Broca.IIOP is
       Result := C_Send
         (Connection.Strand.Fd,
          Bytes'Address,
-         Interfaces.C.Int (Length), 0);
-      if Result /= Interfaces.C.Int (Length) then
+         Interfaces.C.int (Length), 0);
+      if Result /= Interfaces.C.int (Length) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
       pragma Debug (O ("Message correctly sent"));
@@ -211,14 +211,14 @@ package body Broca.IIOP is
       use Interfaces.C;
       Length : Buffer_Index_Type := Size_Left (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.Int;
+      Result : Interfaces.C.int;
    begin
       Result := C_Recv
         (Connection.Strand.Fd,
          Bytes'Address,
-         Interfaces.C.Int (Length), 0);
+         Interfaces.C.int (Length), 0);
 
-      if Result /=  Interfaces.C.Int (Length) then
+      if Result /=  Interfaces.C.int (Length) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
       Write (Buffer, Bytes);

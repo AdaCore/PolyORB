@@ -1,6 +1,6 @@
 with CORBA;
 with Broca.Buffers; use Broca.Buffers;
-with Broca.Poa;
+with Broca.POA;
 with Broca.Stream;
 
 package Broca.Server is
@@ -19,8 +19,9 @@ package Broca.Server is
    --  it must put a message.
    --  BUFFER can already have been allocated, as a result it can be reused,
    --  or freed and replaced.
-   procedure Perform_Work (Server : access Server_Type;
-                           Buffer : in out Broca.Buffers.Buffer_Descriptor)
+   procedure Perform_Work
+     (Server : access Server_Type;
+      Buffer : in out Broca.Buffers.Buffer_Descriptor)
       is abstract;
 
    --  During the building of an IOR, this procedure is called to know the
@@ -28,18 +29,21 @@ package Broca.Server is
    --  Length can be null, if the server can't create a profile.
    --  Need only to update IOR.POS.
    --  OBJECT_KEY must be 4-aligned
-   procedure Marshall_Size_Profile (Server : access Server_Type;
-                                    IOR : in out Broca.Buffers.Buffer_Descriptor;
-                                    Object_Key : Broca.Buffers.Buffer_Descriptor)
+   procedure Marshall_Size_Profile
+     (Server : access Server_Type;
+      IOR : in out Broca.Buffers.Buffer_Descriptor;
+      Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
+
    --  During the building of an IOR, the procedure is called to marshall a
    --  profile.  The length of the profile (ie, the number added to IOR.POS)
    --  must be the same as that of MARSHALL_SIZE_PROFILE.
    --  In particular, it must be zero for no profile.
    --  OBJECT_KEY must be 4-aligned
-   procedure Marshall_Profile (Server : access Server_Type;
-                               IOR : in out Broca.Buffers.Buffer_Descriptor;
-                               Object_Key : Broca.Buffers.Buffer_Descriptor)
+   procedure Marshall_Profile
+     (Server : access Server_Type;
+      IOR : in out Broca.Buffers.Buffer_Descriptor;
+      Object_Key : Broca.Buffers.Buffer_Descriptor)
       is abstract;
 
    type Server_Acc is access all Server_Type'Class;
@@ -54,7 +58,7 @@ package Broca.Server is
 
    --  This procedure is called by a POA to request a server task to perform
    --  arbitrary work, such as cleaning the POA up.
-   procedure Request_Cleanup (Poa : Broca.Poa.POA_Object_Access);
+   procedure Request_Cleanup (POA : Broca.POA.POA_Object_Access);
 
    --  When a server has a request that can be processed, it must inform
    --  with this procedure.
@@ -68,18 +72,18 @@ package Broca.Server is
 
    --  Register a POA.
    --  broca.poa.all_poas_lock should have been lock_w.
-   procedure Register_POA (Poa : Broca.Poa.POA_Object_Access);
+   procedure Register_POA (POA : Broca.POA.POA_Object_Access);
 
    --  Unregister a POA.
    --  broca.poa.all_poas_lock should have been lock_w.
-   procedure Unregister_POA (Poa : Broca.Poa.POA_Object_Access);
+   procedure Unregister_POA (POA : Broca.POA.POA_Object_Access);
 
    --  This procedure builds an IOR.
    --  It can return a null_string if there is no profiles for this object.
    --  KEY is only the key for the POA, not the full object key.
    procedure Build_Ior (Target : out Broca.Buffers.Buffer_Descriptor;
                         Type_Id : CORBA.RepositoryId;
-                        Poa : Broca.Poa.POA_Object_Access;
+                        POA : Broca.POA.POA_Object_Access;
                         Key : Broca.Buffers.Buffer_Descriptor);
 private
    type Server_Id_Type is new Natural;

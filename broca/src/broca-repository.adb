@@ -14,23 +14,28 @@ package body Broca.Repository is
    procedure Register (Class : Object_Class_Acc) is
    begin
       pragma Debug (O ("Register : enter"));
-      pragma Debug (O ("Create_Ref : Repository_Id = " &
-                       CORBA.To_Standard_String(CORBA.String(Class.all.Type_Id))));
+      pragma Debug
+        (O ("Create_Ref : Repository_Id = " &
+            CORBA.To_Standard_String (CORBA.String (Class.all.Type_Id))));
       --  Simply add it to the list.
       Class.Next := Classes;
       Classes := Class;
    end Register;
 
-   --  Create an object from a type_id
-   function Create_Ref (Type_Id : CORBA.RepositoryId)
-                        return CORBA.Object.Ref'Class
+   ----------------
+   -- Create_Ref --
+   ----------------
+
+   function Create_Ref
+     (Type_Id : CORBA.RepositoryId)
+     return CORBA.Object.Ref'Class
    is
       El : Object_Class_Acc;
       Res : CORBA.Object.Ref;
    begin
       pragma Debug (O ("Create_Ref : enter"));
       pragma Debug (O ("Create_Ref : Repository_Id = " &
-                       CORBA.To_Standard_String(CORBA.String(Type_Id))));
+                       CORBA.To_Standard_String (CORBA.String (Type_Id))));
       El := Classes;
       while El /= null loop
          if El.Type_Id = Type_Id then

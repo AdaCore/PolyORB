@@ -36,7 +36,7 @@ package body Broca.Stream is
       use Interfaces.C;
       Length : Buffer_Index_Type := Size (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.Int;
+      Result : Interfaces.C.int;
    begin
       Stream.Lock_S.Check_Owner;
       Read (Buffer, Bytes);
@@ -45,8 +45,8 @@ package body Broca.Stream is
       Result := C_Send
         (Stream.Fd,
          Bytes'Address,
-         Interfaces.C.Int (Length), 0);
-      if Result /= Interfaces.C.Int (Length) then
+         Interfaces.C.int (Length), 0);
+      if Result /= Interfaces.C.int (Length) then
          raise Connection_Closed;
       end if;
    end Send;
@@ -59,15 +59,15 @@ package body Broca.Stream is
       use Interfaces.C;
       Length : Buffer_Index_Type := Size_Left (Buffer);
       Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.Int;
+      Result : Interfaces.C.int;
    begin
       Stream.Lock_R.Check_Owner;
       Result := C_Recv
         (Stream.Fd,
          Bytes'Address,
-         Interfaces.C.Int (Length), 0);
+         Interfaces.C.int (Length), 0);
 
-      if Result /=  Interfaces.C.Int (Length) then
+      if Result /=  Interfaces.C.int (Length) then
          raise Connection_Closed;
       end if;
       Write (Buffer, Bytes);

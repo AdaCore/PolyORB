@@ -1,7 +1,7 @@
 with PortableServer.ServantManager;
 with PortableServer.POA;
 with PortableServer.ServantLocator.Impl;
-with Broca.Poa;
+with Broca.POA;
 
 package body PortableServer.ServantLocator is
 
@@ -15,7 +15,7 @@ package body PortableServer.ServantLocator is
    begin
       PortableServer.ServantLocator.Impl.Preinvoke
         (Impl.Object'Class
-         (Broca.Poa.To_Internal_Skeleton (Self).P_Servant.all),
+         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
          Oid, Adapter, Operation, The_Cookie, Returns);
    end Preinvoke;
 
@@ -29,7 +29,7 @@ package body PortableServer.ServantLocator is
    begin
       PortableServer.ServantLocator.Impl.Postinvoke
         (Impl.Object'Class
-         (Broca.Poa.To_Internal_Skeleton (Self).P_Servant.all),
+         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
          Oid, Adapter, Operation, The_Cookie, The_Servant);
    end Postinvoke;
 end PortableServer.ServantLocator;

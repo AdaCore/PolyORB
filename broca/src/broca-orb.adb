@@ -129,9 +129,9 @@ package body Broca.ORB is
       end if;
    end Run;
 
-   procedure Poa_State_Changed (Poa : Broca.Poa.POA_Object_Access) is
+   procedure Poa_State_Changed (POA : Broca.POA.POA_Object_Access) is
    begin
-      Poa_State_Changed (The_Orb.all, Poa);
+      Poa_State_Changed (The_Orb.all, POA);
    end Poa_State_Changed;
 end Broca.ORB;
 

@@ -1,6 +1,5 @@
 with Ada.Exceptions;
 with CORBA.Object;
-with Broca.Refs;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;

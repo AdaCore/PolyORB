@@ -1,5 +1,5 @@
 with Broca.Refs;
-with Broca.Poa;
+with Broca.POA;
 with PortableServer.AdapterActivator;
 
 package body PortableServer.AdapterActivator.Impl is
@@ -9,7 +9,7 @@ package body PortableServer.AdapterActivator.Impl is
    begin
       Set (Res,
            Broca.Refs.Ref_Ptr
-           (Broca.Poa.Create_Internal_Skeleton (Servant (Self))));
+           (Broca.POA.Create_Internal_Skeleton (Servant (Self))));
       return Res;
    end To_Ref;
 end PortableServer.AdapterActivator.Impl;

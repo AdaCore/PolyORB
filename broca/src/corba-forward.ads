@@ -1,4 +1,3 @@
-with Broca.Refs;
 with CORBA.Object;
 
 generic

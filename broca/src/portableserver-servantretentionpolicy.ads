@@ -1,3 +1,4 @@
+with CORBA.Policy;
 
 package PortableServer.ServantRetentionPolicy is
 

@@ -1,7 +1,7 @@
 with CORBA;
 with PortableServer.ServantManager;
 with PortableServer.POA;
-with Broca.Poa;
+with Broca.POA;
 with PortableServer.ServantActivator.Impl;
 
 package body PortableServer.ServantActivator is
@@ -15,7 +15,7 @@ package body PortableServer.ServantActivator is
    begin
       PortableServer.ServantActivator.Impl.Incarnate
         (Impl.Object'Class
-         (Broca.Poa.To_Internal_Skeleton (Self).P_Servant.all),
+         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
          Oid, Adapter, Res);
       return Res;
    end Incarnate;
@@ -30,7 +30,7 @@ package body PortableServer.ServantActivator is
    begin
       PortableServer.ServantActivator.Impl.Etherealize
         (Impl.Object'Class
-         (Broca.Poa.To_Internal_Skeleton (Self).P_Servant.all),
+         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
          Oid, Adapter, Serv, Cleanup_In_Progress, Remaining_Activations);
    end Etherealize;
 end PortableServer.ServantActivator;

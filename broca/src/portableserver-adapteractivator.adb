@@ -1,5 +1,5 @@
 with PortableServer.AdapterActivator.Impl;
-with Broca.Poa;
+with Broca.POA;
 
 package body PortableServer.AdapterActivator is
    function Unknown_Adapter
@@ -12,7 +12,7 @@ package body PortableServer.AdapterActivator is
    begin
       Impl.Unknown_Adapter
         (Impl.Object'Class
-         (Broca.Poa.To_Internal_Skeleton (Self).P_Servant.all),
+         (Broca.POA.To_Internal_Skeleton (Self).P_Servant.all),
          Parent, Name, Res);
       return Res;
    end Unknown_Adapter;

@@ -92,11 +92,11 @@ package body Broca.GIOP is
       Message_Type : in MsgType)
    is
       use Broca.Marshalling;
-      Message_Size : CORBA.Unsigned_Long;
+      Message_Size : Buffer_Index_Type;
    begin
       Allocate_Buffer (Buffer);
 
-      Message_Size := CORBA.Unsigned_Long (Size (Buffer) - Message_Header_Size);
+      Message_Size := Size (Buffer) - Message_Header_Size;
       --  1.2.1 The message header.
       --  Magic + Version
       Write (Buffer, Magic);
@@ -108,7 +108,7 @@ package body Broca.GIOP is
       Marshall (Buffer, Message_Type);
 
       --  Message size
-      Marshall (Buffer, Message_Size);
+      Marshall (Buffer, CORBA.Unsigned_Long (Message_Size));
    end Marshall_GIOP_Header;
 
    ----------------------------
@@ -260,7 +260,7 @@ package body Broca.GIOP is
 
       Compute_GIOP_Header_Size (Handler.Buffer);
 
-      -- Service context
+      --  Service context
       Compute_New_Size (Handler.Buffer, UL_Size, UL_Size);
 
       --  Request id

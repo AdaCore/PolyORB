@@ -35,6 +35,9 @@ package body Broca.Inet_Server is
    function Htons (Val : Natural) return Interfaces.C.unsigned_short;
    function Ntohs (Val : Interfaces.C.unsigned_short) return Natural;
 
+   procedure Signal_Poll_Set_Change;
+   procedure Accept_Poll_Set_Change;
+
    procedure Initialize;
 
    --  Calling this function will cause the BOA to start accepting requests
@@ -142,7 +145,8 @@ package body Broca.Inet_Server is
       end if;
    end Signal_Poll_Set_Change;
 
-   procedure Accept_Poll_Set_Change is
+   procedure Accept_Poll_Set_Change
+   is
       C : aliased Character;
    begin
       pragma Debug (O ("Accepting poll set change."));
@@ -160,6 +164,7 @@ package body Broca.Inet_Server is
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Sock_Name_Size : aliased Interfaces.C.int;
+      Result : Interfaces.C.int;
    begin
       --  Create the socket.
       Sock := C_Socket (Af_Inet, Sock_Stream, 0);
@@ -176,22 +181,23 @@ package body Broca.Inet_Server is
       Sock_Name.Sin_Family := Af_Inet;
       Sock_Name.Sin_Port := Htons (Broca.Flags.Port);
       Sock_Name.Sin_Addr := My_Addr;
-      if C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8) = Failure then
+      Result := C_Bind (Sock, Sock_Name'Address, Sock_Name'Size / 8);
+      if Result = Failure then
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
       --  Listen
-      if C_Listen (Sock, 8) = Failure then
+      Result := C_Listen (Sock, 8);
+      if Result = Failure then
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
       --  Retrieve the port.
       Sock_Name_Size := Sock_Name'Size / 8;
-      if C_Getsockname (Sock, Sock_Name'Address, Sock_Name_Size'Access)
-        = Failure
-      then
+      Result := C_Getsockname (Sock, Sock_Name'Address, Sock_Name_Size'Access);
+      if Result = Failure then
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
@@ -219,7 +225,8 @@ package body Broca.Inet_Server is
       end;
 
       --  Create signalling socket pair.
-      if C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address) = Failure then
+      Result := C_Socketpair (Af_Unix, Sock_Stream, 0, Signal_Fds'Address);
+      if Result = Failure then
          C_Close (Sock);
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
@@ -412,7 +419,7 @@ package body Broca.Inet_Server is
 
       Marshall (IOR, CORBA.Unsigned_Long (Size_Left (IOR) - UL_Size));
 
-      -- Endianess
+      --  Endianess
       Marshall (IOR, Is_Little_Endian);
 
       --  Version

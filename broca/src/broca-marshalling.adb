@@ -125,7 +125,7 @@ package body Broca.Marshalling is
       Compute_New_Size
         (Buffer,
          UL_Size,
-         Ul_Size + Buffer_Index_Type (CORBA.Length (Value)) + 1);
+         UL_Size + Buffer_Index_Type (CORBA.Length (Value)) + 1);
    end Compute_New_Size;
 
    procedure Compute_New_Size
@@ -188,7 +188,7 @@ package body Broca.Marshalling is
    is
       Bytes : Buffer_Type (0 .. 0);
    begin
-      Bytes (0):= CORBA.Boolean'Pos (Value);
+      Bytes (0) := CORBA.Boolean'Pos (Value);
       Write (Buffer, Bytes);
    end Marshall;
 

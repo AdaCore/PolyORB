@@ -8,7 +8,7 @@ with Broca.Buffers;
 with Broca.Locks;
 with Broca.Sequences;
 
-package Broca.Poa is
+package Broca.POA is
    type POA_Object;
    type POA_Object_Access is access all POA_Object'Class;
 
@@ -103,7 +103,7 @@ package Broca.Poa is
 
          P_Servant : PortableServer.Servant;
 
-         Poa : Broca.Poa.POA_Object_Access;
+         POA : Broca.POA.POA_Object_Access;
 
          --  ObjectId.
          Object_Id : PortableServer.ObjectId :=
@@ -136,9 +136,9 @@ package Broca.Poa is
    --  It is R-locked looking for the POA from an objectId.
    All_POAs_Lock : Broca.Locks.Rw_Lock_Type;
 
-   type Poa_Index_Type is new Natural;
-   Bad_Poa_Index : constant Poa_Index_Type := 0;
-   Root_Poa_Index : constant Poa_Index_Type := 1;
+   type POA_Index_Type is new Natural;
+   Bad_Poa_Index : constant POA_Index_Type := 0;
+   Root_POA_Index : constant POA_Index_Type := 1;
 
    type Poa_Object is abstract new Broca.Refs.Ref_Type with
       record
@@ -146,7 +146,7 @@ package Broca.Poa is
          Creation_Lock : Broca.Locks.Bcast_Lock_Type;
 
          --  This index is set by register_POA.
-         Index : Poa_Index_Type;
+         Index : POA_Index_Type;
 
          --  Internal data.
          POA_Manager : POAManager_Object_Access;
@@ -203,10 +203,10 @@ package Broca.Poa is
                            return ObjectId is abstract;
 
    function Servant_To_Skeleton (Self : access POA_Object; P_Servant : Servant)
-      return Broca.Poa.Skeleton_Access is abstract;
+      return Broca.POA.Skeleton_Access is abstract;
 
    function Skeleton_To_Servant
-     (Self : access POA_Object; Skeleton : Broca.Poa.Skeleton_Access)
+     (Self : access POA_Object; Skeleton : Broca.POA.Skeleton_Access)
      return Servant is abstract;
 
    function Id_To_Skeleton (Self : access POA_Object; Oid : ObjectId)
@@ -266,4 +266,4 @@ package Broca.Poa is
                           Wait_For_Completion : CORBA.Boolean) is abstract;
 
    procedure Cleanup (Self : access POA_Object) is abstract;
-end Broca.Poa;
+end Broca.POA;

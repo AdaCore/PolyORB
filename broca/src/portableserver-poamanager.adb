@@ -1,5 +1,5 @@
 with Broca.Exceptions;
-with Broca.Poa; use Broca.Poa;
+with Broca.POA; use Broca.POA;
 with Broca.Refs;
 
 package body PortableServer.POAManager is

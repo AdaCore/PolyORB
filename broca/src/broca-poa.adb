@@ -4,7 +4,7 @@ with Broca.Buffers; use Broca.Buffers;
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
-package body Broca.Poa is
+package body Broca.POA is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.poa");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -68,4 +68,4 @@ package body Broca.Poa is
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res));
       return Res;
    end Create_Internal_Skeleton;
-end Broca.Poa;
+end Broca.POA;

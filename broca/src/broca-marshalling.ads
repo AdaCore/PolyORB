@@ -14,7 +14,7 @@ package Broca.Marshalling is
    F_Size  : constant Buffer_Index_Type := 4;
    D_Size  : constant Buffer_Index_Type := 8;
 
-   -- Compute_Size, Marshall and Unmarshall predefined types.
+   --  Compute_Size, Marshall and Unmarshall predefined types.
 
    procedure Compute_New_Size
      (Buffer : in out Buffer_Descriptor;
