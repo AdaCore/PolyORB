@@ -335,18 +335,20 @@ package Droopi.Protocols.GIOP is
    procedure Store_Profile
     (Ses     : access GIOP_Session;
      Profile : Profile_Access);
+   --  XXX What does this procedure do?
+   --  Why does it need to be visible?
 
    -----------------------------
    ----  Store Request
    ----------------------------
-
 
    procedure Store_Request
      (Ses     :  access GIOP_Session;
       R       :  Requests.Request_Access;
       Profile :  Profile_Access;
       Pending :  out Pending_Request);
-
+   --  XXX What does this procedure do?
+   --  Why does it need to be visible?
 
    -------------------------------------------
    --  Session procedures

@@ -6,6 +6,25 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Move CORBA.POA to Droopi.<something>.
+
+* Make compliant PortableServer tree for CORBA personality.
+
+* Dynamic Task Pool threading policy.
+
+* Architecture and documentation:
+  Define a typical usage case for the interoperability
+  feature, demonstrating how DROOPI allows to do the same
+  as CIAO *and more* (ie the case must include a cross-model
+  callback).
+
+* Ada 95 DSA personality:
+  -> define targets and milestones (RCI support, partial RT
+     support (eg only constrained types), full RT support,
+     SP support)
+  -> define an interface with the compiler and with user code
+     (ie the interface of stub and skeleton objects).
+   
 * See whether Buffers.Set_Initial_Position can be made private
   or moved to unit body.
 
@@ -46,10 +65,6 @@ Items still requiring attention
 
 * Architecture documentation.
 
-* Profile type registration system (for References.IOR).
-  For a profile to be used when creating and parsing IORs,
-  its tag must be registered.
-
 Items processed
 ---------------
 
@@ -76,3 +91,7 @@ Items processed
 * An object adapter.
 
 * Use of the Ravenscar profile.
+
+* Profile type registration system (for References.IOR).
+  For a profile to be used when creating and parsing IORs,
+  its tag must be registered.
