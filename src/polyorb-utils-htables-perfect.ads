@@ -40,8 +40,8 @@
 --  - O (1) worst-case time for lookups and deletions,
 --  - O (1) amortized expected time for insertions.
 
---  Note: A major hypothesis made by this algorithm is that the Hash
---  function provided during instanciation is universal.
+--  Note: A major hypothesis made by this algorithm is that the class
+--  of hashing functions provided during instanciation is universal.
 
 --  $Id$
 
