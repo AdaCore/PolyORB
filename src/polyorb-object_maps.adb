@@ -106,8 +106,8 @@ package body PolyORB.Object_Maps is
    ---------------------
 
    function Is_Object_Id_In
-     (O_Map  : in Object_Map;
-      Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
+     (O_Map : in     Object_Map;
+      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
      return Boolean
    is
    begin
@@ -119,8 +119,8 @@ package body PolyORB.Object_Maps is
    ---------------
 
    function Get_By_Id
-     (O_Map  : in Object_Map;
-      Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
+     (O_Map : in     Object_Map;
+      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
@@ -180,7 +180,7 @@ package body PolyORB.Object_Maps is
 
    function Remove
      (O_Map : access Object_Map;
-      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid_Access)
+      Item  : access PolyORB.POA_Types.Unmarshalled_Oid)
      return Object_Map_Entry_Access
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);

@@ -30,11 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.Locks;
+with PolyORB.Object_Maps;
+with PolyORB.Types;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Assignment_Policy;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
-with PolyORB.POA_Policies.Request_Processing_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
@@ -78,104 +80,69 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       return "SERVANT_RETENTION_POLICY.RETAIN";
    end Policy_Id;
 
-   ---------------------
-   -- Activate_Object --
-   ---------------------
-
-   function Activate_Object
+   procedure Retain_Servant_Association
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access
+      P_Servant : Servant_Access;
+      Oid       : Object_Id_Access)
    is
+      use PolyORB.Locks;
+      use PolyORB.Object_Maps;
       use PolyORB.POA_Policies.Id_Assignment_Policy;
       use PolyORB.POA_Policies.Id_Uniqueness_Policy;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      P : constant Id_Assignment_Policy_Access
-        := POA.Id_Assignment_Policy;
+      UOid : aliased Unmarshalled_Oid := Oid_To_U_Oid (Oid);
+
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      if not Is_System (P.all) then
-         raise PolyORB.POA.Invalid_Policy;
-         --  XXX was Wrong_Policy, is that the same?
-      end if;
       Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
-      return Activate_Object (POA.Id_Assignment_Policy.all, OA, P_Servant);
-   end Activate_Object;
 
-   ---------------------
-   -- Activate_Object --
-   ---------------------
+      Lock_W (POA.Map_Lock);
+      if UOid.System_Generated then
+         Object_Maps.Get_By_Index
+           (POA.Active_Object_Map.all,
+            Integer'Value (Types.To_Standard_String (UOid.Id))).Servant
+           := P_Servant;
+      else
+         declare
+            The_Entry : Object_Map_Entry_Access
+              := Get_By_Id (POA.Active_Object_Map.all, UOid'Access);
+            Index : Integer;
+         begin
+            if The_Entry = null then
+               The_Entry := new Object_Map_Entry;
+               The_Entry.Oid := new Unmarshalled_Oid'(UOid);
+               Index := Add (POA.Active_Object_Map, The_Entry);
+            end if;
+            The_Entry.Servant := P_Servant;
+         end;
+      end if;
+      Unlock_W (POA.Map_Lock);
+   end Retain_Servant_Association;
 
-   procedure Activate_Object_With_Id
-     (Self      : Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access;
-      Oid       : Object_Id)
+   --------------------------------
+   -- Forget_Servant_Association --
+   --------------------------------
+
+   procedure Forget_Servant_Association
+     (Self  : Retain_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid)
    is
       use PolyORB.POA_Policies.Id_Assignment_Policy;
-      use PolyORB.POA_Policies.Id_Uniqueness_Policy;
-      use PolyORB.POA_Policies.Lifespan_Policy;
 
       POA       : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
 
-      Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      Free (Oid_A);
-      Ensure_Oid_Origin
-        (POA.Id_Assignment_Policy.all, U_Oid);
 
-      Ensure_Lifespan
-        (POA.Lifespan_Policy.all, OA, U_Oid);
-
-      Ensure_Oid_Uniqueness
-        (POA.Id_Assignment_Policy.all, OA, U_Oid);
-
-      Ensure_Servant_Uniqueness
-        (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
-
-      Activate_Object_With_Id
-        (POA.Id_Assignment_Policy.all, OA, P_Servant, Oid);
-   end Activate_Object_With_Id;
-
-   ----------------
-   -- Deactivate --
-   ----------------
-
-   procedure Deactivate
-     (Self      : Retain_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid       : Object_Id)
-   is
-      use PolyORB.POA_Policies.Id_Assignment_Policy;
-      use PolyORB.POA_Policies.Request_Processing_Policy;
-
-      POA       : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-
-      Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      U_Oid : Unmarshalled_Oid := Oid_To_U_Oid (Oid_A);
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Oid_A);
-      Etherealize_All
-        (POA.Request_Processing_Policy.all, OA, U_Oid);
-
-      --  In case a ServantManager is used
       Remove_Entry
         (POA.Id_Assignment_Policy.all, OA, U_Oid);
-   end Deactivate;
+   end Forget_Servant_Association;
 
    -------------------
    -- Servant_To_Id --

@@ -47,24 +47,14 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    function Is_System (Self : System_Id_Policy) return Boolean;
 
-   function Activate_Object
+   function Assign_Object_Identifier
      (Self   : System_Id_Policy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access) return Object_Id_Access;
-
-   procedure Activate_Object_With_Id
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access;
-      Oid    : Object_Id);
+      Hint   : Object_Id_Access)
+     return Unmarshalled_Oid;
 
    procedure Ensure_Oid_Origin
      (Self  : System_Id_Policy;
-      U_Oid : Unmarshalled_Oid);
-
-   procedure Ensure_Oid_Uniqueness
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
 
    procedure Remove_Entry

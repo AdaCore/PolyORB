@@ -619,13 +619,12 @@ package body PolyORB.POA.Basic_POA is
    function Create_Object_Identification
      (Self : access Basic_Obj_Adapter;
       Hint :        Object_Id_Access := null)
-     return Object_Id is
+     return Object_Id_Access is
    begin
-      raise Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Object_Identification
-        (Self, Hint);
-      pragma Warnings (On);
+      return U_Oid_To_Oid (Assign_Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Hint));
    end Create_Object_Identification;
 
    ---------------------
@@ -638,21 +637,20 @@ package body PolyORB.POA.Basic_POA is
       Hint      :        Object_Id_Access := null)
      return Object_Id
    is
+      Allocated_Oid : Object_Id_Access
+        := Create_Object_Identification (Self, Hint);
+      --  Must be free'd when the object is deactivated.
    begin
-      if Hint = null then
-         return Activate_Object
-           (Self.Servant_Retention_Policy.all,
-            POA_Types.Obj_Adapter_Access (Self),
-            P_Servant).all;
-         --  XXX likely memory leak: Oid is not freed.
-      else
-         Activate_Object_With_Id
-           (Self.Servant_Retention_Policy.all,
-            POA_Types.Obj_Adapter_Access (Self),
-            P_Servant,
-            Hint.all);
-         return Hint.all;
-      end if;
+      Retain_Servant_Association
+        (Self.Servant_Retention_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         P_Servant, Allocated_Oid);
+
+      return Allocated_Oid.all;
+   exception
+      when Invalid_Policy =>
+         --  Deallocate_Object_Identification (Self, Allocated_Oid);
+         raise;
    end Activate_Object;
 
    -----------------------
@@ -663,11 +661,19 @@ package body PolyORB.POA.Basic_POA is
      (Self      : access Basic_Obj_Adapter;
       Oid       : in Object_Id)
    is
+      A_Oid : aliased Object_Id := Oid;
+      U_Oid : Unmarshalled_Oid
+        := Oid_To_U_Oid (A_Oid'Unchecked_Access);
    begin
-      Deactivate
+      Etherealize_All
+        (Self.Request_Processing_Policy.all,
+         PolyORB.POA_Types.Obj_Adapter_Access (Self),
+         U_Oid);
+
+      Forget_Servant_Association
         (Self.Servant_Retention_Policy.all,
          PolyORB.POA_Types.Obj_Adapter_Access (Self),
-         Oid);
+         U_Oid);
       --  XXX ??? Wait for completion?
    end Deactivate_Object;
 

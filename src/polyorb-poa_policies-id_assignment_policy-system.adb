@@ -94,79 +94,60 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       return True;
    end Is_System;
 
-   ---------------------
-   -- Activate_Object --
-   ---------------------
-
-   function Activate_Object
+   function Assign_Object_Identifier
      (Self   : System_Id_Policy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access)
-     return Object_Id_Access
+      Hint   : Object_Id_Access)
+     return Unmarshalled_Oid
    is
-      P_OA      : PolyORB.POA.Obj_Adapter_Access
+      POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      New_Entry : Object_Map_Entry_Access;
-      Index     : Integer;
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      New_Entry         := new Object_Map_Entry;
-      New_Entry.Servant := Object;
+      Object_Id_Info : Unmarshalled_Oid;
+      The_Entry : Object_Map_Entry_Access;
+      Index : Integer;
 
-      Lock_W (P_OA.Map_Lock);
-      if P_OA.Active_Object_Map = null then
-         P_OA.Active_Object_Map := new Object_Map;
+      use PolyORB.Object_Maps;
+
+   begin
+      Lock_W (POA.Map_Lock);
+      if POA.Active_Object_Map = null then
+         POA.Active_Object_Map := new Object_Map;
       end if;
-      Index := Object_Maps.Add
-        (P_OA.Active_Object_Map.all'Access,
-         New_Entry);
+      pragma Assert (POA.Active_Object_Map /= null);
 
-      New_Entry.Oid := new Unmarshalled_Oid;
-      New_Entry.Oid.Id := To_PolyORB_String
-        (PolyORB.Utils.Trimmed_Image (Index));
-      New_Entry.Oid.System_Generated := True;
-      New_Entry.Oid.Persistency_Flag
-        := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
-           (P_OA.Lifespan_Policy.all, OA);
-      New_Entry.Oid.Creator := P_OA.Absolute_Address;
-      Unlock_W (P_OA.Map_Lock);
-      return U_Oid_To_Oid (New_Entry.Oid.all);
-   end Activate_Object;
+      if Hint /= null then
+         Object_Id_Info := Oid_To_U_Oid (Hint);
+         if not Object_Id_Info.System_Generated then
+            raise PolyORB.POA.Invalid_Policy;
+         end if;
+         The_Entry := Get_By_Index
+           (POA.Active_Object_Map.all,
+            Integer'Value (Types.To_Standard_String
+                           (Object_Id_Info.Id)));
+         if The_Entry = null then
+            raise Not_Implemented;
+            --  Actually should bring the proper index
+            --  in the active object map into existence.
+         end if;
+      else
 
-   -----------------------------
-   -- Activate_Object_With_Id --
-   -----------------------------
+         --  XXX possible memory leak, to investigate.
 
-   --  XXX Oid should be passed as anonymous access.
+         The_Entry := new Object_Map_Entry;
+         Index := Add (POA.Active_Object_Map, The_Entry);
 
-   procedure Activate_Object_With_Id
-     (Self   : System_Id_Policy;
-      OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access;
-      Oid    : Object_Id)
-   is
-      P_OA      : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Oid_A : Object_Id_Access := new Object_Id'(Oid);
-      New_Entry : Object_Map_Entry_Access;
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      New_Entry         := new Object_Map_Entry;
-      New_Entry.Oid     := new Unmarshalled_Oid'(Oid_To_U_Oid (Oid_A));
-      Free (Oid_A);
-      New_Entry.Servant := Object;
-
-      Lock_W (P_OA.Map_Lock);
-      Object_Maps.Replace_By_Index
-        (P_OA.Active_Object_Map.all'Access,
-         New_Entry,
-         Integer'Value (To_Standard_String (New_Entry.Oid.Id)));
-      Unlock_W (P_OA.Map_Lock);
-   end Activate_Object_With_Id;
+         The_Entry.Oid := new Unmarshalled_Oid;
+         The_Entry.Oid.Id := To_PolyORB_String
+           (PolyORB.Utils.Trimmed_Image (Index));
+         The_Entry.Oid.System_Generated := True;
+         The_Entry.Oid.Persistency_Flag
+           := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
+           (POA.Lifespan_Policy.all, OA);
+         The_Entry.Oid.Creator := POA.Absolute_Address;
+      end if;
+      Unlock_W (POA.Map_Lock);
+      return The_Entry.Oid.all;
+   end Assign_Object_Identifier;
 
    -----------------------
    -- Ensure_Oid_Origin --
@@ -184,31 +165,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Oid_Origin;
-
-   ---------------------------
-   -- Ensure_Oid_Uniqueness --
-   ---------------------------
-
-   procedure Ensure_Oid_Uniqueness
-     (Self  : System_Id_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid)
-   is
-      An_Entry : Object_Map_Entry_Access;
-      P_OA      : PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-      Index : Integer := Integer'Value (To_Standard_String (U_Oid.Id));
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Lock_R (P_OA.Map_Lock);
-      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
-      Unlock_R (P_OA.Map_Lock);
-      if An_Entry /= null then
-         raise PolyORB.POA.Object_Already_Active;
-      end if;
-   end Ensure_Oid_Uniqueness;
 
    ------------------
    -- Remove_Entry --

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#17 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#18 $
 
 with Ada.Exceptions;
 

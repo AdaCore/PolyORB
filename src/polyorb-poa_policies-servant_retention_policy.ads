@@ -40,41 +40,20 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
      access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
-   function Activate_Object
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access is abstract;
-   --  Case RETAIN:
-   --    Activates the object (servant) in the Active Object Map
-   --    The Id_Uniqueness_Policy checks that the servant is not yet active
-   --    The Id_Assign_Policy generates an Object_Id
-   --  Case NON_RETAIN:
-   --    Raises a WrongPolicy exception
-
-   procedure Activate_Object_With_Id
+   procedure Retain_Servant_Association
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
-      Oid       : Object_Id) is abstract;
-   --  Case RETAIN:
-   --    Registers the servant in the active objects map
-   --    Checks that the object_id is not yet used
-   --    The Id_Uniqueness_Policy checks that the servant is not yet
-   --    in the active objects map
-   --  Case NON_RETAIN:
-   --    Raises WrongPolicy
+      Oid       : Object_Id_Access)
+     is abstract;
 
-   procedure Deactivate
-     (Self      : ServantRetentionPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      Oid       : Object_Id) is abstract;
-   --  Case RETAIN:
-   --  Deactivates an object from the Active Object Map; waits for the
-   --  complection of current active requests. Calls etherealize if
-   --  necessary (ServantManager used).
-   --  Case NON_RETAIN:
-   --  Raises WrongPolicy
+
+   procedure Forget_Servant_Association
+     (Self : ServantRetentionPolicy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access;
+      Oid  : Unmarshalled_Oid)
+      is abstract;
+   --  Remove a previously-retained servant/oid association.
 
    function Servant_To_Id (Self      : ServantRetentionPolicy;
                            OA        : PolyORB.POA_Types.Obj_Adapter_Access;
