@@ -152,6 +152,11 @@ package all_types.Impl is
       arg : in myUnion)
      return myUnion;
 
+   function echoUnionEnumSwitch
+     (Self : access Object;
+      arg : in myUnionEnumSwitch)
+     return myUnionEnumSwitch;
+
    function echoUsequence
      (Self : access Object;
       arg : in U_sequence)

@@ -102,7 +102,7 @@ begin
 
       --  Unions
       declare
-         Test_Unions : constant array (0 .. 3) of myUnion
+         Test_Unions : constant array (Integer range <>) of myUnion
            := ((Switch => 0, Unknown => 987),
                (Switch => 1, Counter => 1212),
                (Switch => 2, Flag => True),
@@ -115,6 +115,21 @@ begin
             exit when not Pass;
          end loop;
          Output ("test union", Pass);
+      end;
+
+      declare
+         Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
+           := ((Switch => Red, Foo => 31337),
+               (Switch => Green, Bar => 534),
+               (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+         Pass : Boolean := True;
+      begin
+         for I in Test_Unions'Range loop
+            Pass := Pass and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
+              = Test_Unions (I);
+            exit when not Pass;
+         end loop;
+         Output ("test union with enum switch", Pass);
       end;
 
       --  Exceptions

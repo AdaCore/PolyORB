@@ -746,6 +746,45 @@ procedure DynClient is
         (Result.Argument);
    end EchoUnion;
 
+   function EchoUnionEnumSwitch
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.myUnionEnumSwitch)
+      return All_Types.myUnionEnumSwitch is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUnionEnumSwitch");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+   begin
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (All_Types.Helper.TC_MyunionEnumSwitch),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (Result.Argument);
+   end EchoUnionEnumSwitch;
+
    function EchoUsequence
      (Self : in CORBA.Object.Ref;
       Arg : in All_Types.U_sequence)
@@ -1106,6 +1145,21 @@ begin
             exit when not Pass;
          end loop;
          Output ("test union", Pass);
+      end;
+      declare
+         Test_Unions : constant array (Integer range <>) of myUnionEnumSwitch
+           := ((Switch => Red, Foo => 31337),
+               (Switch => Green, Bar => 534),
+               (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
+         Pass : Boolean := True;
+      begin
+         for I in Test_Unions'Range loop
+            Ada.Text_IO.Put_Line ("@@1 I = " & I'Img);
+            Pass := Pass and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
+              = Test_Unions (I);
+            exit when not Pass;
+         end loop;
+         Output ("test union with enum switch", Pass);
       end;
 
       --  Unbounded sequences

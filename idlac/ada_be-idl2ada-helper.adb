@@ -290,7 +290,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
    begin
-      Add_With (CU, "CORBA", Use_It => False);
+      Add_With (CU, "CORBA");
       PL (CU, "function From_Any (Item : in CORBA.Any)");
       II (CU);
       Put (CU, "return "
@@ -305,7 +305,7 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Type_Node : in Node_Id) is
    begin
-      Add_With (CU, "CORBA", Use_It => False);
+      Add_With (CU, "CORBA");
       PL (CU, "function To_Any (Item : in "
           & Ada_Type_Name (Type_Node)
           & ")");
@@ -1376,9 +1376,11 @@ package body Ada_Be.Idl2Ada.Helper is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
    begin
+      Add_With (CU, "CORBA", Use_It => True);
+      Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
+
       --  From_Any
 
-      Add_With (CU, "CORBA", Use_It => True);
       NL (CU);
       Gen_From_Any_Profile (CU, Node);
       PL (CU, " is");
@@ -1386,13 +1388,11 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "Label_Any : CORBA.Any :=");
       II (CU);
       PL (CU, "CORBA.Get_Aggregate_Element (Item,");
-      Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
       PL (CU, "                             "
           & Ada_Full_TC_Name (Switch_Type (Node)) & ",");
       PL (CU, "                             "
           & "CORBA.Unsigned_Long (0));");
       DI (CU);
-      Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
       PL (CU, "Label : "
           & Ada_Type_Name (Switch_Type (Node))
           & " := "
@@ -1441,7 +1441,9 @@ package body Ada_Be.Idl2Ada.Helper is
                PL (CU, "Index := CORBA.Get_Aggregate_Element");
                II (CU);
                PL (CU, "(Item,");
+
                Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
+
                PL (CU, " "
                    & Ada_Full_TC_Name (Case_Type (Case_Node))
                    & ",");
@@ -1449,7 +1451,6 @@ package body Ada_Be.Idl2Ada.Helper is
                I := I + 1;
                DI (CU);
                PL (CU, "I := I + 1;");
-               Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                PL (CU, "Result."
                    & Ada_Name (Case_Decl (Case_Node))
                    & " := "
@@ -1583,7 +1584,6 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "CORBA.TypeCode.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any (Id));");
-      Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
       PL (CU, "CORBA.TypeCode.Add_Parameter ("
           & Ada_TC_Name (Node)
           & ", CORBA.To_Any ("
@@ -1612,7 +1612,8 @@ package body Ada_Be.Idl2Ada.Helper is
                if Default_Index (Node) = I then
                   PL (CU, "CORBA.TypeCode.Add_Parameter ("
                       & Ada_TC_Name (Node)
-                      & ", CORBA.To_Any ("
+                      & ", " & Ada_Helper_Name (Switch_Type (Node))
+                      & ".To_Any ("
                       & Ada_Type_Name (Switch_Type (Node))
                       & "'First));");
                   Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
@@ -1632,7 +1633,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      Get_Next_Node (It2, Label_Node);
                      Put (CU, "CORBA.TypeCode.Add_Parameter ("
                           & Ada_TC_Name (Node)
-                          & ", CORBA.To_Any ("
+                          & ", " & Ada_Helper_Name (Switch_Type (Node))
+                          & ".To_Any ("
                           & Ada_Type_Name (Switch_Type (Node))
                           & " (");
                      Gen_Constant_Value (CU, Label_Node);

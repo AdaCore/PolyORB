@@ -43,6 +43,13 @@ interface all_types {
 
   myUnion echoUnion (in myUnion arg);
 
+  union myUnionEnumSwitch switch (Color) {
+    case Red:   long   foo;
+    case Green: short  bar;
+    case Blue:  string baz;
+  };
+  myUnionEnumSwitch echoUnionEnumSwitch (in myUnionEnumSwitch arg);
+
   // Arrays
   // ------
   typedef long simple_array[5];
