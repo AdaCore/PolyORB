@@ -42,21 +42,33 @@ with CORBA.Object;
 
 package body RTCORBA.Mutex is
 
+   ----------
+   -- Lock --
+   ----------
+
    procedure Lock (Self : in Ref) is
-   begin
-      --  Dummy body
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
+      --  Dummy body
+
       null;
    end Lock;
 
+   ------------
+   -- Unlock --
+   ------------
+
    procedure Unlock (Self : in Ref) is
-   begin
-      --  Dummy body
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
+      --  Dummy body
+
       null;
    end Unlock;
 
