@@ -25,4 +25,5 @@ There are four examples of the same program.
 To build this program, once in the "Examples/Eratho" directory, type
 "make". To execute the distributed program type "./mainloop".
 
-
+The "dynamic" and "absolute" versions provide a good example of implementation
+of distributed applications based on the client and server model.
