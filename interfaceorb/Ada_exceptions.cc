@@ -1,4 +1,21 @@
 #include "Ada_exceptions.hh"
+#include <omnithread.h>
+
+omni_mutex * occurrence_table_mutex = new omni_mutex ();
+
+void Lock_Occurrence_Table ()
+{
+  if (omniORB::traceLevel > 5) cerr << "lock occurrence table" << endl;
+
+  occurrence_table_mutex->lock ();
+}
+
+void Unlock_Occurrence_Table ()
+{
+  if (omniORB::traceLevel > 5) cerr << "unlock occurrence table" << endl;
+
+  occurrence_table_mutex->unlock ();
+}
 
 /////////////////////////////////
 // Handling of Fatal exception //

@@ -3,6 +3,9 @@
 
 #include <omniORB2/CORBA.h>
 
+extern void Lock_Occurrence_Table ();
+extern void Unlock_Occurrence_Table ();
+
 ///////////////////////////////////////////
 // handling od corba exception in C code //
 ///////////////////////////////////////////
@@ -46,6 +49,8 @@
 } catch (CORBA::TRANSIENT &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::FREE_MEM &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INITIALIZE &e) { \
   Raise_Corba_Exception (e); \
 } catch (CORBA::INV_IDENT &e) { \
   Raise_Corba_Exception (e); \

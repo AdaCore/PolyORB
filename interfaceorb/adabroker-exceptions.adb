@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -46,6 +46,9 @@ pragma Elaborate_All (AdaBroker.Debug);
 
 with Ada.Exceptions; use Ada.Exceptions;
 
+with GNAT.Table;
+with Ada.Task_Identification; use Ada.Task_Identification;
+
 package body AdaBroker.Exceptions is
 
    use type AdaBroker.Constants.Exception_Id;
@@ -54,7 +57,23 @@ package body AdaBroker.Exceptions is
      := AdaBroker.Debug.Is_Active ("adabroker.exceptions");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
-   Occurrences : array (1 .. 64) of IDL_Exception_Members_Ptr;
+   type Member_Record is
+      record
+         T : Task_Id                   := Null_Task_Id;
+         M : IDL_Exception_Members_Ptr := null;
+      end record;
+
+   type Occurrence_Id is new Natural;
+   Occurrence_Low_Bound : constant Occurrence_Id := 1;
+   Occurrence_Initial   : constant Natural       := 5;
+   Occurrence_Increment : constant Natural       := 50;
+
+   package Occurrences is new GNAT.Table
+     (Member_Record,
+      Occurrence_Id,
+      Occurrence_Low_Bound,
+      Occurrence_Initial,
+      Occurrence_Increment);
 
    Header : constant String := "CORBA::MEMBER";
 
@@ -64,17 +83,13 @@ package body AdaBroker.Exceptions is
       Ex_Id     : in Ada.Exceptions.Exception_Id;
       Ex_Member : in out CORBA.System_Exception_Members'Class);
 
---     -----------------
---     -- Get_Members --
---     -----------------
+   procedure Output_Ex_Member (Member : in IDL_Exception_Members_Ptr);
 
---     procedure Get_Members
---       (From : in Ada.Exceptions.Exception_Occurrence;
---        To   : out IDL_Exception_Members'Class)
---     is
---     begin
---        To := Get_Members (From);
---     end Get_Members;
+   procedure Lock_Occurrence_Table;
+   pragma Import (CPP, Lock_Occurrence_Table, "Lock_Occurrence_Table__Fv");
+
+   procedure Unlock_Occurrence_Table;
+   pragma Import (CPP, Unlock_Occurrence_Table, "Unlock_Occurrence_Table__Fv");
 
    -----------------
    -- Get_Members --
@@ -84,42 +99,41 @@ package body AdaBroker.Exceptions is
      (From : in Ada.Exceptions.Exception_Occurrence)
      return IDL_Exception_Members'Class
    is
-      Id  : Natural;
-      Msg : String := Exception_Message (From);
-      Ptr : IDL_Exception_Members_Ptr;
+      Occurrence : Occurrence_Id;
+      Message    : String  := Exception_Message (From);
+      First      : Natural := Message'First;
+      Member     : IDL_Exception_Members_Ptr;
    begin
       pragma Debug (O ("get_members: enter"));
 
-      if Msg'Length > Header'Length
-        and then Msg (Msg'First .. Msg'First + Header'Length - 1) = Header
+      Lock_Occurrence_Table;
+
+      if Message'Length > Header'Length
+        and then Message (First .. First + Header'Length - 1) = Header
       then
-         Id := Natural'Value (Msg (Msg'First + Header'Length .. Msg'Last));
+         Occurrence := Occurrence_Id'Value
+           (Message (First + Header'Length .. Message'Last));
       else
-         pragma Debug (O ("incorrect exception message: " & Msg));
+         Unlock_Occurrence_Table;
+         pragma Debug (O ("incorrect exception message: " & Message));
          raise Constraint_Error;
       end if;
-      Ptr := Occurrences (Id);
-      if Ptr = null then
+
+      Member := Occurrences.Table (Occurrence).M;
+      Occurrences.Table (Occurrence).T := Null_Task_Id;
+      if Member = null then
+         Unlock_Occurrence_Table;
          pragma Debug (O ("null exception member"));
          raise Constraint_Error;
       end if;
-      if Ptr.all in System_Exception_Members'Class then
-         declare
-            M : System_Exception_Members'Class
-              := System_Exception_Members'Class (Ptr.all);
-         begin
-            pragma Debug (O ("get_members: minor  =" & M.Minor'Img));
-            pragma Debug (O ("get_members: status = " & M.Completed'Img));
-            null;
-         end;
-      end if;
-      Occurrences (Id) := null;
+
+      Occurrences.Table (Occurrence).M := null;
       declare
-         Result : IDL_Exception_Members'Class := Ptr.all;
+         Result : IDL_Exception_Members'Class := Member.all;
       begin
-         Free (Ptr);
+         Free (Member);
+         Unlock_Occurrence_Table;
          pragma Debug (O ("get_members: leave"));
-         Free (Ptr);
          return Result;
       end;
    end Get_Members;
@@ -149,33 +163,66 @@ package body AdaBroker.Exceptions is
      (Ex_Id     : in Ada.Exceptions.Exception_Id;
       Ex_Member : in IDL_Exception_Members'Class)
    is
-      Ptr : IDL_Exception_Members_Ptr;
+      Member     : IDL_Exception_Members_Ptr;
+      Full       : Boolean := True;
+      Occurrence : Occurrence_Id;
    begin
-      Ptr := new IDL_Exception_Members'Class'(Ex_Member);
-      if Ptr.all in System_Exception_Members'Class then
-         declare
-            M : System_Exception_Members'Class
-              := System_Exception_Members'Class (Ptr.all);
-         begin
-            pragma Debug
-              (O ("raise_corba_exception: minor  =" & M.Minor'Img));
-            pragma Debug
-              (O ("raise_corba_exception: status = " & M.Completed'Img));
-            null;
-         end;
-      else
-         pragma Debug (O ("exception member not in System_Exception_Members"));
-         null;
-      end if;
-      for I in Occurrences'Range loop
-         if Occurrences (I) = null then
-            Occurrences (I) := Ptr;
+      Lock_Occurrence_Table;
 
-            --  Raise Ada exception with occurrence index as message
-            Ada.Exceptions.Raise_Exception
-              (Ex_Id, Header & Integer'Image (I));
+      for Occ in 1 .. Occurrences.Last loop
+         if Occurrences.Table (Occ).T = Null_Task_Id then
+            Occurrence := Occ;
+            Full       := False;
+            exit;
+         else
+            pragma Debug
+              (O ("occurrence" & Occ'Img &
+                  " used by task "& Image (Occurrences.Table (Occ).T)));
+            null;
          end if;
       end loop;
+
+      if Full then
+         --  Try to collect garbage before incrementing table.
+         for Occ in 1 .. Occurrences.Last loop
+            if Is_Terminated (Occurrences.Table (Occ).T) then
+               pragma Debug
+                 (O ("collect occurrence" & Occ'Img &
+                     " used by task "& Image (Occurrences.Table (Occ).T)));
+
+               Occurrences.Table (Occ).T := Null_Task_Id;
+               if Occurrences.Table (Occ).M /= null then
+                  Free (Occurrences.Table (Occ).M);
+               end if;
+
+               if Full then
+                  Occurrence := Occ;
+               end if;
+               Full := False;
+            end if;
+         end loop;
+
+
+         if Full then
+            pragma Debug (O ("no room in occurrence table anymore"));
+            Occurrences.Increment_Last;
+            Occurrence := Occurrences.Last;
+
+            pragma Debug (O ("create new occurrence" & Occurrence'Img));
+         end if;
+      end if;
+
+      pragma Debug (O ("occurrence" & Occurrence'Img & " is empty"));
+      Member := new IDL_Exception_Members'Class'(Ex_Member);
+      Output_Ex_Member (Member);
+
+      Occurrences.Table (Occurrence).M := Member;
+      Occurrences.Table (Occurrence).T := Current_Task;
+
+      Unlock_Occurrence_Table;
+
+      --  Raise Ada exception with occurrence index as message.
+      Ada.Exceptions.Raise_Exception (Ex_Id, Header & Occurrence'Img);
    end Raise_CORBA_Exception;
 
    ---------------------------------
@@ -722,4 +769,30 @@ package body AdaBroker.Exceptions is
          Ex_Member);
    end C_Raise_Ada_Fatal_Exception;
 
+   ----------------------
+   -- Output_Ex_Member --
+   ----------------------
+
+   procedure Output_Ex_Member (Member : in IDL_Exception_Members_Ptr) is
+   begin
+      if Member.all in System_Exception_Members'Class then
+         declare
+            M : System_Exception_Members'Class
+              := System_Exception_Members'Class (Member.all);
+         begin
+            pragma Debug
+              (O ("exception member: minor  =" & M.Minor'Img));
+            pragma Debug
+              (O ("exception member: status = " & M.Completed'Img));
+            null;
+         end;
+      else
+         pragma Debug
+           (O ("exception member not in System_Exception_Members"));
+         null;
+      end if;
+   end Output_Ex_Member;
+
+begin
+   Occurrences.Init;
 end AdaBroker.Exceptions;
