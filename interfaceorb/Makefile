@@ -34,7 +34,7 @@ OMNIORB_PATH = ../omniORB_2.7.0
 
 #This file should contain system dependant variables to
 # compile omniORB2 programs
-include Makefile.sys_dep
+include system_dependant.mk
 
 # paths to omniORB's libraries
 OMNIORB_LIBS = -I $(OMNIORB_PATH)/include/
@@ -105,15 +105,19 @@ Ada_exceptions.hh
 # compilation of system dependant files
 #######################################
 
-Sys_Dep : Ada_Sys_Dep sys_dep.adb
+Sys_Dep : Ada_Sys_Dep sys_dep.o
 	./Ada_Sys_Dep
 
 Ada_Sys_Dep : Ada_Sys_Dep.cc
 	$(CPP_COMP) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Sys_Dep.cc \
 -o Ada_Sys_Dep 
 
-sys_dep.adb : sys_dep_before_preprocessor.adb
-	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
+sys_dep.o: sys_dep.ads sys_dep.adb
+	$(GNATMAKE) sys_dep.adb
+
+sys_dep.ads : sys_dep_before_preprocessor.ads sys_dep_definition_file.txt
+	$(ADA_PREP) sys_dep_before_preprocessor.ads sys_dep.ads \
+sys_dep_definition_file.txt -u
 
 
 ##############################################################
