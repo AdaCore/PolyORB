@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--          Copyright (C) 2002-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -78,6 +78,7 @@ package body PolyORB.Utils.Dynamic_Tables is
    begin
       Free_Table (T.Table);
       T.Table := null;
+      T.P.Length := 0;
    end Deallocate;
 
    --------------------

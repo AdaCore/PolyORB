@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--          Copyright (C) 2002-2004 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,9 @@
 
 --  Note: controlled types are not supported by this package. In particular
 --  the type provided for Table_Component_Type may not be a controlled type.
+
+--  This is a derived version of GNAT.Dynamic_Table, simplified in order
+--  to be preelaborable.
 
 --  $Id$
 
