@@ -55,8 +55,7 @@ package body Broca.Opaque.Chunk_Pools is
       if Allocation_Size = Default_Chunk_Size
         and then not Pool.Prealloc_Used then
          New_Chunk := Pool.Prealloc'Access;
-         --  XXX Debug
-         New_Chunk.Data := (others => 16#aa#);
+         pragma Debug (New_Chunk.Data := (others => 16#aa#));
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk'(Size => Allocation_Size,
@@ -75,7 +74,6 @@ package body Broca.Opaque.Chunk_Pools is
          Pool.Last := New_Chunk;
       end if;
 
-      --  XXX DEBUG.
       A_Chunk := New_Chunk;
    end Allocate;
 

@@ -773,7 +773,7 @@ package body Broca.Server is
    begin
       pragma Debug (O ("Handle_Request : enter"));
 
-      --  XXX this should be encapsulated.
+      --  FIXME: This should be encapsulated.
       --  Prepare the reply body buffer to hold
       --  the reply message data.
       Set_Initial_Position
@@ -838,7 +838,7 @@ package body Broca.Server is
                         Request_Id, Response_Expected, Buffer,
                         Reply_Buffer'Access);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -853,7 +853,7 @@ package body Broca.Server is
                         Broca.GIOP.Marshall
                           (Reply_Buffer'Access, Request_Id, E);
 
-                        --  XXX This behaviour (prepend GIOP header)
+                        --  FIXME: This behaviour (prepend GIOP header)
                         --  should be encapsulated.
                         Broca.GIOP.Marshall_GIOP_Header
                           (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -870,7 +870,7 @@ package body Broca.Server is
                           (Reply_Buffer'Access,
                            Request_Id, FRM.Forward_Reference);
 
-                        --  XXX This behaviour (prepend GIOP header)
+                        --  FIXME: This behaviour (prepend GIOP header)
                         --  should be encapsulated.
                         Broca.GIOP.Marshall_GIOP_Header
                           (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -898,7 +898,7 @@ package body Broca.Server is
                   when E : CORBA.Transient =>
                      Broca.GIOP.Marshall (Reply_Buffer'Access, Request_Id, E);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,
@@ -932,7 +932,7 @@ package body Broca.Server is
                      Broca.GIOP.Marshall
                        (Reply_Buffer'Access, Request_Id, E);
 
-                     --  XXX This behaviour (prepend GIOP header)
+                     --  FIXME: This behaviour (prepend GIOP header)
                      --  should be encapsulated.
                      Broca.GIOP.Marshall_GIOP_Header
                        (Header_Buffer'Access, Broca.GIOP.Reply,

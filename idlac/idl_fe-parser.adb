@@ -401,6 +401,8 @@ package body Idl_Fe.Parser is
       Name_Node : constant Node_Id
         := Make_Lit_String;
    begin
+      pragma Assert (not Is_Explicit_Repository_Id (Node));
+
       if Prefix_Node /= No_Node then
          Set_String_Value
            (Name_Node, new String'
@@ -790,13 +792,12 @@ package body Idl_Fe.Parser is
                   end;
                end if;
                Fd_Res := Get_Node (Definition);
-               --  is this interface not a forward declaration
-               --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+               --  FIXME: Is this interface not a forward declaration?
                if View_Next_Token /= T_Semi_Colon then
                   Set_Forward (Fd_Res, Res);
                   Set_Forward (Res, Fd_Res);
                   Redefine_Identifier (Definition, Res);
-                  --  the forward declaration is now implemented
+                  --  The forward declaration is now implemented.
                   Add_Int_Val_Definition (Fd_Res);
                   Set_Repository_Id (Res, Repository_Id (Fd_Res));
                end if;
@@ -860,7 +861,7 @@ package body Idl_Fe.Parser is
                   Idl_Fe.Errors.Warning,
                   Get_Token_Location);
 
-               --  FIXME: why bother to do the following
+               --  FIXME: Why bother to do the following
                --  since we have produced a parser error anyway?
                --  Thomas 2000-04-12
                Fd_Res := Make_Forward_Interface;
@@ -6416,7 +6417,7 @@ package body Idl_Fe.Parser is
                end if;
 
                if Name_Node /= No_Node then
-                  if Repository_Id (Value (Name_Node)) /= No_Node then
+                  if Is_Explicit_Repository_Id (Value (Name_Node)) then
                      Idl_Fe.Errors.Parser_Error
                        ("Entity already has an explicit repository ID.",
                         Idl_Fe.Errors.Error,

@@ -62,11 +62,8 @@ package Idl_Fe.Tree.Synthetic is
    function Idl_Repository_Id
      (Node : in Node_Id)
      return String;
-   --  Return a poor ersatz of a Repository ID in OMG IDL
-   --  format for K_Named Node (as defined in "10.6 RepositoryIds").
-   --  In particular, #pragma prefix, #pragma version & the like
-   --  are *NOT* taken into account. FIXME: provide a proper implementation
-   --  of this attribute.
+   --  Return a Repository ID in OMG IDL format for K_Named Node
+   --  (as defined in "10.6 RepositoryIds").
 
    function All_Ancestors
      (Node : Node_Id;

@@ -47,14 +47,16 @@ package body PortableServer.Current is
    function get_POA (Self : Ref)
      return PortableServer.POA_Forward.Ref is
    begin
-      --  XXX should check validity and possibly raise NoContext;
+      --  FIXME: Should check validity and possibly
+      --    raise NoContext;
       return Broca.Task_Attributes.Current_POA;
    end get_POA;
 
    function get_object_id (Self : Ref)
      return ObjectId is
    begin
-      --  XXX should check validity and possibly raise NoContext;
+      --  FIXME: Should check validity and possibly
+      --    raise NoContext;
       return Broca.Task_Attributes.Current_Object;
    end get_object_id;
 

@@ -613,7 +613,6 @@ package body Broca.Inet_Server is
                Bytes'Length,
                Bytes (1)'Address,
                Little_Endian,
-               --  XXX Check endianness of msg header!
                0);
 
             Broca.Server.Log
