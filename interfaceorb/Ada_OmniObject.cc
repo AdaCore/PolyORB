@@ -105,10 +105,19 @@ Ada_OmniObject::Destructor(Ada_OmniObject* o) {
 void
 Ada_OmniObject::initLocalObject (const char* repoid)
 {
+#ifdef DEBUG
+  cerr << "Ada_OmniObject::initLocalObject : start" << endl ;
+#endif
   // Creation of the underlying omniobject_C2Ada object
   C_Object = new omniObject_C2Ada (this);
+#ifdef DEBUG
+  cerr << "Ada_OmniObject::initLocalObject : C_Object created" << endl ;
+#endif
   // setting its repository ID
   C_Object->PR_IRRepositoryId(repoid) ;
+#ifdef DEBUG
+  cerr << "Ada_OmniObject::initLocalObject : repoid set" << endl ;
+#endif
   // updating of Init_OK flag
   Init_Ok = true;
   return;
