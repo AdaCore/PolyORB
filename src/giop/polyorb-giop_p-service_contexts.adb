@@ -59,8 +59,9 @@ package body PolyORB.GIOP_P.Service_Contexts is
       use PolyORB.Request_QoS;
       use PolyORB.Request_QoS.QoS_Parameter_Lists;
 
-      It : Iterator := First (QoS);
-      SC_Length : Natural := Length (QoS);
+      It        : Iterator      := First (QoS);
+      SC_Length : Natural       := Length (QoS);
+      Temp_Buf  : Buffer_Access := new Buffer_Type;
 
    begin
       pragma Debug (O ("Marshall_Service_Context_List: enter, length="
@@ -73,68 +74,58 @@ package body PolyORB.GIOP_P.Service_Contexts is
       Marshall (Buffer, Types.Unsigned_Long (SC_Length));
 
       if CS /= null then
-         declare
-            Temp_Buf : Buffer_Access := new Buffer_Type;
+         --  Marshalling a CodeSets service context
 
-         begin
-            --  Marshalling a CodeSets service context
+         Marshall (Buffer, CodeSets);
 
-            Marshall (Buffer, CodeSets);
+         pragma Debug (O ("Processing CodeSets service context"));
 
-            pragma Debug (O ("Processing CodeSets service context"));
-
-            pragma Debug (O ("TCS-C:"
+         pragma Debug (O ("TCS-C:"
                              & Code_Sets.Code_Set_Id'Image (CS.Char_Data)));
-            pragma Debug (O ("TCS-W:"
-                             & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
+         pragma Debug (O ("TCS-W:"
+                          & Code_Sets.Code_Set_Id'Image (CS.Wchar_Data)));
 
-            Start_Encapsulation (Temp_Buf);
+         Start_Encapsulation (Temp_Buf);
 
-            Marshall (Temp_Buf, Unsigned_Long (CS.Char_Data));
-            Marshall (Temp_Buf, Unsigned_Long (CS.Wchar_Data));
+         Marshall (Temp_Buf, Unsigned_Long (CS.Char_Data));
+         Marshall (Temp_Buf, Unsigned_Long (CS.Wchar_Data));
 
-            Marshall (Buffer, Encapsulate (Temp_Buf));
-            Release_Contents (Temp_Buf.all);
-            Release (Temp_Buf);
-         end;
+         Marshall (Buffer, Encapsulate (Temp_Buf));
+         Release_Contents (Temp_Buf.all);
       end if;
 
       while not Last (It) loop
-         declare
-            Temp_Buf : Buffer_Access := new Buffer_Type;
+         case Value (It).all.Kind is
+            when Static_Priority =>
+               --  Marshalling a RTCorbaPriority service context
 
-         begin
-            case Value (It).all.Kind is
-               when Static_Priority =>
-                  --  Marshalling a RTCorbaPriority service context
+               Marshall (Buffer, RTCorbaPriority);
 
-                  Marshall (Buffer, RTCorbaPriority);
+               pragma Debug
+                 (O ("Processing RTCorbaPriority service context"));
 
-                  pragma Debug
-                    (O ("Processing RTCorbaPriority service context"));
+               pragma Debug
+                 (O ("Priority:"
+                     & PolyORB.Tasking.Priorities.External_Priority'Image
+                     (Value (It).all.EP)));
 
-                  pragma Debug
-                    (O ("Priority:"
-                        & PolyORB.Tasking.Priorities.External_Priority'Image
-                        (Value (It).all.EP)));
+               Start_Encapsulation (Temp_Buf);
+               if Value (It).all.Kind = Static_Priority then
+                  Marshall (Temp_Buf,
+                            PolyORB.Types.Short (Value (It).all.EP));
+               end if;
 
-                  Start_Encapsulation (Temp_Buf);
-                  if Value (It).all.Kind = Static_Priority then
-                     Marshall (Temp_Buf,
-                               PolyORB.Types.Short (Value (It).all.EP));
-                  end if;
+               Marshall (Buffer, Encapsulate (Temp_Buf));
+               Release_Contents (Temp_Buf.all);
 
-                  Marshall (Buffer, Encapsulate (Temp_Buf));
-                  Release_Contents (Temp_Buf.all);
-                  Release (Temp_Buf);
-
-               when others =>
-                  null;
-            end case;
-         end;
+            when others =>
+               null;
+         end case;
 
          Next (It);
       end loop;
+
+      Release (Temp_Buf);
 
       pragma Debug (O ("Marshall_Service_Context_List: leave"));
    end Marshall_Service_Context_List;
