@@ -106,6 +106,8 @@ package body PolyORB.Protocols.SOAP  is
             pragma Warnings (Off, M);
             --  XXX not referenced.
             --  Queue_Request (To_Request (M));
+            pragma Debug (O ("SOAP entity parsed: "
+                             & Standard.SOAP.Message.XML.Image (M)));
             raise Not_Implemented;
          end;
       else

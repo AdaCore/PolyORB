@@ -37,6 +37,8 @@ package SOAP.Parameters is
 
    type List is private;
 
+   procedure Create (L : out List);
+
    function Argument_Count (P : in List) return Natural;
    --  Returns the number of parameters in P.
 

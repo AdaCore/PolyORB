@@ -129,6 +129,13 @@ package body SOAP.Parameters is
    -- Constructors --
    ------------------
 
+   procedure Create (L : out List) is
+      Res : PolyORB.Any.NVList.Ref;
+   begin
+      PolyORB.Any.NVList.Create (Res);
+      L := List'(Res with null record);
+   end Create;
+
    function "&" (P : in List; O : in NamedValue) return List
    is
       Res : List := P;
