@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -142,8 +142,8 @@ public:
   // the first string& is the body of the produce
   // the second contains the part that should be mapped before the body
   
-  virtual void produce_impl_ads(dep_list&, string&, string&);
-  virtual void produce_impl_adb(dep_list&, string&, string&);
+  virtual void produce_skel_ads(dep_list&, string&, string&);
+  virtual void produce_skel_adb(dep_list&, string&, string&);
   // functions used to produce the body and specification for the
   
 
@@ -393,7 +393,7 @@ public:
   virtual void produce_adb(dep_list &with, string &body, string &previous);
   virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
   virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list &with, string &body);
+  virtual void produce_skel_adb(dep_list &with, string &body);
   virtual void produce_proxy_adb(dep_list &with, string &body);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
@@ -455,7 +455,7 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   void produce_adb(dep_list &with, bool &no_out, string space, string &in_decls, string &in_args, string &out_args);
   void produce_proxy_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args);
-  void produce_impl_adb(dep_list &with,	string &in_decls ,
+  void produce_skel_adb(dep_list &with,	string &in_decls ,
 			bool &no_in, bool no_out,
 			string &unmarshall,
 			string &call_args,
@@ -482,8 +482,8 @@ public:
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
 };
@@ -503,8 +503,8 @@ public:
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
 
@@ -556,8 +556,8 @@ class adabe_interface : public virtual AST_Interface,
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_adb(dep_list &with, string &body, string &previous);
   virtual void produce_stream_ads(dep_list &with, string &body, string &previous);
   virtual void produce_stream_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
@@ -599,8 +599,8 @@ public:
 
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_adb(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_ads(dep_list &with, string &body, string &previous);
-  virtual void produce_impl_adb(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_ads(dep_list &with, string &body, string &previous);
+  virtual void produce_skel_adb(dep_list &with, string &body, string &previous);
   virtual void produce_proxy_ads(dep_list &with, string &body, string &private_definition);
   virtual void produce_proxy_adb(dep_list &with, string &body, string &private_definition);
   virtual void produce_stream_ads(dep_list &with, string &body, string &previous);

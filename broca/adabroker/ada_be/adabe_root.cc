@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -320,147 +320,142 @@ adabe_root::produce () {
     ///////////////////////////////////////
 
     
-    // these files are only produced if the corresponding
-    // flag has been found 
-    if (adabe_global::impl_flags ())
-      {
-	////////////////////////////////////
-	// header of the implementation file
-     
+    ////////////////////////////////////
+    // header of the implementation file
+    
+    {
+      
+      // Once more, only the interfaces will be mapped
+      UTL_ScopeActiveIterator impl_head_activator (this, UTL_Scope::IK_decls);
+      while (!impl_head_activator.is_done ())
 	{
-
-	  // Once more, only the interfaces will be mapped
-	  UTL_ScopeActiveIterator impl_head_activator (this, UTL_Scope::IK_decls);
-	  while (!impl_head_activator.is_done ())
-	    {
-	      AST_Decl *d = impl_head_activator.item ();
-
-	      if (d->in_main_file ())     // only to take the node issue from the idl file
-		{
-		  switch (d->node_type ())
-		    {
-		      
-		    case AST_Decl::NT_module:                      
-		      {
-			// dummy variables (can be suppressed)
-			string impl_header_module_previous = ""; 
-			string impl_header_module_body     = "";
-			string impl_header_module_with_string;
-			dep_list impl_header_module_with;
-
-			// tries to find interface in the module
-			adabe_module *module = adabe_module::narrow_from_decl (d);
-			module->produce_impl_ads (impl_header_module_with, impl_header_module_body,
-						 impl_header_module_previous);
-		      }
-		      break;
-
-		    case AST_Decl::NT_interface:
-		      {
-			adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-
-			// Initialisation of the variables used in
-			// the interface file
-			string impl_header_interface_previous = "";
-			string impl_header_interface_body = "";
-			string impl_header_interface_with_string;
-			dep_list impl_header_interface_with;
-
-			// Computing the interface output
-			interface->produce_impl_ads (impl_header_interface_with,
-						    impl_header_interface_body,
-						    impl_header_interface_previous);
-			impl_header_interface_with_string = *impl_header_interface_with.produce ("with ");
-
-			// computing the interface file name
-			string impl_header_interface_file_name =
-			  remove_dot (interface->get_ada_full_name ())+"-impl.ads";
-			char *lower_case_name = lower (impl_header_interface_file_name.c_str ());
-			ofstream impl_header_interface_file (lower_case_name); 
-			delete[] lower_case_name;
-
-			// writing the strings in the file
-			impl_header_interface_file << impl_header_interface_with_string;
-			impl_header_interface_file << impl_header_interface_previous;    
-			impl_header_interface_file << impl_header_interface_body;
-			impl_header_interface_file.close ();
-		      }
-		      
-		    default:
-		      break;
-		    } // end of the switch
-		}
-	      
-	      impl_head_activator.next ();
-	    } // end of the loop
-	}
-	
-	//////////////////////////////////
-	// body of the implementation file
-	
-	{
-	  UTL_ScopeActiveIterator impl_body_activator (this, UTL_Scope::IK_decls);
+	  AST_Decl *d = impl_head_activator.item ();
 	  
-	  while (!impl_body_activator.is_done ())
+	  if (d->in_main_file ())     // only to take the node issue from the idl file
 	    {
-	      AST_Decl *d = impl_body_activator.item ();
-
-	      if (d->in_main_file ())     // only to take the node issue from the idl file
+	      switch (d->node_type ())
 		{
-		  switch (d->node_type ())
-		    {
-		    case AST_Decl::NT_module:
-		      {
-			adabe_module *module = adabe_module::narrow_from_decl (d);
-
-			// dummy variables that maybe suppressed
-			string impl_body_module_previous = "";
-			string impl_body_module_body     = "";
-			string impl_body_module_with_string;
-			dep_list impl_body_module_with;
-
-			// tries to find interface in the module
-			module->produce_impl_adb (impl_body_module_with, impl_body_module_body,
-						 impl_body_module_previous);
-		      }
-		      break;
-		      
-		    case AST_Decl::NT_interface:
-		      {
-			// Initialisation of the variables used in the interface file
-			adabe_interface *interface = adabe_interface::narrow_from_decl (d);
-			string impl_body_interface_previous = "";
-			string impl_body_interface_body = "";
-			string impl_body_interface_with_string;
-			dep_list impl_body_interface_with;
-
-			// computing the interface string
-			interface->produce_impl_adb (impl_body_interface_with, impl_body_interface_body,
-						    impl_body_interface_previous);
-			impl_body_interface_with_string = *impl_body_interface_with.produce ("with ");
-
-			// computing the file name
-			string impl_body_interface_file_name =
-			  remove_dot (interface->get_ada_full_name ())+"-impl.adb";
-			char *lower_case_name = lower (impl_body_interface_file_name.c_str ());
-			ofstream impl_body_interface_file (lower_case_name); 
-			delete[] lower_case_name;
-
-			// writing in the file
-			impl_body_interface_file << impl_body_interface_with_string;
-			impl_body_interface_file << impl_body_interface_previous;    
-			impl_body_interface_file << impl_body_interface_body;
-			impl_body_interface_file.close ();
-		      }
-		      
-		    default:
-		      break;
-		    } // end of the switch
-		}
-	      impl_body_activator.next ();
-	    } // end of the loop
-	}
-      }
+		  
+		case AST_Decl::NT_module:                      
+		  {
+		    // dummy variables (can be suppressed)
+		    string impl_header_module_previous = ""; 
+		    string impl_header_module_body     = "";
+		    string impl_header_module_with_string;
+		    dep_list impl_header_module_with;
+		    
+		    // tries to find interface in the module
+		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    module->produce_skel_ads (impl_header_module_with, impl_header_module_body,
+					      impl_header_module_previous);
+		  }
+		  break;
+		  
+		case AST_Decl::NT_interface:
+		  {
+		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    
+		    // Initialisation of the variables used in
+		    // the interface file
+		    string impl_header_interface_previous = "";
+		    string impl_header_interface_body = "";
+		    string impl_header_interface_with_string;
+		    dep_list impl_header_interface_with;
+		    
+		    // Computing the interface output
+		    interface->produce_skel_ads (impl_header_interface_with,
+						 impl_header_interface_body,
+						 impl_header_interface_previous);
+		    impl_header_interface_with_string = *impl_header_interface_with.produce ("with ");
+		    
+		    // computing the interface file name
+		    string impl_header_interface_file_name =
+		      remove_dot (interface->get_ada_full_name ())+"-skel.ads";
+		    char *lower_case_name = lower (impl_header_interface_file_name.c_str ());
+		    ofstream impl_header_interface_file (lower_case_name); 
+		    delete[] lower_case_name;
+		    
+		    // writing the strings in the file
+		    impl_header_interface_file << impl_header_interface_with_string;
+		    impl_header_interface_file << impl_header_interface_previous;    
+		    impl_header_interface_file << impl_header_interface_body;
+		    impl_header_interface_file.close ();
+		  }
+		  
+		default:
+		  break;
+		} // end of the switch
+	    }
+	  
+	  impl_head_activator.next ();
+	} // end of the loop
+    }
+    
+    //////////////////////////////////
+    // body of the implementation file
+    
+    {
+      UTL_ScopeActiveIterator impl_body_activator (this, UTL_Scope::IK_decls);
+      
+      while (!impl_body_activator.is_done ())
+	{
+	  AST_Decl *d = impl_body_activator.item ();
+	  
+	  if (d->in_main_file ())     // only to take the node issue from the idl file
+	    {
+	      switch (d->node_type ())
+		{
+		case AST_Decl::NT_module:
+		  {
+		    adabe_module *module = adabe_module::narrow_from_decl (d);
+		    
+		    // dummy variables that maybe suppressed
+		    string impl_body_module_previous = "";
+		    string impl_body_module_body     = "";
+		    string impl_body_module_with_string;
+		    dep_list impl_body_module_with;
+		    
+		    // tries to find interface in the module
+		    module->produce_skel_adb (impl_body_module_with, impl_body_module_body,
+					      impl_body_module_previous);
+		  }
+		  break;
+		  
+		case AST_Decl::NT_interface:
+		  {
+		    // Initialisation of the variables used in the interface file
+		    adabe_interface *interface = adabe_interface::narrow_from_decl (d);
+		    string impl_body_interface_previous = "";
+		    string impl_body_interface_body = "";
+		    string impl_body_interface_with_string;
+		    dep_list impl_body_interface_with;
+		    
+		    // computing the interface string
+		    interface->produce_skel_adb (impl_body_interface_with, impl_body_interface_body,
+						 impl_body_interface_previous);
+		    impl_body_interface_with_string = *impl_body_interface_with.produce ("with ");
+		    
+		    // computing the file name
+		    string impl_body_interface_file_name =
+			  remove_dot (interface->get_ada_full_name ())+"-skel.adb";
+		    char *lower_case_name = lower (impl_body_interface_file_name.c_str ());
+		    ofstream impl_body_interface_file (lower_case_name); 
+		    delete[] lower_case_name;
+		    
+		    // writing in the file
+		    impl_body_interface_file << impl_body_interface_with_string;
+		    impl_body_interface_file << impl_body_interface_previous;    
+		    impl_body_interface_file << impl_body_interface_body;
+		    impl_body_interface_file.close ();
+		  }
+		  
+		default:
+		  break;
+		} // end of the switch
+	    }
+	  impl_body_activator.next ();
+	} // end of the loop
+    }
     
     set_undefined ();
     // Put the mark in all of the nodes to "undefined"

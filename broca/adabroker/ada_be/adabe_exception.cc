@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -136,12 +136,12 @@ adabe_exception::produce_adb (dep_list & with,
 }
 
 //////////////////////////////////////////////////////////////////
-////////////////       produce_impl_adb       ////////////////////
+////////////////       produce_skel_adb       ////////////////////
 //////////////////////////////////////////////////////////////////
-//  This method is called by adabe_operation::produce_impl_adb to create
+//  This method is called by adabe_operation::produce_skel_adb to create
 //  the code to transform a raised Ada exception into a marshalled exception.
 void
-adabe_exception::produce_impl_adb (dep_list & with,
+adabe_exception::produce_skel_adb (dep_list & with,
 				   string   & body)
 {
   UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);

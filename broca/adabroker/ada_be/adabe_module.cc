@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -215,7 +215,7 @@ adabe_module::produce_adb (dep_list & with,
 }
 
 void
-adabe_module::produce_impl_ads (dep_list & with,
+adabe_module::produce_skel_ads (dep_list & with,
 				string   & body,
 				string   & previousdefinition)
   // does nothing except lauching produce imp_ads for the interfaces
@@ -245,7 +245,7 @@ adabe_module::produce_impl_ads (dep_list & with,
 	    string module_body = "";
 	    dep_list module_with;
 	    
-	    module->produce_impl_ads
+	    module->produce_skel_ads
 	      (module_with, module_body, module_previous);
 	  }
 	  break;
@@ -258,12 +258,12 @@ adabe_module::produce_impl_ads (dep_list & with,
 	    string interface_with_string;
 	    dep_list interface_with;
 
-	    interface->produce_impl_ads
+	    interface->produce_skel_ads
 	      (interface_with, interface_body, interface_previous);
 	    interface_with_string = *interface_with.produce ("with ");
 	    
 	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + "-impl.ads";
+	      remove_dot (interface->get_ada_full_name ()) + "-skel.ads";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
 	    ofstream interface_file (lower_case_name); 
 	    delete[] lower_case_name;
@@ -280,7 +280,7 @@ adabe_module::produce_impl_ads (dep_list & with,
     }
 }
 void
-adabe_module::produce_impl_adb (dep_list & with,
+adabe_module::produce_skel_adb (dep_list & with,
 				string   & body,
 				string   & previousdefinition)
   // does nothing except lauching produce adb for the interfaces
@@ -310,7 +310,7 @@ adabe_module::produce_impl_adb (dep_list & with,
 	    string module_body = "";
 	    dep_list module_with;
 	    
-	    module->produce_impl_adb
+	    module->produce_skel_adb
 	      (module_with, module_body, module_previous);
 	  }
 	  break;
@@ -324,13 +324,13 @@ adabe_module::produce_impl_adb (dep_list & with,
 	    string interface_use_string;
 	    dep_list interface_with;
 
-	    interface->produce_impl_adb
+	    interface->produce_skel_adb
 	      (interface_with, interface_body, interface_previous);
 	    interface_with_string = *interface_with.produce ("with ");
 	    interface_use_string = *interface_with.produce ("use ");
 	    
 	    string interface_file_name =
-	      remove_dot (interface->get_ada_full_name ()) + "-impl.adb";
+	      remove_dot (interface->get_ada_full_name ()) + "-skel.adb";
 	    char *lower_case_name = lower (interface_file_name.c_str ());
 	    ofstream interface_file (lower_case_name); 
 	    delete[] lower_case_name;

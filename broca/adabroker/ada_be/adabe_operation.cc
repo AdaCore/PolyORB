@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.5 $
+//                            $Revision: 1.6 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -348,10 +348,10 @@ adabe_operation::produce_adb (dep_list & with,
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_ads     //////////////////////////////
+////////////////     produce_skel_ads     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_operation::produce_impl_ads (dep_list & with,
+adabe_operation::produce_skel_ads (dep_list & with,
 				   string   & body, 
 				   string   & previous)
   // this method produce the impl_ads_file,
@@ -824,10 +824,10 @@ adabe_operation::produce_proxy_adb (dep_list & with,
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_adb     //////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_operation::produce_impl_adb (dep_list & with,
+adabe_operation::produce_skel_adb (dep_list & with,
 				   string   & body,
 				   string   & private_definition)
   // Produce the skeleton_adb_file.
@@ -872,7 +872,7 @@ adabe_operation::produce_impl_adb (dep_list & with,
 
 	// Produce code for arguments. There is a direct cast because
 	// this procedure is not virtual.
-	dynamic_cast<adabe_argument *>(d)->produce_impl_adb
+	dynamic_cast<adabe_argument *>(d)->produce_skel_adb
 	  (with, in_decls, no_in, no_out,
 	   unmarshall, call_args, marshall, marshall_size);
       else throw adabe_internal_error
@@ -995,7 +995,7 @@ adabe_operation::produce_impl_adb (dep_list & with,
 	  AST_Decl *d = except_iterator.item ();
 	  
 	  // Dispatch them and catch them at the end.
-	  dynamic_cast<adabe_exception *>(d)->produce_impl_adb (with, tmp);
+	  dynamic_cast<adabe_exception *>(d)->produce_skel_adb (with, tmp);
 	  body += tmp;
 	  except_iterator.next ();
 	}

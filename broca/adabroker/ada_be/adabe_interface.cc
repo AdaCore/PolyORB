@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -532,10 +532,10 @@ adabe_interface::produce_adb (dep_list& with,
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_ads     //////////////////////////////
+////////////////     produce_skel_ads     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_interface::produce_impl_ads (dep_list & with,
+adabe_interface::produce_skel_ads (dep_list & with,
 				   string   & body,
 				   string   & previous)
   // Produce the impl.ads file for a given interface.
@@ -549,7 +549,7 @@ adabe_interface::produce_impl_ads (dep_list & with,
   with.add ("Broca.Types");
 
   // Header of the package.
-  body += "package " + get_ada_full_name () + ".Impl is\n\n";
+  body += "package " + get_ada_full_name () + ".Skel is\n\n";
 
   // Direct parent.
   adabe_interface * inher;
@@ -568,11 +568,11 @@ adabe_interface::produce_impl_ads (dep_list & with,
     
     // Add this ancestor to the with list.
     string corps = inher->get_ada_full_name ();
-    with.add (corps + ".Impl");
+    with.add (corps + ".Skel");
     
     // Define type Object as child of the ancestor Object type.
     body += "   type Object is abstract new " + corps;
-    body += ".Impl.Object with null record;\n\n";
+    body += ".Skel.Object with null record;\n\n";
 
     // Now loop over all other ancestors to redefine the subprograms.
     if (n_inherits () > 1) {
@@ -587,7 +587,7 @@ adabe_interface::produce_impl_ads (dep_list & with,
 	string corps2 = inher->get_ada_full_name ();
 	int len = corps2.length ();
 	
-	with.add (corps2 + ".Impl");
+	with.add (corps2 + ".Skel");
 	{
 	  // Loop over all declarations of the current parent.
 	  UTL_ScopeActiveIterator j (inher, UTL_Scope::IK_decls);
@@ -604,7 +604,7 @@ adabe_interface::produce_impl_ads (dep_list & with,
 		  {
 		    string tempo1 = "";
 		    string tempo2 = "";
-		    e->produce_impl_ads (with, tempo1, tempo2);
+		    e->produce_skel_ads (with, tempo1, tempo2);
 		    tmp += tempo2 + tempo1;
 		  }
 		  break;
@@ -639,7 +639,7 @@ adabe_interface::produce_impl_ads (dep_list & with,
 
 	    // Get current declaration as an adabe_name object and
 	    // produce code.
-	    dynamic_cast<adabe_name *>(d)->produce_impl_ads (with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_skel_ads (with, tmp1, tmp2);
 
 	    // Add code to file.
 	    body += tmp2 + tmp1;
@@ -665,14 +665,14 @@ adabe_interface::produce_impl_ads (dep_list & with,
     "      Stream : in out Broca.Types.Buffer_Descriptor);\n";
 
   // End of the package
-  body += "end " + get_ada_full_name () + ".Impl;\n";
+  body += "end " + get_ada_full_name () + ".Skel;\n";
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_adb     //////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_interface::produce_impl_adb (dep_list & with,
+adabe_interface::produce_skel_adb (dep_list & with,
 				   string   & body,
 				   string   & previous)
   // This method produces the skel.adb file for a given interface
@@ -688,7 +688,7 @@ adabe_interface::produce_impl_adb (dep_list & with,
       adabe_interface *inher_0 =
 	adabe_interface::narrow_from_decl (inherits ()[0]);
       corps1 = inher_0->get_ada_full_name ();
-      with.add (corps1 + ".Impl");
+      with.add (corps1 + ".Skel");
     }
   
   // Add corresponding marshal packages to the with clauses.
@@ -702,7 +702,7 @@ adabe_interface::produce_impl_adb (dep_list & with,
   with.add ("Broca.Exceptions");
 
   // Header of the package.
-  body += "package body " + get_ada_full_name () + ".Impl is\n\n";
+  body += "package body " + get_ada_full_name () + ".Skel is\n\n";
 
   // This is used for redispatching.
   // FIXME: not very elegant.
@@ -754,7 +754,7 @@ adabe_interface::produce_impl_adb (dep_list & with,
 
 	    // Get current declaration as an adabe_name object and
 	    // produce code.
-	    dynamic_cast<adabe_name *>(d)->produce_impl_adb (with, tmp1, tmp2);
+	    dynamic_cast<adabe_name *>(d)->produce_skel_adb (with, tmp1, tmp2);
 
 	    // Add it to the file.
 	    body += tmp1;
@@ -798,7 +798,7 @@ adabe_interface::produce_impl_adb (dep_list & with,
 		{
 		  string tempo1 = "";
 		  string tempo2 = "";
-		  e->produce_impl_adb (with, tempo1, tempo2);
+		  e->produce_skel_adb (with, tempo1, tempo2);
 		  body += tempo2 + tempo1;
 		}
 		break;
@@ -817,13 +817,13 @@ adabe_interface::produce_impl_adb (dep_list & with,
   else
     {
       body += 
-	"      " + corps1 + ".Impl.Dispatch\n"
+	"      " + corps1 + ".Skel.Dispatch\n"
 	"         (Obj, Operation, Request_Id, Reponse_Expected, Stream);\n";
     }
   body += "   end Giop_Dispatch;\n\n";
 
   // end of the package
-  body += "end " + get_ada_full_name () + ".Impl;\n";
+  body += "end " + get_ada_full_name () + ".Skel;\n";
 }
 
 

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -123,10 +123,10 @@ adabe_attribute::produce_adb (dep_list & with,
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_ads     //////////////////////////////
+////////////////     produce_skel_ads     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_attribute::produce_impl_ads (dep_list & with,
+adabe_attribute::produce_skel_ads (dep_list & with,
 				   string   & body,
 				   string   & previous)
 {
@@ -151,10 +151,10 @@ adabe_attribute::produce_impl_ads (dep_list & with,
 }
 
 ////////////////////////////////////////////////////////////////////////
-////////////////     produce_impl_adb     //////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_attribute::produce_impl_adb (dep_list & with,
+adabe_attribute::produce_skel_adb (dep_list & with,
 				   string   & body,
 				   string   & previous)
 {
