@@ -157,13 +157,18 @@ package Backend.BE_Ada.Nutils is
       P_Arg_List,
       P_Arg_Modes,
       P_Argument,
+      P_Conflicts,
       P_Default_Sys_Member,
+      P_Depends,
       P_Exception_Info,
       P_From,
+      P_Implecit,
+      P_Init,
       P_Item,
       P_Logical_Type_Id,
       P_Name,
       P_Operation,
+      P_Provides,
       P_Repository_Id,
       P_Req,
       P_Request,
@@ -219,8 +224,9 @@ package Backend.BE_Ada.Nutils is
    CN : array (Component_Id) of Name_Id;
 
    type Attribute_Id is
-     (A_First,
+     (A_Access,
       A_CLASS,
+      A_First,
       A_Pos,
       A_Val);
 
@@ -423,6 +429,12 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Pragma_Statement
      (Expression : Node_Id)
+     return Node_Id;
+
+   function Make_Qualified_Expression
+     (Subtype_Mark  : Node_Id;
+      Expression    : Node_Id := No_Node;
+      Aggregate     : Node_Id)
      return Node_Id;
 
    function Make_Record_Aggregate

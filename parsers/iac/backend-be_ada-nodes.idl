@@ -333,6 +333,11 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Right_Expr;
   };
 
+  interface Qualified_Expression : Node_Id {
+    Node_Id    Subtype_Mark;
+    Node_Id    Expression; 
+    Node_Id    Aggregate; 
+  };
 
   /**************/
   /* Base types */

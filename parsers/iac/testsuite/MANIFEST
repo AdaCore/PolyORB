@@ -1,8 +1,8 @@
 # Tests from Ada backend
 ada0001/tin.idl
 ada0002/tin.idl
-ada0003/tin.idl
-ada0004/tin.idl
+#ada0003/tin.idl
+#ada0004/tin.idl
 #ada0005/tin.idl
 #ada0006/tin.idl
 #ada0007/tin.idl

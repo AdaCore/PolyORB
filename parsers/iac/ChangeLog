@@ -1,3 +1,17 @@
+2004-08-10  Saber Souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-runtime.ads: Apply gnat style coding. Add runtime entities.
+
+	* backend-be_ada-generator.adb: Generate Qualified_Expression. 
+
+	* backend-be_ada-nutils.adb: Add Make_Qualified_Expression. Add
+	parameters entities names. 
+
+	* backend-be_ada-helpers.adb: Add Deferred_Initialization
+	body. Add helper package initialization.
+
+	* optimisation.txt : Optimisation des stub. 
+	
 2004-08-09  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-impls.adb: Link the Setter spec node to the

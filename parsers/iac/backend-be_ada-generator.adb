@@ -36,6 +36,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Parameter (N : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
    procedure Generate_Pragma_Statement (N : Node_Id);
+   procedure Generate_Qualified_Expression (N : Node_Id);
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
@@ -131,6 +132,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Pragma_Statement =>
             Generate_Pragma_Statement (N);
+
+         when K_Qualified_Expression =>
+            Generate_Qualified_Expression (N);
 
          when K_Record_Aggregate =>
             Generate_Record_Aggregate (N);
@@ -945,6 +949,20 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Generate (Expression (N));
    end Generate_Pragma_Statement;
+
+   -----------------------------------
+   -- Generate_Qualified_Expression --
+   -----------------------------------
+
+   procedure Generate_Qualified_Expression (N : Node_Id) is
+   begin
+      Generate (Subtype_Mark (N));
+      Write_Line (Tok_Apostrophe);
+      Increment_Indentation;
+      Write_Indentation (-1);
+      Generate (Aggregate (N));
+      Decrement_Indentation;
+   end Generate_Qualified_Expression;
 
    -------------------------------
    -- Generate_Record_Aggregate --

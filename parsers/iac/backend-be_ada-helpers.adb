@@ -506,8 +506,8 @@ package body Backend.BE_Ada.Helpers is
          Entity_TC_Name   : Name_Id;
          Entity_Name_V    : Value_Id;
          Entity_Rep_Id_V  : Value_Id;
-         Declarative_Part : List_Id := New_List (K_List_Id);
-         Statements       : List_Id := New_List (K_List_Id);
+         Declarative_Part : constant List_Id := New_List (K_List_Id);
+         Statements       : constant List_Id := New_List (K_List_Id);
       begin
          Stub :=  Stub_Node (BE_Node (Identifier (E)));
          Entity_Rep_Id_V := BEN.Value (BEN.Expression (Next_Node (Stub)));
@@ -515,11 +515,12 @@ package body Backend.BE_Ada.Helpers is
 
          case FEN.Kind (E) is
             when K_Interface_Declaration =>
-             Stub := Package_Declaration
+               Stub := Package_Declaration
                  (BEN.Parent (Stub));
-             Helper := Next_Node (Next_Node (Helper));
+               Helper := Next_Node (Next_Node (Helper));
+
             when others =>
-               raise Program_Error;
+               null;
          end case;
 
          --  Name_U declaration
@@ -544,7 +545,7 @@ package body Backend.BE_Ada.Helpers is
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
                declare
-                  Enumerators : List_Id :=
+                  Enumerators : constant List_Id :=
                     Enumeration_Literals (Stub);
                   Enum_Item   : Node_Id := First_Node (Enumerators);
                   Var_Name    : Name_Id;
@@ -554,7 +555,7 @@ package body Backend.BE_Ada.Helpers is
                         (Image (BEN.Value (Enum_Item)), VN (V_Name));
                      N := Declare_Name (Var_Name, BEN.Value (Enum_Item));
                      Append_Node_To_List (N, Declarative_Part);
-                     N := Add_Parameter (Entity_Tc_Name, Var_Name);
+                     N := Add_Parameter (Entity_TC_Name, Var_Name);
                      Append_Node_To_List (N, Statements);
                      Enum_Item := Next_Node (Enum_Item);
                      exit when No (Enum_Item);
@@ -696,13 +697,70 @@ package body Backend.BE_Ada.Helpers is
       ---------------------------
 
       procedure Helper_Initialization (L : List_Id) is
+         N         : Node_Id;
+         V         : Value_Id;
+         Aggregates : List_Id;
       begin
+         Aggregates := New_List (K_List_Id);
+         N := Defining_Identifier
+           (Package_Declaration (Current_Package));
+         V := New_String_Value
+           (Fully_Qualified_Name (N), False);
          N := Make_Component_Association
-           (Defining_Identifier =>
+           (Selector_Name  =>
               Make_Defining_Identifier (PN (P_Name)),
             Expression          =>
-              Make_Literal (New_String_Value ("Helper", False)));
+              Make_Literal (V));
+         Append_Node_To_List (N, Aggregates);
 
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Conflicts)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Depends)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Provides)),
+            Expression          =>
+              RE (RE_Empty));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Implecit)),
+            Expression          =>
+              RE (RE_False));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Component_Association
+           (Selector_Name  =>
+              Make_Defining_Identifier (PN (P_Init)),
+            Expression          =>
+              Make_Type_Attribute
+            (Make_Designator (SN (S_Deferred_Initialization)),
+             A_Access));
+         Append_Node_To_List (N, Aggregates);
+
+         N := Make_Record_Aggregate
+           (Aggregates);
+
+         N := Make_Qualified_Expression
+           (Subtype_Mark => RE (RE_Module_Info),
+            Aggregate    => N);
+
+         N := Make_Subprogram_Call
+           (RE (RE_Register_Module),
+            Make_List_Id (N));
+         Append_Node_To_List (N, L);
       end Helper_Initialization;
 
       -----------------
@@ -1149,12 +1207,16 @@ package body Backend.BE_Ada.Helpers is
       ----------------------------
 
       procedure Visit_Enumeration_Type (E : Node_Id) is
+         N : Node_Id;
       begin
          Set_Helper_Body;
          Append_Node_To_List
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
+
+         N := Deferred_Initialization_Block (E);
+         Append_Node_To_List (N, Deferred_Initialization_Body);
       end Visit_Enumeration_Type;
 
       ---------------------------------
@@ -1177,17 +1239,24 @@ package body Backend.BE_Ada.Helpers is
            (From_Any_Body (E), Statements (Current_Package));
          Append_Node_To_List
            (To_Any_Body (E), Statements (Current_Package));
+
          N := First_Entity (Interface_Body (E));
          while Present (N) loop
             Visit (N);
             N := Next_Entity (N);
          end loop;
+
+         N := Deferred_Initialization_Block (E);
+         Append_Node_To_List (N, Deferred_Initialization_Body);
+
          N := Make_Subprogram_Implementation
            (Make_Subprogram_Specification
             (Make_Defining_Identifier (SN (S_Deferred_Initialization)),
              No_List),
             No_List,
             Deferred_Initialization_Body);
+         Append_Node_To_List (N, Statements (Current_Package));
+
          Helper_Initialization (Package_Initializarion);
          Set_Package_Initialization (Current_Package, Package_Initializarion);
          Pop_Entity;

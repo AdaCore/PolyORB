@@ -982,6 +982,25 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Pragma_Statement;
 
+   -------------------------------
+   -- Make_Qualified_Expression --
+   -------------------------------
+
+   function Make_Qualified_Expression
+     (Subtype_Mark  : Node_Id;
+      Expression    : Node_Id := No_Node;
+      Aggregate     : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Qualified_Expression);
+      Set_Subtype_Mark (N, Subtype_Mark);
+      Set_Expression (N, Expression);
+      Set_Aggregate (N, Aggregate);
+      return N;
+   end Make_Qualified_Expression;
+
    ---------------------------
    -- Make_Record_Aggregate --
    ---------------------------
