@@ -29,6 +29,7 @@ with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.References;
+with PolyORB.Servants;
 with PolyORB.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -895,7 +896,7 @@ package body System.PolyORB_Interface is
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all));
 
-      POA.Default_Servant := PolyORB.Objects.Servant_Access
+      POA.Default_Servant := PolyORB.Servants.Servant_Access
         (Default_Servant);
 
       Default_Servant.Object_Adapter :=

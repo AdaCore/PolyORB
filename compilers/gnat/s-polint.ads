@@ -11,6 +11,7 @@ with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -79,7 +80,7 @@ package System.PolyORB_Interface is
    type Private_Info is abstract tagged null record;
    type Private_Info_Access is access all Private_Info'Class;
 
-   type Servant is new PolyORB.Objects.Servant with record
+   type Servant is new PolyORB.Servants.Servant with record
       Handler        : Request_Handler_Access;
       --  The dispatching routine.
 
