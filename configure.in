@@ -401,6 +401,7 @@ AC_OUTPUT([
 	src/giop/Makefile
 	src/giop/iiop/Makefile
 	src/giop/diop/Makefile
+	src/giop/miop/Makefile
 	src/moma/Makefile
 	src/soap/Makefile
 	src/srp/Makefile
@@ -469,7 +470,7 @@ ${RM} ${PROTO_SERVER_WITHS}
 # build directory (only necessary when source dir != build dir).
 #
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc 
+for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc 
 do
   if test ! -f "$a"
   then

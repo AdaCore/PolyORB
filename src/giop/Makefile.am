@@ -1,4 +1,4 @@
-SUBDIRS = . iiop diop
+SUBDIRS = . iiop diop miop
 
 include $(srcdir)/../Makefile.common
 
