@@ -58,7 +58,20 @@ package body PolyORB.Initialization is
    type Module;
    type Module_Access is access all Module;
 
-   package Dep_Lists is new PolyORB.Utils.Chained_Lists (Module_Access);
+   package Module_Lists is new PolyORB.Utils.Chained_Lists (Module_Access);
+   use Module_Lists;
+
+   type Dependency is record
+      Target   : Module_Access;
+      --  The module being depended upon.
+
+      Optional : Boolean;
+      --  If True, failure to initialize the target is not a
+      --  fatal error.
+
+   end record;
+
+   package Dep_Lists is new PolyORB.Utils.Chained_Lists (Dependency);
    use Dep_Lists;
 
    type Module (Virtual : Boolean) is record
@@ -78,7 +91,7 @@ package body PolyORB.Initialization is
    end record;
 
    Initialized : Boolean := False;
-   World : Dep_Lists.List;
+   World : Module_Lists.List;
    package World_Dict is new PolyORB.Dynamic_Dict (Value => Module_Access);
 
    Implicit_Dependencies : Dep_Lists.List;
@@ -157,7 +170,9 @@ package body PolyORB.Initialization is
       begin
          Append (World, New_M);
          if Info.Implicit then
-            Append (Implicit_Dependencies, New_M);
+            Append (Implicit_Dependencies, Dependency'(
+              Target   => New_M,
+              Optional => False));
          end if;
       end;
    end Register_Module;
@@ -188,7 +203,7 @@ package body PolyORB.Initialization is
 
    procedure Check_Conflicts
    is
-      MI : Dep_Lists.Iterator := First (World);
+      MI : Module_Lists.Iterator := First (World);
       SI : String_Lists.Iterator;
 
       Current     : Module_Access;
@@ -215,7 +230,9 @@ package body PolyORB.Initialization is
                   Virtual.Name := Value (SI);
                   Enter_Module_Name (Name, Virtual);
                end if;
-               Prepend (Virtual.Deps, Current);
+               Prepend (Virtual.Deps, Dependency'(
+                 Target   => Current,
+                 Optional => False));
             end;
 
             Next (SI);
@@ -254,9 +271,9 @@ package body PolyORB.Initialization is
 
    procedure Resolve_Dependencies
    is
-      MI : Dep_Lists.Iterator := First (World);
+      MI  : Module_Lists.Iterator := First (World);
       IDI : Dep_Lists.Iterator;
-      SI : String_Lists.Iterator;
+      SI  : String_Lists.Iterator;
       Current : Module_Access;
    begin
       while not Last (MI) loop
@@ -284,11 +301,14 @@ package body PolyORB.Initialization is
                     (Dep_Name (Dep_Name'First .. Last));
 
                   if Dep_Module /= null then
-                     Prepend (Current.Deps, Dep_Module);
+                     Prepend (Current.Deps, Dependency'(
+                       Target   => Dep_Module,
+                       Optional => Optional));
 
                   elsif not Optional then
                      Raise_Unresolved_Dependency
-                       (From => Current.Info.Name.all, Upon => Dep_Name);
+                       (From => Module_Name (Current).all,
+                        Upon => Dep_Name);
                   end if;
                end;
 
@@ -317,7 +337,8 @@ package body PolyORB.Initialization is
       Circular_Dependency_Detected : out Boolean)
    is
       MI  : Dep_Lists.Iterator;
-      Dep : Module_Access;
+      Dep : Dependency;
+      One_Dep_Visited : Boolean := False;
    begin
       if M.In_Progress then
          O (M.Info.Name.all & " is part of a cycle:", Critical);
@@ -342,25 +363,36 @@ package body PolyORB.Initialization is
 
          pragma Debug (O ("DEP: """
                           & Module_Name (M).all & """ -> """
-                          & Module_Name (Dep).all & """;"));
+                          & Module_Name (Dep.Target).all & """;"));
 
-         if not Dep.Visited then
+         if not Dep.Target.Visited then
             begin
-               Visit (Dep, Circular_Dependency_Detected);
+               Visit (Dep.Target, Circular_Dependency_Detected);
                if Circular_Dependency_Detected then
-                  O ("... depended upon by " & Dep.Info.Name.all, Critical);
+                  O ("... depended upon by " & Module_Name (Dep.Target).all,
+                     Critical);
                   return;
                end if;
 
-               if not Dep.Visited then
+               if not (False
+                 or else Dep.Target.Visited
+                 or else Dep.Optional
+                 or else M.Virtual)
+               then
 
-                  --  Case of a dependency that is disabled.
+                  --  Non-optional dependency of a non-virtual module
+                  --  upon a module that is disabled.
 
                   Raise_Unresolved_Dependency
-                    (From => M.Name.all, Upon => Dep.Name.all);
+                    (From => Module_Name (M).all,
+                     Upon => Module_Name (Dep.Target).all);
                   return;
                end if;
             end;
+         end if;
+
+         if Dep.Target.Visited then
+            One_Dep_Visited := True;
          end if;
 
          Next (MI);
@@ -368,7 +400,19 @@ package body PolyORB.Initialization is
 
       pragma Debug (O ("Processed dependencies of " & Module_Name (M).all));
 
-      if not M.Virtual then
+      if M.Virtual then
+
+         if not One_Dep_Visited then
+
+            --  For a virtual module to be present and initialized, one of its
+            --  providers must have been initialized.
+
+            Raise_Unresolved_Dependency
+              (From => Module_Name (M).all, Upon => "<providers>");
+
+         end if;
+
+      else
          begin
             M.Info.Init.all;
          exception
@@ -377,6 +421,7 @@ package body PolyORB.Initialization is
                   & Ada.Exceptions.Exception_Information (E), Warning);
                raise;
          end;
+
       end if;
 
       M.Visited := True;
@@ -389,7 +434,7 @@ package body PolyORB.Initialization is
 
    procedure Run_Initializers
    is
-      MI : Dep_Lists.Iterator := First (World);
+      MI : Module_Lists.Iterator := First (World);
       M  : Module_Access;
 
       Circular_Dependency_Detected : Boolean;
