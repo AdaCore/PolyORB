@@ -613,10 +613,11 @@ package body XE_Back is
       Executable : File_Name_Type;
       Directory  : Directory_Name_Type;
       I_Part_Dir : String_Access;
-      Comp_Args  : String_List (1 .. 6);
+      Comp_Args  : String_List (1 .. 8);
       Make_Args  : String_List (1 .. 8);
       Sfile      : File_Name_Type;
       Prj_Fname  : File_Name_Type;
+      Length     : Natural := 6;
 
    begin
       Executable := Current.Executable_File;
@@ -628,10 +629,16 @@ package body XE_Back is
       Get_Name_String_And_Append (Directory);
       I_Part_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
+      --  Give the priority to partition and stub directory against
+      --  current directory.
+
       Comp_Args (1) := E_Current_Dir;
       Comp_Args (2) := I_Part_Dir;
       Comp_Args (3) := I_Stub_Dir;
       Comp_Args (4) := I_Current_Dir;
+
+      --  If there is no project file, then save ali and object files
+      --  in partition directory.
 
       if Project_File_Name = null then
          Comp_Args (5) := Object_Dir_Flag;
@@ -639,40 +646,60 @@ package body XE_Back is
 
       else
          Comp_Args (5) := Project_File_Flag;
-         Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Get_Name_String (Prj_Fname);
-         Comp_Args (6) := new String'(Name_Buffer (1 .. Name_Len));
+         Prj_Fname     := Dir (Directory, Part_Prj_File_Name);
+         Comp_Args (6) := new String'(Get_Name_String (Prj_Fname));
       end if;
+
+      --  Compile GARLIC elaboration file
 
       Sfile := Elaboration_File & ADB_Suffix_Id;
       if Project_File_Name = null then
          Sfile := Dir (Directory, Sfile);
       end if;
-      Compile (Sfile, Comp_Args);
+      Compile (Sfile, Comp_Args (1 .. Length));
+
+      --  Compile protocol configuration file if any
 
       Sfile := Protocol_Config_File & ADB_Suffix_Id;
       if Is_Regular_File (Dir (Directory, Sfile)) then
          if Project_File_Name = null then
             Sfile := Dir (Directory, Sfile);
          end if;
-         Compile (Sfile, Comp_Args);
+         Compile (Sfile, Comp_Args (1 .. Length));
       end if;
+
+      --  Compile storage support configuration file if any
 
       Sfile := Storage_Config_File & ADB_Suffix_Id;
       if Is_Regular_File (Dir (Directory, Sfile)) then
          if Project_File_Name = null then
             Sfile := Dir (Directory, Sfile);
          end if;
-         Compile (Sfile, Comp_Args);
+         Compile (Sfile, Comp_Args (1 .. Length));
       end if;
+
+      --  We already checked the consistency of all the partition
+      --  units. In case of an inconsistency of exception mode, we may
+      --  have to rebuild some parts of garlic (units configured just
+      --  for this partition). Note that some parts of GARLIC may have
+      --  been already recompiled when the monolithic application was
+      --  initially build. Some bodies may be missing as they are
+      --  assigned to partitions we do not want to build. So compile
+      --  silently and do not exit on errors (keep going).
 
       Sfile := Partition_Main_File & ADB_Suffix_Id;
       if Project_File_Name = null then
          Sfile := Dir (Directory, Sfile);
+         Comp_Args (7) := Compile_Only_Flag;
+         Comp_Args (8) := Keep_Going_Flag;
+         Length := 8;
       end if;
-      Compile (Sfile, Comp_Args);
+      Build (Sfile, Comp_Args (1 .. Length), Fatal => False, Silent => True);
 
       Free (Comp_Args (6));
+
+      --  Now we just want to bind and link as the ALI files are now
+      --  consistent.
 
       Make_Args (1) := E_Current_Dir;
       Make_Args (2) := I_Part_Dir;
@@ -683,14 +710,12 @@ package body XE_Back is
 
       if Project_File_Name = null then
          Make_Args (7) := Output_Flag;
-         Get_Name_String (Executable);
-         Make_Args (8) := new String'(Name_Buffer (1 .. Name_Len));
+         Make_Args (8) := new String'(Get_Name_String (Executable));
 
       else
          Make_Args (7) := Project_File_Flag;
          Prj_Fname := Dir (Directory, Part_Prj_File_Name);
-         Get_Name_String (Prj_Fname);
-         Make_Args (8) := new String'(Name_Buffer (1 .. Name_Len));
+         Make_Args (8) := new String'(Get_Name_String (Prj_Fname));
       end if;
 
       Build (Sfile, Make_Args);
@@ -1068,7 +1093,7 @@ package body XE_Back is
             Arguments (3) := new String'(Name_Buffer (1 .. Name_Len));
          end if;
 
-         Compile (Full_Unit_File, Arguments);
+         Compile (Full_Unit_File, Arguments, Fatal => False, Silent => True);
 
          Free (Arguments (3));
       elsif not Quiet_Mode then
@@ -1216,6 +1241,13 @@ package body XE_Back is
       Success   : Boolean;
 
    begin
+      --  If all the partitions are not to build then do not build the
+      --  launcher partition.
+
+      if not Partitions.Table (Default_Partition_Id).To_Build then
+         return;
+      end if;
+
       if Default_Starter /= None_Import
         and then not Quiet_Mode
       then
@@ -1487,7 +1519,7 @@ package body XE_Back is
             Arguments (3)  := new String'(Name_Buffer (1 .. Name_Len));
          end if;
 
-         Compile (Full_Unit_File, Arguments, False);
+         Compile (Full_Unit_File, Arguments, Fatal => False, Silent => True);
 
          if Present (Part_Prj_Fname) then
             Free (Arguments (3));
