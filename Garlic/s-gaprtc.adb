@@ -35,8 +35,6 @@
 
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
 with Ada.Exceptions;                  use Ada.Exceptions;
-with Interfaces.C.Strings;
-pragma Warnings (Off, Interfaces.C.Strings);
 with System.Garlic.Constants;             use System.Garlic.Constants;
 with System.Garlic.Debug;                 use System.Garlic.Debug;
 with System.Garlic.Exceptions;            use System.Garlic.Exceptions;
@@ -71,7 +69,6 @@ package body System.Garlic.Protocols.Tcp is
    use Ada.Streams, System.Garlic.Protocols, System.Garlic.Types;
 
    package C renames Interfaces.C;
-   package Strings renames C.Strings;
    use type C.int;
    use type C.unsigned_short;
    --  Shortcuts

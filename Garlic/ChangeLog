@@ -1,3 +1,7 @@
+2000-08-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-gaprtc.adb: Remove Interfaces.C.Strings dependency. Fix 7807-007.
+
 2000-07-13  Samuel Tardieu <sam@inf.enst.fr>
 
 	* Makefile.am: Do not assume that the current directory is in the
