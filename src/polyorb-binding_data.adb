@@ -49,11 +49,25 @@ package body PolyORB.Binding_Data is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Finalize (P : in out Profile_Type)
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (P : in out Profile_Type)
    is
       use PolyORB.Objects;
    begin
       Free (P.Object_Id);
+   end Release;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (P : in out Profile_Type)
+   is
+   begin
+      Release (P);
    end Finalize;
 
    ---------------------
@@ -71,10 +85,7 @@ package body PolyORB.Binding_Data is
         (O ("Destroying profile of type "
             & Ada.Tags.External_Tag (P'Tag)));
 
-      Finalize (P.all);
-      --  For the case where P is not controlled, we have to call
-      --  Finalize explicitly
-
+      Release (P.all);
       Free (P);
    end Destroy_Profile;
 

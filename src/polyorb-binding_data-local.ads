@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,6 +47,7 @@ package PolyORB.Binding_Data.Local is
    procedure Initialize (P : in out Local_Profile_Type);
    procedure Finalize (P : in out Local_Profile_Type);
    procedure Duplicate (P1 : Local_Profile_Type; P2 : out Local_Profile_Type);
+   procedure Release (P : in out Local_Profile_Type);
 
    procedure Create_Local_Profile
      (Oid : Objects.Object_Id;

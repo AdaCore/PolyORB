@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -92,8 +92,7 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Finalize
      (P : in out IIOP_Profile_Type) is
    begin
-      Free (P.Object_Id);
-      Release_Contents (P.Components);
+      Release (P);
    end Finalize;
 
    ---------------
@@ -110,6 +109,17 @@ package body PolyORB.Binding_Data.IIOP is
          P2.Object_Id := null;
       end if;
    end Duplicate;
+
+   -------------
+   -- Release --
+   -------------
+
+   procedure Release (P : in out IIOP_Profile_Type)
+   is
+   begin
+      Free (P.Object_Id);
+      Release_Contents (P.Components);
+   end Release;
 
    ------------------
    -- Bind_Profile --
