@@ -91,7 +91,7 @@ package body System.Garlic.Streams is
 
    procedure Dump
      (Level  : in System.Garlic.Debug.Debug_Level;
-      Stream : in Ada.Streams.Stream_Element_Array;
+      Stream : access Ada.Streams.Stream_Element_Array;
       Key    : in System.Garlic.Debug.Debug_Key) is
       Index   : Natural := 1;
       Output  : Output_Line;

@@ -70,11 +70,11 @@ pragma Elaborate (System.RPC.Stream_IO);
 
 package body System.RPC is
 
+   use Ada.Streams;
+   use System.Garlic.Units.Table;
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
    use type System.Garlic.Types.Partition_ID;
-
-   use System.Garlic.Units.Table;
 
    --  This package needs extra comments ???
 
@@ -85,9 +85,6 @@ package body System.RPC is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   use Ada.Streams;
-   --  Shortcuts
 
    RPC_Allowed : Boolean := False;
    RPC_Barrier : Barrier_Type;

@@ -101,7 +101,7 @@ package System.Garlic.Streams is
 
    procedure Dump
      (Level  : in System.Garlic.Debug.Debug_Level;
-      Stream : in Ada.Streams.Stream_Element_Array;
+      Stream : access Ada.Streams.Stream_Element_Array;
       Key    : in System.Garlic.Debug.Debug_Key);
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.

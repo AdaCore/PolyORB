@@ -84,12 +84,11 @@ private
    pragma Inline (Read);
    pragma Inline (Write);
 
-   type Params_Stream_Type (Initial_Size : Ada.Streams.Stream_Element_Count) is
-     new Ada.Streams.Root_Stream_Type with record
+   type Params_Stream_Type
+     (Initial_Size : Ada.Streams.Stream_Element_Count)
+   is new Ada.Streams.Root_Stream_Type with record
         X : aliased System.Garlic.Streams.Params_Stream_Type (Initial_Size);
-     end record;
-
-   type Params_Stream_Access is access Params_Stream_Type;
+   end record;
 
    type Request_Id is mod 2 ** 8;
    --  The Request_Id identifies the request being sent

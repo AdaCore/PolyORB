@@ -225,9 +225,11 @@ package System.Garlic.Heart is
 
    procedure Has_Arrived
      (Partition     : in Types.Partition_ID;
-      Filtered_Data : in Ada.Streams.Stream_Element_Array);
+      Filtered_Data : access Ada.Streams.Stream_Element_Array;
+      Offset        : in Ada.Streams.Stream_Element_Count := 0);
    --  Called by a protocol to signal that something has arrived. Data has
-   --  not been unfiltered yet.
+   --  not been unfiltered yet. Offset represents the number of bytes that
+   --  should not been considered.
 
    ----------------
    -- PID server --

@@ -43,6 +43,8 @@ with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;         use System.Garlic.Protocols;
+with System.Garlic.Streams;           use System.Garlic.Streams;
+with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
 
 package body System.Garlic.Replay is
@@ -60,14 +62,6 @@ package body System.Garlic.Replay is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   type Trace_Type
-     (Length : Ada.Streams.Stream_Element_Count) is
-      record
-         Time : Ada.Real_Time.Time_Span;
-         Data : Ada.Streams.Stream_Element_Array (1 .. Length);
-         PID  : Types.Partition_ID := Null_Partition_ID;
-      end record;
 
    Trace_File : File_Type;
    --  Where to read the traces
@@ -103,7 +97,7 @@ package body System.Garlic.Replay is
          --  Read a new trace from file (new incoming message)
 
          declare
-            Trace : constant Trace_Type :=
+            Trace : Trace_Type :=
               Trace_Type'Input (Stream (Trace_File));
 
          begin
@@ -126,6 +120,7 @@ package body System.Garlic.Replay is
             --  Deliver message
 
             Has_Arrived (Trace.PID, Trace.Data);
+            Free (Trace.Data);
 
             pragma Debug (D (D_Debug, "Message delivered"));
          end;

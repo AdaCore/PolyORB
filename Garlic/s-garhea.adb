@@ -665,11 +665,14 @@ package body System.Garlic.Heart is
 
    procedure Has_Arrived
      (Partition     : in Partition_ID;
-      Filtered_Data : in Stream_Element_Array)
+      Filtered_Data : access Stream_Element_Array;
+      Offset        : in Ada.Streams.Stream_Element_Count := 0)
    is
       Operation         : Opcode;
+      First             : constant Stream_Element_Count :=
+        Filtered_Data'First + Offset;
       Real_Data         : Stream_Element_Array
-        renames Filtered_Data (Filtered_Data'First + 1 .. Filtered_Data'Last);
+        renames Filtered_Data (First + 1 .. Filtered_Data'Last);
       Unfiltered_Data   : Stream_Element_Access;
       Unfiltered_Stream : aliased Params_Stream_Type (Real_Data'Length);
    begin
@@ -686,7 +689,7 @@ package body System.Garlic.Heart is
 
       --  Read the opcode from the stream and check that it is valid
 
-      Operation := Opcode_Read (Filtered_Data (Filtered_Data'First));
+      Operation := Opcode_Read (Filtered_Data (First));
       if not Operation'Valid then
          pragma Debug
            (D (D_Debug, "Received unknown opcode"));
@@ -1131,7 +1134,8 @@ package body System.Garlic.Heart is
       if Partition = Get_My_Partition_ID_Immediately then
          pragma Debug (D (D_Debug, "Handling a All_Calls_Remote case"));
          Has_Arrived (Partition,
-                      Packet (Protocols.Unused_Space + 1 .. Packet'Last));
+                      Packet,
+                      Protocols.Unused_Space);
       else
          pragma Debug (D (D_Debug, "Calling the right protocol"));
          Protocols.Send (Get_Protocol (Partition), Partition, Packet);

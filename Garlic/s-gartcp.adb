@@ -773,10 +773,15 @@ package body System.Garlic.TCP is
    is
       Buffer : Stream_Element_Access;
    begin
+      pragma Debug (D (D_Debug, "Creating buffer"));
       Buffer := new Stream_Element_Array (1 .. Length);
+      pragma Debug (D (D_Debug, "Calling Physical_Receive"));
       Physical_Receive (FD, Buffer.all);
-      Has_Arrived (Partition, Buffer.all);
+      pragma Debug (D (D_Debug, "Calling Has_Arrived"));
+      Has_Arrived (Partition, Buffer);
+      pragma Debug (D (D_Debug, "Freeing buffer"));
       Free (Buffer);
+      pragma Debug (D (D_Debug, "Packet received and sent to heart"));
    end Receive_And_Send_To_Heart;
 
    ----------

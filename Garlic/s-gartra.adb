@@ -33,13 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;   use System.Garlic.Heart;
-with System.Garlic.Types;   use System.Garlic.Types;
 
 package body System.Garlic.Trace is
 
@@ -51,13 +49,7 @@ package body System.Garlic.Trace is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   type Trace_Type
-     (Length : Ada.Streams.Stream_Element_Count) is
-      record
-         Time : Ada.Real_Time.Time_Span;
-         Data : Ada.Streams.Stream_Element_Array (1 .. Length);
-         PID  : Types.Partition_ID := Null_Partition_ID;
-      end record;
+   use Ada.Real_Time, Ada.Streams, System.Garlic.Streams, System.Garlic.Types;
 
    Trace_File : File_Type;
    --  File containing the traces
@@ -83,14 +75,32 @@ package body System.Garlic.Trace is
       end if;
    end Initialize;
 
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read (S : access Root_Stream_Type'Class;
+                   T : out Trace_Type)
+   is
+      Count : Stream_Element_Count;
+   begin
+      Time_Span'Read (S, T.Time);
+      Stream_Element_Count'Read (S, Count);
+      T.Data := new Stream_Element_Array (1 .. Count);
+      for I in T.Data'Range loop
+         Stream_Element'Read (S, T.Data (I));
+      end loop;
+      Partition_ID'Read (S, T.PID);
+   end Read;
+
    ----------------
    -- Trace_Data --
    ----------------
 
    procedure Trace_Data
      (Partition : in Types.Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array) is
-      Trace : Trace_Type (Data'Length);
+      Data      : access Ada.Streams.Stream_Element_Array) is
+      Trace : Trace_Type;
       Date  : Time;
 
    begin
@@ -101,15 +111,17 @@ package body System.Garlic.Trace is
       Trace.Time := Date - Trace_Time;
       Trace_Time := Date;
 
-      Trace.Data := Data;
-      Trace.PID  := Partition;
+      Trace.Data     := new Stream_Element_Array (Data'Range);
+      Trace.Data.all := Data.all;
+      Trace.PID      := Partition;
 
       pragma Debug
         (D (D_Debug,
             "Writing trace from partition" & Trace.PID'Img &
-            " of length" & Trace.Length'Img));
+            " of length" & Trace.Data'Length'Img));
 
       Trace_Type'Output (Stream (Trace_File), Trace);
+      Free (Trace.Data);
    end Trace_Data;
 
    ------------------------
@@ -137,6 +149,23 @@ package body System.Garlic.Trace is
          Close (Trace_File);
       end if;
    end Shutdown;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write (S : access Root_Stream_Type'Class;
+                    T : in Trace_Type)
+   is
+   begin
+      pragma Assert (T.Data /= null);
+      Time_Span'Write (S, T.Time);
+      Stream_Element_Count'Write (S, T.Data'Length);
+      for I in T.Data'Range loop
+         Stream_Element'Write (S, T.Data (I));
+      end loop;
+      Partition_ID'Write (S, T.PID);
+   end Write;
 
 end System.Garlic.Trace;
 

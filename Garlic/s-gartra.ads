@@ -33,8 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Real_Time;
 with Ada.Streams;
 with System.Garlic.Heart;
+with System.Garlic.Streams;
 with System.Garlic.Types;
 
 package System.Garlic.Trace is
@@ -45,7 +47,7 @@ package System.Garlic.Trace is
 
    procedure Trace_Data
      (Partition : in Types.Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array);
+      Data      : access Ada.Streams.Stream_Element_Array);
    --  Trace the message Data (and the time that has passed since the
    --  previous recording) and record it in the partition trace file.
 
@@ -54,6 +56,20 @@ package System.Garlic.Trace is
 
    procedure Shutdown;
    --  Close trace file in trace mode
+
+   type Trace_Type is record
+      Time : Ada.Real_Time.Time_Span;
+      Data : System.Garlic.Streams.Stream_Element_Access;
+      PID  : System.Garlic.Types.Partition_ID :=
+        System.Garlic.Heart.Null_Partition_ID;
+   end record;
+
+   procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;
+                   T : out Trace_Type);
+   procedure Write (S : access Ada.Streams.Root_Stream_Type'Class;
+                    T : in Trace_Type);
+   for Trace_Type'Read use Read;
+   for Trace_Type'Write use Write;
 
 end System.Garlic.Trace;
 
