@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.14 $
+//                            $Revision: 1.15 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -662,13 +662,25 @@ adabe_name::is_marshal_imported (dep_list& with)
   switch (NT) {
 
   case AST_Decl::NT_interface:
-    if ((string) local_name ()->get_string () == "Object")  return 1;
-    else {
-	if (dynamic_cast<adabe_interface *>(this)->is_forwarded ()) {
-	    with.add ("use " + get_ada_full_name () + "_Forward");
-	} else {
-	    with.add (get_ada_full_name () + ".Stream");
-	}
+    if ((string) local_name ()->get_string () == "Object")
+	return 1;
+
+    with.add (get_ada_full_name () + ".Stream");
+    if (dynamic_cast<adabe_interface *>(this)->is_forwarded ()) {
+	adabe_name *enclosing_scope =
+	    dynamic_cast<adabe_name *>(defined_in ());
+	
+	enclosing_scope->is_imported (with);
+	
+	if (enclosing_scope->node_type () == NT_root)
+	    with.add ("use "
+		      + enclosing_scope->get_ada_full_name () + "."
+		      + get_ada_full_name () + "_Forward");
+	else
+	    with.add ("use "
+		      + get_ada_full_name () + "_Forward");
+    } else {
+	with.add (get_ada_full_name () + ".Stream");
     }
     return 1;
 
