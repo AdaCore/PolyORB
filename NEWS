@@ -4,6 +4,14 @@ Changes since GLADE 3.13a
 New Functionnalities
 --------------------
 
+*   GLADE run-time is now implemented on the top of GNAT.Sockets.
+
+*   GLADE run-time does not drag tasking when not necessary. If a
+    partition does not include any RCI or RT unit, then the partition
+    is said to be a pure client partition. If a pure client partition
+    does not drag tasking because of its user code, then the tasking
+    will not be drag by the PCS.
+
 *   The multi data storages feature is now available. It is now
     possible to define several data storage supports for shared
     passive units. Therefore, in the future, the file storage support
@@ -20,6 +28,11 @@ New Functionnalities
     by GNATDIST when no -O or -g flag is used on its command line at
     configure time. By default, no optimization at all is being done,
     as with GNAT.
+
+Bug Fixes
+---------
+
+*   A race condition is the stream storage pool has been fixed.
 
 Changes since GLADE 3.12a
 =========================
