@@ -24,7 +24,11 @@ DISTCLEANFILES = client server
 all-local: client server $(EXTRA)
 
 SUFFIXES = .idl .ads .adb
-.idl.ads .idl.adb: $(IDLAC)
+
+.idl.ads: $(IDLAC)
+	$(IDLAC) $<
+
+.idl.adb: $(IDLAC)
 	$(IDLAC) $<
 
 $(IDLAC): force
