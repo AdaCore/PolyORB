@@ -1079,8 +1079,10 @@ support/mkinstalldirs
 support/reconfig
 support/run_script.adb
 tools/Makefile.am
+tools/Makefile.in
 tools/Makefile.common
 tools/po_catref/Makefile.am
+tools/po_catref/Makefile.in
 tools/po_catref/common.adb
 tools/po_catref/common.ads
 tools/po_catref/output.adb
