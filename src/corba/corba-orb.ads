@@ -124,6 +124,8 @@ package CORBA.ORB is
    procedure Create_List
      (Count    : in     CORBA.Long;
       New_List :    out CORBA.NVList.Ref);
+   --  Implementation Note: the parameter Count is only a hint.
+   --  In this implementation, it is ignored.
 
    procedure Create_List
      (New_List : out CORBA.ExceptionList.Ref);
