@@ -1,3 +1,8 @@
+1999-06-30  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* NEWS: Update with the new features and the bug fixes since
+ 	glade-3.11.
+
 1999-06-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in: Sanity directory is now an env. variable instead

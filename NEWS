@@ -4,16 +4,31 @@ Changes since GLADE 3.11b
 New Functionnalities
 --------------------
 
+*   Shared_Passive packages can now be used.
+
+*   General performance improvements.
+
+*   The Windows NT version now uses the registry.
+
+*   GLADE can be used from non-standard location by setting the
+    GLADE_LIBRARY_DIR appropriately.
+
 *   Tracing Facilities of what is going on inside GLADE during a
     distributed execution.
 
-*   Add fault-tolerance features. Need for more documentation.
+*   Add fault-tolerance features. The main partition is no longer a
+    single point of failure. See Examples/Reconnection.
+
+*   It is now possible to configure the number of tasks executing
+    incoming remote procedure calls on a partition.
 
 Bug Fixes
 ---------
 
 *   Fix a bug in partition death/revival that caused other partitions
     to fail in some cases.
+
+*   E.4 (18) is now correctly implemented.
 
 Changes since GLADE 1.03
 ========================
