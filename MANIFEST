@@ -145,6 +145,17 @@ Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
 Examples/Messages/pure.ads
+Examples/Reconnection/Makefile.am
+Examples/Reconnection/Makefile.in
+Examples/Reconnection/README
+Examples/Reconnection/main.adb
+Examples/Reconnection/rci_1.adb
+Examples/Reconnection/rci_1.ads
+Examples/Reconnection/rci_2.adb
+Examples/Reconnection/rci_2.ads
+Examples/Reconnection/rci_3.adb
+Examples/Reconnection/rci_3.ads
+Examples/Reconnection/reconnection.cfg
 Garlic/5bgtplsp.ads
 Garlic/5egtplsp.ads
 Garlic/5sgtplsp.ads

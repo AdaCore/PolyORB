@@ -1,3 +1,7 @@
+1999-02-07  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure, configure.in, MANIFEST: Add Examples/Reconnection.
+
 1999-01-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: print a warning if the user is not using GNU make

@@ -321,4 +321,5 @@ AC_OUTPUT([Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Filters/Makefile
            Examples/Messages/Makefile
+           Examples/Reconnection/Makefile
            Examples/LightBank/Makefile])
