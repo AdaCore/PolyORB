@@ -67,5 +67,49 @@ package omniProxyCallWrapper is
    -- see proxyCall.cc L181
 
 
+private
+
+   function Omni_Call_Transient_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean ;
+   -- This method is wrapped around C method _omni_callTransientExceptionHandler
+   -- ( see Ada_Corba_Exceptions.hh )
+
+
+   function Omni_Comm_Failure_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean ;
+   -- This method is wrapped around C method _omni_commFailureExceptionHandler
+   -- ( see Ada_Corba_Exceptions.hh )
+
+
+   function Omni_System_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean ;
+   -- This method is wrapped around C method _omni_callSystemExceptionHandler
+   -- ( see Ada_Corba_Exceptions.hh )
+
+
+   function Omni_Object_Not_Exist_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean ;
+   -- This method is wrapped around C method _omni_callObjectNotExistExceptionHandler
+   -- ( see Ada_Corba_Exceptions.hh )
+
 
 end omniproxyCallWrapper ;
+
+
+

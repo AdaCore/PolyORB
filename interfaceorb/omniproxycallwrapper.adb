@@ -511,6 +511,187 @@ package body omniProxyCallWrapper is
 
 
 
+   -------------------------------------------------
+   --              exception handling             --
+   -------------------------------------------------
+
+
+   -- Ada_To_C_Unsigned_Long
+   -------------------------
+   function Ada_To_C_Unsigned_Long is
+     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
+                                   Interfaces.C.Unsigned_Long) ;
+   -- needed to change ada type Corba.Unsigned_Long
+   -- into C type Interfaces.C.Unsigned_Long
+
+
+   -- C_Omni_Call_Transient_Exeption_Handler
+   -----------------------------------------
+   function C_Omni_Call_Transient_Exeption_Handler
+     (Obj : in System.Address ;
+      Retries : in Interfaces.C.Unsigned_Long ;
+      Minor : in Interfaces.C.Unsigned_Long ;
+      Status : in Interfaces.C.Int)
+      return Sys_Dep.C_Boolean ;
+   pragma Import (CPP,
+                  C_Omni_Call_Transient_Exeption_Handler,
+                  "_omni_callTransientExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+
+
+   -- Omni_Call_Transient_Exception_Handler
+   ----------------------------------------
+   function Omni_Call_Transient_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean is
+      C_Obj : System.Address ;
+      C_Retries : Interfaces.C.Unsigned_Long ;
+      C_Minor : Interfaces.C.Unsigned_Long ;
+      C_Status : Interfaces.C.Int ;
+      C_Result : Sys_Dep.C_Boolean ;
+   begin
+      -- transforms the arguments in a C type ...
+      C_Obj := Obj'Address ;
+      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
+      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Status := Completion_Status_To_C_Int (Status) ;
+      -- ... calls the C function ...
+      C_Result := C_Omni_Call_Transient_Exeption_Handler (C_Obj,
+                                                          C_Retries,
+                                                          C_Minor,
+                                                          C_Status) ;
+      -- ... and transforms the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+   end ;
+
+
+   -- C_Omni_Comm_Failure_Exception_Handler
+   ----------------------------------------
+   function C_Omni_Comm_Failure_Exception_Handler
+     (Obj : in System.Address ;
+      Retries : in Interfaces.C.Unsigned_Long ;
+      Minor : in Interfaces.C.Unsigned_Long ;
+      Status : in Interfaces.C.Int)
+      return Sys_Dep.C_Boolean ;
+   pragma Import (CPP,
+                  C_Omni_Comm_Failure_Exception_Handler,
+                  "_omni_callCommFailureExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+
+
+   -- Omni_Comm_Failure_Exception_Handler
+   --------------------------------------
+   function Omni_Comm_Failure_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean is
+      C_Obj : System.Address ;
+      C_Retries : Interfaces.C.Unsigned_Long ;
+      C_Minor : Interfaces.C.Unsigned_Long ;
+      C_Status : Interfaces.C.Int ;
+      C_Result : Sys_Dep.C_Boolean ;
+   begin
+      -- transforms the arguments in a C type ...
+      C_Obj := Obj'Address ;
+      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
+      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Status := Completion_Status_To_C_Int (Status) ;
+      -- ... and calls the C function
+      C_Result := C_Omni_Comm_Failure_Exception_Handler (C_Obj,
+                                                         C_Retries,
+                                                         C_Minor,
+                                                         C_Status) ;
+      -- ... and transforms the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+   end ;
+
+
+   -- C_Omni_System_Exception_Handler
+   ----------------------------------
+   function C_Omni_System_Exception_Handler
+     (Obj : in System.Address ;
+      Retries : in Interfaces.C.Unsigned_Long ;
+      Minor : in Interfaces.C.Unsigned_Long ;
+      Status : in Interfaces.C.Int)
+      return Sys_Dep.C_Boolean ;
+   pragma Import (CPP,
+                  C_Omni_System_Exception_Handler,
+                  "_omni_callSystemExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+
+
+   -- Omni_System_Exception_Handler
+   --------------------------------
+   function Omni_System_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean is
+      C_Obj : System.Address ;
+      C_Retries : Interfaces.C.Unsigned_Long ;
+      C_Minor : Interfaces.C.Unsigned_Long ;
+      C_Status : Interfaces.C.Int ;
+      C_Result : Sys_Dep.C_Boolean ;
+   begin
+      -- transforms the arguments in a C type ...
+      C_Obj := Obj'Address ;
+      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
+      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Status := Completion_Status_To_C_Int (Status) ;
+      -- ... and calls the C function
+      C_Result := C_Omni_System_Exception_Handler (C_Obj,
+                                                   C_Retries,
+                                                   C_Minor,
+                                                   C_Status) ;
+      -- ... and transforms the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+   end ;
+
+
+   -- C_Omni_Object_Not_Exist_Exception_Handler
+   --------------------------------------------
+   function C_Omni_Object_Not_Exist_Exception_Handler
+     (Obj : in System.Address ;
+      Retries : in Interfaces.C.Unsigned_Long ;
+      Minor : in Interfaces.C.Unsigned_Long ;
+      Status : in Interfaces.C.Int)
+      return Sys_Dep.C_Boolean ;
+   pragma Import (CPP,
+                  C_Omni_Object_Not_Exist_Exception_Handler,
+                  "_omni_callObjectNotExistExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+
+
+   -- Omni_Object_Not_Exist_Exception_Handler
+   ------------------------------------------
+   function Omni_Object_Not_Exist_Exception_Handler
+     (Obj : in Omniobject.Object'Class ;
+      Retries : in Corba.Unsigned_Long ;
+      Minor : in Corba.Unsigned_Long ;
+      Status : in Corba.Completion_Status)
+      return Corba.Boolean is
+      C_Obj : System.Address ;
+      C_Retries : Interfaces.C.Unsigned_Long ;
+      C_Minor : Interfaces.C.Unsigned_Long ;
+      C_Status : Interfaces.C.Int ;
+      C_Result : Sys_Dep.C_Boolean ;
+   begin
+      -- transforms the arguments in a C type ...
+      C_Obj := Obj'Address ;
+      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
+      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
+      C_Status := Completion_Status_To_C_Int (Status) ;
+      -- ... and calls the C function
+      C_Result := C_Omni_Object_Not_Exist_Exception_Handler (C_Obj,
+                                                             C_Retries,
+                                                             C_Minor,
+                                                             C_Status) ;
+      -- ... and transforms the result into an Ada type
+      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
+   end ;
+
 
 
 end omniproxyCallWrapper ;

@@ -47,7 +47,6 @@
 -----------------------------------------------------------------------
 
 
-with OmniObject ;
 with Sys_Dep ;
 
 package Corba.Exceptions is
@@ -61,45 +60,5 @@ package Corba.Exceptions is
                                    Excp_Memb: in Idl_Exception_Members'Class) ;
    -- This method raises a Corba exception associated to the member object
    -- Excp_Memb.
-
-
-   function Omni_Call_Transient_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean ;
-   -- This method is wrapped around C method _omni_callTransientExceptionHandler
-   -- ( see Ada_Corba_Exceptions.hh )
-
-
-   function Omni_Comm_Failure_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean ;
-   -- This method is wrapped around C method _omni_commFailureExceptionHandler
-   -- ( see Ada_Corba_Exceptions.hh )
-
-
-   function Omni_System_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean ;
-   -- This method is wrapped around C method _omni_callSystemExceptionHandler
-   -- ( see Ada_Corba_Exceptions.hh )
-
-
-   function Omni_Object_Not_Exist_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean ;
-   -- This method is wrapped around C method _omni_callObjectNotExistExceptionHandler
-   -- ( see Ada_Corba_Exceptions.hh )
 
 end Corba.Exceptions ;
