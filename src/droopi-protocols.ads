@@ -9,7 +9,6 @@ with Droopi.Buffers;
 with Droopi.Components;
 with Droopi.Filters; use Droopi.Filters;
 with Droopi.Requests; use Droopi.Requests;
-with Droopi.Schedulers;
 
 package Droopi.Protocols is
 
@@ -43,6 +42,8 @@ package Droopi.Protocols is
    procedure Invoke_Request (S : access Session; R : Request)
       is abstract;
    procedure Abort_Request (S : access Session; R : Request)
+      is abstract;
+   procedure Send_Reply (S : access Session; R : Request)
       is abstract;
 
    --  XXX
@@ -80,12 +81,6 @@ package Droopi.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
-   function Handle_Message
-     (Sess : access Session;
-      S : Components.Message'Class)
-     return Components.Message'Class;
-   --  Demultiplex Data_Units to specialized operations.
-
    procedure Handle_Connect_Indication (S : access Session)
       is abstract;
    --  A new server connection has been accepted as session S.
@@ -100,12 +95,22 @@ package Droopi.Protocols is
    procedure Handle_Disconnect (S : access Session) is abstract;
    --  Invoked when the underlying connection is closed.
 
+   ---------------------
+   -- Message demuxer --
+   ---------------------
+
+   function Handle_Message
+     (Sess : access Session;
+      S : Components.Message'Class)
+     return Components.Message'Class;
+   --  Demultiplex Messages to the above specialized operations.
+
 private
 
    type Protocol is abstract new Filters.Factory with null record;
 
    type Session is abstract new Filters.Filter with record
-      Server : Schedulers.Server_Access;
+      Server : Components.Component_Access;
    end record;
 
    procedure Expect_Data

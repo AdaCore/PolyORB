@@ -25,6 +25,9 @@ package Droopi.Protocols.Echo is
    procedure Abort_Request (S : access Echo_Session; R : Request);
    --  These are just for show and do nothing.
 
+   procedure Send_Reply (S : access Echo_Session; R : Request);
+   --  Send a reply to the user.
+
    procedure Handle_Connect_Indication (S : access Echo_Session);
    --  Send a greeting banner to user.
 
@@ -43,6 +46,7 @@ private
 
    type Echo_Session is new Session with record
       Buffer : Buffers.Buffer_Access;
+      Out_Buffer : Buffers.Buffer_Access;
    end record;
 
 end Droopi.Protocols.Echo;

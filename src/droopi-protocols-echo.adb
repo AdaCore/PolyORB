@@ -9,20 +9,26 @@ with CORBA.NVList;
 
 with Droopi.Binding_Data.Local;
 with Droopi.Buffers;
+with Droopi.Filters;
+with Droopi.Filters.Interface;
 with Droopi.Log;
 with Droopi.Obj_Adapters;
 with Droopi.Objects;
 with Droopi.ORB;
+with Droopi.ORB.Interface;
 with Droopi.References;
 with Droopi.Requests; use Droopi.Requests;
---  with Droopi.Schedulers;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
 
 package body Droopi.Protocols.Echo is
 
+   use Droopi.Components;
+   use Droopi.Filters;
+   use Droopi.Filters.Interface;
    use Droopi.Log;
    use Droopi.ORB;
+   use Droopi.ORB.Interface;
 
    package L is new Droopi.Log.Facility_Log ("droopi.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -43,6 +49,7 @@ package body Droopi.Protocols.Echo is
       --  That is Echo-specific. Or is it?
 
       Echo_Session (Session.all).Buffer := new Buffers.Buffer_Type;
+      Echo_Session (Session.all).Out_Buffer := new Buffers.Buffer_Type;
 
    end Create;
 
@@ -61,6 +68,21 @@ package body Droopi.Protocols.Echo is
    begin
       null;
    end Abort_Request;
+
+   procedure Send_Reply (S : access Echo_Session; R : Request)
+   is
+      use Buffers;
+      use Representations.Test;
+
+      B : Buffer_Access renames S.Out_Buffer;
+
+   begin
+      Release_Contents (B.all);
+      Marshall_String (Rep, B, "200 OK" & ASCII.CR & ASCII.LF);
+      Marshall_String (Rep, B, "Request: "
+                       & Image (R) & ASCII.CR & ASCII.LF);
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => B));
+   end Send_Reply;
 
    procedure Handle_Connect_Indication (S : access Echo_Session) is
    begin
@@ -189,8 +211,10 @@ package body Droopi.Protocols.Echo is
                Result    => Result,
                Req       => Req);
 
-            --            Schedulers.Queue_Request (S.Server, Req);
-            Queue_Request (ORB, Req);
+            Emit_No_Reply
+              (Component_Access (ORB),
+               Queue_Request'(Request   => Req,
+                              Requestor => Component_Access (S)));
 
          exception
             when E : others =>

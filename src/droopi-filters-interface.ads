@@ -5,7 +5,7 @@
 with Ada.Streams; use Ada.Streams;
 
 with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Schedulers; use Droopi.Schedulers;
+with Droopi.Components; use Droopi.Components;
 
 package Droopi.Filters.Interface is
 
@@ -17,7 +17,7 @@ package Droopi.Filters.Interface is
    subtype Data_Unit is Root_Data_Unit'Class;
 
    type Set_Server is new Root_Data_Unit with record
-      Server : Schedulers.Server_Access;
+      Server : Components.Component_Access;
    end record;
 
    type Set_Buffer is new Root_Data_Unit with record

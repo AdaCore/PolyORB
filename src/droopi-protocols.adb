@@ -4,11 +4,13 @@
 
 with Ada.Unchecked_Deallocation;
 with Droopi.Filters.Interface;
+with Droopi.Objects.Interface;
 
 package body Droopi.Protocols is
 
    use Droopi.Components;
    use Droopi.Filters.Interface;
+   use Droopi.Objects.Interface;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
@@ -35,6 +37,10 @@ package body Droopi.Protocols is
          Handle_Data_Indication (Session_Access (Sess));
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
+      elsif S in Executed_Request then
+         Send_Reply
+           (Session_Access (Sess),
+            Executed_Request (S).Req.all);
       else
          raise Components.Unhandled_Message;
       end if;

@@ -10,6 +10,7 @@ with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
 with Droopi.Objects.Interface;
+with Droopi.ORB.Interface;
 with Droopi.References.Binding;
 with Droopi.Soft_Links;
 with Droopi.Transport;
@@ -359,7 +360,7 @@ package body Droopi.ORB is
       Emit_No_Reply
         (Component_Access (New_Filter),
          Filters.Interface.Set_Server'
-         (Server => Server_Access (ORB)));
+         (Server => Component_Access (ORB)));
 
       Set_Note
         (Notepad_Of (New_AES).all,
@@ -462,36 +463,53 @@ package body Droopi.ORB is
    ----------------------------------
 
    type Request_Job is new Job with record
-      ORB : ORB_Access;
-      Req : Request_Access;
+      ORB       : ORB_Access;
+      Request   : Request_Access;
+      Requestor : Components.Component_Access;
    end record;
 
    procedure Run (J : access Request_Job);
    procedure Run (J : access Request_Job) is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
-      pragma Assert (J.Req /= null);
+      pragma Assert (J.Request /= null);
 
       declare
 --           Oid : constant Objects.Object_Id
 --             := Extract_Local_Object_Id (J.Req.Target);
          Servant : constant Objects.Servant_Access
-           := References.Binding.Bind (J.Req.Target, J.ORB);
+           := References.Binding.Bind (J.Request.Target, J.ORB);
       begin
-         pragma Debug (O ("Executing: " & Requests.Image (J.Req.all)));
+         pragma Debug (O ("Executing: "
+                          & Requests.Image (J.Request.all)));
          --  Setup_Environment (Oid);
-         Objects.Interface.Emit_Execute_Request (Servant, J.Req);
-         --  Unbind (J.Req.Target, J.ORB, Servant);
-         --  XXX Unbind must Release_Servant.
-         null;
+
+         declare
+            Result : constant Components.Message'class
+              := Emit (Component_Access (Servant),
+                       Objects.Interface.Execute_Request'
+                       (Req => J.Request));
+         begin
+            --  Unsetup_Environment ();
+            --  Unbind (J.Req.Target, J.ORB, Servant);
+            --  XXX Unbind must Release_Servant.
+
+            Emit_No_Reply (J.Requestor, Result);
+            --  XXX Should that be Emit? Should there be a reply
+            --      from session ?
+
+            --  Warning! Destroy_Request will be called soon:
+            --  the requestor must not depend on it persisting
+            --  after processing the result message.
+
+            --  Send back answer.
+         end;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;
 
-      --  Send_Result (Session, J.Req);
-      --  Send back answer.
-
-      Destroy_Request (J.Req);
+      Destroy_Request (J.Request);
       --  Destroy request.
+
    exception
       when E : others =>
          pragma Debug (O ("Run Request_Job: Got exception "
@@ -500,24 +518,34 @@ package body Droopi.ORB is
 
    end Run;
 
-   procedure Queue_Job
+   function Handle_Message
      (ORB : access ORB_Type;
-      J   : Droopi.Jobs.Job_Access) is
-   begin
-      Queue_Job (ORB.Job_Queue, J);
-   end Queue_Job;
-
-   procedure Queue_Request
-     (ORB : access ORB_Type;
-      R   : Droopi.Requests.Request_Access)
+      Msg : Droopi.Components.Message'Class)
+     return Droopi.Components.Message'Class
    is
-      J : constant Job_Access := new Request_Job;
+      Result : Components.Null_Message;
    begin
-      pragma Debug (O ("Queue_Request: enter"));
-      Request_Job (J.all).ORB := ORB_Access (ORB);
-      Request_Job (J.all).Req := R;
+      if Msg in Interface.Queue_Job then
+         Queue_Job (ORB.Job_Queue,
+                    Interface.Queue_Job (Msg).Job);
+      elsif Msg in Interface.Queue_Request then
+         declare
+            J : constant Job_Access := new Request_Job;
+            QR : Interface.Queue_Request
+              renames Interface.Queue_Request (Msg);
+         begin
+            pragma Debug (O ("Queue_Request: enter"));
+            Request_Job (J.all).ORB       := ORB_Access (ORB);
+            Request_Job (J.all).Request   := QR.Request;
+            Request_Job (J.all).Requestor := QR.Requestor;
 
-      Queue_Job (ORB, J);
-   end Queue_Request;
+            Queue_Job (ORB.Job_Queue, J);
+         end;
+      else
+         raise Components.Unhandled_Message;
+      end if;
+
+      return Result;
+   end Handle_Message;
 
 end Droopi.ORB;

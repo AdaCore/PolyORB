@@ -1,22 +1,21 @@
---  The ORB main loop and scheduler.
+--  The ORB core module: main loop and scheduler.
 
 --  $Id$
 
 with Sequences.Unbounded;
 
 with Droopi.Asynch_Ev;
+with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Jobs;
 with Droopi.Obj_Adapters;
 with Droopi.Requests;
-with Droopi.Schedulers;
 with Droopi.Soft_Links;
 with Droopi.Transport;
 
 package Droopi.ORB is
 
    use Droopi.Asynch_Ev;
-   use Droopi.Schedulers;
    use Droopi.Transport;
 
    ----------------------------------
@@ -39,7 +38,7 @@ package Droopi.ORB is
    ---------------------
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is new Droopi.Schedulers.Server_Type with private;
+      is new Droopi.Components.Component with private;
    type ORB_Access is access all ORB_Type;
 
    package Monitor_Seqs is new Sequences.Unbounded
@@ -75,6 +74,8 @@ package Droopi.ORB is
    ------------------------------
    -- Server object operations --
    ------------------------------
+
+   type Exit_Condition_Access is access all Boolean;
 
    procedure Run
      (ORB : access ORB_Type; Exit_When : Exit_Condition_Access);
@@ -156,21 +157,17 @@ package Droopi.ORB is
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB.
 
-   procedure Queue_Job
+   function Handle_Message
      (ORB : access ORB_Type;
-      J   : Droopi.Jobs.Job_Access);
-
-   procedure Queue_Request
-     (ORB : access ORB_Type;
-      R   : Droopi.Requests.Request_Access);
-   --  Perform request R, then destroy it.
+      Msg : Droopi.Components.Message'Class)
+     return Droopi.Components.Message'Class;
 
 private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-   is new Droopi.Schedulers.Server_Type with record
+   is new Droopi.Components.Component with record
 
       -----------------------------------
       -- Mutex for access to ORB state --
