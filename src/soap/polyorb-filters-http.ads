@@ -42,7 +42,6 @@ with PolyORB.HTTP_Methods;
 with PolyORB.ORB;
 with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
-pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 with PolyORB.Utils.Strings;
 
 package PolyORB.Filters.HTTP is
