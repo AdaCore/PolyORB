@@ -19,6 +19,7 @@ hosts=valjean:cyrano:esmeralda2:lantier:donjuan:candide:gavroche:elvire:cosette:
 nmax=`echo $hosts | tr -cd : | wc -c`
 size=100
 count=100
+ulimit -c unlimited
 kill=false
 
 while getopts ks:c:n: opt; do
@@ -94,7 +95,7 @@ while [ "$clinumber" -lt "$nmax" ]; do
   touch $cliout
   cliouts="$cliouts $cliout"
   echo `expr 100 + $clinumber`" Starting client on $host"
-  sh -c "tail -f $ctl | rsh $host \"TERM=dumb \
+  sh -c "tail -f $ctl | rsh $host \"ulimit -c unlimited;TERM=dumb \
     POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
     POLYORB_CONF=$evolutedp_conf \
     LD_LIBRARY_PATH=/usr/local/lib \
