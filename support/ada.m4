@@ -33,6 +33,24 @@ else
 fi
 rm -f conftest*])
 
+dnl Usage: AM_TRY_ADA_CONFPRAGMA(pragma, success, failure)
+dnl Check whether a given configuration pragma is supported.
+
+AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
+[AC_REQUIRE([AM_PROG_ADA])
+mkdir conftest
+echo "[$1]" > conftest/gnat.adc
+echo "procedure Check is begin null; end Check;" > conftest/check.adb
+ac_try="cd conftest && $ADA -c check.adb > /dev/null 2>../conftest.out"
+if AC_TRY_EVAL(ac_try); then
+  ifelse([$2], , :, [rm -rf conftest*
+  $2])
+else
+  ifelse([$3], , :, [ rm -rf conftest*
+  $3])
+fi
+rm -f conftest*])
+
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
@@ -190,10 +208,8 @@ AC_DEFUN([AM_HAS_PRAGMA_PROFILE_RAVENSCAR],
 AC_MSG_CHECKING([whether pragma Profile (Ravenscar) is supported])
 OLDADA=$ADA
 ADA=$ADA_FOR_TARGET
-AM_TRY_ADA([check.adb],
-[pragma Profile (Ravenscar);
-procedure Check is begin null; end;
-], [AC_MSG_RESULT(yes)
+AM_TRY_ADA_CONFPRAGMA([pragma Profile (Ravenscar);],
+[AC_MSG_RESULT(yes)
 PRAGMA_PROFILE_RAVENSCAR="pragma Profile (Ravenscar);"],
 [AC_MSG_RESULT(no)
 PRAGMA_PROFILE_RAVENSCAR="pragma Ravenscar;"])
@@ -205,12 +221,10 @@ AC_DEFUN([AM_HAS_PRAGMA_PROFILE_WARNINGS],
 AC_MSG_CHECKING([whether pragma Profile_Warnings (Ravenscar) is supported])
 OLDADA=$ADA
 ADA=$ADA_FOR_TARGET
-AM_TRY_ADA([check.adb],
-[pragma Profile_Warnings (Ravenscar);
-procedure Check is begin null; end;
-], [AC_MSG_RESULT(yes)
+AM_TRY_ADA_CONFPRAGMA([pragma Profile_Warnings (Ravenscar);],
+[AC_MSG_RESULT(yes)
 DISABLE_PROFILE_WARNINGS=""],
 [AC_MSG_RESULT(no)
-DISABLE_PROFILE_WARNINGS="-- "])
+DISABLE_PROFILE_WARNINGS="--  "])
 ADA=$OLDADA
 AC_SUBST(DISABLE_PROFILE_WARNINGS)])
