@@ -136,7 +136,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  Create and Queue a End_Thread_Job
       ET := new End_Thread_Job;
       declare
-         N   : Notepad_Access := Get_Task_Info (Session_Access (S));
+         N   : constant Notepad_Access := Get_Task_Info (Session_Access (S));
          STI : Session_Thread_Info;
       begin
          Get_Note (N.all, STI);
@@ -215,7 +215,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
-      S : Session_Access := Session_Access (RJ.Requestor);
+      S : constant Session_Access := Session_Access (RJ.Requestor);
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -223,7 +223,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Queue Job"));
       declare
-         N : Notepad_Access := Get_Task_Info (S);
+         N : constant Notepad_Access := Get_Task_Info (S);
          STI : Session_Thread_Info;
       begin
          Get_Note (N.all, STI);
@@ -325,8 +325,8 @@ package body PolyORB.ORB.Thread_Per_Session is
          L := new Request_Queue;
          N := new Notepad;
          Set_Note (N.all,
-                   Session_Thread_Info' (Note with Request_Semaphore => Sem,
-                                         Request_List => L));
+                   Session_Thread_Info'(Note with Request_Semaphore => Sem,
+                                        Request_List => L));
          Set_Task_Info (S, N);
          --  release of the watcher at the end of initialisation
          Update (Thread_Init_Watcher);
