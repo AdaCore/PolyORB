@@ -802,8 +802,14 @@ package body ALI is
 
 
          elsif C = 'U' then
-            Checkc ('X');
-            ALIs.Table (Id).Unit_Exception_Table := True;
+            if Nextc = 'A' then
+               Unreserve_All_Interrupts := True;
+               C := Getc;
+
+            else
+               Checkc ('X');
+               ALIs.Table (Id).Unit_Exception_Table := True;
+            end if;
 
          elsif C = 'Z' then
             Checkc ('X');
@@ -1116,10 +1122,10 @@ package body ALI is
                         Check_At_End_Of_Field;
 
                         --  ED is ignored if full elaboration semantics forced
-                        --  and also in horrible elaboration order mode.
+                        --  and also in pessimistic elaboration order mode.
 
                         if not Full_Elaboration_Semantics
-                          and then not Horrible_Elab_Order
+                          and then not Pessimistic_Elab_Order
                         then
                            Withs.Table (Withs.Last).Elab_All_Desirable := True;
                         end if;

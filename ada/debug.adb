@@ -86,8 +86,8 @@ package body Debug is
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
    --  dR
-   --  dS
-   --  dT
+   --  dS   Never convert numbers to machine numbers in Sem_Eval
+   --  dT   Convert to machine numbers only for constant declarations
    --  dU
    --  dV
    --  dW
@@ -320,6 +320,14 @@ package body Debug is
    --       RM 10.2.1(9) forbids the use of library level controlled objects
    --       in preelaborable packages, but this restriction is a huge pain,
    --       especially in the predefined library units.
+
+   --  dS   Omit conversion of fpt numbers to exact machine numbers in
+   --       non-static evaluation contexts (see Check_Non_Static_Context).
+   --       This is intended for testing out timing problems with this
+   --       conversion circuit.
+
+   --  dT   Similar to dS, but omits the conversions only in the case where
+   --       the parent is not a constant declaration.
 
    --  dX   Force use of zero-cost exceptions even if the system configuration
    --       specifies that they should not be used (i.e. the configuration

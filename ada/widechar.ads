@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                              --
+--                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -77,5 +77,11 @@ package Widechar is
    --  use. On exit, P is bumped past the wide character sequence. No error
    --  checking is done, since this is only used on escape sequences generated
    --  by Set_Wide, which are known to be correct.
+
+   function Is_Start_Of_Wide_Char
+     (S    : Source_Buffer_Ptr;
+      P    : Source_Ptr)
+      return Boolean;
+   --  Determines if S (P) is the start of a wide character sequence
 
 end Widechar;

@@ -214,10 +214,6 @@ package Opt is
    --  GNAT
    --  True if High Level Optimizer is activated
 
-   Horrible_Elab_Order : Boolean := False;
-   --  GNATBIND
-   --  True if horrible elaboration order is to be chosen (-h switch set)
-
    Identifier_Character_Set : Character;
    --  GNAT
    --  This variable indicates the character set to be used for identifiers.
@@ -332,6 +328,10 @@ package Opt is
    --  for GNATBIND or when the object filename is given with option
    --  -gnatO for GNAT.
 
+   Pessimistic_Elab_Order : Boolean := False;
+   --  GNATBIND
+   --  True if pessimistic elaboration order is to be chosen (-p switch set)
+
    Polling_Required : Boolean := False;
    --  GNAT
    --  Set to True if polling for asynchronous abort is enabled by using
@@ -444,6 +444,12 @@ package Opt is
    --  the other hand, most such blowups will be caught cleanly and simply
    --  say compilation abandoned.
 
+   Unreserve_All_Interrupts : Boolean := False;
+   --  GNAT, GNATBIND
+   --  Normally set False, set True if a valid Unreserve_All_Interrupts
+   --  pragma appears anywhere in the main unit for GNAT1, or if any ALI
+   --  file has the corresponding attribute set in GNATBIND.
+
    Upper_Half_Encoding : Boolean := False;
    --  GNAT
    --  Normally set False, indicating that upper half ASCII characters are
@@ -485,7 +491,7 @@ package Opt is
    --  This flag is used to indicate to semantic analyzer that the current
    --  compilation is done for GNATF. So the expander mustn't be called.
 
-   Xref_Active : Boolean;
+   Xref_Active : Boolean := True;
    --  GNAT
    --  Set if cross-referencing is enabled (i.e. xref info in ali files)
 

@@ -280,6 +280,18 @@ package body Make is
    --  Lib_File in not up-to-date, then the coresponding source file needs
    --  to be recompiled. In this case ALI = No_ALI_Id.
 
+   procedure Check_Linker_Options
+     (E_Stamp : Time_Stamp_Type;
+      O_File  : out File_Name_Type;
+      O_Stamp : out Time_Stamp_Type);
+   --  Checks all linker options for linker files that are newer
+   --  than E_Stamp. If such objects are found, the youngest object
+   --  is returned in O_File and its stamp in O_Stamp.
+   --
+   --  If no obsolete linker files were found, the first missing
+   --  linker file is returned in O_File and O_Stamp is empty.
+   --  Otherwise O_File is No_File.
+
    procedure Display (Program : String; Args : Argument_List);
    --  Displays Program followed by the arguments in Args if variable
    --  Display_Executed_Programs is set. The lower bound of Args must be 1.
@@ -290,6 +302,7 @@ package body Make is
 
    function "&" (Left, Right : String) return String is
       Result : String (1 .. Left'Length + Right'Length);
+
    begin
       Result (1 .. Left'Length) := Left;
       Result (Left'Length + 1 .. Result'Last) := Right;
@@ -670,6 +683,87 @@ package body Make is
          end if;
       end if;
    end Check;
+
+   --------------------------
+   -- Check_Linker_Options --
+   --------------------------
+
+   procedure Check_Linker_Options
+     (E_Stamp   : Time_Stamp_Type;
+      O_File    : out File_Name_Type;
+      O_Stamp   : out Time_Stamp_Type)
+   is
+      procedure Check_File (File : File_Name_Type);
+      --  Update O_File and O_Stamp if the given file is younger than E_Stamp
+      --  and O_Stamp, or if O_File is No_File and File does not exist.
+
+      ----------------
+      -- Check_File --
+      ----------------
+
+      procedure Check_File (File : File_Name_Type) is
+         Stamp   : Time_Stamp_Type;
+      begin
+         --  Only check if File is not a switch
+
+         if Name_Len > 0 and then Name_Buffer (1) /= Get_Switch_Character
+            and then Name_Buffer (1) /= '-'
+         then
+            Stamp := File_Stamp (File);
+
+            --  Find the youngest object file that is younger than the
+            --  executable. If no such file exist, record the first object
+            --  file that is not found.
+
+            if (O_Stamp < Stamp and then E_Stamp < Stamp)
+              or else (O_File = No_File and then Stamp (Stamp'First) = ' ')
+            then
+               O_Stamp := Stamp;
+               O_File := File;
+
+               --  Strip the trailing Ascii.Nul if present
+
+               Get_Name_String (O_File);
+
+               if Name_Buffer (Name_Len) = Ascii.Nul then
+                  Name_Len := Name_Len - 1;
+                  O_File := Name_Find;
+               end if;
+            end if;
+         end if;
+      end Check_File;
+
+   --  Start of processing for Check_Linker_Options
+
+   begin
+      O_File  := No_File;
+      O_Stamp := (others => ' ');
+
+      --  Process linker options from the ALI files.
+
+      for Opt in Linker_Options.First .. Linker_Options.Last loop
+         Check_File (Linker_Options.Table (Opt).Name);
+      end loop;
+
+      --  Process options given on the command line.
+
+      for Opt in Linker_Switches.First .. Linker_Switches.Last loop
+
+         --  Check if the previous Opt has one of the two switches
+         --  that take an extra parameter. (See GCC manual.)
+
+         if Opt = Linker_Switches.First
+           or else (Linker_Switches.Table (Opt - 1).all /= "-u"
+                      and then
+                    Linker_Switches.Table (Opt - 1).all /= "-Xlinker")
+         then
+            Name_Len := 0;
+            Add_Str_To_Name_Buffer (Linker_Switches.Table (Opt).all);
+            Check_File (Name_Find);
+         end if;
+      end loop;
+
+   end Check_Linker_Options;
 
    ---------------------
    -- Compile_Sources --
@@ -1664,26 +1758,45 @@ package body Make is
 
          if First_Compiled_File = No_File then
             Executable_Stamp    := File_Stamp (Executable);
+
             Executable_Obsolete := Youngest_Obj_Stamp > Executable_Stamp;
 
-            if not Executable_Obsolete and then not Opt.Quiet_Output then
-               Inform (Executable, "up to date.");
+            if not Executable_Obsolete then
+
+               --  If no Ada object files obsolete the executable, check
+               --  for younger or missing linker files.
+
+               Check_Linker_Options
+                 (Executable_Stamp, Youngest_Obj_File, Youngest_Obj_Stamp);
+
+               Executable_Obsolete := Youngest_Obj_File /= No_File;
+
             end if;
 
-            if not Executable_Obsolete then
-               return;
-            else
-               if Executable_Stamp (1) = ' ' then
-                  Verbose_Msg (Executable, "missing.", Ind => No_Indent);
+            --  Return if the executable is up to date
+            --  and otherwise motivate the relink/rebind.
 
-               else
-                  Verbose_Msg (Executable, "obsolete.", Ind => No_Indent);
-                  Verbose_Msg (Youngest_Obj_File,
-                               "(", String (Youngest_Obj_Stamp),
-                               ") newer than",
-                               Executable,
-                               "(", String (Executable_Stamp), ")");
+            if not Executable_Obsolete then
+
+               if not Opt.Quiet_Output then
+                  Inform (Executable, "up to date.");
                end if;
+
+               return;
+            end if;
+
+            if Executable_Stamp (1) = ' ' then
+               Verbose_Msg (Executable, "missing.", Ind => No_Indent);
+
+            elsif Youngest_Obj_Stamp (1) = ' ' then
+               Verbose_Msg (Youngest_Obj_File, "missing.", Ind => No_Indent);
+
+            else
+               Verbose_Msg (Youngest_Obj_File,
+                            "(", String (Youngest_Obj_Stamp),
+                            ") newer than",
+                            Executable,
+                            "(", String (Executable_Stamp), ")");
             end if;
          end if;
       end Recursive_Compilation_Step;
@@ -1716,8 +1829,8 @@ package body Make is
          Args : Argument_List (Binder_Switches.First .. Binder_Switches.Last);
 
       begin
-         for I in Binder_Switches.First .. Binder_Switches.Last loop
-            Args (I) := Binder_Switches.Table (I);
+         for J in Binder_Switches.First .. Binder_Switches.Last loop
+            Args (J) := Binder_Switches.Table (J);
          end loop;
 
          Bind (Main_ALI_File, Args);
@@ -1727,8 +1840,8 @@ package body Make is
          Args : Argument_List (Linker_Switches.First .. Linker_Switches.Last);
 
       begin
-         for I in Linker_Switches.First .. Linker_Switches.Last loop
-            Args (I) := Linker_Switches.Table (I);
+         for J in Linker_Switches.First .. Linker_Switches.Last loop
+            Args (J) := Linker_Switches.Table (J);
          end loop;
 
          Link (Main_ALI_File, Args);

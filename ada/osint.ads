@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,7 +126,7 @@ package Osint is
    --  Scans and processes the arguments passed to the compiler.
 
    function Program_Name (Nam : String) return String_Access;
-   --  In the native compilation case, Create a string containing Nam.  in
+   --  In the native compilation case, Create a string containing Nam. In
    --  the cross compilation case, looks at the prefix of the current
    --  program being run and prepend it to Nam. For instance if the program
    --  being run is <target>-gnatmake and Nam is "gcc", the returned value
@@ -318,11 +318,11 @@ package Osint is
    function Full_Source_Name (N : File_Name_Type) return File_Name_Type;
    function Source_File_Stamp (N : File_Name_Type) return Time_Stamp_Type;
    --  Returns the full name/time stamp of the source file whose simple name
-   --  is N.  N should not include path information. Note that if the file
+   --  is N which should not include path information. Note that if the file
    --  cannot be located No_File is returned for the first routine and an
    --  all blank time stamp is returned for the second (this is not an error
-   --  situation).  The full name includes the appropriate directory
-   --  information.  The source file directory lookup penalty is incurred
+   --  situation). The full name includes the appropriate directory
+   --  information. The source file directory lookup penalty is incurred
    --  every single time the routines are called unless you have previously
    --  called Source_File_Data (Cache => True). See below.
 
@@ -429,7 +429,7 @@ package Osint is
    --  Returns the full name of the library/object file most recently read
    --  using Read_Library_Info, including appropriate directory information.
    --  Calling this routine entails no library file directory lookup
-   --  penalty.  Note that the object file corresponding to a library file
+   --  penalty. Note that the object file corresponding to a library file
    --  is not actually read. Its time stamp is fected when the flag
    --  Opt.Check_Object_Consistency is set.
 
@@ -441,10 +441,10 @@ package Osint is
 
    function Full_Lib_File_Name (N : File_Name_Type) return File_Name_Type;
    function Library_File_Stamp (N : File_Name_Type) return Time_Stamp_Type;
-   --  Returns the full name/time stamp of library file N.  N should not
+   --  Returns the full name/time stamp of library file N. N should not
    --  include path information. Note that if the file cannot be located
    --  No_File is returned for the first routine and an all blank time stamp
-   --  is returned for the second (this is not an error situation).  The
+   --  is returned for the second (this is not an error situation). The
    --  full name includes the appropriate directory information. The library
    --  file directory lookup penalty is incurred every single time this
    --  routine is called.
@@ -581,36 +581,6 @@ package Osint is
    procedure Close_Xref_Output;
    --  Closes the file created by Create_Xref_Output, flushing any
    --  buffers etc from writes by Write_Xref_Info.
-
-   ------------------------------------------
-   -- Distribution Annex Stub Files Output --
-   ------------------------------------------
-
-   --  All stub output is generated using the routines in the package Output.
-   --  The following routines are called at the start and end of generation
-   --  of stub output, and may have the effect of temporarily redirecting
-   --  output from package Output to a file specified by the -o switch.
-
-   procedure Stub_Output_Start;
-   --  Called before generating the stub output
-
-   procedure Stub_Output_Stop;
-   --  Called after generating the stub output
-
-   --  The remaining routines are temporary, for transitional purposes
-   --  only and will disappear in the near future ???
-
-   procedure Create_Stub_Output;
-   --  Creates the stub output file, using the name stored in Name_Buffer
-   --  which does not include a NUL terminator. Name_Len is the length of
-   --  the name. Output from package Output is then redirected to this
-   --  file using Set_Output_FD. The stub output is then written using
-   --  routines in package Output.
-   --  This is wrong, sem_dist should not know the file names ???
-
-   procedure Close_Stub_Output;
-   --  Closes the file created by Create_Stub_Output and restores package
-   --  output to its original output file, using Restore_Output_FD.
 
    -----------------
    -- Termination --

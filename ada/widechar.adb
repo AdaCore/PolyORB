@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,6 +43,34 @@ with System.WCh_Cnv; use System.WCh_Cnv;
 with System.WCh_Con; use System.WCh_Con;
 
 package body Widechar is
+
+   ---------------------------
+   -- Is_Start_Of_Wide_Char --
+   ---------------------------
+
+   function Is_Start_Of_Wide_Char
+     (S    : Source_Buffer_Ptr;
+      P    : Source_Ptr)
+      return Boolean
+   is
+   begin
+      case Wide_Character_Encoding_Method is
+         when WCEM_Hex =>
+            return S (P) = Ascii.ESC;
+
+         when WCEM_Upper     |
+              WCEM_Shift_JIS |
+              WCEM_EUC       |
+              WCEM_UTF8      =>
+            return S (P) >= Character'Val (16#80#);
+
+         when WCEM_Brackets =>
+            return P <= S'Last - 2
+              and then S (P) = '['
+              and then S (P + 1) = '"'
+              and then S (P + 2) /= '"';
+      end case;
+   end Is_Start_Of_Wide_Char;
 
    -----------------
    -- Length_Wide --

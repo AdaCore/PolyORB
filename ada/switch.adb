@@ -30,10 +30,10 @@
 
 --  Note: this version of the package should be usable in both Unix and DOS
 
-with Debug;   use Debug;
-with Osint;   use Osint;
-with Opt;     use Opt;
-with Types;   use Types;
+with Debug; use Debug;
+with Osint; use Osint;
+with Opt;   use Opt;
+with Types; use Types;
 
 with System.WCh_Con; use System.WCh_Con;
 
@@ -255,12 +255,15 @@ package body Switch is
 
          elsif C = 'g' then
             Ptr := Ptr + 1;
-            GNAT_Mode := True;
 
             if Program = Compiler then
-               RM_Column_Check := True;
-               Style_Check := True;
+               GNAT_Mode                := True;
+               RM_Column_Check          := True;
+               Style_Check              := True;
                Identifier_Character_Set := 'n';
+               Warning_Mode             := Treat_As_Error;
+               Check_Unreferenced       := True;
+               Check_Withs              := True;
 
             elsif Program = Make then
                raise Bad_Switch;
@@ -294,13 +297,7 @@ package body Switch is
 
          elsif C = 'h' then
             Ptr := Ptr + 1;
-
-            if Program = Binder then
-               Horrible_Elab_Order := True;
-
-            else
-               raise Bad_Switch;
-            end if;
+            Usage_Requested := True;
 
          --  Processing for i switch
 
@@ -467,6 +464,10 @@ package body Switch is
                Suppress_Options.Range_Checks         := True;
                Suppress_Options.Storage_Checks       := True;
                Suppress_Options.Tag_Checks           := True;
+
+            elsif Program = Binder then
+               Pessimistic_Elab_Order := True;
+
             else
                raise Bad_Switch;
             end if;
@@ -640,9 +641,8 @@ package body Switch is
 
                case Switches (Ptr) is
 
-                  --  Following tests are for obsolescent GNAT switches, to
-                  --  be removed when GNATF is finally retired. We set the
-                  --  normal GNAT1 xref active if any numeric level is given.
+                  --  Following tests are for obsolescent GNATF switches,
+                  --  to be removed when GNATF is finally retired. ???
 
                   when '0' =>
                      Xref_Active := False;
@@ -650,54 +650,45 @@ package body Switch is
 
                   when '1' =>
                      Xref_Flag_1 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '2' =>
                      Xref_Flag_2 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '3' =>
                      Xref_Flag_3 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '4' =>
                      Xref_Flag_4 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '5' =>
                      Xref_Flag_5 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '6' =>
                      Xref_Flag_6 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when '9' =>
                      Xref_Flag_9 := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when 'b' =>
                      Xref_Flag_B := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
                   when 's' =>
                      Xref_Flag_S := True;
-                     Xref_Active := True;
                      Ptr := Ptr + 1;
 
-                  when others =>
-                     Xref_Active := True;
-               end case;
+                  --  This is the normal case of -gnatx to supress xrefs
 
-               Ptr := Ptr + 1;
+                  when others =>
+                     Xref_Active := False;
+               end case;
 
             elsif Program = Binder then
                All_Sources := False;
@@ -758,12 +749,6 @@ package body Switch is
             else
                raise Bad_Switch;
             end if;
-
-         --  Processing for -? switch
-
-         elsif C = '?' then
-            Ptr := Ptr + 1;
-            Usage_Requested := True;
 
          --  Ignore extra switch character
 

@@ -34,12 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Hostparm;
-with Namet;       use Namet;
-with Output;      use Output;
-with Switch;      use Switch;
-with Opt;         use Opt;
-with Sdefault;    use Sdefault;
-with Tree_IO;     use Tree_IO;
+with Namet;    use Namet;
+with Opt;      use Opt;
+with Output;   use Output;
+with Sdefault; use Sdefault;
+with Switch;   use Switch;
+with Tree_IO;  use Tree_IO;
 
 with Unchecked_Conversion;
 
@@ -87,6 +87,9 @@ package body Osint is
    --  Put in Buffer_Name the name of the current program being run
    --  excluding the directory path
 
+   procedure Write_Info (Info : String);
+   --  Implementation of Write_Binder_Info and Write_Library_Info (identical)
+
    procedure Write_With_Check (A  : Address; N  : Integer);
    --  Writes N bytes from buffer starting at address A to file whose FD is
    --  stored in Output_FD, and whose file name is stored as a
@@ -128,14 +131,13 @@ package body Osint is
    --  i.e. the directory where the ali an object files are written
 
    function C_String_Length (S : Address) return Integer;
-   --  Returns the length of a C string.  Does check for null address
-   --  (returns 0).
+   --  Returns length of a C string. Returns zero for a null address.
 
    function To_Path_String_Access
      (Path_Addr : Address;
       Path_Len  : Integer)
       return      String_Access;
-   --  Converts a C String to an Ada String.  Are we doing this to avoid
+   --  Converts a C String to an Ada String. Are we doing this to avoid
    --  withing Interfaces.C.Strings ???
 
    ------------------------------
@@ -169,6 +171,10 @@ package body Osint is
    --  Read_Source_File. If the file name argument to Read_Source_File is
    --  No_File, that indicates that the file whose name was returned by the
    --  last call to Next_Main_Source (and stored here) is to be read.
+
+   Current_Main_Has_Dir : Boolean := False;
+   --  Used to record that the Current_Main has directory
+   --  information in it since it affects gnatmake behavior.
 
    Current_Full_Source_Name  : File_Name_Type  := No_File;
    Current_Full_Source_Stamp : Time_Stamp_Type := Empty_Time_Stamp;
@@ -341,17 +347,6 @@ package body Osint is
       pragma Assert (In_Binder);
       Close (Output_FD);
    end Close_Binder_Output;
-
-   -----------------------
-   -- Close_Stub_Output --
-   -----------------------
-
-   procedure Close_Stub_Output is
-   begin
-      pragma Assert (In_Compiler);
-      Close (Output_FD);
-      Restore_Output_FD;
-   end Close_Stub_Output;
 
    -------------------------------
    -- Close_Output_Library_Info --
@@ -555,19 +550,6 @@ package body Osint is
    end Create_Req_Output;
 
    ------------------------
-   -- Create_Stub_Output --
-   ------------------------
-
-   procedure Create_Stub_Output is
-      FD : File_Descriptor;
-
-   begin
-      pragma Assert (In_Compiler);
-      Create_File_And_Check (FD, Text);
-      Set_Output_FD (FD);
-   end Create_Stub_Output;
-
-   ------------------------
    -- Create_Xref_Output --
    ------------------------
 
@@ -694,6 +676,10 @@ package body Osint is
       Write_Str (S2);
       Write_Str (S3);
       Write_Eol;
+
+      --  ??? Using Output is ugly, should do direct writes
+      --  ??? shouldn't this go to standard error instead of stdout?
+
       Exit_Program (E_Fatal);
    end Fail;
 
@@ -822,7 +808,7 @@ package body Osint is
          --  If we are trying to find the current main file just look in the
          --  directory where the user said it was.
 
-         elsif Current_Main = N then
+         elsif Current_Main_Has_Dir and then Current_Main = N then
             return Locate_File (N, T, Primary_Directory, File_Name);
 
          --  Otherwise do standard search for source file
@@ -1048,7 +1034,7 @@ package body Osint is
       Software_Overflow_Checking := True;
       Suppress_Options.Overflow_Checks := True;
 
-      --  Reserve the first slot in the search paths table.  This is the
+      --  Reserve the first slot in the search paths table. This is the
       --  directory of the main source file or main library file and is
       --  filled in by each call to Next_Main_Source/Next_Main_Lib_File with
       --  the directory specified for this main source or library file. This
@@ -1252,7 +1238,7 @@ package body Osint is
 
       function Update_Path (Path : String_Ptr) return String_Ptr;
       --  Update the specified path to replace the prefix with
-      --  the location where GNAT is installed.   See the file prefix.c
+      --  the location where GNAT is installed. See the file prefix.c
       --  in GCC for more details.
 
       --------------------
@@ -1357,7 +1343,7 @@ package body Osint is
       end loop;
 
       --  For WIN32 systems, look for any system libraries defined in
-      --  the registry.  These are added to both source and object
+      --  the registry. These are added to both source and object
       --  directories.
 
       Search_Path := String_Access (Get_Libraries_From_Registry);
@@ -1554,6 +1540,9 @@ package body Osint is
 
       elsif In_Make then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
+         if Fptr > File_Name'First then
+            Current_Main_Has_Dir := True;
+         end if;
 
       elsif In_Binder then
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
@@ -2054,28 +2043,6 @@ package body Osint is
       return Name;
    end Strip_Suffix;
 
-   -----------------------
-   -- Stub_Output_Start --
-   -----------------------
-
-   --  For now does nothing, should process -o switch ???
-
-   procedure Stub_Output_Start is
-   begin
-      null;
-   end Stub_Output_Start;
-
-   ----------------------
-   -- Stub_Output_Stop --
-   ----------------------
-
-   --  For now does nothing, should process -o switch ???
-
-   procedure Stub_Output_Stop is
-   begin
-      null;
-   end Stub_Output_Stop;
-
    ---------------------
    -- C_String_Length --
    ---------------------
@@ -2346,27 +2313,29 @@ package body Osint is
       Close (Output_FD);
    end Tree_Close;
 
+
+   ----------------
+   -- Write_Info --
+   ----------------
+
+   procedure Write_Info (Info : String) is
+   begin
+      pragma Assert (In_Binder or In_Compiler);
+      Write_With_Check (Info'Address, Info'Length);
+      Write_With_Check (EOL'Address, 1);
+   end Write_Info;
+
    -----------------------
    -- Write_Binder_Info --
    -----------------------
 
-   procedure Write_Binder_Info (Info : String) is
-   begin
-      pragma Assert (In_Binder);
-      Write_With_Check (Info'Address, Info'Length);
-      Write_With_Check (EOL'Address, 1);
-   end Write_Binder_Info;
+   procedure Write_Binder_Info (Info : String) renames Write_Info;
 
    ------------------------
    -- Write_Library_Info --
    ------------------------
 
-   procedure Write_Library_Info (Info : String) is
-   begin
-      pragma Assert (In_Compiler);
-      Write_With_Check (Info'Address, Info'Length);
-      Write_With_Check (EOL'Address, 1);
-   end Write_Library_Info;
+   procedure Write_Library_Info (Info : String) renames Write_Info;
 
    -----------------------
    -- Find_Program_Name --

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,8 +42,6 @@ package body Output is
    Current_FD : File_Descriptor := Standout;
    --  File descriptor for current output
 
-   Saved_FD : File_Descriptor;
-
    Buffer_Max : constant := 8192;
    Buffer     : String (1 .. Buffer_Max + 1);
    --  Buffer used to build output line. Note that the reason we do line
@@ -71,25 +69,6 @@ package body Output is
    begin
       return Current_Column;
    end Column;
-
-   -----------------------
-   -- Restore_Output_FD --
-   -----------------------
-
-   procedure Restore_Output_FD is
-   begin
-      Current_FD := Saved_FD;
-   end Restore_Output_FD;
-
-   -------------------
-   -- Set_Output_FD --
-   -------------------
-
-   procedure Set_Output_FD (FD : File_Descriptor) is
-   begin
-      Saved_FD   := Current_FD;
-      Current_FD := FD;
-   end Set_Output_FD;
 
    ------------------------
    -- Set_Standard_Error --
@@ -170,7 +149,6 @@ package body Output is
 
    procedure Write_Int (Val : Int) is
    begin
-
       if Val < 0 then
          Write_Char ('-');
          Write_Int (-Val);

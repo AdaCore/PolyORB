@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -45,14 +45,6 @@ pragma Elaborate_Body (Output);
    --  Returns column number about to be written (start of line = column 1)
    --  If a tab is output, this column count reflects the result of outputting
    --  an equivalent number of blanks (with standard positions 1,9,17..)
-
-   procedure Restore_Output_FD;
-   --  Restore the original FD to what it was before Set_Output_FD is executed.
-
-   procedure Set_Output_FD (FD : File_Descriptor);
-   --  Sets subsequent output to appear on the file indicated by
-   --  FD. This is used by the remote call subprogram stub
-   --  generation routines.
 
    procedure Set_Standard_Error;
    --  Sets subsequent output to appear on the standard error file (whatever
