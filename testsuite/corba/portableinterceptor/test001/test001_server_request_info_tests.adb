@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--         Copyright (C) 2004-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with CORBA.Policy;
 
 with Test001_Interface.Helper;
+with Test001_Server_Interceptor;
 
 package body Test001_Server_Request_Info_Tests is
 
@@ -359,6 +360,11 @@ package body Test001_Server_Request_Info_Tests is
       if not Valid then
          Output (Point, Operation, False);
       elsif not Aux then
+         Output (Point, Operation, False);
+      elsif
+        Target_Is_A
+        (Info, To_CORBA_String (Test001_Server_Interceptor.Repository_Id))
+      then
          Output (Point, Operation, False);
       else
          Output (Point, Operation, True);
