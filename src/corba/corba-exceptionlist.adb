@@ -35,54 +35,72 @@
 
 package body CORBA.ExceptionList is
 
+   --------------------
+   -- To_PolyORB_Ref --
+   --------------------
+
    function To_PolyORB_Ref
      (Self : Ref)
      return PolyORB.Any.ExceptionList.Ref
    is
       Result : PolyORB.Any.ExceptionList.Ref;
+
    begin
       PolyORB.Any.ExceptionList.Set (Result, Entity_Of (Self));
       return Result;
    end To_PolyORB_Ref;
+
+   ------------------
+   -- To_CORBA_Ref --
+   ------------------
 
    function To_CORBA_Ref
      (Self : PolyORB.Any.ExceptionList.Ref)
      return Ref
    is
       Result : Ref;
+
    begin
       Set (Result, PolyORB.Any.ExceptionList.Entity_Of (Self));
       return Result;
    end To_CORBA_Ref;
 
-   ---------------
-   -- Shortcuts --
-   ---------------
+   ---------
+   -- "+" --
+   ---------
 
    function "+" (Self : Ref) return PolyORB.Any.ExceptionList.Ref
      renames To_PolyORB_Ref;
+
    function "+" (Self : PolyORB.Any.ExceptionList.Ref) return Ref
      renames To_CORBA_Ref;
 
    use PolyORB.Any.ExceptionList;
 
-   function Get_Count
-     (Self : in Ref)
-     return CORBA.Unsigned_Long is
+   ---------------
+   -- Get_Count --
+   ---------------
+
+   function Get_Count (Self : in Ref) return CORBA.Unsigned_Long is
    begin
       return CORBA.Unsigned_Long (Get_Count (+Self));
    end Get_Count;
 
-   procedure Add
-     (Self : in Ref;
-      Exc : in CORBA.TypeCode.Object)
-   is
+   ---------
+   -- Add --
+   ---------
+
+   procedure Add (Self : in Ref; Exc : in CORBA.TypeCode.Object) is
    begin
       Add (+Self, CORBA.TypeCode.Internals.To_PolyORB_Object (Exc));
    end Add;
 
+   ----------
+   -- Item --
+   ----------
+
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
@@ -91,20 +109,33 @@ package body CORBA.ExceptionList is
         (Item (+Self, PolyORB.Types.Unsigned_Long (Index)));
    end Item;
 
+   ------------
+   -- Remove --
+   ------------
+
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
    is
    begin
       Remove (+Self, PolyORB.Types.Unsigned_Long (Index));
    end Remove;
 
+   -----------------
+   -- Create_List --
+   -----------------
+
    procedure Create_List (Self : out Ref) is
       Result : PolyORB.Any.ExceptionList.Ref;
+
    begin
       Create_List (Result);
       Self := +Result;
    end Create_List;
+
+   -------------------------
+   -- Search_Exception_Id --
+   -------------------------
 
    function Search_Exception_Id
      (Self : in Ref;

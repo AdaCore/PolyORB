@@ -36,6 +36,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Implementation Note: this package implements the recommendation of
+--  the OMG issue #3706, that add new primitives to CORBA::Object.
+--  See CORBA.Object package specifications for more details.
+
 --  $Id$
 
 with CORBA.AbstractBase;
@@ -56,15 +60,15 @@ package CORBA.ExceptionList is
 
    procedure Add
      (Self : in Ref;
-      Exc : in CORBA.TypeCode.Object);
+      Exc  : in CORBA.TypeCode.Object);
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long)
      return CORBA.TypeCode.Object;
 
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in CORBA.Unsigned_Long);
 
    procedure Create_List (Self : out Ref);
@@ -80,6 +84,7 @@ package CORBA.ExceptionList is
 
    function To_PolyORB_Ref (Self : Ref)
      return PolyORB.Any.ExceptionList.Ref;
+
    function To_CORBA_Ref (Self : PolyORB.Any.ExceptionList.Ref)
      return Ref;
 

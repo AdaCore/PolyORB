@@ -56,6 +56,10 @@ package CORBA.Object is
 
    --  Requires CORBA.InterfaceDef to be implemented.
 
+   --  XXX what does this comment mean ? CORBA.InterfaceDef is
+   --  implemented as part of the CORBA IR, see
+   --  CORBA.Repository_Root.InterfaceDef
+
    function Get_Interface
      (Self : in Ref)
      return CORBA.Object.Ref'Class;
@@ -98,6 +102,10 @@ package CORBA.Object is
       Ctxt_List : in     ContextList.Ref;
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags);
+   --  Implementation Note: this procedure implements the
+   --  recommendation detailed in the OMG issue #3706, that add new
+   --  primitives to CORBA::Object. It adds the Exc_List and Ctxt_List
+   --  parameters, to provide more control on the request created.
 
    function Hash
      (Self    : Ref;
@@ -124,6 +132,9 @@ package CORBA.Object is
    function  Object_To_String
      (Obj : in CORBA.Object.Ref'Class)
      return CORBA.String;
+
+   --  Implementation Note: The following procedures are specific to
+   --  PolyORB. You should not use them.
 
    function To_PolyORB_Object
      (R : in Ref)
