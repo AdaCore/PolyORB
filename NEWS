@@ -4,7 +4,20 @@ Changes since GLADE 1.03
 New Functionnalities
 --------------------
 
-  * New compilation model
+  * RACW in Remote_Types
+    It is now possible to declare remote access to class-wide types in 
+    Remote_Types packages (this was already possible in
+    Remote_Call_Interface packages). This makes it possible to have a
+    reference to a remote object stored in another remote object and
+    to create complex data structures involving several partitions at
+    the same time.
+
+  * Generic RCI packages
+    GLADE now supports generic RCI packages. The pragma
+    Remote_Call_Interface must be applied on both the generic package
+    and the instantiation.
+
+  * New stubs compilation model
     GNAT does not generate plain Ada stubs anymore but generates
     object file directly instead. GNATDIST takes advantages from this
     and compilation times are reduced by an important factor for
@@ -30,6 +43,11 @@ New Functionnalities
     The filtering interface uses access types rather than arrays to
     avoid blowing-up the stack when using large data.
 
+  * New stream allocation policy
+    Small streams are automatically selected from a pre-allocated
+    chunk of memory, while big streams are created on the heap to
+    prevent stack blowups.
+
 Bug fixes
 ---------
 
@@ -37,6 +55,18 @@ Bug fixes
 
   * Remote access to class-wide types holding a null value can now be
     compared to null successfully.
+
+  * Comparisons between remote access to class-wide types values now work
+
+  * No more Storage_Size pragmas are needed on user tasks
+
+  * GNATDIST now checks that RCI children of a RCI package are configured
+    on the same partition.
+
+Misc
+----
+
+  * Less tasks are created by the partition communication subsystem
 
 Changes since GLADE 1.02
 ========================
