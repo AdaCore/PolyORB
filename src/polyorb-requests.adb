@@ -179,9 +179,9 @@ package body PolyORB.Requests is
 
    end Invoke;
 
-   -----------------------
-   -- Pump_Up_Arguments --
-   -----------------------
+   -----------------------------------
+   -- Pump_Up_Arguments_By_Position --
+   -----------------------------------
 
    procedure Pump_Up_Arguments_By_Position
      (Dst_Args        : in out Any.NVList.Ref;
@@ -299,6 +299,10 @@ package body PolyORB.Requests is
       end if;
    end Pump_Up_Arguments_By_Position;
 
+   -------------------------------
+   -- Pump_Up_Arguments_By_Name --
+   -------------------------------
+
    procedure Pump_Up_Arguments_By_Name
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
@@ -413,6 +417,10 @@ package body PolyORB.Requests is
          end loop;
       end if;
    end Pump_Up_Arguments_By_Name;
+
+   -----------------------------------
+   -- Pump_Up_Arguments_Unspecified --
+   -----------------------------------
 
    procedure Pump_Up_Arguments_Unspecified
      (Dst_Args        : in out Any.NVList.Ref;
@@ -728,9 +736,7 @@ package body PolyORB.Requests is
          Self.Deferred_Arguments_Session := null;
 
       else
-         pragma Assert
-           (Self.Deferred_Arguments_Session = null
-            and then not Is_Nil (Self.Args));
+         pragma Assert (Self.Deferred_Arguments_Session = null);
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          declare
