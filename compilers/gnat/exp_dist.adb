@@ -3194,6 +3194,7 @@ package body Exp_Dist is
             New_Occurrence_Of (Subp_Info_Array, Loc),
           Attribute_Name =>
             Name_Length));
+
       Append_To (Register_Pkg_Actuals,
          --  Is_All_Calls_Remote
         New_Occurrence_Of (All_Calls_Remote_E, Loc));
@@ -3976,6 +3977,7 @@ package body Exp_Dist is
 
    procedure Build_Passive_Partition_Stub (U : Node_Id) is
       Pkg_Spec : Node_Id;
+      Pkg_Name : String_Id;
       L        : List_Id;
       Reg      : Node_Id;
       Loc      : constant Source_Ptr := Sloc (U);
@@ -4002,12 +4004,13 @@ package body Exp_Dist is
       end if;
 
       Get_Pkg_Name_String (Pkg_Spec);
+      Pkg_Name := String_From_Name_Buffer;
       Reg :=
         Make_Procedure_Call_Statement (Loc,
           Name                   =>
             New_Occurrence_Of (RTE (RE_Register_Passive_Package), Loc),
           Parameter_Associations => New_List (
-            Make_String_Literal (Loc, String_From_Name_Buffer),
+            Make_String_Literal (Loc, Pkg_Name),
             Make_Attribute_Reference (Loc,
               Prefix         =>
                 New_Occurrence_Of (Defining_Entity (Pkg_Spec), Loc),
@@ -5604,8 +5607,10 @@ package body Exp_Dist is
       Package_Spec : Node_Id) return Node_Id
    is
       Inst : Node_Id;
+      Pkg_Name : String_Id;
    begin
       Get_Pkg_Name_String (Package_Spec);
+      Pkg_Name := String_From_Name_Buffer;
       Inst := Make_Package_Instantiation (Loc,
         Defining_Unit_Name   =>
           Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
@@ -5616,7 +5621,7 @@ package body Exp_Dist is
             Selector_Name                     =>
               Make_Identifier (Loc, Name_RCI_Name),
             Explicit_Generic_Actual_Parameter =>
-              Make_String_Literal (Loc, String_From_Name_Buffer))));
+              Make_String_Literal (Loc, Pkg_Name))));
       RCI_Locator_Table.Set (Defining_Unit_Name (Package_Spec),
         Defining_Unit_Name (Inst));
       return Inst;
