@@ -54,16 +54,14 @@ package PolyORB.Tasking.Mutexes is
    --  critical section protected by a mutex, it is designated as
    --  the owner of that mutex.
 
-   procedure Enter (M : in out Mutex_Type)
-      is abstract;
+   procedure Enter (M : access Mutex_Type) is abstract;
    --  A call to Enter locks mutex object M. If M is already locked,
    --  the caller is blocked until it gets unlocked. On exit from Enter,
    --  M is locked, and the caller is the owner.
    --  If the current owner of a mutex tries to enter it again, a
    --  deadlock occurs.
 
-   procedure Leave (M : in out Mutex_Type)
-      is abstract;
+   procedure Leave (M : access Mutex_Type) is abstract;
    --  Release M. M must be locked, and the caller must be the owner.
    --  The scheduling policy determines which blocked thread is waken
    --  up next and obtains the mutex.
@@ -93,19 +91,17 @@ package PolyORB.Tasking.Mutexes is
    --  mutex from the configuration module.
 
    procedure Destroy
-     (MF : in out Mutex_Factory_Type;
+     (MF : access Mutex_Factory_Type;
       M  : in out Mutex_Access)
      is abstract;
    --  Destroy M, or just release it if it was preallocated.
 
-   function Get_Mutex_Factory
-     return Mutex_Factory_Access;
-   pragma Inline (Get_Mutex_Factory);
-   --  Get the Mutex_Factory object registered in this package.
-
    procedure Register_Mutex_Factory
      (MF : Mutex_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
+
+   procedure Create (M : out Mutex_Access; Name : String := "");
+   procedure Destroy (M : in out Mutex_Access);
 
 private
 

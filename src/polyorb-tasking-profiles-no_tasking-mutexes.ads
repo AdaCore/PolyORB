@@ -50,11 +50,8 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
      access all No_Tasking_Mutex_Type'Class;
    --  Type for mutexes with no Ada tasking.
 
-   procedure Enter (M : in out No_Tasking_Mutex_Type);
-   --  Enter critical section.
-
-   procedure Leave (M : in out No_Tasking_Mutex_Type);
-   --  Leave critical section.
+   procedure Enter (M : access No_Tasking_Mutex_Type);
+   procedure Leave (M : access No_Tasking_Mutex_Type);
 
    type No_Tasking_Mutex_Factory_Type is
      new PTM.Mutex_Factory_Type with private;
@@ -74,7 +71,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    --  Mutex from the configuration module.
 
    procedure Destroy
-     (MF : in out No_Tasking_Mutex_Factory_Type;
+     (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access);
    --  Destroy M.
 

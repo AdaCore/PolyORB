@@ -92,7 +92,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : in out Full_Tasking_Condition_Type) is
+     (C : access Full_Tasking_Condition_Type) is
    begin
       pragma Debug (O ("Wait for stabilisation of a CV, for a broadcast"));
       C.The_PO.Wait_Stabilisation;
@@ -181,7 +181,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    -------------
 
    procedure Destroy
-     (MF : in out Full_Tasking_Condition_Factory_Type;
+     (MF : access Full_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access) is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -209,7 +209,7 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ------------
 
    procedure Signal
-     (C : in out Full_Tasking_Condition_Type) is
+     (C : access Full_Tasking_Condition_Type) is
    begin
       pragma Debug (O ("wait for stabilisation of a CV, for a signal"));
       C.The_PO.Wait_Stabilisation;
@@ -222,16 +222,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : in out Full_Tasking_Condition_Type;
+     (C : access Full_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class) is
    begin
       pragma Debug (O ("prepare wait"));
       C.The_PO.Prepare_Wait;
       pragma Debug (O ("prepare wait ended, now wait"));
-      PTM.Leave (M.all);
+      PTM.Leave (M);
       C.The_PO.Wait;
       pragma Debug (O ("wait ended"));
-      PTM.Enter (M.all);
+      PTM.Enter (M);
    end Wait;
 
    use PolyORB.Initialization;

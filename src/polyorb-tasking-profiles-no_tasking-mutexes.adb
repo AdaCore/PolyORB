@@ -62,7 +62,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -------------
 
    procedure Destroy
-     (MF : in out No_Tasking_Mutex_Factory_Type;
+     (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access) is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -75,7 +75,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : in out No_Tasking_Mutex_Type) is
+   procedure Enter (M : access No_Tasking_Mutex_Type)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Warnings (On);
@@ -97,7 +98,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : in out No_Tasking_Mutex_Type) is
+   procedure Leave (M : access No_Tasking_Mutex_Type)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Warnings (On);

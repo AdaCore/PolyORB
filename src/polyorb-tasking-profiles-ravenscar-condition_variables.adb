@@ -123,7 +123,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : in out Ravenscar_Condition_Type) is
+     (C : access Ravenscar_Condition_Type) is
       To_Free : Thread_Queue;
    begin
       pragma Debug (O ("Broadcast"));
@@ -166,8 +166,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    -------------
 
    procedure Destroy
-     (MF : in out Ravenscar_Condition_Factory_Type;
-      C  : in out Condition_Access) is
+     (MF : access Ravenscar_Condition_Factory_Type;
+      C  : in out Condition_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
@@ -322,7 +323,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    ------------
 
    procedure Signal
-     (C : in out Ravenscar_Condition_Type) is
+     (C : access Ravenscar_Condition_Type) is
       Someone_Is_Waiting : Boolean;
       To_Free            : Synchro_Index_Type;
    begin
@@ -339,16 +340,16 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : in out Ravenscar_Condition_Type;
+     (C : access Ravenscar_Condition_Type;
       M : access PTM.Mutex_Type'Class) is
       S : Synchro_Index_Type;
    begin
       pragma Debug (O ("Wait"));
       S := Prepare_Suspend;
       The_Condition_PO_Arr (C.Id).Prepare_Wait (S);
-      PTM.Leave (M.all);
+      PTM.Leave (M);
       Suspend (S);
-      PTM.Enter (M.all);
+      PTM.Enter (M);
    end Wait;
 
    use PolyORB.Initialization;

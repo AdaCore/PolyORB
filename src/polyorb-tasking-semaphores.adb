@@ -58,65 +58,56 @@ package body PolyORB.Tasking.Semaphores is
    ------------
 
    procedure Create (S : out Semaphore_Access) is
-      Result                : Semaphore;
-      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
    begin
       pragma Debug (O ("Create semaphore"));
-      Result.Value := 0;
-      Result.Mutex := PTM.Create (The_Mutex_Factory);
-      Result.Condition := PTCV.Create (The_Condition_Factory);
-      S := new Semaphore'(Result);
+      S := new Semaphore;
+      S.Value := 0;
+      PTM.Create (S.Mutex);
+      PTCV.Create (S.Condition);
    end Create;
 
    procedure Destroy (S : in out Semaphore_Access) is
-      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
    begin
       pragma Debug (O ("Destroy semaphore, Value was "
                        & Integer'Image (S.Value)));
-      PTM.Destroy (The_Mutex_Factory.all, S.Mutex);
-      PTCV.Destroy (The_Condition_Factory.all, S.Condition);
+      PTM.Destroy (S.Mutex);
+      PTCV.Destroy (S.Condition);
       Free (S);
    end Destroy;
 
    procedure Up (S : Semaphore_Access) is
    begin
-      PTM.Enter (S.Mutex.all);
+      PTM.Enter (S.Mutex);
       pragma Debug (O ("Up semaphore, value ="
                        & Integer'Image (S.Value)));
       S.Value := S.Value + 1;
-      PTCV.Signal (S.Condition.all);
-      PTM.Leave (S.Mutex.all);
+      PTCV.Signal (S.Condition);
+      PTM.Leave (S.Mutex);
    end Up;
 
    procedure Down (S : Semaphore_Access) is
    begin
-      PTM.Enter (S.Mutex.all);
+      PTM.Enter (S.Mutex);
       pragma Debug (O ("Down semaphore"));
 
       while S.Value = 0 loop
          pragma Debug (O ("Wait in Semaphore, value ="
                           & Integer'Image (S.Value)));
-         PTCV.Wait (S.Condition.all, S.Mutex);
+         PTCV.Wait (S.Condition, S.Mutex);
       end loop;
       S.Value := S.Value - 1;
 
-      PTM.Leave (S.Mutex.all);
+      PTM.Leave (S.Mutex);
    end Down;
 
    function State (S : Semaphore_Access) return Natural is
       Result : Integer;
    begin
-      PTM.Enter (S.Mutex.all);
+      PTM.Enter (S.Mutex);
       Result := S.Value;
       pragma Debug (O (" get Semaphore value, value ="
                        & Integer'Image (S.Value)));
-      PTM.Leave (S.Mutex.all);
+      PTM.Leave (S.Mutex);
       return Result;
    end State;
 

@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#1 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#2 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -60,16 +60,16 @@ package body PolyORB.Tasking.Rw_Locks is
         := new Rw_Lock_Type;
    begin
       if All_Rw_Locks = null then
-         All_Rw_Locks := Create (Get_Mutex_Factory);
+         Create (All_Rw_Locks);
       end if;
       pragma Assert (All_Rw_Locks /= null);
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
       Rw_Lock_Counter := Rw_Lock_Counter + 1;
       pragma Debug (O ("Rw_Lock: init/Serial ="
                        & Rw_Lock_Counter'Img));
       Result.Serial := Rw_Lock_Counter;
-      Leave (All_Rw_Locks.all);
-      Result.Guard_Values := Create (Get_Condition_Factory);
+      Leave (All_Rw_Locks);
+      Create (Result.Guard_Values);
       L := Result;
    end Create;
 
@@ -80,7 +80,7 @@ package body PolyORB.Tasking.Rw_Locks is
    begin
       pragma Debug
         (O ("Rw_Lock: final/Serial =" & L.Serial'Img));
-      Destroy (Get_Condition_Factory.all, L.Guard_Values);
+      Destroy (L.Guard_Values);
       Free (L);
    end Destroy;
 
@@ -88,11 +88,11 @@ package body PolyORB.Tasking.Rw_Locks is
    begin
       pragma Debug (O ("Lock_W Serial =" & L.Serial'Img));
 
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
 
       while L.Count /= 0 loop
          L.Writers_Waiting := L.Writers_Waiting + 1;
-         Wait (L.Guard_Values.all, All_Rw_Locks);
+         Wait (L.Guard_Values, All_Rw_Locks);
          L.Writers_Waiting := L.Writers_Waiting - 1;
          --  Wait until the condition may have changed
          --  from the value it had when we were within
@@ -100,7 +100,7 @@ package body PolyORB.Tasking.Rw_Locks is
       end loop;
 
       L.Count := -1;
-      Leave (All_Rw_Locks.all);
+      Leave (All_Rw_Locks);
    end Lock_W;
 
    procedure Lock_R (L : access Rw_Lock_Type) is
@@ -108,7 +108,7 @@ package body PolyORB.Tasking.Rw_Locks is
 
       pragma Debug (O ("Lock_R"));
 
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
 
       while not (True
         and then L.Count >= 0
@@ -116,50 +116,50 @@ package body PolyORB.Tasking.Rw_Locks is
         and then L.Writers_Waiting = 0)
       loop
          L.Readers_Waiting := L.Readers_Waiting + 1;
-         Wait (L.Guard_Values.all, All_Rw_Locks);
+         Wait (L.Guard_Values, All_Rw_Locks);
          L.Readers_Waiting := L.Readers_Waiting - 1;
       end loop;
 
       L.Count := L.Count + 1;
-      Leave (All_Rw_Locks.all);
+      Leave (All_Rw_Locks);
    end Lock_R;
 
    procedure Unlock_W (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_W"));
 
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
       if L.Count /= -1 then
          raise Program_Error;
       else
          L.Count := 0;
       end if;
-      Broadcast (L.Guard_Values.all);
-      Leave (All_Rw_Locks.all);
+      Broadcast (L.Guard_Values);
+      Leave (All_Rw_Locks);
    end Unlock_W;
 
    procedure Unlock_R (L : access Rw_Lock_Type) is
    begin
       pragma Debug (O ("Unlock_R"));
 
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
       if L.Count <= 0 then
          raise Program_Error;
       else
          L.Count := L.Count - 1;
       end if;
-      Broadcast (L.Guard_Values.all);
-      Leave (All_Rw_Locks.all);
+      Broadcast (L.Guard_Values);
+      Leave (All_Rw_Locks);
    end Unlock_R;
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;
       Max : Natural) is
    begin
-      Enter (All_Rw_Locks.all);
+      Enter (All_Rw_Locks);
       L.Max_Count := Max;
-      Broadcast (L.Guard_Values.all);
-      Leave (All_Rw_Locks.all);
+      Broadcast (L.Guard_Values);
+      Leave (All_Rw_Locks);
    end Set_Max_Count;
 
 end PolyORB.Tasking.Rw_Locks;

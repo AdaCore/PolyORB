@@ -40,19 +40,25 @@ package body PolyORB.Tasking.Condition_Variables is
    My_Factory : Condition_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
 
-   Initialized : Boolean := False;
-   --  Set to True when this package is initialized.
+   ------------
+   -- Create --
+   ------------
 
-   ---------------------------
-   -- Get_Condition_Factory --
-   ---------------------------
-
-   function Get_Condition_Factory
-     return Condition_Factory_Access is
+   procedure Create (C : out Condition_Access; Name : String := "") is
    begin
-      pragma Assert (Initialized);
-      return My_Factory;
-   end Get_Condition_Factory;
+      pragma Assert (My_Factory /= null);
+      C := Create (My_Factory, Name);
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (C : in out Condition_Access) is
+   begin
+      pragma Assert (My_Factory /= null);
+      Destroy (My_Factory, C);
+   end Destroy;
 
    --------------------------------
    -- Register_Condition_Factory --
@@ -61,12 +67,8 @@ package body PolyORB.Tasking.Condition_Variables is
    procedure Register_Condition_Factory
      (MF : Condition_Factory_Access) is
    begin
-      pragma Assert (not Initialized);
-
-      if not Initialized then
-         My_Factory := MF;
-         Initialized := True;
-      end if;
+      pragma Assert (My_Factory = null);
+      My_Factory := MF;
    end Register_Condition_Factory;
 
 end PolyORB.Tasking.Condition_Variables;

@@ -46,9 +46,8 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    type Full_Tasking_Mutex_Access is
      access all Full_Tasking_Mutex_Type'Class;
 
-   procedure Enter (M : in out Full_Tasking_Mutex_Type);
-
-   procedure Leave (M : in out Full_Tasking_Mutex_Type);
+   procedure Enter (M : access Full_Tasking_Mutex_Type);
+   procedure Leave (M : access Full_Tasking_Mutex_Type);
 
    type Full_Tasking_Mutex_Factory_Type is
      new PTM.Mutex_Factory_Type with private;
@@ -64,7 +63,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
      return PTM.Mutex_Access;
 
    procedure Destroy
-     (MF : in out Full_Tasking_Mutex_Factory_Type;
+     (MF : access Full_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access);
 
 private

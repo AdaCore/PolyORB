@@ -32,15 +32,14 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
-
 
 package body PolyORB.Tasking.Soft_Links is
 
    Critical_Section : Tasking_Adv_Mutex_Type;
-
-   My_Mutex_Factory : Mutex_Factory_Access;
 
    My_Thread_Factory  : Thread_Factory_Access;
 
@@ -59,7 +58,7 @@ package body PolyORB.Tasking.Soft_Links is
    function Create return PS.Mutex_Access is
       M : Tasking_Mutex_Type;
    begin
-      M.M := Create (My_Mutex_Factory);
+      Create (M.M);
       return new Tasking_Mutex_Type'(M);
    end Create;
 
@@ -75,7 +74,7 @@ package body PolyORB.Tasking.Soft_Links is
       M : Tasking_Adv_Mutex_Type;
    begin
       M.X := new Adv_Mutex_Type;
-      Create (M.X.all);
+      Create (M.X);
       return new Tasking_Adv_Mutex_Type'(M);
    end Create;
 
@@ -98,17 +97,20 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Destroy (M : in out Tasking_Mutex_Type) is
    begin
-      Destroy (My_Mutex_Factory.all, M.M);
+      Destroy (M.M);
    end Destroy;
 
    procedure Destroy (W : in out Tasking_Watcher_Type) is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Watcher_Type, Watcher_Access);
    begin
       Destroy (W.W.all);
+      Free (W.W);
    end Destroy;
 
    procedure Destroy (M : in out Tasking_Adv_Mutex_Type) is
    begin
-      Destroy (M.X.all);
+      Destroy (M.X);
    end Destroy;
 
    ------------
@@ -128,12 +130,12 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Enter (M : in Tasking_Mutex_Type) is
    begin
-      Enter (M.M.all);
+      Enter (M.M);
    end Enter;
 
    procedure Enter (M : in Tasking_Adv_Mutex_Type) is
    begin
-      Enter (M.X.all);
+      Enter (M.X);
    end Enter;
 
    ----------------------------
@@ -195,10 +197,9 @@ package body PolyORB.Tasking.Soft_Links is
    procedure Initialize is
       use PolyORB.Soft_Links;
    begin
-      My_Mutex_Factory := Get_Mutex_Factory;
       My_Thread_Factory := Get_Thread_Factory;
       Critical_Section.X         := new Advanced_Mutexes.Adv_Mutex_Type;
-      Create (Critical_Section.X.all);
+      Create (Critical_Section.X);
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
       Register_Watcher_Creation_Function (Create'Access);
@@ -216,12 +217,12 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Leave (M : in Tasking_Mutex_Type) is
    begin
-      Leave (M.M.all);
+      Leave (M.M);
    end Leave;
 
    procedure Leave (M : in Tasking_Adv_Mutex_Type) is
    begin
-      Leave (M.X.all);
+      Leave (M.X);
    end Leave;
 
    ------------

@@ -54,14 +54,14 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
      access all Ravenscar_Condition_Type'Class;
 
    procedure Wait
-     (C : in out Ravenscar_Condition_Type;
+     (C : access Ravenscar_Condition_Type;
       M : access Mutex_Type'Class);
 
    procedure Signal
-     (C : in out Ravenscar_Condition_Type);
+     (C : access Ravenscar_Condition_Type);
 
    procedure Broadcast
-     (C : in out Ravenscar_Condition_Type);
+     (C : access Ravenscar_Condition_Type);
 
    type Ravenscar_Condition_Factory_Type is
      new Condition_Factory_Type with private;
@@ -79,7 +79,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
      return Condition_Access;
 
    procedure Destroy
-     (MF : in out Ravenscar_Condition_Factory_Type;
+     (MF : access Ravenscar_Condition_Factory_Type;
       C  : in out Condition_Access);
 
    procedure Initialize;

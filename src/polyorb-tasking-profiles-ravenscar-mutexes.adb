@@ -152,7 +152,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -------------
 
    procedure Destroy
-     (MF : in out Ravenscar_Mutex_Factory_Type;
+     (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access) is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -165,7 +165,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : in out Ravenscar_Mutex_Type) is
+   procedure Enter (M : access Ravenscar_Mutex_Type) is
       Exit_Condition : Boolean;
       S              : Synchro_Index_Type;
    begin
@@ -199,7 +199,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : in out Ravenscar_Mutex_Type) is
+   procedure Leave (M : access Ravenscar_Mutex_Type) is
       To_Free            : Synchro_Index_Type;
       Someone_Is_Waiting : Boolean;
    begin

@@ -49,11 +49,8 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    type Ravenscar_Mutex_Access is access all Ravenscar_Mutex_Type'Class;
 
-   procedure Enter (M : in out Ravenscar_Mutex_Type);
-   --  Enter critical section.
-
-   procedure Leave (M : in out Ravenscar_Mutex_Type);
-   --  Leave critical section.
+   procedure Enter (M : access Ravenscar_Mutex_Type);
+   procedure Leave (M : access Ravenscar_Mutex_Type);
 
    type Ravenscar_Mutex_Factory_Type is
      new Mutex_Factory_Type with private;
@@ -71,7 +68,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
      return Mutex_Access;
 
    procedure Destroy
-     (MF : in out Ravenscar_Mutex_Factory_Type;
+     (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access);
 
    procedure Initialize;

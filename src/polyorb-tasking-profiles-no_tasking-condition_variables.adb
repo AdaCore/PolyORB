@@ -46,7 +46,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : in out No_Tasking_Condition_Type) is
+     (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -75,8 +75,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -------------
 
    procedure Destroy
-     (MF : in out No_Tasking_Condition_Factory_Type;
-      C  : in out PTCV.Condition_Access) is
+     (MF : access No_Tasking_Condition_Factory_Type;
+      C  : in out PTCV.Condition_Access)
+  is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
@@ -99,7 +100,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ------------
 
    procedure Signal
-     (C : in out No_Tasking_Condition_Type) is
+     (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -112,13 +113,13 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : in out No_Tasking_Condition_Type;
-      M : access PTM.Mutex_Type'Class) is
+     (C : access No_Tasking_Condition_Type;
+      M : access PTM.Mutex_Type'Class)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Unreferenced (C);
       pragma Warnings (On);
-      B : Boolean;
    begin
       raise Tasking.Tasking_Profile_Error;
    end Wait;

@@ -40,19 +40,28 @@ package body PolyORB.Tasking.Mutexes is
    My_Factory : Mutex_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
 
-   Initialized : Boolean := False;
-   --  Set to True when this package is initialized.
+   ------------
+   -- Create --
+   ------------
 
-   -------------------------
-   -- Get_Mutex_Factory --
-   -------------------------
-
-   function Get_Mutex_Factory
-     return Mutex_Factory_Access is
+   procedure Create
+     (M    : out Mutex_Access;
+      Name : String := "") is
    begin
-      pragma Assert (Initialized);
-      return My_Factory;
-   end Get_Mutex_Factory;
+      pragma Assert (My_Factory /= null);
+      M := Create (My_Factory, Name);
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (M    : in out Mutex_Access) is
+   begin
+      pragma Assert (My_Factory /= null);
+      Destroy (My_Factory, M);
+   end Destroy;
 
    ------------------------------
    -- Register_Mutex_Factory --
@@ -61,12 +70,8 @@ package body PolyORB.Tasking.Mutexes is
    procedure Register_Mutex_Factory
      (MF : Mutex_Factory_Access) is
    begin
-      pragma Assert (not Initialized);
-
-      if not Initialized then
-         My_Factory := MF;
-         Initialized := True;
-      end if;
+      pragma Assert (My_Factory = null);
+      My_Factory := MF;
    end Register_Mutex_Factory;
 
 end PolyORB.Tasking.Mutexes;

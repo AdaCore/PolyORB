@@ -63,23 +63,20 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    -- Create --
    ------------
 
-   procedure Create (M : in out Adv_Mutex_Type) is
+   procedure Create (M : out Adv_Mutex_Access) is
       use PolyORB.Tasking.Threads;
 
-      My_Mutex_Factory : constant PTM.Mutex_Factory_Access
-         := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant PTCV.Condition_Factory_Access
-         := PTCV.Get_Condition_Factory;
       My_Thread_Factory : constant PTT.Thread_Factory_Access
         := PTT.Get_Thread_Factory;
       Self              : constant PTT.Thread_Id'Class
         := PTT.Get_Current_Thread_Id (My_Thread_Factory);
    begin
       pragma Debug (O ("Create Adv_Mutex"));
+      M := new Adv_Mutex_Type;
       M.Current := new PTT.Thread_Id'Class'(Self);
       M.Empty := True;
-      M.MMutex := PTM.Create (My_Mutex_Factory);
-      M.MCondition := PTCV.Create (My_Condition_Factory);
+      PTM.Create (M.MMutex);
+      PTCV.Create (M.MCondition);
       M.Level := 0;
       M.Await_Count := 0;
       M.Passing := True;
@@ -89,24 +86,23 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-      My_Mutex_Factory : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
+   procedure Destroy (M : in out Adv_Mutex_Access)
+   is
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
    begin
       pragma Debug (O ("Destroy Adv_Mutex"));
       Free (M.Current);
-      PTM.Destroy (My_Mutex_Factory.all, M.MMutex);
-      PTCV.Destroy (My_Condition_Factory.all, M.MCondition);
+      PTM.Destroy (M.MMutex);
+      PTCV.Destroy (M.MCondition);
+      Free (M);
    end Destroy;
 
    -----------
    -- Enter --
    -----------
 
-   procedure Enter (M : in out Adv_Mutex_Type) is
+   procedure Enter (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
 
       My_Thread_Factory : constant PTT.Thread_Factory_Access
@@ -114,7 +110,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       Self              : constant PTT.Thread_Id'Class
         := PTT.Get_Current_Thread_Id (My_Thread_Factory);
    begin
-      PTM.Enter (M.MMutex.all);
+      PTM.Enter (M.MMutex);
       pragma Debug (O (PTT.Image (M.Current.all) & "try to Enter Adv_Mutex"));
       while not M.Empty
         and then M.Current.all /= Self loop
@@ -122,9 +118,7 @@ package body PolyORB.Tasking.Advanced_Mutexes is
                           & "Will wait for Adv_Mutex, current owner is "
                           & PTT.Image (M.Current.all)));
          if not M.Passing then
-            PTCV.Wait
-              (M.MCondition.all,
-               M.MMutex);
+            PTCV.Wait (M.MCondition, M.MMutex);
          end if;
          M.Passing := False;
       end loop;
@@ -133,21 +127,21 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       M.Level := M.Level + 1;
       Copy_Thread_Id (My_Thread_Factory, Self, M.Current);
       pragma Debug (O ("Enter Adv_Mutex" & PTT.Image (M.Current.all)));
-      PTM.Leave (M.MMutex.all);
+      PTM.Leave (M.MMutex);
    end Enter;
 
    -----------
    -- Leave --
    -----------
 
-   procedure Leave (M : in out Adv_Mutex_Type) is
+   procedure Leave (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
       My_Thread_Factory  : constant PTT.Thread_Factory_Access
         := PTT.Get_Thread_Factory;
       Self               : constant PTT.Thread_Id'Class
         := PTT.Get_Current_Thread_Id (My_Thread_Factory);
    begin
-      PTM.Enter (M.MMutex.all);
+      PTM.Enter (M.MMutex);
       pragma Debug (O ("leave Adv_Mutex, owner was "
                        & PTT.Image (Self)));
       pragma Assert (M.Current.all = Self);
@@ -157,10 +151,10 @@ package body PolyORB.Tasking.Advanced_Mutexes is
       if M.Level = 0 then
          M.Empty := True;
          M.Passing := True;
-         PTCV.Signal (M.MCondition.all);
+         PTCV.Signal (M.MCondition);
       end if;
 
-      PTM.Leave (M.MMutex.all);
+      PTM.Leave (M.MMutex);
 
    end Leave;
 

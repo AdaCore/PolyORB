@@ -50,14 +50,14 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      access all Full_Tasking_Condition_Type'Class;
 
    procedure Wait
-     (C : in out Full_Tasking_Condition_Type;
+     (C : access Full_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class);
 
    procedure Signal
-     (C : in out Full_Tasking_Condition_Type);
+     (C : access Full_Tasking_Condition_Type);
 
    procedure Broadcast
-     (C : in out Full_Tasking_Condition_Type);
+     (C : access Full_Tasking_Condition_Type);
 
    type Full_Tasking_Condition_Factory_Type is
      new PTCV.Condition_Factory_Type with private;
@@ -73,7 +73,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      return PTCV.Condition_Access;
 
    procedure Destroy
-     (MF : in out Full_Tasking_Condition_Factory_Type;
+     (MF : access Full_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access);
 
 private

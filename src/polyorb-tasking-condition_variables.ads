@@ -54,7 +54,7 @@ package PolyORB.Tasking.Condition_Variables is
    --  Type for condition variables.
 
    procedure Wait
-     (C : in out Condition_Type;
+     (C : access Condition_Type;
       M : access Mutex_Type'Class)
       is abstract;
    --  Wait for a notification on condition variable C.
@@ -66,12 +66,12 @@ package PolyORB.Tasking.Condition_Variables is
    --  On return, M is owned again.
 
    procedure Broadcast
-     (C : in out Condition_Type)
+     (C : access Condition_Type)
       is abstract;
    --  Unblock all tasks blocked on C.
 
    procedure Signal
-     (C : in out Condition_Type)
+     (C : access Condition_Type)
       is abstract;
    --  Unblock one task blocked on C.
 
@@ -96,19 +96,17 @@ package PolyORB.Tasking.Condition_Variables is
    --  condition variable from the configuration module.
 
    procedure Destroy
-     (MF : in out Condition_Factory_Type;
+     (MF : access Condition_Factory_Type;
       C  : in out Condition_Access)
      is abstract;
    --  Destroy C, or just release it if it was preallocated.
 
-   function Get_Condition_Factory
-     return Condition_Factory_Access;
-   pragma Inline (Get_Condition_Factory);
-   --  Get the Condition_Factory object registered in this package.
-
    procedure Register_Condition_Factory
      (MF : Condition_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
+
+   procedure Create (C : out Condition_Access; Name : String := "");
+   procedure Destroy (C : in out Condition_Access);
 
 private
 

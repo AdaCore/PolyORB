@@ -53,16 +53,16 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    --  Type for mutexes with no Ada tasking.
 
    procedure Wait
-     (C : in out No_Tasking_Condition_Type;
+     (C : access No_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class);
    --  Have no sense in this profile (would block the only task
    --  that can run), so raise PolyORB.Tasking.Tasking_Profile_Error
 
    procedure Signal
-     (C : in out No_Tasking_Condition_Type);
+     (C : access No_Tasking_Condition_Type);
 
    procedure Broadcast
-     (C : in out No_Tasking_Condition_Type);
+     (C : access No_Tasking_Condition_Type);
 
    type No_Tasking_Condition_Factory_Type is
      new PTCV.Condition_Factory_Type with private;
@@ -82,7 +82,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    --  condition from the configuration module.
 
    procedure Destroy
-     (MF : in out No_Tasking_Condition_Factory_Type;
+     (MF : access No_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access);
    --  Destroy C.
 
