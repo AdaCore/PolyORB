@@ -1,7 +1,7 @@
 README for the PolyORB CORBA interoperability tests
 ---------------------------------------------------
 
-$Id: //droopi/main/examples/corba/all_types/interop/java/README#1 $
+$Id: //droopi/main/examples/corba/all_types/interop/java/README#2 $
 
 * Compilation
 
@@ -16,7 +16,11 @@ edit the makefile to setup:
 make run_dynserver
 make run_dynclient
 
-the IOR is stored in the `IOR` file and read _from this file_ by DynClient.
+The object IOR is stored in the `IOR` file and read _from this file_
+by DynClient.
+
+Note: the IDL file has been modified to accomodate bug in compilation
+process...
 
 
 
