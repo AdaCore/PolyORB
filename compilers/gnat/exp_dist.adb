@@ -1744,8 +1744,6 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Pkg_Spec);
 
---        Stream_Parameter : Node_Id;
---        Result_Parameter : Node_Id;
       Self_Parameter    : Node_Id;
       Message_Parameter : Node_Id;
 
@@ -1806,10 +1804,6 @@ package body Exp_Dist is
       --      part of this RCI package on the name server. This is done
       --      by calling System.Partition_Interface.Register_Receiving_Stub
 
---        Stream_Parameter :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
---        Result_Parameter :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
       Subp_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
       Request :=
@@ -2294,10 +2288,6 @@ package body Exp_Dist is
       --  The request object constructed by these stubs.
 
       Result : Node_Id;
-      --  The named value that receives the result of the invocation
-      --  (non-APC case).
-
-      Result_Parameter : Node_Id;
       --  Name of the result named value (in non-APC cases) which get the
       --  result of the remote subprogram.
 
@@ -2361,21 +2351,22 @@ package body Exp_Dist is
               New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
 
       if not Is_Known_Asynchronous then
-         Result_Parameter :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+--           Result_Parameter :=
+--             Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
-         Append_To (Decls,
-           Make_Object_Declaration (Loc,
-             Defining_Identifier => Result_Parameter,
-             Aliased_Present     => True,
-             Object_Definition   =>
-               Make_Subtype_Indication (Loc,
-                 Subtype_Mark =>
-                   New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc),
-                 Constraint   =>
-                   Make_Index_Or_Discriminant_Constraint (Loc,
-                     Constraints =>
-                       New_List (Make_Integer_Literal (Loc, 0))))));
+--           Append_To (Decls,
+--             Make_Object_Declaration (Loc,
+--               Defining_Identifier => Result_Parameter,
+--               Aliased_Present     => True,
+--               Object_Definition   =>
+--                 Make_Subtype_Indication (Loc,
+--                   Subtype_Mark =>
+--                     New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc),
+--                   Constraint   =>
+--                     Make_Index_Or_Discriminant_Constraint (Loc,
+--                       Constraints =>
+--                         New_List (Make_Integer_Literal (Loc, 0))))));
+--  XXX unnecessary with PolyORB (result NV is modified in place.)
 
          Result :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
@@ -2397,7 +2388,7 @@ package body Exp_Dist is
                New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc)));
 
       else
-         Result_Parameter := Empty;
+         Result := Empty;
          Exception_Return := Empty;
       end if;
 
@@ -3067,8 +3058,6 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
-      --  Stream_Parameter : Node_Id;
-      --  Result_Parameter : Node_Id;
       Request_Parameter : Node_Id;
       --  See explanations of those in Build_Subprogram_Calling_Stubs
 
@@ -3133,8 +3122,6 @@ package body Exp_Dist is
              Defining_Unit_Name (Specification (Vis_Decl)), Loc);
       end if;
 
---        Stream_Parameter :=
---          Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
       Request_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
