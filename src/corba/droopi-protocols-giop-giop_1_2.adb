@@ -42,7 +42,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Message_Size  : in Stream_Element_Offset;
       Fragment_Next : in Boolean)
    is
-      use representations.CDR;
+      use Representations.CDR;
       Flags:Bits_8:=0;
 
    begin
@@ -93,7 +93,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Sync_Type         : in CORBA.SyncScope)
 
   is
-      use representations.CDR;
+      use Representations.CDR;
       use Binding_Data.Iiop;
       use Droopi.References.IOR;
       Reserved: constant CORBA.Octet:=0;
@@ -154,7 +154,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      Request_Id  : in CORBA.Unsigned_Long)
 
    is
-    use  representations.CDR;
+    use  Representations.CDR;
    begin
 
 
@@ -182,7 +182,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Occurence   : in CORBA.Exception_Occurrence)
 
    is
-     use  representations.CDR
+     use  Representations.CDR
    begin
 
       pragma Assert (Reply_Type in User_Exception .. System_Exception);
@@ -212,7 +212,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Reply_Type    :   in  Reply_Status_Type;
       Target_Ref    :   in  Droopi.References)
     is
-       use  representations.CDR;
+       use  Representations.CDR;
     begin
 
       pragma Assert (Reply_Type in Location_Forward .. Location_Forward_Perm);
@@ -241,7 +241,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      Address_Type        : in GIOP.Addressing_Disposition)
     is
 
-        use  representations.CDR
+        use  Representations.CDR
 
     begin
 
@@ -272,7 +272,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      Target_Ref        : in Target_Address)
 
    is
-      use representations.CDR;
+      use Representations.CDR;
       use Binding_Data.Iiop;
    begin
 
@@ -310,7 +310,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
     ( Buffer       : access Buffers.Buffer_Type;
       Request_Id   : in CORBA.Unsigned_Long)
    is
-      use  representations.CDR;
+      use  Representations.CDR;
    begin
 
 
@@ -331,7 +331,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
        Target_Ref        : out Target_Address;
        Operation         : out Requests.Operation_Id)
    is
-       use  representations.CDR;
+       use  Representations.CDR;
        Service_Context      : array (range 0 ..9) of CORBA.Unsigned_Long;
        Reserved             : CORBA.Octet;
        Received_Flags       : CORBA.Octet;
@@ -399,7 +399,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
        Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type)
    is
-      use  representations.CDR;
+      use  Representations.CDR;
       Service_Context   : array (range 0 ..9) of CORBA.Unsigned_Long;
    begin
 

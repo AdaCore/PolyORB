@@ -57,7 +57,9 @@ package body Droopi.Protocols.GIOP is
    --  header.
 
    Prof_Factory : Binding_Data.Profile_Factory_Access
-                     := new Binding_Data.IIOP.IIOP_Profile_Factory;
+     := new Binding_Data.IIOP.IIOP_Profile_Factory;
+   --  XXX Remove dynamic allocation from elaboration
+   --  (move it to an Initialize procedure).
 
    Pend_Req : Pending_Request;
 
@@ -288,7 +290,7 @@ package body Droopi.Protocols.GIOP is
       use CORBA;
 
       --  Buffer_In : Buffer_Type renames S.Buffer_In;
-      Message_Magic : Element_Stream_Array (Magic'Range);
+      Message_Magic : Stream_Element_Array (Magic'Range);
       Message_Major_Version : CORBA.Octet;
       Message_Minor_Version : CORBA.Octet;
       Flags :  CORBA.Octet;
@@ -321,8 +323,10 @@ package body Droopi.Protocols.GIOP is
 
       if Message_Minor_Version = 0 then
 
+         --  Use static location of endiannes info: LSB of 6th byte
+         --  in header. There is no Set_endianness procedure.
          --  Byte order
-         if Unmarshall (Ses.Buffer_In) = 0  then
+         if Octet'(Unmarshall (Ses.Buffer_In)) = 0  then
             Set_Endianness (Ses.Buffer_In, Little_Endian);
          else
             Set_Endianness (Ses.Buffer_In, Big_Endian);
@@ -1388,7 +1392,7 @@ package body Droopi.Protocols.GIOP is
    --  Send Reply
    --------------------------------------
 
-   procedure Send_Reply (Ses : access Echo_Session; R : Request)
+   procedure Send_Reply (Ses : access GIOP_Session; R : Request)
    is
       use Buffers;
       use Representations.Cdr;
@@ -1427,7 +1431,7 @@ package body Droopi.Protocols.GIOP is
    --  Handle Connect Indication ----
    ----------------------------------
 
-   procedure Handle_Connect_Indication (S : access Echo_Session)
+   procedure Handle_Connect_Indication (S : access GIOP_Session)
    is
       Filt_Slicer : constant Filters.Filter := Lower (S);
    begin
@@ -1528,7 +1532,7 @@ package body Droopi.Protocols.GIOP is
             when Locate_Request =>
                if S.Role = Server then
                   --  not yet implemented
-                  return null;
+                  raise Not_Implemented;
                else
                   raise GIOP_Error;
                end if;
@@ -1547,7 +1551,7 @@ package body Droopi.Protocols.GIOP is
                            Invoque_Request (S, Pending_Req.Req);
 
                         when Unknown_Object =>
-                           raise GIOP.Error;
+                           raise GIOP_Error;
 
                         when Object_Forward =>
 

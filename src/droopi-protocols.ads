@@ -36,10 +36,6 @@ package Droopi.Protocols is
    -- Protocol primitives (interface to upper layers) --
    -----------------------------------------------------
 
-   procedure Connect (S : access Session)
-      is abstract;
-   --  Set up a newly created client session.
-
    procedure Invoke_Request (S : access Session; R : Request)
       is abstract;
    --  Send a method invocation message for request R on session S.

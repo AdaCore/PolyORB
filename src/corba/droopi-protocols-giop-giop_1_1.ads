@@ -25,7 +25,6 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
    pragma Elaborate_Body;
 
-   Service_Context_List_1_1 : constant array (range 0 .. 1) of ServiceId;
    type Service_Id_Array is array (Integer range <>) of ServiceId;
    Service_Context_List_1_1 : constant Service_Id_Array;
 

@@ -182,7 +182,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Unmarshall_GIOP_Header
      (Ses                   : access GIOP_Session;
-      Message_Type          : out MsgType;
+      Message_Type          : out Msg_Type;
       Message_Size          : out CORBA.Unsigned_Long;
       Fragment_Next         : out CORBA.Boolean;
       Success               : out Boolean);

@@ -20,6 +20,8 @@ with Droopi.Binding_Data;
 
 package Droopi.Protocols.GIOP.GIOP_1_0 is
 
+   pragma Elaborate_Body;
+
    No_Context : constant CORBA.Unsigned_Long := 0;
 
    procedure Marshall_GIOP_Header

@@ -126,7 +126,7 @@ package body Droopi.Binding_Data.Iiop is
      (IOR     : access Buffer_Type;
       Profile : access Profile_Type'Class)
    is
-      use representations.CDR;
+      use Representations.CDR;
 
       IIOP_Profile : IIOP_Profile_Type renames IIOP_Profile_Type (Profile.all);
       Profile_Body : aliased Buffer_Type;

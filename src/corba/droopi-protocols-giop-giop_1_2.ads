@@ -30,7 +30,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Marshall_GIOP_Header
      (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in MsgType;
+      Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset;
       Fragment_Next : in Boolean);
 
@@ -100,8 +100,8 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 private
 
 
-   Service_Context_List_1_2 : constant array (Integer range 0 .. 9) of ServiceId
-       := (Transaction_Service, CodeSets, ChainByPassCheck,
+   Service_Context_List_1_2 : constant array (Integer range <>) of ServiceId
+       := (0 => Transaction_Service, CodeSets, ChainByPassCheck,
             ChainByPassInfo, LogicalThreadId, Bi_Dir_Iiop,
             SendingContextRunTime, Invocation_Policies,
             Forwarded_Identity, UnknownExceptionInfo);
@@ -113,6 +113,7 @@ private
 
    Response_Flags: constant array(Integer range 0..3) of CORBA.Octet:=
                    (0,16#1#, 16#2#, 16#3#);
+   --  XXX useless as is.
 
 
 end Droopi.Protocols.GIOP.GIOP_1_2;
