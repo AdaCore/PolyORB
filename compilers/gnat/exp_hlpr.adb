@@ -97,16 +97,17 @@ package body Exp_Hlpr is
    --  Common subprograms for building record helpers
 
    function Make_Array_Iterator
-     (Loc           : Source_Ptr;
-      Typ           : Entity_Id;
+     (Subprogram    : Entity_Id;
+      Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
       Indices       : List_Id)
       return Node_Id;
    --  Build nested loop statements that iterate over the elements
-   --  of an array of type Typ. Statement Innermost_Stm is executed
+   --  of an array Arry. Statement Innermost_Stm is executed
    --  for each element; Indices is the list of indices to be used
    --  in the construction of the indexed component that denotes
-   --  the current element.
+   --  the current element. Subprogram is the entity for the subprogram
+   --  for which this iterator is generated.
 
    generic
       with procedure Process_One_Field (E : Entity_Id);
@@ -496,6 +497,7 @@ package body Exp_Hlpr is
                 Defining_Identifier => Res,
                 Object_Definition =>
                   New_Occurrence_Of (Typ, Loc)));
+            Set_Etype (Res, Typ);
 
             Append_To (Decls,
               Make_Object_Declaration (Loc,
@@ -545,11 +547,11 @@ package body Exp_Hlpr is
                          Right_Opnd =>
                            Make_Integer_Literal (Loc, 1))))));
 
-	    Append_To (Stms,
-              Make_Array_Iterator (Loc,
-                Typ, 
-		Assign_Component,
-		Indices));
+            Append_To (Stms,
+              Make_Array_Iterator (Fnam,
+                Res,
+                Assign_Component,
+                Indices));
 
             Append_To (Stms,
               Make_Return_Statement (Loc,
@@ -779,6 +781,7 @@ package body Exp_Hlpr is
               Parameter_Type =>
                 New_Occurrence_Of (Typ, Loc))),
           Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+      Set_Etype (Expr_Parameter, Typ);
 
       Any_Decl :=
         Make_Object_Declaration (Loc,
@@ -934,16 +937,16 @@ package body Exp_Hlpr is
               Expressions => Indices);
             Set_Etype (Component, Component_Type (Typ));
 
-	    Append_To (Stms,
-              Make_Array_Iterator (Loc,
-                Typ,
+            Append_To (Stms,
+              Make_Array_Iterator (Fnam,
+                Expr_Parameter,
                 Make_Procedure_Call_Statement (Loc,
                   Name =>
                     New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
                   Parameter_Associations => New_List (
                     New_Occurrence_Of (Any, Loc),
                     Build_To_Any_Call (Component, Decls))),
-		Indices));
+                Indices));
 
          end;
       elsif Is_Integer_Type (Typ) or else Is_Unsigned_Type (Typ) then
@@ -1585,21 +1588,23 @@ package body Exp_Hlpr is
    -------------------------
 
    function Make_Array_Iterator
-     (Loc           : Source_Ptr;
-      Typ           : Entity_Id;
+     (Subprogram    : Entity_Id;
+      Arry          : Entity_Id;
       Innermost_Stm : Node_Id;
       Indices       : List_Id)
       return Node_Id
    is
-      Ndim : constant Pos := Number_Dimensions (Typ);
-      Inner_Stm : Node_Id := Innermost_Stm;
+      Loc       : constant Source_Ptr := Sloc (Subprogram);
+      Typ       : constant Entity_Id  := Etype (Arry);
+      Ndim      : constant Pos        := Number_Dimensions (Typ);
+      Inner_Stm : Node_Id             := Innermost_Stm;
 
    begin
       for J in 1 .. Ndim loop
          Append_To (Indices,
            Make_Identifier (Loc, New_External_Name ('L', J)));
          Inner_Stm :=
-           Make_Implicit_Loop_Statement (Fnam,
+           Make_Implicit_Loop_Statement (Subprogram,
              Iteration_Scheme =>
                Make_Iteration_Scheme (Loc,
                  Loop_Parameter_Specification =>
@@ -1610,7 +1615,7 @@ package body Exp_Hlpr is
 
                      Discrete_Subtype_Definition =>
                        Make_Attribute_Reference (Loc,
-                         Prefix => New_Occurrence_Of (Res, Loc),
+                         Prefix => New_Occurrence_Of (Arry, Loc),
                          Attribute_Name => Name_Range,
 
                          Expressions => New_List (
