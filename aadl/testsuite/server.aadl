@@ -1,0 +1,5 @@
+process polyorb_server
+provides
+  Req : in  data event requests::request;
+  Req : out data event requests::request;
+end polyorb_server;

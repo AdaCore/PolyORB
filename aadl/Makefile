@@ -1,7 +1,11 @@
+GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check
+GNATMAKE = gnatmake
+CMD = ${GNATMAKE} ${GNATFLAGS}
+
 all: aadl
 
-aadl:
-	gnatmake aadl
+aadl: lexer
+	${CMD} aadl
 
 lexer:
 	gnatmake lexer

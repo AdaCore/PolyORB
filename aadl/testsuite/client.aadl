@@ -1,0 +1,30 @@
+process p_client
+provides
+  Req : out data event requests::request;
+  Rep : in  data event requests::request;
+end p_client;
+
+thread t_client
+provides
+  Req : out data event requests::request;
+  Rep : in  data event requests::request;
+end t_client;
+
+thread implementation t_client.others
+properties
+  Dispatch_Protocol : background;
+
+-- The client thread is supposed to be always running
+
+end t_client.others;
+
+process implementation p_client.others
+
+subcomponents
+  main_thread : thread t_client.others;
+
+connections
+  data event port Rep -> main_thread.Rep;
+  data event port main_thread.Req -> Req;
+
+end p_client.others;

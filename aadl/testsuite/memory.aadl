@@ -1,0 +1,8 @@
+memory memoire
+end memory;
+
+memory implementation memoire.others
+
+Memory_Protocol : read_write;
+
+end memoire.others;

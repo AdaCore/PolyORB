@@ -1,0 +1,16 @@
+system client_serveur
+end client_serveur;
+
+system implementation client_serveur.notasking
+
+subcomponents
+  reseau : bus ethernet;
+  ordi_client, ordi_serveur : processor (net_access => reseau) Intelx86.Linux;
+  appl_client : process client.others;
+  appl_serveur : process serveur.notasking;
+
+properties
+  appl_client.Allowed_Binding => ordi_client;
+  appl_serveur.Allowed_Binding => ordi_serveur;
+
+end client_serveur.notasking;

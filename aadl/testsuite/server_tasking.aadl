@@ -1,0 +1,30 @@
+thread group t_server_pool
+provides
+  Req : in  data event requests::request;
+  Rep : out data event requests::request;
+end group t_server_pool;
+
+thread group implementation t_server_pool.tasking
+
+subcomponents
+  t1, t2, t3 : t_server.others;
+  --  described in notasking process
+
+properties
+  Dispatch_Protocol : aperiodic;
+
+-- the threads are dispatched when receiving event data on a port. If
+-- another data event occurs, it is queued.
+
+end t_server_pool.tasking;
+
+process implementation polyorb_server.tasking
+
+subcomponents
+  server : thread group t_server_pool.notasking;
+
+connections
+  data event port Req -> server.Req;
+  data event port server.Rep -> Rep;
+
+end polyorb_server.tasking;

@@ -5,7 +5,6 @@ with Ada.Text_IO;     use Ada.Text_IO;
 with Errors;          use Errors;
 with Lexer;           use Lexer;
 with Namet;           use Namet;
-with Output;          use Output;
 with Types;           use Types;
 with Usage;
 
@@ -33,6 +32,7 @@ begin
    loop
       Scan_Token;
       Put (Image (Token));
+      Put (' ');
       if Token = T_EOF then
          exit;
       end if;

@@ -666,7 +666,8 @@ package body Lexer is
                else
                   Error_Loc (1) := Token_Location;
                   DE ("character '" & Buffer (Token_Location.Scan) &
-                      "' is invalid");
+                      "' is invalid, ignored");
+                  Token_Location.Scan := Token_Location.Scan + 1;
                end if;
 
          end case;
