@@ -95,13 +95,13 @@ package body PolyORB.ORB.Thread_Per_Session is
    -----------------
 
    procedure Add_Request
-     (S : in Session_Thread_Info;
-      RI : Request_Info) is
+     (S  : in Session_Thread_Info;
+      RI :    Request_Info) is
    begin
       Request_Queues.Append (S.Request_List.all, RI);
       V (S.Request_Semaphore);
 
-      pragma Debug (O ("A job has been queued"));
+      pragma Debug (O ("A request has been queued"));
    end Add_Request;
 
    ------------------------------------
@@ -117,6 +117,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (On);
 
       use PolyORB.Components;
+
       ET : End_Thread_Job_Access;
       S  : Filters.Filter_Access := null;
    begin
@@ -151,8 +152,8 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection)
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -172,8 +173,8 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection)
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -214,7 +215,7 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
+      ORB :        ORB_Access;
       RJ  : access Request_Job'Class)
    is
       pragma Warnings (Off);
@@ -240,9 +241,9 @@ package body PolyORB.ORB.Thread_Per_Session is
    ----------
 
    procedure Idle
-     (P : access Thread_Per_Session_Policy;
+     (P         : access Thread_Per_Session_Policy;
       This_Task :        PolyORB.Task_Info.Task_Info;
-      ORB : ORB_Access)
+      ORB       :        ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -265,8 +266,8 @@ package body PolyORB.ORB.Thread_Per_Session is
 
    procedure Queue_Request_To_Handler
      (P   : access Thread_Per_Session_Policy;
-      ORB : ORB_Access;
-      Msg : Message'Class)
+      ORB :        ORB_Access;
+      Msg :        Message'Class)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);

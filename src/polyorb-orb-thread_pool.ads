@@ -51,8 +51,8 @@ package PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
    procedure Handle_Close_Server_Connection
      (P   : access Thread_Pool_Policy;
@@ -60,23 +60,23 @@ package PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection);
+      ORB :        ORB_Access;
+      C   :        Active_Connection);
 
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
-      ORB : ORB_Access;
+      ORB :        ORB_Access;
       RJ  : access Request_Job'Class);
 
    procedure Idle
-     (P : access Thread_Pool_Policy;
+     (P         : access Thread_Pool_Policy;
       This_Task :        PolyORB.Task_Info.Task_Info;
-      ORB : ORB_Access);
+      ORB       :        ORB_Access);
 
    procedure Queue_Request_To_Handler
      (P   : access Thread_Pool_Policy;
-      ORB : ORB_Access;
-      Msg : Message'Class);
+      ORB :        ORB_Access;
+      Msg :        Message'Class);
 
 private
 

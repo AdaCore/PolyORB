@@ -110,7 +110,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Thread_Pool: new server connection"));
+      pragma Debug (O ("New server connection"));
 
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -136,7 +136,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Warnings (On);
 
    begin
-      pragma Debug (O ("Thread_Pool: new client connection"));
+      pragma Debug (O ("New client connection"));
 
       Components.Emit_No_Reply
         (Component_Access (C.TE),
@@ -171,9 +171,9 @@ package body PolyORB.ORB.Thread_Pool is
    ----------
 
    procedure Idle
-     (P   : access Thread_Pool_Policy;
+     (P         : access Thread_Pool_Policy;
       This_Task :        PolyORB.Task_Info.Task_Info;
-      ORB :        ORB_Access)
+      ORB       :        ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
