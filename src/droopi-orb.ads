@@ -227,6 +227,11 @@ private
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is
       --  currently waiting for events.
+      --  XXX This is very wrong as is: there might be
+      --      several ORB tasks currently blocked on different
+      --      selectors. A set of task descrptors, including task
+      --      origin, permanentness and current status should really
+      --      be maintained.
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
       --  The object adapter that manages objects registered

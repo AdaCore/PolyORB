@@ -13,6 +13,7 @@ pragma Elaborate_All (Droopi.Log);
 
 with Droopi.Objects.Interface;
 with Droopi.ORB.Interface;
+with Droopi.ORB.Task_Info;
 with Droopi.References.Binding;
 with Droopi.Requests;
 with Droopi.Soft_Links;
@@ -217,7 +218,18 @@ package body Droopi.ORB is
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_Access := null;
-      May_Poll       : Boolean := False) is
+      May_Poll       : Boolean := False)
+   is
+      use Task_Info;
+
+      Task_Kind_For_Exit_Condition : constant array (Boolean)
+        of Task_Kind := (True => Permanent, False => Transient);
+      --  The task kind according to whether Exit_Condition
+      --  is null (True) or not.
+
+      This_Task : aliased Task_Info.Task_Info
+        (Task_Kind_For_Exit_Condition (Exit_Condition = null));
+
    begin
       loop
          pragma Debug (O ("Run: enter loop."));
@@ -258,6 +270,8 @@ package body Droopi.ORB is
                for I in Monitors'Range loop
                   ORB.Polling := True;
                   ORB.Selector := Monitors (I);
+                  Set_Status_Blocked (This_Task, Monitors (I));
+
                   Leave (ORB.ORB_Lock.all);
 
                   declare
@@ -267,6 +281,7 @@ package body Droopi.ORB is
                      Enter (ORB.ORB_Lock.all);
                      ORB.Polling := False;
                      ORB.Selector := null;
+                     Set_Status_Running (This_Task);
 
                      if Events'Length > 0 then
                         Event_Happened := True;
@@ -302,12 +317,20 @@ package body Droopi.ORB is
          else
 
             --  This task is going idle.
-            --  It should first ask for persmission to
-            --  do so from the tasking policy object.
 
-            --  XX TBD
-            raise Not_Implemented;
+            Enter (ORB.ORB_Lock.all);
+            Set_Status_Idle (This_Task, ORB.Idle_Tasks);
+            Leave (ORB.ORB_Lock.all);
 
+            Idle (ORB.Tasking_Policy, ORB_Access (ORB));
+            --  XXX Dunno if this is the right interface
+            --  between ORB and TP for idling.
+
+            Enter (ORB.ORB_Lock.all);
+            Set_Status_Running (This_Task);
+            Leave (ORB.ORB_Lock.all);
+
+            --  XXX memo for selves:
             --  How to idle with style:
             --  Lookup (ORB.Idle_Tasks, V);
             --  Differ (ORB.Idle_Tasks, V);

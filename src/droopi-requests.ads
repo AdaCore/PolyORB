@@ -6,6 +6,7 @@ with Ada.Unchecked_Deallocation;
 with CORBA;
 with CORBA.NVList;
 
+with Droopi.Annotations;
 with Droopi.References;
 
 package Droopi.Requests is
@@ -33,7 +34,9 @@ package Droopi.Requests is
       --  Exc_List   : CORBA.ExceptionList.Ref;
       --  Ctxt_List  : CORBA.ContextList.Ref;
       --  Req_Flags  : CORBA.Flags;
+
       Completed : aliased Boolean := False;
+      Notepad : Annotations.Notepad;
    end record;
 
    type Request_Access is access all Request;
