@@ -1,5 +1,12 @@
 2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* backend-be_ada-generator.adb, backend-be_ada-nutils.adb,
+	backend-be_ada-nodes.idl, backend-be_ada-nutils.ads,
+	backend-be_ada.adb: Generate object declaration and in particular
+	constant declaration.
+
+2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
+	
 	* backend-be_ada-nutils.adb: Add Make_Array_Type_Definition and
 	Make_Range_Constraints in order to map complex declarators.
 

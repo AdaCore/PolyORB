@@ -130,6 +130,8 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
+   procedure Generate_Literal (N : Node_Id);
+   procedure Generate_Object_Declaration (N : Node_Id);
    procedure Generate_Package_Declaration (N : Node_Id);
    procedure Generate_Package_Implementation (N : Node_Id);
    procedure Generate_Package_Specification (N : Node_Id);
@@ -178,6 +180,12 @@ package body Backend.BE_Ada.Generator is
 
          when K_IDL_Unit =>
             Generate_IDL_Unit_Packages (N);
+
+         when K_Literal =>
+            Generate_Literal (N);
+
+         when K_Object_Declaration =>
+            Generate_Object_Declaration (N);
 
          when K_Package_Declaration =>
             Generate_Package_Declaration (N);
@@ -386,6 +394,39 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
    end Generate_IDL_Unit_Packages;
+
+   ----------------------
+   -- Generate_Literal --
+   ----------------------
+
+   procedure Generate_Literal (N : Node_Id) is
+   begin
+      Write_Str (Values.Image (Value (N)));
+   end Generate_Literal;
+
+   ---------------------------------
+   -- Generate_Object_Declaration --
+   ---------------------------------
+
+   procedure Generate_Object_Declaration (N : Node_Id) is
+   begin
+      Write_Indentation;
+      Generate (Defining_Identifier (N));
+      Write_Space;
+      Write (Tok_Colon);
+      if Constant_Present (N) then
+         Write_Space;
+         Write (Tok_Constant);
+      end if;
+      Write_Space;
+      Generate (Object_Definition (N));
+      if Present (Expression (N)) then
+         Write_Space;
+         Write (Tok_Colon_Equal);
+         Write_Space;
+         Generate (Expression (N));
+      end if;
+   end Generate_Object_Declaration;
 
    ----------------------------------
    -- Generate_Package_Declaration --

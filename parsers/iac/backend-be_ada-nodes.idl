@@ -183,6 +183,7 @@ module Backend::BE_Ada::Nodes {
     List_Id      Enumeration_Literals;
   };
 
+
   /***************/
   /* Array nodes */
   /***************/
@@ -194,6 +195,25 @@ module Backend::BE_Ada::Nodes {
     List_Id     Array_Sizes;
   };
 
+
+  /****************/
+  /* Object nodes */
+  /****************/
+
+  interface Object_Declaration: Definition {
+    boolean     Constant_Present;
+    Node_Id     Object_Definition;
+    Node_Id     Expression;
+  };
+
+  interface Literal : Node_Id {
+    Value_Id    Value;
+  };
+
+
+  /**************/
+  /* Base types */
+  /**************/
 
   interface Base_Type {
     Name_Id   Image; 

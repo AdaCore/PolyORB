@@ -380,9 +380,16 @@ package body Backend.BE_Ada is
    --------------------------------
 
    procedure Visit_Constant_Declaration (E : Node_Id) is
-      pragma Unreferenced (E);
+      N : Node_Id;
+
    begin
-      null;
+      Set_Main_Spec;
+      N := Make_Object_Declaration
+        (Defining_Identifier => Make_Defining_Identifier (E),
+         Constant_Present    => True,
+         Object_Definition   => Make_Designator (Type_Spec (E)),
+         Expression          => Make_Literal (FEN.Value (FEN.Expression (E))));
+      Append_Node_To_List (N, Visible_Part (Current_Package));
    end Visit_Constant_Declaration;
 
    ----------------------------

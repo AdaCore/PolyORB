@@ -88,6 +88,17 @@ package Backend.BE_Ada.Nutils is
      (Entity : Node_Id)
       return Node_Id;
 
+   function Make_Literal
+     (Value : Value_Id)
+     return Node_Id;
+
+   function Make_Object_Declaration
+     (Defining_Identifier : Node_Id;
+      Constant_Present    : Boolean;
+      Object_Definition   : Node_Id;
+      Expression          : Node_Id)
+     return Node_Id;
+
    function Make_Parameter_Specification
      (Defining_Identifier : Node_Id;
       Subtype_Mark        : Node_Id;

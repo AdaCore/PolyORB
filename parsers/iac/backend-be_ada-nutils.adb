@@ -320,6 +320,43 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Fully_Qualified_Identifier;
 
+   ------------------
+   -- Make_Literal --
+   ------------------
+
+   function Make_Literal
+     (Value : Value_Id)
+     return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Literal);
+      Set_Value (N, Value);
+      return N;
+   end Make_Literal;
+
+   -----------------------------
+   -- Make_Object_Declaration --
+   -----------------------------
+
+   function Make_Object_Declaration
+     (Defining_Identifier : Node_Id;
+      Constant_Present    : Boolean;
+      Object_Definition   : Node_Id;
+      Expression          : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Object_Declaration);
+      Set_Defining_Identifier (N, Defining_Identifier);
+      Set_Constant_Present (N, Constant_Present);
+      Set_Object_Definition (N, Object_Definition);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Object_Declaration;
+
    ----------------------------------
    -- Make_Parameter_Specification --
    ----------------------------------

@@ -4,8 +4,6 @@ Frontend
 
 * Implement abstract and local interfaces
 
-* Implement exceptions
-
 
 Backend Ada
 
@@ -18,3 +16,8 @@ Backend Ada
 * Implement sequences
 
 * Implement Repository_Id
+
+
+IDL backend
+
+* Output exceptions
