@@ -1,0 +1,26 @@
+This TODO list is valid as of June 2000:
+----------------------------------------
+
+* marshalling of valueboxes. Since nothing is specified in the spec, I
+suppose they are marshalled like regular valuetypes.
+
+* marshalling of abstract interfaces. See spec, it has to be
+  marshalled with a boolean discriminator to precise whether it is a
+  valuetype or a regular interface.
+
+* fragmentation in valuetype marshalling
+
+* truncation in valuetype marhshalling
+
+* custom marshalling
+
+* semantic verification in the parser: identifier overloading (from
+  supported interfaces and inherited valuetypes, between state members
+  and factories)
+
+* local interfaces
+
+* implement IIOP > 1.0
+
+* package .Delegate
+

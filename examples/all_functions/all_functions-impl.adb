@@ -1,6 +1,9 @@
-with CORBA.Object.OmniORB;
-with all_functions.Skel;
-package body all_functions.Impl is 
+with Broca.Exceptions; use Broca.Exceptions;
+with All_Functions.Skel;
+
+package body all_functions.Impl is
+
+   Oneway_Value : CORBA.Short := 0;
 
    function Get_the_attribute
      (Self : access Object)
@@ -29,7 +32,7 @@ package body all_functions.Impl is
    procedure void_proc
      (Self : access Object)
    is
-   begin 
+   begin
       null;
    end void_proc;
 
@@ -39,7 +42,7 @@ package body all_functions.Impl is
       b : in CORBA.Short;
       c : in CORBA.Short)
    is
-   begin 
+   begin
       null;
    end in_proc;
 
@@ -49,7 +52,7 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : out CORBA.Short)
    is
-   begin 
+   begin
       A := 10 ;
       B := 11 ;
       C := 12 ;
@@ -60,7 +63,7 @@ package body all_functions.Impl is
       a : in out CORBA.Short;
       b : in out CORBA.Short)
    is
-   begin 
+   begin
       A := A+1 ;
       B := B+1 ;
    end inout_proc;
@@ -72,7 +75,7 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       d : out CORBA.Short)
    is
-   begin 
+   begin
       C := 3 ;
       D := 4 ;
    end in_out_proc;
@@ -84,7 +87,7 @@ package body all_functions.Impl is
       c : in CORBA.Short;
       d : in out CORBA.Short)
    is
-   begin 
+   begin
       B := 36 ;
       D := 40 ;
    end in_inout_proc;
@@ -96,7 +99,7 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       d : out CORBA.Short)
    is
-   begin 
+   begin
       A:= 45 ;
       B := 46 ;
       C := 47 ;
@@ -109,7 +112,7 @@ package body all_functions.Impl is
       b : out CORBA.Short;
       c : in out CORBA.Short)
    is
-   begin 
+   begin
       B := -54 ;
       C := C + 1 ;
    end in_out_inout_proc;
@@ -118,7 +121,7 @@ package body all_functions.Impl is
      (Self : access Object)
       return CORBA.Short
    is
-   begin 
+   begin
       return 3 ;
    end void_fun;
 
@@ -129,7 +132,7 @@ package body all_functions.Impl is
       c : in CORBA.Short)
       return CORBA.Short
    is
-   begin 
+   begin
       return 7 ;
    end in_fun;
 
@@ -140,7 +143,7 @@ package body all_functions.Impl is
       c : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       A := 5 ;
       B := 6 ;
       C := 7 ;
@@ -153,7 +156,7 @@ package body all_functions.Impl is
       b : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       A := A + 1 ;
       B := B + 1 ;
       Returns := A + B ;
@@ -167,7 +170,7 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       C := B ;
       D := A ;
       Returns := A + B ;
@@ -181,7 +184,7 @@ package body all_functions.Impl is
       d : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       B := B + A ;
       D := D + C ;
       Returns := B + D ;
@@ -195,7 +198,7 @@ package body all_functions.Impl is
       d : out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       A:= B ;
       B := B + 1 ;
       D := C ;
@@ -210,7 +213,7 @@ package body all_functions.Impl is
       c : in out CORBA.Short;
       Returns : out CORBA.Short)
    is
-   begin 
+   begin
       B := A+1 ;
       C := A + C ;
       Returns := -1 ;
@@ -219,50 +222,26 @@ package body all_functions.Impl is
    procedure oneway_void_proc
      (Self : access Object)
    is
-   begin 
-      null;
+   begin
+      Oneway_Value := 1;
+      delay 5.0;
+      Oneway_Value := 2;
    end oneway_void_proc;
 
    procedure oneway_in_proc
      (Self : access Object;
       a : in CORBA.Short;
-      b : in CORBA.Short;
-      c : in CORBA.Short)
+      b : in CORBA.Short)
    is
-   begin 
-      null;
+   begin
+      Oneway_Value := a;
+      delay 5.0;
+      Oneway_Value := b;
    end oneway_in_proc;
 
-   -----------------------------------------------------------
-   --  Implementations objects are controlled, you can add  --
-   --  instructions in the following functions as specified --
-   -----------------------------------------------------------
-
-   procedure Initialize (Self : in out Object) is
+   function oneway_checker (Self : access Object) return CORBA.Short is
    begin
-      AdaBroker.OmniORB.Initialize
-        (AdaBroker.OmniORB.ImplObject (Self),
-         all_functions.Repository_Id);
-      -- Add user code *BELOW* this line
-   end Initialize;
+      return Oneway_Value;
+   end oneway_checker;
 
-   procedure Adjust (Self: in out Object) is
-   begin
-      AdaBroker.OmniORB.Adjust
-        (AdaBroker.OmniORB.ImplObject (Self));
-      -- Add user code *BELOW* this line
-   end Adjust;
-
-   procedure Finalize (Self : in out Object) is
-   begin
-      -- Add user code *BEFORE* this line
-      AdaBroker.OmniORB.Finalize
-        (AdaBroker.OmniORB.ImplObject (Self));
-   end Finalize;
-
-begin
-   CORBA.Object.OmniORB.Register
-     (all_functions.Repository_Id,
-      all_functions.Nil_Ref,
-      all_functions.Skel.Dispatch'Access);
 end all_functions.Impl;
