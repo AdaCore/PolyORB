@@ -693,7 +693,7 @@ package body Idl_Fe.Parser is
                              (Result,
                               Get_Previous_Token_Location);
                            --  here, the addentifier is really added only if
-                           --  we're not in thhe case where the module name
+                           --  we're not in the case where the module name
                            --  was already defined
                            Ok := Add_Identifier
                              (Result,
@@ -711,7 +711,7 @@ package body Idl_Fe.Parser is
                      Definition : Node_Id;
                      Definition_Result : Boolean;
                   begin
-                     pragma Debug (O ("Parse_Interface : parse body"));
+                     pragma Debug (O ("Parse_Module : parse body"));
                      Push_Scope (Result);
                      pragma Debug (O ("parse_module : after push_scope, " &
                                       "current scope is : " &
@@ -1240,7 +1240,25 @@ package body Idl_Fe.Parser is
             return;
          end if;
          --  gets the name of the scope of reference for this scoped_name
-         A_Name := Find_Identifier_Node (Get_Token_String);
+         --  if the current scope is one of the following :
+         --    struct, union, operation, exception
+         --  then we have to look at the parent scope level
+         --  (see COBA v2.3 3.15.3 : Special Scoping Rules for Type Names)
+         case Kind (Get_Current_Scope) is
+            when K_Struct
+              | K_Union
+              | K_Exception
+              | K_Operation =>
+               declare
+                  The_Scope : Node_Id := Get_Current_Scope;
+               begin
+                  Pop_Scope;
+                  A_Name := Find_Identifier_Node (Get_Token_String);
+                  Push_Scope (The_Scope);
+               end;
+            when others =>
+               A_Name := Find_Identifier_Node (Get_Token_String);
+         end case;
          --  If it does not correspond to a previously defined scope
          if A_Name = No_Node then
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
@@ -5234,7 +5252,6 @@ package body Idl_Fe.Parser is
          end;
       end if;
       Next_Token;
-      Push_Scope (Result);
       declare
          Node : Node_Id;
       begin
@@ -5243,7 +5260,6 @@ package body Idl_Fe.Parser is
          Set_Switch_Type (Result, Node);
       end;
       if not Success then
-         Pop_Scope;
          return;
       end if;
       if Get_Token /= T_Right_Paren then
@@ -5253,7 +5269,6 @@ package body Idl_Fe.Parser is
             Errors.Error,
             Get_Token_Location);
          Success := False;
-         Pop_Scope;
          return;
       end if;
       Next_Token;
@@ -5269,11 +5284,11 @@ package body Idl_Fe.Parser is
                Loc);
             Result := No_Node;
             Success := False;
-            Pop_Scope;
             return;
          end;
       end if;
       Next_Token;
+      Push_Scope (Result);
       declare
          Node : Node_List;
          Default_Index : Long_Integer;
