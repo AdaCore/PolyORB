@@ -1,5 +1,7 @@
 Fri Nov 29 12:43:07 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garela.adb: Replaced by an empty package.
+
 	* s-garter.adb: On the boot server, launch the termination task
 	  only if this partition is not permanent. On other partitions,
 	  reject global termination if the partition is permanent.

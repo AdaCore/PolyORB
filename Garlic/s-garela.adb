@@ -36,12 +36,10 @@
 with System.Garlic.Options; use System.Garlic.Options;
 
 package body System.Garlic.Elaboration is
-   --  begin
-   --    Set_Boot_Server     ("serial");
-   --    Set_Connection_Hits (128);
-   --    Set_Detach          (False);
-   --    Set_Is_Slave        (False);
-   --    Set_Nolaunch        (False);
+
+   --  This package body is provided for linking purpose. It will be
+   --  replaced in a distributed model by a partition-specific file.
+
 end System.Garlic.Elaboration;
 
 
