@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . U T I L S . C H A I N E D _ L I S T S           --
+--       P O L Y O R B . O R B . T H R E A D _ P E R _ R E Q U E S T        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,80 +30,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Generic chained list.
 
---  $Id$
+package PolyORB.ORB.Thread_Per_Request is
 
-generic
-   type T is private;
-package PolyORB.Utils.Chained_Lists is
+   pragma Elaborate_Body;
 
-   pragma Preelaborate;
+   -----------------------------------------------------------
+   -- Implementation of a thread-per-request tasking policy --
+   -----------------------------------------------------------
 
-   type List is private;
-   type Iterator is private;
-   type Element_Access is access all T;
+   type Thread_Per_Request_Policy is new Tasking_Policy_Type with private;
 
-   function Length (L : List) return Natural;
-   function Element (L : List; Index : Natural) return Element_Access;
+   procedure Handle_New_Server_Connection
+     (P   : access Thread_Per_Request_Policy;
+      ORB : ORB_Access;
+      C   : Active_Connection);
 
-   procedure Extract_Element
-     (L      : in out List;
-      Index  : Natural;
-      Result : out T);
-   --  Return the element number Index from the list L,
-   --  put it in Result, and remove the element from
-   --  the list
+   procedure Handle_New_Client_Connection
+     (P   : access Thread_Per_Request_Policy;
+      ORB : ORB_Access;
+      C   : Active_Connection);
 
-   function First (L : List) return Iterator;
-   function Value (I : Iterator) return Element_Access;
-   function Last (I : Iterator) return Boolean;
-   procedure Next (I : in out Iterator);
+   procedure Handle_Request_Execution
+     (P   : access Thread_Per_Request_Policy;
+      ORB : ORB_Access;
+      RJ  : access Jobs.Job'Class);
 
-   procedure Prepend (L : in out List; I : T);
-   procedure Append (L : in out List; I : T);
+   procedure Idle
+     (P : access Thread_Per_Request_Policy;
+      ORB : ORB_Access);
 
-   Empty : constant List;
-
-   function "+" (I : T) return List;
-   --  Make a list with I as its only element.
-
-   function "&" (I : T; L : List) return List;
-   --  Prepend I to L.
-
-   function "&" (L : List; I : T) return List;
-   --  Append I to L.
-
-   function "&" (L1, L2 : List) return List;
-   --  Concatenate L1 and L2;
-
-   procedure Deallocate (L : in out List);
-
-   pragma Inline (First);
-   pragma Inline (Value);
-   pragma Inline (Last);
-   pragma Inline (Next);
-   pragma Inline (Prepend);
-   pragma Inline (Append);
-   pragma Inline ("+");
-   pragma Inline ("&");
+   procedure Queue_Request_To_Handler
+     (P   : access Thread_Per_Request_Policy;
+      ORB : ORB_Access;
+      Msg : Message'Class);
 
 private
 
-   type Node;
-   type Node_Access is access all Node;
-   type Node is record
-      Value : aliased T;
-      Next  : Node_Access;
-   end record;
+   type Thread_Per_Request_Policy is new Tasking_Policy_Type with null record;
 
-   type Iterator is new Node_Access;
+end PolyORB.ORB.Thread_Per_Request;
 
-   type List is record
-      First : Node_Access;
-      Last : Node_Access;
-   end record;
-
-   Empty : constant List := (null, null);
-
-end PolyORB.Utils.Chained_Lists;

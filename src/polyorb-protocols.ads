@@ -42,7 +42,8 @@ with PolyORB.Components;
 with PolyORB.Filters; use PolyORB.Filters;
 with PolyORB.Requests; use PolyORB.Requests;
 with PolyORB.Soft_Links; use PolyORB.Soft_Links;
-with PolyORB.ORB.Interface;
+with PolyORB.Jobs;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Protocols is
 
@@ -58,6 +59,12 @@ package PolyORB.Protocols is
    type Session is abstract new Filters.Filter with private;
    type Session_Access is access all Session'Class;
 
+   type Request_Info is record
+      Job : Jobs.Job_Access;
+   end record;
+
+   package Request_Queue is new PolyORB.Utils.Chained_Lists (Request_Info);
+
    procedure Create
      (Proto   : access Protocol;
       Session : out Filter_Access)
@@ -72,26 +79,28 @@ package PolyORB.Protocols is
    --  Destroy the session associated with S, return any associated
    --  resources to the system, and assign null to S.
 
+   ---------------------------------------------------
+   -- Primitives needed  with some tasking policies --
+   ---------------------------------------------------
    procedure Set_Request_Watcher
      (S : in Session_Access;
       W : PolyORB.Soft_Links.Watcher_Access);
-   --
+   --  Set the request watcher associated with session
 
    function Get_Request_Watcher
      (S : in Session_Access)
      return PolyORB.Soft_Links.Watcher_Access;
    --  Return the request watcher associated with session.
 
-   function Get_Pending_Request
-     (S : in Session_Access)
-     return ORB.Interface.Queue_Request;
-   --  Return the request watcher associated with session.
-   --  XXX The comment above is wrong, please update it.
-   --  XXX The use of the term 'Pending_Request' is inappropriate
-   --      in this context. A pending request is a request object
-   --      on the client side of a connection which has been
-   --      sent to the target object and for which a response
-   --      is expected. Please find another, more explicit term.
+   procedure Get_First_Request
+     (S      : in out Session_Access;
+      Result : out Request_Info);
+   --  Return in Result the first request in the list associated with session.
+
+   procedure Add_Request
+     (S : in out Session_Access;
+      RI : Request_Info);
+   --  Add a request RI at the end of the list associated with the session.
 
    -----------------------------------------------------
    -- Protocol primitives (interface to upper layers) --
@@ -162,12 +171,7 @@ private
    type Session is abstract new Filters.Filter with record
       Server          : Components.Component_Access;
       Request_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
-      Pending_Request : ORB.Interface.Queue_Request;
-      --  XXX Change 'Pending' to something else (see above).
-      --  XXX Storage of a Message'Class is questionable (Messages
-      --    are supposed to be synchronously delivered, as per the
-      --    documentation in the spec of PolyORB.Components.
-      --    Store-and-forward behaviour is not expected.)
+      Request_List    : Request_Queue.List;
    end record;
 
 end PolyORB.Protocols;

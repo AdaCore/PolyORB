@@ -41,6 +41,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-opaque-chunk_pools.ads \
 		polyorb-orb.ads \
 		polyorb-orb-no_tasking.ads \
+		polyorb-orb-thread_per_request.ads \
 		polyorb-orb-thread_per_session.ads \
 		polyorb-orb-thread_pool.ads \
 		polyorb-poa-basic_poa.ads \

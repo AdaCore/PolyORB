@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . U T I L S . C H A I N E D _ L I S T S           --
+--                 POLYORB.SETUP.THREAD_PER_REQUEST_SERVER                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,80 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Generic chained list.
+--  Elaborate a complete server with the ``thread-per-request''
+--  tasking policy.
 
---  $Id$
 
-generic
-   type T is private;
-package PolyORB.Utils.Chained_Lists is
+package PolyORB.Setup.Thread_Per_Request_Server is
 
-   pragma Preelaborate;
+   pragma Elaborate_Body;
 
-   type List is private;
-   type Iterator is private;
-   type Element_Access is access all T;
-
-   function Length (L : List) return Natural;
-   function Element (L : List; Index : Natural) return Element_Access;
-
-   procedure Extract_Element
-     (L      : in out List;
-      Index  : Natural;
-      Result : out T);
-   --  Return the element number Index from the list L,
-   --  put it in Result, and remove the element from
-   --  the list
-
-   function First (L : List) return Iterator;
-   function Value (I : Iterator) return Element_Access;
-   function Last (I : Iterator) return Boolean;
-   procedure Next (I : in out Iterator);
-
-   procedure Prepend (L : in out List; I : T);
-   procedure Append (L : in out List; I : T);
-
-   Empty : constant List;
-
-   function "+" (I : T) return List;
-   --  Make a list with I as its only element.
-
-   function "&" (I : T; L : List) return List;
-   --  Prepend I to L.
-
-   function "&" (L : List; I : T) return List;
-   --  Append I to L.
-
-   function "&" (L1, L2 : List) return List;
-   --  Concatenate L1 and L2;
-
-   procedure Deallocate (L : in out List);
-
-   pragma Inline (First);
-   pragma Inline (Value);
-   pragma Inline (Last);
-   pragma Inline (Next);
-   pragma Inline (Prepend);
-   pragma Inline (Append);
-   pragma Inline ("+");
-   pragma Inline ("&");
-
-private
-
-   type Node;
-   type Node_Access is access all Node;
-   type Node is record
-      Value : aliased T;
-      Next  : Node_Access;
-   end record;
-
-   type Iterator is new Node_Access;
-
-   type List is record
-      First : Node_Access;
-      Last : Node_Access;
-   end record;
-
-   Empty : constant List := (null, null);
-
-end PolyORB.Utils.Chained_Lists;
+end PolyORB.Setup.Thread_Per_Request_Server;

@@ -524,6 +524,8 @@ src/polyorb-opaque.ads
 src/polyorb-orb-interface.ads
 src/polyorb-orb-no_tasking.adb
 src/polyorb-orb-no_tasking.ads
+src/polyorb-orb-thread_per_request.adb
+src/polyorb-orb-thread_per_request.ads
 src/polyorb-orb-thread_per_session.adb
 src/polyorb-orb-thread_per_session.ads
 src/polyorb-orb-thread_pool.adb
@@ -617,6 +619,8 @@ src/polyorb-setup-server.adb
 src/polyorb-setup-server.ads
 src/polyorb-setup-tcp_access_points.adb
 src/polyorb-setup-tcp_access_points.ads
+src/polyorb-setup-thread_per_request_server.adb
+src/polyorb-setup-thread_per_request_server.ads
 src/polyorb-setup-thread_per_session_server.adb
 src/polyorb-setup-thread_per_session_server.ads
 src/polyorb-setup-thread_pool_server.adb

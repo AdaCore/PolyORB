@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       P O L Y O R B . O R B . T H R E A D _ P E R _ S E S S I O N        --
+--       P O L Y O R B . O R B . T H R E A D _ P E R _ R E Q U E S T        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,9 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Exceptions;
 
 with PolyORB.Components;
 with PolyORB.Initialization;
@@ -40,12 +37,10 @@ with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Jobs;
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
 
-package body PolyORB.ORB.Thread_Per_Session is
+package body PolyORB.ORB.Thread_Per_Request is
 
    ------------------------
    -- Local declarations --
@@ -59,23 +54,18 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Soft_Links;
    use PolyORB.Components;
    use PolyORB.Transport;
-   use PolyORB.Protocols;
-   use PolyORB.ORB.Interface;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.orb.tasking_policies");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   task type Session_Thread is
-      entry Start (A_W    : in Watcher_Access;
-                   A_Msg : Message'Class;
-                   A_S   : Session_Access;
-                   A_ORB : ORB_Access;
+   task type Request_Thread is
+      entry Start (A_Job : Jobs.Job_Access;
                    A_N   : Natural);
-   end Session_Thread;
+   end Request_Thread;
 
-   type Session_Thread_Access is access Session_Thread;
+   type Request_Thread_Access is access Request_Thread;
 
 
 
@@ -85,7 +75,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    ----------------------------------
 
    procedure Handle_New_Server_Connection
-     (P   : access Thread_Per_Session_Policy;
+     (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
       C   : Active_Connection)
    is
@@ -105,7 +95,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    ----------------------------------
 
    procedure Handle_New_Client_Connection
-     (P   : access Thread_Per_Session_Policy;
+     (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
       C   : Active_Connection)
    is
@@ -120,16 +110,19 @@ package body PolyORB.ORB.Thread_Per_Session is
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
+   N : Natural := 0;
+   --  for debugging purposes
+
    ------------------------------
    -- Handle_Request_Execution --
    ------------------------------
 
    procedure Handle_Request_Execution
-     (P   : access Thread_Per_Session_Policy;
+     (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
       RJ  : access Jobs.Job'Class)
    is
-      S : Session_Access := null;
+      Dummy_Task : Request_Thread_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -137,10 +130,11 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
       if RJ.all in Request_Job then
-         S := Session_Access (Request_Job (RJ.all).Requestor);
-         Add_Request
-           (S,
-            Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
+         N := N + 1;
+         Dummy_Task := new Request_Thread;
+         Dummy_Task.Start
+           (PolyORB.ORB.Duplicate_Request_Job (RJ),
+            N);
       else
          Jobs.Run (RJ);
       end if;
@@ -151,7 +145,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    ----------
 
    procedure Idle
-     (P : access Thread_Per_Session_Policy;
+     (P : access Thread_Per_Request_Policy;
       ORB : ORB_Access)
    is
    begin
@@ -165,8 +159,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       --  (XXX just in case).
    end Idle;
 
-   N : Natural := 0;
-   --  For debugging purposes.
+
 
 
    ------------------------------
@@ -174,104 +167,50 @@ package body PolyORB.ORB.Thread_Per_Session is
    ------------------------------
 
    procedure Queue_Request_To_Handler
-     (P   : access Thread_Per_Session_Policy;
+     (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
       Msg : Message'Class)
    is
-      Dummy_Task : Session_Thread_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
-      if Msg in Interface.Queue_Request then
-         declare
-            QR : Interface.Queue_Request
-              renames Interface.Queue_Request (Msg);
-            S : constant Session_Access := Session_Access (QR.Requestor);
-            W : constant Watcher_Access := Get_Request_Watcher (S);
-         begin
-            if W = null then
-               --  Session request watcher is null : create task to
-               --  handle this session.
-               N := N + 1;
-               Dummy_Task := new Session_Thread;
-               Dummy_Task.Start (W, Msg, S, ORB, N);
-
-            else
-               --  Session request watcher is not null, ie a task is
-               --  already handling jobs from this session : emit the
-               --  queue_request message.
-               Emit_No_Reply
-                 (Component_Access (ORB), Msg);
-            end if;
-         exception
-            when E : others =>
-               O ("Got exception while sending request_to_handler");
-               O (Ada.Exceptions.Exception_Information (E));
-         end;
-      else
-         pragma Debug (O ("Queue Request To Handler"));
-         raise Unhandled_Message;
-      end if;
+      Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
    --------------------
-   -- Session_Thread --
+   -- Request_Thread --
    --------------------
 
-   task body Session_Thread
+   task body Request_Thread
    is
-      W   : Watcher_Access;
-      V   : Version_Id;
-      S   : Session_Access;
-      Q   : Request_Info;
-      ORB : ORB_Access;
-      Id   : Natural;
+      Id  : Natural;
+      Job : Jobs.Job_Access;
    begin
-      accept Start (A_W   : in Watcher_Access;
-                    A_Msg : Message'Class;
-                    A_S   : Session_Access;
-                    A_ORB : ORB_Access;
+      accept Start (A_Job : Jobs.Job_Access;
                     A_N   : Natural)
       do
          Id := A_N;
+         Job := A_Job;
          pragma Debug (O ("Session Thread number "
                           & Integer'Image (N)
                           & " is starting"));
-
-         ORB := A_ORB;
-         W := A_W;
-         S := A_S;
-         Create (W);
-         Set_Request_Watcher (A_S, W);
-         Lookup (W, V);
-         pragma Debug (O ("Emit to the Session"));
-         Emit_No_Reply (Component_Access (ORB), A_Msg);
       end Start;
 
-      loop
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is waiting"));
-         Differ (W, V);
-         Lookup (W, V);
-         Get_First_Request (S, Q);
          pragma Debug (O ("Thread number"
                           & Integer'Image (Id)
                           & " is executing Job"));
-         Jobs.Run (Q.Job);
-         Jobs.Free (Q.Job);
+         Jobs.Run (Job);
+         Jobs.Free (Job);
          pragma Debug (O ("Thread number"
                           & Integer'Image (Id)
                           & " has executed Job"));
-      end loop;
-
-   end Session_Thread;
+   end Request_Thread;
 
    procedure Initialize;
    procedure Initialize is
    begin
-      Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
+      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
    end Initialize;
 
    use PolyORB.Initialization;
@@ -281,9 +220,9 @@ package body PolyORB.ORB.Thread_Per_Session is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"orb.thread_per_session",
+      (Name => +"orb.thread_per_request",
        Conflicts => +"no_tasking",
        Depends => +"soft_links",
        Provides => +"orb.tasking_policy",
        Init => Initialize'Access));
-end PolyORB.ORB.Thread_Per_Session;
+end PolyORB.ORB.Thread_Per_Request;

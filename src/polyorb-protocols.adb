@@ -50,8 +50,8 @@ package body PolyORB.Protocols is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
-   use PolyORB.ORB.Interface;
    use PolyORB.Protocols.Interface;
+   use Request_Queue;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -234,15 +234,35 @@ package body PolyORB.Protocols is
    end Set_Request_Watcher;
 
    -------------------------
-   -- Get_Pending_Request --
+   -- Get_First_Request --
    -------------------------
 
-   function Get_Pending_Request
-     (S : in Session_Access)
-     return ORB.Interface.Queue_Request
+   procedure Get_First_Request
+     (S      : in out Session_Access;
+      Result : out Request_Info)
    is
    begin
-      return S.Pending_Request;
-   end Get_Pending_Request;
+      pragma Debug (O ("Get Length : "
+                       & Integer'Image (Length (S.Request_List))));
+      Request_Queue.Extract_Element (S.Request_List, 0, Result);
+      pragma Debug (O ("Get Length : "
+                       & Integer'Image (Length (S.Request_List))));
+   end Get_First_Request;
+
+   -----------------
+   -- Add_Request --
+   -----------------
+   procedure Add_Request
+     (S : in out Session_Access;
+      RI : Request_Info)
+   is
+   begin
+      pragma Debug (O ("Add Length : "
+                       & Integer'Image (Length (S.Request_List))));
+      Request_Queue.Append (S.Request_List, RI);
+      pragma Debug (O ("Add Length : "
+                       & Integer'Image (Length (S.Request_List))));
+      Update (S.Request_Watcher);
+   end Add_Request;
 
 end PolyORB.Protocols;
