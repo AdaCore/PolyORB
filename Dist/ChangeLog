@@ -1,3 +1,11 @@
+Thu Nov 28 23:56:12 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.ads: New flags.
+
+	* xe_utils.adb: Compile with -gnatg.
+
+	* xe_stubs.adb: Generation and compilation of new elaboration file.
+
 Wed Nov 27 18:07:17 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_utils.ads: New argument to Write_* functions with file

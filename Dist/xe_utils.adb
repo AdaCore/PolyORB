@@ -95,6 +95,7 @@ package body XE_Utils is
    Caller_Build_Flag     : constant String_Access := new String' ("-gnatzc");
    Receiver_Compile_Flag : constant String_Access := new String' ("-gnatzR");
    Caller_Compile_Flag   : constant String_Access := new String' ("-gnatzC");
+   GNATLib_Compile_Flag  : constant String_Access := new String' ("-gnatg");
 
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
@@ -779,6 +780,21 @@ package body XE_Utils is
    end Compile_RCI_Caller;
 
    --------------------------
+   -- Compile_Regular_File --
+   --------------------------
+
+   procedure Compile_Regular_File (Source : File_Name_Type) is
+   begin
+      Maybe_Most_Recent_Stamp (Source_File_Stamp (Source));
+      Execute_Gcc
+        (Source,
+         (GNATLib_Compile_Flag,
+          I_G_Parent_Dir,
+          I_GARLIC_Dir)
+         );
+   end Compile_Regular_File;
+
+   --------------------------
    -- Compile_RCI_Receiver --
    --------------------------
 
@@ -870,6 +886,9 @@ package body XE_Utils is
       G_Parent_Dir   := Parent_Dir & Dir_Sep_Id & Parent_Dir;
 
       PWD_Id         := Str_To_Id ("`pwd`/");
+
+      Elaboration_Name      := Str_To_Id ("s-garela");
+      Elaboration_Full_Name := Str_To_Id ("System.Garlic.Elaboration");
 
       declare
          GARLIC_Dir  : constant String_Access := Get_GARLIC_Dir;

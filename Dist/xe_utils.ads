@@ -55,6 +55,9 @@ package XE_Utils is
 
    PWD_Id       : Name_Id;
 
+   Elaboration_Name      : Name_Id;
+   Elaboration_Full_Name : Name_Id;
+
    procedure Copy_With_File_Stamp
      (Source, Target : in File_Name_Type;
       Maybe_Symbolic : in Boolean := False);
@@ -79,6 +82,10 @@ package XE_Utils is
    procedure Build_Compile_Command (Name : in File_Name_Type);
    --  Generates on standard-out the command needed to compile
    --  a sub-tree from a given package.
+
+   procedure Compile_Regular_File
+     (Source    : in File_Name_Type);
+   --  Compile regular file.
 
    procedure Compile_RCI_Caller
      (Source    : in File_Name_Type);

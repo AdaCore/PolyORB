@@ -69,6 +69,9 @@ procedure XE_Stubs is
                          Spec_Only : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
+   procedure Build_Elaboration_File (PID : in PID_Type);
+   --  Build the elaboration unit for the given partition.
+
    procedure Update_Switch (S : in out String_Access);
    --  For a given '-I' switch (or equivalent -L -a*), update it
    --  if it is a relative path and add ../.. at the beginning.
@@ -784,6 +787,75 @@ procedure XE_Stubs is
 
    end Build_Stub;
 
+   -----------------------------
+   --  Build_Elaboration_File --
+   -----------------------------
+
+   procedure Build_Elaboration_File (PID : in PID_Type) is
+
+      PName : constant Partition_Name_Type := Partitions.Table (PID) .Name;
+      FName : constant File_Name_Type      := Elaboration_Name & ADB_Suffix;
+      FD    : File_Descriptor;
+
+   begin
+
+      if not Is_Directory (DSA_Dir & Dir_Sep_Id & PName) then
+         Create_Dir (DSA_Dir & Dir_Sep_Id & PName);
+      end if;
+
+      Change_Dir (DSA_Dir & Dir_Sep_Id & PName);
+
+      if Building_Script then
+         Write_Str  (Standout, "cat >");
+         Write_Name (Standout, FName);
+         Write_Str  (Standout, " <<__EOF__");
+         Write_Eol  (Standout);
+      end if;
+
+      Create (FD, FName);
+
+      --  Header.
+
+      Dwrite_Str  (FD, "with System.Garlic.Options;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "use System.Garlic.Options;");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "package body ");
+      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Str  (FD, " is");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "begin");
+      Dwrite_Eol  (FD);
+
+      --  If the partition holds the main unit, then it cannot be slave.
+      --  Otherwise, it is.
+
+      if PID = Main_Partition then
+         Dwrite_Str (FD, "   Set_Is_Slave (False);");
+      else
+         Dwrite_Str (FD, "   Set_Is_Slave (True);");
+      end if;
+      Dwrite_Eol (FD);
+
+      --  Footer.
+      Dwrite_Str  (FD, "end ");
+      Dwrite_Name (FD, Elaboration_Full_Name);
+      Dwrite_Str  (FD, ";");
+      Dwrite_Eol  (FD);
+
+      if Building_Script then
+         Write_Str (Standout, "__EOF__");
+         Write_Eol (Standout);
+      end if;
+
+      Compile_Regular_File (FName);
+
+      Change_Dir (G_Parent_Dir);
+
+      Close (FD);
+
+   end Build_Elaboration_File;
+
    procedure Update_Switch (S : in out String_Access) is
 
       procedure Update (S : in out String_Access; I : Natural);
@@ -879,6 +951,8 @@ begin
          end if;
 
          Create_Main_Unit (PID);
+
+         Build_Elaboration_File (PID);
 
          --  Copy RCI receiver stubs when this unit has been assigned on
          --  PID partition. RCI caller stubs are not needed because GNATDIST
