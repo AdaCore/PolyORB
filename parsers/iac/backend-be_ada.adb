@@ -17,16 +17,33 @@ package body Backend.BE_Ada is
 
    D_Tree   : Boolean := False;
 
-   Returns_Parameter_Name : Name_Id;
-   Self_Parameter_Name    : Name_Id;
-   To_Parameter_Name      : Name_Id;
-   Operation_Name_U_Name  : Name_Id;
-   Self_Ref_U_Name        : Name_Id;
-   Request_U_Name         : Name_Id;
-   Arg_List_U_Name        : Name_Id;
-   Result_U_Name          : Name_Id;
-   Result_Name_U_Name     : Name_Id;
-   Default_Sys_Member     : Name_Id;
+   type Parameter_Id is
+     (P_Returns,
+      P_Self,
+      P_To);
+
+   PN : array (Parameter_Id) of Name_Id;
+
+   type Variable_Id is
+     (V_Handler,
+      V_Returns,
+      V_Self_Ref,
+      V_Send_Request_Result,
+      V_Members,
+      V_Impl_Object_Ptr,
+      V_Value_Operation,
+      V_Request,
+      V_Context,
+      V_Argument,
+      V_Argument_Name,
+      V_Argument_List,
+      V_Exception_List,
+      V_Result,
+      V_Result_Name,
+      V_Operation_Name,
+      V_Def_Sys_Member);
+
+   VN : array (Variable_Id) of Name_Id;
 
    package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
@@ -34,8 +51,6 @@ package body Backend.BE_Ada is
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id);
 
    procedure Initialize;
-   procedure Initialize_Variables_Name;
-
 
    Getter : constant Character := 'G';
    Setter : constant Character := 'S';
@@ -119,50 +134,23 @@ package body Backend.BE_Ada is
 
    procedure Initialize is
    begin
-      Initialize_Variables_Name;
+      for P in Parameter_Id loop
+         Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         PN (P) := Name_Find;
+      end loop;
+      for V in Variable_Id loop
+         Set_Str_To_Name_Buffer (Variable_Id'Image (V));
+         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         Add_Str_To_Name_Buffer ("_U");
+         VN (V) := Name_Find;
+      end loop;
+
       Runtime.Initialize;
 
       Set_Space_Increment (3);
       Int0_Val := New_Integer_Value (0, 1, 10);
    end Initialize;
-
-   -------------------------------
-   -- Initialize_Variables_Name --
-   -------------------------------
-
-   procedure Initialize_Variables_Name is
-   begin
-
-      Set_Str_To_Name_Buffer ("Returns");
-      Returns_Parameter_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Self");
-      Self_Parameter_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("To");
-      To_Parameter_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Operation_Name_U");
-      Operation_Name_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Self_Ref_U");
-      Self_Ref_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Request_U");
-      Request_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Arg_List_U");
-      Arg_List_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Result_U");
-      Result_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Result_Name_U");
-      Result_Name_U_Name := Name_Find;
-
-      Set_Str_To_Name_Buffer ("Default_Sys_Member");
-      Default_Sys_Member := Name_Find;
-   end Initialize_Variables_Name;
 
    ---------------------------------
    -- Make_Accessor_Specification --
@@ -180,12 +168,12 @@ package body Backend.BE_Ada is
    begin
       L := New_List (K_Parameter_Profile);
       P := Make_Parameter_Specification
-        (Make_Defining_Identifier (Self_Parameter_Name),
+        (Make_Defining_Identifier (PN (P_Self)),
          RE (RE_Ref_0));
       Append_Node_To_List (P, L);
       if Accessor = Setter then
          P := Make_Parameter_Specification
-           (Make_Defining_Identifier (To_Parameter_Name),
+           (Make_Defining_Identifier (PN (P_To)),
             Make_Designator (Type_Spec (Declaration (Attribute))));
          Append_Node_To_List (P, L);
          T := No_Node;
@@ -375,7 +363,7 @@ package body Backend.BE_Ada is
         (C, RE (RE_Raise_Inv_Objref));
       S := New_List (BEN.K_List_Id);
       Append_Node_To_List
-        (Make_Defining_Identifier (Default_Sys_Member), S);
+        (Make_Defining_Identifier (VN (V_Def_Sys_Member)), S);
       Set_Actual_Parameter_Part (C, S);
       S := New_List (BEN.K_List_Id);
       Append_Node_To_List (C, S);
@@ -384,7 +372,7 @@ package body Backend.BE_Ada is
         (C, RE (RE_Is_Nil));
       P := New_List (BEN.K_List_Id);
       Append_Node_To_List
-        (Make_Defining_Identifier (Self_Ref_U_Name), P);
+        (Make_Defining_Identifier (VN (V_Self_Ref)), P);
       Set_Actual_Parameter_Part (C, P);
       N := Make_If_Statement (C, S, No_List);
       Append_Node_To_List (N, L);
@@ -395,7 +383,7 @@ package body Backend.BE_Ada is
         (C, RE (RE_Create));
       P := New_List (BEN.K_List_Id);
       Append_Node_To_List
-        (Make_Defining_Identifier (Arg_List_U_Name), P);
+        (Make_Defining_Identifier (VN (V_Argument_List)), P);
       Set_Actual_Parameter_Part (C, P);
       Append_Node_To_List (C, L);
 
@@ -423,7 +411,7 @@ package body Backend.BE_Ada is
       --  Arg_List_U declaration.
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Arg_List_U_Name),
+           Make_Defining_Identifier (VN (V_Argument_List)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_Ref_3),
          Expression          => No_Node);
@@ -490,7 +478,7 @@ package body Backend.BE_Ada is
         (BEN.Name (BEN.Defining_Identifier (Subp_Spec)), False);
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Operation_Name_U_Name),
+           Make_Defining_Identifier (VN (V_Operation_Name)),
          Constant_Present    => True,
          Object_Definition   => RE (RE_String_2),
          Expression          => Make_Literal (V));
@@ -502,12 +490,12 @@ package body Backend.BE_Ada is
       Set_Defining_Identifier (C, RE (RE_Ref_2));
       P := New_List (BEN.K_List_Id);
       Append_Node_To_List
-        (Make_Defining_Identifier (Self_Parameter_Name), P);
+        (Make_Defining_Identifier (PN (P_Self)), P);
       Set_Actual_Parameter_Part (C, P);
 
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Self_Ref_U_Name),
+           Make_Defining_Identifier (VN (V_Self_Ref)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_Ref_2),
          Expression          => C);
@@ -516,7 +504,7 @@ package body Backend.BE_Ada is
       --  Request_U declaration
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Request_U_Name),
+           Make_Defining_Identifier (VN (V_Request)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_Request_Access),
          Expression          => No_Node);
@@ -526,7 +514,7 @@ package body Backend.BE_Ada is
       --  Result_U : PolyORB.Any.NamedValue;
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Result_U_Name),
+           Make_Defining_Identifier (VN (V_Result)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_NamedValue),
          Expression          => No_Node);
@@ -544,7 +532,7 @@ package body Backend.BE_Ada is
 
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (Result_Name_U_Name),
+           Make_Defining_Identifier (VN (V_Result_Name)),
          Constant_Present    => False,
          Object_Definition   => RE (RE_String_1),
          Expression          => C);
@@ -785,7 +773,7 @@ package body Backend.BE_Ada is
       --  Create a dispatching parameter
 
       Ada_Param := Make_Parameter_Specification
-        (Make_Defining_Identifier (Self_Parameter_Name),
+        (Make_Defining_Identifier (PN (P_Self)),
          RE (RE_Ref_0));
       Append_Node_To_List (Ada_Param, Profile);
 
@@ -818,7 +806,7 @@ package body Backend.BE_Ada is
 
          else
             Ada_Param := Make_Parameter_Specification
-              (Make_Defining_Identifier (Returns_Parameter_Name),
+              (Make_Defining_Identifier (PN (P_Returns)),
                Make_Designator (Type_Spec (E)),
                Mode_Out);
             Append_Node_To_List (Ada_Param, Profile);

@@ -1,8 +1,15 @@
+2004-06-28  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada.adb: Use the RTE mechanism for parameters and
+	variables.
+
 2004-06-28  Saber Souli  <souli@enst.fr>
-	* iac.adb : Fix bug introduced when the path name of the IDL file contain a
-	leading dot.   
+	
+	* iac.adb : Fix bug introduced when the path name of the IDL file
+	contain a leading dot.
+
 	* backend-be_ada.adb : Using backend-be_ada-rutime, and all the
-	useless variables are deleted.     
+	useless variables are deleted.
 
 	* backend-be_ada-generator.adb : Minor change in the generated
 	code, to generate exactly the same output as idlac.  
@@ -23,6 +30,9 @@
 	subprograms body. generate if statements.  
 
 2004-06-28  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-runtime.ads, backend-be_ada-runtime.adb: New
+	files to deal with various API.
 
 	* scopes.adb, values.adb, backend-be_ada-generator.adb,
 	frontend-nutils.adb, mknodes.adb, lexer.adb : Reordering.
