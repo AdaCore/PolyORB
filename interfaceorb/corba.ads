@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.51 $
+--                            $Revision: 1.52 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -391,65 +391,65 @@ private
    type Content is abstract tagged null record;
    type Any_Content_Ptr is access Content'Class;
 
-   type C_Octet is new Content with
+   type Content_Octet is new Content with
       record
          Value : CORBA.Octet;
       end record;
-   type C_Octet_Ptr is access all C_Octet;
+   type Content_Octet_Ptr is access all Content_Octet;
 
-   type C_Short is new Content with
+   type Content_Short is new Content with
       record
          Value : CORBA.Short;
       end record;
-   type C_Short_Ptr is access all C_Short;
+   type Content_Short_Ptr is access all Content_Short;
 
-   type C_Long is new Content with
+   type Content_Long is new Content with
       record
          Value : CORBA.Long;
       end record;
-   type C_Long_Ptr is access all C_Long;
+   type Content_Long_Ptr is access all Content_Long;
 
-   type C_UShort is new Content with
+   type Content_UShort is new Content with
       record
          Value : CORBA.Unsigned_Short;
       end record;
-   type C_UShort_Ptr is access all C_UShort;
+   type Content_UShort_Ptr is access all Content_UShort;
 
-   type C_ULong is new Content with
+   type Content_ULong is new Content with
       record
          Value : CORBA.Unsigned_Long;
       end record;
-   type C_ULong_Ptr is access all C_ULong;
+   type Content_ULong_Ptr is access all Content_ULong;
 
-   type C_Boolean is new Content with
+   type Content_Boolean is new Content with
       record
          Value : CORBA.Boolean;
       end record;
-   type C_Boolean_Ptr is access all C_Boolean;
+   type Content_Boolean_Ptr is access all Content_Boolean;
 
-   type C_Char is new Content with
+   type Content_Char is new Content with
       record
          Value : CORBA.Char;
       end record;
-   type C_Char_Ptr is access all C_Char;
+   type Content_Char_Ptr is access all Content_Char;
 
-   type C_String is new Content with
+   type Content_String is new Content with
       record
          Value : CORBA.String;
       end record;
-   type C_String_Ptr is access all C_String;
+   type Content_String_Ptr is access all Content_String;
 
-   type C_Float is new Content with
+   type Content_Float is new Content with
       record
          Value : CORBA.Float;
       end record;
-   type C_Float_Ptr is access all C_Float;
+   type Content_Float_Ptr is access all Content_Float;
 
-   type C_Double is new Content with
+   type Content_Double is new Content with
       record
          Value : CORBA.Double;
       end record;
-   type C_Double_Ptr is access all C_Double;
+   type Content_Double_Ptr is access all Content_Double;
 
 
    type Any is

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.24 $
+--                            $Revision: 1.25 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -187,7 +187,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Octet);
-      The_Any := (new C_Octet' (Value => From), Tco);
+      The_Any := (new Content_Octet' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -197,7 +197,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Short);
-      The_Any := (new C_Short' (Value => From), Tco);
+      The_Any := (new Content_Short' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -207,7 +207,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Long);
-      The_Any := (new C_Long' (Value => From), Tco);
+      The_Any := (new Content_Long' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -217,7 +217,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Ushort);
-      The_Any := (new C_UShort' (Value => From), Tco);
+      The_Any := (new Content_UShort' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -227,7 +227,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Ulong);
-      The_Any := (new C_ULong' (Value => From), Tco);
+      The_Any := (new Content_ULong' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -237,7 +237,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Boolean);
-      The_Any := (new C_Boolean' (Value => From), Tco);
+      The_Any := (new Content_Boolean' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -247,7 +247,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Char);
-      The_Any := (new C_Char' (Value => From), Tco);
+      The_Any := (new Content_Char' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -257,7 +257,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_String);
-      The_Any := (new C_String' (Value => From), Tco);
+      The_Any := (new Content_String' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -267,7 +267,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Float);
-      The_Any := (new C_Float' (Value => From), Tco);
+      The_Any := (new Content_Float' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -277,7 +277,7 @@ package body CORBA is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Double);
-      The_Any := (new C_Double' (Value => From), Tco);
+      The_Any := (new Content_Double' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
@@ -287,111 +287,111 @@ package body CORBA is
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Octet is
-      Tmp : C_Octet_Ptr;
+      Tmp : Content_Octet_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Octet) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Octet_Ptr (From.The_Value);
+      Tmp := Content_Octet_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Short is
-      Tmp : C_Short_Ptr;
+      Tmp : Content_Short_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Short) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Short_Ptr (From.The_Value);
+      Tmp := Content_Short_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Long is
-      Tmp : C_Long_Ptr;
+      Tmp : Content_Long_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Long) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Long_Ptr (From.The_Value);
+      Tmp := Content_Long_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Unsigned_Short is
-      Tmp : C_UShort_Ptr;
+      Tmp : Content_UShort_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Ushort) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_UShort_Ptr (From.The_Value);
+      Tmp := Content_UShort_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Unsigned_Long is
-      Tmp : C_ULong_Ptr;
+      Tmp : Content_ULong_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Ulong) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_ULong_Ptr (From.The_Value);
+      Tmp := Content_ULong_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Boolean is
-      Tmp : C_Boolean_Ptr;
+      Tmp : Content_Boolean_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Boolean) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Boolean_Ptr (From.The_Value);
+      Tmp := Content_Boolean_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Char is
-      Tmp : C_Char_Ptr;
+      Tmp : Content_Char_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Char) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Char_Ptr (From.The_Value);
+      Tmp := Content_Char_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.String is
-      Tmp : C_String_Ptr;
+      Tmp : Content_String_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_String) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_String_Ptr (From.The_Value);
+      Tmp := Content_String_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Float is
-      Tmp : C_Float_Ptr;
+      Tmp : Content_Float_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Float) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Float_Ptr (From.The_Value);
+      Tmp := Content_Float_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
    function From_Any (From : in CORBA.Any)
                       return CORBA.Double is
-      Tmp : C_Double_Ptr;
+      Tmp : Content_Double_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Double) then
          raise Bad_Typecode;
       end if;
-      Tmp := C_Double_Ptr (From.The_Value);
+      Tmp := Content_Double_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
