@@ -140,6 +140,8 @@ package body PolyORB.References is
 
       Free (RI.Profiles);
 
+      Annotations.Destroy (RI.Notepad);
+
       pragma Debug (O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
@@ -350,5 +352,17 @@ package body PolyORB.References is
       end loop;
       raise Constraint_Error;
    end String_To_Object;
+
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (R : in Ref)
+     return Annotations.Notepad_Access
+   is
+   begin
+      return Ref_Info_Of (R).Notepad'Access;
+   end Notepad_Of;
 
 end PolyORB.References;

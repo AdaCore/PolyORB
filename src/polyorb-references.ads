@@ -37,6 +37,7 @@
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Smart_Pointers;
@@ -89,6 +90,14 @@ package PolyORB.References is
    --  Note: String_To_Object must be a procedure so it need not
    --  be overridden when Ref is derived.
 
+   ----------------------------
+   -- Annotations management --
+   ----------------------------
+
+   function Notepad_Of
+     (R : in Ref)
+     return Annotations.Notepad_Access;
+
    type Ref_Ptr is access all Ref;
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
@@ -135,6 +144,10 @@ private
          --  than in the designated Binding_Object to allow sharing
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
+
+         Notepad : aliased Annotations.Notepad;
+         --  Reference_Info's notepad. The user must ensure there is
+         --  no race condition when accessing it.
      end record;
    type Reference_Info_Access is access all Reference_Info'Class;
 
