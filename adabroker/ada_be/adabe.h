@@ -331,13 +331,10 @@ public:
   DEF_NARROW_FROM_DECL(adabe_attribute);
   DEF_NARROW_FROM_SCOPE(adabe_attribute);
 
-  void produce_ads(std::fstream& s);
-  void produce_adb(std::fstream& s);
-  void produce_impl_ads(std::fstream& s);
-  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
-
-private:
-  adabe_attribute();
+  void produce_ads(dep_list with,string &String, string &previousdefinition);
+  //  void produce_adb(std::fstream& s);
+  //  void produce_impl_ads(std::fstream& s);
+  //  void produce_impl_adb(std::fstream& s, adabe_typedef* tdef);
 
 };
 
