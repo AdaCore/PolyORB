@@ -30,6 +30,8 @@ procedure Client is
       end if;
    end Try_RACW;
 
+   Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
+
 begin
    Put_Line ("I said: " & S);
    Put_Line ("The server replied: "
@@ -40,4 +42,6 @@ begin
 
    Try_RACW ("");
    Try_RACW ("Elvis");
+
+   Put_Line ("|2 + 3i|^2 = " & Float'Image (RCI.Modulus2 (Z)));
 end Client;

@@ -65,4 +65,8 @@ package body RCI is
       return S;
    end echoString;
 
+   function Modulus2 (Z : Complex) return Float is
+   begin
+      return Z.Re * Z.Re + Z.Im * Z.Im;
+   end Modulus2;
 end RCI;

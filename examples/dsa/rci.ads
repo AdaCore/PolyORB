@@ -30,9 +30,9 @@ package RCI is
    type echo_RAS is access function (S : String) return String;
 
    type Complex is record
-      Real_Part, Imaginary_Part : Float;
+      Re, Im : Float;
    end record;
 
-   function Modulus (Z : Complex) return Float;
+   function Modulus2 (Z : Complex) return Float;
 
 end RCI;
