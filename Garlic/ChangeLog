@@ -1,3 +1,7 @@
+1998-10-08  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-parint.adb: Remove wrong code inserted during last merge.
+
 1998-10-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-parint.ads: Add a parameter RCI to procedure Check to handle

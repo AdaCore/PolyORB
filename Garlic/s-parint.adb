@@ -90,16 +90,6 @@ package body System.Partition_Interface is
    function Get_Unit_Version (Name : String; RCI : Boolean) return String;
    --  When RCI, get active version. Otherwise, get passive version.
 
-   procedure Public_Message_Receiver
-     (Partition : in Partition_ID;
-      Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type);
-   --  Global message receiver
-
-   Local_Partition  : constant Partition_ID := Get_My_Partition_ID;
-   Get_Unit_Request : constant Request_Type :=
-     (Get_Unit, Local_Partition, 0, null, null);
-
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
 
