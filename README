@@ -96,6 +96,11 @@ Downloading Glade.
 You can download Glade by anonymous ftp from cs.nyu.edu (cd
 pub/gnat/glade) and the usual GNAT mirror sites around the world.
 
+There is an official WWW page for Glade containing the major annoucements
+as well as the mailing-lists archives (see below):
+
+      http://www.act-europe.fr/glade.html
+
 Commercial Support.
 -------------------
 
@@ -210,7 +215,8 @@ Glade Contributions.
 Glade filtering is part of a free contribution from
 Prof. A. Strohmeier, T. Wolf and J. Kienzle (EPFL, Lausanne,
 Switzerland). Extra filters are available on:
-lglftp.epfl.ch/pub/Ada/filters
+
+      http://lglftp.epfl.ch/pub/Ada/filters
 
 Glade replay features is part of a free contribution from D. Neri
 <d92-dne@nada.kth.se>, KTH (Royal Institute of Technology, Stockholm,
