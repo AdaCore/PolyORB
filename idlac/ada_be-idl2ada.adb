@@ -25,40 +25,41 @@ package body Ada_Be.Idl2Ada is
    -------------------------------------------------
 
    procedure Gen_Scope
-     (Node : Node_Id);
+     (Node : Node_Id;
+      Implement : Boolean);
    --  Generate all the files for scope Node.
+   --  The implementation templates for interfaces is
+   --  generated only if Implement is true.
 
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate the declaration for the stubs of a node.
-
    procedure Gen_Node_Stubs_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate the body for the stubs of a node.
+   --  Generate the stubs code for a node.
 
    procedure Gen_Node_Stream_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate the package declaration for the
-   --  marchalling function of a node.
-
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate the package declaration for the
-   --  marchalling function of a node.
-
-   procedure Gen_Node_Skel_Spec
-     (CU   : in out Compilation_Unit;
-      Node : Node_Id);
-   --  Generate the declaration for the skeleton of a node.
+   --  Generate the marshalling code for a node.
 
    procedure Gen_Node_Skel_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
-   --  Generate the implementation for the skeleton of a node.
+   --  Generate the skeleton code for a node.
+
+   procedure Gen_Node_Impl_Spec
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   procedure Gen_Node_Impl_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Generate an implementation template
+   --  for a node.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;
@@ -90,7 +91,9 @@ package body Ada_Be.Idl2Ada is
    --  of a type.
    --  FIXME: This is marshall-by-value.
    --         Marshall-by-reference should be produced
-   --         as well.
+   --         as well. For details on marshalling by
+   --         value vs. marshalling by reference,
+   --         see the spec of Broca.Buffers.
 
    procedure Gen_Unmarshall_Profile
      (CU        : in out Compilation_Unit;
@@ -147,6 +150,13 @@ package body Ada_Be.Idl2Ada is
      return String;
    --  The name of the Ada type that maps Node.
 
+   procedure Add_With_Entity
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Add a semantic dependency of CU on the
+   --  package that contains the mapping of
+   --  the entity defined by Node.
+
    procedure Add_With_Stream
      (CU : in out Compilation_Unit;
       Node : Node_Id);
@@ -179,15 +189,17 @@ package body Ada_Be.Idl2Ada is
    ----------------------------------------------
 
    procedure Generate
-     (Node : in Node_Id) is
+     (Node : in Node_Id;
+      Implement : Boolean := False) is
    begin
       pragma Assert (Is_Repository (Node));
 
-      Gen_Scope (Node);
+      Gen_Scope (Node, Implement);
    end Generate;
 
    procedure Gen_Scope
-     (Node : Node_Id)
+     (Node : Node_Id;
+      Implement : Boolean)
    is
       Stubs_Name : constant String
         := Ada_Full_Name (Node);
@@ -213,10 +225,10 @@ package body Ada_Be.Idl2Ada is
       Skel_Body : Compilation_Unit
         := New_Package (Skel_Name, Unit_Body);
 
-      --  Impl_Spec : Compilation_Unit
-      --    := New_Package (Impl_Name, Unit_Spec);
-      --  Impl_Body : Compilation_Unit
-      --    := New_Package (Impl_Name, Unit_Body);
+      Impl_Spec : Compilation_Unit
+        := New_Package (Impl_Name, Unit_Spec);
+      Impl_Body : Compilation_Unit
+        := New_Package (Impl_Name, Unit_Body);
 
    begin
       case Kind (Node) is
@@ -239,7 +251,7 @@ package body Ada_Be.Idl2Ada is
                   Next (It);
 
                   if Is_Gen_Scope (Decl_Node) then
-                     Gen_Scope (Decl_Node);
+                     Gen_Scope (Decl_Node, Implement);
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Decl_Node);
@@ -263,11 +275,6 @@ package body Ada_Be.Idl2Ada is
               (Stubs_Spec, Node, Full_View => False);
             --  The object reference type.
 
-            --  XXX skel/impl
-            --  Gen_Object_Servant_Declaration
-            --    (Skel_Spec, Node);
-            --  --  The object implementation type.
-
             NL (Skel_Spec);
             PL (Skel_Spec, "pragma Elaborate_Body;");
 
@@ -275,8 +282,18 @@ package body Ada_Be.Idl2Ada is
             Add_With (Skel_Body, "Broca.Exceptions");
             Add_With (Skel_Body, "PortableServer",
                       Use_It => False,
-                      Elaborate => True);
+                      Elab_Control => Elaborate_All);
             Add_With (Skel_Body, Impl_Name);
+
+            if Implement then
+               Gen_Object_Servant_Declaration
+                 (Impl_Spec, Node);
+               --  The object implementation type.
+
+               Add_With (Impl_Body, Skel_Name,
+                         Use_It => False,
+                         Elab_Control => Elaborate);
+            end if;
 
             Gen_Node_Stream_Spec
               (Stream_Spec, Node);
@@ -319,6 +336,7 @@ package body Ada_Be.Idl2Ada is
                 "Request_Buffer : access Broca.Buffers.Buffer_Type;");
             PL (Skel_Body,
                 "Reply_Buffer   : access Broca.Buffers.Buffer_Type);");
+            DI (Skel_Body);
             NL (Skel_Body);
             PL (Skel_Body, "function Servant_Is_A");
             PL (Skel_Body, "  (Obj : PortableServer.Servant)");
@@ -339,10 +357,8 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Body,
                 "Request_Buffer : access Broca.Buffers.Buffer_Type;");
             PL (Skel_Body,
-                "Reply_Buffer   : access Broca.Buffers.Buffer_Type)");
+                "Reply_Buffer   : access Broca.Buffers.Buffer_Type) is");
             DI (Skel_Body);
-            PL (Skel_Body, "is");
-            --  XXX Local declarations for GIOP_Dispatch
             PL (Skel_Body, "begin");
             II (Skel_Body);
 
@@ -355,7 +371,7 @@ package body Ada_Be.Idl2Ada is
                   Export_Node := Get_Node (It);
                   Next (It);
                   if Is_Gen_Scope (Export_Node) then
-                     Gen_Scope (Export_Node);
+                     Gen_Scope (Export_Node, Implement);
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Export_Node);
@@ -367,11 +383,17 @@ package body Ada_Be.Idl2Ada is
                      Gen_Node_Stream_Body
                        (Stream_Body, Export_Node);
 
-                     --  XXX skel/impl
-                     --  Gen_Node_Skel_Spec
-                     --    (Skel_Spec, Export_Node);
+                     --  No code produced per-node
+                     --  in skeleton spec.
                      Gen_Node_Skel_Body
                        (Skel_Body, Export_Node);
+
+                     if Implement then
+                        Gen_Node_Impl_Spec
+                          (Impl_Spec, Export_Node);
+                        Gen_Node_Impl_Body
+                          (Impl_Body, Export_Node);
+                     end if;
                   end if;
 
                   --  XXX Declare also inherited subprograms
@@ -383,7 +405,7 @@ package body Ada_Be.Idl2Ada is
             --  XXX (This is a temporary workaround)
             Add_With (Stubs_Spec, "CORBA",
                       Use_It => False,
-                      Elaborate => True);
+                      Elab_Control => Elaborate_All);
             NL (Stubs_Spec);
             PL (Stubs_Spec, "Repository_Id : constant CORBA.RepositoryId");
             PL (Stubs_Spec, "  := CORBA.To_CORBA_String (""IDL:"
@@ -413,7 +435,6 @@ package body Ada_Be.Idl2Ada is
             PL (Skel_Body, "  (" & Stubs_Name & ".Repository_Id,");
             PL (Skel_Body, "   Servant_Is_A'Access,");
             PL (Skel_Body, "   GIOP_Dispatch'Access);");
-            NL (Skel_Body);
          when others =>
             pragma Assert (False);
             --  This never happens.
@@ -426,7 +447,10 @@ package body Ada_Be.Idl2Ada is
       NL (Stream_Spec);
       NL (Stream_Body);
       NL (Skel_Spec);
-      NL (Skel_Body);
+      --  Skel body ends with elaboration code:
+      --  no new-line required.
+      NL (Impl_Spec);
+      NL (Impl_Body);
 
       Generate (Stubs_Spec);
       Generate (Stubs_Body);
@@ -434,7 +458,10 @@ package body Ada_Be.Idl2Ada is
       Generate (Stream_Body);
       Generate (Skel_Spec);
       Generate (Skel_Body);
-
+      if Implement then
+         Generate (Impl_Spec);
+         Generate (Impl_Body);
+      end if;
    end Gen_Scope;
 
    procedure Gen_Object_Reference_Declaration
@@ -505,7 +532,7 @@ package body Ada_Be.Idl2Ada is
                      Add_With (CU, Ada_Full_Name (P_Node)
                                & Impl_Suffix,
                                Use_It => False,
-                               Elaborate => True);
+                               Elab_Control => Elaborate_All);
                      --  Make it so that the skeleton unit for
                      --  an interface is elaborated after those
                      --  of all its parents.
@@ -513,7 +540,7 @@ package body Ada_Be.Idl2Ada is
                      if First then
                         Put (CU, "  abstract new "
                              & Ada_Full_Name (P_Node)
-                             & Skel_Suffix & ".Object");
+                             & Impl_Suffix & ".Object");
                         First := False;
                      end if;
                   end loop;
@@ -868,7 +895,7 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Stubs_Spec;
 
-   procedure Gen_Node_Skel_Spec
+   procedure Gen_Node_Impl_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
    begin
@@ -907,7 +934,7 @@ package body Ada_Be.Idl2Ada is
          when K_Operation =>
 
             Gen_Operation_Profile (CU, "access Object", Node);
-            PL (CU, " is abstract;");
+            PL (CU, ";");
 
             --        when K_Attribute =>
             --  null;
@@ -917,7 +944,83 @@ package body Ada_Be.Idl2Ada is
 
       end case;
 
-   end Gen_Node_Skel_Spec;
+   end Gen_Node_Impl_Spec;
+
+   procedure Gen_Node_Impl_Body
+     (CU   : in out Compilation_Unit;
+      Node : Node_Id) is
+   begin
+      case Kind (Node) is
+
+         --  Scopes
+
+         when
+           K_Repository |
+           K_Module     |
+           K_Interface  =>
+            null;
+
+         when K_Forward_Interface =>
+            null; --  ??? XXX
+
+         -----------------
+         -- Value types --
+         -----------------
+
+         when K_ValueType =>
+            null;
+         when K_Forward_ValueType =>
+            null;
+         when K_Boxed_ValueType =>
+            null;
+         when K_State_Member =>
+            null;
+         when K_Initializer =>
+            null;
+
+         ----------------
+         -- Operations --
+         ----------------
+
+         when K_Operation =>
+
+            declare
+               Is_Function : constant Boolean
+                 := Kind (Operation_Type (Node)) /= K_Void;
+            begin
+               NL (CU);
+               Gen_Operation_Profile (CU, "access Object", Node);
+               if Is_Function then
+                  NL (CU);
+                  PL (CU, "is");
+                  II (CU);
+                  PL (CU, "Result : "
+                      & Ada_Type_Name (Operation_Type (Node)) & ";");
+                  DI (CU);
+               else
+                  PL (CU, " is");
+               end if;
+               PL (CU, "begin");
+               II (CU);
+               NL (CU);
+               PL (CU, "--  Insert implementation of " & Ada_Name (Node));
+               NL (CU);
+               if Is_Function then
+                  PL (CU, "return Result;");
+               end if;
+               DI (CU);
+               PL (CU, "end " & Ada_Name (Node) & ";");
+            end;
+
+            --        when K_Attribute =>
+            --  null;
+
+         when others =>
+            null;
+
+      end case;
+
+   end Gen_Node_Impl_Body;
 
    procedure Gen_Node_Skel_Body
      (CU   : in out Compilation_Unit;
@@ -1217,7 +1320,7 @@ package body Ada_Be.Idl2Ada is
             begin
                Add_With (CU, "CORBA",
                          Use_It    => False,
-                         Elaborate => True);
+                         Elab_Control => Elaborate_All);
                Add_With (CU, "Broca.GIOP");
                Add_With (CU, "Broca.Object");
 
@@ -1548,7 +1651,7 @@ package body Ada_Be.Idl2Ada is
 
             if Kind (Operation_Type (Node)) /= K_Void then
                NL (CU);
-               --  XXX Add_With for Operation_Type (Node).
+               Add_With_Entity (CU, Operation_Type (Node));
                Put (CU, "  return "
                     & Ada_Type_Name (Operation_Type (Node)));
             end if;
@@ -1565,7 +1668,7 @@ package body Ada_Be.Idl2Ada is
                when Mode_Inout =>
                   Put (CU, " : in out ");
             end case;
-            --  XXX Add_With for Param_Type (Node)
+            Add_With_Entity (CU, Param_Type (Node));
             Gen_Operation_Profile
               (CU, Object_Type, Param_Type (Node));
             if Is_Interface_Type (Node) then
@@ -2028,13 +2131,10 @@ package body Ada_Be.Idl2Ada is
 
                   when K_Enumerator =>
                      Put (CU, Ada_Full_Name (Node));
-                     --  XXX FIXME Add with for scope containing
-                     --  Denoted_Entity.
 
                   when others =>
+                     Add_With_Entity (CU, Node);
                      Put (CU, Ada_Type_Name (Node));
-                     --  XXX FIXME Add with for scope containing
-                     --  Denoted_Entity.
 
                end case;
             end;
@@ -2200,6 +2300,53 @@ package body Ada_Be.Idl2Ada is
             raise Program_Error;
       end case;
    end Ada_Type_Name;
+
+   procedure Add_With_Entity
+     (CU : in out Compilation_Unit;
+      Node : Node_Id)
+   is
+      NK : constant Node_Kind
+        := Kind (Node);
+   begin
+      case NK is
+         when K_Interface =>
+            Add_With (CU, Ada_Full_Name (Node));
+
+         when
+           K_Enum   |
+           K_Union  |
+           K_Struct |
+           K_Declarator =>
+            Add_With (CU, Ada_Full_Name (Parent_Scope (Node)));
+
+         when K_Scoped_Name =>
+            Add_With_Entity (CU, Value (Node));
+
+         when
+           K_Short              |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_String             |
+           K_Wide_String        |
+           K_Octet              =>
+            Add_With (CU, "CORBA");
+
+         when others =>
+            Ada.Text_IO.Put_Line ("Error: A "
+                                  & NK'Img
+                                  & " is not a mapped entity.");
+            raise Program_Error;
+      end case;
+   end Add_With_Entity;
 
    procedure Add_With_Stream
      (CU : in out Compilation_Unit;

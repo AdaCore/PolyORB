@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.ads#3 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.ads#4 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Finalization;
@@ -35,15 +35,20 @@ package Ada_BE.Source_Streams is
    --  Increment or decrement the indentation level
    --  for the compilation unit.
 
+   type Elab_Control_Pragma is
+     (None,           --  Add no elaboration control pragma
+      Elaborate,      --  Add a pragma Elaborate
+      Elaborate_All); --  Add a pragma Elaborate_All
+
    procedure Add_With (Unit      : in out Compilation_Unit;
                        Dep       : String;
                        Use_It    : Boolean := False;
-                       Elaborate : Boolean := False);
+                       Elab_Control : Elab_Control_Pragma := None);
    --  Add Dep to the semantic dependecies of Unit,
    --  if it is not already present. If Use_It is true,
    --  a "use" clause will be added for that unit.
-   --  If Elaborate is true, a pragma Elaborate_All (Unit)
-   --  will be added as well.
+   --  Additionnally, an elaboration control pragma may
+   --  be inserted according to Elab_Control.
 
    type String_Ptr is access String;
    procedure Free is
@@ -74,7 +79,7 @@ private
    type Dependency_Node is record
       Library_Unit : String_Ptr;
       Use_It : Boolean := False;
-      Elaborate : Boolean := False;
+      Elab_Control : Elab_Control_Pragma := None;
       Next : Dependency;
    end record;
 

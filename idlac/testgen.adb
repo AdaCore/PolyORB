@@ -11,7 +11,7 @@ procedure testgen is
 begin
    Idl_Fe.Parser.Initialize (GNAT.Command_Line.Get_Argument,
                              True,
-                             True);
+                             False);
    Rep := Idl_Fe.Parser.Parse_Specification;
    Ada_Be.Expansion.Expand_Repository (Rep);
    Ada_Be.Idl2Ada.Generate (Rep);

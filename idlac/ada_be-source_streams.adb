@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#4 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#5 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -57,7 +57,7 @@ package body Ada_Be.Source_Streams is
      (Unit   : in out Compilation_Unit;
       Dep    : String;
       Use_It : Boolean := False;
-      Elaborate : Boolean := False)
+      Elab_Control : Elab_Control_Pragma := None)
    is
       Dep_Node : Dependency := Unit.Context_Clause;
    begin
@@ -69,12 +69,20 @@ package body Ada_Be.Source_Streams is
          Dep_Node := new Dependency_Node'
            (Library_Unit => new String'(Dep),
             Use_It => Use_It,
-            Elaborate => Elaborate,
+            Elab_Control => Elab_Control,
             Next => Unit.Context_Clause);
          Unit.Context_Clause := Dep_Node;
       else
          Dep_Node.Use_It := Dep_Node.Use_It or else Use_It;
-         Dep_Node.Elaborate := Dep_Node.Elaborate or else Elaborate;
+         if Elab_Control = Elaborate_All
+           or else Dep_Node.Elab_Control = Elaborate_All then
+            Dep_Node.Elab_Control := Elaborate_All;
+         elsif Elab_Control = Elaborate
+           or else Dep_Node.Elab_Control = Elaborate then
+            Dep_Node.Elab_Control := Elaborate;
+         else
+            Dep_Node.Elab_Control := None;
+         end if;
       end if;
 
    end Add_With;
@@ -142,10 +150,16 @@ package body Ada_Be.Source_Streams is
          else
             New_Line (File);
          end if;
-         if Dep_Node.Elaborate then
-            Put_Line (File, "pragma Elaborate_All ("
-                      & Dep_Node.Library_Unit.all & ");");
-         end if;
+         case Dep_Node.Elab_Control is
+            when Elaborate_All =>
+               Put_Line (File, "pragma Elaborate_All ("
+                         & Dep_Node.Library_Unit.all & ");");
+            when Elaborate =>
+               Put_Line (File, "pragma Elaborate ("
+                         & Dep_Node.Library_Unit.all & ");");
+            when None =>
+               null;
+         end case;
          Dep_Node := Dep_Node.Next;
       end loop;
 
