@@ -7,7 +7,7 @@
 with Remote_Abort; use Remote_Abort;
 with Text_IO; use Text_IO;
 
-procedure Main_Abort is
+procedure Test_Abort is
 
 begin
    select
@@ -23,4 +23,4 @@ begin
    else
       Put_Line ("Something went wrong");
    end if;
-end Main_Abort;
+end Test_Abort;
