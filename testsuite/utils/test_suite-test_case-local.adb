@@ -76,6 +76,19 @@ package body Test_Suite.Test_Case.Local is
       Log (Output, "Running: " & Command);
       Separator (Output);
 
+      --  Test the executable actually exists
+
+      if not Is_Regular_File (Command) then
+         Log (Output, Command & " does not exist !");
+         Log (Output, "Aborting test");
+
+         Test_Result := False;
+
+         Close_Test_Output_Context (Output, Test_Result);
+
+         return Test_Result;
+      end if;
+
       --  Spawn Executable
 
       Non_Blocking_Spawn
