@@ -10,15 +10,22 @@ procedure Test_Time is
 
    Before, After : Time;
 
+   procedure Test is
+   begin
+      Before := Clock;
+      Do_Nothing;
+      After := Clock;
+      Put_Line ("Done in " & Duration'Image (To_Duration (After - Before)) &
+                "seconds");
+   end Test;
+
 begin
    Put_Line ("Waiting for the remote partition");
    Do_Nothing;
    Put_Line ("Starting");
-   Before := Clock;
-   Do_Nothing;
-   After := Clock;
-   Put_Line ("Done in " & Duration'Image (To_Duration (After - Before)) &
-             "seconds");
+   for I in 1 .. 20 loop
+      Test;
+   end loop;
    Put_Line ("Starting second test (5 seconds)");
    Before := Clock;
    Wait_5_Seconds;
