@@ -428,8 +428,7 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Specification : enter"));
       --  first call next_token in order to initialize the location
       Next_Token;
-      Result := Make_Repository;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Repository (Get_Token_Location);
       --  The repository is the root scope.
       Push_Scope (Result);
       declare
@@ -688,10 +687,7 @@ package body Idl_Fe.Parser is
                            Ok : Boolean;
                         begin
                            --  Creation of the node
-                           Result := Make_Module;
-                           Set_Location
-                             (Result,
-                              Get_Previous_Token_Location);
+                           Result := Make_Module (Get_Previous_Token_Location);
                            --  here, the addentifier is really added only if
                            --  we're not in the case where the module name
                            --  was already defined
@@ -788,7 +784,7 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("Parse_Interface : enter"));
       --  interface header.
-      Res := Make_Interface;
+      Res := Make_Interface (Get_Token_Location);
       --  is the interface abstracted
       if Get_Token = T_Abstract then
          Set_Abst (Res, True);
@@ -896,8 +892,7 @@ package body Idl_Fe.Parser is
                --  allows multiple forward declarations of an
                --  interface.
 
-               Fd_Res := Make_Forward_Interface;
-               Set_Location (Fd_Res, Get_Location (Res));
+               Fd_Res := Make_Forward_Interface (Get_Location (Res));
                Set_Forward (Fd_Res, No_Node);
                Set_Abst (Fd_Res, Abst (Res));
                Set_Repository_Id (Fd_Res, Repository_Id (Res));
@@ -908,8 +903,7 @@ package body Idl_Fe.Parser is
                return;
             end;
          else
-            Fd_Res := Make_Forward_Interface;
-            Set_Location (Fd_Res, Get_Location (Res));
+            Fd_Res := Make_Forward_Interface (Get_Location (Res));
             Set_Forward (Fd_Res, No_Node);
             Set_Abst (Fd_Res, Abst (Res));
             Redefine_Identifier (Definition, Fd_Res);
@@ -1217,8 +1211,7 @@ package body Idl_Fe.Parser is
       Success := False;
       Prev := No_Node;
       --  creation of a scoped_name node
-      Res := Make_Scoped_Name;
-      Set_Location (Res, Get_Token_Location);
+      Res := Make_Scoped_Name (Get_Token_Location);
       --  if it begins with :: then the scope of reference is
       --  the root scope
       if Get_Token = T_Colon_Colon then
@@ -1737,7 +1730,7 @@ package body Idl_Fe.Parser is
       Definition : Identifier_Definition_Acc;
    begin
       pragma Debug (O2 ("Parse_End_Value_Dcl : enter"));
-      Result := Make_ValueType;
+      Result := Make_ValueType (Get_Previous_Token_Location);
       Set_Abst (Result, Abst);
       Set_Custom (Result, Custom);
       if (Abst or Custom) then
@@ -1858,7 +1851,7 @@ package body Idl_Fe.Parser is
                                           Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      Result := Make_Forward_ValueType;
+      Result := Make_Forward_ValueType (Get_Previous_Token_Location);
       Set_Abst (Result, Abst);
       if Abst then
          Set_Location (Result, Get_Previous_Previous_Token_Location);
@@ -1911,8 +1904,7 @@ package body Idl_Fe.Parser is
                                       Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      Result := Make_Boxed_ValueType;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_Boxed_ValueType (Get_Previous_Token_Location);
       --  try to find a previous definition
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
@@ -2386,8 +2378,7 @@ package body Idl_Fe.Parser is
    procedure Parse_State_Member (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      Result := Make_State_Member;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_State_Member (Get_Token_Location);
       case Get_Token is
          when T_Public =>
             Set_Is_Public (Result, True);
@@ -2458,8 +2449,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      Result := Make_Initializer;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Initializer (Get_Token_Location);
       --  consume T_Factory
       Next_Token;
       --  Is there a previous definition
@@ -2642,8 +2632,7 @@ package body Idl_Fe.Parser is
             Result := No_Node;
             return;
       end case;
-      Result := Make_Param;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_Param (Get_Previous_Token_Location);
       Set_Mode (Result, Mode_In);
       declare
          Type_Node : Node_Id;
@@ -2677,8 +2666,7 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("Parse_Const_Dcl : enter"));
       Next_Token;
-      Result := Make_Const_Dcl;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_Const_Dcl (Get_Previous_Token_Location);
       declare
          Node : Node_Id;
       begin
@@ -3034,9 +3022,7 @@ package body Idl_Fe.Parser is
             Loc := Get_Token_Location;
             Next_Token;
             pragma Debug (O ("Parse_Or_Expr : making the or node"));
-            Res := Make_Or_Expr;
-            pragma Debug (O ("Parse_Or_Expr : setting the location"));
-            Set_Location (Res, Loc);
+            Res := Make_Or_Expr (Loc);
             pragma Debug (O ("Parse_Or_Expr : setting the first term"));
             Set_Left (Res, Result);
             pragma Debug (O ("Parse_Or_Expr : parsing of the second term"));
@@ -3117,8 +3103,7 @@ package body Idl_Fe.Parser is
          begin
             Loc := Get_Token_Location;
             Next_Token;
-            Res := Make_Xor_Expr;
-            Set_Location (Res, Loc);
+            Res := Make_Xor_Expr (Loc);
             Set_Left (Res, Result);
             Parse_And_Expr (Res_Right, Success, Expr_Type);
             if not Success or Res_Right = No_Node then
@@ -3197,8 +3182,7 @@ package body Idl_Fe.Parser is
          begin
             Loc := Get_Token_Location;
             Next_Token;
-            Res := Make_And_Expr;
-            Set_Location (Res, Loc);
+            Res := Make_And_Expr (Loc);
             Set_Left (Res, Result);
             Parse_Shift_Expr (Res_Right, Success, Expr_Type);
             if not Success or Res_Right = No_Node then
@@ -3306,12 +3290,11 @@ package body Idl_Fe.Parser is
             Next_Token;
             if View_Previous_Token = T_Greater_Greater then
                Shl := False;
-               Res := Make_Shr_Expr;
+               Res := Make_Shr_Expr (Loc);
             else
                Shl := True;
-               Res := Make_Shl_Expr;
+               Res := Make_Shl_Expr (Loc);
             end if;
-            Set_Location (Res, Loc);
             Set_Left (Res, Result);
             Parse_Add_Expr (Res_Right, Success, Expr_Type);
             if not Success or Res_Right = No_Node then
@@ -3422,12 +3405,11 @@ package body Idl_Fe.Parser is
             Next_Token;
             if View_Previous_Token = T_Plus then
                Plus := True;
-               Res := Make_Add_Expr;
+               Res := Make_Add_Expr (Loc);
             else
                Plus := False;
-               Res := Make_Sub_Expr;
+               Res := Make_Sub_Expr (Loc);
             end if;
-            Set_Location (Res, Loc);
             Set_Left (Res, Result);
             Parse_Mult_Expr (Res_Right, Success, Expr_Type);
             if not Success or Res_Right = No_Node then
@@ -3605,15 +3587,14 @@ package body Idl_Fe.Parser is
             Next_Token;
             if View_Previous_Token = T_Star then
                Op := Mul;
-               Res := Make_Mul_Expr;
+               Res := Make_Mul_Expr (Loc);
             elsif View_Previous_Token = T_Slash then
                Op := Div;
-               Res := Make_Div_Expr;
+               Res := Make_Div_Expr (Loc);
             else
                Op := Modulo;
-               Res := Make_Mod_Expr;
+               Res := Make_Mod_Expr (Loc);
             end if;
-            Set_Location (Res, Loc);
             Set_Left (Res, Result);
             Parse_Unary_Expr (Res_Right, Success, Expr_Type);
             if not Success or Res_Right = No_Node then
@@ -3835,15 +3816,14 @@ package body Idl_Fe.Parser is
             Loc := Get_Token_Location;
             if Get_Token = T_Plus then
                Op := Plus;
-               Result := Make_Id_Expr;
+               Result := Make_Id_Expr (Get_Token_Location);
             elsif Get_Token = T_Minus then
                Op := Minus;
-               Result := Make_Neg_Expr;
+               Result := Make_Neg_Expr (Get_Token_Location);
             else
                Op := Tilde;
-               Result := Make_Not_Expr;
+               Result := Make_Not_Expr (Get_Token_Location);
             end if;
-            Set_Location (Result, Get_Token_Location);
             Next_Token;
             declare
                Operand : Node_Id;
@@ -4001,8 +3981,7 @@ package body Idl_Fe.Parser is
                         Result := Expression (Value (Local_Res));
                      elsif Kind (Value (Local_Res)) = K_Enumerator then
                         --  If it is an enum value, check the specified type
-                        Result := Make_Lit_Enum;
-                        Set_Location (Result, Get_Token_Location);
+                        Result := Make_Lit_Enum (Get_Token_Location);
                         if Expr_Type.Kind = C_Enum then
                            --  checks that the value is of the right type
                            pragma Debug (O ("Parse_Primary_Expr : Kind " &
@@ -4186,8 +4165,7 @@ package body Idl_Fe.Parser is
                                     Success : out Boolean;
                                     Expr_Type : in Constant_Value_Ptr) is
    begin
-      Result := Make_Lit_Boolean;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Boolean (Get_Token_Location);
       if Expr_Type.Kind = C_Boolean then
          if Get_Token = T_True then
             Set_Expr_Value (Result,
@@ -4292,8 +4270,7 @@ package body Idl_Fe.Parser is
             declare
                Res : Node_Id;
             begin
-               Res := Make_Native;
-               Set_Location (Res, Get_Token_Location);
+               Res := Make_Native (Get_Token_Location);
                Next_Token;
                declare
                   Node : Node_Id;
@@ -4328,8 +4305,7 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("Parse_Type_declarator: enter"));
 
-      Result := Make_Type_Declarator;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Type_Declarator (Get_Token_Location);
 
       declare
          Node : Node_Id;
@@ -4820,8 +4796,7 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
             end;
          end if;
-         Result := Make_Declarator;
-         Set_Location (Result, Get_Token_Location);
+         Result := Make_Declarator (Get_Token_Location);
          --  no previous definition
          if Add_Identifier (Result,
                             Get_Token_String) then
@@ -4852,17 +4827,14 @@ package body Idl_Fe.Parser is
       case Get_Token is
          when T_Float =>
             Next_Token;
-            Result := Make_Float;
-            Set_Location (Result, Get_Token_Location);
+            Result := Make_Float (Get_Token_Location);
          when T_Double =>
             Next_Token;
-            Result := Make_Double;
-            Set_Location (Result, Get_Token_Location);
+            Result := Make_Double (Get_Token_Location);
          when T_Long =>
             Next_Token;
             Next_Token;
-            Result := Make_Long_Double;
-            Set_Location (Result, Get_Token_Location);
+            Result := Make_Long_Double (Get_Token_Location);
          when others =>
                raise Errors.Internal_Error;
       end case;
@@ -4914,8 +4886,7 @@ package body Idl_Fe.Parser is
                                      Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Short;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Short (Get_Token_Location);
       Success := True;
    end Parse_Signed_Short_Int;
 
@@ -4926,8 +4897,7 @@ package body Idl_Fe.Parser is
                                     Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Long;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Long (Get_Token_Location);
       Success := True;
    end Parse_Signed_Long_Int;
 
@@ -4939,8 +4909,7 @@ package body Idl_Fe.Parser is
    begin
       Next_Token;
       Next_Token;
-      Result := Make_Long_Long;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Long_Long (Get_Token_Location);
       Success := True;
    end Parse_Signed_Longlong_Int;
 
@@ -4990,8 +4959,7 @@ package body Idl_Fe.Parser is
    begin
       Next_Token;
       Next_Token;
-      Result := Make_Unsigned_Short;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Unsigned_Short (Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Short_Int;
 
@@ -5003,8 +4971,7 @@ package body Idl_Fe.Parser is
    begin
       Next_Token;
       Next_Token;
-      Result := Make_Unsigned_Long;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Unsigned_Long (Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Long_Int;
 
@@ -5017,8 +4984,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       Next_Token;
       Next_Token;
-      Result := Make_Unsigned_Long_Long;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Unsigned_Long_Long (Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Longlong_Int;
 
@@ -5029,8 +4995,7 @@ package body Idl_Fe.Parser is
                               Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Char;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Char (Get_Token_Location);
       Success := True;
    end Parse_Char_Type;
 
@@ -5041,8 +5006,7 @@ package body Idl_Fe.Parser is
                                    Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Wide_Char;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Wide_Char (Get_Token_Location);
       Success := True;
    end Parse_Wide_Char_Type;
 
@@ -5053,8 +5017,7 @@ package body Idl_Fe.Parser is
                                  Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Boolean;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Boolean (Get_Token_Location);
       Success := True;
    end Parse_Boolean_Type;
 
@@ -5065,8 +5028,7 @@ package body Idl_Fe.Parser is
                                Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Octet;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Octet (Get_Token_Location);
       Success := True;
    end Parse_Octet_Type;
 
@@ -5077,8 +5039,7 @@ package body Idl_Fe.Parser is
                              Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Any;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Any (Get_Token_Location);
       Success := True;
    end Parse_Any_Type;
 
@@ -5088,8 +5049,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Object_Type (Result : in out Node_Id;
                                 Success : out Boolean) is
    begin
-      Result := Make_Object;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Object (Get_Token_Location);
       Success := True;
       Next_Token;
       return;
@@ -5132,9 +5092,8 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
          end;
       end if;
-      Result := Make_Struct;
+      Result := Make_Struct (Get_Token_Location);
       Set_Is_Exception_Members (Result, False);
-      Set_Location (Result, Get_Token_Location);
 
       if Add_Identifier (Result, Get_Token_String) then
          Set_Default_Repository_Id (Result);
@@ -5253,8 +5212,7 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
-      Result := Make_Member;
-      Set_Location (Result, Loc);
+      Result := Make_Member (Loc);
       Set_M_Type (Result, Type_Spec);
       declare
          Node : Node_List;
@@ -5319,8 +5277,7 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
          end;
       end if;
-      Result := Make_Union;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Union (Get_Token_Location);
       if not Add_Identifier (Result, Get_Token_String) then
          --  the error was raised before
          Success := False;
@@ -5619,8 +5576,7 @@ package body Idl_Fe.Parser is
             return;
       end case;
       pragma Debug (O ("Parse_case : first token ok"));
-      Result := Make_Case;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Case (Get_Token_Location);
       Set_Labels (Result, Nil_List);
       while Get_Token = T_Case or Get_Token = T_Default loop
          declare
@@ -5761,8 +5717,7 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
-      Result := Make_Enum;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Enum (Get_Token_Location);
       Set_Enumerators (Result, Nil_List);
       --  Is there a previous definition
       if not Is_Redefinable (Get_Token_String) then
@@ -5907,8 +5862,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       else
-         Result := Make_Enumerator;
-         Set_Location (Result, Get_Token_Location);
+         Result := Make_Enumerator (Get_Token_Location);
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
@@ -5953,11 +5907,10 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      Result := Make_Sequence;
+      Result := Make_Sequence (Get_Previous_Token_Location);
       pragma Debug (O ("Parse_Sequence_Type : previous location :" &
                        " filename = " &
                        Get_Previous_Token_Location.Filename.all));
-      Set_Location (Result, Get_Previous_Token_Location);
       Next_Token;
       declare
          Node : Node_Id;
@@ -6037,8 +5990,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_String;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_String (Get_Previous_Token_Location);
       if Get_Token = T_Less then
          declare
             Node : Node_Id;
@@ -6074,8 +6026,7 @@ package body Idl_Fe.Parser is
                                      Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Wide_String;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_Wide_String (Get_Previous_Token_Location);
       if Get_Token = T_Less then
          declare
             Node : Node_Id;
@@ -6112,8 +6063,7 @@ package body Idl_Fe.Parser is
                                      Success : out Boolean) is
    begin
       pragma Debug (O2 ("Parse_Array_Declarator : enter"));
-      Result := Make_Declarator;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Declarator (Get_Token_Location);
       Set_Parent (Result, Parent);
       --  Is there a previous definition
       if not Is_Redefinable (Get_Token_String) then
@@ -6199,8 +6149,7 @@ package body Idl_Fe.Parser is
                              Success : out Boolean) is
       El : Node_Id;
    begin
-      El := Make_Attribute;
-      Set_Location (El, Get_Token_Location);
+      El := Make_Attribute (Get_Token_Location);
       if Get_Token = T_Readonly then
          Set_Is_Readonly (El, True);
          Next_Token;
@@ -6287,9 +6236,8 @@ package body Idl_Fe.Parser is
          Result := No_Node;
          return;
       end if;
-      Result := Make_Exception;
+      Result := Make_Exception (Get_Token_Location);
       --  memory leak
-      Set_Location (Result, Get_Token_Location);
       Next_Token;
       if Get_Token /= T_Identifier then
          Errors.Error
@@ -6364,8 +6312,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Op_Dcl (Result : out Node_Id;
                            Success : out Boolean) is
    begin
-      Result := Make_Operation;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Operation (Get_Token_Location);
       Set_Initial_Current_Prefix (Result);
       if Get_Token = T_Oneway then
          Set_Is_Oneway (Result, True);
@@ -6467,8 +6414,7 @@ package body Idl_Fe.Parser is
    begin
       case Get_Token is
          when T_Void =>
-            Result := Make_Void;
-            Set_Location (Result, Get_Token_Location);
+            Result := Make_Void (Get_Token_Location);
             Next_Token;
             Success := True;
             return;
@@ -6569,8 +6515,7 @@ package body Idl_Fe.Parser is
       Attr_Success : Boolean;
    begin
       pragma Debug (O2 ("Parse_Param_Dcl : enter"));
-      Result := Make_Param;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Param (Get_Token_Location);
       declare
          Node : Param_Mode;
       begin
@@ -6965,8 +6910,7 @@ package body Idl_Fe.Parser is
                                   Success : out Boolean) is
    begin
       Next_Token;
-      Result := Make_Fixed;
-      Set_Location (Result, Get_Previous_Token_Location);
+      Result := Make_Fixed (Get_Previous_Token_Location);
       if Get_Token /= T_Less then
          Errors.Error
            ("'<' expected in fixed point type definition.",
@@ -7640,8 +7584,7 @@ package body Idl_Fe.Parser is
                                     Expr_Type : in Constant_Value_Ptr) is
    begin
       pragma Debug (O2 ("Parse_Integer_Literal : enter"));
-      Result := Make_Lit_Integer;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Integer (Get_Token_Location);
       case Expr_Type.Kind is
          when C_Octet
            | C_Short
@@ -7725,8 +7668,7 @@ package body Idl_Fe.Parser is
          pragma Debug (O2 ("Parse_String_Literal : end"));
          return;
       end if;
-      Result := Make_Lit_String;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_String (Get_Token_Location);
       if Expr_Type.Kind = C_String then
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_String));
@@ -7797,8 +7739,7 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      Result := Make_Lit_Wide_String;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Wide_String (Get_Token_Location);
       if Expr_Type.Kind = C_WString then
          Set_Expr_Value (Result,
                          new Constant_Value (Kind => C_WString));
@@ -7824,8 +7765,7 @@ package body Idl_Fe.Parser is
                                  Success : out Boolean;
                                  Expr_Type : in Constant_Value_Ptr) is
    begin
-      Result := Make_Lit_Character;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Character (Get_Token_Location);
       if Expr_Type.Kind = C_Char then
          declare
             Useless : Integer;
@@ -7859,8 +7799,7 @@ package body Idl_Fe.Parser is
                                       Success : out Boolean;
                                       Expr_Type : in Constant_Value_Ptr) is
    begin
-      Result := Make_Lit_Wide_Character;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Wide_Character (Get_Token_Location);
       if Expr_Type.Kind = C_WChar then
          declare
             Useless : Integer;
@@ -7944,8 +7883,7 @@ package body Idl_Fe.Parser is
                                         Success : out Boolean;
                                         Expr_Type : in Constant_Value_Ptr) is
    begin
-      Result := Make_Lit_Floating_Point;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Floating_Point (Get_Token_Location);
       case Expr_Type.Kind is
          when C_Float
            | C_Double
@@ -8047,8 +7985,7 @@ package body Idl_Fe.Parser is
       end Get_Fixed_Literal;
 
    begin
-      Result := Make_Lit_Fixed_Point;
-      Set_Location (Result, Get_Token_Location);
+      Result := Make_Lit_Fixed_Point (Get_Token_Location);
       if Expr_Type.Kind = C_Fixed then
          Get_Fixed_Literal;
       else

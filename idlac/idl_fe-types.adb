@@ -1631,7 +1631,7 @@ package body Idl_Fe.Types is
       Prefix_Node : constant Node_Id
         := Current_Prefix (Get_Current_Scope);
       Name_Node : constant Node_Id
-        := Make_Lit_String;
+        := Make_Lit_String (Get_Location (Node));
    begin
       pragma Debug (O2 ("Set_Default_Repository_Id : enter"));
       pragma Assert (not Is_Explicit_Repository_Id (Node));

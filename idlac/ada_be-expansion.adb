@@ -181,6 +181,8 @@ package body Ada_Be.Expansion is
    -- Utility routines --
    ----------------------
 
+   subtype Location is Errors.Location;
+
    Current_Position_In_List : Node_Id
      := No_Node;
    procedure Expand_Node_List
@@ -400,7 +402,7 @@ package body Ada_Be.Expansion is
             if (Idl_File_Node = No_Node) then
 
                --  create a new node Ben_Idl_File
-               Idl_File_Node := Make_Ben_Idl_File;
+               Idl_File_Node := Make_Ben_Idl_File (Loc);
 
                --  set its name
                --  is it correct when conflict ?
@@ -738,7 +740,7 @@ package body Ada_Be.Expansion is
          pragma Debug (O ("Expand_State_Member:"));
          declare
             New_State_Member : Node_Id
-              := Make_State_Member;
+              := Make_State_Member (Get_Location (Current_Decl));
             Decls : Node_List := Nil_List;
          begin
             Get_Next_Node (It, Current_Decl);
@@ -788,6 +790,8 @@ package body Ada_Be.Expansion is
       --  containing these attributes, wherein we insert
       --  _get_Attribute and _set_Attribute operations.
 
+      Loc : Location;
+
       Position : Node_Id := Node;
       Iterator : Node_Iterator;
       Current_Declarator : Node_Id;
@@ -810,11 +814,13 @@ package body Ada_Be.Expansion is
                           & "declarator with name : "
                           & Ada_Name (Current_Declarator)));
 
+         Loc := Get_Location (Current_Declarator);
+
          if Is_Readable then
             --  create the get_method
             declare
                Get_Method : constant Node_Id
-                 := Make_Operation;
+                 := Make_Operation (Loc);
                Success : Boolean;
             begin
                pragma Debug (O ("Creating _get_ method"));
@@ -849,9 +855,9 @@ package body Ada_Be.Expansion is
          if Is_Writable then
             declare
                Set_Method : constant Node_Id
-                 := Make_Operation;
+                 := Make_Operation (Loc);
                Void_Node : constant Node_Id
-                 := Make_Void;
+                 := Make_Void (Loc);
                Success : Boolean;
             begin
                pragma Debug (O ("Creating _set_ method"));
@@ -864,8 +870,8 @@ package body Ada_Be.Expansion is
                Set_Operation_Type (Set_Method, Void_Node);
                --  parameters
                declare
-                  Param : Node_Id := Make_Param;
-                  Decl : Node_Id := Make_Declarator;
+                  Param : Node_Id := Make_Param (Loc);
+                  Decl : Node_Id := Make_Declarator (Loc);
                   Params : Node_List := Nil_List;
                begin
                   --  new value parameter
@@ -901,7 +907,9 @@ package body Ada_Be.Expansion is
    end Expand_Attribute_And_State_Member;
 
    procedure Expand_Operation
-     (Node : in Node_Id) is
+     (Node : in Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       Expand_Node_List (Parameters (Node), False);
       Expand_Node (Operation_Type (Node));
@@ -914,12 +922,12 @@ package body Ada_Be.Expansion is
               := Operation_Type (Node);
 
             Void_Node : Node_Id
-              := Make_Void;
+              := Make_Void (Loc);
 
             Param_Node : constant Node_Id
-              := Make_Param;
+              := Make_Param (Loc);
             Decl_Node : constant Node_Id
-              := Make_Declarator;
+              := Make_Declarator (Loc);
 
             Success : Boolean;
          begin
@@ -964,13 +972,15 @@ package body Ada_Be.Expansion is
    end Expand_Param;
 
    procedure Expand_Exception
-     (Node : in Node_Id) is
+     (Node : in Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       pragma Assert (Kind (Node) = K_Exception);
 
       declare
          Members_Struct : constant Node_Id
-           := Make_Struct;
+           := Make_Struct (Loc);
          Enclosing_Scope : constant Node_Id
            := Parent_Scope (Node);
          Enclosing_List : Node_List
@@ -1089,12 +1099,13 @@ package body Ada_Be.Expansion is
    procedure Expand_Sequence
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
       Sequence_Node : Node_Id
         := Node;
       Seq_Ref_Node : Node_Id
-        := Make_Scoped_Name;
+        := Make_Scoped_Name (Loc);
       Seq_Inst_Node : constant Node_Id
-        := Make_Sequence_Instance;
+        := Make_Sequence_Instance (Loc);
    begin
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
@@ -1121,7 +1132,9 @@ package body Ada_Be.Expansion is
          True  => new String'("Bounded_Wide_String"));
 
    procedure Expand_String
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      Loc : constant Location := Get_Location (Node);
    begin
       if Bound (Node) = No_Node then
          --  This string is not bounded.
@@ -1135,9 +1148,9 @@ package body Ada_Be.Expansion is
          String_Node : Node_Id
            := Node;
          String_Inst_Node : constant Node_Id
-           := Make_String_Instance;
+           := Make_String_Instance (Loc);
          String_Ref_Node : Node_Id
-           := Make_Scoped_Name;
+           := Make_Scoped_Name (Loc);
 
       begin
          Add_Identifier_With_Renaming
@@ -1162,10 +1175,12 @@ package body Ada_Be.Expansion is
    procedure Expand_Fixed
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
+
       Fixed_Node : Node_Id
         := Node;
       Fixed_Ref_Node : Node_Id
-        := Make_Scoped_Name;
+        := Make_Scoped_Name (Loc);
 
       Identifier : constant String
         := "Fixed_" & Img (Integer_Value (Digits_Nb (Node)))
@@ -1188,9 +1203,9 @@ package body Ada_Be.Expansion is
       if Definition = null then
          declare
             Typedef_Node : constant Node_Id
-              := Make_Type_Declarator;
+              := Make_Type_Declarator (Loc);
             Declarator_Node : constant Node_Id
-              := Make_Declarator;
+              := Make_Declarator (Loc);
          begin
             Success := Add_Identifier (Declarator_Node, Identifier,
                                        Get_Current_Gen_Scope);
@@ -1229,9 +1244,8 @@ package body Ada_Be.Expansion is
      (Node : Node_Id;
       Replacement_Node : out Node_Id)
    is
-      NK : constant Node_Kind
-        := Kind (Node);
-
+      Loc : constant Location  := Get_Location (Node);
+      NK  : constant Node_Kind := Kind (Node);
    begin
       Replacement_Node := No_Node;
 
@@ -1247,12 +1261,10 @@ package body Ada_Be.Expansion is
       pragma Debug (O ("Expand_Constructed_Type: enter"));
 
       declare
-         Current_Gen_Scope : constant Node_Id
-           := Get_Current_Gen_Scope;
+         Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
 
-         Constr_Type_Node : Node_Id := Node;
-         Constr_Type_Ref_Node : Node_Id
-           := Make_Scoped_Name;
+         Constr_Type_Node     : Node_Id := Node;
+         Constr_Type_Ref_Node : Node_Id := Make_Scoped_Name (Loc);
 
       begin
          Insert_Before_Current (Constr_Type_Node);
@@ -1346,25 +1358,19 @@ package body Ada_Be.Expansion is
    procedure Expand_Array_Declarator
      (Node : Node_Id)
    is
+      Loc : constant Location := Get_Location (Node);
    begin
       if Is_Empty (Array_Bounds (Node)) then
          return;
       end if;
 
       declare
-         Parent_Node : constant Node_Id
-           := Parent (Node);
-
-         Array_Node : constant Node_Id
-           := Make_Declarator;
-         Array_Type_Node : constant Node_Id
-           := Make_Type_Declarator;
-
+         Parent_Node       : constant Node_Id := Parent (Node);
+         Array_Node        : constant Node_Id := Make_Declarator (Loc);
+         Array_Type_Node   : constant Node_Id := Make_Type_Declarator (Loc);
          Element_Type_Node : Node_Id;
-         Array_Ref_Node : Node_Id
-        := Make_Scoped_Name;
-
-         Success : Boolean;
+         Array_Ref_Node    : Node_Id          := Make_Scoped_Name (Loc);
+         Success           : Boolean;
       begin
          pragma Debug (O ("Expand_Array_Declarator: enter"));
 
