@@ -97,13 +97,15 @@ begin
                Amount := Integer'Value (Request (1 .. Length));
                Withdraw (Customer, Password, Amount);
 
+            when 'Q' | 'q'=>
+              exit;
+
             when others =>
                Put_Line ("Illegal operation");
 
          end case;
 
       end if;
-      exit when Shortcut = 'Q' or else Shortcut = 'q';
 
    end loop;
 

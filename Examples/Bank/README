@@ -1,3 +1,17 @@
+This example describes a way to develop client / server
+applications. To provide advanced features, in this example, we had a
+mechanism of notification.
+
+There are three modules in this bank example. The bank that manages
+the client accounts, a manager which loads the accounts from a small
+database and clients which modify their accounts and transfer money
+from their account to the account of someone else. This is always the
+same executable for the different clients, but of course, they don't
+get the same partition id in order to differentiate them.
+
+To proove that, the bank server notifies a customer when its account
+has been granted with money by another customer.
+
 To play with this example, you have to do the following :
 
 % gnatdist simcity
