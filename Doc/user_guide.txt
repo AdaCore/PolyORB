@@ -2,7 +2,7 @@
 --                                                                          --
 --                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
 --                                                                          --
---                   G N A T D I S T    U S E R    M A N U A L              --
+--                      G L A D E     U S E R    M A N U A L                --
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
@@ -17,7 +17,7 @@
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---              GNATDIST is maintained by ACT Europe.                       --
+--                 GLADE is maintained by ACT Europe.                       --
 --            (email:distribution@act-europe.gnat.com).                     --
 --                                                                          --
 ------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ The Configuration Language.
 ---------------------------
 
 The configuration language is "Ada-like". Because of its simplicity,
-it is described by means of an example. As the capabilities of the DSA
+it is described by means of an example. As the capabilities of GLADE
 will evolve, so will this configuration language.
 
 Every keyword and construct defined in the configuration language have

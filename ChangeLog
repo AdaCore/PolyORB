@@ -1,3 +1,8 @@
+	* configure.in: Check for get_errno or __get_errno.
+
+	* INSTALL: rewrite completely and move all non obvious stuff
+	  in Doc/install_guide.txt
+Mon Oct 28 14:44:58 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* COPYING: Added to the distribution.
 

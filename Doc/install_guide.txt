@@ -1,0 +1,97 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
+--                                                                          --
+--                       I N S T A L L _ G U I D E                          --
+--                                                                          --
+--                            $Revision$                              --
+--                                                                          --
+-- GLADE is  free software;  you  can  redistribute  it  and/or  modify  it --
+-- under terms of the  GNU General Public License  as published by the Free --
+-- Software  Foundation;  either version 2,  or  (at your option) any later --
+-- version. GLADE is distributed in the  hope that  it will  be useful, but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or FITNESS  FOR A PARTICULAR PURPOSE.  See the  GNU General  Public --
+-- License  for more details.  You should  have received a copy of the  GNU --
+-- General  Public  License distributed with  GLADE; see  file COPYING.  If --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--                GLADE is maintained by ACT Europe.                        --
+--            (email:distribution@act-europe.gnat.com).                     --
+--                                                                          --
+------------------------------------------------------------------------------
+
+Source Organization
+-------------------
+
+The GLADE distribution contains different components origanized
+in separate directories:
+
+  1. Garlic 
+     A PCS (partition communication subsystem)  which
+     is a high level communication layer that provides several classical
+     services available in a distributed system (partition id management,
+     name services, distributed termination, ...) and that accomodates
+     several network protocols and communication sub-systems.
+
+  2. Dist
+      A partitioning tool called "gnatdist" and its configuration
+     language which allow you to divide your program into a number of
+     independent partitions and specify the machines where the individual
+     partitions are to execute on.
+
+  3. Ada
+     A subset of GNAT @gnat_version@ sources necessary o build GLADE
+
+  4. Examples
+     A set of examples to demonstrate GLADE capabities. Each example
+     is self-contained and can be built separately by running 'make'
+     in the subdirectory. All examples c
+ 
+
+Binary Installation
+-------------------
+
+Binaries will be installed under the prefix specified by --prefix in
+the configuration step (by default /usr/local).
+      ./configure --prefix=${TARGET}
+      make install
+will result in installing all GLADE components in the following
+directories:
+
+  ${TARGET}/bin               : the executables, gnatdist and xe-gcc
+  ${TARGET}/lib/garlic        : Garlic object files
+  ${TARGET}/libexec           : Gnatdist secondary executables
+
+The directory ${TARGET} has to exist before you install the package.
+
+Major Configuration options:
+-----------------------------
+
+  --enable-debug          Turn on debugging options
+  --without-launching     Don't include launching facilities
+  --with-protocols        Enumerate protocol list
+  --with-platform=letter  Select another platform's specific files (debug)
+  --with-extra-libs=libs  Add extra libraries when building a program
+  --srcdir=path           Enable building with Vpaths
+  --build=name            Define the build machine
+  --host=name             Define the host machine
+  --target=name           Define the target machine 
+  --prefix=path           Define the installation prefix
+
+
+Building GLADE with  a non standard GNAT distrib
+------------------------------------------------
+
+We do not guarantee that this release will work with any other version
+than the official GNAT @gnat_version@ binary release.  However, if you
+are using another version of GNAT and want to try, you must have
+GNAT's sources around. Assuming that you do, you must directly link
+(using "ln -s" for instance) the directory "ada" that you received in
+this distribution to the directory containing the sources of your
+current GNAT compiler. The files that are currently stored under "ada"
+in this distribution become irrelevant.  If a file called
+"sdefault.adb" is found in the "ada" subdirectory, it will be used
+during the build process. If not, one will be generated automatically.
+

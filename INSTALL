@@ -2,7 +2,7 @@
 --                                                                          --
 --                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
 --                                                                          --
---                                I N T R O                                 --
+--                              I N S T A L L                               --
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
@@ -25,69 +25,47 @@
 INSTALL for Glade @glade_version@.
 -----------------------
 
-Please read the README file first.
+You can find general information about GLADE in README and in
+Doc/user_guide.txt. Here are simple steps for building GLADE
+easily. More details about installation and configuration can be found
+in Doc/install_guide.txt.
 
-The source files that you received include:
 
-  1. A PCS (partition communication subsystem), called Garlic, which
-     is a high level communication layer that provides several classical
-     services available in a distributed system (partition id management,
-     name services, distributed termination, ...) and that accomodates
-     several network protocols and communication sub-systems.
-     [The relevant sources are in directory Garlic.]
+1. Check your environment
+   - verify that GNAT @gnat_version@ is installed and on your  path
+   - verify that GLADE has been ported on your system (see README)
+   - GLADE is usually build with GNU make. It may or may not be built 
+     with other versions of make. If you have problems building GLADE
+     with your local make tool, switch to GNU make.
+   - verify that you will be able to run distributed applications
+      (on Unix, your .rhost file must contain the machine from which
+       you will start the distributed application)
 
-  2. A partitioning tool called "gnatdist" and its configuration
-     language which allow you to divide your program into a number of
-     independent partitions and specify the machines where the individual
-     partitions are to execute on.
-     [The relevant sources are in directory Dist.]
+2. Configure GLADE
+   GLADE use standard the GNU configuration method. Run 
+           ./configure  [configuration parameters]
 
-To install Garlic/gnatdist, you may choose a local target directory
-(default is /usr/local). If we call this directory ${TARGET}, files
-will go into:
+   configuration parameters can be used to define the
+   build/host/target machines, installation locations and other
+   cutomizations (see Doc/install_guide.txt for details). By default,
+   when no parameters are specified, the build machine is used as host
+   and target and installation is done in /usr/local. It is advised to
+   install GLADE first in a private directory for testing purposes.
+   This can be achieved with the --prefix parameter, for instance:
 
-  ${TARGET}/bin               : the executables, gnatdist and xe-gcc
-  ${TARGET}/lib/garlic        : Garlic object files
-  ${TARGET}/libexec           : Gnatdist secondary executables
+      ./configure --prefix=$HOME/glade
 
-The directory ${TARGET} has to exist before you install the package.
+3. Build & install GLADE
+      this can be achieved simpy by doing 
+         make install
+      in the main GLADE directory. Be careful, you usually need root
+      privileges to install software in /usr/local
 
-The directory "ada" contains a subset of GNAT @gnat_version@ sources necessary
-to build Garlic/Gnatdist.
+4. Test your installation by running the Examples
+   go in the Example directory and run simply 'make' then go in each 
+   example directory and start the applications. Check the README in
 
-[Note: We do not guarantee that this release will work with anything
-less than GNAT @gnat_version@. However, if you are using another version of GNAT
-and want to try, you must have GNAT's sources around. Assuming that
-you do, you must directly link (using "ln -s" for instance) the
-directory "ada" that you received in this distribution to the
-directory containing the sources of your current GNAT compiler. The
-files that are currently stored under "ada" in this distribution
-become irrelevant.  If a file called "sdefault.adb" is found in the
-"ada" subdirectory, it will be used during the build process. If not,
-one will be generated automatically.]
-
-Run the 'configure' script in the Garlic/Gnatdist directory, by
-typing:
-
-  ./configure (if you want the stuff to be installed under /usr/local)
-  ./configure --prefix=$HOME/local (if you want it to be installed in
-                                    the ~/local directory of your
-                                    account. You can use any directory
-                                    you want instead of $HOME/local.)
-
-then "make install".
-
-If something goes wrong, you may clean your directory using
-"make clean" and make it look very empty using "make distclean".
-
-You may then try the "Examples" directory. At the moment it only
-contains a few examples (for instance 'Prime' is a distributed prime
-numbers generator, and 'RACW' briefly demonstrate how to use
-Remote-Access-to-Class-Wide-types) but we hope it will be soon
-populated with *YOUR* submissions :)
-
-Here is a simple example of how install this distribution and run the
-Prime example (assuming csh syntax):
+5.  Example of complete build (assuming csh syntax):
 
 % cd                             <--- go into your HOME directory
 % gunzip glade-@glade_version@.tar.gz       <--- uncompress the distribution
@@ -97,6 +75,7 @@ Prime example (assuming csh syntax):
                                       directory to install the binaries
 % make install                   <--- compile files and install them
 % set path=(`pwd`/bin $path)     <--- add this directory in your PATH
-% cd Examples/Prime              <--- go into the Prime example directory
-% make                           <--- build the distributed example
-% ./master                       <--- launch the example
+% cd Examples                    <--- go in the Example directory
+% make                           <--- build all the examples
+$ cd Eratho/absolute             <--- go in the first example directory
+$ ./mainloop                     <--- run the distributed application

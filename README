@@ -2,7 +2,7 @@
 --                                                                          --
 --                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
 --                                                                          --
---                                I N T R O                                 --
+--                                R E A D M E                               --
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
@@ -67,8 +67,9 @@ Installation, Documentation & Examples.
 
 To see how to install the system please read file INSTALL in this
 directory. Please look under the "Doc" directory for documentation on
-how to use Glade (user_guide.txt). Directory "Examples" contains
-several examples on how to program a distributed application in Ada 95.
+how to use Glade (user_guide.txt) and some more hints on installation
+possibilities (install_guide.txt) . Directory "Examples" contains
+some examples on how to program a distributed application in Ada 95.
 
 What Does It Run on.
 --------------------
@@ -85,14 +86,14 @@ This release also works on the following machines although less efficiently:
      pthreads library. If this happens, you will have to kill the
      partitions by hand (using the kill(1) command).]
 
-Versions on SGI/Irix, DEC/OSF, HP/HP-UX, Windows NT will be available
-in the near future.
+Ports to  SGI/Irix, DEC/OSF, HP/HP-UX, Windows NT will appear in the
+future. Please contact ACT Europe for more information.
 
 Downloading Glade.
 ------------------
 
 You can download Glade by anonymous ftp from cs.nyu.edu (cd
-pub/gnat/dsa) and the usual GNAT mirror sites around the world.
+pub/gnat/glade) and the usual GNAT mirror sites around the world.
 
 Commercial Support.
 -------------------
