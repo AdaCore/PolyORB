@@ -1874,7 +1874,7 @@ package body Ada_Be.Idl2Ada is
                      end if;
 
                      NL (CU);
-                     PL (CU, "if CORBA."" ="" ("
+                     PL (CU, "if CORBA.""="" ("
                          & T_Exception_Repo_Id & ",");
                      PL (CU, "  "
                          & Ada_Full_Name (Parent_Scope (E_Node))
