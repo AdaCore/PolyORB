@@ -1,5 +1,6 @@
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Errors; use Idl_Fe.Errors;
 with Ada_Be.Debug;
 
@@ -198,7 +199,7 @@ package body Ada_Be.Expansion is
          Current_Declarator := Get_Node (Iterator);
 
          pragma Debug (O ("Expanding attribute declarator "
-                          & Get_Name (Current_Declarator)));
+                          & Name (Current_Declarator)));
 
          --  create the get_method
          declare
@@ -207,7 +208,7 @@ package body Ada_Be.Expansion is
          begin
             Push_Scope (Get_Method);
             Success := Add_Identifier (Get_Method, "Get_"
-                                       & Get_Name (Current_Declarator));
+                                       & Name (Current_Declarator));
             pragma Assert (Success = True);
             Set_Is_Oneway (Get_Method, False);
             Set_Operation_Type (Get_Method, A_Type (Old_Node));
@@ -247,7 +248,7 @@ package body Ada_Be.Expansion is
             begin
                Push_Scope (Set_Method);
                Success := Add_Identifier (Set_Method, "Set_"
-                                          & Get_Name (Current_Declarator));
+                                          & Name (Current_Declarator));
                pragma Assert (Success = True);
                Set_Is_Oneway (Set_Method, False);
                Set_Operation_Type (Set_Method, Void_Node);

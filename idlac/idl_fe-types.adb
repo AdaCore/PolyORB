@@ -5,6 +5,7 @@ with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Debug;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 pragma Elaborate_All (Idl_Fe.Debug);
 
@@ -244,23 +245,6 @@ package body Idl_Fe.Types is
       return Result_List;
    end Simplify_Node_List;
 
-   ---------------------------------------------------
-   --  Named nodes in the tree parsed from the IDL  --
-   ---------------------------------------------------
-
-   ----------------
-   --  Get_Name  --
-   ----------------
-
-   function Get_Name (Node : in Node_Id) return String is
-   begin
-      if Definition (Node) /= null then
-         return Definition (Node).Name.all;
-      else
-         return "--null--";
-      end if;
-   end Get_Name;
-
    -----------------------------
    --  Identifier definition  --
    -----------------------------
@@ -279,20 +263,6 @@ package body Idl_Fe.Types is
          raise Idl_Fe.Errors.Fatal_Error;
       end if;
    end Get_Node;
-
-   ----------------------
-   --  Get_Definition  --
-   ----------------------
-   function Get_Definition
-     (Node : Node_Id)
-     return Identifier_Definition_Acc is
-   begin
-      if Node /= No_Node then
-         return Definition (Node);
-      else
-         raise Idl_Fe.Errors.Fatal_Error;
-      end if;
-   end Get_Definition;
 
    --  To deallocate an identifier_definition_list
    procedure Unchecked_Deallocation is
@@ -591,7 +561,7 @@ package body Idl_Fe.Types is
       if Current_Scope = null then
          pragma Debug (O ("Push_scope : current_scope is null"));
          pragma Debug (O ("Push_scope : root scope is"
-                          & Get_Name (Scope)));
+                          & Name (Scope)));
          Root_Scope := Stack;
       end if;
       Current_Scope := Stack;
@@ -1262,7 +1232,7 @@ package body Idl_Fe.Types is
             Init (It, Result_List);
             Node := Get_Node (It);
             Free (Result_List);
-            return Get_Definition (Node);
+            return Definition (Node);
          end;
       end if;
    end Find_Inherited_Identifier_Definition;

@@ -89,4 +89,26 @@ package body Idl_Fe.Tree.Synthetic is
         or else K = K_ValueType);
    end Is_Gen_Scope;
 
+   function Name
+     (Node : in Node_Id)
+     return String is
+   begin
+      if Definition (Node) /= null then
+         return Definition (Node).Name.all;
+      else
+         return "##null##";
+      end if;
+   end Name;
+
+   function Parent_Scope
+     (Node : in Node_Id)
+     return Node_Id is
+   begin
+      if Definition (Node) /= null then
+         return Definition (Node).Parent_Scope;
+      else
+         return No_Node;
+      end if;
+   end Parent_Scope;
+
 end Idl_Fe.Tree.Synthetic;

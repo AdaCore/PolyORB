@@ -170,16 +170,6 @@ package Idl_Fe.Types is
    --  usefull for the inheritance treatement
    function Simplify_Node_List (In_List : Node_List) return Node_List;
 
-
-   ---------------------------------------------------
-   --  Named nodes in the tree parsed from the IDL  --
-   ---------------------------------------------------
-
-   --  get the name of a named node.
-   --  return "*null*" if it is not defined
-   function Get_Name (Node : in Node_Id) return String;
-
-
    ----------------------------------------
    --  Type of an identifier definition  --
    ----------------------------------------
@@ -206,17 +196,9 @@ package Idl_Fe.Types is
    --  Return the named node corresponding to the identifier
    --  definition.
    --  Raises fatal_error if Cell is a null pointer
-   function Get_Node (Definition : Identifier_Definition_Acc)
-                      return Node_Id;
-
-   --  Return the identifier definition corresponding to the node
-   --  Raises fatal_error if Node is a null pointer
-   function Get_Definition (Node : Node_Id)
-                            return Identifier_Definition_Acc;
-
-   --  Return the node list containing the inherited interfaces
-   function Get_Parents (Node : Node_Id)
-                         return Node_List is abstract;
+   function Get_Node
+     (Definition : Identifier_Definition_Acc)
+     return Node_Id;
 
    ----------------------
    --  scope handling  --

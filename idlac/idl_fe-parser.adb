@@ -3,6 +3,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Case_Util;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Idl_Fe.Errors;
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
@@ -507,7 +508,7 @@ package body Idl_Fe.Parser is
                      Push_Scope (Result);
                      pragma Debug (O ("parse_module : after push_scope, " &
                                       "current scope is : " &
-                                      Get_Name (Get_Current_Scope)));
+                                      Name (Get_Current_Scope)));
                      if Get_Token = T_Right_Cbracket then
                         Idl_Fe.Errors.Parser_Error
                           ("definition expected : a module may not be empty.",
@@ -531,7 +532,7 @@ package body Idl_Fe.Parser is
                      Pop_Scope;
                      pragma Debug (O ("parse_module : after pop_scope, " &
                                       "current scope is : " &
-                                      Get_Name (Get_Current_Scope)));
+                                      Name (Get_Current_Scope)));
                      --  consume the T_Right_Cbracket token
                      Next_Token;
                   end;
@@ -902,7 +903,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
       Res, Prev : Node_Id;
       Scope : Node_Id;
-      Name : Node_Id;
+      A_Name : Node_Id;
    begin
       pragma Debug (O ("Parse_Scoped_Name : enter"));
       Result := No_Node;
@@ -913,7 +914,7 @@ package body Idl_Fe.Parser is
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
          pragma Debug (O ("Parse_Scoped_Name : root scope is " &
-                          Get_Name (Get_Root_Scope)));
+                          Name (Get_Root_Scope)));
       else
          --  token should be an identifier
          if Get_Token /= T_Identifier then
@@ -925,7 +926,7 @@ package body Idl_Fe.Parser is
             Result := No_Node;
             return;
          end if;
---          if Get_Name (Get_Current_Scope) = Get_Token_String then
+--          if Name (Get_Current_Scope) = Get_Token_String then
 --             Storage_Not_Defined := True;
 --             Next_Token;
 --             if Get_Token /= T_Colon_Colon then
@@ -949,8 +950,8 @@ package body Idl_Fe.Parser is
 --                end;
 --             end if;
 --          else
-         Name := Find_Identifier_Node (Get_Token_String);
-         if Name = No_Node then
+         A_Name := Find_Identifier_Node (Get_Token_String);
+         if A_Name = No_Node then
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
             Idl_Fe.Errors.Parser_Error
               ("Bad identifier in scoped name",
@@ -961,15 +962,17 @@ package body Idl_Fe.Parser is
             return;
          end if;
          Next_Token;
-         --  if we are not in its definition scope,
-         --  we should perhaps import this identifier :
+
+         --  If we are not in its definition scope,
+         --  we should perhaps import this identifier:
          --  first we should look at the current scope.
          --  If it is a Struct, Union, Operation or Exception
          --  we should import it in the parent scope of the
          --  current scope if necessary;
          --  else we should import it in the current scope.
          --  If it is a module or repository, the
-         --  add function won't do anything
+         --  add function won't do anything.
+
          declare
             CSK : constant Node_Kind := Kind (Get_Current_Scope);
          begin
@@ -978,43 +981,49 @@ package body Idl_Fe.Parser is
               or else CSK = K_Interface
               or else CSK = K_ValueType
             then
-               if Get_Current_Scope /=
-                 Get_Definition (Name).Parent_Scope or
-                 Get_Name (Get_Current_Scope) /=
-                 Get_Previous_Token_String then
-                  Add_Definition_To_Imported (Get_Definition (Name),
-                                              Get_Current_Scope);
+               if Get_Current_Scope
+                   /= Definition (A_Name).Parent_Scope
+                 or else Name (Get_Current_Scope)
+                   /= Get_Previous_Token_String
+               then
+                  Add_Definition_To_Imported
+                    (Definition (A_Name),
+                     Get_Current_Scope);
                end if;
             else
-               if Get_Previous_Scope /=
-                 Get_Definition (Name).Parent_Scope or
-                 Get_Name (Get_Previous_Scope) /=
-                 Get_Previous_Token_String then
-                  Add_Definition_To_Imported (Get_Definition (Name),
-                                              Get_Previous_Scope);
+               if Get_Previous_Scope
+                   /= Definition (A_Name).Parent_Scope
+                 or else Name (Get_Previous_Scope)
+                 /= Get_Previous_Token_String
+               then
+                  Add_Definition_To_Imported
+                    (Definition (A_Name),
+                     Get_Previous_Scope);
                end if;
             end if;
          end;
 
          if Get_Token /= T_Colon_Colon then
-            Set_Value (Res, Name);
+            Set_Value (Res, A_Name);
             pragma Debug (O ("Parse_Scoped_Name : Set_S_Type if " &
                              "simple identifier"));
-            if Kind (Name) = K_Declarator and then
-              Kind (Parent (Name)) = K_Type_Declarator then
+            if Kind (A_Name) = K_Declarator
+              and then Kind (Parent (A_Name)) = K_Type_Declarator
+            then
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
                                 " name is defined in a declarator"));
-               if Kind (T_Type (Parent (Name))) = K_Scoped_Name then
-                  Set_S_Type (Res, S_Type (T_Type (Parent (Name))));
+               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
+                  Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
                else
-                  Set_S_Type (Res, T_Type (Parent (Name)));
+                  Set_S_Type (Res, T_Type (Parent (A_Name)));
                end if;
             else
                pragma Debug (O ("Parse_Scoped_Name : the scoped" &
                                 " name is not defined in a declarator"));
                Set_S_Type (Res, No_Node);
             end if;
-            if Get_Current_Scope = Name then
+
+            if Get_Current_Scope = A_Name then
                declare
                   Loc : Idl_Fe.Errors.Location;
                begin
@@ -1035,8 +1044,9 @@ package body Idl_Fe.Parser is
                              "end if simple identifier"));
             return;
          end if;
-         --  is the identifier a scope?
-         if not Is_Scope (Name) then
+
+         --  Is the identifier a scope?
+         if not Is_Scope (A_Name) then
             declare
                Loc : Idl_Fe.Errors.Location;
             begin
@@ -1051,12 +1061,15 @@ package body Idl_Fe.Parser is
                return;
             end;
          else
-            Scope := Name;
+            Scope := A_Name;
          end if;
       end if;
+
 --       end if;
+
       pragma Debug (O ("Parse_Scoped_Name : begining of loop"));
-      --  now we will loop in the scopes to get the right definition
+
+      --  Loop through the scopes to get the right definition
       declare
          Def : Identifier_Definition_Acc;
       begin
@@ -1071,7 +1084,10 @@ package body Idl_Fe.Parser is
                Result := No_Node;
                return;
             end if;
-            --  find the indentifier in the scope
+
+            --  Find the identifier in the scope
+            --  FIXME: Code duplication (maybe)
+            --  (look for "Bad identifier" above).
             Def := Find_Identifier_In_Storage
               (Scope, Get_Token_String);
             if Def = null then
@@ -1083,10 +1099,10 @@ package body Idl_Fe.Parser is
                Result := No_Node;
                return;
             end if;
-            Name := Def.Node;
+            A_Name := Def.Node;
             Next_Token;
             if Get_Token = T_Colon_Colon then
-               if not Is_Scope (Name) then
+               if not Is_Scope (A_Name) then
                   declare
                      Loc : Idl_Fe.Errors.Location;
                   begin
@@ -1101,25 +1117,29 @@ package body Idl_Fe.Parser is
                      return;
                   end;
                else
-                  Scope := Name;
+                  Scope := A_Name;
                end if;
             end if;
             exit when Get_Token /= T_Colon_Colon;
          end loop;
-         if Name = No_Node then
+
+         if A_Name = No_Node then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
-         Set_Value (Res, Name);
-         if Kind (Name) = K_Declarator and then
-           Kind (Parent (Name)) = K_Type_Declarator then
-            if Kind (T_Type (Parent (Name))) = K_Scoped_Name then
-               Set_S_Type (Res, S_Type (T_Type (Parent (Name))));
+         Set_Value (Res, A_Name);
+         --  FIXME: Code duplication (see above).
+         if Kind (A_Name) = K_Declarator
+           and then Kind (Parent (A_Name)) = K_Type_Declarator
+         then
+            if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
+               Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
             else
-               Set_S_Type (Res, T_Type (Parent (Name)));
+               Set_S_Type (Res, T_Type (Parent (A_Name)));
             end if;
          else
             Set_S_Type (Res, No_Node);
          end if;
+
          if Get_Current_Scope = Def.Node then
             declare
                Loc : Idl_Fe.Errors.Location;

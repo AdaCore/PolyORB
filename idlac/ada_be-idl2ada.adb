@@ -234,9 +234,10 @@ package body Ada_Be.Idl2Ada is
                   else
                      Gen_Node_Stubs_Spec
                        (Stubs_Spec, Decl_Node);
-
-                     --  No stubs body for a module or
-                     --  repository.
+                     Gen_Node_Stubs_Body
+                       (Stubs_Body, Decl_Node);
+                     --  Exception declarations cause
+                     --  generation of a Get_Members procedure.
 
                      Gen_Node_Stream_Spec
                        (Stream_Spec, Decl_Node);
@@ -591,7 +592,17 @@ package body Ada_Be.Idl2Ada is
             --  null;
 
          when K_Exception =>
+            Add_With (CU, "Ada.Exceptions");
+
+            NL (CU);
             PL (CU, Ada_Name (Node) & " : exception;");
+            NL (CU);
+            PL (CU, "procedure Get_Members");
+            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+            --  XXX FIXME & Ada_Name (Members_Type (Node))
+            PL (CU, "   To   : out "
+                & Ada_Name (Node) & "_Members"
+                & ");");
 
          when K_Member =>
 
@@ -937,9 +948,9 @@ package body Ada_Be.Idl2Ada is
             end loop;
          end;
 
-         --  XXX ADD EXCEPTION MANAGEMENT HERE, FIXME: !
-
          NL (CU);
+         PL (CU, "begin");
+         II (CU);
          PL (CU, "--  Call implementation");
 
          if Is_Function then
@@ -968,6 +979,79 @@ package body Ada_Be.Idl2Ada is
             end loop;
          end;
          DI (CU);
+
+         DI (CU);
+
+         declare
+            It : Node_Iterator;
+            R_Node : Node_Id;
+            E_Node : Node_Id;
+            First : Boolean := True;
+         begin
+            Init (It, Raises (Node));
+
+            while not Is_End (It) loop
+               if First then
+                  PL (CU, "exception");
+                  First := False;
+               end if;
+
+               R_Node := Get_Node (It);
+               Next (It);
+               E_Node := Value (R_Node);
+               --  Each R_Node is a scoped_name
+               --  that denotes an exception.
+
+               NL (CU);
+               II (CU);
+               PL (CU, "when E : " & Ada_Full_Name (E_Node)
+                   & " =>");
+               II (CU);
+
+               PL (CU, "declare");
+               II (CU);
+               PL (CU, "Repository_Id : constant CORBA.String");
+               PL (CU, "  := CORBA.To_CORBA_String ("""
+                   & "XXXexcRepoIdXXX" & """);");
+               PL (CU, "Members : "
+               --  XXX   & Ada_Full_Name (Members_Type (E_Node))
+                   & Ada_Full_Name (E_Node) & "_Members"
+                   & ";");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               PL (CU, Scope_Name (E_Node)
+                   & ".Get_Members (E, Members);");
+               NL (CU);
+               PL (CU, "--  Marshall service context");
+               PL (CU, "Marshall");
+               PL (CU, "  (Reply_Buffer,");
+               PL (CU, "   CORBA.Unsigned_Long (Broca.GIOP.No_Context));");
+
+               NL (CU);
+               PL (CU, "--  Marshall request ID");
+               PL (CU, "Marshall (Reply_Buffer, Request_Id);");
+
+               NL (CU);
+               PL (CU, "--  Marshall reply status");
+               PL (CU, "Broca.GIOP.Marshall");
+               PL (CU, "  (Reply_Buffer,");
+               PL (CU, "   Broca.GIOP.User_Exception);");
+
+               NL (CU);
+               PL (CU, "--  Marshall exception");
+               PL (CU, "Marshall (Reply_Buffer, Repository_Id);");
+               PL (CU, "Marshall (Reply_Buffer, Members);");
+               PL (CU, "return;");
+               DI (CU);
+               PL (CU, "end;");
+
+               DI (CU);
+               DI (CU);
+            end loop;
+         end;
+
+         PL (CU, "end;");
 
          NL (CU);
          PL (CU, "--  Marshall service context");
@@ -1196,8 +1280,53 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_User_Exception =>");
                II (CU);
-               --  XXX NOT IMPLEMENTED YET! TODO!
+               PL (CU, "declare");
+               II (CU);
+               PL (CU, "Exception_Repository_Id : constant CORBA.String");
+               PL (CU, "  := Unmarshall (Handler.Buffer'Access);");
+               DI (CU);
+               PL (CU, "begin");
+               II (CU);
+               declare
+                  It : Node_Iterator;
+                  R_Node : Node_Id;
+                  E_Node : Node_Id;
+               begin
+                  Init (It, Raises (Node));
+                  while not Is_End (It) loop
+                     R_Node := Get_Node (It);
+                     Next (It);
+                     E_Node := Value (R_Node);
+                     --  Each R_Node is a scoped name
+                     --  that denotes an exception.
+
+                     NL (CU);
+                     PL (CU, "if Exception_Repository_Id");
+                     PL (CU, "  = """ & "XXXexcRepIdXXX" & """ then");
+                     II (CU);
+                     PL (CU, "declare");
+                     II (CU);
+                     PL (CU, "Members : constant "
+                         & Ada_Full_Name (E_Node) & "_Members");
+                     --  & Ada_Full_Name (Members_Type (E_Node)));
+                     --  XXX Add_With (E_Node.Marshall)
+                     PL (CU, "  := Unmarshall (Handler.Buffer'Access);");
+                     DI (CU);
+                     PL (CU, "begin");
+                     II (CU);
+                     PL (CU, "User_Raise_Exception");
+                     PL (CU, "  (" & Ada_Full_Name (E_Node)
+                         & "'Identity,");
+                     PL (CU, "   Members);");
+                     DI (CU);
+                     PL (CU, "end;");
+                     DI (CU);
+                     PL (CU, "end if;");
+                  end loop;
+               end;
                PL (CU, "raise Program_Error;");
+               DI (CU);
+               PL (CU, "end;");
                DI (CU);
                PL (CU, "when Broca.GIOP.Sr_Forward =>");
                II (CU);
@@ -1210,6 +1339,23 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "end " & O_Name & ";");
             end;
+
+         when K_Exception =>
+            Add_With (CU, "Broca.Exceptions");
+
+            NL (CU);
+            PL (CU, "procedure Get_Members");
+            PL (CU, "  (From : Ada.Exceptions.Exception_Occurrence;");
+            --  XXX FIXME & Ada_Name (Members_Type (Node))
+            PL (CU, "   To   : out "
+                & Ada_Name (Node) & "_Members"
+                & ") is");
+            PL (CU, "begin");
+            II (CU);
+            PL (CU, "Broca.Exceptions.User_Get_Members (From, To);");
+            DI (CU);
+            PL (CU, "end Get_Members;");
+
 
          when others =>
             null;

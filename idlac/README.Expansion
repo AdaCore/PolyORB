@@ -77,7 +77,10 @@ that designates the newly-inserted N_Forward_Interface node.).
   struct E_Members {
     members...
   };
-  exception E { members... };
+  exception E{members_type: ...} { members... };
+
+(where Members_Type is a new Node_Id attribute of node K_Exception
+that designates the expanded struct <exception>_Members).
 
 - Repository IDs for all interfaces:
   interface I { exports ... };

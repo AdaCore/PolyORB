@@ -82,12 +82,12 @@ package all_types is
       arg : in Color)
       return Color;
 
-   my_exception : exception;
-
    type my_exception_Members is new CORBA.IDL_Exception_Members with
    record
       info : CORBA.Long;
    end record;
+
+   my_exception : exception;
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;

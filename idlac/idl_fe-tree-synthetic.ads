@@ -39,4 +39,14 @@ package Idl_Fe.Tree.Synthetic is
    --  True iff Node is a generable Scope (ie K_Repository,
    --  K_Module, K_Interface or K_ValueType).
 
+   function Name
+     (Node : in Node_Id)
+     return String;
+   --  The name of a K_Named node.
+
+   function Parent_Scope
+     (Node : in Node_Id)
+     return Node_Id;
+   --  The scope wherein a K_Named node was declared.
+
 end Idl_Fe.Tree.Synthetic;
