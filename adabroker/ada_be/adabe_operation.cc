@@ -99,6 +99,13 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
+  if ((!return_is_void()) && (!is_function())) 
+    {
+      out_args += ", Result";
+      AST_Decl *b = return_type();
+      string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
+      in_decls += ";\n              " + space + "Result : out " +  tmp;
+    }
   in_decls += ")";
   in_args += ") ;\n";
   out_args += ") ;\n";
@@ -262,7 +269,16 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
-  in_decls += ") ;\n\n";
+  if ((!return_is_void()) && (!is_function())) 
+    {
+      AST_Decl *b = return_type();
+      string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition) ;
+      out_args += "; Result : out " + tmp;
+      fields += "      Result : ";
+      fields += tmp;
+      fields += "_Ptr := null ;\n";
+    }
+   in_decls += ") ;\n\n";
 
   // get the type of the result
   string previous = "";
@@ -348,6 +364,21 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
+  if ((!return_is_void()) && (!is_function())) 
+    {
+      AST_Decl *b = return_type();
+      string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition) ;
+      unmarshall_decls += "      Result : ";
+      unmarshall_decls += tmp;
+      unmarshall_decls += " ;\n";
+      unmarshall += "      Unmarshall(Result ,Giop_Client) ;\n";
+      unmarshall += "      Self.Result := new ";
+      unmarshall += tmp;
+      unmarshall += "'(Result) ;\n";
+      out_args += "; Result : out " + tmp;
+      result_decls += "      Result := Self.Result.all ;\n";
+      finalize += "      Free(Self.Result) ;\n";
+   }
   in_decls += ") is\n";
 
   // See if this subprogram can raise exceptions

@@ -417,11 +417,11 @@ adabe_root::produce() {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
 		    string proxy_body_interface_previous = "";
 		    string proxy_body_interface_body = "";
-		    string proxy_body_interface_with_string;
 		    dep_list proxy_body_interface_with;
 		    
 		    interface->produce_proxies_adb(proxy_body_interface_with,proxy_body_interface_body,proxy_body_interface_previous);
-		    proxy_body_interface_with_string = *proxy_body_interface_with.produce("with ");
+		    string proxy_body_interface_with_string = *proxy_body_interface_with.produce("with ");
+		    string proxy_body_interface_use_string = *proxy_body_interface_with.produce("use ");
 		    
 		    if (proxy_body_interface_body == "") break;
 		    string proxy_body_interface_file_name =
@@ -430,6 +430,7 @@ adabe_root::produce() {
 		    ofstream proxy_body_interface_file(lower_case_name); 
 		    delete[] lower_case_name;
 		    proxy_body_interface_file << proxy_body_interface_with_string;
+		    proxy_body_interface_file << proxy_body_interface_use_string;
 		    proxy_body_interface_file << proxy_body_interface_previous;    
 		    proxy_body_interface_file << proxy_body_interface_body;
 		    proxy_body_interface_file.close();
@@ -708,11 +709,11 @@ adabe_root::produce() {
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
 		    string marshal_body_module_previous    = "";
 		    string marshal_body_module_body        = "";
-		    string marshal_body_module_with_string = "";
 		    dep_list marshal_body_module_with;
 
 		    module->produce_marshal_adb(marshal_body_module_with,marshal_body_module_body,marshal_body_module_previous);
-		    marshal_body_module_with_string = *marshal_body_module_with.produce("with ");
+		    string marshal_body_module_with_string = *marshal_body_module_with.produce("with ");
+		    string marshal_body_module_use_string = *marshal_body_module_with.produce("use ");
 		    
 		    if (marshal_body_module_body == "") break;
 		    string marshal_module_file_name =
@@ -721,6 +722,7 @@ adabe_root::produce() {
 		    ofstream marshal_module_file(lower_case_name);
 		    delete[] lower_case_name;
 		    marshal_module_file << marshal_body_module_with_string;
+		    marshal_module_file << marshal_body_module_use_string;
 		    marshal_module_file << marshal_body_module_previous; 
 		    marshal_module_file << marshal_body_module_body;
 		    marshal_module_file.close();
@@ -733,11 +735,11 @@ adabe_root::produce() {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
 		    string marshal_interface_previous = "";
 		    string marshal_interface_body = "";
-		    string marshal_interface_with_string;
 		    dep_list marshal_interface_with;
 		    
 		    interface->produce_marshal_adb(marshal_interface_with,marshal_interface_body,marshal_interface_previous);
-		    marshal_interface_with_string = *marshal_interface_with.produce("with ");
+		    string marshal_interface_with_string = *marshal_interface_with.produce("with ");
+		    string marshal_interface_use_string = *marshal_interface_with.produce("use ");
 
 		    if (marshal_interface_body == "") break;
 		    string marshal_interface_file_name =
@@ -746,6 +748,7 @@ adabe_root::produce() {
 		    ofstream marshal_interface_file(lower_case_name); 
 		    delete[] lower_case_name;
 		    marshal_interface_file << marshal_interface_with_string;
+		    marshal_interface_file << marshal_interface_use_string;
 		    marshal_interface_file << marshal_interface_previous;    
 		    marshal_interface_file << marshal_interface_body;
 		    marshal_interface_file.close();

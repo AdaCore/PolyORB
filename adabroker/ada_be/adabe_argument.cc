@@ -58,8 +58,10 @@ adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
     in_args += ", " + get_ada_local_name ();
 
   if ((dir == AST_Argument::dir_OUT) || (dir == AST_Argument::dir_INOUT))
-    no_out = false;
-    out_args += ", " + get_ada_local_name ();
+    {
+      no_out = false;
+      out_args += ", " + get_ada_local_name ();
+    }
 }
 
 /*

@@ -535,8 +535,8 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   adabe_global::set_adabe_current_file(this);
   with.add(get_ada_full_name() + ".Impl");
   with.add(get_ada_full_name() + ".Marshal");
-  with.add("Netbufferedstream ; use Netbufferedstream");
-  with.add("Membufferedstream ; use Membufferedstream");
+  with.add("Netbufferedstream");
+  with.add("Membufferedstream");
   with.add("Omniropeandkey") ;
   with.add("Giop") ;
   with.add("Corba") ;
@@ -585,9 +585,10 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 {
   bool empty = true;
   adabe_global::set_adabe_current_file(this);
-  with.add("Netbufferedstream ; use Netbufferedstream");
-  with.add("Membufferedstream ; use Membufferedstream");
-  with.add("Corba ; use Corba");
+  with.add("Netbufferedstream");
+  with.add("Membufferedstream");
+  with.add("Corba");
+  with.add("Corba.Object");
   with.add( get_ada_full_name() + ".marshal") ;
   body += "package body " + get_ada_full_name() + ".Proxies is \n";
  
@@ -663,6 +664,7 @@ void
 adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   bool empty = true;
+  with.add("Corba.Object");
   adabe_global::set_adabe_current_file(this);
   body += "package body ";
   body += get_ada_full_name();

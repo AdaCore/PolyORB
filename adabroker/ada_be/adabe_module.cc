@@ -398,11 +398,11 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
 	    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
 	    string interface_previous = "";
 	    string interface_body = "";
-	    string interface_with_string;
 	    dep_list interface_with;
 
 	    interface->produce_proxies_adb(interface_with,interface_body,interface_previous);
-	    interface_with_string = *interface_with.produce("with ");
+	    string interface_with_string = *interface_with.produce("with ");
+	    string interface_use_string = *interface_with.produce("use ");
 
 	    if (interface_body == "") break;
 	    string interface_file_name =
@@ -411,6 +411,7 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
 	    ofstream interface_file(lower_case_name); 
 	    delete[] lower_case_name;
 	    interface_file << interface_with_string;
+	    interface_file << interface_use_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
 	    interface_file.close();
@@ -680,11 +681,11 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    adabe_module *module = adabe_module::narrow_from_decl(d);
 	    string module_previous     = "";
 	    string module_body         = "";
-	    string module_with_string  = "";
 	    dep_list module_with;
 	    
 	    module->produce_marshal_adb(module_with,module_body,module_previous);
-	    module_with_string = *module_with.produce("with ");
+	    string module_with_string = *module_with.produce("with ");
+	    string module_use_string = *module_with.produce("use ");
 	    
 	    string module_file_name =
 	      remove_dot(module->get_ada_full_name()) + "-marshal.adb";
@@ -692,6 +693,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    ofstream module_file(lower_case_name); 
 	    delete[] lower_case_name;
 	    module_file << module_with_string;
+	    module_file << module_use_string;
 	    module_file << module_previous;
 	    module_file << module_body;
 	    module_file.close();
@@ -703,11 +705,11 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
 	    string interface_previous = "";
 	    string interface_body = "";
-	    string interface_with_string;
 	    dep_list interface_with;
 
 	    interface->produce_marshal_adb(interface_with,interface_body,interface_previous);
-	    interface_with_string = *interface_with.produce("with ");
+	    string interface_with_string = *interface_with.produce("with ");
+	    string interface_use_string = *interface_with.produce("use ");
 	    
 	    if (interface_body == "") break;
 	    string interface_file_name =
@@ -716,6 +718,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    ofstream interface_file(lower_case_name); 
 	    delete[] lower_case_name;
 	    interface_file << interface_with_string;
+	    interface_file << interface_use_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
 	    interface_file.close();
