@@ -225,7 +225,7 @@ package body System.PolyORB_Interface is
    -------------------------
 
    function Any_Aggregate_Build
-     (TypeCode : PolyORB.Any.TypeCode.Object;
+     (TypeCode : PATC.Object;
       Contents : Any_Array)
       return Any
    is
@@ -236,6 +236,20 @@ package body System.PolyORB_Interface is
       end loop;
       return Result;
    end Any_Aggregate_Build;
+
+   ---------------------
+   -- Any_Member_Type --
+   ---------------------
+
+   function Any_Member_Type
+     (A     : Any;
+      Index : PolyORB.Types.Unsigned_Long)
+      return PolyORB.Any.TypeCode.Object
+   is
+   begin
+      return PATC.Member_Type
+        (PolyORB.Any.Get_Type (A), Index);
+   end Any_Member_Type;
 
    ---------------
    -- Any_To_BS --
@@ -554,6 +568,22 @@ package body System.PolyORB_Interface is
       return Result;
    end Execute_Servant;
 
+   -------------------------
+   -- Extract_Union_Value --
+   -------------------------
+
+   function Extract_Union_Value (U : Any) return Any is
+      U_Type : constant PATC.Object := Get_Type (U);
+      Label_Any : constant Any
+        := PolyORB.Any.Get_Aggregate_Element
+        (U, PATC.Discriminator_Type (U_Type), 0);
+      Value_Type : constant PATC.Object
+        := PATC.Member_Type_With_Label (U_Type, Label_Any, 1);
+      --  XXX Index ???
+   begin
+      return PolyORB.Any.Get_Aggregate_Element (U, Value_Type, 1);
+   end Extract_Union_Value;
+
    --------------
    -- Finalize --
    --------------
@@ -710,7 +740,7 @@ package body System.PolyORB_Interface is
 
    function Get_Aggregate_Element
      (Value : Any;
-      Tc    : PolyORB.Any.TypeCode.Object;
+      Tc    : PATC.Object;
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any is
    begin
@@ -807,21 +837,21 @@ package body System.PolyORB_Interface is
       use type PolyORB.Types.Unsigned_Long;
 
       Seq_Any : PolyORB.Any.Any;
-      Tc      : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
+      Tc      : constant PATC.Object := Get_Type (Value);
    begin
       pragma Debug (O ("Get_Nested_Sequence_Length: enter, Depth =" & Depth'Img
                        & ", Tc = " & Image (Tc)));
 
-      if PolyORB.Any.TypeCode.Kind (Tc) = Tk_Struct then
+      if PATC.Kind (Tc) = Tk_Struct then
          declare
             Index : constant PolyORB.Types.Unsigned_Long
-              := PolyORB.Any.TypeCode.Member_Count (Tc) - 1;
+              := PATC.Member_Count (Tc) - 1;
          begin
             pragma Debug
               (O ("Tc is a Tk_Struct, index of last member is" & Index'Img));
 
             Seq_Any := Get_Aggregate_Element (Value,
-              PolyORB.Any.TypeCode.Member_Type (Tc, Index),
+              PATC.Member_Type (Tc, Index),
               Index);
          end;
       else
@@ -839,7 +869,7 @@ package body System.PolyORB_Interface is
             return Outer_Length;
          else
             Seq_Any := PolyORB.Any.Get_Aggregate_Element
-              (Seq_Any, From_Any (PolyORB.Any.TypeCode.Get_Parameter
+              (Seq_Any, From_Any (PATC.Get_Parameter
                (Get_Type (Seq_Any), 1)), 1);
             return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
          end if;
@@ -1412,10 +1442,10 @@ package body System.PolyORB_Interface is
       --  client side.)
 
       Default_Servant.Obj_TypeCode := PolyORB.Any.TC_Object;
-      PolyORB.Any.TypeCode.Add_Parameter
+      PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode,
          To_Any (PName));
-      PolyORB.Any.TypeCode.Add_Parameter
+      PATC.Add_Parameter
         (Default_Servant.Obj_TypeCode,
          TA_String ("DSA:" & Name & ":1.0"));
 
@@ -1456,15 +1486,15 @@ package body System.PolyORB_Interface is
    --------------
 
    function TC_Build
-     (Base : PolyORB.Any.TypeCode.Object;
+     (Base : PATC.Object;
       Parameters : Any_Array)
-      return PolyORB.Any.TypeCode.Object
+      return PATC.Object
    is
-      Result : PolyORB.Any.TypeCode.Object
+      Result : PATC.Object
         := Base;
    begin
       for I in Parameters'Range loop
-         PolyORB.Any.TypeCode.Add_Parameter
+         PATC.Add_Parameter
            (Result, Parameters (I));
       end loop;
       return Result;
@@ -1474,9 +1504,9 @@ package body System.PolyORB_Interface is
    -- TC_Opaque --
    ---------------
 
-   function TC_Opaque return PolyORB.Any.TypeCode.Object
+   function TC_Opaque return PATC.Object
    is
-      Result : PolyORB.Any.TypeCode.Object := PATC.TC_Sequence;
+      Result : PATC.Object := PATC.TC_Sequence;
    begin
       PATC.Add_Parameter (Result, TA_U (0));
       PATC.Add_Parameter (Result, To_Any (TC_Octet));

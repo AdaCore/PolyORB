@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#36 $
+--  $Id: //droopi/main/src/polyorb-any.ads#37 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -82,14 +82,18 @@ package PolyORB.Any is
        Tk_TypeCode,
        Tk_Principal,
        Tk_Objref,
+
+      --  Aggregates
        Tk_Struct,
        Tk_Union,
        Tk_Enum,
-       Tk_String,
        Tk_Sequence,
        Tk_Array,
-       Tk_Alias,
        Tk_Except,
+      --  end Aggregates
+
+       Tk_String,
+       Tk_Alias,
        Tk_Longlong,
        Tk_Ulonglong,
        Tk_Longdouble,
@@ -100,6 +104,7 @@ package PolyORB.Any is
        Tk_Valuebox,
        Tk_Native,
        Tk_Abstract_Interface);
+   subtype Aggregate_TCKind is TCKind range Tk_Struct .. Tk_Except;
 
    type ValueModifier is new Types.Short;
 
@@ -667,6 +672,15 @@ package PolyORB.Any is
      return Any;
    --  Return an empty Any (with no value but a type).
 
+   function Get_Empty_Any_Aggregate
+     (Tc : TypeCode.Object)
+     return Any;
+   --  Return an empty any aggregate
+   --  puts its type to Tc
+   --  If the underlying type for TC (with typedefs unwound)
+   --  does not have an aggregate TCKind, this is equivalent
+   --  to Get_Empty_Any.
+
    function Is_Empty
      (Any_Value : in Any)
      return Boolean;
@@ -779,13 +793,7 @@ package PolyORB.Any is
      return Any;
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
-   --  the aggregate.
-
-   function Get_Empty_Any_Aggregate
-     (Tc : TypeCode.Object)
-     return Any;
-   --  Return an empty any aggregate
-   --  puts its type to Tc
+   --  the aggregate. The first element has index 0.
 
    procedure Copy_Any_Value
      (Dest : Any;

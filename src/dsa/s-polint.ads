@@ -275,17 +275,7 @@ package System.PolyORB_Interface is
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
-   function Get_Type
-     (The_Any : in Any)
-     return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.Get_Type;
-
-   function Get_Empty_Any
-     (Tc : PolyORB.Any.TypeCode.Object)
-      return Any
-     renames PolyORB.Any.Get_Empty_Any;
-
-   function Get_Empty_Any_Aggregate
+   function Create_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
@@ -295,11 +285,11 @@ package System.PolyORB_Interface is
       return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.Content_Type;
 
-   function Member_Type
-     (Self  : PolyORB.Any.TypeCode.Object;
+   function Any_Member_Type
+     (A     : Any;
       Index : PolyORB.Types.Unsigned_Long)
-      return PolyORB.Any.TypeCode.Object
-     renames PolyORB.Any.TypeCode.Member_Type;
+      return PolyORB.Any.TypeCode.Object;
+   --  Return the type of the Index'th component in Tk_Struct Any.
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
@@ -489,6 +479,9 @@ package System.PolyORB_Interface is
    --  Return the length of the sequence at nesting level Depth
    --  within Value, a Tk_Struct any representing an unconstrained
    --  array.
+
+   function Extract_Union_Value (U : Any) return Any;
+   --  Given an Any of a union type, return an Any for the value of the union.
 
    -----------------------------------------------------------------------
    -- Support for opaque data transfer using stream-oriented attributes --

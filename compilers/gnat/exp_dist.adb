@@ -3563,7 +3563,7 @@ package body Exp_Dist is
                   Expression =>
                     Make_Function_Call (Loc,
                       Name =>
-                        New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                        New_Occurrence_Of (RTE (RE_Create_Any), Loc),
                       Parameter_Associations => New_List (
                         Result_TC))),
                 Make_Component_Association (Loc,
@@ -3696,7 +3696,7 @@ package body Exp_Dist is
                else
                   Expr := Make_Function_Call (Loc,
                     Name =>
-                      New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                      New_Occurrence_Of (RTE (RE_Create_Any), Loc),
                     Parameter_Associations => New_List (
                       Build_TypeCode_Call (Loc, Etyp, Decls)));
                end if;
@@ -4553,7 +4553,7 @@ package body Exp_Dist is
                    Expression =>
                      Make_Function_Call (Loc,
                        Name =>
-                         New_Occurrence_Of (RTE (RE_Get_Empty_Any), Loc),
+                         New_Occurrence_Of (RTE (RE_Create_Any), Loc),
                        Parameter_Associations => New_List (
                          Build_TypeCode_Call (Loc, Etyp, Outer_Decls)))));
 

@@ -458,12 +458,34 @@ package body Exp_Hlpr is
                         Alt_List : constant List_Id := New_List;
                         Choice_List : List_Id;
 
-                        Struct_Any : Entity_Id := Empty;
+                        Struct_Any : constant Entity_Id
+                          := Make_Defining_Identifier (Loc,
+                               New_Internal_Name ('S'));
                      begin
-                        --  XXX
-                        --  Union_Any := Get_Aggregate_Element (Any)
-                        --  Struct_Any := Get_Aggregate_Element (Union_Any)
-                        null;
+
+                        Append_To (Decls,
+                          Make_Object_Declaration (Loc,
+                            Defining_Identifier =>
+                              Struct_Any,
+                            Constant_Present =>
+                               True,
+                            Object_Definition =>
+                               New_Occurrence_Of (RTE (RE_Any), Loc),
+                            Expression =>
+                              Make_Function_Call (Loc,
+                                Name => New_Occurrence_Of (
+                                  RTE (RE_Extract_Union_Value), Loc),
+                                Parameter_Associations => New_List (
+                                  Build_Get_Aggregate_Element (Loc,
+                                    Any => Any,
+                                    Tc  => Make_Function_Call (Loc,
+                                      Name => New_Occurrence_Of (
+                                        RTE (RE_Any_Member_Type), Loc),
+                                      Parameter_Associations => New_List (
+                                        New_Occurrence_Of (Any, Loc),
+                                        Make_Integer_Literal (Loc, Counter))),
+                                    Idx => Make_Integer_Literal (Loc,
+                                      Counter))))));
 
                         Append_To (Stmts,
                           Make_Block_Statement (Loc,
@@ -1298,7 +1320,7 @@ package body Exp_Hlpr is
             Set_Expression (Any_Decl,
               Make_Function_Call (Loc,
                 Name =>
-                  New_Occurrence_Of (RTE (RE_Get_Empty_Any_Aggregate), Loc),
+                  New_Occurrence_Of (RTE (RE_Create_Any), Loc),
                 Parameter_Associations => New_List (Result_TC)));
             Result_TC := Empty;
 
@@ -2286,13 +2308,9 @@ package body Exp_Hlpr is
             Inner_Any_TypeCode_Expr :=
               Make_Function_Call (Loc,
                 Name =>
-                  New_Occurrence_Of (RTE (RE_Member_Type), Loc),
+                  New_Occurrence_Of (RTE (RE_Any_Member_Type), Loc),
                 Parameter_Associations => New_List (
-                  Make_Function_Call (Loc,
-                    Name =>
-                      New_Occurrence_Of (RTE (RE_Get_Type), Loc),
-                    Parameter_Associations => New_List (
-                      New_Occurrence_Of (Any, Loc))),
+                  New_Occurrence_Of (Any, Loc),
                   Make_Integer_Literal (Loc, Ndim)));
          else
             Inner_Any_TypeCode_Expr :=
@@ -2317,7 +2335,7 @@ package body Exp_Hlpr is
                Make_Function_Call (Loc,
                  Name =>
                    New_Occurrence_Of (
-                     RTE (RE_Get_Empty_Any_Aggregate), Loc),
+                     RTE (RE_Create_Any), Loc),
                  Parameter_Associations => New_List (
                    New_Occurrence_Of (Inner_Any_TypeCode, Loc)))));
 

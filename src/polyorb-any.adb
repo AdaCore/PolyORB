@@ -1068,6 +1068,8 @@ package body PolyORB.Any is
                           & Unsigned_Long'Image (Param_Nb)
                           & ", Index = "
                           & Unsigned_Long'Image (Index)));
+         pragma Assert (Index = 1);
+         --  Only one component may be associated with any given label!
 
          --  See the big explanation after the declaration of
          --  TypeCode.Object in the private part of CORBA.TypeCode
@@ -1169,6 +1171,7 @@ package body PolyORB.Any is
             pragma Debug (O ("Member_Count_With_Label: Result = "
                              & Unsigned_Long'Image (Result)));
             pragma Debug (O ("Member_Count_With_Label: end"));
+            pragma Assert (Result <= 1);
             return Result;
          else
             pragma Debug (O ("Member_Count_With_Label: end "
@@ -3044,12 +3047,8 @@ package body PolyORB.Any is
         := Any_Container_Ptr (Entity_Of (Any_Value));
    begin
       pragma Debug (O ("Set_Any_Aggregate_Value: enter"));
-      if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Struct
-        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Union
-        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Enum
-        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Sequence
-        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Array
-        and then TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Except
+      if TypeCode.Kind (Get_Unwound_Type (Any_Value))
+        not in Aggregate_TCKind
       then
          raise TypeCode.Bad_TypeCode;
       end if;
@@ -3143,7 +3142,10 @@ package body PolyORB.Any is
                        & Unsigned_Long'Image
                        (Get_Aggregate_Count (Value))));
 
-      Set_Value (Result, Duplicate (CA_Ptr.V.Value (Integer (Index))));
+      Set_Value
+        (Result,
+         Duplicate
+         (CA_Ptr.V.Value (CA_Ptr.V.Value'First + Natural (Index))));
       --  XXX VASTLY INEFFICIENT!!! Should not duplicate the value, but
       --  instead return it by-reference!!!
       Set_Type (Result, Tc);
@@ -3163,8 +3165,10 @@ package body PolyORB.Any is
       Result : Any;
    begin
       pragma Debug (O ("Get_Empty_Any_Aggregate : begin"));
-      Set_Value (Result, new Content_Aggregate);
       Set_Type (Result, Tc);
+      if TypeCode.Kind (Unwind_Typedefs (Tc)) in Aggregate_TCKind then
+         Set_Value (Result, new Content_Aggregate);
+      end if;
 
       pragma Debug (O ("Get_Empty_Any_Aggregate : end"));
       return Result;
