@@ -18,6 +18,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-dict.ads \
 		polyorb-dynamic_dict.ads \
 		polyorb-filters.ads \
+		polyorb-filters-interface.ads \
 		polyorb-filters-slicers.ads \
 		polyorb-jobs.ads \
 		polyorb-locked_queue.ads \
@@ -75,7 +76,6 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb.ads \
 		polyorb-constants.ads \
-		polyorb-filters-interface.ads \
 		polyorb-object_maps.ads \
 		polyorb-objects-interface.ads \
 		polyorb-orb-interface.ads \

@@ -41,6 +41,8 @@ with PolyORB.Components; use PolyORB.Components;
 
 package PolyORB.Filters.Interface is
 
+   pragma Elaborate_Body;
+
    -----------------------------
    -- Filter_Factory messages --
    -----------------------------
@@ -86,7 +88,10 @@ package PolyORB.Filters.Interface is
    --  Semantics: a transport endpoint has been closed.
    --    upper layers must release all associated resources.
 
-   type Data_Indication is new Root_Data_Unit with null record;
+   type Data_Indication is new Root_Data_Unit with record
+      Data_Amount : Stream_Element_Count := 0;
+      --  The amount of data received, 0 if unknown.
+   end record;
    --  Direction: from lower to upper.
    --  Semantics: Data has been received and must be handled.
 
@@ -108,6 +113,17 @@ package PolyORB.Filters.Interface is
       Out_Buf : Buffer_Access;
       --  The data to be sent down.
    end record;
+
+   ---------------------
+   -- Helper routines --
+   ---------------------
+
+   procedure Expect_Data
+     (Self   : access Filter'Class;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count);
+   --  Signal Lower (Self) that data is expected using
+   --  Data_Expected message.
 
 end PolyORB.Filters.Interface;
 

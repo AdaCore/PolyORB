@@ -74,6 +74,7 @@ package body PolyORB.Protocols.GIOP is
    use PolyORB.Any.NVList;
    use PolyORB.Binding_Data.IIOP;
    use PolyORB.Components;
+   use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
    use PolyORB.ORB.Interface;

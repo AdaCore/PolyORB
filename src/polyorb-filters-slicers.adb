@@ -86,6 +86,7 @@ package body PolyORB.Filters.Slicers is
               and then DEM.In_Buf /= null);
 
             F.Data_Expected := DEM.Max;
+            F.Initial_Data_Expected := DEM.Max;
             F.In_Buf := DEM.In_Buf;
             F.Buffer_Length := Length (F.In_Buf);
 
@@ -98,11 +99,16 @@ package body PolyORB.Filters.Slicers is
       elsif S in Data_Indication then
          declare
             Data_Received : constant Stream_Element_Count
-              := Length (F.In_Buf) - F.Buffer_Length;
+              := Stream_Element_Count (Data_Indication (S).Data_Amount);
+
          begin
             pragma Debug (O ("Expected" & F.Data_Expected'Img
                              & " bytes, received"
                              & Data_Received'Img));
+            pragma Assert
+              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
+            --  Integrity check: Receive_Buffer must have increased
+            --  Length (F.In_Buf) by exactly the amount of data received.
 
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
@@ -115,10 +121,22 @@ package body PolyORB.Filters.Slicers is
             F.Buffer_Length := Length (F.In_Buf);
 
             if F.Data_Expected = 0 then
-               F.In_Buf := null;
-               return Emit
-                 (F.Upper,
-                  Data_Indication'(Root_Data_Unit with null record));
+               declare
+                  Total_Data_Amount : Stream_Element_Count;
+               begin
+                  if F.Initial_Data_Expected = 0 then
+                     Total_Data_Amount := Data_Received;
+                  else
+                     Total_Data_Amount := F.Initial_Data_Expected;
+                     F.Initial_Data_Expected := 0;
+                  end if;
+
+                  F.In_Buf := null;
+                  return Emit
+                    (F.Upper,
+                     Data_Indication'
+                     (Data_Amount => Total_Data_Amount));
+               end;
             else
                pragma Debug (O ("Expecting" & F.Data_Expected'Img
                                 & " further bytes."));

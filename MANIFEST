@@ -213,6 +213,7 @@ src/polyorb-dynamic_dict.ads
 src/polyorb-filters.adb
 src/polyorb-filters.ads
 src/polyorb-filters-interface.ads
+src/polyorb-filters-interface.adb
 src/polyorb-filters-slicers.adb
 src/polyorb-filters-slicers.ads
 src/polyorb-jobs.adb

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . F I L T E R S . S L I C E R S               --
+--            P O L Y O R B . F I L T E R S . I N T E R F A C E             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,43 +30,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A filter that slices a stream into a set of known-length
---  messages.
+--  Messages exchanged by Filter components.
 
 --  $Id$
 
-with Ada.Streams;
+package body PolyORB.Filters.Interface is
 
-with PolyORB.Buffers;
-with PolyORB.Components;
+   procedure Expect_Data
+     (Self   : access Filter'Class;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count) is
+   begin
+      Emit_No_Reply
+        (Port   => Lower (Self),
+         Msg    => Data_Expected'
+           (In_Buf => In_Buf, Max => Max));
+   end Expect_Data;
 
-package PolyORB.Filters.Slicers is
+end PolyORB.Filters.Interface;
 
-   pragma Elaborate_Body;
-
-   type Slicer_Factory is new Factory with private;
-
-   procedure Create
-     (Fact   : access Slicer_Factory;
-      Slicer : out Filter_Access);
-
-   Unexpected_Data : exception;
-   --  Raised when unexpected data is received by this filter.
-
-private
-
-   type Slicer_Factory is new Factory with null record;
-
-   type Slicer_Filter is new Filter with record
-      In_Buf        : Buffers.Buffer_Access;
-      Data_Expected : Ada.Streams.Stream_Element_Count;
-      Initial_Data_Expected : Ada.Streams.Stream_Element_Count;
-      Buffer_Length : Ada.Streams.Stream_Element_Count;
-   end record;
-
-   function Handle_Message
-     (F : access Slicer_Filter;
-      S : Components.Message'Class)
-     return Components.Message'Class;
-
-end PolyORB.Filters.Slicers;

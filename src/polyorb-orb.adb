@@ -204,7 +204,8 @@ package body PolyORB.ORB is
                Emit_No_Reply
                  (Component_Access (Note.D.TE),
                   Filters.Interface.Data_Indication'
-                    (null record));
+                    (Data_Amount => 0));
+               --  The size of the data received is not known yet.
 
                Insert_Source (ORB, AES);
                --  Continue monitoring this source.
