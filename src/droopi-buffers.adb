@@ -208,13 +208,14 @@ package body Droopi.Buffers is
       Buffer.CDR_Position := Position;
    end Set_Initial_Position;
 
-   Null_Data : aliased Stream_Element_Array
-     := (1 .. Alignment_Type'Last - 1 => 0);
+   Null_Data : constant Zone_Access
+     := new Stream_Element_Array'
+     (1 .. Alignment_Type'Last - 1 => 0);
    --  Null data used for padding.
 
    Null_Data_Address : constant Opaque_Pointer
-     := (Zone   => Null_Data'Access, Offset => Null_Data'First);
-   --  The address of the first element of array Null_Data.
+     := (Zone   => Null_Data,
+         Offset => Null_Data'First);
 
    procedure Align
      (Buffer    : access Buffer_Type;

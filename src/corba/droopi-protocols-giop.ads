@@ -342,7 +342,11 @@ package Droopi.Protocols.GIOP is
 
 private
 
-   Magic : constant Stream_Element_Array
+   --  Explicit bounds are required in the nominal subtype
+   --  in order to comply with Ravenscar restriction
+   --  No_Implicit_Heap_Allocation.
+
+   Magic : constant Stream_Element_Array (1 .. 4)
      := (Character'Pos ('G'),
          Character'Pos ('I'),
          Character'Pos ('O'),

@@ -102,12 +102,21 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
 
 private
 
+   --  Explicit bounds are required in the nominal subtype
+   --  in order to comply with Ravenscar restriction
+   --  No_Implicit_Heap_Allocation.
 
-   Service_Context_List_1_2 : constant Service_Id_Array
-       := (0 => Transaction_Service, 1 => Code_Sets, 2 => Chain_By_Pass_Check,
-           3 => Chain_By_Pass_Info, 4 => Logical_Thread_Id, 5 => Bi_Dir_IIOP,
-           6 => Sending_Context_Run_Time, 7 => Invocation_Policies,
-           8 => Forwarded_Identity, 9 => Unknown_Exception_Info);
+   Service_Context_List_1_2 : constant Service_Id_Array (0 .. 9)
+     := (0 => Transaction_Service,
+         1 => Code_Sets,
+         2 => Chain_By_Pass_Check,
+         3 => Chain_By_Pass_Info,
+         4 => Logical_Thread_Id,
+         5 => Bi_Dir_IIOP,
+         6 => Sending_Context_Run_Time,
+         7 => Invocation_Policies,
+         8 => Forwarded_Identity,
+         9 => Unknown_Exception_Info);
 
    Major_Version : constant Types.Octet
      := 1;
