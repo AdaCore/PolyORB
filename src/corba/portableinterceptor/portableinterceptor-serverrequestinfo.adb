@@ -59,6 +59,24 @@ package body PortableInterceptor.ServerRequestInfo is
         Replace);
    end Add_Reply_Service_Context;
 
+   --------------------
+   -- Get_Adapter_Id --
+   --------------------
+
+   function Get_Adapter_Id (Self : in Local_Ref) return AdapterId is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return
+        PortableInterceptor.ServerRequestInfo.Impl.Get_Adapter_Id
+         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
+           (Entity_Of (Self)));
+   end Get_Adapter_Id;
+
    ----------------------
    -- Get_Adapter_Name --
    ----------------------
@@ -76,24 +94,6 @@ package body PortableInterceptor.ServerRequestInfo is
          (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
            (Entity_Of (Self)));
    end Get_Adapter_Name;
-
---   --------------------
---   -- Get_Adapter_Id --
---   --------------------
---
---   function Get_Adapter_Id (Self : in Local_Ref) return CORBA.OctetSeq is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return
---        PortableInterceptor.ServerRequestInfo.Impl.Get_Adapter_Id
---         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
---           (Entity_Of (Self)));
---   end Get_Adapter_Id;
 
    -------------------
    -- Get_Object_Id --

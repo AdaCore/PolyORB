@@ -71,7 +71,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_Object_Id (Self : access Object) return ObjectId;
 
---   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+   function Get_Adapter_Id (Self : access Object) return AdapterId;
 
    function Get_Target_Most_Derived_Interface
      (Self : access Object)

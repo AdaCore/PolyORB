@@ -153,6 +153,44 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
          (RequestInfo.Impl.Object (Self.all)'Access);
    end Get_Contexts;
 
+   -----------------------------
+   -- Get_Effective_Component --
+   -----------------------------
+
+   function Get_Effective_Component
+     (Self : access Object;
+      Id   : in     IOP.ComponentId)
+      return IOP.TaggedComponent
+   is
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Id);
+
+      Result : IOP.TaggedComponent;
+      pragma Warnings (Off, Result);
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Effective_Component;
+
+   ---------------------------
+   -- Get_Effective_Profile --
+   ---------------------------
+
+   function Get_Effective_Profile
+     (Self : access Object)
+      return IOP.TaggedProfile
+   is
+      pragma Unreferenced (Self);
+
+      Result : IOP.TaggedProfile;
+      pragma Warnings (Off, Result);
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Effective_Profile;
+
    --------------------------
    -- Get_Effective_Target --
    --------------------------
@@ -445,15 +483,6 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
            PortableInterceptor.RequestInfo.Repository_Id);
    end Is_A;
 
---   function Get_Effective_Profile
---     (Self : access Object)
---      return IOP.TaggedProfile;
---
---   function Get_Effective_Component
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponent;
---
 --   function Get_Effective_Components
 --     (Self : access Object;
 --      Id   : in     IOP.ComponentId)

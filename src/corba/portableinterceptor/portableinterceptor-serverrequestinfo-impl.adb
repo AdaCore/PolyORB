@@ -115,11 +115,19 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
           (To_Encapsulation (Service_Context.Context_Data))));
    end Add_Reply_Service_Context;
 
---   --------------------
---   -- Get_Adapter_Id --
---   --------------------
---
---   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
+   --------------------
+   -- Get_Adapter_Id --
+   --------------------
+
+   function Get_Adapter_Id (Self : access Object) return AdapterId is
+      pragma Unreferenced (Self);
+
+      Result : AdapterId;
+
+   begin
+      raise Program_Error;
+      return Result;
+   end Get_Adapter_Id;
 
    ----------------------
    -- Get_Adapter_Name --

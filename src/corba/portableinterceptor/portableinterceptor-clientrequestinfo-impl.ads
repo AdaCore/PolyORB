@@ -57,9 +57,9 @@ package PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return CORBA.Object.Ref;
 
---   function Get_Effective_Profile
---     (Self : access Object)
---      return IOP.TaggedProfile;
+   function Get_Effective_Profile
+     (Self : access Object)
+      return IOP.TaggedProfile;
 
    function Get_Received_Exception
      (Self : access Object)
@@ -69,11 +69,11 @@ package PortableInterceptor.ClientRequestInfo.Impl is
      (Self : access Object)
       return CORBA.RepositoryId;
 
---   function Get_Effective_Component
---     (Self : access Object;
---      Id   : in     IOP.ComponentId)
---      return IOP.TaggedComponent;
---
+   function Get_Effective_Component
+     (Self : access Object;
+      Id   : in     IOP.ComponentId)
+      return IOP.TaggedComponent;
+
 --   function Get_Effective_Components
 --     (Self : access Object;
 --      Id   : in     IOP.ComponentId)
