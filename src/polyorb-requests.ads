@@ -235,7 +235,7 @@ package PolyORB.Requests is
 
    procedure Invoke (Self : Request_Access; Invoke_Flags : Flags := 0);
    --  Run Self.
-   --  XXX Invoke_Flags is currently set to 0, and not use. It is kept
+   --  XXX Invoke_Flags is currently set to 0, and not used. It is kept
    --  for future use.
 
    procedure Arguments
