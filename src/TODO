@@ -14,14 +14,10 @@ Items still requiring attention
 * Droopi.Buffers: remove mentions of CDR.
 * Droopi.Buffers: remove mention of sockets.
 
-* An object adapter.
-
 * Different tasking configurations
   -> A single-task client configuration.
   -> A multi-tasking server configuration.
   -> A multi-tasking client configuration.
-
-* Realtime profile (Ravenscar?)
 
 * Configuration of memory allocation:
   -> usage of Storage_Pools?
@@ -69,3 +65,7 @@ Items processed
   Channel type) (2830).
 
 * An abstraction of transport endpoints (2871).
+
+* An object adapter.
+
+* Use of the Ravenscar profile.

@@ -23,6 +23,9 @@ package Droopi.References is
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
 
+   function Profiles_Of (R : Ref) return Profile_Array;
+   --  Return the list of profiles constituting Ref.
+
    function Is_Nil (R : Ref) return Boolean;
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
