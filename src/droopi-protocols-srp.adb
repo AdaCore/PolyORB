@@ -217,7 +217,7 @@ package body Droopi.Protocols.SRP is
 
       declare
          Argv : Split_SRP
-           := Split (Unmarshall_String (Rep, S.Buffer));
+           := Split (Unmarshall_String (Rep.all, S.Buffer));
 
          Method     : constant String := Argv.Method.all;
          Oid        : constant Object_Id := Argv.Oid.all;

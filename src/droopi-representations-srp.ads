@@ -62,7 +62,7 @@ package Droopi.Representations.SRP is
    --  Marshall a string.
 
    function Unmarshall_String
-     (R : access Rep_SRP;
+     (R : Rep_SRP;
       B : access Buffer_Type)
      return String;
    --  Unmarshall a string terminated by a CR/LF sequence.

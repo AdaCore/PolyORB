@@ -240,12 +240,13 @@ package body Droopi.Representations.SRP is
    procedure Marshall_From_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : CORBA.Any) is
+      Data   : CORBA.Any)
+   is
       URL : CORBA.String := CORBA.From_Any (Data);
       Coded_URL : String_Ptr;
-      R_Access : Rep_SRP;
+      --  R_Access : Rep_SRP;
    begin
-      R_Access := R;
+      --  R_Access := R;
       Coded_URL := new String'(Base64_Encode (CORBA.To_Standard_String (URL)));
       pragma Debug (O ("Coded URL : " & Coded_URL.all));
 
@@ -258,11 +259,12 @@ package body Droopi.Representations.SRP is
    procedure Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type;
-      Data   : in out CORBA.Any) is
+      Data   : in out CORBA.Any)
+   is
       Encoded_URL : String_Ptr;
    begin
       --  raise Not_Implemented;
-      Encoded_URL := new String'(Unmarshall_String (R'Access, Buffer));
+      Encoded_URL := new String'(Unmarshall_String (R, Buffer));
       Data := CORBA.To_Any
         (CORBA.To_CORBA_String (Decode_URL (Encoded_URL.all)));
    end Unmarshall_To_Any;
@@ -298,7 +300,7 @@ package body Droopi.Representations.SRP is
    end Marshall_String;
 
    function Unmarshall_String
-     (R : access Rep_SRP;
+     (R : Rep_SRP;
       B : access Buffer_Type)
      return String
    is
