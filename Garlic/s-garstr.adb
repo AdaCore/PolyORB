@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Types; use System.Garlic.Types;
+
 package body System.Garlic.Streams is
 
    use Ada.Streams, System.Garlic.Debug;
@@ -42,7 +44,6 @@ package body System.Garlic.Streams is
 
    subtype Output_Line is String (1 .. 48);
 
-   Hex : constant String      := "0123456789ABCDEF";
    Nil : constant Output_Line := (others => ' ');
 
    Node_Size : constant Stream_Element_Count := 4096;
@@ -158,7 +159,7 @@ package body System.Garlic.Streams is
    procedure Initialize is
    begin
       null;
---       Streams_Pools.Initialize;
+      Streams_Pools.Initialize;
    end Initialize;
 
    ------------
