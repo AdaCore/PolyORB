@@ -3,6 +3,8 @@
 
 with Droopi.Log;
 with Droopi.Jobs;
+with Droopi.Components;
+with Droopi.Filters.Interface;
 
 with Locked_Queue;
 
@@ -25,6 +27,8 @@ package body Droopi.ORB.Thread_Pool is
    -- Local declarations --
    ------------------------
 
+   use Droopi.Components;
+   use Droopi.Filters.Interface;
    use Droopi.Log;
    use Droopi.Soft_Links;
    use Droopi.Components;
@@ -94,7 +98,13 @@ package body Droopi.ORB.Thread_Pool is
    is
    begin
       pragma Debug (O ("Thread_Pool: new server connection"));
-      null;
+      Insert_Source (ORB, C.AES);
+      Components.Emit_No_Reply
+        (Component_Access (C.TE),
+         Connect_Indication'(null record));
+
+   --  The newly-created channel will be monitored
+   --  by general-purpose ORB tasks.
    end Handle_New_Server_Connection;
 
    ----------------------------------
@@ -108,7 +118,13 @@ package body Droopi.ORB.Thread_Pool is
    is
    begin
       pragma Debug (O ("Thread_Pool: new client connection"));
-      null;
+      Insert_Source (ORB, C.AES);
+      Components.Emit_No_Reply
+        (Component_Access (C.TE),
+         Connect_Confirmation'(null record));
+
+   --  The newly-created channel will be monitored
+   --  by general-purpose ORB tasks.
    end Handle_New_Client_Connection;
 
    ------------------------------
