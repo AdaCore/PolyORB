@@ -99,14 +99,27 @@ package body Test_Suite.Test_Case.Client_Server is
                   Setenv ("POLYORB_CONF", Env);
                end if;
 
-               --  Spawn Client
-
                Log (Output, "Running client: " & Client_Command);
                Log (Output, "  with timeout: "
                     & Integer'Image (Test_To_Run.Timeout));
                Log (Output, "           IOR:");
                Log (Output, "'" & IOR & "'");
                Separator (Output);
+
+               --  Test the executable actually exists
+
+               if not Is_Regular_File (Client_Command) then
+                  Log (Output, Client_Command & " does not exist !");
+                  Log (Output, "Aborting test");
+
+                  Test_Result := False;
+
+                  Close_Test_Output_Context (Output, Test_Result);
+
+                  return;
+               end if;
+
+               --  Spawn Client
 
                Non_Blocking_Spawn
                  (Descriptor  => Fd_Client,
@@ -156,6 +169,11 @@ package body Test_Suite.Test_Case.Client_Server is
 
                   Log (Output, "==> Client Process Terminated <==");
 
+                  --  The process may normally exit, or die because of an
+                  --  internal error. We cannot judge at this stage.
+
+                  Test_Result := False;
+
                   Close (Fd_Client);
                   Close_Test_Output_Context (Output, Test_Result);
 
@@ -204,10 +222,23 @@ package body Test_Suite.Test_Case.Client_Server is
                Setenv ("POLYORB_CONF", Env);
             end if;
 
-            --  Spawn Server
-
             Log (Output, "Running server: " & Server_Command);
             Separator (Output);
+
+            --  Test the executable actually exists
+
+            if not Is_Regular_File (Server_Command) then
+               Log (Output, Server_Command & " does not exist !");
+               Log (Output, "Aborting test");
+
+               Test_Result := False;
+
+               Close_Test_Output_Context (Output, Test_Result);
+
+               return;
+            end if;
+
+            --  Spawn Server
 
             Non_Blocking_Spawn
               (Descriptor  => Fd_Server,
