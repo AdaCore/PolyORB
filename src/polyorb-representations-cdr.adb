@@ -35,21 +35,24 @@
 with Ada.Unchecked_Conversion;
 with Ada.Streams;
 
-with PolyORB.Any; use PolyORB.Any;
+with PolyORB.Any;
 with PolyORB.Any.ObjRef;
-with PolyORB.Buffers; use PolyORB.Buffers;
-
+with PolyORB.Buffers;
 with PolyORB.Log;
-with PolyORB.Opaque;  use PolyORB.Opaque;
+with PolyORB.Opaque;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
-with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
+with PolyORB.Utils.Buffers;
 
 package body PolyORB.Representations.CDR is
 
+   use PolyORB.Any;
+   use PolyORB.Buffers;
    use PolyORB.Log;
+   use PolyORB.Opaque;
    use PolyORB.Types;
+   use PolyORB.Utils.Buffers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.representations.cdr");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -161,11 +164,11 @@ package body PolyORB.Representations.CDR is
    --      new Ada.Unchecked_Conversion
    --       (Long_Double_Buf, PolyORB.Types.Long_Double);
 
+   --------------
+   -- Marshall --
+   --------------
 
-   ----------------------------------
-   -- Marshall-by-copy subprograms --
-   -- for all elementary types     --
-   ----------------------------------
+   --  Marshall-by-copy subprograms for all elementary types.
 
    --  Marshalling of a Boolean.
    procedure Marshall
@@ -356,7 +359,7 @@ package body PolyORB.Representations.CDR is
       pragma Debug (O ("Marshall (PolyORB.Types.String) : end"));
    end Marshall;
 
-   --  Marshall for PolyORB.Types.Wide_String could also
+   --  XXX Marshall for PolyORB.Types.Wide_String could also
    --  be implemented as a call to a Marshall for
    --  Standard.Wide_String, just as PolyORB.Types.String/Standard.String.
 
@@ -738,21 +741,17 @@ package body PolyORB.Representations.CDR is
          when Tk_Native =>
             pragma Debug (O ("Marshall_From_Any : dealing with a native"));
             --  FIXME : to be done
-            --  pragma Debug (O ("Marshall_From_Any : dealing with a native"));
-
             raise PolyORB.Not_Implemented;
 
          when Tk_Abstract_Interface =>
             pragma Debug (O
                  ("Marshall_From_Any : dealing with an abstract interface"));
             --  FIXME : to be done
-            --  pragma Debug (O ("Marshall_From_Any : dealing with "
-            --                 & "an abstract interface"));
             raise PolyORB.Not_Implemented;
+
       end case;
       pragma Debug (O ("Marshall_From_Any : end"));
    end Marshall_From_Any;
-
 
    --  procedure Marshall_From_Any
    --    (Buffer          : access Buffer_Type;
@@ -1100,6 +1099,7 @@ package body PolyORB.Representations.CDR is
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer));
             Release (Complex_Buffer);
+
          when Tk_Valuebox =>
             Marshall (Buffer, PolyORB.Types.Unsigned_Long'(30));
             Complex_Buffer := new Buffer_Type;
