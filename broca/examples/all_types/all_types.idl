@@ -65,6 +65,9 @@ interface all_types {
   typedef sequence<short> U_sequence;
   U_sequence echoUsequence (in U_sequence arg);
 
+  typedef sequence<short,10> B_sequence;
+  B_sequence echoBsequence (in B_sequence arg);
+
   // Fixed point
   // -----------
 #if 0

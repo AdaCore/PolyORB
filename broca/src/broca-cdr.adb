@@ -1307,6 +1307,7 @@ package body Broca.CDR is
             declare
                L : Long := Unmarshall (Buffer);
             begin
+               pragma Debug (O ("Unmarshall_To_Any : dealing with a long"));
                Result := To_Any (L);
                --  set the true type of the any, in case there is some alias
                Set_Type (Result, Any_Type);
@@ -1323,6 +1324,7 @@ package body Broca.CDR is
             declare
                Ul : Unsigned_Long := Unmarshall (Buffer);
             begin
+               pragma Debug (O ("Unmarshall_To_Any : dealing with an Ulong"));
                Result := To_Any (Ul);
                --  set the true type of the any, in case there is some alias
                Set_Type (Result, Any_Type);
@@ -1451,11 +1453,15 @@ package body Broca.CDR is
          when Tk_Sequence =>
             declare
                Nb : Unsigned_Long := Unmarshall (Buffer);
+               Max_Nb : Unsigned_Long := TypeCode.Length (Tc);
             begin
-               if Nb > TypeCode.Length (Tc) then
+               pragma Debug
+                 (O ("Unmarshall_To_Any : dealing with a sequence"));
+               if Max_Nb > 0 and then Nb > Max_Nb then
                   Broca.Exceptions.Raise_Marshal;
                end if;
                Result := Get_Empty_Any_Aggregate (Any_Type);
+               Add_Aggregate_Element (Result, To_Any (Nb));
                for I in 0 .. Nb - 1 loop
                   Add_Aggregate_Element
                     (Result,

@@ -740,6 +740,97 @@ procedure DynClient is
         (CORBA.Request.Return_Value (Request).Argument);
    end EchoUnion;
 
+   function EchoUsequence
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.U_sequence)
+      return All_Types.U_sequence is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoUsequence");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.U_sequence :=
+        U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
+   begin
+      Ada.Text_Io.Put_Line ("OK1");
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      Ada.Text_Io.Put_Line ("OK2");
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Ada.Text_Io.Put_Line ("OK3");
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      Ada.Text_Io.Put_Line ("OK4");
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      Ada.Text_Io.Put_Line ("OK5");
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      Ada.Text_Io.Put_Line ("OK6");
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      Ada.Text_Io.Put_Line ("OK7");
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoUsequence;
+
+   function EchoBsequence
+     (Self : in CORBA.Object.Ref;
+      Arg : in All_Types.B_sequence)
+      return All_Types.B_sequence is
+      Operation_Name : CORBA.Identifier := To_CORBA_String ("echoBsequence");
+      Arg_Name : CORBA.Identifier := To_CORBA_String ("arg");
+      Request : CORBA.Request.Object;
+      Ctx : CORBA.Context.Ref;
+      Argument : CORBA.Any;
+      Arg_List : CORBA.NVList.Ref;
+      Result : CORBA.NamedValue;
+      Result_Name : CORBA.String := To_CORBA_String ("Result");
+      Result_Value : All_Types.B_sequence :=
+        B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
+   begin
+      --  creating the argument list
+      Argument := All_Types.Helper.To_Any (Arg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => All_Types.Helper.To_Any (Result_Value),
+                 Arg_Modes => 0);
+      --  creating a request
+      CORBA.Object.Create_Request (Myall_Types,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
+      --  FIXME : not logical
+      CORBA.NVList.Free (Arg_List);
+      --  getting the answer
+      return All_Types.Helper.From_Any
+        (CORBA.Request.Return_Value (Request).Argument);
+   end EchoBsequence;
+
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line
@@ -829,6 +920,20 @@ begin
             exit when not Pass;
          end loop;
          Output ("test union", Pass);
+      end;
+      --  Unbounded sequences
+      declare
+         X : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test unbounded sequence",  echoUsequence (Myall_types, X) = X);
+      end;
+      --  Bounded sequences
+      declare
+         X : B_Sequence := B_Sequence (IDL_SEQUENCE_Short_10.Null_Sequence);
+      begin
+         X := X & 1 & 2 & 3 & 4 & 5;
+         Output ("test bounded sequence",  echoBsequence (Myall_types, X) = X);
       end;
       exit when One_Shot;
    end loop;
