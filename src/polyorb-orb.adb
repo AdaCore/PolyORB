@@ -699,14 +699,27 @@ package body PolyORB.ORB is
            := To_Element_Array (ORB.Transport_Access_Points);
 
          Profiles : References.Profile_Array (TAPs'Range);
+         Last_Profile : Integer := Profiles'First - 1;
       begin
          Leave (ORB.ORB_Lock.all);
          for I in TAPs'Range loop
-            Profiles (I) := Create_Profile
-              (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+            declare
+               PF : constant Profile_Factory_Access
+                 := Profile_Factory_Of (TAPs (I));
+            begin
+               if PF /= null then
+                  Last_Profile := Last_Profile + 1;
+                  Profiles (Last_Profile) := Create_Profile
+                    (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+               end if;
+               --  Null profile factories may occur for access points
+               --  that have an ad hoc protocol stack, but no binding
+               --  data information.
+            end;
          end loop;
 
-         References.Create_Reference (Profiles, Typ, Ref);
+         References.Create_Reference
+           (Profiles (Profiles'First .. Last_Profile), Typ, Ref);
       end;
    end Create_Reference;
 

@@ -141,7 +141,11 @@ package body PolyORB.Setup.Test is
         (Socket_Access_Point (DAP.SAP.all),
          DAP.Socket,
          DAP.Address);
-      Create_Factory (DAP.PF.all, DAP.SAP);
+      if DAP.PF /= null then
+         Create_Factory (DAP.PF.all, DAP.SAP);
+      else
+         Put_Line (" (null profile factory!)");
+      end if;
       Put_Line (" done.");
    end Initialize_Socket;
 
@@ -178,13 +182,14 @@ package body PolyORB.Setup.Test is
 
    --  The 'SOAP' access point.
 
---    SOAP_Access_Point : Decorated_Access_Point
---      := (Socket  => No_Socket,
---          Address => No_Sock_Addr,
---          SAP     => new Socket_Access_Point,
---          PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
---    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
---    SOAP_Protocol : aliased Protocols.SOAP.SOAP_Protocol;
+   SOAP_Access_Point : Decorated_Access_Point
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         --         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
+         PF      => null);
+   HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
+   SOAP_Protocol : aliased Protocols.SOAP.SOAP_Protocol;
    --  XXX
    --  It is not a very satisfying thing to have to chain
    --  HTTP_Filter and SOAP_Protocol explicitly on the server
@@ -283,16 +288,16 @@ package body PolyORB.Setup.Test is
       -- Create server (listening) socket - SOAP --
       ---------------------------------------------
 
---       Put ("Creating SOAP access point... ");
---       Initialize_Socket (SOAP_Access_Point, 8008);
---       Chain_Factories
---         ((0 => HTTP_Filter'Unchecked_Access,
---           1 => SOAP_Protocol'Unchecked_Access));
---       Register_Access_Point
---         (ORB    => The_ORB,
---          TAP    => SOAP_Access_Point.SAP,
---          Chain  => HTTP_Filter'Unchecked_Access,
---          PF     => SOAP_Access_Point.PF);
+      Put ("Creating SOAP access point... ");
+      Initialize_Socket (SOAP_Access_Point, 8008);
+      Chain_Factories
+        ((0 => HTTP_Filter'Unchecked_Access,
+          1 => SOAP_Protocol'Unchecked_Access));
+      Register_Access_Point
+        (ORB    => The_ORB,
+         TAP    => SOAP_Access_Point.SAP,
+         Chain  => HTTP_Filter'Unchecked_Access,
+         PF     => SOAP_Access_Point.PF);
       --  Register socket with ORB object, associating a protocol
       --  to the transport service access point.
    end Initialize_Test_Access_Points;

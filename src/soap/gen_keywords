@@ -12,13 +12,17 @@ then
 fi
 
 ads=$1
-adb=`echo $ads | sed 's/\.ads$/.adb/'`
-aux=`echo $ads | sed 's/\.ads$/.aux/'`
-trap "rm -f $aux" 0
-cfile=`echo $ads | sed 's/\.ads$/_gperf.c/'`
-ofile=`echo $cfile | sed 's/\.c$/.o/'`
-unit=`echo $ads | sed -e 's/\.ads$//' -e 's/-/__/g'`
+prefix=`echo $ads | sed 's/\.ads$//'`
+adb=$prefix.adb
+aux=$prefix.aux
+perf=$prefix.perf
+cfile=`echo $ads | sed 's/\.ads$/_GPERF.c/'`
+
+trap "rm -f $aux $perf" 0
+
+unit=`echo $prefix | sed 's/-/__/g'`
 matchfun="$unit"_IN_WORD_SET
+
 
 awk 'BEGIN { i = 0; st = 0; print "%{\nenum kwids {"; }
      /^package / {
@@ -44,9 +48,9 @@ awk 'BEGIN { i = 0; st = 0; print "%{\nenum kwids {"; }
         for (j = 0; j < i; j++) {
           print str_val[j] ", " enum_val[j];
         }
-        next; }' < $ads > $ads.perf
+        next; }' < $ads > $perf
 
-gperf -N $matchfun -t $ads.perf > $cfile
+gperf -N $matchfun -t $perf > $cfile
 
 eval `grep "^...=" $aux`
 
@@ -66,15 +70,17 @@ package body $pkg is
    pragma Convention (C, Keyword_Info);
    pragma Convention (C, Keyword_Info_Access);
 
-   function C_In_Word_Set (S : chars_ptr) return Keyword_Info_Access;
+   function C_In_Word_Set
+     (S : chars_ptr; Len : int)
+     return Keyword_Info_Access;
    pragma Import (C, C_In_Word_Set, "$matchfun");
-   pragma Linker_Options ("$ofile");
 
    function In_Word_Set (S : String) return $ent
    is
       Chars : aliased char_array := To_C (S);
       Info : constant Keyword_Info_Access
-        := C_In_Word_Set (To_Chars_Ptr (Chars'Unchecked_Access));
+        := C_In_Word_Set
+          (To_Chars_Ptr (Chars'Unchecked_Access), S'Length);
    begin
       if Info /= null then
          return Info.Id;

@@ -150,7 +150,7 @@ tests: $(TESTS)
 $(TESTS): all
 	$(GNATMAKE) -c -I. -Icorba -Isoap echo-impl.adb -cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS)
 	# No style checks for this one!
-	$(GNATMAKE) -I. -Icorba -Isoap $@ -cargs $(GNATFLAGS) -largs $(LDFLAGS) -bargs $(BARGS)
+	$(GNATMAKE) -I. -Icorba -Isoap $@ -cargs $(GNATFLAGS) -largs -Lsoap/.libs -lpolyorb-soap -Lcorba/.libs -lpolyorb-corba $(LDFLAGS) -bargs $(BARGS)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 echo-impl.lo:echo-impl.adb echo-impl.ads echo.ads polyorb-annotations.ads polyorb-any-nvlist.ads polyorb-any.ads polyorb-asynch_ev.ads polyorb-binding_data.ads polyorb-buffers.ads polyorb-components.ads polyorb-locks.ads polyorb-obj_adapters.ads polyorb-objects.ads polyorb-opaque-chunk_pools.ads polyorb-opaque.ads polyorb-poa_types.ads polyorb-references.ads polyorb-requests.ads polyorb-smart_pointers.ads polyorb-sockets.ads polyorb-soft_links.ads polyorb-storage_pools.ads polyorb-task_info.ads polyorb-transport.ads polyorb-types.ads polyorb.ads sequences-unbounded.ads sequences.ads 

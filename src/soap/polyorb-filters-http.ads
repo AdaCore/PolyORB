@@ -32,10 +32,14 @@
 
 --  $Id$
 
-with Ada.Streams;
+--  HTTP protocol implementation (as a filter so higher-level protocol
+--  engines can be plugged on it.)
 
+with Ada.Streams;
 with PolyORB.Buffers;
-with PolyORB.Components;
+with PolyORB.HTTP_Methods;
+with PolyORB.ORB;
+with PolyORB.Types;
 
 package PolyORB.Filters.HTTP is
 
@@ -47,18 +51,44 @@ package PolyORB.Filters.HTTP is
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access);
 
-   Unexpected_Data : exception;
-   --  Raised when unexpected data is received by this filter.
+   Protocol_Error : exception;
 
 private
 
    type HTTP_Filter_Factory is new Factory with null record;
 
+   type HTTP_State is (Start_Line, Header, Entity);
+   --  An HTTP session is either expecting a (request or response)
+   --  message start line, a generic message header, or an entity
+   --  constituting a message body?
+
+   type HTTP_Version is record
+     Major : Natural;
+     Minor : Natural;
+   end record;
+
    type HTTP_Filter is new Filter with record
-      In_Buf        : Buffers.Buffer_Access;
-      Data_Expected : Ada.Streams.Stream_Element_Count;
-      Buffer_Length : Ada.Streams.Stream_Element_Count;
-      Expected_Size_Fixed  : Boolean := False;
+      Role : PolyORB.ORB.Endpoint_Role;
+      --  The role associated with this protocol engine.
+
+      State  : HTTP_State;
+      --  Current state of the HTTP session.
+
+      CR_Seen : Boolean := False;
+      --  In Start_Line or Header state, True iff the last character
+      --  seen is a CR.
+
+      In_Buf : PolyORB.Buffers.Buffer_Access;
+      Data_Received : Ada.Streams.Stream_Element_Count;
+      --  Data received in In_Buf and not processed yet
+      --  (reset when changing states).
+
+      --  Protocol parameters
+
+      Version : HTTP_Version;
+      Request_Method : PolyORB.HTTP_Methods.Method;
+      Request_URI : PolyORB.Types.String;
+      Status : Natural;
    end record;
 
    function Handle_Message
