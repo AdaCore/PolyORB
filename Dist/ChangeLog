@@ -1,3 +1,8 @@
+Tue Oct 22 10:24:14 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Changed gnatmake into ${GNATMAKE} to allow gnatmake
+	  redefinition (for example: make GNATMAKE="gnatmake -j2")
+
 Fri Oct 18 14:09:23 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe.ads, xe_stubs.adb, xe_back.adb, xe_parse.adb: Add pragma
