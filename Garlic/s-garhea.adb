@@ -115,6 +115,9 @@ package body System.Garlic.Heart is
    Is_Boot : Boolean;
    --  Set to True if we are on the boot partition.
 
+   Opcode_Size : Ada.Streams.Stream_Element_Count;
+   --  Set in 'Initialize': length of result of an 'Opcode'Write'.
+      
    type Partition_Data is record
       Location : Physical_Location.Location;
       Known    : Boolean := False;
@@ -566,12 +569,19 @@ package body System.Garlic.Heart is
      (Partition : in Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array)
    is
-      Params       : aliased Params_Stream_Type (Data'Length);
-      Operation    : Opcode;
+      use type Ada.Streams.Stream_Element_Count;
+      
+      Operation : Opcode;
 
    begin
-      To_Params_Stream_Type (Data, Params'Access);
-      Opcode'Read (Params'Access, Operation);
+      declare
+         Params : aliased Params_Stream_Type (Opcode_Size);
+      begin
+         To_Params_Stream_Type
+            (Data (Data'First .. Data'First + Opcode_Size - 1),
+             Params'Access);
+         Opcode'Read (Params'Access, Operation);
+      end;
       if not Operation'Valid then
          pragma Debug
            (D (D_Debug, "Received unknown opcode"));
@@ -583,9 +593,11 @@ package body System.Garlic.Heart is
             " from partition" & Partition_ID'Image (Partition)));
 
       declare
-         Filtered_Data : Ada.Streams.Stream_Element_Array
-           := Filter_Incoming (Partition, Operation, Data);
-         Filtered_Params : aliased Params_Stream_Type (0);
+         Filtered_Data   : Ada.Streams.Stream_Element_Array
+           := Filter_Incoming
+                (Partition, Operation,
+                 Data (Data'First + Opcode_Size .. Data'Last));
+         Filtered_Params : aliased Params_Stream_Type (Filtered_Data'Length);
       begin
          To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
          if Operation in Internal_Opcode then
@@ -598,6 +610,23 @@ package body System.Garlic.Heart is
          end if;
       end;
    end Has_Arrived;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+      Stream : aliased Params_Stream_Type (32);
+      --  Some size that certainly is enough.
+   begin
+      Opcode'Write (Stream'Access, Opcode'Last);
+      declare
+         Buffer : Ada.Streams.Stream_Element_Array
+           := To_Stream_Element_Array (Stream'Access);
+      begin
+         Opcode_Size := Buffer'Length;
+      end;
+   end Initialize;
 
    -----------------------
    -- Is_Boot_Partition --
@@ -892,7 +921,7 @@ package body System.Garlic.Heart is
       Params    : access System.RPC.Params_Stream_Type) is
       Protocol  : constant Protocols.Protocol_Access :=
         Get_Protocol (Partition);
-      Op_Params : aliased Params_Stream_Type (0);
+      Op_Params : aliased Params_Stream_Type (Opcode_Size);
       use type Ada.Streams.Stream_Element_Array;
       use type Ada.Streams.Stream_Element_Offset;
 
@@ -909,12 +938,13 @@ package body System.Garlic.Heart is
          Packet : aliased Ada.Streams.Stream_Element_Array
            := (1 .. Length => 0);
 
-         --  We can't just declare 'Packet' with the correct size here: this
-         --  would make Packet's type a constrained subtype, while the 'Send'
-         --  below expects an access to an unconstrained subtype. Result:
-         --  since the two types do not "statically match" (RM 4.9.1), the
-         --  parameter types are different, and the compiler will issue an
-         --  error message in the call to 'Protocols.Send' below.
+         --  We can't just declare 'Packet' with the correct size here:
+         --  this would make Packet's type a constrained subtype, while
+         --  the 'Send' below expects an access to an unconstrained
+         --  subtype. Result: since the two types do not "statically
+         --  match" (RM 4.9.1), the parameter types are different, and
+         --  the compiler will issue an error message in the call to
+         --  'Protocols.Send' below.
 
       begin
          --  Stuff the opcode (unfiltered) in front of the data.

@@ -91,6 +91,7 @@ begin
 
    --  Phase (2) (see s-garlic.ads)
 
+   System.Garlic.Heart.Initialize;
    System.Garlic.Protocols.Config.Initialize;
 
    declare

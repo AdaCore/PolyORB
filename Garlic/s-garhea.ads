@@ -51,6 +51,9 @@ package System.Garlic.Heart is
    function Get_Boot_Server return System.RPC.Partition_ID;
    --  Return the partition of the boot server.
 
+   procedure Initialize;
+   --  Initialize the package.
+   
    procedure Is_Boot_Partition (Yes : in Boolean);
    --  Called when we are on the boot partition.
 

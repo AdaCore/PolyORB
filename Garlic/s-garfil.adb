@@ -1,12 +1,12 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           LADE COMPONENTS                               --
+--                           GLADE COMPONENTS                               --
 --                                                                          --
 --               S Y S T E M . G A R L I C . F I L T E R S                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$                              --
 --                                                                          --
 --         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -66,11 +66,6 @@ package body System.Garlic.Filters is
    --  this implementation doesn't yet incorporate protocols for
    --  negociating a change of the filter algorithm or even the filter
    --  parameters at run-time.)
-   
-   Opcode_Elems  : Ada.Streams.Stream_Element_Count := 0;
-   --  Initial segment that is to be skipped in filtering incoming data
-   --  (i.e. length of the result of a 'Opcode'Write'). Is initialized
-   --  in (guess where?) 'Filters.Initialize'.
    
    type Filter_Code is (Query_Name,          --  <empty>
                         Tell_Name,           --  Name, Public Params
@@ -852,7 +847,7 @@ package body System.Garlic.Filters is
                Filtered_Data   : Ada.Streams.Stream_Element_Array
                  := Default_Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
-                                           (Filtered_Data'Length);
+                                            (Filtered_Data'Length);
             begin
                To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
                declare
@@ -877,7 +872,7 @@ package body System.Garlic.Filters is
                Filtered_Data   : Ada.Streams.Stream_Element_Array
                  := Filter_Incoming (Partition, Buffer);
                Filtered_Params : aliased Params_Stream_Type
-                                           (Filtered_Data'Length);
+                                            (Filtered_Data'Length);
             begin
                To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
                declare
@@ -958,22 +953,15 @@ package body System.Garlic.Filters is
       pragma Debug (D (D_Debug, "Generic filter incoming"));
       if Do_Filter (Operation) then
          if Operation in Internal_Opcode then
-            return Default_Filter_Incoming
-                     (From_Partition,
-                      Params (Params'First + Opcode_Elems .. Params'Last));
+            return Default_Filter_Incoming (From_Partition, Params);
          elsif Operation in Public_Opcode then
-            return Filter_Incoming
-                     (From_Partition,
-                      Params (Params'First + Opcode_Elems .. Params'Last));
+            return Filter_Incoming (From_Partition, Params);
          else
             raise Constraint_Error;
          end if;
       end if;
-      return Params (Params'First + Opcode_Elems .. Params'Last);
+      return Params;
    end Filter_Incoming;
-
-   --  Only for debugging purposes. (Spec only to shut up GNAT's style
-   --  warning!)
 
    ---------
    -- Dbg --
@@ -981,6 +969,9 @@ package body System.Garlic.Filters is
 
    procedure Dbg (Stream : in Ada.Streams.Stream_Element_Array;
                   Msg    : in String);
+   --  Only for debugging purposes. (Spec only to shut up GNAT's style
+   --  warning!)
+
 
    procedure Dbg (Stream : in Ada.Streams.Stream_Element_Array;
                   Msg    : in String) is
@@ -1030,8 +1021,8 @@ package body System.Garlic.Filters is
    begin
       pragma Debug (D (D_Debug, "Just before filtering..."));
       declare
-         Filtered_Data : aliased Ada.Streams.Stream_Element_Array :=
-            Filter_Outgoing (Method.all, Params, Data);
+         Filtered_Data : aliased Ada.Streams.Stream_Element_Array
+           := Filter_Outgoing (Method.all, Params, Data);
       begin
          pragma Debug (
             Dbg (Filtered_Data,
@@ -1058,12 +1049,12 @@ package body System.Garlic.Filters is
             Dbg (Data,
                  "Data before filtering (INCOMING, " & Msg & ")"));
       declare
-         Filtered_Data : aliased Ada.Streams.Stream_Element_Array :=
-            Filter_Incoming (Method.all, Params, Data);
+         Filtered_Data : aliased Ada.Streams.Stream_Element_Array
+           := Filter_Incoming (Method.all, Params, Data);
       begin
          pragma Debug (
-            Dbg (Filtered_Data,
-                 "Data after filtering (INCOMING, " & Msg & ")"));
+               Dbg (Filtered_Data,
+                    "Data after filtering (INCOMING, " & Msg & ")"));
          return Filtered_Data;
       end;
    end Filter_Data_In;
@@ -1448,18 +1439,6 @@ package body System.Garlic.Filters is
 
    procedure Initialize is
    begin
-      --  Determine 'Opcode_Elems':
-      declare
-         Stream : aliased Params_Stream_Type (0);
-      begin
-         Opcode'Write (Stream'Access, Opcode'Last);
-         declare
-            Buffer : Ada.Streams.Stream_Element_Array
-               := To_Stream_Element_Array (Stream'Access);
-         begin
-            Opcode_Elems := Buffer'Length;
-         end;
-      end;
       --  Register our message handler with Garlic.Heart to receive all
       --  messages of kind 'Filtering'.
       Receive (Filtering, Message_Handler'Access);
