@@ -33,8 +33,6 @@
 
 with CORBA.Impl;
 
-with PolyORB.Smart_Pointers;
-
 package body PolyORB.CORBA_P.ServantLocator is
 
    ------------
@@ -43,11 +41,16 @@ package body PolyORB.CORBA_P.ServantLocator is
 
    procedure Create
      (Self :    out PPT.ServantLocator_Access;
-      SL   : access PortableServer.ServantLocator.Ref'Class) is
+      SL   : access PortableServer.ServantLocator.Ref'Class)
+   is
+      Locator : Object_Ptr := new Object;
+
    begin
       Self := new CORBA_ServantLocator;
+      Locator.SL := SL_Ptr (SL);
 
-      CORBA_ServantLocator (Self.all).SL := SL_Ptr (SL);
+      Set (CORBA_ServantLocator (Self.all),
+           PolyORB.Smart_Pointers.Entity_Ptr (Locator));
    end Create;
 
    -------------------------
@@ -56,9 +59,12 @@ package body PolyORB.CORBA_P.ServantLocator is
 
    function Get_Servant_Manager
      (Self : CORBA_ServantLocator)
-     return PortableServer.ServantLocator.Ref'Class is
+     return PortableServer.ServantLocator.Ref'Class
+   is
+      Locator : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+
    begin
-      return Self.SL.all;
+      return Locator.SL.all;
    end Get_Servant_Manager;
 
    ---------------
@@ -77,13 +83,17 @@ package body PolyORB.CORBA_P.ServantLocator is
 
       CORBA_Servant : PortableServer.Servant;
 
+      Locator : PortableServer.ServantLocator.Ref'Class
+        := PortableServer.ServantLocator.Ref'Class
+        (Get_Servant_Manager (Self.all));
+
    begin
       PortableServer.POA_Forward.Set
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
       PortableServer.ServantLocator.Preinvoke
-        (PortableServer.ServantLocator.Ref'Class (Self.SL.all),
+        (Locator,
          PortableServer.ObjectId (Oid),
          CORBA_POA,
          CORBA.Identifier (Operation),
@@ -111,13 +121,17 @@ package body PolyORB.CORBA_P.ServantLocator is
       CORBA_Servant : constant PortableServer.Servant :=
         PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (The_Servant));
 
+      Locator : PortableServer.ServantLocator.Ref'Class
+        := PortableServer.ServantLocator.Ref'Class
+        (Get_Servant_Manager (Self.all));
+
    begin
       PortableServer.POA_Forward.Set
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
       PortableServer.ServantLocator.Postinvoke
-        (PortableServer.ServantLocator.Ref'Class (Self.SL.all),
+        (Locator,
          PortableServer.ObjectId (Oid),
          CORBA_POA,
          CORBA.Identifier (Operation),
