@@ -75,7 +75,7 @@ begin
 
       loop
          case Getopt ("I: i k p q") is
-            when Ascii.Nul => exit;
+            when ASCII.Nul => exit;
 
             when 'I' =>
                Idl_Fe.Lexer.Add_Argument ("-I");
