@@ -50,6 +50,17 @@ idlac is now quiet by default. The '-v' command line switch can be used
 to make it verbose. The '-q' command line switch is now a no-op and will
 be removed in a future release. (9210)
 
+The runtime configuration parameters that control the references
+to well-known services (naming and interface repository) now support
+corbaloc URIs as a possible notation (in addition to IORs). Consequently,
+they have been renamed as follows:
+  * In section [corba]:
+    naming_ior -> name_service
+    ir_ior     -> ir_service
+  * In section [dsa]:
+    naming_ior -> name_service
+(9160)
+
 * PolyORB 1.2r (released 2004-12-17)
 ====================================
 
@@ -68,6 +79,8 @@ Service (JMS). It supports Publish/Subscribe and Point-to-Point.
 PolyORB neutral core middleware now supports more concurrency
 policies. It implements the No Tasking, Basic, Leader/Followers and
 Half Sync/Half Async design patterns.
+
+Release branched on 2004-12-17. (8922)
 
 * PolyORB 1.1r (released 2004-06-07)
 ====================================
@@ -103,6 +116,8 @@ constraints for the target.
 
 This release should be considered as a stable implementation of
 CORBA middleware over PolyORB.
+
+Release branched on 2003-05-16. (6783)
 
 * PolyORB 0.1 (released 2001-12-04)
 ===================================
