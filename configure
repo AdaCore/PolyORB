@@ -1368,7 +1368,7 @@ else
   if { (eval echo configure:1369: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
     for file in conftest.*; do
       case $file in
-      *.c | *.o | *.obj) ;;
+      *.c | *.C | *.o | *.obj) ;;
       *) ac_cv_exeext=`echo $file | sed -e s/conftest//` ;;
       esac
     done
@@ -2356,7 +2356,7 @@ else
 fi
 done
 
-for ac_hdr in sys/conf.h
+for ac_hdr in sys/conf.h sys/param.h time.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
