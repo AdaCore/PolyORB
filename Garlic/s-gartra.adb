@@ -60,14 +60,16 @@ package body System.Garlic.Trace is
       Partition     : System.RPC.Partition_ID := Null_Partition_ID;
    end record;
 
+   --  Trace file format:
+   --    <PID     (System.RPC.Partition_ID)>   (not for boot partition)
+   --    <Length  (Ada.Streams.Stream_Element_Count)>
+   --    <Entry_1 (Trace_Entry_Type)>
+   --    ...
+   --    <Entry_N (Trace_Entry_Type)>
+
    Trace_File : File_Type;
 
    Last_Trace_Time : Time;
-
-   --  Trace file format:
-   --    <Length (Ada.Streams.Stream_Element_Count)>
-   --    <Trace_Entry (Trace_Entry_Type)>
-   --    ...
 
    procedure Record_Trace
      (Partition : in System.RPC.Partition_ID;
@@ -94,7 +96,7 @@ package body System.Garlic.Trace is
    end Record_Trace;
 
    procedure Deliver_Next_Trace (Last : out Boolean) is
-      Length      : Ada.Streams.Stream_Element_Count;
+      Length : Ada.Streams.Stream_Element_Count;
    begin
       if End_Of_File (Trace_File) then
          Last := True;
@@ -178,22 +180,19 @@ package body System.Garlic.Trace is
    end Initialize;
 
    procedure Save_Partition_ID (Partition : in System.RPC.Partition_ID) is
-      File_Name : String := Command_Name & ".pid";
-      File : File_Type;
    begin
-      Create (File => File, Mode => Out_File, Name => File_Name);
-      System.RPC.Partition_ID'Write (Stream (File), Partition);
-      Close (File);
+      --  The partition ID is the first thing written to the
+      --  trace file (not for the boot partition though).
+      --  We can be sure of this since the partition has to have
+      --  an ID before any message reception can take place.
+
+      System.RPC.Partition_ID'Write (Stream (Trace_File), Partition);
    end Save_Partition_ID;
 
    function Load_Partition_ID return System.RPC.Partition_ID is
-      File_Name : String := Command_Name & ".pid";
-      File : File_Type;
       Partition : System.RPC.Partition_ID;
    begin
-      Open (File => File, Mode => In_File, Name => File_Name);
-      System.RPC.Partition_ID'Read (Stream (File), Partition);
-      Close (File);
+      System.RPC.Partition_ID'Read (Stream (Trace_File), Partition);
       pragma Debug (D (D_Debug, "Loaded partition ID is" & Partition'Img));
       return Partition;
    end Load_Partition_ID;

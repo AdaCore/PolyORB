@@ -53,12 +53,10 @@ package System.Garlic.Trace is
    --  Initialize trace/replay stuff.
 
    procedure Save_Partition_ID (Partition : in System.RPC.Partition_ID);
-   --  Save our partition ID to a file named ''Command_Name & ".pid"''
-   --  N.B. This is ugly -- too many files -- it'd be nice save the
-   --  partition ID in the trace file instead.
+   --  Save our partition ID to the trace file.
 
    function Load_Partition_ID return System.RPC.Partition_ID;
-   --  Load and return partition ID from the above mentioned file.
+   --  Load and return the partition ID from the trace file.
 
    function Get_Current_Execution_Mode return Heart.Execution_Mode_Type;
    --  So we won't have to rescan the argument list every time we need
