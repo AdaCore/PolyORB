@@ -42,9 +42,14 @@ package System.Garlic.Priorities is
    --  All the priorities are defined as if the application's main program
    --  was using System.Default_Priority as the base priority.
 
-   Master_Termination_Priority : constant Priority := Priority'First;
+   Background_Creation_Priority : constant Priority := Priority'First;
+   --  Priority at which background task creation will occur.
+
+   Master_Termination_Priority : constant Priority := Priority'First + 1;
    --  The main termination algorithm needs to run only when no other
-   --  task is running and so runs at the lowest priority.
+   --  task is running and so runs at the lowest priority plus one
+   --  (the background creation task does not need to run if the termination
+   --  is detected).
 
    RPC_Priority : constant Priority := Priority'Last;
    --  The RPC may be considered as an internal mechanism which will take

@@ -38,6 +38,8 @@ with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
+with System.Garlic.Priorities;   use System.Garlic.Priorities;
+with System.Garlic.Termination;  use System.Garlic.Termination;
 
 package body System.RPC.Pool is
 
@@ -100,6 +102,8 @@ package body System.RPC.Pool is
                      The_Id           : in Request_Id;
                      The_Params       : in Params_Stream_Access;
                      The_Asynchronous : in Boolean);
+      entry Shutdown;
+      pragma Priority (Default_Priority);
       pragma Storage_Size (300_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
@@ -112,6 +116,9 @@ package body System.RPC.Pool is
    --  Since it is impossible for a task to get a pointer on itself, it
    --  is transmitted through this structure. Moreover, this allows to
    --  handle a list of free tasks very easily.
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Task_Identifier, Task_Identifier_Access);
 
    function Create_New_Task return Task_Identifier_Access;
    --  Create a new task.
@@ -158,6 +165,12 @@ package body System.RPC.Pool is
       Total_Tasks_Count    : Natural := 0;
    end Free_Tasks;
 
+   task Background_Creation is
+      pragma Priority (Background_Creation_Priority);
+   end Background_Creation;
+   --  This task will have a low priority and create tasks in the background
+   --  when they are needed.
+
    ----------------
    -- Abort_Task --
    ----------------
@@ -203,6 +216,7 @@ package body System.RPC.Pool is
       Params       : Params_Stream_Access;
       Asynchronous : Boolean;
       Self         : Task_Identifier_Access;
+      Aborted      : Boolean := False;
 
       use Ada.Exceptions;
    begin
@@ -229,8 +243,13 @@ package body System.RPC.Pool is
                Asynchronous := The_Asynchronous;
             end Set_Job;
          or
+            accept Shutdown do
+               Aborted := True;
+            end Shutdown;
+         or
             terminate;
          end select;
+         exit when Aborted;
          Result    := new Params_Stream_Type (0);
          Cancelled := False;
          Task_Manager.Get_One;
@@ -304,6 +323,7 @@ package body System.RPC.Pool is
             end if;
          end;
       end loop;
+      Free (Self);
       pragma Debug (D (D_Debug, "Anonymous task finishing"));
 
    exception
@@ -313,6 +333,28 @@ package body System.RPC.Pool is
          null;
 
    end Anonymous_Task;
+
+   -------------------------
+   -- Background_Creation --
+   -------------------------
+
+   task body Background_Creation is
+      Shutdown_In_Progress : Boolean;
+      Accepted             : Boolean;
+      Identifier           : Task_Identifier_Access;
+   begin
+      Add_Non_Terminating_Task;
+      loop
+         Free_Tasks.Wait (Shutdown_In_Progress);
+         exit when Shutdown_In_Progress;
+         Identifier := Create_New_Task;
+         Free_Tasks.Queue (Identifier, Accepted);
+         if not Accepted then
+            Identifier.Task_Pointer.Shutdown;
+         end if;
+      end loop;
+      Sub_Non_Terminating_Task;
+   end Background_Creation;
 
    ---------------------
    -- Create_New_Task --

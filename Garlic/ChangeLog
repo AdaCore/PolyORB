@@ -1,7 +1,9 @@
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-rpcpoo.adb: Added task pool. No pre-allocation at this time,
-	  but reuse of tasks and destruction in case of too many tasks.
+	* s-garpri.ads: Added background creation priority.
+
+	* s-rpcpoo.adb: Added task pool. Low-priority background
+	  pre-allocation, reuse of tasks and destruction are implemented.
 
 	* s-rpc.adb: Enclose two potentially blocking operations with
 	  pragma Warnings to avoid warning.
