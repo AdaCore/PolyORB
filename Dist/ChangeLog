@@ -1,3 +1,7 @@
+Fri Nov 29 16:13:41 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_parse.adb: Incorrect Cut/Paste.
+
 Fri Nov 29 12:40:47 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe.ads, xe.adb, xe_parse.adb, xe_stubs.adb, xe_back.adb: Add a

@@ -1621,6 +1621,20 @@ package body XE_Parse is
          Null_Location,
          Variable_Node);
 
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, 1);
+
+      Declare_Variable
+        (Configuration_Node,
+         Str_To_Id ("false"),
+         Boolean_Type_Node,
+         Unique,
+         Null_Location,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Variable_Mark (Variable_Node, 0);
+
       --  type string (standard)
 
       Declare_Type
@@ -1775,19 +1789,6 @@ package body XE_Parse is
 
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, Convert (None_Starter));
-
-      --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, 1);
-
-      Declare_Variable
-        (Configuration_Node,
-         Str_To_Id ("false"),
-         Boolean_Type_Node,
-         Unique,
-         Null_Location,
-         Variable_Node);
-      --  To easily retrieve the enumeration literal.
-      Set_Variable_Mark (Variable_Node, 0);
 
 
       --  type Convention_Type is (Ada, Shell); (standard)
