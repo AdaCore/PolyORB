@@ -48,7 +48,7 @@ package System.Garlic.TCP is
    procedure Set_Boot_Data
      (Protocol         : access TCP_Protocol;
       Is_Boot_Protocol : in Boolean := False;
-      Boot_Data        : in String := "";
+      Boot_Data        : in String  := "";
       Is_Master        : in Boolean := False);
 
    function Get_Info (P : access TCP_Protocol) return String;
