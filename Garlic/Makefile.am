@@ -234,12 +234,12 @@ inlining: all-local
 	          if test $$? = 0; then\
 	             echo $$o >>gnatlib/rebuild;\
 	          else\
+	             ${RM} gnatlib/tocheck;\
 	             break;\
 	          fi;\
 	      fi;\
 	   done;\
-	   diff -q gnatlib/tocheck gnatlib/rebuild;\
-	   if test $$? = 0; then\
+	   if test -f gnatlib/tocheck; then\
 	      echo yes >inlining;\
 	   fi;\
 	fi
