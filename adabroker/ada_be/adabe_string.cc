@@ -4,6 +4,18 @@
 IMPL_NARROW_METHODS1(adabe_string, AST_String);
 IMPL_NARROW_FROM_DECL(adabe_string);
 
+
+adabe_string::adabe_string(AST_Expression *v):
+  AST_String(v),
+  adabe_name()
+{
+}
+adabe_string::adabe_string(AST_Expression *v, long wide):
+  AST_String(v,wide),
+  adabe_name()
+{
+}
+
 void adabe_string::produce_ads (dep_list with,string &String, string &previousdefinition) {
     compute_ada_name();
     string is_bouded;

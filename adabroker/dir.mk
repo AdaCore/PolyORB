@@ -28,7 +28,7 @@ OBJ_LIBS += \
 	   common_be/$(patsubst %,$(LibPattern),common_be)\
            fe/$(patsubst %,$(LibPattern),fe) \
            util/$(patsubst %,$(LibPattern),util) \
-           narrow/$(patsubst %,$(LibPattern),narrow)
+           narrow/$(patsubst %,$(LibPattern),narrow)\
 	   ada_be/$(patsubst %,$(LibPattern),ada_be)
 
 LIBS += $(OBJ_LIBS)
