@@ -64,8 +64,8 @@ procedure B_XE_Defs is
      Table_Increment      => 100,
      Table_Name           => "XE.Linker_Switches");
 
-   type Mode_Type is (Compiler, Binder, Linker);
-   Mode : Mode_Type := Compiler;
+   type Mode_Type is (None, Compiler, Binder, Linker);
+   Mode : Mode_Type := None;
 
    --  Store the flags once parsed
    RSH_CMD           : String_Access;
@@ -195,6 +195,14 @@ begin
 
          elsif Match (A, "Windows/NT") then
             Windows_NT := True;
+
+         elsif Mode = None then
+            Compiler_Switches.Append (new String'(A));
+            if A'Length > 2
+              and then A (A'First .. A'First + 1) = "-I"
+            then
+               Binder_Switches.Append (new String'(A));
+            end if;
 
          elsif Mode = Compiler then
             Compiler_Switches.Append (new String'(A));
