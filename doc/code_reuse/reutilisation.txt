@@ -1,0 +1,314 @@
+
+     -=  Poids des differentes parties de code presentes dans PolyORB. =-
+
+
+Fait le 28/11/2002, version presente dans le depot a ce jour.
+
+
+A. Resultat de sloccount :
+--------------------------
+
+SLOC    Directory       SLOC-by-Language (Sorted)
+24321   top_dir         ada=24321
+4239    moma            ada=4239
+4110    soap            ada=4027,sh=83
+3819    corba           ada=3819
+3102    giop            ada=3102
+1841    srp             ada=1841
+1034    dsa             ada=1034
+
+Totals grouped by language (dominant language first):
+ada:          42383 (99.80%)
+sh:              83 (0.20%)
+
+et puisque sloccount fournit aussi ce genre d information ;) :
+
+Total Physical Source Lines of Code (SLOC)                = 42,466
+Development Effort Estimate, Person-Years (Person-Months) = 10.24 (122.93)
+Schedule Estimate, Years (Months)                         = 1.30 (15.56)
+Estimated Average Number of Developers (Effort/Schedule)  = 7.90
+Total Estimated Cost to Develop                           = $ 1,383,837
+
+SLOCCount is Open Source Software/Free Software, licensed under the FSF GPL.
+Please credit this data as "generated using 'SLOCCount' by David A. Wheeler.
+
+Cette mesure est a comparer aux 82317 lignes de code effectivement
+contenues et 26548 lignes de commentaires et 13303 lignes vides !  (a
+noter qu'il faudrait affiner la mesure et compter comme 1 les
+expressions ecrites sur plusieurs lignes pour raison de style de code)
+
+B. Cout de chacune des personnalites :
+--------------------------------------
+
+I) Personnalites protocolaires :
+
+ * GIOP :
+ --------
+  
+Personnalite monolithique, comportant GIOP 1.0, 1.1 et 1.2.
+
+ service 'protocol'       : 4250, 2592 sloc
+ service 'binding'        :  556,  361 sloc
+ service 'representation' : 3126, 2286 sloc 
+
+total :                     7932, 5329 sloc
+
+note : 
+
+Le service 'representation' est actuellement present dans la couche
+neutre pour assurer la representation des references d'objets
+echangees par les differents noeuds de l 'applicaition. Dans
+l'absolureferences rien n interdit de proceder autrement. Il s'agit la
+d'un choix de conception qui peut etre modifie independamment de la
+perso GIOP.
+
+ * SOAP :
+ --------
+
+Personnalite monolithique, comportant SOAP ver. ?
+
+ service 'protocol'       : 2507, 1380 sloc
+ service 'binding'        :  579,  361 sloc
+ service 'representation' : 5479, 2503 sloc
+
+total :                     8565, 4244 sloc
+
+note : 
+
+Le service protocole a ete identifie comme etant presents dans les
+fichiers *buffer*.ad? *http*.ad? *proto*.ad?, il faudra surement
+raffiner la mesure.
+
+ * SRP :
+ -------
+
+Personnalite protocolaire dediee a PolyORB.
+
+ service 'protocol'       :  596,  309 sloc
+ service 'binding'        :  249,  145 sloc
+ service 'representation' : 2685, 1212 sloc
+ commun a 'protocol' &    :  282,  127 sloc
+  representation
+
+total :                     3812, 1793 sloc
+
+II) Personnalites applicatives :
+
+Pour chacun de ces personnalites, il faut distingueur deux ensembles:
+d'une part la partie qui sera systematiquement inclue lors de la
+construction de l'application, car elle fournit un service la liant a
+la couche neutre (gestion des exceptions par exemples); d'autre part
+la partie de la personnalité protocolaire qui sera inclue par
+l'utilisateur lors de la construction de l'application en utilisant
+telle ou telle partie de l'API.
+
+ * CORBA :
+ ---------
+
+ API CORBA (sans les COS) : 7117, 3449 sloc
+ CORBA/PolyORB            :  855,  370 sloc
+
+note :
+
+L'API CORBA est incomplete et necessite l'ajout de nombreux éléments,
+son poids augmentera donc considérablement.
+
+ * MOMA :
+ --------
+
+ API MOMA                 : 9017, 4239 sloc
+
+note :
+
+Une refonte de l'API est prevue, visant a factoriser certaines
+structures proches, parrallelement de nouvelles fonctions seront
+rajoutees.
+
+ * DSA :
+ -------
+
+ DSA/PolyORB              : 1824, 1034 sloc
+
+comment inclure la generation de code dans ces mesures ?
+
+III) La couche neutre :
+
+ 'Tout'                   : 46009, 24321 sloc
+
+La couche neutre comporte de nombreux elements, qu'il faut separer.
+On peut citer
+
+ - Runtime tasking :
+   - specifique au mode 'full tasking' : 1182,  551 sloc
+   - specifique au mode 'ravenscar'    : 2370, 1114 sloc
+   - specifique au mode 'no tasking'   :  917,  388 sloc
+
+ - Politique de taches de l'ORB :
+   - politique 'Thread_Pool'           :  356,  187 sloc
+   - politique 'Thread_Per_Request'    :  321,  165 sloc  
+   - politique 'Thread_Per_Session'    :  510,  308 sloc
+   - politique 'No_Tasking'            :  267,  125 sloc
+
+ - Adaptateur d'objets :
+   - SOA                               :  496,  295 sloc
+   - POA                               : 6304, 3212 sloc
+
+ - Fichiers de setup pour les          :  761,  194 sloc
+    differentes configuration
+
+total :                                 13484, 6559 sloc
+
+Soit, 1/4 de la couche neutre est consacree a differentes
+implementations d'une meme fonctionnalite, proposant qqs points de
+configuration 'a gros grains'.
+
+Sur les 3/4 restants, on peut citer
+
+ packages necessaires au bon fonctionnement de l'ORB:
+ - polyorb-utils*                      : 3158, 1568 sloc
+ - polyorb-tasking-* 'generiques'      : 2026,  752 sloc 
+ - initialization+configuration        :  865,  472 sloc
+ - polyorb-types                       :  258,  127 sloc
+ - polyorb-constants                   :   47,    6 sloc
+ - polyorb-log                         :  247,   94 sloc
+ - polyorb-storage_pools               :   44,    4 sloc
+ - polyorb-dynamic_dict	               :  200,   77 sloc
+ - polyorb-seq*                        : 3787, 2255 sloc
+
+total :                                 10632, 5535 sloc
+
+ patterns:
+ - annotation+components+interface     : 3304,  814 sloc
+    + smart_pointers ( a recalculer)
+
+ 'fossiles' (representation-test       :  602,  318 sloc
+   protocole echo)
+
+ sous-systeme de communication socket  :  626,  319 sloc
+
+ perso minimale                        :  379,  150 sloc
+
+Donc au total 15543, 7136 sloc sont consacrees a un ensembles de patterns
+et packages utilitaires pour construire la couche neutre.
+
+La couche neutre a proprement parler represente au final 15602 lignes
+de code, 8755 sloc ...
+
+la couche neutre se limite au packages suivants, que l on peut diviser
+en trois categories:
+
+'generiques'
+
+	polyorb-any
+	polyorb-any-exceptionlist
+	polyorb-any-nvlist
+	polyorb-any-objref
+	polyorb-asynch_ev
+	polyorb-binding_data
+	polyorb-binding_data-local
+	polyorb-buffers
+	polyorb-exceptions
+	polyorb-exceptions-stack
+	polyorb-filters
+	polyorb-filters-slicers
+	polyorb-if_descriptors
+	polyorb-jobs
+	polyorb-objects
+	polyorb-opaque
+	polyorb-opaque-chunk_pools
+	polyorb-orb
+	polyorb-protocols
+	polyorb-references
+	polyorb-references-binding
+	polyorb-references-ior
+	polyorb-representations
+	polyorb-requests
+	polyorb-task_info
+	polyorb-transport
+
+specifiques a un role 'client':  211, 86 sloc
+
+	polyorb-call_back
+
+
+specifiques a un role 'serveur': 846, 397 sloc
+
+	polyorb-obj_adapters
+	polyorb-object_maps
+	polyorb-servants
+
+point interessant, au niveau de la couche neutre la distinction entre
+client et serveur est minimale. Ils mettent en oeuvre peu de
+structures differentes. Il ne faut pas perdre de vue que l'implem
+complete d'une de ces structures (le POA par exemple) modifie de
+beaucoup ce resultat, cf la partie 'configuration' de l'ORB, ainsi que
+les packages utilitaires utilises par ces differentes mises en
+oeuvre.
+
+
+C. Exemples d'utilisation de code. 
+----------------------------------
+
+Voici qq mesures presentant le nombre de lignes de code utilisees,
+sans prendre en compte la ou les perso protocolaires.
+
+* examples/corba/all_types/client,
+client CORBA : pas d'OA, ORB sans tasking
+
+total (approx.) : 26993, 14039 sloc dont 4486, 2412 sloc propres a
+ CORBA, soit 84% des lignes (83% des slocs) de code prises dans la couche
+ neutre.
+
+* examples/corba/all_functions/server,
+serveur CORBA : POA, ORB thread_pool, full tasking
+
+total (approx.) : 31138, 16288, dont 4970, 2569 sloc propre a CORBA,
+soit 85% des lignes (85% de sloc) de code pris dans la couche neutre.
+
+Ce resultat est a temperer, l'API du POA cote CORBA est encore
+incomplete, de plus on utilise peu de fonctionnalites du POA.
+
+* examples/moma/client,
+client MOMA (exemple plus significatif qu'un message pool dans l etat
+actuel du code) : SOA, ORB sans tasking
+
+total (approx.) : 27885, 13655 sloc dont 5512, 2294 sloc propres a MOMA
+ soit 81% des lignes (84% des slocs) pris dans la couche neutre.
+
+Conclusion :
+
+15% slt de code specifique a la perso applicative sur quelques
+exemples _basiques_, ie qui ne mettent pas en oeuvre de
+fonctionnalités avancées de l'intergiciel. La couche neutre remplit
+son role d'abstraction commune ;)
+
+Rajouter une perso protocolaire se fait a coup fixe, celles ci etant
+monolithiques.
+
+Dans le cas de GIOP, cela revient a rajouter 7932, 5329 sloc, la
+reutilisation de code tombe,
+
+                                         neutre    CORBA   GIOP   total
+* examples/corba/all_types/client :       22507     4486   7932   34925
+                                           64.4%    12.8%  22.7%
+
+* examples/corba/all_functions/server :   26168     4970   7932   39070
+                                           66.9%    12.7%  20.3%
+
+* exemples/moma/client :                  22373     5512   7932   35817
+                                           62.4%    15.3%  22.1%
+
+On remarque que la perso. protocolaire a en general un coup fixe non
+negligeable, du essentiellement au code 'au kilimetre' necessaire pour
+traiter tous les cas.
+
+
+D. Figure avec dot.
+-------------------
+
+Une vue simplifiee de la couche neutre peut etre obtenue en se restreignant 
+aux packages suivants (suppression des packages utiliataires et correspondant
+a des elements configurable)
+
+ ls *.ali | grep -v polyorb-orb-n | grep -v polyorb-orb-t | grep -v profiles | grep -v obj_adapters-simple | grep -v poa | grep -v polyorb-setup | grep -v polyorb.ali |grep -v polyorb-utils.ali | grep -v polyorb-tasking.ali | grep -v polyorb-sequences.ali | grep -v polyorb-log | grep -v utils | grep -v interface | grep -v compo | grep -v anno |grep -v polyorb-types | grep -v config | grep -v initiali | grep -v test | grep -v echo | grep -v smart |grep -v const |grep -v cdr |grep -v minimal | grep -v sto | grep -v dict | grep -v seq | grep -v sock |grep -v tasking 
+
