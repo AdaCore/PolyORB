@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -378,7 +378,7 @@ package body XE_Utils is
 
    procedure Dwrite_Call
      (File   : in File_Descriptor;
-      Ind    : in Int;
+      Ind    : in Natural;
       S1     : in String;
       N1     : in Name_Id := No_Name;
       S2     : in String  := No_Str;
@@ -386,17 +386,25 @@ package body XE_Utils is
       S3     : in String  := No_Str;
       N3     : in Name_Id := No_Name)
    is
-      Id   : Integer := 0;
+      Param  : Integer := 0;
 
-      procedure Dwrite_Separator (New_Id : Boolean);
-      procedure Dwrite_Separator (New_Id : Boolean) is
+      procedure Dwrite_Separator (New_Param : Boolean);
+      procedure Dwrite_Separator (New_Param : Boolean) is
       begin
-         if New_Id then
-            Id := Id + 1;
-            if Id = 2 then
-               Dwrite_Str (File, " (");
-            elsif Id > 2 then
-               Dwrite_Str (File, ", ");
+         if New_Param then
+            Param := Param + 1;
+            if Param = 2 then
+               Dwrite_Eol (File);
+               for I in 1 .. Ind loop
+                  Dwrite_Str (File, "   ");
+               end loop;
+               Dwrite_Str (File, "  (");
+            elsif Param > 2 then
+               Dwrite_Str (File, ",");
+               Dwrite_Eol (File);
+               for I in 1 .. Ind + 1 loop
+                  Dwrite_Str (File, "   ");
+               end loop;
             end if;
          end if;
       end Dwrite_Separator;
@@ -406,19 +414,19 @@ package body XE_Utils is
          Dwrite_Str (File, "   ");
       end loop;
       Dwrite_Separator (S1 /= No_Str);
-      Dwrite_Str  (File, S1);
+      Dwrite_Str       (File, S1);
       Dwrite_Separator (N1 /= No_Name);
-      Dwrite_Name (File, N1);
+      Dwrite_Name      (File, Split_String (N1, Ind + 1));
       Dwrite_Separator (S2 /= No_Str);
-      Dwrite_Str  (File, S2);
+      Dwrite_Name      (File, Split_String (Str_To_Id (S2), Ind + 1));
       Dwrite_Separator (N2 /= No_Name);
-      Dwrite_Name (File, N2);
+      Dwrite_Name      (File, Split_String (N2, Ind + 1));
       Dwrite_Separator (S3 /= No_Str);
-      Dwrite_Str  (File, S3);
+      Dwrite_Name      (File, Split_String (Str_To_Id (S3), Ind + 1));
       Dwrite_Separator (N3 /= No_Name);
-      Dwrite_Name (File, N3);
-      pragma Assert (Id /= 0);
-      if Id /= 1 then
+      Dwrite_Name      (File, Split_String (N3, Ind + 1));
+      pragma Assert (Param /= 0);
+      if Param /= 1 then
          Dwrite_Str (File, ")");
       end if;
       Dwrite_Str (File, ";");
@@ -1105,37 +1113,14 @@ package body XE_Utils is
    -----------
 
    function Quote
-     (N : Name_Id;
-      I : Natural  := 0;
-      S : Positive := 48)
+     (N : Name_Id)
      return Name_Id
    is
-      F : Natural;
-      L : Natural;
-
    begin
       Name_Len := 0;
       Add_Char_To_Name_Buffer ('"'); -- "
       if N /= No_Name then
          Get_Name_String_And_Append (N);
-         F := 2;
-         L := Name_Len;
-         for T in 1 .. (Name_Len - 1) / S loop
-            F := F + S;
-            Name_Buffer (F + 5 + 3 * I .. L + 5 + 3 * I)
-              := Name_Buffer (F .. L);
-            Name_Buffer (F)     := '"'; -- "
-            Name_Buffer (F + 1) := ' ';
-            Name_Buffer (F + 2) := '&';
-            Name_Buffer (F + 3) := ASCII.LF;
-            for J in 0 .. I - 1 loop
-               Name_Buffer (F + 4 + 3 * J .. F + 4 + 3 * (J + 1)) := "   ";
-            end loop;
-            Name_Buffer (F + 4 + 3 * I) := '"'; -- "
-            F := F + 5 + 3 * I;
-            L := L + 5 + 3 * I;
-         end loop;
-         Name_Len := L;
       end if;
       Add_Char_To_Name_Buffer ('"'); -- "
       return Name_Find;
@@ -1180,6 +1165,47 @@ package body XE_Utils is
       Message ("no source file for unit", Quote (U_To_N (Uname)));
       raise Compilation_Failed;
    end Source_File_Error;
+
+   ------------------
+   -- Split_String --
+   ------------------
+
+   function Split_String
+     (N : Name_Id;
+      I : Natural  := 0;
+      S : Positive := 64)
+     return Name_Id
+   is
+      F : Natural;
+      L : Natural;
+
+   begin
+      if N = No_Name then
+         return N;
+      end if;
+      Get_Name_String (N);
+      if Name_Buffer (1) /= '"' then --  "
+         return N;
+      end if;
+      F := 2;
+      L := Name_Len;
+      for T in 1 .. (Name_Len - 1) / S loop
+         F := F + S;
+         Name_Buffer (F + 5 + 3 * I .. L + 5 + 3 * I) := Name_Buffer (F .. L);
+         Name_Buffer (F)     := '"'; -- "
+         Name_Buffer (F + 1) := ' ';
+         Name_Buffer (F + 2) := '&';
+         Name_Buffer (F + 3) := ASCII.LF;
+         for J in 0 .. I - 1 loop
+            Name_Buffer (F + 4 + 3 * J .. F + 4 + 3 * (J + 1)) := "   ";
+         end loop;
+         Name_Buffer (F + 4 + 3 * I) := '"'; -- "
+         F := F + 5 + 3 * I;
+         L := L + 5 + 3 * I;
+      end loop;
+      Name_Len := L;
+      return Name_Find;
+   end Split_String;
 
    -----------
    -- Stamp --
