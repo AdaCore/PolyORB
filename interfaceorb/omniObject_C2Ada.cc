@@ -42,7 +42,7 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
 {
   // calls the omniObject constructor and initialise the pointer
   // on the Ada_OmniObject Ada_OmniObject_Pointer ;
-  Ada_OmniObject_Pointer = Ada_Ptr;  
+  Ada_OmniObject_Pointer = Ada_Ptr;
 };
 
 

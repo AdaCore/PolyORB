@@ -35,17 +35,27 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-   type Object is abstract tagged record
+   type AdaObject is tagged private ;
+
+private
+
+
+   type AdaObject_Ptr is access all AdaObject ;
+  --------------------------------------------------
+   ---              Object is the                 ---
+   ---        equivalent of the C++ class         ---
+   --------------------------------------------------
+
+   type Object is tagged limited record
       Table : Interfaces.CPP.Vtable_Ptr ;
+      Adaobj : AdaObject_Ptr ;
    end record ;
+
+   type Object_Ptr is access all Object ;
 
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,1);
    -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
-
-   type Object_Access is access Object ;
-   -- just to give a name to pointers on Object
-
 
    procedure C_Init (Self : in out Object'Class ;
                      Manager : in System.Address) ;
@@ -168,14 +178,38 @@ package OmniObject is
    -- No Ada equivalent since there is no arguments
 
 
-private
+
+--private
 
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
    -- wrapped around the C constructor of Ada_OmniObject
 
+
+
+   --------------------------------------------------
+   ---        Adaobject is the root of            ---
+   --- Corba.Object.Ref and Corba.Object.Object   ---
+   --------------------------------------------------
+
+   type AdaObject is new Ada.Finalization.Controlled with record
+      Omniobj : Object_Ptr ;
+   end record ;
+
+
+   procedure Initialize(Self : in out AdaObject) ;
+   procedure Adjust(Self : in out AdaObject) ;
+   procedure Finalize(Self : in out AdaObject) ;
+
+
+
+
+
 end OmniObject ;
+
+
+
 
 
 

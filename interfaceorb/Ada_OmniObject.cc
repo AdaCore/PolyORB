@@ -124,3 +124,7 @@ extern _CORBA_Boolean dispatch(GIOP_S &,
 			       _CORBA_Boolean response_expected);
 // See implementation in omniobject.adb
   
+omniObject_C2Ada *
+Ada_OmniObject::getOmniObject() {
+  return C_OmniObject ;
+}

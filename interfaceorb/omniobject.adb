@@ -27,6 +27,11 @@ with System.Address_To_Access_Conversions ;
 
 package body OmniObject is
 
+   --------------------------------------------------
+   ---              Object is the                 ---
+   ---        equivalent of the C++ class         ---
+   --------------------------------------------------
+
    -- Init
    -------
    procedure Init (Self : in out Object'Class ;
@@ -70,7 +75,7 @@ package body OmniObject is
       C_R := R'Address ;
       C_Key := Key'Address ;
       C_Keysize := Ada_To_C_Unsigned_Long(Keysize) ;
-      C_Profiles := Profiles'Address ;
+      C_Profiles := System.Address(Profiles) ;
       C_Release := Sys_Dep.Boolean_Ada_To_C (Release) ;
       -- ... and calls the C procedure
       C_Init2 (Self,
@@ -184,6 +189,35 @@ package body OmniObject is
    begin
       return False ;
    end;
+
+
+   --------------------------------------------------
+   ---        Adaobject is the root of            ---
+   --- Corba.Object.Ref and Corba.Object.Object   ---
+   --------------------------------------------------
+
+   -- Initialize
+   -------------
+   procedure Initialize(Self : in out AdaObject) is
+   begin
+      Self.Omniobj := null ;
+   end ;
+
+
+   -- Adjust
+   ---------
+   procedure Adjust(Self : in out AdaObject) is
+   begin
+      null ;
+   end ;
+
+
+   -- Finalize
+   -----------
+   procedure Finalize(Self : in out AdaObject) is
+   begin
+      null ;
+   end ;
 
 
 end OmniObject ;

@@ -69,10 +69,13 @@ public:
   // Ada Objects. The implementation is made in Ada.
   // (see omniobject.adb)
   
-
+  
+  omniObject_C2Ada *getOmniObject() ;
+  // returns the underlying omniObject_C2Ada
+  
 private:
   omniObject_C2Ada *C_OmniObject;
-  // Pointer on the underlining omniObject_C2Ada object
+  // Pointer on the underlying omniObject_C2Ada object
   
   bool Init_Ok;
   // This flag tells if an init function was called or not
