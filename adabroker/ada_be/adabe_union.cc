@@ -113,6 +113,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += "      UnMarshall (Switch,S) ;\n";
   unmarshall += "      declare\n";
   unmarshall += "         Tmp : ";
+  unmarshall += "         begin\n";
   unmarshall += get_ada_local_name ();
   unmarshall += "(Switch) ;\n";
   unmarshall += "      case Switch is\n";
@@ -140,7 +141,8 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 
   marshall += "      end case ;\n";
   marshall += "   end Marshall ;\n\n";
-  unmarshall += "      end case ;\n";
+  unmarshall += "            end case ;\n";
+  unmarshall += "        end\n";
   unmarshall += "   end Unmarshall ;\n\n";
   align_size += "      end case ;\n";
   align_size += "      return Tmp ;\n";

@@ -65,7 +65,7 @@ adabe_union_branch::produce_marshal_adb (dep_list& with,
   marshall += ",S) ;\n";
   
   unmarshall += tmp;
-  unmarshall += "UnMarshall (";
+  unmarshall += "      UnMarshall (";
   unmarshall += get_ada_local_name ();
   unmarshall += ",S) ;\n";
   
