@@ -1,3 +1,8 @@
+2003-11-25  Laurent Pautet  <pautet@enst.fr>
+
+	* s-gardeb.adb: Fix activation of debug output.
+	Fix CB25-003.
+
 2003-11-23  Samuel Tardieu  <sam@rfc1149.net>
 
 	* Makefile.am: Remove duplicate definition of COMPILE macro.
