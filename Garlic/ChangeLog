@@ -1,3 +1,11 @@
+2004-02-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-garter.adb: Serialize the positive termination results in
+	order to ensure that a new incoming result is not processed while
+	the task processing the previous result has not declared itself as
+	non-terminating task.
+	Fix D211-014.
+
 2003-11-25  Laurent Pautet  <pautet@enst.fr>
 
 	* s-gardeb.adb: Fix activation of debug output.
