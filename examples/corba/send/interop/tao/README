@@ -1,0 +1,27 @@
+Test d'interoperabilité avec TAO
+********************************
+
+TAO doit être installé et configuré. Les variables d'environement
+$ACE_ROOT et $TAO_ROOT doivent être réglées. La compilation se fait en
+tapant 'make'.
+
+Utilisation :
+
+Pour créer un serveur : ./listener [-v]
+Le groupe utilisé par le serveur est défini dans le fichier groupURL.
+options :
+-v affiche l'IOR de l'objet, pour les appels two-way.
+
+Pour exécuter un appel CORBA : ./send ior [mode]
+ior est la cible de l'appel, cela peut être un corbaloc ou une IOR
+options : 
+mode = s | l | tws | twl
+s : print string
+l : print long
+tws : two way call, echo string
+twl : two way call, echo long
+
+Problèmes de compatibiltés avec PolyORB :
+Modifier la valuer de Tag_UIPMC dans polyorb-binding_data.ads
+Modifier la valuer de Tag_Group dans giop/polyorb-giop_p-tagged_components.ads
+Les valeurs pour TAO se trouvent dans les fichiers, et sont commentées.
