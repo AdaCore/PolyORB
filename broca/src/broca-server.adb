@@ -48,6 +48,7 @@ with Broca.Parameters;
 with Broca.Stream;
 with Broca.Flags;
 with Broca.ORB;
+with Broca.Object;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);

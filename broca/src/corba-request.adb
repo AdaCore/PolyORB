@@ -31,8 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.Object;
+
 with Broca.GIOP;
-with Broca.Object;
 with Broca.CDR;
 with Broca.Debug;
 
@@ -61,7 +62,10 @@ package body CORBA.Request is
 
    procedure Invoke
      (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0) is
+      Invoke_Flags : in     Flags  := 0)
+   is
+      Target_Ref : CORBA.Object.Ref
+        := CORBA.Object.Ref (CORBA.AbstractBase.Ref'Class (Self.Target));
       Handler : Broca.GIOP.Request_Handler;
       Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
    begin
@@ -70,7 +74,7 @@ package body CORBA.Request is
          --  create the request handler
          Broca.GIOP.Send_Request_Marshall
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
+            Target_Ref,
             True,
             Self.Operation);
 
@@ -83,7 +87,7 @@ package body CORBA.Request is
          --  send the request
          Broca.GIOP.Send_Request_Send
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
+            Target_Ref,
             True,
             Send_Request_Result);
 
@@ -148,11 +152,11 @@ package body CORBA.Request is
       Request   :    out CORBA.Request.Object;
       Req_Flags : in     Flags) is
    begin
-      Request := (Ctx => Ctx,
-                  Target => Self,
+      Request := (Ctx       => Ctx,
+                  Target    => Self,
                   Operation => Operation,
                   Args_List => Arg_List,
-                  Result => Result,
+                  Result    => Result,
                   Req_Flags => Req_Flags);
    end Create_Request;
 

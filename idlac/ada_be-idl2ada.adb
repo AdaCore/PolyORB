@@ -2492,6 +2492,8 @@ package body Ada_Be.Idl2Ada is
       Response_Expected : Boolean;
       Operation_Id_Expr : String) is
    begin
+      PL (CU, T_Self_Ref & " : CORBA.Object.Ref");
+      PL (CU, "  := CORBA.Object.Ref (Self);");
       PL (CU, T_Handler & " : Broca.GIOP.Request_Handler;");
       PL (CU, T_Send_Request_Result & " : "
           & "Broca.GIOP.Send_Request_Result_Type;");
@@ -2500,18 +2502,26 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "begin");
       II (CU);
 
-      PL (CU, "if Is_Nil (Self) then");
+      NL (CU);
+      PL (CU, "--  Invoke the operation on the object.");
+      PL (CU, "--  The invocation may return a Location_Forward");
+      PL (CU, "--  in which case it is retried.");
+      NL (CU);
+      PL (CU, "loop");
+      II (CU);
+      NL (CU);
+      PL (CU, "--  Check whether we are attempting to make a");
+      PL (CU, "--  call on a nil object.");
+      NL (CU);
+      PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
       II (CU);
       PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
       DI (CU);
       PL (CU, "end if;");
       NL (CU);
-      PL (CU, "loop");
-      II (CU);
       PL (CU, "Broca.GIOP.Send_Request_Marshall");
-      PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-      PL (CU, "   (Object_Of (Self)), "
-          & Img (Response_Expected)
+      PL (CU, "  (" & T_Handler & ", " & T_Self_Ref & ",");
+      PL (CU, Img (Response_Expected)
           & ", " & Operation_Id_Expr & ");");
    end Gen_Operation_Body_Prologue;
 
@@ -2523,9 +2533,8 @@ package body Ada_Be.Idl2Ada is
 
       NL (CU);
       PL (CU, "Broca.GIOP.Send_Request_Send");
-      PL (CU, "  (" & T_Handler & ", Broca.Object.Object_Ptr");
-      PL (CU, "   (Object_Of (Self)), "
-          & Img (Response_Expected)
+      PL (CU, "  (" & T_Handler & ", " & T_Self_Ref & ",");
+      PL (CU, Img (Response_Expected)
           & ", " & T_Send_Request_Result & ");");
       PL (CU, "case " & T_Send_Request_Result & " is");
       II (CU);

@@ -35,6 +35,7 @@ with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.CDR;     use Broca.CDR;
 
+with Broca.Names;
 with Broca.Repository;
 with Broca.GIOP;
 with Broca.Exceptions;
@@ -54,12 +55,14 @@ package body CORBA.Object is
       use CORBA;
       use Broca.Repository;
 
+      Self_Ref : Ref := Self;
+
    begin
 
       if
         Is_Equivalent
         (Logical_Type_Id,
-         "IDL:omg.org/CORBA/Object:1.0")
+         Broca.Names.OMG_RepositoryId ("Object"))
       --  Any object Is_A CORBA::Object.
 
         or else
@@ -94,16 +97,14 @@ package body CORBA.Object is
 
          loop
             Broca.GIOP.Send_Request_Marshall
-              (Handler, Broca.Object.Object_Ptr
-               (Object_Of (Self)), True, is_a_Operation);
+              (Handler, Self_Ref, True, is_a_Operation);
 
             Marshall
               (Handler.Buffer'Access,
                Logical_Type_Id);
 
             Broca.GIOP.Send_Request_Send
-              (Handler, Broca.Object.Object_Ptr
-               (Object_Of (Self)), True, Send_Request_Result);
+              (Handler, Self_Ref, True, Send_Request_Result);
 
             case Send_Request_Result is
                when Broca.GIOP.Sr_No_Reply =>
