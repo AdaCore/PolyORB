@@ -78,6 +78,15 @@ package body Ada_Be.Idl2Ada.IR_Info is
    --  Generate the declaration of a Container_Ref corresponding
    --  to the container corresponding to Node's parent scope.
 
+   procedure Gen_IDLType
+     (CU     : in out Compilation_Unit;
+      T_Node : in     Node_Id;
+      D_Node : in     Node_Id);
+   --  Generate an IDLType object reference corresponding
+   --  to the entity declared by declarator D_Node with the type
+   --  denoted by T_Node (note, for arrays T_Node is the element
+   --  type.) If D_Node is No_Node, no array bounds are assumed.
+
    procedure Gen_Parent_Container_Lookup
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
@@ -151,15 +160,15 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for an array declaration
 
-   procedure Gen_Sequence_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the spec of the helper package for a sequence declaration
+--    procedure Gen_Sequence_Spec
+--      (CU        : in out Compilation_Unit;
+--       Node      : in     Node_Id);
+--    --  Generate the spec of the helper package for a sequence declaration
 
-   procedure Gen_Sequence_Body
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id);
-   --  Generate the body of the helper package for a sequence declaration
+--    procedure Gen_Sequence_Body
+--      (CU        : in out Compilation_Unit;
+--       Node      : in     Node_Id);
+--    --  Generate the body of the helper package for a sequence declaration
 
    procedure Gen_Fixed_Spec
      (CU        : in out Compilation_Unit;
@@ -182,6 +191,12 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU   : in out Compilation_Unit;
       Node : in     Node_Id);
    --  Generate code to create a FixedDef IRObject
+   --  (only used in the type_declarator part of gen_node_body).
+
+   procedure Gen_Sequence_IR
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id);
+   --  Generate code to create a SequenceDef IRObject
    --  (only used in the type_declarator part of gen_node_body).
 
    function Raise_From_Any_Name (Node : in Node_Id) return String;
@@ -222,8 +237,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Forward_Interface |
             --          K_ValueType         |
             --          K_Forward_ValueType |
-           K_Sequence_Instance |
-           K_String_Instance   |
            K_Enum              |
            K_Union             |
            K_Struct            |
@@ -319,8 +332,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
             --          K_ValueType         |
             --          K_Forward_ValueType |
          when
-           K_Sequence_Instance |
-           K_String_Instance   |
+            --  K_Sequence_Instance |
+            --  K_String_Instance   |
            K_Enum              |
            K_Union             |
            K_Struct            |
@@ -408,6 +421,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Gen_Enum_Spec (CU, Node);
 
          when K_Type_Declarator =>
+
             if  Original_Node (Node) /= No_Node then
                return;
             end if;
@@ -436,8 +450,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
          when K_Union =>
             Gen_Union_Spec (CU, Node);
 
-         when K_Sequence_Instance =>
-            Gen_Sequence_Spec (CU, Node);
+--          when K_Sequence_Instance =>
+--             Gen_Sequence_Spec (CU, Node);
 
          when K_ValueType =>
             Gen_ValueType_Spec (CU, Node);
@@ -476,6 +490,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Gen_Enum_Body (CU, Node);
 
          when K_Type_Declarator =>
+
             if Original_Node (Node) /= No_Node then
                return;
             end if;
@@ -503,8 +518,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
          when K_Union =>
             Gen_Union_Body (CU, Node);
 
-         when K_Sequence_Instance =>
-            Gen_Sequence_Body (CU, Node);
+--          when K_Sequence_Instance =>
+--             Gen_Sequence_Body (CU, Node);
 
          when K_ValueType =>
             Gen_ValueType_Body (CU, Node);
@@ -1003,7 +1018,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
             T_Node := M_Type (M_Node);
 
             Add_With (CU, Ada_Helper_Name (T_Node));
-            Add_With (CU, Ada_IR_Info_Name (T_Node));
 
             Init (It2, Decl (M_Node));
             while not Is_End (It2) loop
@@ -1023,13 +1037,15 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   II (CU);
                   PL (CU, Ada_Full_TC_Name (T_Node) & ",");
                   DI (CU);
-                  PL (CU, " type_def =>");
                   Add_With (CU, CRR & ".IDLType");
                   Add_With (CU, CRR & ".IDLType.Helper");
+                  PL (CU, " type_def => "
+                      & "IDLType.Convert_Forward.To_Forward");
                   II (CU);
-                  PL (CU, "IDLType.Convert_Forward.To_Forward");
-                  PL (CU, "  (IDLType.Helper.To_Ref");
-                  PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & "))));");
+                  Put (CU, "(");
+                  Gen_IDLType
+                    (CU, T_Node => T_Node, D_Node => D_Node);
+                  PL (CU, ")));");
                   DI (CU);
                   DI (CU);
                end;
@@ -1188,6 +1204,68 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
    end Gen_Type_Declarator_Spec;
 
+   -----------------
+   -- Gen_IDLType --
+   -----------------
+
+   procedure Gen_IDLType
+     (CU     : in out Compilation_Unit;
+      T_Node : in     Node_Id;
+      D_Node : in     Node_Id)
+   is
+      function Get_Original (Node : Node_Id) return Node_Id;
+      function Get_Original (Node : Node_Id) return Node_Id is
+         O_Node : Node_Id;
+      begin
+         if Node /= No_Node then
+            O_Node := Original_Node (Node);
+         end if;
+
+         if O_Node /= No_Node then
+            return O_Node;
+         end if;
+         return Node;
+      end Get_Original;
+
+      OT_Node : constant Node_Id := Get_Original (T_Node);
+      OD_Node : Node_Id;
+
+      Is_Array : Boolean;
+   begin
+      if T_Node /= OT_Node
+        and then Kind (T_Node) = K_Scoped_Name
+      then
+         OD_Node := Value (T_Node);
+      else
+         OD_Node := D_Node;
+      end if;
+
+      Is_Array := OD_Node /= No_Node
+        and then Kind (OD_Node) = K_Declarator
+        and then Length (Array_Bounds (OD_Node)) > 0;
+      --  OD_Node may also be a K_Sequence_Instance.
+
+      if Is_Array then
+         Gen_Array_IR
+           (CU,
+            Element_Type_Node => OT_Node,
+            Decl_Node => OD_Node);
+      else
+         case Kind (OT_Node) is
+
+            when K_Fixed =>
+               Gen_Fixed_IR (CU, OT_Node);
+            when K_Sequence =>
+               Gen_Sequence_IR (CU, OT_Node);
+
+            when others =>
+               Add_With (CU, Ada_IR_Info_Name (T_Node));
+               PL (CU, "IDLType.Helper.To_Ref");
+               Put (CU, "(" & Ada_Full_IR_Name (T_Node) & ")");
+         end case;
+      end if;
+   end Gen_IDLType;
+
    ------------------------------
    -- Gen_Type_Declarator_Body --
    ------------------------------
@@ -1196,13 +1274,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id)
    is
-      T_Node : Node_Id := T_Type (Parent (Node));
+      T_Node : constant Node_Id := T_Type (Parent (Node));
       IRN : constant String := Ada_IR_Name (Node);
-      Is_Array : constant Boolean
-        := Length (Array_Bounds (Node)) > 0;
-      Is_Fixed : constant Boolean
-        := Original_Node (T_Node) /= No_Node
-        and then Kind (Original_Node (T_Node)) = K_Fixed;
+
    begin
       Add_With (CU, CRR & ".IRObject.Helper");
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
@@ -1222,16 +1296,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
           & "IDLType.Convert_Forward.To_Forward");
       Put (CU, "  (");
       II (CU);
-
-      if Is_Array then
-         Gen_Array_IR (CU, T_Node, Node);
-      elsif Is_Fixed then
-         Gen_Fixed_IR (CU, Original_Node (T_Node));
-      else
-         Add_With (CU, Ada_IR_Info_Name (T_Node));
-         PL (CU, "IDLType.Helper.To_Ref");
-         Put (CU, "(" & Ada_Full_IR_Name (T_Node) & ")");
-      end if;
+      Gen_IDLType (CU, T_Node => T_Node, D_Node => Node);
       PL (CU, ")));");
       DI (CU);
       DI (CU);
@@ -1240,59 +1305,59 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "end " & IRN & ";");
    end Gen_Type_Declarator_Body;
 
-   -----------------------
-   -- Gen_Sequence_Spec --
-   -----------------------
+--    -----------------------
+--    -- Gen_Sequence_Spec --
+--    -----------------------
 
-   procedure Gen_Sequence_Spec
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
-   begin
-      Gen_IR_Function_Prologue (CU, Node, For_Body => False);
-   end Gen_Sequence_Spec;
+--    procedure Gen_Sequence_Spec
+--      (CU        : in out Compilation_Unit;
+--       Node      : in     Node_Id) is
+--    begin
+--       Gen_IR_Function_Prologue (CU, Node, For_Body => False);
+--    end Gen_Sequence_Spec;
 
-   -----------------------
-   -- Gen_Sequence_Body --
-   -----------------------
+--    -----------------------
+--    -- Gen_Sequence_Body --
+--    -----------------------
 
-   procedure Gen_Sequence_Body
-     (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id)
-   is
-      S_Node  : constant Node_Id := Sequence (Node);
-      ET_Node : constant Node_Id := Sequence_Type (S_Node);
-      B_Node  : constant Node_Id := Bound (S_Node);
-      IRN : constant String := Ada_IR_Name (Node);
-   begin
-      Add_With (CU, CRR & ".IRObject.Helper");
-      Add_With (CU, CRR & ".Repository");
-      Add_With (CU, CRR & ".Repository.Helper");
-      Gen_IR_Function_Prologue (CU, Node, For_Body => True);
-      Gen_Parent_Container_Lookup (CU, Node);
-      NL (CU);
-      PL (CU, "Cached_" & IRN);
-      PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
-      PL (CU, "  (" & CRR & ".Repository.Create_Sequence");
-      II (CU);
-      PL (CU, "(" & CRR & ".Repository.Helper.To_Ref (Container_Ref),");
+--    procedure Gen_Sequence_Body
+--      (CU        : in out Compilation_Unit;
+--       Node      : in     Node_Id)
+--    is
+--       S_Node  : constant Node_Id := Sequence (Node);
+--       ET_Node : constant Node_Id := Sequence_Type (S_Node);
+--       B_Node  : constant Node_Id := Bound (S_Node);
+--       IRN : constant String := Ada_IR_Name (Node);
+--    begin
+--       Add_With (CU, CRR & ".IRObject.Helper");
+--       Add_With (CU, CRR & ".Repository");
+--       Add_With (CU, CRR & ".Repository.Helper");
+--       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
+--       Gen_Parent_Container_Lookup (CU, Node);
+--       NL (CU);
+--       PL (CU, "Cached_" & IRN);
+--       PL (CU, "  := " & CRR & ".IRObject.Helper.To_Ref");
+--       PL (CU, "  (" & CRR & ".Repository.Create_Sequence");
+--       II (CU);
+--       PL (CU, "(" & CRR & ".Repository.Helper.To_Ref (Container_Ref),");
 
-      Put (CU, " bound => ");
-      if B_Node = No_Node then
-         Put (CU, "0");
-      else
-         Gen_Constant_Value (CU, B_Node);
-      end if;
-      PL (CU, ",");
-      Add_With (CU, Ada_IR_Info_Name (ET_Node));
-      Add_With (CU, CRR & ".IDLType");
-      Add_With (CU, CRR & ".IDLType.Helper");
-      PL (CU, "element_type => IDLType.Helper.To_Ref");
-      PL (CU, "  (" & Ada_Full_IR_Name (ET_Node) & ")));");
-      DI (CU);
-      PL (CU, "return Cached_" & IRN & ";");
-      DI (CU);
-      PL (CU, "end " & IRN & ";");
-   end Gen_Sequence_Body;
+--       Put (CU, " bound => ");
+--       if B_Node = No_Node then
+--          Put (CU, "0");
+--       else
+--          Gen_Constant_Value (CU, B_Node);
+--       end if;
+--       PL (CU, ",");
+--       Add_With (CU, Ada_IR_Info_Name (ET_Node));
+--       Add_With (CU, CRR & ".IDLType");
+--       Add_With (CU, CRR & ".IDLType.Helper");
+--       PL (CU, "element_type => IDLType.Helper.To_Ref");
+--       PL (CU, "  (" & Ada_Full_IR_Name (ET_Node) & ")));");
+--       DI (CU);
+--       PL (CU, "return Cached_" & IRN & ";");
+--       DI (CU);
+--       PL (CU, "end " & IRN & ";");
+--    end Gen_Sequence_Body;
 
    --------------------
    -- Gen_Fixed_Spec --
@@ -1394,6 +1459,37 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Gen_Constant_Value (CU, Scale (Node));
       PL (CU, "))");
    end Gen_Fixed_IR;
+
+   ---------------------
+   -- Gen_Sequence_IR --
+   ---------------------
+
+   procedure Gen_Sequence_IR
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id)
+   is
+      ET_Node : constant Node_Id := Sequence_Type (Node);
+      B_Node  : constant Node_Id := Bound (Node);
+   begin
+      Add_With (CU, CRR & ".IDLType.Helper");
+      Add_With (CU, CRR & ".Repository");
+
+      PL (CU, CRR & ".IDLType.Helper.To_Ref");
+      PL (CU, "  (" & CRR & ".Repository.Create_Sequence");
+      II (CU);
+      PL (CU, "(Get_IR_Root,");
+
+      Put (CU, " bound => ");
+      if B_Node = No_Node then
+         Put (CU, "0");
+      else
+         Gen_Constant_Value (CU, B_Node);
+      end if;
+      PL (CU, ",");
+      Put (CU, "element_type => ");
+      Gen_IDLType (CU, T_Node => ET_Node, D_Node => No_Node);
+      Put (CU, "))");
+   end Gen_Sequence_IR;
 
    ----------------------
    -- Gen_Body_Prelude --

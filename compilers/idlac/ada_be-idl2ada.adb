@@ -1501,7 +1501,7 @@ package body Ada_Be.Idl2Ada is
 
                         Gen_Node_Stubs_Spec (CU, Decl_Node);
 
-                        Put (CU, " is ");
+                        PL (CU, " is");
 
                         if Is_Array then
                            Init (Bounds_It, Array_Bounds (Decl_Node));
@@ -1509,7 +1509,7 @@ package body Ada_Be.Idl2Ada is
                               Get_Next_Node (Bounds_It, Bound_Node);
 
                               if First_Bound then
-                                 Put (CU, "array (");
+                                 Put (CU, "  array (");
                                  First_Bound := False;
                               else
                                  Put (CU, ", ");
@@ -1519,8 +1519,9 @@ package body Ada_Be.Idl2Ada is
                               Gen_Node_Stubs_Spec (CU, Bound_Node);
                               Put (CU, " - 1");
                            end loop;
-                           Put (CU, ") of ");
+                           PL (CU, ") of");
                         else
+                           Put (CU, "  ");
                            if not (Is_Ref or else Is_Fixed) then
                               Put (CU, "new ");
                            end if;

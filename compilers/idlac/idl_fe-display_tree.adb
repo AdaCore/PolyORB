@@ -492,7 +492,7 @@ package body Idl_Fe.Display_Tree is
          when K_Declarator =>
             Put_Line ("declarator " & Name (N));
             if Array_Bounds (N) /= Nil_List then
-               Disp_Indent (N_Indent, "fixed_array:");
+               Disp_Indent (N_Indent, "bounds:");
                Disp_List (Array_Bounds (N),
                           N_Indent + Offset, True);
             end if;

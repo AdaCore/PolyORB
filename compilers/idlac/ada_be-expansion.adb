@@ -1396,8 +1396,9 @@ package body Ada_Be.Expansion is
          Parent_Node       : constant Node_Id := Parent (Node);
          Array_Node        : constant Node_Id := Make_Declarator (Loc);
          Array_Type_Node   : constant Node_Id := Make_Type_Declarator (Loc);
+         Array_Ref_Node    : constant Node_Id := Make_Scoped_Name (Loc);
+
          Element_Type_Node : Node_Id;
-         Array_Ref_Node    : Node_Id          := Make_Scoped_Name (Loc);
          Success           : Boolean;
       begin
          pragma Debug (O ("Expand_Array_Declarator: enter"));
@@ -1412,9 +1413,10 @@ package body Ada_Be.Expansion is
                null;
          end case;
 
-         Set_Original_Node (Array_Ref_Node, Node);
-         Set_Original_Node (Array_Type_Node, Node);
          Set_Original_Node (Array_Node, Node);
+
+         Set_Original_Node (Array_Ref_Node, Element_Type_Node);
+         Set_Original_Node (Array_Type_Node, Element_Type_Node);
 
          Set_Value (Array_Ref_Node, Array_Node);
 
