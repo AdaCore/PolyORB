@@ -337,9 +337,18 @@ package body System.PolyORB_Interface is
    end FA_SI;
 
    function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer is
+      function To_SSI is new Ada.Unchecked_Conversion
+        (PolyORB.Types.Octet, Short_Short_Integer);
    begin
-      return Short_Short_Integer (PolyORB.Types.Octet'(From_Any (Item)));
+      return To_SSI (From_Any (Item));
    end FA_SSI;
+
+   function FA_SSU (Item : PolyORB.Any.Any) return Short_Short_Unsigned is
+      function To_SSU is new Ada.Unchecked_Conversion
+        (PolyORB.Types.Octet, Short_Short_Unsigned);
+   begin
+      return To_SSU (From_Any (Item));
+   end FA_SSU;
 
    function FA_WC (Item : PolyORB.Any.Any) return Wide_Character is
    begin
@@ -1168,9 +1177,18 @@ package body System.PolyORB_Interface is
    end TA_SI;
 
    function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any is
+      function To_Octet is new Ada.Unchecked_Conversion
+        (Short_Short_Integer, PolyORB.Types.Octet);
    begin
-      return To_Any (PolyORB.Types.Octet (Item));
+      return To_Any (To_Octet (Item));
    end TA_SSI;
+
+   function TA_SSU (Item : Short_Short_Unsigned) return PolyORB.Any.Any is
+      function To_Octet is new Ada.Unchecked_Conversion
+        (Short_Short_Unsigned, PolyORB.Types.Octet);
+   begin
+      return To_Any (To_Octet (Item));
+   end TA_SSU;
 
    function TA_WC (Item : Wide_Character) return PolyORB.Any.Any is
    begin

@@ -33,6 +33,7 @@
 --  $Id$
 
 with System.RPC;
+with System.Unsigned_Types;
 with Interfaces;
 
 with PolyORB.Any;
@@ -280,6 +281,9 @@ package System.PolyORB_Interface is
 
    --  Elementary From_Any and To_Any operations
 
+   subtype Short_Short_Unsigned is
+     System.Unsigned_Types.Short_Short_Unsigned;
+
 --       function FA_AD (Item : Any) return X;
 --       function FA_AS (Item : Any) return X;
    function FA_B (Item : Any) return Boolean;
@@ -295,7 +299,7 @@ package System.PolyORB_Interface is
    function FA_SF (Item : Any) return Short_Float;
    function FA_SI (Item : Any) return Short_Integer;
    function FA_SSI (Item : Any) return Short_Short_Integer;
---       function FA_SSU (Item : Any) return X;
+   function FA_SSU (Item : Any) return Short_Short_Unsigned;
 --       function FA_SU (Item : Any) return X;
 --       function FA_U (Item : Any) return X;
    function FA_WC (Item : Any) return Wide_Character;
@@ -322,7 +326,7 @@ package System.PolyORB_Interface is
    function TA_SF (Item : Short_Float) return Any;
    function TA_SI (Item : Short_Integer) return Any;
    function TA_SSI (Item : Short_Short_Integer) return Any;
---     function TA_SSU (X) return Any;
+   function TA_SSU (Item : Short_Short_Unsigned) return Any;
 --     function TA_SU (X) return Any;
 --     function TA_U (X) return Any;
    function TA_WC (Item : Wide_Character) return Any;
