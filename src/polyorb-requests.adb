@@ -244,6 +244,21 @@ package body PolyORB.Requests is
          end;
       end loop;
 
+      if Is_Extensible (Dst_Args) then
+         pragma Debug (O ("Appending remaining arguments"));
+         --  If dst_args is an extensible NV_List, then we append the
+         --  remaining src_args
+         while not Last (Src_It) loop
+            if Ignore_Src_Mode
+              or else Value (Src_It).Arg_Modes = ARG_INOUT
+              or else Value (Src_It).Arg_Modes = Direction
+            then
+               Add_Item (Dst_Args, Value (Src_It).all);
+            end if;
+            Next (Src_It);
+         end loop;
+      end if;
+
    end Pump_Up_Arguments;
 
    ---------------

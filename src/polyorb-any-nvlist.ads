@@ -40,7 +40,7 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any.NVList is
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with private;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -72,8 +72,13 @@ package PolyORB.Any.NVList is
    ------------------------------------------
 
    procedure Create
-     (NVList : out Ref);
+     (NVList : out Ref;
+      Extensible : in Boolean := False);
    --  Create a new NVList object and return a reference to it.
+
+   function Is_Extensible (Self : Ref) return Boolean;
+   --  indicates if PolyORB.Request.Pump_Up_Arguments is allowed to
+   --  add extra elements to Self
 
    function Image
      (NVList : Ref)
@@ -96,6 +101,12 @@ package PolyORB.Any.NVList is
    end Internals;
 
 private
+
+   type Ref is new PolyORB.Smart_Pointers.Ref with record
+      Extensible : Boolean := False;
+      --  if set to True, then PolyORB.Requests.Pump_Up_Arguments can
+      --  add extra elements to the NV_List
+   end record;
 
    type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity
      with record
