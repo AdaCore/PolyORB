@@ -685,6 +685,7 @@ package body Exp_Hlpr is
 
          begin
             Set_Expression (Any_Decl, Build_To_Any_Call (Expr, Decls));
+            Append_To (Decls, Any_Decl);
 
             Append_To (Stms,
               Make_Procedure_Call_Statement (Loc,
@@ -709,23 +710,27 @@ package body Exp_Hlpr is
             --  Build_From_Any_Function. It should be factored of
             --  these three places somehow.
 
-            procedure Add_Component_List (Clist : Node_Id);
-            --  Append aggegate elements to Elements, corresponding
+            procedure Add_Component_List
+              (Stms  : List_Id;
+               Clist : Node_Id);
+            --  Append aggegate elements, corresponding
             --  to component list Clist.
 
-            procedure Add_Field (F : Entity_Id);
-            --  Append an aggegate element to Elements, corresponding
+            procedure Add_Field (Stms : List_Id; E : Entity_Id);
+            --  Append an aggegate element, corresponding
             --  to component E of the record.
 
-            procedure Add_Fields (CL : List_Id);
+            procedure Add_Fields (Stms : List_Id; CL : List_Id);
             --  Append an aggegate element to Elements, corresponding
             --  to the listed components.
 
-            procedure Add_Component_List (Clist : Node_Id) is
+            procedure Add_Component_List
+              (Stms  : List_Id;
+               Clist : Node_Id) is
                CI : constant List_Id := Component_Items (Clist);
                VP : constant Node_Id := Variant_Part (Clist);
             begin
-               Add_Fields (CI);
+               Add_Fields (Stms, CI);
 
                if Present (VP) then
                   raise Program_Error;
@@ -733,24 +738,24 @@ package body Exp_Hlpr is
                end if;
             end Add_Component_List;
 
-            procedure Add_Field (F : Entity_Id) is
+            procedure Add_Field (Stms : List_Id; E : Entity_Id) is
             begin
-               Append_To (Elements,
-                 Make_Component_Association (Loc,
-                   Choices => New_List (
-                     Make_Integer_Literal (Loc, Element_Count)),
-                   Expression =>
+               Append_To (Stms,
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of (
+                       RTE (RE_Add_Aggregate_Element), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Any, Loc),
                      Build_To_Any_Call (
                        Make_Selected_Component (Loc,
                          Prefix =>
                            New_Occurrence_Of (Expr_Parameter, Loc),
                          Selector_Name =>
-                           New_Occurrence_Of (F, Loc)),
-                       Decls)));
-               Element_Count := Element_Count + 1;
+                           New_Occurrence_Of (E, Loc)), Decls))));
             end Add_Field;
 
-            procedure Add_Fields (CL : List_Id) is
+            procedure Add_Fields (Stms : List_Id; CL : List_Id) is
                Item : Node_Id;
                Def  : Entity_Id;
             begin
@@ -758,7 +763,7 @@ package body Exp_Hlpr is
                while Present (Item) loop
                   Def := Defining_Identifier (Item);
                   if not Is_Internal_Name (Chars (Def)) then
-                     Add_Field (Def);
+                     Add_Field (Stms, Def);
                   end if;
                   Next (Item);
                end loop;
@@ -770,15 +775,47 @@ package body Exp_Hlpr is
 
             if Has_Discriminants (Typ) then
                Disc := First_Discriminant (Typ);
+
+               while Present (Disc) loop
+                  Append_To (Elements,
+                    Make_Component_Association (Loc,
+                      Choices => New_List (
+                        Make_Integer_Literal (Loc, Element_Count)),
+                      Expression =>
+                        Build_To_Any_Call (
+                          Make_Selected_Component (Loc,
+                            Prefix =>
+                              New_Occurrence_Of (Expr_Parameter, Loc),
+                            Selector_Name =>
+                              New_Occurrence_Of (Disc, Loc)),
+                          Decls)));
+                  Element_Count := Element_Count + 1;
+                  Next_Discriminant (Disc);
+               end loop;
+            else
+               declare
+                  Dummy_Any : constant Entity_Id :=
+                    Make_Defining_Identifier (Loc,
+                      New_Internal_Name ('A'));
+               begin
+                  Append_To (Decls,
+                    Make_Object_Declaration (Loc,
+                      Defining_Identifier => Dummy_Any,
+                      Object_Definition   =>
+                        New_Occurrence_Of (RTE (RE_Any), Loc)));
+
+                  Append_To (Elements,
+                    Make_Component_Association (Loc,
+                      Choices => New_List (
+                        Make_Range (Loc,
+                          Low_Bound  =>
+                            Make_Integer_Literal (Loc, 1),
+                          High_Bound =>
+                            Make_Integer_Literal (Loc, 0))),
+                      Expression =>
+                        New_Occurrence_Of (Dummy_Any, Loc)));
+               end;
             end if;
-            while Present (Disc) loop
-               Add_Field (Disc);
-               Next_Discriminant (Disc);
-            end loop;
-
-            --  ... then all components
-
-            Add_Component_List (Component_List (Rdef));
 
             Set_Expression (Any_Decl,
               Make_Function_Call (Loc,
@@ -788,9 +825,16 @@ package body Exp_Hlpr is
                   Build_TypeCode_Call (Loc, Typ, Decls),
                   Make_Aggregate (Loc,
                     Component_Associations => Elements))));
+            Append_To (Decls, Any_Decl);
+
+            --  ... then all components
+
+            Add_Component_List (Stms, Component_List (Rdef));
+
          end;
 
       else
+         Append_To (Decls, Any_Decl);
          Append_To (Stms,
            Make_Procedure_Call_Statement (Loc,
              Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
@@ -799,7 +843,6 @@ package body Exp_Hlpr is
                Build_TypeCode_Call (Loc, Typ, Decls))));
       end if;
 
-      Append_To (Decls, Any_Decl);
       Append_To (Stms,
         Make_Return_Statement (Loc,
           Expression => New_Occurrence_Of (Any, Loc)));

@@ -364,6 +364,11 @@ package System.PolyORB_Interface is
       Contents : Any_Array)
       return Any;
 
+   procedure Add_Aggregate_Element
+     (Value   : in out Any;
+      Element : in     Any)
+     renames PolyORB.Any.Add_Aggregate_Element;
+
    function Get_Aggregate_Element
      (Value : Any;
       Tc    : PolyORB.Any.TypeCode.Object;
