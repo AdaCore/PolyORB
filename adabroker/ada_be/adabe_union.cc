@@ -65,12 +65,12 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Giop_C.Object) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "                         S : in out Giop_C.Object) ;\n\n";
 
   body += "   function Align_Size (A : in";
   body += get_ada_local_name();
@@ -84,6 +84,9 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
 void
 adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
+  string disc_name = b->get_ada_local_name();
+
   string marshall = "";
   string unmarshall = "";
   string align_size = "";
@@ -92,12 +95,23 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += " ;\n";
   marshall += "      S : in out Giop_C.Object) is\n";
   marshall += "   begin\n";
+  marshall += "      Marshall (Switch,S) ;\n";
+  marshall += "      case Switch is\n";
   
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
-  unmarshall += "      S : in out Giop_C.Object) is\n";
+  unmarshall += "                        S : in out Giop_C.Object) is\n";
+  unmarshall += "      Switch : ";
+  unmarshall += disc_name;
+  unmarshall += " ;\n";
   unmarshall += "   begin\n";
+  unmarshall += "      UnMarshall (Switch,S) ;\n";
+  unmarshall += "      declare\n";
+  unmarshall += "         Tmp : ";
+  unmarshall += get_ada_local_name ();
+  unmarshall += "(Switch) ;\n";
+  unmarshall += "      case Switch is\n";
   
   align_size += "   function Align_Size (A : in";
   align_size += get_ada_local_name();
@@ -107,27 +121,31 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   align_size += "               return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
-  
+  align_size += "      Tmp := Align_Size (Switch,Initial_Offset) ;\n";
+  align_size += "      case Switch is\n";
+
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_union_branch) {
-	dynamic_cast<adabe_union_branch *>(d)->produce_marshal_adb(with, marshall, unmarshall, align_size);
+	dynamic_cast<adabe_union_branch *>(d)->produce_marshal_adb(with,marshall, unmarshall, align_size, disc_type());
       }
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in union");
       i.next();
     }
 
-  marshall += "   end Marshall;\n\n";
-  unmarshall += "   end Unmarshall;\n\n";
-  align_size += "   end Align_Size;\n\n\n";
+  marshall += "      end case ;\n";
+  marshall += "   end Marshall ;\n\n";
+  unmarshall += "      end case ;\n";
+  unmarshall += "   end Unmarshall ;\n\n";
+  align_size += "      end case ;\n";
+  align_size += "      return Tmp ;\n";
+  align_size += "   end Align_Size ;\n\n\n";
 
   body += marshall;
   body += unmarshall;
   body += align_size;
-
-
 }
 
 string

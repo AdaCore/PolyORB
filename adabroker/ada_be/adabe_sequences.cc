@@ -51,17 +51,69 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "   function Align_Size (A : in";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "               N : in Corba.Unsigned_Long := 1)\n";
-  body += "               return Corba.Unsigned_Long ;\n\n\n";
-
+  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "                        N : in Corba.Unsigned_Long := 1)\n";
+  body += "                        return Corba.Unsigned_Long ;\n\n\n";
 }
 
 void
 adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
-  // probleme des sequences imbriquees a traiter...
+  string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, body); 
+  
+  body += "   -- Marshall\n";
+  body += "   -----------\n";
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name ();
+  body += " ;\n"; 
+  body += "                       S : in out Object'Class) is\n";
+  body += "      Len : Corba.Unsigned_Long\n";
+  body += "        := Corba.Unsigned_Long (Length(A)) ;\n";
+  body += "   begin\n";
+  body += "      Marshall (Len,S) ;\n";
+  body += "      for I in (1..Len) loop\n";
+  body += "         Marshall (Element_Of(A,I),S) ;\n";
+  body += "      end loop ;\n";
+  body += "   end ;\n\n\n";
+  
+  body += "   -- UnMarshall\n";
+  body += "   -------------\n";
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name ();
+  body += " ;\n"; 
+  body += "                         S : in out Object'Class) is\n";
+  body += "      Len : Corba.Unsigned_Long ;\n";
+  body += "   begin\n";
+  body += "      UnMarshall (Len,S);\n";
+  body += "      declare\n";
+  body += "         Tmp : Element_Array (1..Len) ;\n";
+  body += "      begin\n";
+  body += "         for I in (1..Len) loop\n";
+  body += "            UnMarshall (Tmp(I),S) ;\n";
+  body += "         end loop ;\n";
+  body += "         return To_Sequence (Tmp) ;\n";
+  body += "      end ;\n";
+  body += "   end ;\n\n\n";
+
+  body += "   -- Align_Size\n";
+  body += "   -------------\n";
+  body += "   function Align_Size (A : in ";
+  body += get_ada_local_name ();
+  body += " ;\n"; 
+  body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
+  body += "                        return Corba.Unsigned_Long is\n";
+  body += "      Len : Corba.Unsigned_Long\n";
+  body += "        := Corba.Unsigned_Long (Length(A)) ;\n";
+  body += "      Tmp : Corba.Unsigned_Long ;\n";
+  body += "   begin\n";
+  body += "      Tmp := Align_Size (Len,Initial_Offset) ;\n";
+  body += "      for I in (1..Len) loop\n";
+  body += "         Align_Size (Element_Of(A,I),Tmp) ;\n";
+  body += "      end loop ;\n";
+  body += "      return Tmp ;\n";
+  body += "   end ;\n\n\n";
 }
+
 string
 adabe_sequence::dump_name(dep_list& with, string &previous) 
 {

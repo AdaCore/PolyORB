@@ -58,7 +58,6 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
-
 }
 
 
@@ -90,8 +89,8 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "   begin\n";
   body += "      return Align_Size (Corba.Unsigned_Long("+get_ada_local_name()+"'Pos(A));Initial_Offset;N);";
   body += "   end Align_Size\n";
-  set_already_defined();
 
+  set_already_defined();
 }
 
 string

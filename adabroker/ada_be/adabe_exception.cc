@@ -64,11 +64,95 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 void
 adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previous)
 {
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += "_Members ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += "_Members ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += "_Members ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
 }
 
 void
 adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previous)
 {
+  string marshall = "";
+  string unmarshall = "";
+  string align_size = "";
+
+  marshall += "   procedure Marshall(A : in ";
+  marshall += get_ada_local_name();
+  marshall += "_Members ;\n";
+  marshall += "                      S : in out Giop_C.Object) is\n";
+  marshall += "   begin\n";
+  
+  unmarshall += "   procedure UnMarshall(A : out ";
+  unmarshall += get_ada_local_name();
+  unmarshall += "_Members ;\n";
+  unmarshall += "                        S : in out Giop_C.Object) is\n";
+  unmarshall += "      Tmp : ";
+  unmarshall += get_ada_local_name ();
+  unmarshall += "_Members ;\n";
+  unmarshall += "   begin\n";
+  
+  align_size += "   function Align_Size (A : in ";
+  align_size += get_ada_local_name();
+  align_size += "_Members ;\n";
+  align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
+  align_size += "                        return Corba.Unsigned_Long is\n";
+  align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
+  align_size += "   begin\n";
+
+  UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
+  while (!activator.is_done())
+    {
+      AST_Decl *d = activator.item();
+      switch(d->node_type())
+	{
+	case AST_Decl::NT_sequence:
+	case AST_Decl::NT_enum_val:
+	case AST_Decl::NT_field:
+	case AST_Decl::NT_union:
+	case AST_Decl::NT_struct:
+	case AST_Decl::NT_enum:
+	  {
+	    string name = (dynamic_cast<adabe_name *> (d))->marshal_name(with,body);
+	    marshall += "      Marshall (A.";
+	    marshall += name;
+	    marshall += ",S) ;\n";
+
+	    unmarshall += "      UnMarshall (Tmp.";
+	    unmarshall += name;
+	    unmarshall += ",S) ;\n";
+
+	    align_size += "      Tmp := Align_size (A.";
+	    align_size += name;
+	    align_size += ",Tmp) ;\n";
+  }
+	default:
+	  throw adabe_internal_error (__FILE__,__LINE__,"unexpected decl in exception scope");
+	}      
+      activator.next();
+    }
+  marshall += "   end ;\n";
+  unmarshall += "      return Tmp ;\n";
+  unmarshall += "   end ;\n";
+  align_size += "      return Tmp ;\n";
+  align_size += "   end ;\n";
+
+  body += marshall;
+  body += unmarshall;
+  body += align_size;
 }
 
 string

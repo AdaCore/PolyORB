@@ -42,8 +42,37 @@ adabe_union_branch::produce_ads(dep_list& with, string &body, string &previous, 
 */ 
 
 void
-adabe_union_branch::produce_marshal_adb(dep_list& with, string &marshall, string &unmarshall, string &align_size)
+adabe_union_branch::produce_marshal_adb (dep_list& with,
+					 string &marshall,
+					 string &unmarshall,
+					 string &align_size,
+					 AST_ConcreteType *concrete)
 {
+  string tmp = "      when ";
+  if (label()->label_kind() != AST_UnionLabel::UL_default)
+    {
+      tmp += produce_disc_value(concrete, label()->label_val());
+      tmp += " => ";
+    }
+  else if (label()->label_kind() == AST_UnionLabel::UL_default)
+    {
+      tmp += "others ";
+      tmp += "=> ";
+    }
+  marshall += tmp;
+  marshall += "Marshall (";
+  marshall += get_ada_local_name ();
+  marshall += ",S) ;\n";
+  
+  unmarshall += tmp;
+  unmarshall += "UnMarshall (";
+  unmarshall += get_ada_local_name ();
+  unmarshall += ",S) ;\n";
+  
+  align_size += tmp;
+  align_size += "Tmp = Align_Size (";
+  align_size += get_ada_local_name ();
+  align_size += ",Tmp) ;\n";
 }
 
 static string
