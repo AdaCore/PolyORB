@@ -161,20 +161,28 @@ package body SOAP.Types is
 --    end Finalize;
 
    function TCK (A : Any) return TCKind;
-   --  Return the typecode kind of A.
+   function UTCK (A : Any) return TCKind;
+   --  Return the typecode kind of A. UTCK returns the
+   --  kind after unwinding all levels of typedef.
 
    function TCK (A : Any) return TCKind is
    begin
       return TypeCode.Kind (Get_Type (A));
    end TCK;
 
+   function UTCK (A : Any) return TCKind is
+   begin
+      return TypeCode.Kind (Get_Unwound_Type (A));
+   end UTCK;
+
    ---------
    -- Get --
    ---------
 
    function Get (O : in NamedValue) return Integer is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      case TCK (O.Argument) is
+      case Kind is
          when Tk_Short =>
             return Integer (Short'(From_Any (O.Argument)));
          when Tk_Long =>
@@ -190,14 +198,14 @@ package body SOAP.Types is
          when others =>
             Exceptions.Raise_Exception
               (Data_Error'Identity,
-               "Integer expected, found " & TCKind'Image (TCK (O.Argument)));
+               "Integer expected, found " & TCKind'Image (Kind));
       end case;
    end Get;
 
    function Get (O : in NamedValue) return Long_Float is
-      K : constant TCKind := TCK (O.Argument);
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      case K is
+      case Kind is
          when Tk_Float =>
             return Long_Float (PolyORB.Types.Float'(From_Any (O.Argument)));
          when Tk_Double =>
@@ -205,32 +213,34 @@ package body SOAP.Types is
          when others =>
             Exceptions.Raise_Exception
               (Data_Error'Identity,
-               "Float expected, found " & TCKind'Image (TCK (O.Argument)));
+               "Float expected, found " & TCKind'Image (Kind));
       end case;
    end Get;
 
    function Get (O : in NamedValue) return String is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_String then
-         return To_Standard_String (From_Any (O.Argument));
-
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "String expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case Kind is
+         when Tk_String =>
+            return To_Standard_String (From_Any (O.Argument));
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "String expected, found " & TCKind'Image (Kind));
+      end case;
    end Get;
 
    function Get (O : in NamedValue) return Boolean is
+      Kind : constant TCKind := UTCK (O.Argument);
    begin
-      if TCK (O.Argument) = Tk_Boolean then
-         return From_Any (O.Argument);
-
-      else
-         Exceptions.Raise_Exception
-           (Data_Error'Identity,
-            "Boolean expected, found " & TCKind'Image (TCK (O.Argument)));
-      end if;
+      case Kind is
+         when Tk_Boolean =>
+            return From_Any (O.Argument);
+         when others =>
+            Exceptions.Raise_Exception
+              (Data_Error'Identity,
+               "Boolean expected, found " & TCKind'Image (Kind));
+      end case;
    end Get;
 
 --    function Get (O : in NamedValue) return SOAP_Record is
@@ -278,8 +288,11 @@ package body SOAP.Types is
    function Image (O : NamedValue) return String is
       TC : constant TypeCode.Object
         := Get_Unwound_Type (O.Argument);
-      Kind : constant TCKind := TCK (O.Argument);
+      Kind : constant TCKind := TypeCode.Kind (TC);
    begin
+      pragma Debug
+        (SOAP.Types.O ("Image: enter, Kind is "
+                       & TCKind'Image (Kind)));
       case Kind is
          when
            Tk_Long   |
@@ -570,6 +583,7 @@ package body SOAP.Types is
               & " xsi:null=""1""/>";
 
          when others =>
+            pragma Debug (SOAP.Types.O ("Defaulting."));
             return "<" & To_Standard_String (O.Name)
               & xsi_type (XML_Type (O)) & '>'
               & Image (O)
@@ -730,12 +744,10 @@ package body SOAP.Types is
               (To_Standard_String (O.Name), Start => True));
       Append (Result, New_Line);
 
-      pragma Debug (SOAP.Types.O ("@@1"));
       declare
          Nb : constant PolyORB.Types.Unsigned_Long
            := PolyORB.Any.Get_Aggregate_Count (O.Argument);
       begin
-         pragma Debug (SOAP.Types.O ("@@2"));
          for I in 0 .. Nb - 1 loop
             Append
               (Result, XML_Image
@@ -766,7 +778,8 @@ package body SOAP.Types is
 
    function XML_Type (O : in NamedValue) return String
    is
-      K : constant TCKind := TCK (O.Argument);
+      K : constant TCKind := TypeCode.Kind
+        (Get_Unwound_Type (O.Argument));
    begin
       case K is
          when Tk_Long =>

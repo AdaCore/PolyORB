@@ -30,19 +30,23 @@
 
 --  $Id$
 
-with AWS.Response;
+with Ada.Unchecked_Deallocation;
 
+with AWS.Response;
 with SOAP.Message.Payload;
 
 package SOAP.Message.Response is
 
    type Object is new Message.Object with null record;
-
+   type Object_Access is access Object'Class;
    function Build (R : in Object'Class) return AWS.Response.Data;
 
    function From (P : in Message.Payload.Object) return Object;
    --  Returns a Response object, initialized from a payload object.
 
    function Is_Error (R : in Object) return Boolean;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object'Class, Object_Access);
 
 end SOAP.Message.Response;

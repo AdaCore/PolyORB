@@ -88,7 +88,7 @@ private
       Entity_Length : Ada.Streams.Stream_Element_Count;
       Role   : PolyORB.ORB.Endpoint_Role;
       Target : PolyORB.Types.String;
-      Current_SOAP_Req : SOAP.Message.Payload.Object;
+      Current_SOAP_Req : SOAP.Message.Payload.Object_Access;
       Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 

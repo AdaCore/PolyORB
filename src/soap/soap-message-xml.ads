@@ -41,7 +41,7 @@ package SOAP.Message.XML is
    function Load_Payload
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Payload.Object;
+     return Message.Payload.Object_Access;
    --  Build a Payload object by parsing an XML payload from source.
    --  Args is expected to designate a list of empty Any's,
    --  whose typecodes are used to determine how to decode the
@@ -52,7 +52,7 @@ package SOAP.Message.XML is
    function Load_Response
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Response.Object'Class;
+     return Message.Response.Object_Access;
    --  Build a Response object (either a standard response or an error
    --  response) by parsing an XML response from Source.
    --  Args are used as above (for returned arguments).

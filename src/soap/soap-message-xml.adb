@@ -252,7 +252,7 @@ package body SOAP.Message.XML is
    function Load_Payload
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Payload.Object
+     return Message.Payload.Object_Access
    is
       Reader  : Tree_Reader;
       S       : State;
@@ -272,7 +272,9 @@ package body SOAP.Message.XML is
 
       Free (Doc);
 
-      return Message.Payload.Build (To_String (S.Wrapper_Name), S.Parameters);
+      return new Message.Payload.Object'
+        (Message.Payload.Build
+         (To_String (S.Wrapper_Name), S.Parameters));
    end Load_Payload;
 
    -------------------
@@ -282,7 +284,7 @@ package body SOAP.Message.XML is
    function Load_Response
      (Source : access Input_Sources.Input_Source'Class;
       Args   : in     PolyORB.Any.NVList.Ref)
-     return Message.Response.Object'Class
+     return Message.Response.Object_Access
    is
       Reader  : Tree_Reader;
       S       : State;
@@ -304,22 +306,26 @@ package body SOAP.Message.XML is
       Free (Doc);
 
       if SOAP.Parameters.Exist (S.Parameters, "faultcode") then
-         return Message.Response.Error.Build
-           (Faultcode   =>
-              Message.Response.Error.Faultcode
-               (String'(SOAP.Parameters.Get (S.Parameters, "faultcode"))),
-            Faultstring => SOAP.Parameters.Get (S.Parameters, "faultstring"));
+         return new Message.Response.Error.Object'
+           (Message.Response.Error.Build
+            (Faultcode   =>
+               Message.Response.Error.Faultcode
+             (String'(SOAP.Parameters.Get (S.Parameters, "faultcode"))),
+             Faultstring => SOAP.Parameters.Get
+             (S.Parameters, "faultstring")));
       else
-         return Message.Response.Object'(Null_Unbounded_String,
-                                         S.Wrapper_Name,
-                                         S.Parameters);
+         return new Message.Response.Object'
+            (Null_Unbounded_String,
+             S.Wrapper_Name,
+             S.Parameters);
       end if;
 
    exception
       when E : others =>
-         return Message.Response.Error.Build
-           (Faultcode   => Message.Response.Error.Client,
-            Faultstring => Ada.Exceptions.Exception_Message (E));
+         return new Message.Response.Error.Object'
+           (Message.Response.Error.Build
+            (Faultcode   => Message.Response.Error.Client,
+             Faultstring => Ada.Exceptions.Exception_Message (E)));
    end Load_Response;
 
    -----------------

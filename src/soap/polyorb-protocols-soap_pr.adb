@@ -153,13 +153,15 @@ package body PolyORB.Protocols.SOAP_Pr is
          use SOAP.Parameters;
 
          RO : SOAP.Message.Response.Object
-           := SOAP.Message.Response.From (S.Current_SOAP_Req);
+           := SOAP.Message.Response.From
+           (SOAP.Message.Payload.Object (S.Current_SOAP_Req.all));
          RP : SOAP.Parameters.List;
 
          Args : constant NV_Sequence_Access
            := List_Of (R.Args);
          A : Any.NamedValue;
       begin
+         SOAP.Message.Payload.Free (S.Current_SOAP_Req);
          RP := +R.Result;
          for I in 1 .. Get_Count (R.Args) loop
             A :=  NV_Sequence.Element_Of (Args.all, Positive (I));
@@ -215,20 +217,20 @@ package body PolyORB.Protocols.SOAP_Pr is
 
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
       declare
-         pragma Warnings (Off);
-         M : constant Standard.SOAP.Message.Response.Object'Class
+         M : SOAP.Message.Response.Object_Access
            := Standard.SOAP.Message.XML.Load_Response
            (Src'Access, Return_Args);
-         pragma Unreferenced (M);
-         --  Not referenced. Evalurate the side effects of Load_Response.
-         pragma Warnings (On);
       begin
-         --  XXX BAD BAD this subprogram does not take into account
-         --  the case where a FAULT or EXCEPTION has been received
-         --  instead of a normal reply!!
-
-         S.Pending_Rq := null;
+         SOAP.Message.Response.Free (M);
       end;
+      --  Only evaluate the side effects of Load_Response.
+
+      --  XXX BAD BAD this subprogram does not take into account
+      --  the case where a FAULT or EXCEPTION has been received
+      --  instead of a normal reply!!
+
+      S.Pending_Rq := null;
+
       Buffers.Release_Contents (S.In_Buf.all);
 
       PolyORB.Requests.Pump_Up_Arguments
@@ -248,8 +250,8 @@ package body PolyORB.Protocols.SOAP_Pr is
       Src : aliased Buffer_Sources.Input_Source;
    begin
       Buffer_Sources.Set_Buffer (Src, S.In_Buf);
-      S.Current_SOAP_Req
-        := Message.XML.Load_Payload (Src'Access, Args);
+      S.Current_SOAP_Req := Message.XML.Load_Payload
+        (Src'Access, Args);
       Buffers.Release_Contents (S.In_Buf.all);
    end Handle_Unmarshall_Arguments;
 
