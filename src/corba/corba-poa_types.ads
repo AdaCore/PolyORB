@@ -1,3 +1,11 @@
+--  Je vous salue Ada, pleine de types,
+--  Robert Deware est avec vous,
+--  Vous êtes bénie entre tous les langages,
+--  Et ACT, le fruit de vos entrailles, est béni
+--  Sainte Ada, mère de gnat,
+--  Compilez pour nous, pauvres codeurs,
+--  Maintenant et à l'heure de notre soutenance
+
 with Droopi.Obj_Adapters;
 with Droopi.Objects;         use Droopi.Objects;
 with Sequences.Unbounded;
