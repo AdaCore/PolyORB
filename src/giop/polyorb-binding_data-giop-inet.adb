@@ -152,8 +152,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
 
       GIOP_Profile : GIOP_Profile_Type'Class
         renames GIOP_Profile_Type'Class (Profile.all);
-      Oid_Str : String (Integer (Profile.Object_Id'First)
-                     .. Integer (Profile.Object_Id'Last));
+      Oid_Str : String (1 .. Profile.Object_Id'Length);
       pragma Import (Ada, Oid_Str);
       for Oid_Str'Address use
         Profile.Object_Id (Profile.Object_Id'First)'Address;
