@@ -163,19 +163,19 @@ constants_nodef: ${srcdir}/constants.c config.h
 	${CC} -o constants_nodef -I. -UCONSTANT_NAME ${srcdir}/constants.c
 
 s-garcon.ads: ${CONSTANTS_SH} split constants_nodef config.h
-	if test -f ${CONSTANTS_PLATFORM}; then \
-	  cp ${CONSTANTS_PLATFORM} s-garcon.ads; \
-	else \
-	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants ${srcdir}; \
+	if test -f ${CONSTANTS_PLATFORM}; then\
+	  cp ${CONSTANTS_PLATFORM} s-garcon.ads;\
+	else\
+	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants ${srcdir};\
 	fi
 
 s-galiop.ads:
 	@echo "private package System.Garlic.Linker_Options is" >s-galiop.ads
 	@echo "" >>s-galiop.ads
-	@if [ "x$(EXTRA_LIBS)" != "x" ] ; then \
-	 for option in `echo $(EXTRA_LIBS)`; do \
-	  echo "   pragma Linker_Options (\"$$option\");" >>s-galiop.ads; \
-	 done; \
+	@if [ "x$(EXTRA_LIBS)" != "x" ] ; then\
+	 for option in `echo $(EXTRA_LIBS)`; do\
+	  echo "   pragma Linker_Options (\"$$option\");" >>s-galiop.ads;\
+	 done;\
 	fi
 	@echo "" >>s-galiop.ads
 	@echo "end System.Garlic.Linker_Options;" >>s-galiop.ads
@@ -195,8 +195,8 @@ fast: ${SOURCES} s-rpcdum.ads
 	@gnatmake -m -c -a ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} s-rpcdum
 
 s-rpcdum.ads: ${SOURCES} Makefile
-	@grep "^package " ${SOURCES} | \
-	${AWK} '{if ($$2 != "body") {print "with " $$2 ";" } else {print "with " $$3 ";" }}' | \
+	@grep "^package " ${SOURCES} |\
+	${AWK} '{if ($$2 != "body") {print "with " $$2 ";" } else {print "with " $$3 ";" }}' |\
 	sort -u > s-rpcdum.ads
 	@echo "private package System.RPC.Dummy is" >> s-rpcdum.ads
 	@echo "end System.RPC.Dummy;" >> s-rpcdum.ads
@@ -218,29 +218,38 @@ inlining: all-local
 	fi;
 	${RM} -f inline.adb inline.o inline.ali inline
 	@if test ! -f inlining; then\
-	   ${RM} -r gnatlib;\
 	   mkdir gnatlib;\
-	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`; \
-	   for o in `cd $$gnatlibdir && echo *.ali`; do \
-	     grep s-stratt $$gnatlibdir/$$o /dev/null; \
-	   done | ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck; \
+	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`;\
+	   for o in `cd $$gnatlibdir && echo *.ali`; do\
+	     grep s-stratt $$gnatlibdir/$$o /dev/null;\
+	   done | ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' > gnatlib/tocheck;\
 	   for o in `cat gnatlib/tocheck`; do\
-	      if [ ! -f $$o ]; then \
-	          s=`gnatls -a -s $$o`; \
-	          echo \
-                    "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s" \
-	            "-o gnatlib/$$o"; \
-	          ${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- \
-                    $$s -o gnatlib/$$o; \
-	          echo $$o >>gnatlib/rebuild; \
+	      if [ ! -f $$o -a ! -f gnatlib/$$o ]; then\
+	          s=`gnatls -a -s $$o`;\
+	          echo\
+                    "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s"\
+	            "-o gnatlib/$$o";\
+	          ${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I-\
+                    $$s -o gnatlib/$$o;\
+	          if test $$? = 0; then\
+	             echo $$o >>gnatlib/rebuild;\
+	          else\
+	             break;\
+	          fi;\
 	      fi;\
 	   done;\
-	   echo yes >inlining;\
+	   diff -q gnatlib/tocheck gnatlib/rebuild;\
+	   if test $$? = 0; then\
+	      echo yes >inlining;\
+	   fi;\
 	fi
 
 install-extra-libs: ${FILTERINSTALL} inlining
 
 install-data-local: all-local install-dirs-local install-extra-libs 
+	if test ! -f inlining; then\
+	   exit 1;\
+	fi
 	${INSTALL}\
 	   `${srcdir}/../Dist/config.sdefault pathtolib`libgnat.a ${GARLIC}
 	${AR} d ${GARLIC}/libgnat.a s-stratt.o s-rpc.o s-parint.o
@@ -250,11 +259,11 @@ install-data-local: all-local install-dirs-local install-extra-libs
             ${CP} ${CPPRESERVE} `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
 	fi
 	${RANLIB} ${GARLIC}/libgnat.a
-	for i in ${GARLIC} ${SOURCES} \
-		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'`; do \
-		if test -f $$i; then \
-			${CP} ${CPPRESERVE} $$i ${GARLIC}/; \
-		fi; \
+	for i in ${GARLIC} ${SOURCES}\
+		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'`; do\
+		if test -f $$i; then\
+			${CP} ${CPPRESERVE} $$i ${GARLIC}/;\
+		fi;\
 	done
 	${AR} cq ${GARLIC}/libgarlic.a ${OBJECTS}
 	${RANLIB} ${GARLIC}/libgarlic.a
