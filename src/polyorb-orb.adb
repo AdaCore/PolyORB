@@ -652,6 +652,7 @@ package body PolyORB.ORB is
    procedure Create_Reference
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
+      Typ : in String;
       Ref : out References.Ref) is
    begin
       Enter (ORB.ORB_Lock.all);
@@ -670,7 +671,7 @@ package body PolyORB.ORB is
               (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
          end loop;
 
-         References.Create_Reference (Profiles, Ref);
+         References.Create_Reference (Profiles, Typ, Ref);
       end;
    end Create_Reference;
 

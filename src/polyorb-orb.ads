@@ -203,6 +203,7 @@ package PolyORB.ORB is
    procedure Create_Reference
      (ORB : access ORB_Type;
       Oid : access Objects.Object_Id;
+      Typ : in String;
       Ref : out References.Ref);
    --  Create an object reference that designates object Oid
    --  within this ORB.

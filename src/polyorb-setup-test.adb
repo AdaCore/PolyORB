@@ -242,7 +242,7 @@ package body PolyORB.Setup.Test is
             My_Id.all, Test_Object.If_Desc);
          --  Set object description.
 
-         Create_Reference (The_ORB, My_Id, My_Ref);
+         Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
          --  Obtain object reference.
 
          Put_Line ("Registered object: " & Image (My_Id.all));

@@ -89,12 +89,13 @@ package body PolyORB.References.IOR is
       N_Profiles : Types.Unsigned_Long;
       Result     : IOR_Type;
    begin
-
       Result.Type_Id := CORBA.String (Types.String'(Unmarshall (Buffer)));
       N_Profiles     := Unmarshall (Buffer);
 
       declare
-            Profs      : Profile_Array := (1 .. Integer (N_Profiles) => null);
+         Type_Id : constant String
+           := CORBA.To_Standard_String (Result.Type_Id);
+         Profs   : Profile_Array := (1 .. Integer (N_Profiles) => null);
       begin
 
             pragma Debug
@@ -121,7 +122,7 @@ package body PolyORB.References.IOR is
                end;
             end loop;
 
-            Create_Reference (Profs, Result.Ref);
+            Create_Reference (Profs, Type_Id, Result.Ref);
 
             return Result;
       end;

@@ -137,7 +137,7 @@ package body PolyORB.Protocols.SRP is
       --  local
       Create_Local_Profile
         (Info_SRP.Oid.all, Local_Profile_Type (Target_Profile.all));
-      References.Create_Reference ((1 => Target_Profile), Target);
+      References.Create_Reference ((1 => Target_Profile), "", Target);
 
       --  Create a Request
       Create_Request (Target    => Target,

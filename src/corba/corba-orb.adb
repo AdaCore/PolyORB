@@ -49,17 +49,7 @@ package body CORBA.ORB is
 
    package Referenced_Objects is
       new PolyORB.Dynamic_Dict (CORBA.Object.Ref);
-
---    type Referenced_Object is record
---       Identifier : ObjectId;
---       Reference  : CORBA.Object.Ref;
---    end record;
-
---    package Referenced_Objects is new
---      Sequences.Unbounded (Referenced_Object);
-
---    Identifiers : Referenced_Objects.Sequence
---      := Referenced_Objects.Null_Sequence;
+   --  For initial references.
 
    ---------------------
    -- create_alias_tc --
@@ -376,8 +366,10 @@ package body CORBA.ORB is
    -- Create_Reference --
    ----------------------
 
-   function Create_Reference (Object : in CORBA.Object.Ref)
-                             return PolyORB.References.Ref
+   function Create_Reference
+     (Object : in CORBA.Object.Ref;
+      Typ : in Standard.String)
+     return PolyORB.References.Ref
    is
       Result : PolyORB.References.Ref;
 
@@ -390,9 +382,7 @@ package body CORBA.ORB is
       end if;
 
       PolyORB.ORB.Create_Reference
-        (The_ORB,
-         Oid,
-         Result);
+        (The_ORB, Oid, Typ, Result);
 
       return Result;
    end Create_Reference;

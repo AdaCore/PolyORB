@@ -165,9 +165,11 @@ package CORBA.ORB is
    procedure Initialize
      (ORB_Name : in Standard.String);
 
-   function Create_Reference (Object : in CORBA.Object.Ref)
+   function Create_Reference
+     (Object : in CORBA.Object.Ref;
+      Typ : in Standard.String)
      return PolyORB.References.Ref;
    --  Create an object reference that designates object Oid
-   --  within this ORB.
+   --  of type Typ within this ORB.
 
 end CORBA.ORB;

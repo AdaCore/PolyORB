@@ -571,21 +571,24 @@ package body PortableServer.POA is
 
 --       return PolyORB.POA.Skeleton_To_Ref (Skel.all);
 
-      PolyORB.ORB.Create_Reference
-        (PolyORB.Setup.The_ORB, Oid'Access, The_Ref);
-      --  Obtain object reference.
-
       declare
-         The_Type_Id : constant CORBA.String
+         TID : constant CORBA.String
            := PolyORB.POA_Types.Servant
            (To_PolyORB_Servant (P_Servant).all).If_Desc.External_Name;
+         STID : constant Standard.String
+           := CORBA.To_Standard_String (TID);
       begin
          pragma Debug
-           (O ("Creating a Reference_Info with type "
-               & CORBA.To_Standard_String (The_Type_Id)));
+           (O ("Creating a Reference_Info with type " & STID));
+
+         PolyORB.ORB.Create_Reference
+           (PolyORB.Setup.The_ORB, Oid'Access,
+            STID, The_Ref);
+         --  Obtain object reference.
+
          CORBA.Object.Reference_Info (The_Ref_Info.all).IOR :=
            (Ref     => The_Ref,
-            Type_Id => The_Type_Id);
+            Type_Id => TID);
       end;
       --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
       --  *if* Servant was a PolyORB.POA_Types.Servant. Unfortunately, Servant

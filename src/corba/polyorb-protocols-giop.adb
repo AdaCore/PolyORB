@@ -1286,7 +1286,12 @@ package body PolyORB.Protocols.GIOP is
         and then Target_Ref.Address_Type /= Key_Addr
       then
          if Target_Ref.Address_Type = Profile_Addr then
-            Create_Reference ((1 => Target_Ref.Profile), Target);
+            Create_Reference ((1 => Target_Ref.Profile), "", Target);
+            --  Create a temporary, typeless reference for this object.
+            --  If we wanted to have proper type information, we would
+            --  have to resolve the (local) object id through the object
+            --  adapter, and query the target object for its most derived
+            --  type.
          else
             Target := Target_Ref.Ref.IOR.Ref;
          end if;
@@ -1304,7 +1309,9 @@ package body PolyORB.Protocols.GIOP is
          begin
             Create_Local_Profile
               (Object_Key.all, Local_Profile_Type (Target_Profile.all));
-            Create_Reference ((1 => Target_Profile), Target);
+            Create_Reference ((1 => Target_Profile), "", Target);
+            --  Create a temporary, typeless reference for this object.
+            --  (see comment above).
             Free (Target_Ref);
          end;
       end if;
