@@ -37,12 +37,16 @@ with Ada.Exceptions;           use Ada.Exceptions;
 with Ada.Streams;              use Ada.Streams;
 with System.Garlic;            use System.Garlic;
 with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Exceptions; use System.Garlic.Exceptions;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;
-with System.Garlic.Utils;      use System.Garlic.Utils;
+
+with System.Garlic.Startup;
+pragma Elaborate_All (System.Garlic.Startup);
+pragma Warnings (Off, System.Garlic.Startup);
 
 package body System.RPC.Stream_IO is
 
@@ -62,7 +66,7 @@ package body System.RPC.Stream_IO is
          Mode      : Stream_Mode;
          Incoming  : aliased Streams.Params_Stream_Type (0);
          Outgoing  : aliased Streams.Params_Stream_Type (0);
-         Consumer  : System.Garlic.Soft_Links.Barrier_Access;
+         Consumer  : System.Garlic.Soft_Links.Watcher_Access;
          Available : System.Garlic.Soft_Links.Mutex_Access;
          Critical  : System.Garlic.Soft_Links.Mutex_Access;
       end record;
@@ -228,12 +232,15 @@ package body System.RPC.Stream_IO is
    procedure Read
      (Stream : in out Partition_Stream_Type;
       Item   : out    Ada.Streams.Stream_Element_Array;
-      Last   : out    Ada.Streams.Stream_Element_Offset) is
-      FID  : Partition_ID;
-      LID  : Partition_ID;
-      Len  : Stream_Element_Offset := 0;
-      Str  : Partition_Stream_Access;
-      From : Partition_Stream_Access;
+      Last   : out    Ada.Streams.Stream_Element_Offset)
+   is
+      FID     : Partition_ID;
+      LID     : Partition_ID;
+      Len     : Stream_Element_Offset := 0;
+      Str     : Partition_Stream_Access;
+      From    : Partition_Stream_Access;
+      Version : System.Garlic.Types.Version_Id;
+
    begin
 
       if not Stream.Open then
@@ -252,7 +259,6 @@ package body System.RPC.Stream_IO is
          --  Is there something to read ?
 
          pragma Debug (D ("Read - Wait for stream" & Stream.PID'Img));
-         System.Garlic.Soft_Links.Wait (Str.Consumer);
 
          --  For Any_Partition, look at all the partitions.
 
@@ -287,15 +293,19 @@ package body System.RPC.Stream_IO is
 
                   if From.Incoming.Count /= 0 then
                      pragma Debug (D ("Read - Signal stream" & P'Img));
-                     System.Garlic.Soft_Links.Signal (From.Consumer);
-                     System.Garlic.Soft_Links.Signal (Any.Consumer);
+                     System.Garlic.Soft_Links.Update (From.Consumer);
+                     System.Garlic.Soft_Links.Update (Any.Consumer);
                   end if;
                   exit;
                end if;
             end if;
+
          end loop;
 
          exit when Len /= 0;
+
+         System.Garlic.Soft_Links.Lookup (Str.Consumer, Version);
+         System.Garlic.Soft_Links.Differ (Str.Consumer, Version);
       end loop;
       Last := Len;
    exception when others =>
@@ -331,8 +341,8 @@ package body System.RPC.Stream_IO is
       --  Any_Partition.
 
       pragma Debug (D ("Signal to all streams"));
-      System.Garlic.Soft_Links.Signal (Str.Consumer);
-      System.Garlic.Soft_Links.Signal (Any.Consumer);
+      System.Garlic.Soft_Links.Update (Str.Consumer);
+      System.Garlic.Soft_Links.Update (Any.Consumer);
    end Handle_Request;
 
    -----------
@@ -371,4 +381,6 @@ package body System.RPC.Stream_IO is
       null;
    end Write;
 
+begin
+   Initialize;
 end System.RPC.Stream_IO;
