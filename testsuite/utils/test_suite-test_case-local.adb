@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,6 +30,8 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with GNAT.Expect;
 with GNAT.OS_Lib;
@@ -71,7 +73,12 @@ package body Test_Suite.Test_Case.Local is
 
       --  Spawn Executable
 
-      Non_Blocking_Spawn (Fd, Command, Null_Argument_List);
+      Non_Blocking_Spawn
+        (Descriptor  => Fd,
+         Command     => Command,
+         Args        => Null_Argument_List,
+         Buffer_Size => 4096,
+         Err_To_Out  => True);
 
       --  Redirect Output
 
