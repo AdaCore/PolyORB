@@ -677,13 +677,14 @@ package body Test001_Request_Info_Tests is
       Operation : constant String := "response_expected";
 
    begin
-      --  XXX Functionality test not implemented
+      --  The operation is not oneway: a response is always expected
 
       if Get_Response_Expected (Info) then
-         null;
+         Output (Point, Operation, True);
+      else
+         Output (Point, Operation, False);
       end if;
 
-      Output (Point, Operation, True);
    exception
       when others =>
          Output (Point, Operation, False);
