@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#17 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#18 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
@@ -218,6 +218,7 @@ package body PolyORB.Smart_Pointers is
          pragma Debug (O ("Adjust: null ref"));
          null;
       end if;
+      pragma Debug (O ("Adjust: leave"));
    end Adjust;
 
    --------------
@@ -238,7 +239,7 @@ package body PolyORB.Smart_Pointers is
       end if;
 
       The_Ref.A_Ref := null;
-
+      pragma Debug (O ("Finalize: leave"));
    exception
       when E : others =>
          pragma Debug (O ("Finalize: caught "
