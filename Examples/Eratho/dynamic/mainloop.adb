@@ -1,27 +1,19 @@
---  Predefined Libraries
-with Ada.Text_IO; use Ada.Text_IO;
-
---  User Defined Libraries
+with Text_IO; use Text_IO;
 with Controller; use Controller;
-pragma Elaborate (Controller);
-
-with Prime;
-pragma Elaborate (Prime);
-
 with Common; use Common;
 
 procedure Mainloop is
 
    Divider   : Natural;
    Where     : Partition_ID;
-   First     : Prime_Pool_Access;
+   Starter   : Pool_Access;
 
 begin
 
-   First := Controller.First;
+   Starter := Next (Mainloop'Partition_ID);
    for Number in 2 .. 50 loop
 
-      Test_Primarity (First, Number, Divider, Where);
+      Test_Primarity (Starter, Number, Divider, Where);
       if Divider = Number then
               Put_Line (Natural'Image (Number) &
                    " (prime on" &

@@ -1,7 +1,4 @@
---  Predefined Libraries
-with Ada.Text_IO; use Ada.Text_IO;
-
---  User Defined Libraries
+with Text_IO; use Text_IO;
 with Prime_1;
 with Common; use Common;
 

@@ -28,6 +28,7 @@
 
 with Common; use Common;
 package Worker_Pkg is
+   pragma Remote_Types;
    type Real_Worker is new Worker with
      record
         Speed : Integer;

@@ -1,58 +1,66 @@
---  User Defined Libraries
 with Common; use Common;
 
 package body Controller is
 
-   Global_Pool_Table  : array (Pool_Index) of Prime_Pool_Access;
-   Current_Pool_Index : Pool_Index := 0;
+   --  We insert each distributed object in a group. When
+   --  Max distributed objects have been inserted, we can
+   --  provide to each distributed object its neighbor.
+   --  Otherwise, function Next is a blocking operation.
+   --  This is done using a protected object.
 
-   protected Barrier is
-      entry Wait;
-      procedure Signal;
+   type Pool_Info is record
+      Pool : Pool_Access;
+      PID  : Partition_ID;
+   end record;
+
+   Max : constant := 3;
+   type Pool_Info_Table is array (1 .. Max) of Pool_Info;
+
+   protected Group is
+      procedure Add  (Pool : in  Pool_Access; PID : Partition_ID);
+      entry     Next (Pool : out Pool_Access; PID : Partition_ID);
    private
-      Full : Boolean := False;
-   end Barrier;
+      Table : Pool_Info_Table;
+      Last  : Natural := 0;
+   end Group;
 
-   protected body Barrier is
-      entry Wait when Full is
+   protected body Group is
+      procedure Add  (Pool : in  Pool_Access; PID : Partition_ID) is
       begin
-         null;
-      end Wait;
-      procedure Signal is
+         Last := Last + 1;
+         Table (Last) := (Pool, PID);
+      end Add;
+      entry     Next (Pool : out Pool_Access; PID : Partition_ID)
+      when Last = Max is
       begin
-         Full := True;
-      end Signal;
-   end Barrier;
+         for Index in 1 .. Max loop
+            if Table (Index).PID = PID then
+               if Index = Max then
+                  Pool := Table (1).Pool;
+               else
+                  Pool := Table (Index + 1).Pool;
+               end if;
+               exit;
+            end if;
+         end loop;
+      end Next;
+   end Group;
 
-   procedure Register
-     (Pool  : in  Prime_Pool_Access;
-      Index : out Pool_Index) is
+   function Register
+     (Pool : Pool_Access; PID : Partition_ID)
+      return Boolean is
    begin
-      Current_Pool_Index := Current_Pool_Index + 1;
-      Index := Current_Pool_Index;
-      Global_Pool_Table (Current_Pool_Index) := Pool;
-      if Current_Pool_Index = Last_Pool_Index then
-         Barrier.Signal;
-      end if;
+      Group.Add (Pool, PID);
+      return True;
    end Register;
 
    function  Next
-     (Index : in Pool_Index)
-      return Prime_Pool_Access is
+     (PID : Partition_ID)
+      return Pool_Access is
+      Pool : Pool_Access;
    begin
-      Barrier.Wait;
-      if Index = Last_Pool_Index then
-         return Global_Pool_Table (1);
-      else
-         return Global_Pool_Table (Index + 1);
-      end if;
+      Group.Next (Pool, PID);
+      return Pool;
    end Next;
-
-   function First
-      return Prime_Pool_Access is
-   begin
-      Barrier.Wait;
-      return Global_Pool_Table (1);
-   end First;
 
 end Controller;

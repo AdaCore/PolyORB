@@ -1,4 +1,3 @@
---  User Defined Libraries
 with Common; use Common;
 
 package Prime_3 is

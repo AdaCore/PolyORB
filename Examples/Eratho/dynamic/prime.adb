@@ -1,21 +1,33 @@
---  User Defined Libraries
 with Controller; use Controller;
 with Common; use Common;
 
 package body Prime is
 
-   Self_Pool_Reference : aliased New_Pool_Type;
-   Self_Pool_Index     : Pool_Index;
+   --  In this table are stored the different prime number this unit
+   --  is in charge of. Last_Prime_Index is the prime table index
+   --  in which is stored the last prime this unit is in charge of.
+   --  Current_Prime_Index points to the prime to test againt the number.
 
-   Next_Pool_Reference : Prime_Pool_Access;
-   Next_Pool_Ref_Known : Boolean := False;
-
-   --  Local Prime Table stuff
    type Prime_Index is range 0 .. 10;
    Local_Prime_Table   : array (Prime_Index) of Natural;
-
    Last_Prime_Index    : Prime_Index := 0;
    Current_Prime_Index : Prime_Index := 1;
+
+   --  Remember which number we are testing in order to reset
+   --  Current_Prime_Index when a new number is tested.
+   Number_To_Test      : Natural := 0;
+
+   --  U'Partition_ID returns a integer which is a unique id used
+   --  to identify the partition on which unit U is really located.
+   Local_Partition_ID  : Partition_ID := Prime'Partition_ID;
+
+   --  Distributed objects for the current and next partition.
+   Self_Pool : aliased New_Pool_Type;
+   Next_Pool : Pool_Access := null;
+
+   --  Register the distributed object of the current partition to
+   --  the Controller.
+   Elaborate : Boolean := Register (Self_Pool'Access, Local_Partition_ID);
 
    procedure Test_Primarity
      (Pool     : access New_Pool_Type;
@@ -24,26 +36,29 @@ package body Prime is
       Where    : out Partition_ID) is
    begin
 
+      --  Did we change of number to test.
+      if Number_To_Test /= Number then
+         Number_To_Test := Number;
+         Current_Prime_Index := 1;
+      end if;
+
+      --  Is there any other prime to test againt Number.
       if Current_Prime_Index <= Last_Prime_Index then
          if Number mod Local_Prime_Table (Current_Prime_Index) = 0 then
 
             Divider := Local_Prime_Table (Current_Prime_Index);
-            Where   := Prime'Partition_ID;
+            Where   := Local_Partition_ID;
 
          else
 
-            if not Next_Pool_Ref_Known then
-               Next_Pool_Reference := Controller.Next (Self_Pool_Index);
-               Next_Pool_Ref_Known := True;
+            --  If the distributed object of the next partition is not
+            --  available, then fetch it.
+            if Next_Pool = null then
+               Next_Pool := Next (Local_Partition_ID);
             end if;
 
             Current_Prime_Index := Current_Prime_Index + 1;
-            Test_Primarity
-              (Next_Pool_Reference,
-               Number,
-               Divider,
-               Where);
-            Current_Prime_Index := Current_Prime_Index - 1;
+            Test_Primarity (Next_Pool, Number, Divider, Where);
 
          end if;
       else
@@ -51,11 +66,9 @@ package body Prime is
          Local_Prime_Table (Last_Prime_Index) := Number;
 
          Divider := Number;
-         Where   := Prime'Partition_ID;
+         Where   := Local_Partition_ID;
 
       end if;
    end Test_Primarity;
 
-begin
-   Controller.Register (Self_Pool_Reference'Access, Self_Pool_Index);
 end Prime;
