@@ -142,7 +142,7 @@ package body Values is
      (Value : Boolean)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(K_Boolean, Value));
+      return New_Value (Value_Type'(K_Boolean, Boolean'Pos (Value), 1, 10));
    end New_Boolean_Value;
 
    -------------------------
@@ -317,7 +317,7 @@ package body Values is
             V.IVal := not V.IVal;
 
          when K_Boolean =>
-            V.BVal := not V.BVal;
+            V.IVal := 1 - V.IVal;
 
          when others =>
             return Bad_Value;
@@ -542,7 +542,7 @@ package body Values is
             LV.Sign := 1;
 
          when K_Boolean =>
-            LV.BVal := LV.BVal and RV.BVal;
+            LV.IVal := LV.IVal and RV.IVal;
 
          when others =>
             return Bad_Value;
@@ -574,7 +574,7 @@ package body Values is
             LV.Sign := 1;
 
          when K_Boolean =>
-            LV.BVal := LV.BVal or RV.BVal;
+            LV.IVal := LV.IVal or RV.IVal;
 
          when others =>
             return Bad_Value;
@@ -606,7 +606,7 @@ package body Values is
             LV.Sign := 1;
 
          when K_Boolean =>
-            LV.BVal := LV.BVal xor RV.BVal;
+            LV.IVal := LV.IVal xor RV.IVal;
 
          when others =>
             return Bad_Value;
@@ -644,7 +644,7 @@ package body Values is
             R.SVal := V.SVal;
 
          when K_Boolean =>
-            R.BVal := V.BVal;
+            R.IVal := V.IVal;
 
          when others =>
             return V;

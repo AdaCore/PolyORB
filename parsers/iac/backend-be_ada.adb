@@ -29,6 +29,16 @@ package body Backend.BE_Ada is
    function Visite_Module (E : Node_Id) return Node_Id;
 
    use Inheritance_Stack;
+
+   ---------------
+   -- Configure --
+   ---------------
+
+   procedure Configure is
+   begin
+      null;
+   end Configure;
+
    --------------
    --  Generate --
    --------------
