@@ -48,7 +48,6 @@ package body PolyORB.Filters.HTTP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-
    procedure Create
      (Fact   : access HTTP_Filter_Factory;
       Filt   : out Filter_Access)

@@ -111,7 +111,6 @@ package body PolyORB.Binding_Data.SOAP is
            (To_Standard_String (Profile.Target_URL)));
 
    begin
-
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
 
@@ -132,12 +131,6 @@ package body PolyORB.Binding_Data.SOAP is
 
       Store_Connection (SOAP_Session (Upper (Filter_Access
              (Filter)).all)'Access, Connection);
-
-
-      --  XXX Session must be an access to the lowest filter in
-      --  the stack (=> the Slicer).
-
-      --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
 
 
@@ -168,10 +161,16 @@ package body PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
+      Result : constant Profile_Access
+        := new SOAP_Profile_Type;
+      TResult : SOAP_Profile_Type
+        renames SOAP_Profile_Type (Result.all);
    begin
-      return null;
+      TResult.Object_Id := new Object_Id'(Oid);
+      TResult.Address   := Address_Of (Socket_Access_Point (TAP.all));
+      --  XXX TResult.Target_URL ??
+      return  Result;
    end Create_Profile;
-
 
    function Create_Profile
      (PF  : access SOAP_Profile_Factory;
@@ -190,15 +189,14 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       IP_Addr := Addresses (Get_Host_By_Name
             (To_Standard_String (URL_Obj.Server_Name)));
-      TResult.Address := Sock_Addr_Type'(Family => Family_Inet,
-           Addr => IP_Addr, Port => Port_Type (URL_Obj.Port));
+      TResult.Address := Sock_Addr_Type'
+        (Family => Family_Inet,
+         Addr   => IP_Addr,
+         Port   => Port_Type (URL_Obj.Port));
       TResult.Target_URL := URL;
-      TResult.Object_Id := new Object_Id'(
-           Mapping_String_To_Object (URL_Obj.URI));
+      TResult.Object_Id := new Object_Id'(Base64_To_Oid (URL_Obj.URI));
       return Result;
    end Create_Profile;
-
-
 
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
@@ -217,17 +215,17 @@ package body PolyORB.Binding_Data.SOAP is
    end Image;
 
 
-   function Mapping_String_To_Object
+   function Base64_To_Oid
      (S : Types.String)
     return Objects.Object_Id
    is
       use PolyORB.Utils.HTTP;
    begin
       return Object_Id (Base64_Decode (To_Standard_String (S)));
-   end Mapping_String_To_Object;
+   end Base64_To_Oid;
 
 
-   function Mapping_Object_To_String
+   function Oid_To_Base64
      (O : Objects.Object_Id)
     return Types.String
    is
@@ -235,7 +233,7 @@ package body PolyORB.Binding_Data.SOAP is
    begin
       return To_PolyORB_String (Base64_Encode
        (Stream_Element_Array (O)));
-   end Mapping_Object_To_String;
+   end Oid_To_Base64;
 
 
 

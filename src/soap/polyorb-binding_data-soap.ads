@@ -97,11 +97,11 @@ package PolyORB.Binding_Data.SOAP is
 
    function Image (Prof : SOAP_Profile_Type) return String;
 
-   function Mapping_String_To_Object
+   function Base64_To_Oid
      (S : Types.String)
      return Objects.Object_Id;
 
-   function Mapping_Object_To_String
+   function Oid_To_Base64
      (O : Objects.Object_Id)
      return Types.String;
 

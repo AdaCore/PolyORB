@@ -552,10 +552,12 @@ package body PolyORB.Protocols.SOAP  is
      (Proto   : access SOAP_Protocol;
       Session : out Filter_Access)
    is
-
+      Result : constant Filter_Access
+        := new SOAP_Session;
    begin
-      Session := new SOAP_Session;
-      SOAP_Session (Session.all).Buffer  := new Buffers.Buffer_Type;
+      pragma Debug (O ("creating SOAP session."));
+      SOAP_Session (Result.all).Buffer  := new Buffers.Buffer_Type;
+      Session := Result;
       --  something to add?
    end Create;
 

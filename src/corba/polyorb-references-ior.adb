@@ -88,23 +88,21 @@ package body PolyORB.References.IOR is
 
       for N in Profs'Range loop
          for I in 1 .. Length (Callbacks) loop
-            if Profs (N) = null then
-               O ("Null profile #" & N'Img, Warning);
-            else
-               declare
-                  T : constant Profile_Tag
-                    := Get_Profile_Tag (Profs (N).all);
-               begin
-                  if T = Element_Of (Callbacks, I).Tag then
-                     Marshall (Buffer, Types.Unsigned_Long (T));
+            pragma Assert (Profs (N) /= null);
 
-                     Element_Of
-                       (Callbacks, I).Marshall_Profile_Body
-                       (Buffer, Profs (N));
-                     Counter := Counter + 1;
-                  end if;
-               end;
-            end if;
+            declare
+               T : constant Profile_Tag
+                 := Get_Profile_Tag (Profs (N).all);
+            begin
+               if T = Element_Of (Callbacks, I).Tag then
+                  Marshall (Buffer, Types.Unsigned_Long (T));
+
+                  Element_Of
+                    (Callbacks, I).Marshall_Profile_Body
+                    (Buffer, Profs (N));
+                  Counter := Counter + 1;
+               end if;
+            end;
          end loop;
       end loop;
 
