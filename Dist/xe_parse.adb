@@ -930,7 +930,7 @@ package body XE_Parse is
 
       else
          Write_Location (Get_Token_Location);
-         Write_Name ("identifier ");
+         Write_Str ("identifier ");
          Write_Name (Direct_Name);
          Write_Str (" is undefined");
          Write_Eol;
