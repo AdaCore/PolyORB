@@ -30,14 +30,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#6 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#7 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
@@ -216,8 +216,8 @@ package body PolyORB.Smart_Pointers is
       return The_Ref.A_Ref;
    end Entity_Of;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

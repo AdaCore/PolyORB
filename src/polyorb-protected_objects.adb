@@ -40,8 +40,8 @@ with System.Soft_Links;
 pragma Warnings (On);
 --  Internal GNAT unit.
 
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links;  use PolyORB.Soft_Links;
@@ -561,8 +561,8 @@ package body PolyORB.Protected_Objects is
       return Task_Id_To_Integer (T.X);
    end To_Integer;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

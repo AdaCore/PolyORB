@@ -33,12 +33,12 @@
 --  $Id$
 
 with Ada.Text_IO; use Ada.Text_IO;
-with PolyORB.Configurator; use PolyORB.Configurator;
+with PolyORB.Initialization; use PolyORB.Initialization;
 with PolyORB.Utils.Strings; use PolyORB.Utils.Strings;
 
-procedure PolyORB.Test.Configurator is
+procedure PolyORB.Test.Initialization is
 
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization.String_Lists;
 
    generic
       Name : String;
@@ -91,4 +91,4 @@ begin
        Init => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
-end PolyORB.Test.Configurator;
+end PolyORB.Test.Initialization;

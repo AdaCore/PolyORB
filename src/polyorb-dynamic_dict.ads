@@ -44,15 +44,28 @@ package PolyORB.Dynamic_Dict is
 
    Key_Not_Found : exception;
 
-   function Lookup
-      (K : String)
-     return Value;
-
    procedure Register
      (K : String;
       V : Value);
+   --  Associate key K with value V.
 
    procedure Unregister
      (K : String);
+   --  Remove any association for K. Key_Not_Found is raised
+   --  if no value was registered for this key.
+
+   function Lookup
+      (K : String)
+     return Value;
+   --  Lookup K in the dictionary, and return the associated value.
+   --  Key_Not_Found is raised if no value was registered for this
+   --  key.
+
+   function Lookup
+     (K : String;
+      Default : Value)
+     return Value;
+   --  As above, but Default is returned for non-registered keys,
+   --  insted of raising an exception.
 
 end PolyORB.Dynamic_Dict;

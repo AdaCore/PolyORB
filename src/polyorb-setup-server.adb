@@ -35,8 +35,8 @@
 
 --  $Id$
 
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Protocols;
@@ -167,8 +167,8 @@ package body PolyORB.Setup.Server is
       --  to the transport service access point.
    end Initialize_Access_Points;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

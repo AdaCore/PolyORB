@@ -100,6 +100,20 @@ package body PolyORB.Dynamic_Dict is
       return E.The_Value;
    end Lookup;
 
+   function Lookup
+     (K : String;
+      Default : Value)
+     return Value
+   is
+   begin
+      return Lookup (K);
+   exception
+      when Key_Not_Found =>
+         return Default;
+      when others =>
+         raise;
+   end Lookup;
+
    procedure Register
      (K : String;
       V : Value)

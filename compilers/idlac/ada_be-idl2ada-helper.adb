@@ -479,14 +479,14 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Visible_Declarations);
       Add_With
-        (CU, "PolyORB.Configurator", Elab_Control => Elaborate_All);
+        (CU, "PolyORB.Initialization", Elab_Control => Elaborate_All);
       Add_With (CU, "PolyORB.Utils.Strings");
 
       Divert (CU, Elaboration);
       PL (CU, "declare");
       II (CU);
-      PL (CU, "use PolyORB.Configurator;");
-      PL (CU, "use PolyORB.Configurator.String_Lists;");
+      PL (CU, "use PolyORB.Initialization;");
+      PL (CU, "use PolyORB.Initialization.String_Lists;");
       PL (CU, "use PolyORB.Utils.Strings;");
       DI (CU);
       PL (CU, "begin");

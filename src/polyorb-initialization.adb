@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . C O N F I G U R A T O R                  --
+--               P O L Y O R B . I N I T I A L I Z A T I O N                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 2001-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Utils.Chained_Lists;
 pragma Elaborate_All (PolyORB.Utils.Chained_Lists);
 
-package body PolyORB.Configurator is
+package body PolyORB.Initialization is
 
    use PolyORB.Log;
 
@@ -261,4 +261,4 @@ package body PolyORB.Configurator is
       Initialized := True;
    end Initialize_World;
 
-end PolyORB.Configurator;
+end PolyORB.Initialization;

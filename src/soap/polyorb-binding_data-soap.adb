@@ -37,8 +37,8 @@
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Any;
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
 with PolyORB.ORB.Interface;
@@ -353,8 +353,8 @@ package body PolyORB.Binding_Data.SOAP is
         ", Object_Id : " & PolyORB.Objects.Image (Prof.Object_Id.all);
    end Image;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

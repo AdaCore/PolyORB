@@ -34,20 +34,20 @@
 
 --  $Id$
 
-with PolyORB.Configurator;
+with PolyORB.Initialization;
 with PolyORB.ORB.No_Tasking;
 with PolyORB.Setup.Server;
 
-pragma Elaborate_All (PolyORB.Configurator);
+pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.Setup.Server);
 
-pragma Warnings (Off, PolyORB.Configurator);
+pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.No_Tasking_Server is
 
 begin
-   PolyORB.Configurator.Initialize_World;
+   PolyORB.Initialization.Initialize_World;
 end PolyORB.Setup.No_Tasking_Server;

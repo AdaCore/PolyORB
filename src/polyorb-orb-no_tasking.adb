@@ -35,8 +35,8 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -142,8 +142,8 @@ package body PolyORB.ORB.No_Tasking is
       Setup.The_Tasking_Policy := new No_Tasking;
    end Initialize;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

@@ -44,8 +44,8 @@ with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Components;
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
@@ -1987,8 +1987,8 @@ package body PolyORB.Protocols.GIOP is
       return (Bit_Field and (2 ** Bit_Order)) /= 0;
    end Is_Set;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

@@ -35,8 +35,8 @@
 with Ada.Exceptions;
 
 with PolyORB.Components;
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Jobs;
@@ -274,8 +274,8 @@ package body PolyORB.ORB.Thread_Per_Session is
       Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
    end Initialize;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

@@ -57,7 +57,7 @@ with Ada.Exceptions;
 
 with Sequences.Unbounded;
 
-with PolyORB.Configurator;
+with PolyORB.Initialization;
 
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
@@ -380,13 +380,13 @@ package body CORBA.ORB is
    procedure Initialize (ORB_Name : in Standard.String) is
       RootPOA : CORBA.Object.Ref;
    begin
-      PolyORB.Configurator.Initialize_World;
+      PolyORB.Initialization.Initialize_World;
       CORBA.Object.Set
         (RootPOA, PolyORB.Smart_Pointers.Entity_Ptr
          (Object_Adapter (The_ORB)));
       Referenced_Objects.Register ("RootPOA", RootPOA);
    exception
-      when PolyORB.Configurator.Already_Initialized =>
+      when PolyORB.Initialization.Already_Initialized =>
          raise Initialization_Failure;
       when others =>
          raise;

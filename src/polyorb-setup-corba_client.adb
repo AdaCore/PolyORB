@@ -34,14 +34,14 @@
 
 --  $Id$
 
-with PolyORB.Configurator;
+with PolyORB.Initialization;
 
 with PolyORB.ORB;
 with PolyORB.ORB.No_Tasking;
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Binding_Data.SOAP;
 
-pragma Elaborate_All (PolyORB.Configurator);
+pragma Elaborate_All (PolyORB.Initialization);
 pragma Elaborate_All (PolyORB.ORB);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.Binding_Data.IIOP);
@@ -55,5 +55,5 @@ pragma Warnings (Off, PolyORB.Binding_Data.SOAP);
 package body PolyORB.Setup.CORBA_Client is
 
 begin
-   PolyORB.Configurator.Initialize_World;
+   PolyORB.Initialization.Initialize_World;
 end PolyORB.Setup.CORBA_Client;

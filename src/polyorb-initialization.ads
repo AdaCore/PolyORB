@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . C O N F I G U R A T O R                  --
+--               P O L Y O R B . I N I T I A L I Z A T I O N                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 2001-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Automatic configurator
+--  Automatic initialization of PolyORB subsystems.
 
 --  $Id$
 
@@ -38,7 +38,7 @@ with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 pragma Elaborate_All (PolyORB.Utils.Strings.Lists);
 
-package PolyORB.Configurator is
+package PolyORB.Initialization is
 
    pragma Elaborate_Body;
 
@@ -68,4 +68,4 @@ package PolyORB.Configurator is
    Circular_Dependency : exception;
    Conflict : exception;
 
-end PolyORB.Configurator;
+end PolyORB.Initialization;

@@ -34,8 +34,8 @@
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Utils.Strings;
 
 package body PolyORB.No_Tasking is
@@ -349,8 +349,8 @@ package body PolyORB.No_Tasking is
       return 0;
    end To_Integer;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin

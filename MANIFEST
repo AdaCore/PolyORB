@@ -419,8 +419,6 @@ src/polyorb-buffers.adb
 src/polyorb-buffers.ads
 src/polyorb-components.adb
 src/polyorb-components.ads
-src/polyorb-configurator.adb
-src/polyorb-configurator.ads
 src/polyorb-constants.ads
 src/polyorb-dict.adb
 src/polyorb-dict.ads
@@ -432,6 +430,8 @@ src/polyorb-filters-slicers.adb
 src/polyorb-filters-slicers.ads
 src/polyorb-filters.adb
 src/polyorb-filters.ads
+src/polyorb-initialization.adb
+src/polyorb-initialization.ads
 src/polyorb-jobs.adb
 src/polyorb-jobs.ads
 src/polyorb-locked_queue.adb

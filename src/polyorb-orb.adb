@@ -39,8 +39,8 @@ with Ada.Real_Time;
 with Ada.Tags;
 
 with PolyORB.Annotations;
-with PolyORB.Configurator;
-pragma Elaborate_All (PolyORB.Configurator);
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization);
 with PolyORB.Constants;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
@@ -915,8 +915,8 @@ package body PolyORB.ORB is
       Create (Setup.The_ORB.all);
    end Initialize;
 
-   use PolyORB.Configurator;
-   use PolyORB.Configurator.String_Lists;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
    use PolyORB.Utils.Strings;
 
 begin
