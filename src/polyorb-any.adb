@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#16 $
+--  $Id: //droopi/main/src/polyorb-any.adb#17 $
 
 with Ada.Tags;
 
@@ -2364,7 +2364,7 @@ package body PolyORB.Any is
               Any_Lock     => A.Any_Lock);
    end Get_By_Ref;
 
-   procedure Copy_Any_Value (Dest : in out Any; Src : Any)
+   procedure Copy_Any_Value (Dest : Any; Src : Any)
    is
    begin
       if TypeCode.Kind (Get_Precise_Type (Dest))

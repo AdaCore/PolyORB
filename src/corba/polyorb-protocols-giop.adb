@@ -305,6 +305,26 @@ package body PolyORB.Protocols.GIOP is
    procedure Initialize_Factory
      (Prof_Factory : in out Binding_Data.Profile_Factory_Access);
 
+   procedure Marshall_Argument_List
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref;
+      Direction : Any.Flags);
+   --  Internal subprogram: Marshall arguments from Args
+   --  into Ses.
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
+   --  with Arg_Modes equal to either ARG_INOUT or Direction
+   --  will be considered.
+
+   procedure Unmarshall_Argument_List
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref;
+      Direction : Any.Flags);
+   --  Internal subprogram: set the values of arguments in
+   --  Args by unmarshalling them from Ses.
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
+   --  with Arg_Modes equal to either ARG_INOUT or Direction
+   --  will be considered.
+
    -----------------------------
    -- Cancel_Request_Marshall --
    -----------------------------
@@ -502,8 +522,6 @@ package body PolyORB.Protocols.GIOP is
         := Reserve (Ses.Buffer_Out, Message_Header_Size);
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Sync          : Sync_Scope;
-      Arg           : Any.NamedValue;
-      List          : NV_Sequence_Access;
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -564,12 +582,8 @@ package body PolyORB.Protocols.GIOP is
             --  should not happen.
       end case;
 
-      --  Marshall the request's Body not yet implemented
-      List :=  List_Of (Pend_Req.Req.Args);
-      for I in 1 ..  Get_Count (Pend_Req.Req.Args) loop
-         Arg := NV_Sequence.Element_Of (List.all, Positive (I));
-         Marshall (Ses.Buffer_Out, Arg);
-      end loop;
+      Marshall_Argument_List
+        (Ses, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
 
       if  Length (Ses.Buffer_Out) > Maximum_Message_Size then
          Fragment_Next := True;
@@ -640,9 +654,20 @@ package body PolyORB.Protocols.GIOP is
       end case;
 
       --  Marshall the reply Body
-      Marshall (Ses.Buffer_Out, Request.Result);
-      --  XXX it seems to me that we should also be marshalling
-      --  the INOUT and OUT arguments here.
+
+--       if Ses.Minor_Version >= 2 then
+--          Align (Ses.Buffer_Out, 8);
+--          --  For GIOP 1.2 and higher, reply bodies are
+--          --  aligned on an 8-byte boundary.
+--       end if;
+
+      --  XXX For some reason this does not seem to work right now.
+      --  See also corresponding code in procedure Reply_Received.
+
+      Marshall_From_Any (Ses.Buffer_Out, Request.Result.Argument);
+
+      Marshall_Argument_List
+        (Ses, Request.Args, PolyORB.Any.ARG_OUT);
 
       if Length (Ses.Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
@@ -1179,35 +1204,76 @@ package body PolyORB.Protocols.GIOP is
       S.Minor_Version := Minor_Version;
    end Set_Version;
 
-   procedure Handle_Unmarshall_Arguments
+
+   procedure Marshall_Argument_List
      (Ses : access GIOP_Session;
-      Args : in out Any.NVList.Ref)
+      Args : in out Any.NVList.Ref;
+      Direction : Any.Flags)
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
 
-      List     : NV_Sequence_Access;
+      List : constant NV_Sequence_Access := List_Of (Args);
+      Arg  : PolyORB.Any.NamedValue;
+   begin
+      pragma Assert
+        (Direction = ARG_IN or else Direction = ARG_OUT);
+
+      for I in 1 ..  Get_Count (Args) loop
+         Arg := NV_Sequence.Element_Of (List.all, Positive (I));
+         if False
+           or else Arg.Arg_Modes = Direction
+           or else Arg.Arg_Modes = ARG_INOUT then
+            Marshall (Ses.Buffer_Out, Arg);
+         end if;
+      end loop;
+   end Marshall_Argument_List;
+
+   procedure Unmarshall_Argument_List
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref;
+      Direction : Any.Flags)
+   is
+      use PolyORB.Any;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
+
+      List     : constant NV_Sequence_Access := List_Of (Args);
       Temp_Arg : Any.NamedValue;
    begin
-      pragma Assert (Ses.State = Arguments_Ready);
-      List :=  List_Of (Args);
+      pragma Assert
+        (Direction = ARG_IN or else Direction = ARG_OUT);
+
       for I in 1 .. Get_Count (Args) loop
          Temp_Arg :=  NV_Sequence.Element_Of
            (List.all, Positive (I));
          if False
-           or else Temp_Arg.Arg_Modes = ARG_IN
+           or else Temp_Arg.Arg_Modes = Direction
            or else Temp_Arg.Arg_Modes = ARG_INOUT
          then
             Unmarshall_To_Any (Ses.Buffer_In, Temp_Arg.Argument);
          end if;
-         NV_Sequence.Replace_Element
-           (List.all, Positive (I), Temp_Arg);
+         Copy_Any_Value
+           (NV_Sequence.Element_Of (List.all, Positive (I)).Argument,
+            Temp_Arg.Argument);
+         --          NV_Sequence.Replace_Element
+         --            (List.all, Positive (I), Temp_Arg);
+
          --  XXX This is very inefficient because of multiple
          --    copies of an Any. The Unmarshall_To_Any should
          --    be done in-place on the actual Element_Array
          --    deep within List...
       end loop;
+   end Unmarshall_Argument_List;
+
+   procedure Handle_Unmarshall_Arguments
+     (Ses : access GIOP_Session;
+      Args : in out Any.NVList.Ref)
+   is
+   begin
+      pragma Assert (Ses.State = Arguments_Ready);
+      Unmarshall_Argument_List (Ses, Args, PolyORB.Any.ARG_IN);
       Expect_Message (Ses);
    end Handle_Unmarshall_Arguments;
 
@@ -1300,16 +1366,6 @@ package body PolyORB.Protocols.GIOP is
          Deferred_Arguments_Session
            := Components.Component_Access (Ses);
       end if;
-
---       Result :=
---         (Name     => To_PolyORB_String ("Result"),
---          Argument => Obj_Adapters.Get_Empty_Result
---          (Object_Adapter (ORB),
---           Object_Key.all,
---           To_Standard_String (Operation)),
---          Arg_Modes => 0);
-      --  XXX Useless at this stage: the type will be set by
-      --  the called method.
 
       if Ses.Minor_Version = 2
         and then Target_Ref.Address_Type /= Key_Addr
@@ -1431,10 +1487,22 @@ package body PolyORB.Protocols.GIOP is
 
          when No_Exception =>
 
+            --  Unmarshall reply body.
+
+--             if Ses.Minor_Version >= 2 then
+--                Align (Ses.Buffer_In, 8);
+--                --  For GIOP 1.2 and higher, reply bodies are
+--                --  aligned on an 8-byte boundary.
+--             end if;
+
+            --  XXX For some reason this does not seem to work right now.
+            --  See also corresponding code in procedure No_Exception_Reply.
+
             Unmarshall_To_Any
               (Ses.Buffer_In, Current_Req.Req.Result.Argument);
-            --  XXX This looks wrong: not only should we unmarshall
-            --  the result, but also the "out" and "inout" arguments.
+
+            Unmarshall_Argument_List
+              (Ses, Current_Req.Req.Args, PolyORB.Any.ARG_OUT);
 
             Emit_No_Reply
               (Component_Access (ORB),

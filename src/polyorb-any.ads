@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#8 $
+--  $Id: //droopi/main/src/polyorb-any.ads#9 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -628,7 +628,7 @@ package PolyORB.Any is
      (Tc : TypeCode.Object)
      return Any;
 
-   procedure Copy_Any_Value (Dest : in out Any; Src : Any);
+   procedure Copy_Any_Value (Dest : Any; Src : Any);
    --  Set the value of Dest from the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's

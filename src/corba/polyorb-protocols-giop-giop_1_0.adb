@@ -176,10 +176,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    end Marshall_No_Exception;
 
-   -------------------------------------
-   --  System Exception Marshall
-   -------------------------------------
-
    procedure Marshall_Exception
      (Buffer           : access Buffer_Type;
       Request_Id       : in Types.Unsigned_Long;
@@ -268,11 +264,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       --  Principal
       Principal :=  Unmarshall (Buffer);
    end Unmarshall_Request_Message;
-
-   ---------------------------------------
-   --- Reply Message Unmarshall ----------
-   --------------------------------------
-
 
    procedure Unmarshall_Reply_Message
      (Buffer       : access Buffer_Type;
