@@ -37,10 +37,11 @@ with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
-with System.Garlic.Constants;             use System.Garlic.Constants;
-with System.Garlic.Debug;                 use System.Garlic.Debug;
-with System.Garlic.Heart;                 use System.Garlic.Heart;
-with System.Garlic.Naming;                use System.Garlic.Naming;
+with System.Garlic.Constants;         use System.Garlic.Constants;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Heart;             use System.Garlic.Heart;
+with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
+with System.Garlic.Naming;            use System.Garlic.Naming;
 pragma Elaborate_All (System.Garlic.Naming);
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
@@ -58,7 +59,7 @@ package body System.Garlic.TCP is
    --  as follow: (C = caller, R = receiver)
    --    - If the partition_ID is not known:
    --      C->R : Null_Partition_ID
-   --      R->C : <new caller Partition_ID>
+   --      R->C : <new caller Partition_ID> <boot partition name>
    --    - After this, in any case: (C & R may be reversed)
    --      C->R : <Length (Stream_Element_Count)> <Packet>
 
@@ -168,7 +169,8 @@ package body System.Garlic.TCP is
    function Ask_For_Partition_ID (FD : C.int) return Partition_ID;
    --  Ask for a partition ID on the given file descriptor (which is
    --  of course bound to the server, since we cannot contact other
-   --  partitions if we haven't our partition ID).
+   --  partitions if we haven't our partition ID). Get also the boot
+   --  partition name.
 
    procedure Physical_Receive
      (FD : in C.int; Data : out Stream_Element_Array);
