@@ -1,4 +1,4 @@
-SUBDIRS = . rtcorba
+SUBDIRS = . portableinterceptor rtcorba
 
 include $(srcdir)/../Makefile.common
 
@@ -57,6 +57,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	corba-sequences-unbounded.ads \
 	corba-sequences.ads \
 	polyorb-corba_p.ads \
+	polyorb-corba_p-interceptors_hooks.ads \
 	portableserver-servantmanager.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)

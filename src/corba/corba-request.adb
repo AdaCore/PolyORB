@@ -36,6 +36,7 @@
 --  $Id$
 
 with PolyORB.CORBA_P.Exceptions;
+with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -116,7 +117,7 @@ package body CORBA.Request is
    begin
       --  XXX for now we do everything synchronously; flags
       --  are ignored by P.R.Invoke.
-      PolyORB.Requests.Invoke
+      PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
       if not PolyORB.Any.Is_Empty (Self.The_Request.Exception_Info) then

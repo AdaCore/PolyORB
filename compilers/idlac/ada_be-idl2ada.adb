@@ -2138,6 +2138,7 @@ package body Ada_Be.Idl2Ada is
 
                   begin
                      Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+                     Add_With (CU, "PolyORB.CORBA_P.Interceptors_Hooks");
                      Add_With (CU, "PolyORB.Any.NVList");
                      Add_With (CU, "PolyORB.Requests");
                      Add_With (CU, "PolyORB.Types");
@@ -2328,8 +2329,12 @@ package body Ada_Be.Idl2Ada is
                      DI (CU);
 
                      NL (CU);
-                     PL (CU, "PolyORB.Requests.Invoke ("
-                         & T_Request & ");");
+                     PL (CU,
+                         "PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke");
+                     PL (CU, "  (" & T_Request & ',');
+                     II (CU);
+                     PL (CU, "PolyORB.Requests.Flags (0));");
+                     DI (CU);
 
                      PL (CU, "if not PolyORB.Any.Is_Empty (" & T_Request
                          & ".Exception_Info) then");
