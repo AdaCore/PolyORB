@@ -592,7 +592,10 @@ package body Idl_Fe.Parser is
             Parse_Pragma (Result, Success);
             if not Success then
                --  here the pragma is ignored and no node created
-               --  so we parse the next definition
+               --  so we parse the next definition (if it exists)
+               pragma Debug (O ("Parse_Definition : parse definition " &
+                                "after pragma, current token is " &
+                                Idl_Token'Image (Get_Token)));
                Parse_Definition (Result, Success);
                pragma Debug (O2 ("Parse_Definition : end"));
                return;
@@ -601,7 +604,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
 
-         when T_Eof =>
+         when T_Eof
+           | T_Right_Cbracket =>
             Result := No_Node;
             Success := False;
             pragma Debug (O2 ("Parse_Definition : end"));
@@ -2848,9 +2852,9 @@ package body Idl_Fe.Parser is
       pragma Debug (O2 ("Parse_Const_Exp : end"));
    end Parse_Const_Exp;
 
-   --------------------
-   --  Parse_Or_Exp  --
-   --------------------
+   ---------------------
+   --  Parse_Or_Expr  --
+   ---------------------
    procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
                             Expr_Type : in Constant_Value_Ptr) is
@@ -3908,14 +3912,24 @@ package body Idl_Fe.Parser is
    begin
       Result := Make_Lit_Boolean;
       Set_Location (Result, Get_Token_Location);
-      if Get_Token = T_True then
-         Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_Boolean));
-         Expr_Value (Result).Boolean_Value := True;
+      if Expr_Type.Kind = C_Boolean then
+         if Get_Token = T_True then
+            Set_Expr_Value (Result,
+                            new Constant_Value (Kind => C_Boolean));
+            Expr_Value (Result).Boolean_Value := True;
+         else
+            Set_Expr_Value (Result,
+                            new Constant_Value (Kind => C_Boolean));
+            Expr_Value (Result).Boolean_Value := False;
+         end if;
       else
          Set_Expr_Value (Result,
-                         new Constant_Value (Kind => C_Boolean));
-         Expr_Value (Result).Boolean_Value := False;
+                         new Constant_Value (Kind => C_No_Kind));
+         Idl_Fe.Errors.Parser_Error
+           ("The specified type for this constant " &
+            "does not match with its value.",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
       end if;
       Next_Token;
       Success := true;
@@ -3927,9 +3941,18 @@ package body Idl_Fe.Parser is
    --------------------------------
    procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
+      C_Type : Constant_Value_Ptr
+        := new Constant_Value (Kind => C_ULongLong);
    begin
-      Parse_Or_Expr (Result, Success,
-                     new Constant_Value (Kind => C_ULongLong));
+      --  here we can not call parse_const_exp directly since we
+      --  don't have a node specifying the type of the constant
+      --  So, we call parse_or_exp and check the result as in
+      --  parse_const_exp
+      Parse_Or_Expr (Result, Success, C_Type);
+      if Result /= No_Node then
+         Check_Value_Range (Result, True);
+      end if;
+      Free (C_Type);
    end Parse_Positive_Int_Const;
 
    ----------------------
@@ -6432,13 +6455,6 @@ package body Idl_Fe.Parser is
          Parse_Positive_Int_Const (Node, Success);
          Set_Scale (Result, Node);
       end;
-      if Expr_Value (Scale (Result)).Integer_Value < 0 then
-         Idl_Fe.Errors.Parser_Error
-           ("invalid scale factor in fixed point " &
-            "type definition : it may not be negative.",
-            Idl_Fe.Errors.Error,
-            Get_Token_Location);
-      end if;
       if not Success then
          return;
       end if;
