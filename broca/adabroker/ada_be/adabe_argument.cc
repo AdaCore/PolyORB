@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -169,7 +169,7 @@ adabe_argument::produce_adb (dep_list & with,
       (direction () == AST_Argument::dir_INOUT)) {
     if (marshal_pkg != "")
       marshall_size += "         --  Marshalling function from " + marshal_pkg + "\n";
-    marshall_size += "         Marshall_Size (Handler.Buffer, ";
+    marshall_size += "         Compute_New_Size (Handler.Buffer, ";
     marshall_size += get_ada_local_name ();
     marshall_size += ");\n";
 
@@ -244,7 +244,7 @@ adabe_argument::produce_skel_adb (dep_list & with,
       marshall += ");\n";
       if (marshal_pkg != "")
         align_size += "            --  Marshalling function from " + marshal_pkg + "\n";
-      align_size += "            Size := Marshall_Size (Stream, ";
+      align_size += "            Size := Compute_New_Size (Stream, ";
       align_size += get_ada_local_name ();
       align_size += ");\n";
     }      

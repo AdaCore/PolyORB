@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -181,19 +181,19 @@ adabe_sequence::produce_stream_adb (dep_list & with,
     "      Res := Tmp;\n"
     "   end Unmarshall;\n"
     "\n"
-    "   procedure Marshall_Size\n"
+    "   procedure Compute_New_Size\n"
     "     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "      Val : in " + type_name + ")\n" 
     "   is\n"
     "      Len : CORBA.Unsigned_Long\n"
     "        := CORBA.Unsigned_Long (" + inter_name + ".Length (Val));\n"
     "   begin\n"
-    "      Marshall_Size_Unsigned_Long (Stream);\n"
+    "      Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "      for I in 1 .. Len loop\n"
-    "         Marshall_Size\n"
+    "         Compute_New_Size\n"
     "            (Stream, " + inter_name + ".Element_Of (Val, Integer (I)));\n"
     "      end loop;\n"
-    "   end Marshall_Size;\n";
+    "   end Compute_New_Size;\n";
   set_already_defined ();
 }
 

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -72,7 +72,7 @@ adabe_field::produce_stream_adb (dep_list& with, string &body, string &marshall,
     "      Unmarshall (Stream, Res." + get_ada_local_name () + ");\n";
   
   marshall_size +=
-    "      Marshall_Size (Stream, Val." +  get_ada_local_name () + ");\n";
+    "      Compute_New_Size (Stream, Val." +  get_ada_local_name () + ");\n";
 
   set_already_defined ();
 }

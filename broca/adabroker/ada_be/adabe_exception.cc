@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.6 $
+//                            $Revision: 1.7 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -181,17 +181,17 @@ adabe_exception::produce_skel_adb (dep_list & with,
     "                  --  Compute size of reply\n"
     "                  Stream.Pos := Broca.Giop.Message_Header_Size;\n"
     "                  --  service context\n"
-    "                  Marshall_Size_Unsigned_Long (Stream);\n"
+    "                  Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "                  --  request id\n"
-    "                  Marshall_Size_Unsigned_Long (Stream);\n"
+    "                  Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "                  --  reply status\n"
-    "                  Marshall_Size_Unsigned_Long (Stream);\n"
+    "                  Compute_New_Size (Stream, UL_Size, UL_Size);\n"
 
-    "                  Marshall_Size (Stream, RepoID);\n";
+    "                  Compute_New_Size (Stream, RepoID);\n";
   if (has_member)
     {
       // If there are members, add them when computing the size
-      body += "                  Marshall_Size (Stream, Member);\n";
+      body += "                  Compute_New_Size (Stream, Member);\n";
     }  
   body +=
     "                  Reply_Size :=\n"
@@ -287,7 +287,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 
       // Declaration of the function align_size.
       marshall_size +=
-	"   procedure Marshall_Size\n"
+	"   procedure Compute_New_Size\n"
 	"     (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
 	"      Val : in " + get_ada_local_name () + "_Members)\n"
 	"   is\n"
@@ -314,7 +314,7 @@ adabe_exception::produce_stream_adb (dep_list & with,
 	}
       marshall   += "   end Marshall;\n\n";
       unmarshall += "   end Unmarshall;\n\n";
-      marshall_size += "   end Marshall_Size;\n\n";
+      marshall_size += "   end Compute_New_Size;\n\n";
       
       body += marshall;
       body += unmarshall;

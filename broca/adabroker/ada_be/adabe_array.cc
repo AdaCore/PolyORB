@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -224,7 +224,7 @@ adabe_array::produce_stream_ads (dep_list & with,
 				 string   & previous)
 {
   // we now need do declare the marshalling functions:
-  // Marshall, Unmarshall, Marshall_Size
+  // Marshall, Unmarshall, Compute_New_Size
   gen_marshalling_declarations (body, get_ada_local_name ());
   set_already_defined ();
 }
@@ -289,7 +289,7 @@ adabe_array::produce_stream_adb (dep_list & with,
 
   // declaration of the function align size
   marshall_size +=
-    "   procedure Marshall_Size\n"
+    "   procedure Compute_New_Size\n"
     "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
@@ -323,7 +323,7 @@ adabe_array::produce_stream_adb (dep_list & with,
 
   marshall += spaces + "Marshall (Stream, Val (I1";
   unmarshall += spaces + "Unmarshall (Stream, Res (I1";
-  marshall_size += spaces + "Marshall_Size (Stream, Val (I1";
+  marshall_size += spaces + "Compute_New_Size (Stream, Val (I1";
 
   for (unsigned int i = 1; i < n_dims (); i++) 
     {
@@ -352,7 +352,7 @@ adabe_array::produce_stream_adb (dep_list & with,
       
   marshall += "   end Marshall;\n\n";
   unmarshall += "   end Unmarshall;\n\n";
-  marshall_size += "   end Marshall_Size;\n\n";      
+  marshall_size += "   end Compute_New_Size;\n\n";      
 
   body += marshall;
   body += unmarshall;

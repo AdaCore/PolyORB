@@ -16,7 +16,7 @@ gen_marshalling_declarations (string &body, const string type_name)
     "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "       Res : out " + type_name + ");\n"
     "\n"
-    "   procedure Marshall_Size\n"
+    "   procedure Compute_New_Size\n"
     "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "       Val : " + type_name + ");\n"
     "\n";

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -524,16 +524,16 @@ adabe_operation::produce_skel_adb (dep_list & with,
       body +=
 	"            Stream.Pos := Broca.Giop.Message_Header_Size;\n"
 	"            --  service context\n"
-	"            Marshall_Size_Unsigned_Long (Stream);\n"
+	"            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
 	"            --  Request_id\n"
-	"            Marshall_Size_Unsigned_Long (Stream);\n"
+	"            Compute_New_Size (Stream, UL_Size, UL_Size);\n"
 	"            --  reply_status\n"
-	"            Marshall_Size_Unsigned_Long (Stream);\n";
+	"            Compute_New_Size (Stream, UL_Size, UL_Size);\n";
       body += marshall_size;
       if (!return_is_void ())
 	body +=
 	  "            --  return value\n"
-	  "            Marshall_Size (Stream, Returns);\n";
+	  "            Compute_New_Size (Stream, Returns);\n";
       body +=
 	"            Reply_Size := Stream.Pos - Broca.Giop.Message_Header_Size;\n"
 	"            Allocate_Buffer_And_Clear_Pos (Stream, Stream.Pos);\n"

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -205,13 +205,13 @@ adabe_string::produce_stream_adb (dep_list & with,
     "      Res := " + get_ada_local_name () +" (Tmp);\n"
     "   end Unmarshall;\n"
     "\n"
-    "   procedure Marshall_Size\n"
+    "   procedure Compute_New_Size\n"
     "      (Stream : in out Broca.Buffers.Buffer_descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
     "   begin\n"
-    "      Marshall_Size (Stream, CORBA.String (Val));\n"
-    "   end Marshall_Size;\n"
+    "      Compute_New_Size (Stream, CORBA.String (Val));\n"
+    "   end Compute_New_Size;\n"
     "\n";
 
   set_already_defined ();
