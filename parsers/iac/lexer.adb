@@ -177,6 +177,43 @@ package body Lexer is
 
    Token_Image : array (Token_Type) of Name_Id;
 
+   -----------------------------------
+   -- Eval_Integer_From_Name_Buffer --
+   -----------------------------------
+
+   procedure Eval_Integer_From_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean)
+   is
+      C : Character;
+      D : Natural;
+   begin
+      Integer_Literal_Value := 0;
+      for I in 1 .. Name_Len loop
+         C := Name_Buffer (I);
+         if Integer_Literal_Base = 8 and then C in '8' .. '9' then
+            if Fatal then
+               Error_Loc (1)      := Token_Location;
+               Error_Loc (1).Scan := Error_Loc (1).Scan + Text_Ptr (I - 1);
+               DE ("digit >= base");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
+         end if;
+
+         if C in '0' .. '9' then
+            D := Character'Pos (C) - Character'Pos ('0');
+         else
+            D := Character'Pos (C) - Character'Pos ('a') + 10;
+         end if;
+
+         Integer_Literal_Value :=
+           Integer_Literal_Value * Unsigned_Long_Long (Base)
+           + Unsigned_Long_Long (D);
+      end loop;
+   end Eval_Integer_From_Name_Buffer;
+
    -----------
    -- Image --
    -----------
@@ -844,43 +881,6 @@ package body Lexer is
          return;
       end if;
    end Scan_Integer_Literal_Value;
-
-   -----------------------------------
-   -- Eval_Integer_From_Name_Buffer --
-   -----------------------------------
-
-   procedure Eval_Integer_From_Name_Buffer
-     (Base  : Unsigned_Short_Short;
-      Fatal : Boolean)
-   is
-      C : Character;
-      D : Natural;
-   begin
-      Integer_Literal_Value := 0;
-      for I in 1 .. Name_Len loop
-         C := Name_Buffer (I);
-         if Integer_Literal_Base = 8 and then C in '8' .. '9' then
-            if Fatal then
-               Error_Loc (1)      := Token_Location;
-               Error_Loc (1).Scan := Error_Loc (1).Scan + Text_Ptr (I - 1);
-               DE ("digit >= base");
-            end if;
-            Skip_Identifier;
-            Token := T_Error;
-            return;
-         end if;
-
-         if C in '0' .. '9' then
-            D := Character'Pos (C) - Character'Pos ('0');
-         else
-            D := Character'Pos (C) - Character'Pos ('a') + 10;
-         end if;
-
-         Integer_Literal_Value :=
-           Integer_Literal_Value * Unsigned_Long_Long (Base)
-           + Unsigned_Long_Long (D);
-      end loop;
-   end Eval_Integer_From_Name_Buffer;
 
    ---------------------------------
    -- Scan_Integer_To_Name_Buffer --

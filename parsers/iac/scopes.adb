@@ -443,25 +443,6 @@ package body Scopes is
       return No_Node;
    end Visible_Node;
 
-   ----------------
-   -- W_Homonyms --
-   ----------------
-
-   procedure W_Homonyms (N : Node_Id)
-   is
-      H : Node_Id := First_Homonym (N);
-   begin
-      if No (H) then
-         return;
-      end if;
-      loop
-         W_Homonym (H);
-         H := Homonym (H);
-         exit when No (H);
-         W_Str (" ");
-      end loop;
-   end W_Homonyms;
-
    ---------------
    -- W_Homonym --
    ---------------
@@ -481,6 +462,25 @@ package body Scopes is
       end if;
       W_Str (")");
    end W_Homonym;
+
+   ----------------
+   -- W_Homonyms --
+   ----------------
+
+   procedure W_Homonyms (N : Node_Id)
+   is
+      H : Node_Id := First_Homonym (N);
+   begin
+      if No (H) then
+         return;
+      end if;
+      loop
+         W_Homonym (H);
+         H := Homonym (H);
+         exit when No (H);
+         W_Str (" ");
+      end loop;
+   end W_Homonyms;
 
    --------------------------
    -- W_Scoped_Identifiers --

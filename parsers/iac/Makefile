@@ -359,6 +359,11 @@ mknodes : force
 $(PROG): force mknodes $(PROG_FILES)
 	$(GNATMAKE) -m -gnata $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
+	@for i in `cat MANIFEST`; do \
+	  grep -H -- '^   -- .* --' $$i >log1; \
+	  sort log1 >log2; \
+	  diff log1 log2; \
+	done
 
 tests: $(PROG)
 	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \

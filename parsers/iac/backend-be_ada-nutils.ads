@@ -1,11 +1,8 @@
 with Types;     use Types;
 
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
-with Frontend.Nodes;
 
 package Backend.BE_Ada.Nutils is
-
-   package FEN renames Frontend.Nodes;
 
    Int0_Val : Value_Id;
 
@@ -15,9 +12,6 @@ package Backend.BE_Ada.Nutils is
    procedure Pop_Entity;
    function  Current_Entity return Node_Id;
    function  Current_Package return Node_Id;
-
-   procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "");
-   --  Declare CORBA type as predefined Ada type.
 
    function Copy_Node
      (N : Node_Id)
@@ -73,10 +67,6 @@ package Backend.BE_Ada.Nutils is
      (Subtype_Indication    : Node_Id;
       Record_Extension_Part : Node_Id;
       Is_Abstract_Type      : Boolean := False)
-     return Node_Id;
-
-   function Make_Designator
-     (K : FEN.Node_Kind)
      return Node_Id;
 
    function Make_Designator

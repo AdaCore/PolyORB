@@ -287,22 +287,6 @@ package body Backend.BE_Ada.Generator is
       Write_Name (Name (N));
    end Generate_Defining_Identifier;
 
-   -------------------------
-   -- Generate_Designator --
-   -------------------------
-
-   procedure Generate_Designator (N : Node_Id) is
-      P : Node_Id;
-
-   begin
-      P := Parent_Unit_Name (N);
-      if Present (P) then
-         Generate (P);
-         Write (Tok_Dot);
-      end if;
-      Write_Name (Name (Defining_Identifier (N)));
-   end Generate_Designator;
-
    --------------------------------------
    -- Generate_Derived_Type_Definition --
    --------------------------------------
@@ -327,6 +311,22 @@ package body Backend.BE_Ada.Generator is
          Generate (Record_Extension_Part (N));
       end if;
    end Generate_Derived_Type_Definition;
+
+   -------------------------
+   -- Generate_Designator --
+   -------------------------
+
+   procedure Generate_Designator (N : Node_Id) is
+      P : Node_Id;
+
+   begin
+      P := Parent_Unit_Name (N);
+      if Present (P) then
+         Generate (P);
+         Write (Tok_Dot);
+      end if;
+      Write_Name (Name (Defining_Identifier (N)));
+   end Generate_Designator;
 
    -------------------------------
    -- Generate_Enumeration_Type --

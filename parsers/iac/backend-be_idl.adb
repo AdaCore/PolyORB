@@ -256,6 +256,15 @@ package body Backend.BE_IDL is
       end loop;
    end Generate_Attribute_Declaration;
 
+   ------------------------
+   -- Generate_Base_Type --
+   ------------------------
+
+   procedure Generate_Base_Type (E : Node_Id) is
+   begin
+      Write_Name (Image (Base_Type (E)));
+   end Generate_Base_Type;
+
    -------------------------
    -- Generate_Case_Label --
    -------------------------
@@ -332,16 +341,6 @@ package body Backend.BE_IDL is
       Write_Eol;
    end Generate_Element;
 
-   -------------------------
-   -- Generate_Enumerator --
-   -------------------------
-
-   procedure Generate_Enumerator (E : Node_Id) is
-   begin
-      Write_Indentation;
-      Generate (Identifier (E));
-   end Generate_Enumerator;
-
    -------------------------------
    -- Generate_Enumeration_Type --
    -------------------------------
@@ -369,6 +368,16 @@ package body Backend.BE_IDL is
       Write_Indentation;
       Write (T_Right_Brace);
    end Generate_Enumeration_Type;
+
+   -------------------------
+   -- Generate_Enumerator --
+   -------------------------
+
+   procedure Generate_Enumerator (E : Node_Id) is
+   begin
+      Write_Indentation;
+      Generate (Identifier (E));
+   end Generate_Enumerator;
 
    -----------------------------------
    -- Generate_Exception_Declaration --
@@ -701,15 +710,6 @@ package body Backend.BE_IDL is
       Write_Space;
       Generate (Declarator (E));
    end Generate_Parameter_Declaration;
-
-   ------------------------
-   -- Generate_Base_Type --
-   ------------------------
-
-   procedure Generate_Base_Type (E : Node_Id) is
-   begin
-      Write_Name (Image (Base_Type (E)));
-   end Generate_Base_Type;
 
    --------------------------
    -- Generate_Scoped_Name --

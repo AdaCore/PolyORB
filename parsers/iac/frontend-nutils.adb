@@ -271,27 +271,25 @@ package body Frontend.Nutils is
       return Natural (Size (L));
    end Length;
 
-   ----------------------
-   -- Make_Scoped_Name --
-   ----------------------
+   -------------------------------
+   -- Make_Constant_Declaration --
+   -------------------------------
 
-   function Make_Scoped_Name
+   function Make_Constant_Declaration
      (Loc        : Location;
+      Type_Spec  : Node_Id;
       Identifier : Node_Id;
-      Parent     : Node_Id;
-      Reference  : Node_Id)
+      Expression : Node_Id)
      return Node_Id
    is
-      N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
+      N : constant Node_Id := New_Node (K_Constant_Declaration, Loc);
    begin
-      pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Identifier    (N, Identifier);
-      pragma Assert (Kind (Identifier) = K_Identifier);
-      Set_Parent_Entity (N, Parent);
-      Set_Reference     (N, Reference);
+      Set_Type_Spec  (N, Type_Spec);
+      Set_Identifier (N, Identifier);
+      Set_Expression (N, Expression);
 
       return N;
-   end Make_Scoped_Name;
+   end Make_Constant_Declaration;
 
    ---------------------
    -- Make_Identifier --
@@ -314,25 +312,27 @@ package body Frontend.Nutils is
       return N;
    end Make_Identifier;
 
-   -------------------------------
-   -- Make_Constant_Declaration --
-   -------------------------------
+   ----------------------
+   -- Make_Scoped_Name --
+   ----------------------
 
-   function Make_Constant_Declaration
+   function Make_Scoped_Name
      (Loc        : Location;
-      Type_Spec  : Node_Id;
       Identifier : Node_Id;
-      Expression : Node_Id)
+      Parent     : Node_Id;
+      Reference  : Node_Id)
      return Node_Id
    is
-      N : constant Node_Id := New_Node (K_Constant_Declaration, Loc);
+      N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
    begin
-      Set_Type_Spec  (N, Type_Spec);
-      Set_Identifier (N, Identifier);
-      Set_Expression (N, Expression);
+      pragma Assert (Kind (Identifier) = K_Identifier);
+      Set_Identifier    (N, Identifier);
+      pragma Assert (Kind (Identifier) = K_Identifier);
+      Set_Parent_Entity (N, Parent);
+      Set_Reference     (N, Reference);
 
       return N;
-   end Make_Constant_Declaration;
+   end Make_Scoped_Name;
 
    --------------
    -- New_Copy --

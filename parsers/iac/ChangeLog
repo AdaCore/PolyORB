@@ -1,3 +1,23 @@
+2004-06-28  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* scopes.adb, values.adb, backend-be_ada-generator.adb,
+	frontend-nutils.adb, mknodes.adb, lexer.adb : Reordering.
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads: Avoid
+	duplication of withed packages. Use rtsfind-like mechanism from
+	backend-be_ada-runtime.
+
+	* backend-be_ada.adb: Use rtsfind-like mechanism from
+	backend-be_ada-runtime. In particular concerning Designator
+	creations. Fix implementation of repository_id production since
+	their values were plain wrong.
+	
+	* backend-be_a (all): Removed.
+
+	* MANIFEST: Updated.
+
+	* Makefile: Check that subprograms are still sorted.
+
 2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-generator.adb: Generate object declaration and in

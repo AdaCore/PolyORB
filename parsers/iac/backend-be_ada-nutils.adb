@@ -5,11 +5,13 @@ with Namet;     use Namet;
 with Utils;     use Utils;
 with Values;    use Values;
 
-with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 with Frontend.Nodes;
 
 package body Backend.BE_Ada.Nutils is
 
+   package FEN renames Frontend.Nodes;
    package BEN renames Backend.BE_Ada.Nodes;
 
    type Entity_Stack_Entry is record
@@ -24,15 +26,13 @@ package body Backend.BE_Ada.Nutils is
    use Entity_Stack;
 
    procedure Add_With_Package (P : Node_Id);
-
-   CORBA_Type : array (FEN.K_Float .. FEN.K_Value_Base) of Name_Id;
+   function Convert (K : FEN.Node_Kind) return RE_Id;
 
    ----------------------
    -- Add_With_Package --
    ----------------------
 
    procedure Add_With_Package (P : Node_Id) is
-      W : Node_Id;
 
       procedure Get_Defining_Identifier_Name (N : Node_Id);
 
@@ -51,28 +51,43 @@ package body Backend.BE_Ada.Nutils is
          Get_Name_String_And_Append (Name (N));
       end Get_Defining_Identifier_Name;
 
-      B : Byte;
+      W : Node_Id;
       N : Name_Id;
+      B : Byte;
 
    begin
+
+      --  Build a string "<current_entity>%[s,b] <withed_entity>" that
+      --  is the current entity name, a character 's' (resp 'b') to
+      --  indicate that we consider the spec (resp. body) of the
+      --  current entity and the withed entity name.
+
       Name_Len := 0;
       Get_Defining_Identifier_Name
         (Defining_Identifier (Package_Declaration (Current_Package)));
-      Add_Char_To_Name_Buffer (' ');
-      Get_Defining_Identifier_Name
-        (Defining_Identifier (P));
       Add_Char_To_Name_Buffer ('%');
       if Kind (Current_Package) = K_Package_Specification then
          Add_Char_To_Name_Buffer ('s');
       else
          Add_Char_To_Name_Buffer ('b');
       end if;
+      Add_Char_To_Name_Buffer (' ');
+      Get_Defining_Identifier_Name
+        (Defining_Identifier (P));
       N := To_Lower (Name_Find);
+
+      --  Get the byte associated to the name in the hash table and
+      --  check whether it is already set to 1 which means that the
+      --  withed entity is already in the withed package list.
+
       B := Get_Name_Table_Byte (N);
       if B /= 0 then
          return;
       end if;
       Set_Name_Table_Byte (N, 1);
+
+      --  Add entity to the withed packages list
+
       W := New_Node (K_Withed_Package);
       Set_Defining_Identifier (W, P);
       Append_Node_To_List (W, Withed_Packages (Current_Package));
@@ -98,6 +113,32 @@ package body Backend.BE_Ada.Nutils is
          Last := Next_Node (Last);
       end loop;
    end Append_Node_To_List;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (K : FEN.Node_Kind) return RE_Id is
+   begin
+      case K is
+         when FEN.K_Float               => return RE_Float;
+         when FEN.K_Double              => return RE_Double;
+         when FEN.K_Long_Double         => return RE_Long_Double;
+         when FEN.K_Short               => return RE_Short;
+         when FEN.K_Long                => return RE_Long;
+         when FEN.K_Long_Long           => return RE_Long_Long;
+         when FEN.K_Unsigned_Short      => return RE_Unsigned_Short;
+         when FEN.K_Unsigned_Long       => return RE_Unsigned_Long;
+         when FEN.K_Unsigned_Long_Long  => return RE_Unsigned_Long_Long;
+         when FEN.K_Char                => return RE_Char;
+         when FEN.K_Wide_Char           => return RE_WChar;
+         when FEN.K_String              => return RE_String_1;
+         when FEN.K_Wide_String         => return RE_Wide_String;
+         when FEN.K_Boolean             => return RE_Boolean;
+         when others                    =>
+            raise Program_Error;
+      end case;
+   end Convert;
 
    ---------------------
    -- Copy_Designator --
@@ -171,22 +212,6 @@ package body Backend.BE_Ada.Nutils is
          return Table (Last).Current_Package;
       end if;
    end Current_Package;
-
-   ------------------------
-   -- Declare_CORBA_Type --
-   ------------------------
-
-   procedure Declare_CORBA_Type (K : FEN.Node_Kind; S : String := "") is
-   begin
-      if S'Length = 0 then
-         Set_Str_To_Name_Buffer (FEN.Node_Kind'Image (K));
-         Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
-      else
-         Set_Str_To_Name_Buffer (S);
-      end if;
-      Capitalize (Name_Buffer (1 .. Name_Len));
-      CORBA_Type (K) := Name_Find;
-   end Declare_CORBA_Type;
 
    --------------
    -- Is_Empty --
@@ -284,23 +309,6 @@ package body Backend.BE_Ada.Nutils is
    ---------------------
    -- Make_Designator --
    ---------------------
-   function Make_Designator (K : FEN.Node_Kind) return Node_Id is
-      use FEN;
-      N : Node_Id;
-      I : Node_Id;
-      P : Node_Id;
-   begin
-      Set_Str_To_Name_Buffer ("CORBA");
-      I := Make_Defining_Identifier (Name_Find);
-      P := New_Node (K_Designator);
-      Set_Defining_Identifier (P, I);
-      I := Make_Defining_Identifier (CORBA_Type (K));
-      N := New_Node (K_Designator);
-      Set_Defining_Identifier (N, I);
-      Set_Parent_Unit_Name (N, P);
-
-      return N;
-   end Make_Designator;
 
    function Make_Designator (Entity : Node_Id) return Node_Id is
       use FEN;
@@ -324,7 +332,8 @@ package body Backend.BE_Ada.Nutils is
          end if;
 
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
-         N := Make_Designator (K);
+         N := RE (Convert (K));
+
       else
          raise Program_Error;
       end if;

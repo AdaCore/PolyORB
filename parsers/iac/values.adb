@@ -16,6 +16,364 @@ package body Values is
 
    LULL_Div_10 : constant Unsigned_Long_Long := LULL / 10;
 
+   ---------
+   -- "*" --
+   ---------
+
+   function "*" (L, R : Value_Type) return Value_Type
+   is
+      V : Value_Type := L;
+   begin
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if L.Base = R.Base then
+               V.Base := 10;
+            end if;
+            V.Sign := L.Sign * R.Sign;
+            V.IVal := L.IVal * R.IVal;
+
+         when K_Fixed_Point_Type =>
+            V.Sign  := L.Sign * R.Sign;
+            V.IVal  := L.IVal * R.IVal;
+            V.Total := L.Total + R.Total;
+            V.Scale := L.Scale + R.Scale;
+            Normalize_Fixed_Point_Value (V);
+
+         when K_Float .. K_Long_Double =>
+            V.FVal := L.FVal * R.FVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return V;
+   end "*";
+
+   ---------
+   -- "+" --
+   ---------
+
+   function "+" (L, R : Value_Type) return Value_Type
+   is
+      V  : Value_Type := R;
+      NL : Value_Type := L;
+      NR : Value_Type := R;
+   begin
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if L.Base /= R.Base then
+               V.Base := 10;
+            end if;
+            if L.Sign = R.Sign then
+               V.IVal := L.IVal + R.IVal;
+            elsif R.IVal <= L.IVal then
+               V.Sign := L.Sign;
+               V.IVal := L.IVal - R.IVal;
+            else
+               V.Sign := -L.Sign;
+               V.IVal := R.IVal - L.IVal;
+            end if;
+
+         when K_Fixed_Point_Type =>
+            if NL.Scale > NR.Scale then
+               NR.IVal := NR.IVal * 10 ** Integer (L.Scale - R.Scale);
+               V.Scale := NL.Scale;
+            else
+               NL.IVal := L.IVal * 10 ** Integer (R.Scale - L.Scale);
+               V.Scale := NR.Scale;
+            end if;
+            if NL.Sign = NR.Sign then
+               V.IVal := NL.IVal + NR.IVal;
+            elsif NR.IVal <= NL.IVal then
+               V.Sign := NL.Sign;
+               V.IVal := NL.IVal - NR.IVal;
+            else
+               V.Sign := -NL.Sign;
+               V.IVal := NR.IVal - NL.IVal;
+            end if;
+            Normalize_Fixed_Point_Value (V);
+
+         when K_Float .. K_Long_Double =>
+            V.FVal := L.FVal + R.FVal;
+
+         when others =>
+            return Bad_Value;
+
+      end case;
+      return V;
+   end "+";
+
+   ---------
+   -- "-" --
+   ---------
+
+   function "-" (R : Value_Type) return Value_Type
+   is
+      V : Value_Type := R;
+   begin
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           | K_Octet
+           | K_Fixed_Point_Type =>
+            V.Sign := -V.Sign;
+
+         when K_Float .. K_Long_Double =>
+            V.FVal := -V.FVal;
+
+         when others =>
+            return Bad_Value;
+
+      end case;
+      return V;
+   end "-";
+
+   ---------
+   -- "-" --
+   ---------
+
+   function "-" (L, R : Value_Type) return Value_Type
+   is
+      V : Value_Type := R;
+   begin
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           | K_Octet
+           | K_Fixed_Point_Type =>
+            V.Sign := -V.Sign;
+
+         when K_Float .. K_Long_Double =>
+            V.FVal := -V.FVal;
+
+         when others =>
+            return Bad_Value;
+
+      end case;
+      return L + V;
+   end "-";
+
+   ---------
+   -- "/" --
+   ---------
+
+   function "/" (L, R : Value_Type) return Value_Type
+   is
+      V  : Value_Type := L;
+      NL : Value_Type := L;
+   begin
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if L.Base = R.Base then
+               V.Base := 10;
+            end if;
+            V.Sign := L.Sign * R.Sign;
+            V.IVal := L.IVal / R.IVal;
+
+         when K_Float .. K_Long_Double =>
+            V.FVal := L.FVal / R.FVal;
+
+         when K_Fixed_Point_Type =>
+            while NL.IVal < LULL_Div_10 loop
+               NL.IVal  := NL.IVal * 10;
+               NL.Total := NL.Total + 1;
+               NL.Scale := NL.Scale + 1;
+            end loop;
+            V.Sign  := L.Sign * R.Sign;
+            V.IVal  := NL.IVal / R.IVal;
+            V.Scale := NL.Scale - R.Scale;
+            Normalize_Fixed_Point_Value (V);
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return V;
+   end "/";
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Value_Type) return Boolean is
+   begin
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           |  K_Octet
+           |  K_Boolean =>
+            if L.Sign > 0 then
+               if R.Sign > 0 then
+                  return L.IVal < R.IVal;
+               else
+                  return False;
+               end if;
+            elsif R.Sign > 0 then
+               return True;
+            else
+               return L.IVal > R.IVal;
+            end if;
+
+         when K_Enumerator =>
+            return L.Pos < R.Pos;
+
+         when K_Fixed_Point_Type =>
+            raise Program_Error;
+
+         when K_Float .. K_Long_Double =>
+            raise Program_Error;
+
+         when K_Char .. K_Wide_Char =>
+            return L.CVal < R.CVal;
+
+         when others =>
+            return False;
+
+      end case;
+   end "<";
+
+   -----------
+   -- "and" --
+   -----------
+
+   function "and" (L, R : Value_Type) return Value_Type
+   is
+      LV : Value_Type := L;
+      RV : Value_Type := R;
+   begin
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if LV.Base /= RV.Base then
+               LV.Base := 10;
+            end if;
+            if LV.Sign < 0 then
+               LV.IVal := LULL - LV.IVal;
+            end if;
+            if RV.Sign < 0 then
+               RV.IVal := LULL - RV.IVal;
+            end if;
+            LV.IVal := LV.IVal and RV.IVal;
+            LV.Sign := 1;
+
+         when K_Boolean =>
+            LV.IVal := LV.IVal and RV.IVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return LV;
+   end "and";
+
+   -----------
+   -- "mod" --
+   -----------
+
+   function "mod" (L, R : Value_Type) return Value_Type
+   is
+      V : Value_Type := L;
+   begin
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if L.Base /= R.Base then
+               V.Base := 10;
+            end if;
+            V.Sign := L.Sign * R.Sign;
+            V.IVal := L.IVal mod R.IVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return V;
+   end "mod";
+
+   -----------
+   -- "not" --
+   -----------
+
+   function "not" (R : Value_Type) return Value_Type
+   is
+      V : Value_Type := R;
+   begin
+      case V.K is
+         when K_Octet
+           | K_Short
+           | K_Unsigned_Short
+           | K_Long
+           | K_Unsigned_Long =>
+            V.IVal := Unsigned_Long_Long (not Unsigned_Long (V.IVal));
+
+         when K_Long_Long
+           | K_Unsigned_Long_Long =>
+            V.IVal := not V.IVal;
+
+         when K_Boolean =>
+            V.IVal := 1 - V.IVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return V;
+   end "not";
+
+   ----------
+   -- "or" --
+   ----------
+
+   function "or" (L, R : Value_Type) return Value_Type
+   is
+      LV : Value_Type := L;
+      RV : Value_Type := R;
+   begin
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if LV.Base /= RV.Base then
+               LV.Base := 10;
+            end if;
+            if LV.Sign < 0 then
+               LV.IVal := LULL - LV.IVal;
+            end if;
+            if RV.Sign < 0 then
+               RV.IVal := LULL - RV.IVal;
+            end if;
+            LV.IVal := LV.IVal or RV.IVal;
+            LV.Sign := 1;
+
+         when K_Boolean =>
+            LV.IVal := LV.IVal or RV.IVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return LV;
+   end "or";
+
+   -----------
+   -- "xor" --
+   -----------
+
+   function "xor" (L, R : Value_Type) return Value_Type
+   is
+      LV : Value_Type := L;
+      RV : Value_Type := R;
+   begin
+      case LV.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            if LV.Base /= RV.Base then
+               LV.Base := 10;
+            end if;
+            if LV.Sign < 0 then
+               LV.IVal := LULL - LV.IVal;
+            end if;
+            if RV.Sign < 0 then
+               RV.IVal := LULL - RV.IVal;
+            end if;
+            LV.IVal := LV.IVal xor RV.IVal;
+            LV.Sign := 1;
+
+         when K_Boolean =>
+            LV.IVal := LV.IVal xor RV.IVal;
+
+         when others =>
+            return Bad_Value;
+      end case;
+      return LV;
+   end "xor";
+
    ----------------------------
    -- Add_ULL_To_Name_Buffer --
    ----------------------------
@@ -30,6 +388,44 @@ package body Values is
       end if;
       Add_Char_To_Name_Buffer (Hex (Natural (R + 1)));
    end Add_ULL_To_Name_Buffer;
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (V : Value_Type; K : Node_Kind) return Value_Type
+   is
+      R : Value_Type (K);
+   begin
+      case K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            R.IVal := V.IVal;
+            R.Sign := V.Sign;
+            R.Base := V.Base;
+
+         when K_Fixed_Point_Type =>
+            R.IVal  := V.IVal;
+            R.Sign  := V.Sign;
+            R.Total := V.Total;
+            R.Scale := V.Scale;
+
+         when K_Float .. K_Long_Double =>
+            R.FVal := V.FVal;
+
+         when K_Char .. K_Wide_Char =>
+            R.CVal := V.CVal;
+
+         when K_String .. K_Wide_String =>
+            R.SVal := V.SVal;
+
+         when K_Boolean =>
+            R.IVal := V.IVal;
+
+         when others =>
+            return V;
+      end case;
+      return R;
+   end Convert;
 
    -----------
    -- Image --
@@ -359,402 +755,6 @@ package body Values is
          Value := Bad_Value;
       end if;
    end Normalize_Fixed_Point_Value;
-
-   -----------
-   -- "not" --
-   -----------
-
-   function "not" (R : Value_Type) return Value_Type
-   is
-      V : Value_Type := R;
-   begin
-      case V.K is
-         when K_Octet
-           | K_Short
-           | K_Unsigned_Short
-           | K_Long
-           | K_Unsigned_Long =>
-            V.IVal := Unsigned_Long_Long (not Unsigned_Long (V.IVal));
-
-         when K_Long_Long
-           | K_Unsigned_Long_Long =>
-            V.IVal := not V.IVal;
-
-         when K_Boolean =>
-            V.IVal := 1 - V.IVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return V;
-   end "not";
-
-   ---------
-   -- "-" --
-   ---------
-
-   function "-" (R : Value_Type) return Value_Type
-   is
-      V : Value_Type := R;
-   begin
-      case R.K is
-         when K_Short .. K_Unsigned_Long_Long
-           | K_Octet
-           | K_Fixed_Point_Type =>
-            V.Sign := -V.Sign;
-
-         when K_Float .. K_Long_Double =>
-            V.FVal := -V.FVal;
-
-         when others =>
-            return Bad_Value;
-
-      end case;
-      return V;
-   end "-";
-
-   ---------
-   -- "-" --
-   ---------
-
-   function "-" (L, R : Value_Type) return Value_Type
-   is
-      V : Value_Type := R;
-   begin
-      case R.K is
-         when K_Short .. K_Unsigned_Long_Long
-           | K_Octet
-           | K_Fixed_Point_Type =>
-            V.Sign := -V.Sign;
-
-         when K_Float .. K_Long_Double =>
-            V.FVal := -V.FVal;
-
-         when others =>
-            return Bad_Value;
-
-      end case;
-      return L + V;
-   end "-";
-
-   ---------
-   -- "+" --
-   ---------
-
-   function "+" (L, R : Value_Type) return Value_Type
-   is
-      V  : Value_Type := R;
-      NL : Value_Type := L;
-      NR : Value_Type := R;
-   begin
-      case R.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if L.Base /= R.Base then
-               V.Base := 10;
-            end if;
-            if L.Sign = R.Sign then
-               V.IVal := L.IVal + R.IVal;
-            elsif R.IVal <= L.IVal then
-               V.Sign := L.Sign;
-               V.IVal := L.IVal - R.IVal;
-            else
-               V.Sign := -L.Sign;
-               V.IVal := R.IVal - L.IVal;
-            end if;
-
-         when K_Fixed_Point_Type =>
-            if NL.Scale > NR.Scale then
-               NR.IVal := NR.IVal * 10 ** Integer (L.Scale - R.Scale);
-               V.Scale := NL.Scale;
-            else
-               NL.IVal := L.IVal * 10 ** Integer (R.Scale - L.Scale);
-               V.Scale := NR.Scale;
-            end if;
-            if NL.Sign = NR.Sign then
-               V.IVal := NL.IVal + NR.IVal;
-            elsif NR.IVal <= NL.IVal then
-               V.Sign := NL.Sign;
-               V.IVal := NL.IVal - NR.IVal;
-            else
-               V.Sign := -NL.Sign;
-               V.IVal := NR.IVal - NL.IVal;
-            end if;
-            Normalize_Fixed_Point_Value (V);
-
-         when K_Float .. K_Long_Double =>
-            V.FVal := L.FVal + R.FVal;
-
-         when others =>
-            return Bad_Value;
-
-      end case;
-      return V;
-   end "+";
-
-   -----------
-   -- "mod" --
-   -----------
-
-   function "mod" (L, R : Value_Type) return Value_Type
-   is
-      V : Value_Type := L;
-   begin
-      case L.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if L.Base /= R.Base then
-               V.Base := 10;
-            end if;
-            V.Sign := L.Sign * R.Sign;
-            V.IVal := L.IVal mod R.IVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return V;
-   end "mod";
-
-   ---------
-   -- "/" --
-   ---------
-
-   function "/" (L, R : Value_Type) return Value_Type
-   is
-      V  : Value_Type := L;
-      NL : Value_Type := L;
-   begin
-      case V.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if L.Base = R.Base then
-               V.Base := 10;
-            end if;
-            V.Sign := L.Sign * R.Sign;
-            V.IVal := L.IVal / R.IVal;
-
-         when K_Float .. K_Long_Double =>
-            V.FVal := L.FVal / R.FVal;
-
-         when K_Fixed_Point_Type =>
-            while NL.IVal < LULL_Div_10 loop
-               NL.IVal  := NL.IVal * 10;
-               NL.Total := NL.Total + 1;
-               NL.Scale := NL.Scale + 1;
-            end loop;
-            V.Sign  := L.Sign * R.Sign;
-            V.IVal  := NL.IVal / R.IVal;
-            V.Scale := NL.Scale - R.Scale;
-            Normalize_Fixed_Point_Value (V);
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return V;
-   end "/";
-
-   ---------
-   -- "*" --
-   ---------
-
-   function "*" (L, R : Value_Type) return Value_Type
-   is
-      V : Value_Type := L;
-   begin
-      case V.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if L.Base = R.Base then
-               V.Base := 10;
-            end if;
-            V.Sign := L.Sign * R.Sign;
-            V.IVal := L.IVal * R.IVal;
-
-         when K_Fixed_Point_Type =>
-            V.Sign  := L.Sign * R.Sign;
-            V.IVal  := L.IVal * R.IVal;
-            V.Total := L.Total + R.Total;
-            V.Scale := L.Scale + R.Scale;
-            Normalize_Fixed_Point_Value (V);
-
-         when K_Float .. K_Long_Double =>
-            V.FVal := L.FVal * R.FVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return V;
-   end "*";
-
-   -----------
-   -- "and" --
-   -----------
-
-   function "and" (L, R : Value_Type) return Value_Type
-   is
-      LV : Value_Type := L;
-      RV : Value_Type := R;
-   begin
-      case L.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if LV.Base /= RV.Base then
-               LV.Base := 10;
-            end if;
-            if LV.Sign < 0 then
-               LV.IVal := LULL - LV.IVal;
-            end if;
-            if RV.Sign < 0 then
-               RV.IVal := LULL - RV.IVal;
-            end if;
-            LV.IVal := LV.IVal and RV.IVal;
-            LV.Sign := 1;
-
-         when K_Boolean =>
-            LV.IVal := LV.IVal and RV.IVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return LV;
-   end "and";
-
-   ----------
-   -- "or" --
-   ----------
-
-   function "or" (L, R : Value_Type) return Value_Type
-   is
-      LV : Value_Type := L;
-      RV : Value_Type := R;
-   begin
-      case L.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if LV.Base /= RV.Base then
-               LV.Base := 10;
-            end if;
-            if LV.Sign < 0 then
-               LV.IVal := LULL - LV.IVal;
-            end if;
-            if RV.Sign < 0 then
-               RV.IVal := LULL - RV.IVal;
-            end if;
-            LV.IVal := LV.IVal or RV.IVal;
-            LV.Sign := 1;
-
-         when K_Boolean =>
-            LV.IVal := LV.IVal or RV.IVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return LV;
-   end "or";
-
-   -----------
-   -- "xor" --
-   -----------
-
-   function "xor" (L, R : Value_Type) return Value_Type
-   is
-      LV : Value_Type := L;
-      RV : Value_Type := R;
-   begin
-      case LV.K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            if LV.Base /= RV.Base then
-               LV.Base := 10;
-            end if;
-            if LV.Sign < 0 then
-               LV.IVal := LULL - LV.IVal;
-            end if;
-            if RV.Sign < 0 then
-               RV.IVal := LULL - RV.IVal;
-            end if;
-            LV.IVal := LV.IVal xor RV.IVal;
-            LV.Sign := 1;
-
-         when K_Boolean =>
-            LV.IVal := LV.IVal xor RV.IVal;
-
-         when others =>
-            return Bad_Value;
-      end case;
-      return LV;
-   end "xor";
-
-   ---------
-   -- "<" --
-   ---------
-
-   function "<" (L, R : Value_Type) return Boolean is
-   begin
-      case R.K is
-         when K_Short .. K_Unsigned_Long_Long
-           |  K_Octet
-           |  K_Boolean =>
-            if L.Sign > 0 then
-               if R.Sign > 0 then
-                  return L.IVal < R.IVal;
-               else
-                  return False;
-               end if;
-            elsif R.Sign > 0 then
-               return True;
-            else
-               return L.IVal > R.IVal;
-            end if;
-
-         when K_Enumerator =>
-            return L.Pos < R.Pos;
-
-         when K_Fixed_Point_Type =>
-            raise Program_Error;
-
-         when K_Float .. K_Long_Double =>
-            raise Program_Error;
-
-         when K_Char .. K_Wide_Char =>
-            return L.CVal < R.CVal;
-
-         when others =>
-            return False;
-
-      end case;
-   end "<";
-
-   -------------
-   -- Convert --
-   -------------
-
-   function Convert (V : Value_Type; K : Node_Kind) return Value_Type
-   is
-      R : Value_Type (K);
-   begin
-      case K is
-         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
-            R.IVal := V.IVal;
-            R.Sign := V.Sign;
-            R.Base := V.Base;
-
-         when K_Fixed_Point_Type =>
-            R.IVal  := V.IVal;
-            R.Sign  := V.Sign;
-            R.Total := V.Total;
-            R.Scale := V.Scale;
-
-         when K_Float .. K_Long_Double =>
-            R.FVal := V.FVal;
-
-         when K_Char .. K_Wide_Char =>
-            R.CVal := V.CVal;
-
-         when K_String .. K_Wide_String =>
-            R.SVal := V.SVal;
-
-         when K_Boolean =>
-            R.IVal := V.IVal;
-
-         when others =>
-            return V;
-      end case;
-      return R;
-   end Convert;
 
    ---------------
    -- Set_Value --
