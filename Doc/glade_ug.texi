@@ -1514,9 +1514,9 @@ import a shell script, the pragma Import can be used:
 
 PRAGMA ::=
    @b{pragma} Import
-      ([Entity     =>] FUNCTION_IDENTIFIER,
-       [Convention =>] CONVENTION_LITERAL,
-       [Link_Name  =>] STRING_LITERAL);
+      ([Entity        =>] FUNCTION_IDENTIFIER,
+       [Convention    =>] CONVENTION_LITERAL,
+       [External_Name =>] STRING_LITERAL);
 
 @b{pragma} Import (Best_Node, Shell, "best-node");
 @end smallexample
