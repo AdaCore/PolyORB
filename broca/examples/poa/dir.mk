@@ -3,7 +3,7 @@ all:: client serverp
 client:: $(CORBA_LIB_DEPEND) stamp-ada
 	$(GNATMAKE) $(BROCA_FLAGS) -i client.adb
 
-serverp:: $(CORBA_LIB_DEPEND) echo-my_impl.ad[sb] stamp-ada
+serverp:: $(CORBA_LIB_DEPEND) stamp-ada
 	$(GNATMAKE) $(BROCA_FLAGS) -i serverp.adb
 
 
