@@ -397,7 +397,7 @@ inlining: all-local
 	   echo "Run-time compiled with inlining flags:" `cat inlining`;\
 	fi;
 	@if test ! -f inlining; then\
-	   mkdir gnatlib;\
+	   mkdir gnatlib >/dev/null 2>&1;\
 	   gnatlibdir=`${srcdir}/../Dist/config.sdefault pathtolib`;\
 	   for o in `cd $$gnatlibdir && echo *.ali`; do\
 	     grep s-stratt $$gnatlibdir/$$o /dev/null;\
