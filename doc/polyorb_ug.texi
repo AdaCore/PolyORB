@@ -1,0 +1,162 @@
+\input texiplus   @c -*-texinfo-*-
+
+@c %**start of header
+
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+@c
+@c                                Style Guide
+@c
+@c  1. Always put a @noindent on the line before the first paragraph
+@c     after any of these commands:
+@c
+@c          @chapter
+@c          @section
+@c          @subsection
+@c          @subsubsection
+@c          @subsubsubsection
+@c
+@c          @end smallexample
+@c          @end itemize
+@c          @end enumerate
+@c
+@c  2. DO NOT use @example. Use @smallexample instead.
+@c     a) DO NOT use highlighting commands (@b{}, @i{}) inside an @smallexample
+@c        context.  These can interfere with the readability of the texi
+@c        source file.  Instead, use one of the following annotated
+@c        @smallexample commands, and preprocess the texi file with the
+@c        ada2texi tool (which generates appropriate highlighting):
+@c        @smallexample @c ada
+@c        @smallexample @c adanocomment
+@c        @smallexample @c projectfile
+@c     b) The "@c ada" markup will result in boldface for reserved words
+@c        and italics for comments
+@c     c) The "@c adanocomment" markup will result only in boldface for
+@c        reserved words (comments are left alone)
+@c     d) The "@c projectfile" markup is like "@c ada" except that the set
+@c        of reserved words include the new reserved words for project files
+@c
+@c  3. Each @chapter, @section, @subsection, @subsubsection, etc.
+@c     command must be preceded by two empty lines
+@c
+@c  4. The @item command should be on a line of its own if it is in an
+@c     @itemize or @enumerate command.
+@c
+@c  5. DO NOT put trailing spaces at the end of a line.  Such spaces will
+@c     cause the document build to fail.
+@c
+@c  6. DO NOT use @cartouche for examples that are longer than around 10 lines.
+@c     This command inhibits page breaks, so long examples in a @cartouche can
+@c     lead to large, ugly patches of empty space on a page.
+@c
+@c  NOTE: This file should be submitted to xgnatugn with either the vms flag
+@c        or the unw flag set.  The unw flag covers topics for both Unix and
+@c        Windows.
+@c
+@c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+@c $Id: //droopi/main/doc/polyorb_ug.texi#1 $
+
+@setfilename polyorb_ug.info
+@settitle PolyORB User's Guide
+@set PolyORBVersion X.Y
+
+@setchapternewpage odd
+@syncodeindex fn cp
+
+@c %**end of header
+
+@titlepage
+
+@title PolyORB User's Guide
+@subtitle Version @value{PolyORBVersion}
+@subtitle Document revision level $Revision: 1.3 $
+@subtitle Date: $Date: 2001/10/30 15:01:17 $
+@author XXXX
+
+@page
+@vskip 0pt plus 1filll
+
+Copyright @copyright{} 2003, XXX
+This document may be copied, in whole or in part, in any form or by any
+means, as is or with alterations, provided that (1) alterations are clearly
+marked as alterations and (2) this copyright notice is included
+unmodified in any copy.
+
+@end titlepage
+
+@ifinfo
+@node Top, Introduction, (dir), (dir)
+@top PolyORB User's Guide
+
+PolyORB User's Guide
+
+Version @value{PolyORBVersion}
+
+Date: $Date: 2001/10/30 15:01:17 $
+
+Copyright @copyright{} 2003, XXX
+This document may be copied, in whole or in part, in any form or by any
+means, as is or with alterations, provided that (1) alterations are clearly
+marked as alterations and (2) this copyright notice is included
+unmodified in any copy.
+
+@menu
+* Introduction::
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+@end detailmenu
+@end menu
+
+@end ifinfo
+
+@c -------------------------------------------------------------------
+@node Introduction
+@chapter Introduction
+@c -------------------------------------------------------------------
+
+@noindent
+
+PolyORB is a polymorphic, reusable infrastructure for building
+object-oriented distributed systems.  Middleware environments are
+software libraries that hide the complex issues of distribution
+and provide the programmer with high-level abstractions that allow
+easy and transparent construction of distributed applications.
+A number of different standards exist for creating object-oriented
+distributed applications.  These standards define two things:
+
+    * the interface seen by the developer's applicative objects;
+    * the protocol used by the middleware environment to talk to other
+      nodes in the distributed application.
+
+Usually, middleware for one platform supports only one set of
+such interfaces, and cannot interoperate with other platforms.
+
+A polymorphic middleware allows the existence of several different
+implementations of each of these aspects to be used within the same
+middleware framework.  In addition, PolyORB allows such different
+personalities to coexist in the same instance of the running middleware;
+it decouples the personality presented to applications on one side
+("application personality"), and the personality presented
+to other middleware on the other side ("protocol personality").
+Multiple implementations of each personalisable aspect can
+coexist within the same instance of the running middleware:
+unlike previous generic middleware, PolyORB is actually schizophrenic.
+
+The decoupling of application and protocol personalities, and the support
+for multiple simultaneous personalities within the same running middleware
+are key features required for the construction of interoperable
+distributed applications.  This allows PolyORB to communicate
+with middleware that implement different distribution standards:
+PolyORB provides middleware-to-middleware interoperability.
+
+The PolyORB architecture also permits the automatic,
+just-in-time creation of proxies between incompatible environments
+(although this feature is not implemented yet).
+
+
+
+
+@contents
+@bye
