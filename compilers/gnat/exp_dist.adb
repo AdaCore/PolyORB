@@ -2354,7 +2354,7 @@ package body Exp_Dist is
       Param_Specs : List_Id;
       Param_Assoc : List_Id;
 
-      RAS_Parameter  : constant Entity_Id :=
+      RAS_Parameter : constant Entity_Id :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
       Is_Function : constant Boolean :=
