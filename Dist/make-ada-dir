@@ -7,10 +7,10 @@
 rm -rf ../newada
 mkdir ../newada
 rm -f sdefault.adb
-make dist1
+make
 echo -n Analyzing dependencies... >& 2
 for i in `gnatmake -a -gnatpg -g -gnata -gnato -I../gnat -I../ada \
-   xe_build.adb -o dist1 -M | sed -e 's/^.*://' | sed -e 's/\\\\//'`; do
+   xe_build.adb -o gnatdist -M | sed -e 's/^.*://' | sed -e 's/\\\\//'`; do
 cp $i ../newada/ 2> /dev/null
 echo -n . >& 2
 done
@@ -21,7 +21,7 @@ echo Removing sdefault.adb
 rm -f ../newada/sdefault.adb
 echo Removing files that are part of the system library
 adainclude=`./config.sdefault pathtolib | \
-  sed -e 's,adalib/libgnat.a,adainclude,'`
+  sed -e 's,adalib.*$,adainclude,'`
 for i in ../newada/*(.); do
   if [ -f $adainclude/`basename $i` ]; then
     rm -f ../newada/$i

@@ -1,3 +1,28 @@
+1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5?gtplsp.ads: Use pragma Warnings to work around false warnings.
+
+	* Makefile.am: Add prelimary support for cross-compilation.
+	Use new constants generation scheme compatible with most
+	platforms.
+	Regenerate dependencies.
+
+	* s-garfil.adb: Remove unused with of Interfaces.C.
+
+	* s-garrem.adb: Remove unused with of System.Garlic.Types.
+
+	* s-gartcp.adb: Remove unused with of System.Garlic.Name_Table.
+
+	* s-garthi.ads: Use pragma Warnings to work around a GNAT bug.
+
+	* s-garuti.adb: Remove unused with of Interfaces.C.
+
+	* s-rpc.adb: Remove unused with of Ada.Unchecked_Conversion.
+
+	* s-rpc.ads: Remove unused with of System.Storage_Elements.
+
+	* s-stratt.adb: Remove unused with of Interfaces.
+
 1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-parint.ads, s-parint.adb: Move s-painst into s-parint to

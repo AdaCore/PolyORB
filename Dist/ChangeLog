@@ -1,3 +1,17 @@
+1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* make-ada-dir: Updated.
+
+	* xe.adb: Remove unused with of ALI.
+
+	* xe_lead.adb: Remove unused with of Namet and Osint.
+
+	* xe_parse.adb: Remove unused with of GNAT.OS_Lib, Osint and Table.
+
+	* xe_scan.adb: Remove unused with of Csets.
+
+	* xe_stubs.adb: Remove unused with of Unchecked_Deallocation.
+
 1998-05-11  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Change Partition_Interface.Startup into

@@ -11,7 +11,7 @@
 # PARTICULAR PURPOSE.
 
 #
-# $Id: Makefile.am,v 1.2 1997/09/25 17:28:46 tardieu Exp $
+# $Id$
 #
 
 
@@ -67,12 +67,16 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
+ADA = @ADA@
+ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATFLAGS = @GNATFLAGS@
+GNATLS = @GNATLS@
+GNATMAKE = @GNATMAKE@
 GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
@@ -94,12 +98,13 @@ VERSION = @VERSION@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = Dist Garlic
+ACLOCAL_AMFLAGS = -I support
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+CONFIG_HEADER = ./[Garlic/config.h]
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README COPYING ChangeLog INSTALL Makefile.am Makefile.in \
-NEWS TODO aclocal.m4 config.guess config.sub configure configure.in \
-install-sh missing mkinstalldirs
+NEWS TODO aclocal.m4 configure configure.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -115,8 +120,8 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(ACLOCAL_M4):  configure.in 
-	cd $(srcdir) && $(ACLOCAL)
+$(ACLOCAL_M4):  configure.in  support/ada.m4 support/gnatsrc.m4
+	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
 config.status: $(srcdir)/configure
 	$(SHELL) ./config.status --recheck
