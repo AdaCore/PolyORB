@@ -286,9 +286,6 @@ package body Make is
    --  Displays Program followed by the arguments in Args if variable
    --  Display_Executed_Programs is set. The lower bound of Args must be 1.
 
-   procedure Scan_Make_Arg (Argv : String);
-   --  Scan make arguments. Argv is a single argument to be processed.
-
    ---------
    -- "&" --
    ---------

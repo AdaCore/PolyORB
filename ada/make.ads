@@ -65,6 +65,9 @@ package Make is
    --  Performs default and package initialization. Therefore,
    --  Compile_Sources can be called by an external unit.
 
+   procedure Scan_Make_Arg (Argv : String);
+   --  Scan make arguments. Argv is a single argument to be processed.
+
    procedure Compile_Sources
      (Main_Source           : File_Name_Type;
       Args                  : Argument_List;
