@@ -3550,7 +3550,7 @@ package body Exp_Dist is
                                  Make_Defining_Identifier (Loc,
                                    New_Internal_Name ('A'));
 
-               Actual_Parameter : constant Node_Id :=
+               Actual_Parameter : Node_Id :=
                                     New_Occurrence_Of (
                                       Defining_Identifier (
                                         Current_Parameter), Loc);
@@ -3558,9 +3558,6 @@ package body Exp_Dist is
                Expr : Node_Id;
 
             begin
-               Etyp := Etype (Parameter_Type (Current_Parameter));
-               Set_Etype (Actual_Parameter, Etyp);
-
 --                if In_Present (Current_Parameter)
 --                  or else not Out_Present (Current_Parameter)
 --                  or else not Constrained
@@ -3579,6 +3576,29 @@ package body Exp_Dist is
 --                         New_Occurrence_Of (
 --                           Defining_Identifier (Current_Parameter), Loc))));
 --                end if;
+
+               if Is_Controlling_Formal then
+
+                  --  For a controlling formal parameter (other
+                  --  than the first one), use the corresponding
+                  --  RACW. If the parameter is not an anonymous
+                  --  access parameter, that involves taking
+                  --  its 'Unrestricted_Access.
+
+                  if Nkind (Parameter_Type (Current_Parameter))
+                    = N_Access_Definition
+                  then
+                     Actual_Parameter := OK_Convert_To
+                       (Etyp, Actual_Parameter);
+                  else
+                     Actual_Parameter := OK_Convert_To (Etyp,
+                       Make_Attribute_Reference (Loc,
+                         Prefix =>
+                           Actual_Parameter,
+                         Attribute_Name =>
+                           Name_Unrestricted_Access));
+                  end if;
+               end if;
 
                if In_Present (Current_Parameter)
                  or else not Out_Present (Current_Parameter)
