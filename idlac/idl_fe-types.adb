@@ -23,6 +23,7 @@ package body Idl_Fe.Types is
    Flag2 : constant Natural
      := Idl_Fe.Debug.Is_Active ("idl_fe.types_method_trace");
    procedure O2 is new Idl_Fe.Debug.Output (Flag2);
+
    --------------------------------------
    -- Root of the tree parsed from IDL --
    --------------------------------------
@@ -711,10 +712,49 @@ package body Idl_Fe.Types is
      (Scope : Node_Id)
    is
       Stack : Scope_Stack_Acc;
-      Definition_List : Identifier_Definition_List;
       Index : Uniq_Id;
+
+      procedure Reenter_Definition_List
+        (Definition_List : Identifier_Definition_List);
+      --  Enter all identifiers in Definition_List into
+      --  the global Id_Table and Hash_Table, in reverse
+      --  order.
+
+      procedure Reenter_Definition_List
+        (Definition_List : Identifier_Definition_List) is
+      begin
+         --  Definitions must be re-added in the order they
+         --  were first created, i. e. stating at the tail
+         --  of Definition_List.
+
+         if Definition_List = null then
+            return;
+         end if;
+
+         pragma Debug (O2 ("Reenter_Definition_List: enter"));
+
+         Reenter_Definition_List (Definition_List.Next);
+
+         --  first find a place for this identifier in the table
+         Create_Identifier_Index
+           (Definition_List.Definition.Name.all,
+            Hash_Table,
+            Id_Table,
+            Index);
+         --  set its fields previous_definition and id that were
+         --  not used in the scope table
+         Definition_List.Definition.Previous_Definition :=
+           Id_Table.Table (Index).Definition;
+         Definition_List.Definition.Id := Index;
+         --  And finally add it to the scope
+         Id_Table.Table (Index).Definition := Definition_List.Definition;
+         pragma Debug (O2 ("Reenter_Definition_List: leave"));
+      end Reenter_Definition_List;
+
    begin
       pragma Debug (O2 ("Push_Scope : enter"));
+      pragma Assert (Is_Scope (Scope));
+
       Stack := new Scope_Stack;
       Stack.Parent := Current_Scope;
       Stack.Scope := Scope;
@@ -729,27 +769,9 @@ package body Idl_Fe.Types is
 
       pragma Debug (O ("Push_Scope : putting the old definition " &
                        "in the id_table."));
-      --  add all definition of the new scope into the hash table,
-      --  in case there are some. Usefull when a scoped is reopened
-      Definition_List := Identifier_List (Scope);
-      while Definition_List /= null loop
-         pragma Debug (O ("Push_Scope : call to create_identifier_index."));
-         --  first find a place for this identifier in the table
-         Create_Identifier_Index
-           (Definition_List.Definition.Name.all,
-            Hash_Table,
-            Id_Table,
-            Index);
-         --  set its fields previous_definition and id that were
-         --  not used in the scope table
-         Definition_List.Definition.Previous_Definition :=
-           Id_Table.Table (Index).Definition;
-         Definition_List.Definition.Id := Index;
-         --  and finally add it to the scope
-         Id_Table.Table (Index).Definition := Definition_List.Definition;
-         Definition_List := Definition_List.Next;
-         pragma Debug (O ("Push_Scope : end of loop."));
-      end loop;
+      --  Qdd all definition of the new scope into the hash table,
+      --  in case there are some. Useful when a scoped is reopened.
+      Reenter_Definition_List (Identifier_List (Scope));
       pragma Debug (O2 ("Push_Scope : end"));
    end Push_Scope;
 
@@ -778,8 +800,12 @@ package body Idl_Fe.Types is
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          if Definition_List.Definition.Previous_Definition = null then
+            pragma Debug (O ("Pop_Scope: removing "
+                             & Definition_List.Definition.Name.all));
+
             Hash_Index := Hash (Definition_List.Definition.Name.all)
               mod Hash_Mod;
+
             if Id_Table.Table (Hash_Table (Hash_Index)).Definition = null then
                Hash_Table (Hash_Index) := Nil_Uniq_Id;
             else
@@ -799,7 +825,6 @@ package body Idl_Fe.Types is
 
          Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
-         Unchecked_Deallocation (Old_Definition_List);
       end loop;
 
       Old_Scope := Current_Scope;
@@ -966,7 +991,9 @@ package body Idl_Fe.Types is
       Previous : Uniq_Id
         := Nil_Uniq_Id;
    begin
-      pragma Debug (O2 ("Create_Identifier_Index : enter"));
+      pragma Debug (O2 ("Create_Identifier_Index : enter, id = "
+                        & Identifier & ", hash = "
+                        & Img (Integer (Hash_Value))));
       if Result = Nil_Uniq_Id then
          --  No identifier in this slot yet.
 
@@ -991,7 +1018,8 @@ package body Idl_Fe.Types is
             --  This identifier is already in the table.
 
             Index := Result;
-            pragma Debug (O2 ("Create_Identifier_Index : end"));
+            pragma Debug
+              (O2 ("Create_Identifier_Index : end (already in table)"));
             return;
          end if;
 

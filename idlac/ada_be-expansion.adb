@@ -285,11 +285,7 @@ package body Ada_Be.Expansion is
                Success := Add_Identifier
                  (Idl_File_Node,
                   Filename.all & "_IDL_File");
-               if not Success then
-                  --  conflicts in filenames, not implemented yet
-                  --  *** NIY ***
-                  raise Program_Error;
-               end if;
+               pragma Assert (Success);
 
                --  add the new node to the hashtable.
                Idlnodes.Set (Filename, Idl_File_Node);
@@ -315,8 +311,9 @@ package body Ada_Be.Expansion is
       end loop;
 
       Set_Contents (Node, New_Repository_Contents);
-      Expand_Node_List (Contents (Node), True);
+
       Pop_Scope;
+      Expand_Node_List (Contents (Node), True);
    end Expand_Repository;
 
 
@@ -657,9 +654,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Struct
      (Node : Node_Id) is
    begin
-      Push_Scope (Node);
+      --  Push_Scope (Node);
       Expand_Node_List (Members (Node), False);
-      Pop_Scope;
+      --  Pop_Scope;
    end Expand_Struct;
 
    procedure Expand_Member
@@ -680,13 +677,13 @@ package body Ada_Be.Expansion is
    is
       R_Node : Node_Id;
    begin
-      Push_Scope (Node);
+      --  Push_Scope (Node);
       Expand_Constructed_Type (Switch_Type (Node), R_Node);
       if R_Node /= No_Node then
          Set_Switch_Type (Node, R_Node);
       end if;
       Expand_Node_List (Cases (Node), False);
-      Pop_Scope;
+      --  Pop_Scope;
    end Expand_Union;
 
    procedure Expand_Case

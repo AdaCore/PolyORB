@@ -1,19 +1,42 @@
-with Ada.Exceptions;
-with GNAT.Command_Line;
+with Ada.Exceptions;    use Ada.Exceptions;
+with Ada.Text_IO;       use Ada.Text_IO;
+with GNAT.Command_Line; use GNAT.Command_Line;
+
 with Idl_Fe.Types;
 with Idl_Fe.Errors;
 with Idl_Fe.Parser;
 with Idl_Fe.Display_Tree;
-with Ada.Text_IO; use Ada.Text_IO;
+
 with Ada_Be.Expansion;
 
 procedure Testexpansion is
    Rep : Idl_Fe.Types.Node_Id;
+   Display_Tree : Boolean
+     := True;
+   Exception_Raised : Exception_Occurrence_Access
+     := null;
+
 begin
    Put_Line ("Testexpansion : initializing parser");
-   Idl_Fe.Parser.Initialize (GNAT.Command_Line.Get_Argument,
-                             True,
-                             True);
+
+   loop
+      case Getopt ("q") is
+         when Ascii.NUL => exit;
+
+         when 'q' =>
+            --  Quiet.
+            Display_Tree := False;
+
+         when others =>
+            raise Program_Error;         -- cannot occur!
+      end case;
+   end loop;
+
+   Idl_Fe.Parser.Initialize
+     (Get_Argument,
+      Preprocess => True,
+      Keep_Temporary_Files => False);
+
    Put_Line ("Testexpansion : Parsing");
    Rep := Idl_Fe.Parser.Parse_Specification;
    Put_Line ("Testexpansion : Expanding ");
@@ -21,14 +44,17 @@ begin
       Ada_Be.Expansion.Expand_Repository (Rep);
    exception
       when E : others =>
-         Put_Line ("Exception raised during expansion!");
-         Put_Line (Ada.Exceptions.Exception_Information (E));
+         Exception_Raised := Save_Occurrence (E);
    end;
-   Put_Line ("Testexpansion : Displaying ");
-   Idl_Fe.Display_Tree.Disp_Tree (Rep);
+
+   if Display_Tree then
+      Put_Line ("Testexpansion : Displaying ");
+      Idl_Fe.Display_Tree.Disp_Tree (Rep);
+   end if;
+
    Put_Line ("Testexpansion : Finished ");
    if Idl_Fe.Errors.Is_Error then
-      Ada.Text_IO.Put ("there was " &
+      Ada.Text_IO.Put ("there were " &
                        Natural'Image (Idl_Fe.Errors.Error_Number) &
                        " error(s)");
       if Idl_Fe.Errors.Is_Warning then
@@ -45,4 +71,10 @@ begin
          Ada.Text_IO.Put_Line ("successfully parsed");
       end if;
    end if;
+
+   if Exception_Raised /= null then
+      Put_Line ("Exception raised during expansion:");
+      Put_Line (Ada.Exceptions.Exception_Information (Exception_Raised.all));
+   end if;
+
 end Testexpansion;

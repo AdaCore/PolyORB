@@ -357,16 +357,17 @@ package Idl_Fe.Types is
    -- Identifiers table --
    -----------------------
 
-   --  Each identifier is given a unique id number. This number is
-   --  its location in the table of all the identifiers definitions :
-   --  the id_table.
-   --  In order to find easily a given identifier in this id_table,
-   --  an hashtable of the position of the identifiers in the
-   --  id_table is maintained : the Hash_table. This one keeps the
-   --  position in the id_table of the first identifier defined for
-   --  each possible hash value. All the identifiers having the same
-   --  hash_value are then linked : each one has a pointer on the
-   --  next defined.
+   --  Each identifier is assigned a unique id number. This number is
+   --  its location in the table of all the identifiers definitions:
+   --  the Id_Table.
+   --  In order to easily find a given identifier in the Id_Table,
+   --  a hash table is used to store the mapping of identifier names
+   --  to unique identifiers: the Hash_Table.
+
+   --  The Has_Table retains the position in the Id_Table of the first
+   --  identifier defined for each possible hash value. All the
+   --  identifiers having the same hash value are then linked: each one
+   --  has a pointer on the next defined: Next.
 
    --  dimension of the hashtable
    type Hash_Value_Type is mod 2**32;
@@ -379,11 +380,11 @@ package Idl_Fe.Types is
    type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
    Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
 
-   --  Type of an entry in the id_table.
+   --  Type of an entry in the Id_Table.
    --  it contains the following :
-   --    - the identifier_definition,
-   --    - a pointer on the entry correponding to the definition
-   --  of an identifier with the same hash value.
+   --    - the Identifier_Definition,
+   --    - a pointer to the entry correponding to the next definition
+   --      of an identifier with the same hash value.
    type Hash_Entry is record
       Definition : Identifier_Definition_Acc := null;
       Next : Uniq_Id;

@@ -255,7 +255,7 @@ ValueBase
 -- Expansion-specific nodes --
 ------------------------------
 
-Ben_Idl_File <-- Named
+Ben_Idl_File <-- Scope
   Contents : Node_List
 
 Sequence_Instance <-- Named
@@ -270,4 +270,3 @@ String_Instance <-- Named
   Is_Wide : Boolean
 
 END
-
