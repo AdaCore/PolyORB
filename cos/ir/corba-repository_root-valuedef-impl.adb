@@ -283,13 +283,11 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       IDL_access : in CORBA.Visibility)
      return CORBA.Repository_Root.ValueMemberDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.ValueMemberDef.Ref;
    begin
-      if not Check_Structure (Self, Dk_ValueMember) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_ValueMember);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
+
       declare
          Result : CORBA.Repository_Root.ValueMemberDef.Ref;
          Obj : constant ValueMemberDef.Impl.Object_Ptr
@@ -329,14 +327,10 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       mode : in CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.AttributeDef.Ref;
    begin
-      if not (Check_Structure (Self, Dk_Attribute)
-              and then Check_Id (Self, Id)
-              and then Check_Name (Self, Name))
-      then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Attribute);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
 
       declare
          Result : CORBA.Repository_Root.AttributeDef.Ref;
@@ -380,14 +374,10 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       contexts : in CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.OperationDef.Ref;
    begin
-      if not (Check_Structure (Self, Dk_Operation)
-              and then Check_Id (Self, Id)
-              and then Check_Name (Self, Name))
-      then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Operation);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
 
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;

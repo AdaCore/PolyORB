@@ -657,25 +657,28 @@ package body CORBA.Repository_Root.Contained.Impl is
       end case;
    end describe;
 
-   ------------
-   --  move  --
-   ------------
+   ----------
+   -- move --
+   ----------
+
    procedure move
-     (Self : access Object;
-      new_container : in Container_Forward.Ref;
-      new_name : in CORBA.Identifier;
-      new_version : in VersionSpec) is
+     (Self          : access Object;
+      new_container : in     Container_Forward.Ref;
+      new_name      : in     CORBA.Identifier;
+      new_version   : in     VersionSpec)
+   is
+      use Repository.Impl;
 
       For_Container_Ptr : constant Container.Impl.Object_Ptr
         := Container.Impl.To_Object (Self.Defined_In);
       New_Container_Ptr : constant Container.Impl.Object_Ptr
         := Container.Impl.To_Object (New_Container);
-      Rep1 : constant Repository.Impl.Object_Ptr
+      Rep1              : constant Repository.Impl.Object_Ptr
         := Repository.Impl.To_Object (Get_Containing_Repository (Self));
-      Rep2 : Repository.Impl.Object_Ptr;
-      use Repository.Impl;
+      Rep2              : Repository.Impl.Object_Ptr;
+
    begin
-      if Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Repository then
+      if Container.Impl.Get_Def_Kind (New_Container_Ptr) = dk_Repository then
          Rep2 := Repository.Impl.Object_Ptr (New_Container_Ptr);
       else
          Rep2 := Repository.Impl.To_Object
@@ -683,33 +686,38 @@ package body CORBA.Repository_Root.Contained.Impl is
             (To_Contained
              (Container.Impl.Get_Real_Object (New_Container_Ptr))));
       end if;
+
       -- It must be in the same Repository
+
       if Rep1 /= Rep2 then
          CORBA.Raise_Bad_Param
-           (CORBA.System_Exception_Members'(Minor => 4,
+           (CORBA.System_Exception_Members'(Minor     => 4,
                                             Completed => CORBA.Completed_No));
-      else
-         --  the move should comply with p10-8 of the IR spec.
-         --  (structure and navigation in the IR)
-         --  it raises the bad_param if the structure is not correct
-         if Container.Impl.Check_Structure (New_Container_Ptr,
-                                            Get_Def_Kind (Self)) then
-            --  check if the name is not already used in this scope.
-            if Container.Impl.Check_Name (New_Container_Ptr,
-                                          New_Name) then
-               --  remove the contained from the previous container
-               Container.Impl.Delete_From_Contents (For_Container_Ptr,
-                                                    Object_Ptr (Self));
-               --  we can move this contained to this container
-               Self.Defined_In := New_Container;
-               Self.Name := New_Name;
-               Self.Version := New_Version;
-               --  add the contained to the new container
-               Container.Impl.Append_To_Contents (New_Container_Ptr,
-                                                  Object_Ptr (Self));
-            end if;
-         end if;
       end if;
+
+      --  The move should comply with CORBA 3.0 10.4.4
+      --  (Structure and Navigation of the Interface Repository)
+
+      Container.Impl.Check_Structure (New_Container_Ptr, Get_Def_Kind (Self));
+
+      --  Check if the name is not already used in this scope.
+
+      Container.Impl.Check_Name (New_Container_Ptr, New_Name);
+
+      --  Remove the contained from the previous container
+
+      Container.Impl.Delete_From_Contents
+        (For_Container_Ptr, Object_Ptr (Self));
+
+      --  We can move this contained to this container
+
+      Self.Defined_In := New_Container;
+      Self.Name       := New_Name;
+      Self.Version    := New_Version;
+
+      --  Add the contained to the new container
+
+      Container.Impl.Append_To_Contents (New_Container_Ptr, Object_Ptr (Self));
    end move;
 
    ------------------------

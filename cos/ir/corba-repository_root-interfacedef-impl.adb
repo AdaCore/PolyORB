@@ -206,13 +206,11 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       mode : in CORBA.Repository_Root.AttributeMode)
      return CORBA.Repository_Root.AttributeDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.AttributeDef.Ref;
    begin
-      if not Check_Structure (Self, Dk_Attribute) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Attribute);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
+
       declare
          Result : CORBA.Repository_Root.AttributeDef.Ref;
          Obj : constant AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
@@ -254,14 +252,10 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
       contexts   : in CORBA.Repository_Root.ContextIdSeq)
      return CORBA.Repository_Root.OperationDef.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.OperationDef.Ref;
    begin
-      if not (Check_Structure (Self, Dk_Operation)
-        and then Check_Id (Self, Id)
-        and then Check_Name (Self, Name))
-      then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, Dk_Operation);
+      Check_Id (Self, Id);
+      Check_Name (Self, Name);
 
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;

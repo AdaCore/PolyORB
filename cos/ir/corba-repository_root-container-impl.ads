@@ -57,23 +57,23 @@ package CORBA.Repository_Root.Container.Impl is
 
 
    --  Check if a node of this Id already exists in self.
-   --  If yes, raise bad_param (2) and returns false.
-   --  Returns true if no node was found.
-   function Check_Id (Self : access Object;
-                      Id : RepositoryId) return Boolean;
+   --  If yes, raise BAD_PARAM (Minor => 2).
+   procedure Check_Id
+     (Self : access Object;
+      Id   : in     RepositoryId);
 
    --  Check if a node of this name already exists in self.
-   --  If yes, rais bad_param (3) and returns false.
-   --  Returns true if no node was found.
-   function Check_Name (Self : access Object;
-                        Name : Identifier) return Boolean;
+   --  If yes, raise BAD_PARAM (Minor => 3).
+   procedure Check_Name
+     (Self : access Object;
+      Name : in     Identifier);
 
    --  Check if a node of kind "Kind", can be created or moved in Self,
-   --  according to the navigation and structure rules!
-   --  raise bad_param(4) if not compliant and returns false.
-   --  Retruns true if compliant.
-   function Check_Structure (Self : access Object;
-                             Kind : DefinitionKind) return Boolean;
+   --  according to the navigation and structure rules.
+   --  Raise BAD_PARAM (Minor => 4) if not compliant.
+   procedure Check_Structure
+     (Self : access Object;
+      Kind : in     DefinitionKind);
 
    -------------
    -- IR spec --

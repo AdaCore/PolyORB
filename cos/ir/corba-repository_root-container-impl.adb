@@ -354,11 +354,13 @@ package body CORBA.Repository_Root.Container.Impl is
       end case;
    end To_Container;
 
-   ----------------
-   --  Check_Id  --
-   ----------------
-   function Check_Id (Self : access Object;
-                        Id : RepositoryId) return Boolean
+   --------------
+   -- Check_Id --
+   --------------
+
+   procedure Check_Id
+     (Self : access Object;
+      Id   : in     RepositoryId)
    is
       Rep : Repository.Impl.Object_Ptr;
       use Contained.Impl;
@@ -366,27 +368,28 @@ package body CORBA.Repository_Root.Container.Impl is
       pragma Debug (O2 ("Check_Id (container)"));
       if get_def_kind (Self) = dk_Repository then
          Rep := Repository.Impl.Object_Ptr (Object_Ptr (Self));
+
       else
          Rep := Repository.Impl.To_Object
            (get_containing_repository
             (To_Contained (Get_Real_Object (Self))));
       end if;
+
       if not Contained.Is_Nil (Repository.Impl.lookup_Id (Rep, id)) then
          --  The same Id already exists in this repository
          CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
-                                (Minor => 2,
+                                (Minor     => 2,
                                  Completed => CORBA.Completed_No));
-         return False;
       end if;
-
-      return True;
    end Check_Id;
 
-   ------------------
-   --  Check_Name  --
-   ------------------
-   function Check_Name (Self : access Object;
-                        Name : Identifier) return Boolean
+   ----------------
+   -- Check_Name --
+   ----------------
+
+   procedure Check_Name
+     (Self : access Object;
+      Name : in     Identifier)
    is
       package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
       use Contained_For_Seq;
@@ -394,73 +397,81 @@ package body CORBA.Repository_Root.Container.Impl is
       pragma Debug (O2 ("Check_Name (container)"));
       if Contained_For_Seq.Sequence
         (Lookup_Name (Self, name, -1, dk_all, True)) /=
-        Contained_For_Seq.Null_Sequence then
-         --  there is already a node using this Name in this scope.
+        Contained_For_Seq.Null_Sequence
+      then
+         --  There is already a node using this Name in this scope
          CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
-                                (Minor => 3,
+                                (Minor     => 3,
                                  Completed => CORBA.Completed_No));
-         return False;
       end if;
-
-      return True;
    end Check_Name;
 
-   -----------------------
-   --  Check_structure  --
-   -----------------------
-   function Check_Structure (Self : access Object;
-                             Kind : DefinitionKind) return Boolean
+   ---------------------
+   -- Check_Structure --
+   ---------------------
+
+   procedure Check_Structure
+    (Self : access Object;
+     Kind : in     DefinitionKind)
    is
-      Not_Allowed : Boolean := False;
+      Self_DK     : constant DefinitionKind := get_def_kind (Self);
+      Not_Allowed : Boolean                 := False;
    begin
       pragma Debug (O2 ("Check_Structure (container)"));
-      --  the move or creation should comply with p10-8 of the IR spec.
-      --  (structure and navigation in the IR)
-      case kind is
+
+      --  The move or creation should comply with CORBA 3.0 10.4.4
+      --  (Structure and Navigation of the Interface Repository)
+
+      case Kind is
          when
            dk_Operation |
-           dk_Attribute =>
-            if get_def_kind (Self) = dk_Repository
-              or get_def_kind (Self) = dk_Module then
-               Not_Allowed := True;
-            end if;
-         when
-           dk_ValueMember =>
-            if get_def_kind (Self) /= dk_Value
+           dk_Attribute
+         =>
+            if Self_DK = dk_Repository
+              or else Self_DK = dk_Module
             then
                Not_Allowed := True;
             end if;
+
+         when dk_ValueMember =>
+            if Self_DK /= dk_value then
+               Not_Allowed := True;
+            end if;
+
          when
            dk_Module    |
            dk_Interface |
-           dk_Value  =>
-            if get_def_kind (Self) = dk_Interface
-              or get_def_kind (Self) = dk_Value then
+           dk_Value
+         =>
+            if Self_DK = dk_Interface
+              or else Self_DK = dk_Value
+            then
                Not_Allowed := True;
             end if;
+
          when others =>
             null;
       end case;
 
-      --  exception, union or struct can only contain union, struct or enum.
-      if (get_def_kind (Self) = dk_Struct) or
-        (get_def_kind (Self) = dk_Union) or
-        (get_def_kind (Self) = dk_Exception) then
-         if (kind /= dk_Struct) and
-           (kind /= dk_Union) and
-           (kind /= dk_Enum) then
+      --  Exception, union or struct can only contain union, struct or enum
+
+      if Self_DK = dk_Struct
+        or else Self_DK = dk_Union
+        or else Self_DK = dk_Exception
+      then
+         if kind /= dk_Struct
+           and then kind /= dk_Union
+           and then kind /= dk_Enum
+         then
             Not_Allowed := True;
          end if;
       end if;
 
       if Not_Allowed then
          CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
-                                (Minor => 4,
+                                (Minor     => 4,
                                  Completed => CORBA.Completed_No));
-         return False;
       end if;
-
-      return True;
    end Check_Structure;
 
    -------------
@@ -883,18 +894,19 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref
    is
-      Result : ModuleDef_Forward.Ref;
    begin
       pragma Debug (O2 ("Create_Module (container)"));
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Module) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Result;
-      end if;
+      Check_Structure (Self, dk_Module);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
-         Obj : constant ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
-         Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
+         Result   : ModuleDef_Forward.Ref;
+         Obj      : constant ModuleDef.Impl.Object_Ptr
+           := new ModuleDef.Impl.Object;
+         Cont_Obj : constant Contained.Impl.Object_Ptr
+           := new Contained.Impl.Object;
       begin
 
          --  initialization of the object
@@ -931,14 +943,12 @@ package body CORBA.Repository_Root.Container.Impl is
       value : in CORBA.Any)
       return CORBA.Repository_Root.ConstantDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.ConstantDef_Forward.Ref;
    begin
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Constant) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, dk_Constant);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
       begin
@@ -969,14 +979,12 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.StructMemberSeq)
       return CORBA.Repository_Root.StructDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.StructDef_Forward.Ref;
    begin
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Struct) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, dk_Struct);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant StructDef.Impl.Object_Ptr := new StructDef.Impl.Object;
          Container_Obj : constant Object_Ptr := new Object;
@@ -1014,14 +1022,12 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.UnionMemberSeq)
      return CORBA.Repository_Root.UnionDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.UnionDef_Forward.Ref;
    begin
-            --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Union) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      --  is the new structure allowed?
+      Check_Structure (Self, dk_Union);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant UnionDef.Impl.Object_Ptr := new UnionDef.Impl.Object;
          Container_Obj : constant Object_Ptr := new Object;
@@ -1059,14 +1065,12 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.EnumMemberSeq)
      return CORBA.Repository_Root.EnumDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.EnumDef_Forward.Ref;
    begin
-            --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Enum) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      --  is the new structure allowed?
+      Check_Structure (Self, dk_Enum);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant EnumDef.Impl.Object_Ptr := new EnumDef.Impl.Object;
          IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
@@ -1099,14 +1103,12 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.AliasDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.AliasDef_Forward.Ref;
    begin
-            --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Alias) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      --  is the new structure allowed?
+      Check_Structure (Self, dk_Alias);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant AliasDef.Impl.Object_Ptr := new AliasDef.Impl.Object;
          IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
@@ -1140,15 +1142,13 @@ package body CORBA.Repository_Root.Container.Impl is
       is_abstract : in CORBA.Boolean)
      return CORBA.Repository_Root.InterfaceDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
    begin
       pragma Debug (O2 ("Create_interface (container)"));
-            --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Interface) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      --  is the new structure allowed?
+      Check_Structure (Self, dk_Interface);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Res : CORBA.Repository_Root.InterfaceDef_Forward.Ref;
          Obj : constant InterfaceDef.Impl.Object_Ptr := new InterfaceDef.Impl.Object;
@@ -1197,14 +1197,12 @@ package body CORBA.Repository_Root.Container.Impl is
       initializers : in CORBA.Repository_Root.InitializerSeq)
      return CORBA.Repository_Root.ValueDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.ValueDef_Forward.Ref;
    begin
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Value) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, dk_Value);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant ValueDef.Impl.Object_Ptr := new ValueDef.Impl.Object;
          Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
@@ -1256,14 +1254,12 @@ package body CORBA.Repository_Root.Container.Impl is
       original_type_def : in CORBA.Repository_Root.IDLType_Forward.Ref)
      return CORBA.Repository_Root.ValueBoxDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.ValueBoxDef_Forward.Ref;
    begin
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_ValueBox) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, dk_ValueBox);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant ValueBoxDef.Impl.Object_Ptr := new ValueBoxDef.Impl.Object;
          IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
@@ -1298,14 +1294,12 @@ package body CORBA.Repository_Root.Container.Impl is
       members : in CORBA.Repository_Root.StructMemberSeq)
      return CORBA.Repository_Root.ExceptionDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.ExceptionDef_Forward.Ref;
    begin
-            --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Exception) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      --  is the new structure allowed?
+      Check_Structure (Self, dk_Exception);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant ExceptionDef.Impl.Object_Ptr := new ExceptionDef.Impl.Object;
          Cont_Obj : constant Contained.Impl.Object_Ptr := new Contained.Impl.Object;
@@ -1330,7 +1324,6 @@ package body CORBA.Repository_Root.Container.Impl is
       end;
    end create_exception;
 
-
    function create_native
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -1338,14 +1331,12 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.NativeDef_Forward.Ref
    is
-      Nil_Ref : CORBA.Repository_Root.NativeDef_Forward.Ref;
    begin
       --  is the new structure allowed?
-      if not Check_Structure (Self, dk_Native) or
-        not Check_Id (Self, id) or
-        not Check_Name (Self, name) then
-         return Nil_Ref;
-      end if;
+      Check_Structure (Self, dk_Native);
+      Check_Id (Self, id);
+      Check_Name (Self, name);
+
       declare
          Obj : constant NativeDef.Impl.Object_Ptr := new NativeDef.Impl.Object;
          IDLType_Obj : constant IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
