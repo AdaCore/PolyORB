@@ -203,10 +203,11 @@ package body Ada_Be.Idl2Ada is
      return String;
    --  The name of the Ada type that maps Node.
 
-   function Ada_Short_Type_Name
+   function Ada_Type_Defining_Name
      (Node : Node_Id)
      return String;
-   --  The name of the Ada type that maps Node, without the package extension.
+   --  The defining name of the Ada type that maps Node
+   --  (a K_Interface or K_ValueType).
 
    procedure Add_With_Entity
      (CU : in out Compilation_Unit;
@@ -302,6 +303,7 @@ package body Ada_Be.Idl2Ada is
    ----------------------
    --  Gen_Value_Scope --
    ----------------------
+
    procedure Gen_Value_Scope (Node : Node_Id;
                               Implement : Boolean;
                               To_Stdout : Boolean) is
@@ -393,21 +395,21 @@ package body Ada_Be.Idl2Ada is
          Generate (Stream_Body, False, To_Stdout);
       end if;
 
-
    end Gen_Value_Scope;
-
 
    --------------------------
    --  Gen_Value_Impl_Decl --
    --------------------------
+
    --  generate the type declaration for the Value_Impl
    --  package of a ValueType
    procedure Gen_Value_Impl_Decl (CU : in out Compilation_Unit;
                                   Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
+
       Put (CU, "type "
-           & Ada_Short_Type_Name (Node)
+           & Ada_Type_Defining_Name (Node)
            & " is new ");
 
       --  check parent
@@ -465,6 +467,7 @@ package body Ada_Be.Idl2Ada is
    ---------------------------------
    --  Gen_Interface_Module_Scope --
    ---------------------------------
+
    procedure Gen_Interface_Module_Scope
      (Node : Node_Id;
       Implement : Boolean;
@@ -801,22 +804,24 @@ package body Ada_Be.Idl2Ada is
       end if;
    end Gen_Interface_Module_Scope;
 
-
    ---------------------------------------
    --  Gen_Object_Reference_Declaration --
    ---------------------------------------
-   --  generates the declaration of the type
-   --  in the stubs package
-   --  (for interfaces and valuetypes)
+
+   --  Generate the declaration of the type
+   --  in the stubs package (for interfaces and valuetypes)
+
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
    begin
-      pragma Assert ((Kind (Node) = K_Interface)
-                     or (Kind (Node) = K_ValueType));
+      pragma Assert (False
+         or else Kind (Node) = K_Interface
+         or else Kind (Node) = K_ValueType);
+
       NL (CU);
       Put (CU, "type "
-           & Ada_Short_Type_Name (Node)
+           & Ada_Type_Defining_Name (Node)
            & " is new ");
       if Parents (Node) = Nil_List then
          case (Kind (Node)) is
@@ -1002,7 +1007,7 @@ package body Ada_Be.Idl2Ada is
             if not Is_Implicit_Inherited (Node) then
                Gen_Operation_Profile (CU,
                                       "in "
-                                      & Ada_Short_Type_Name
+                                      & Ada_Type_Defining_Name
                                       (Parent_Scope (Node)),
                                       Node);
                PL (CU, ";");
@@ -1310,8 +1315,9 @@ package body Ada_Be.Idl2Ada is
 
          when K_Operation =>
 
-            --  no operation profile is generated for expanded
-            --  state members
+            --  No operation profile is generated for expanded
+            --  state members.
+
             declare
                Old : Node_Id := Original_Node (Node);
             begin
@@ -1715,7 +1721,7 @@ package body Ada_Be.Idl2Ada is
 
                Gen_Operation_Profile (CU,
                                       "in "
-                                      & Ada_Short_Type_Name
+                                      & Ada_Type_Defining_Name
                                       (Parent_Scope (Node)),
                                       Node);
                NL (CU);
@@ -1957,6 +1963,7 @@ package body Ada_Be.Idl2Ada is
    ---------------------------
    --  Gen_Node_Stream_Spec --
    ---------------------------
+
    procedure Gen_Node_Stream_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
@@ -2224,6 +2231,7 @@ package body Ada_Be.Idl2Ada is
    ----------------------------
    --  Gen_Node_Stream_Body  --
    ----------------------------
+
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id)
@@ -2802,14 +2810,18 @@ package body Ada_Be.Idl2Ada is
    end Gen_Unmarshall_Profile;
 
 
-   --------------------------
-   --  Ada_Short_Type_Name --
-   --------------------------
-   function Ada_Short_Type_Name (Node : Node_Id) return String is
+   -----------------------------
+   --  Ada_Type_Defining_Name --
+   -----------------------------
+
+   function Ada_Type_Defining_Name (Node : Node_Id) return String is
       NK : constant Node_Kind := Kind (Node);
    begin
       case NK is
-         when K_Interface =>
+         when
+           K_Interface         |
+           K_Forward_Interface =>
+
             if Abst (Node) then
                return "Abstract_Ref";
             --  elsif Local (Node) then
@@ -2818,7 +2830,10 @@ package body Ada_Be.Idl2Ada is
                return "Ref";
             end if;
 
-         when K_ValueType =>
+         when
+           K_ValueType         |
+           K_Forward_ValueType =>
+
             if Abst (Node) then
                return "Abstract_Value_Ref";
             else
@@ -2826,23 +2841,23 @@ package body Ada_Be.Idl2Ada is
             end if;
 
          when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
+            --  Improper use: node N is not an
+            --  Interface or ValueType.
 
             Error
-              ("Improper call of Ada_Short_Type_Name with a " & NK'Img,
+              ("Improper call of Ada_Type_Defining_Name with a " & NK'Img,
                Fatal, Get_Location (Node));
 
             --  Keep the compiler happy.
             raise Program_Error;
 
       end case;
-   end Ada_Short_Type_Name;
-
+   end Ada_Type_Defining_Name;
 
    --------------------
    --  Ada_Type_Name --
    --------------------
+
    function Ada_Type_Name
      (Node : Node_Id)
      return String
@@ -2854,8 +2869,9 @@ package body Ada_Be.Idl2Ada is
          when
            K_Interface         |
            K_Forward_Interface |
-           K_ValueType         =>
-            return Ada_Full_Name (Node) & Ada_Short_Type_Name (Node);
+           K_ValueType         |
+           K_Forward_ValueType =>
+            return Ada_Full_Name (Node) & "." & Ada_Type_Defining_Name (Node);
 
          when K_Sequence_Instance =>
             return Ada_Full_Name (Node) & ".Sequence";

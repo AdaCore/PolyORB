@@ -570,6 +570,7 @@ package body Ada_Be.Expansion is
    -----------------------
    --  Expand_Attribute --
    -----------------------
+
    procedure Expand_Attribute (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_Attribute);
@@ -577,13 +578,14 @@ package body Ada_Be.Expansion is
         (Node,
          A_Type (Node),
          Declarators (Node),
-         True,
-         Is_Readonly (Node));
+         Is_Readable => True,
+         Is_Writable => not Is_Readonly (Node));
    end Expand_Attribute;
 
    --------------------------
    --  Expand_State_Member --
    --------------------------
+
    procedure Expand_State_Member (Node : in Node_Id) is
    begin
       pragma Assert (Kind (Node) = K_State_Member);
@@ -591,8 +593,8 @@ package body Ada_Be.Expansion is
         (Node,
          State_Type (Node),
          State_Declarators (Node),
-         Is_Public (Node),
-         Is_Public (Node));
+         Is_Readable => Is_Public (Node),
+         Is_Writable => Is_Public (Node));
    end Expand_State_Member;
 
    ----------------------------------------
