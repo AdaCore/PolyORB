@@ -1768,13 +1768,25 @@ if test "${enable_thread_blocking_io+set}" = set; then
   
 else
   
-    echo $ac_n "checking for thread-blocking I/O (long)""... $ac_c" 1>&6
-echo "configure:1773: checking for thread-blocking I/O (long)" >&5
-    ${ADA} -c -O -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
-    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
-    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
-    ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic;
-    if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
+    ISTHRBIO="yes"
+    if test "${PLATFORM_SPECIFIC}" = "w"; then
+      echo $ac_n "checking for thread-blocking I/O""... $ac_c" 1>&6
+echo "configure:1775: checking for thread-blocking I/O" >&5
+      echo "with System.Garlic.Thin;"              >$srcdir/Garlic/s-gatcop.ads
+      echo "package System.Garlic.TCP.Operations" >>$srcdir/Garlic/s-gatcop.ads
+      echo "   renames System.Garlic.Thin;"       >>$srcdir/Garlic/s-gatcop.ads
+   else
+      echo $ac_n "checking for thread-blocking I/O (long)""... $ac_c" 1>&6
+echo "configure:1781: checking for thread-blocking I/O (long)" >&5
+      ${ADA} -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
+      ${ADA} -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
+      ${ADA} -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
+      ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic;
+      if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
+        ISTHRBIO="no"
+      fi
+    fi
+    if test "${ISTHRBIO}" = "no"; then
 	echo "$ac_t""no" 1>&6
 	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
 	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
@@ -1804,7 +1816,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1808: checking default filters" >&5
+echo "configure:1820: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -1839,7 +1851,7 @@ fi
 #
 if test $target = $host; then
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:1843: checking how to run the C preprocessor" >&5
+echo "configure:1855: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -1854,13 +1866,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 1858 "configure"
+#line 1870 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1864: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1876: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1871,13 +1883,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 1875 "configure"
+#line 1887 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1881: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1893: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1903,17 +1915,17 @@ for ac_hdr in stdio.h sys/types.h sys/socket.h errno.h netdb.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1907: checking for $ac_hdr" >&5
+echo "configure:1919: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1912 "configure"
+#line 1924 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1917: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1929: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1943,17 +1955,17 @@ for ac_hdr in netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1947: checking for $ac_hdr" >&5
+echo "configure:1959: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1952 "configure"
+#line 1964 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1957: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1969: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1983,17 +1995,17 @@ for ac_hdr in sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1987: checking for $ac_hdr" >&5
+echo "configure:1999: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1992 "configure"
+#line 2004 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1997: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2009: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2023,17 +2035,17 @@ for ac_hdr in sys/conf.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2027: checking for $ac_hdr" >&5
+echo "configure:2039: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2032 "configure"
+#line 2044 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2037: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2049: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*

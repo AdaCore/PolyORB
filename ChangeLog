@@ -1,3 +1,8 @@
+1998-08-06  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Adopt a solution based on platform
+	letters for NT.
+
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* NEWS: Document the default optimization for gnatdist, as well as 
