@@ -187,7 +187,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   if (pd_is_forwarded == true)           
     {
       with.add(get_ada_full_name()+"_Forward");
-      tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref) ;\n";
+      body += "   package Convert_Forward is new " + get_ada_full_name() + "_Forward.Convert(Ref) ;\n";
     }
 
   body += "\nprivate\n";
