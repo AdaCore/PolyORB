@@ -38,7 +38,7 @@
 
 with PolyORB.Asynch_Ev;
 with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Watchers;
+with PolyORB.Tasking.Condition_Variables;
 
 package PolyORB.Task_Info is
 
@@ -54,8 +54,8 @@ package PolyORB.Task_Info is
    --  A Running task is executing an ORB activity.
    --  A Blocked task is waiting for an external
    --  asynchronous event.
-   --  An Idle task is waiting on a watcher expecting another
-   --  task to request ORB action.
+   --  An Idle task is waiting on a condition variable expecting
+   --  another task to request ORB action.
 
    type Task_Info (Kind : Task_Kind) is limited private;
    type Task_Info_Access is access all Task_Info;
@@ -70,8 +70,8 @@ package PolyORB.Task_Info is
    pragma Inline (Set_Status_Blocked);
 
    procedure Set_Status_Idle
-     (TI      : in out Task_Info;
-      Watcher : PolyORB.Tasking.Watchers.Watcher_Access);
+     (TI        : in out Task_Info;
+      Condition : PolyORB.Tasking.Condition_Variables.Condition_Access);
    pragma Inline (Set_Status_Idle);
 
    procedure Set_Status_Running
@@ -86,9 +86,9 @@ package PolyORB.Task_Info is
      return Asynch_Ev.Asynch_Ev_Monitor_Access;
    pragma Inline (Selector);
 
-   function Watcher (TI : Task_Info)
-     return PolyORB.Tasking.Watchers.Watcher_Access;
-   pragma Inline (Watcher);
+   function Condition (TI : Task_Info)
+     return PolyORB.Tasking.Condition_Variables.Condition_Access;
+   pragma Inline (Condition);
 
    procedure Set_Id (TI : in out Task_Info);
    pragma Inline (Set_Id);
@@ -102,11 +102,11 @@ private
       Id : PolyORB.Tasking.Threads.Thread_Id;
       Status : Task_Status := Running;
 
-      Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
+      Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Meaningful only when Status = Blocked
       --  XXX ???
 
-      Watcher  : PolyORB.Tasking.Watchers.Watcher_Access;
+      Condition : Tasking.Condition_Variables.Condition_Access;
       --  Meaningful only when Status = Idle
    end record;
 

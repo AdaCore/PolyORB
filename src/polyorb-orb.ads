@@ -48,19 +48,20 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Tasking.Advanced_Mutexes;
-with PolyORB.Tasking.Watchers;
+with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
 
 package PolyORB.ORB is
 
-   package PAE renames PolyORB.Asynch_Ev;
-   package PBD renames PolyORB.Binding_Data;
-   package PC  renames PolyORB.Components;
-   package PF  renames PolyORB.Filters;
-   package PJ  renames PolyORB.Jobs;
-   package PT  renames PolyORB.Transport;
+   package PAE  renames PolyORB.Asynch_Ev;
+   package PBD  renames PolyORB.Binding_Data;
+   package PC   renames PolyORB.Components;
+   package PF   renames PolyORB.Filters;
+   package PJ   renames PolyORB.Jobs;
+   package PT   renames PolyORB.Transport;
+   package PTCV renames PolyORB.Tasking.Condition_Variables;
 
    type Request_Job is new PJ.Job with private;
 
@@ -340,7 +341,7 @@ private
       -- Mutex for access to ORB state --
       -----------------------------------
 
-      ORB_Lock : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
+      ORB_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
 
       ------------------
       -- Server state --
@@ -352,8 +353,9 @@ private
       Job_Queue  : PJ.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
 
-      Idle_Tasks : PolyORB.Tasking.Watchers.Watcher_Access;
-      --  Idle ORB task wait on this watcher.
+      Idle_Tasks : PTCV.Condition_Access;
+      --  Idle ORB task wait on this condition, which is signalled
+      --  when work is queued to be performed by ORB tasks.
 
       Idle_Counter : Natural;
       --  Number of thread in the Idle State
@@ -373,15 +375,11 @@ private
       --  Signals whether Delete_Source has been called while
       --  another task was polling.
 
-      Polling_Watcher : PolyORB.Tasking.Watchers.Watcher_Access;
-      Polling_Version : PolyORB.Tasking.Watchers.Version_Id;
-      --  This watcher is looked up before one task goes into
-      --  external event polling, and updated after polling
-      --  is completed and events have been processed.
-      --  Notionally, Polling_Version is the version of the
-      --  set of AESs supported by Monitors that is being
-      --  considered, and while it is being considered
-      --  no AES may be destroyed.
+      Polling_Completed : PTCV.Condition_Access;
+      --  This condition is signalled after polling is completed.
+      --  It is used by tasks for the polling task to release any
+      --  reference to an AES that is to be destroyed (see
+      --  Delete_Source).
 
       Selector : PAE.Asynch_Ev_Monitor_Access;
       --  The asynchronous event monitor on which this ORB is

@@ -77,12 +77,12 @@ package body PolyORB.Task_Info is
    ---------------------
 
    procedure Set_Status_Idle
-     (TI      : in out Task_Info;
-      Watcher : PolyORB.Tasking.Watchers.Watcher_Access) is
+     (TI        : in out Task_Info;
+      Condition : Tasking.Condition_Variables.Condition_Access) is
    begin
       pragma Assert (TI.Status = Running);
-      TI.Status  := Idle;
-      TI.Watcher := Watcher;
+      TI.Status    := Idle;
+      TI.Condition := Condition;
    end Set_Status_Idle;
 
    ------------------------
@@ -93,9 +93,9 @@ package body PolyORB.Task_Info is
      (TI : in out Task_Info) is
    begin
       pragma Assert (TI.Status /= Running);
-      TI.Status   := Running;
-      TI.Selector := null;
-      TI.Watcher  := null;
+      TI.Status    := Running;
+      TI.Selector  := null;
+      TI.Condition := null;
    end Set_Status_Running;
 
    ------------
@@ -117,15 +117,15 @@ package body PolyORB.Task_Info is
       return TI.Status;
    end Status;
 
-   -------------
-   -- Watcher --
-   -------------
+   ---------------
+   -- Condition --
+   ---------------
 
-   function Watcher (TI : Task_Info)
-     return Tasking.Watchers.Watcher_Access is
+   function Condition (TI : Task_Info)
+     return Tasking.Condition_Variables.Condition_Access is
    begin
       pragma Assert (TI.Status = Idle);
-      return TI.Watcher;
-   end Watcher;
+      return TI.Condition;
+   end Condition;
 
 end PolyORB.Task_Info;

@@ -69,9 +69,9 @@ package body PolyORB.ORB is
    use PolyORB.Log;
    use PolyORB.References;
    use PolyORB.Requests;
-   use PolyORB.Tasking.Advanced_Mutexes;
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
    use PolyORB.Types;
 
@@ -201,7 +201,7 @@ package body PolyORB.ORB is
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
-      Create (ORB.Polling_Watcher);
+      Create (ORB.Polling_Completed);
       ORB.Idle_Counter := 0;
       Leave (ORB.ORB_Lock);
    end Create;
@@ -465,7 +465,6 @@ package body PolyORB.ORB is
                   ORB.Selector := Monitors (I);
                   ORB.Polling := True;
                   ORB.Source_Deleted := False;
-                  Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
                   Leave (ORB.ORB_Lock);
 
                   pragma Debug (O ("Run: task " & Image (Current_Task)
@@ -477,7 +476,7 @@ package body PolyORB.ORB is
                      pragma Debug (O ("Run: task " & Image (Current_Task)
                                         & " returned from Check_Sources."));
                      Enter (ORB.ORB_Lock);
-                     Update (ORB.Polling_Watcher);
+                     Broadcast (ORB.Polling_Completed);
 
                      ORB.Polling := False;
                      ORB.Selector := null;
@@ -526,7 +525,7 @@ package body PolyORB.ORB is
       Cleanup;
 
       if not ORB.Polling then
-         Update (ORB.Idle_Tasks);
+         Signal (ORB.Idle_Tasks);
          --  Wake up idle tasks (if any) so that one of them
          --  checks asynchronous event sources.
       end if;
@@ -808,7 +807,7 @@ package body PolyORB.ORB is
          pragma Debug (O ("Waking up polling task."));
          Abort_Check_Sources (ORB.Selector.all);
       else
-         Update (ORB.Idle_Tasks);
+         Signal (ORB.Idle_Tasks);
       end if;
    end Insert_Source;
 
@@ -820,23 +819,19 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access)
    is
-      Polling_Version : Version_Id;
    begin
       Enter (ORB.ORB_Lock);
 
       Unregister_Source (AES);
 
       if ORB.Polling then
-         Polling_Version := ORB.Polling_Version;
          ORB.Source_Deleted := True;
-         Leave (ORB.ORB_Lock);
          pragma Assert (ORB.Selector /= null);
          Abort_Check_Sources (ORB.Selector.all);
-         Differ (ORB.Polling_Watcher.all, Polling_Version);
-      else
-         Leave (ORB.ORB_Lock);
+         Wait (ORB.Polling_Completed, ORB.ORB_Lock);
       end if;
 
+      Leave (ORB.ORB_Lock);
       Destroy (AES);
    end Delete_Source;
 
@@ -1030,7 +1025,7 @@ package body PolyORB.ORB is
          --  Ensure that one ORB task will process this job.
 
          if ORB.Idle_Counter /= 0 then
-            Update (ORB.Idle_Tasks);
+            Signal (ORB.Idle_Tasks);
          elsif ORB.Polling then
             pragma Assert (ORB.Selector /= null);
             Abort_Check_Sources (ORB.Selector.all);
@@ -1121,8 +1116,11 @@ package body PolyORB.ORB is
                         pragma Debug (O ("Aborted."));
                      end;
                   when Idle =>
-                     Update
-                       (Watcher (Req.Requesting_Task.all));
+                     Broadcast
+                       (Condition (Req.Requesting_Task.all));
+                     --  Cannot use Signal here, because it wakes
+                     --  up only one task, which may or may not be
+                     --  the Requesting_Task.
                end case;
             else
                --  The requesting task has already taken note of

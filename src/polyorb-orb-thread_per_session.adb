@@ -62,9 +62,10 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Log;
    use PolyORB.ORB.Interface;
    use PolyORB.Protocols;
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Semaphores;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
@@ -86,10 +87,9 @@ package body PolyORB.ORB.Thread_Per_Session is
    --  This variable is used to initialize the threads local variable.
    --  it is used to replace the 'accept' statement.
 
-   Thread_Init_Watcher    : Watcher_Access := null;
-   Thread_Init_Version_Id : Version_Id;
-   --  This Watcher and his associated Version Id are used during
-   --  the initialisation of a thread.
+   Session_Mutex : Tasking.Mutexes.Mutex_Access;
+   Session_Taken : Tasking.Condition_Variables.Condition_Access;
+   --  Synchornisation of task initialization.
 
    procedure Session_Thread;
    --  This procedure is a parameterless procedure used as
@@ -201,12 +201,11 @@ package body PolyORB.ORB.Thread_Per_Session is
             pragma Debug (O ("S isn't defined yet ....."));
          end if;
 
+         Enter (Session_Mutex);
          A_S := Session_Access (S);
-
          Create_Task (Session_Thread'Access);
-         Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-         Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-         --  wait until the end of thread initialisation before emiting
+         Wait (Session_Taken, Session_Mutex);
+         Leave (Session_Mutex);
       end;
 
       Components.Emit_No_Reply
@@ -328,7 +327,9 @@ package body PolyORB.ORB.Thread_Per_Session is
                                         Request_List => L));
          Set_Task_Info (S, N);
          --  release of the watcher at the end of initialisation
-         Update (Thread_Init_Watcher);
+         Enter (Session_Mutex);
+         Signal (Session_Taken);
+         Leave (Session_Mutex);
          loop
             pragma Debug (O ("Thread number"
                              & Image (Current_Task)
@@ -376,8 +377,8 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Initialize is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Session_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Create (Session_Mutex);
+      Create (Session_Taken);
    end Initialize;
 
    use PolyORB.Initialization;

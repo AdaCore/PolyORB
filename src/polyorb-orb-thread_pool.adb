@@ -55,7 +55,6 @@ package body PolyORB.ORB.Thread_Pool is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Tasking.Watchers;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.orb.thread_pool");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -174,8 +173,6 @@ package body PolyORB.ORB.Thread_Pool is
      (P : access Thread_Pool_Policy;
       ORB : ORB_Access)
    is
-      use PolyORB.Tasking.Advanced_Mutexes;
-      V : Version_Id;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -187,13 +184,7 @@ package body PolyORB.ORB.Thread_Pool is
       --  Precondition: ORB_Lock is held.
 
       ORB.Idle_Counter := ORB.Idle_Counter + 1;
-      Lookup (ORB.Idle_Tasks, V);
-      Leave (ORB.ORB_Lock);
-
-      Differ (ORB.Idle_Tasks, V);
-      --  Wait for a notification.
-
-      Enter (ORB.ORB_Lock);
+      PTCV.Wait (ORB.Idle_Tasks, ORB.ORB_Lock);
       ORB.Idle_Counter := ORB.Idle_Counter - 1;
 
       --  Post condition: ORB_Lock is held.

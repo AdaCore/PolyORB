@@ -55,8 +55,9 @@ package body PolyORB.ORB.Thread_Per_Request is
    use PolyORB.Filters;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
    use PolyORB.Tasking.Threads;
-   use PolyORB.Tasking.Watchers;
    use PolyORB.Transport;
 
    package L is new PolyORB.Log.Facility_Log
@@ -64,17 +65,15 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   A_Job : Jobs.Job_Access := null;
+   A_Job : Jobs.Job_Access;
    --  This variables are used to initialized the threads local variables.
    --  They are used to replaced the accept statement
    --  In this policy we can assume that there is only one task which
    --  executes ORB.Run. There is therefore no risk of inconsistent
    --  interleaving of reads and writes to this variable.
 
-   Thread_Init_Watcher    : Watcher_Access := null;
-   Thread_Init_Version_Id : Version_Id;
-   --  This Watcher and his associated Version Id are used during
-   --  the initialisation of a thread.
+   Job_Mutex : Tasking.Mutexes.Mutex_Access;
+   Job_Taken : PTCV.Condition_Access;
 
    procedure Request_Thread;
    --  This procedure is a parameterless procedure used as
@@ -150,10 +149,11 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
 
+      Enter (Job_Mutex);
       A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
       Create_Task (Request_Thread'Access);
-      Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Wait (Job_Taken, Job_Mutex);
+      Leave (Job_Mutex);
    end Handle_Request_Execution;
 
    ----------
@@ -201,7 +201,9 @@ package body PolyORB.ORB.Thread_Per_Request is
    begin
       --  Initialisation
       Job := A_Job;
-      Update (Thread_Init_Watcher);
+      Enter (Job_Mutex);
+      Signal (Job_Taken);
+      Leave (Job_Mutex);
       pragma Debug (O ("Thread "
         & Image (Current_Task)
         & " is executing a job"));
@@ -224,8 +226,8 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Initialize is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Create (Job_Mutex);
+      Create (Job_Taken);
    end Initialize;
 
    use PolyORB.Initialization;
