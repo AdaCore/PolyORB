@@ -25,7 +25,7 @@ package body CORBA.Policy.Thread_Policy.Orb_Ctrl is
    -------------------------
 
    procedure Check_Compatibility (Self : Orb_Ctrl_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;

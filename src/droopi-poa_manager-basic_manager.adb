@@ -2,7 +2,7 @@ with Droopi.CORBA_P.Exceptions;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
-package body CORBA.POA_Manager.Basic_Manager is
+package body Droopi.POA_Manager.Basic_Manager is
 
    use Droopi.Locks;
    use Droopi.CORBA_P.Exceptions;
@@ -146,7 +146,7 @@ package body CORBA.POA_Manager.Basic_Manager is
 
    procedure Create (M : access Basic_POA_Manager)
    is
-      use CORBA.POA_Types.POA_Sequences;
+      use Droopi.POA_Types.POA_Sequences;
    begin
       pragma Debug (O ("Create a new Basic_POA_Manager"));
       Create (M.State_Lock);
@@ -175,7 +175,7 @@ package body CORBA.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access)
    is
-      use CORBA.POA_Types.POA_Sequences;
+      use Droopi.POA_Types.POA_Sequences;
    begin
       pragma Debug (O ("Register a new POA"));
       Lock_W (Self.POAs_Lock);
@@ -200,7 +200,7 @@ package body CORBA.POA_Manager.Basic_Manager is
      (Self : access Basic_POA_Manager;
       OA   : Obj_Adapter_Access)
    is
-      use CORBA.POA_Types.POA_Sequences;
+      use Droopi.POA_Types.POA_Sequences;
       A_Child : Obj_Adapter_Access;
    begin
       pragma Debug (O ("Remove a POA"));
@@ -378,4 +378,4 @@ package body CORBA.POA_Manager.Basic_Manager is
       return Null_Message;
    end Handle_Message;
 
-end CORBA.POA_Manager.Basic_Manager;
+end Droopi.POA_Manager.Basic_Manager;

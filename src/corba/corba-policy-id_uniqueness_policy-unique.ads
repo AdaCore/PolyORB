@@ -8,15 +8,15 @@ package CORBA.Policy.Id_Uniqueness_Policy.Unique is
    function Create return Unique_Id_Policy_Access;
 
    procedure Check_Compatibility (Self : Unique_Id_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access);
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access);
 
    function Servant_To_Id (Self      : Unique_Id_Policy;
-                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access;
 
    procedure Free

@@ -1,30 +1,24 @@
---  Et Quinot prit le Droopi, il l'implémenta,
---  et le donna à ses disciples en disant :
---    "prenez et codez-en tous, car ceci est ma thèse,
---     livrée pour vous et pour la multitude open-source,
---     vous ferez cela en votre mémoire pour moi."
+--  Base types for the Portable Object Adapter.
 
+--  $Id$
 
---  Je vous salue Ada, pleine de types,
---  Robert Deware est avec vous,
---  Vous êtes bénie entre tous les langages,
---  Et ACT, le fruit de vos entrailles, est béni
---  Sainte Ada, mère de gnat,
---  Compilez pour nous, pauvres codeurs,
---  Maintenant et à l'heure de notre soutenance
+with Ada.Unchecked_Deallocation;
+
+with CORBA;
 
 with Droopi.Obj_Adapters;
 with Droopi.Objects;         use Droopi.Objects;
 with Droopi.Any;
 with Droopi.Any.NVList;
 with Droopi.Requests;
+with Droopi.Types; use Droopi.Types;
 with Sequences.Unbounded;
 
 ---------------------
--- CORBA.POA_Types --
+-- Droopi.POA_Types --
 ---------------------
 
-package CORBA.POA_Types is
+package Droopi.POA_Types is
 
    Invalid_Object_Id : exception renames Droopi.Obj_Adapters.Invalid_Object_Id;
    Invalid_Method    : exception renames Droopi.Obj_Adapters.Invalid_Method;
@@ -78,7 +72,7 @@ package CORBA.POA_Types is
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
    function Image
-     (Oid : Object_Id) return String;
+     (Oid : Object_Id) return CORBA.String;
    --  For debugging purposes.
 
    function Create_Id
@@ -111,9 +105,9 @@ package CORBA.POA_Types is
      return Object_Id_Access;
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
-   procedure Free (X : in out CORBA.POA_Types.Object_Id_Access);
+   procedure Free (X : in out Droopi.POA_Types.Object_Id_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
-end CORBA.POA_Types;
+end Droopi.POA_Types;

@@ -27,7 +27,7 @@ package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
    -------------------------
 
    procedure Check_Compatibility (Self : No_Activation_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -38,7 +38,7 @@ package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
    ----------------------
 
    function Activate_Servant (Self      : No_Activation_Policy;
-                              OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA        : Droopi.POA_Types.Obj_Adapter_Access;
                               P_Servant : Servant_Access)
                              return Object_Id_Access
    is

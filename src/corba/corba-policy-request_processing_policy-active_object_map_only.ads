@@ -1,5 +1,5 @@
 --  with CORBA.Policy_Values; use CORBA.Policy_Values;
---  with CORBA.POA_Types;     use CORBA.POA_Types;
+--  with Droopi.POA_Types;     use Droopi.POA_Types;
 with Ada.Unchecked_Deallocation;
 
 package CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
@@ -9,19 +9,19 @@ package CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
 
    function Create return Active_Map_Only_Policy_Access;
    procedure Check_Compatibility (Self : Active_Map_Only_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access);
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
    procedure Etherealize_All (Self  : Active_Map_Only_Policy;
-                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access);
 
    function Servant_To_Id (Self  : Active_Map_Only_Policy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access;
 
 
    function Id_To_Servant (Self : Active_Map_Only_Policy;
-                           OA   : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA   : Droopi.POA_Types.Obj_Adapter_Access;
                            Oid  : Object_Id) return Servant_Access;
 
    procedure Free (P   : in     Active_Map_Only_Policy;

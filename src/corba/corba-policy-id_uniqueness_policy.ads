@@ -1,4 +1,4 @@
-with CORBA.POA_Types;               use CORBA.POA_Types;
+with Droopi.POA_Types;               use Droopi.POA_Types;
 
 package CORBA.Policy.Id_Uniqueness_Policy is
 
@@ -17,7 +17,7 @@ package CORBA.Policy.Id_Uniqueness_Policy is
 
    procedure Ensure_Servant_Uniqueness
      (Self      : IdUniquenessPolicy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      is abstract;
    --  Case UNIQUE_ID:
@@ -27,7 +27,7 @@ package CORBA.Policy.Id_Uniqueness_Policy is
    --  Does nothing
 
    function Servant_To_Id (Self      : IdUniquenessPolicy;
-                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
       is abstract;
    --  Case UNIQUE_ID:

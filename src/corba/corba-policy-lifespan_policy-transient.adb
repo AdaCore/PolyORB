@@ -1,12 +1,14 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with Droopi.POA;
+with Droopi.Types;
 
-with CORBA.POA;
 with CORBA.Policy_Types;
 
 package body CORBA.Policy.Lifespan_Policy.Transient is
 
    use CORBA.Policy_Values;
    use CORBA.Policy_Types;
+   use Droopi.Types;
 
    ------------
    -- Create --
@@ -28,7 +30,7 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
    -------------------------
 
    procedure Check_Compatibility (Self : Transient_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -39,11 +41,11 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
    --------------------
 
    function Get_Time_Stamp (P  : Transient_Policy;
-                            OA : CORBA.POA_Types.Obj_Adapter_Access)
+                            OA : Droopi.POA_Types.Obj_Adapter_Access)
      return Time_Stamp
    is
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       return POA.Boot_Time;
    end Get_Time_Stamp;
@@ -53,11 +55,11 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
    ---------------------
 
    procedure Ensure_Lifespan (P     : Transient_Policy;
-                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
    is
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       if U_Oid.Persistency_Flag /= POA.Boot_Time then
          Raise_Bad_Param;

@@ -1,4 +1,4 @@
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 
 package CORBA.Policy.Thread_Policy is
 
@@ -12,7 +12,7 @@ package CORBA.Policy.Thread_Policy is
    --  possible Policy
 
    procedure Check_Compatibility (Self : ThreadPolicy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
       is abstract;
 
    procedure Free (P   : in     ThreadPolicy;

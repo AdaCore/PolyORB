@@ -4,7 +4,7 @@
 
 with Droopi.Object_Map;
 pragma Elaborate_All (Droopi.Object_Map);
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 
 package CORBA.Object_Map.Sequence_Map is
 
@@ -15,12 +15,12 @@ package CORBA.Object_Map.Sequence_Map is
    --  Functions required by the generic package Droopi.Object_Map
 
    function Is_Servant_Equal (Item : in Object_Map_Entry_Access;
-                              To   : in CORBA.POA_Types.Servant_Access)
+                              To   : in Droopi.POA_Types.Servant_Access)
                              return Boolean;
 
    function Is_Object_Id_Equal
      (Item : in Object_Map_Entry_Access;
-      To   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
+      To   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
      return Boolean;
 
    function Is_Null (Item : in Object_Map_Entry_Access)
@@ -30,8 +30,8 @@ package CORBA.Object_Map.Sequence_Map is
 
    package Active_Object_Map is
       new Droopi.Object_Map (Object_Map_Entry_Access,
-                             CORBA.POA_Types.Servant_Access,
-                             CORBA.POA_Types.Unmarshalled_Oid_Access);
+                             Droopi.POA_Types.Servant_Access,
+                             Droopi.POA_Types.Unmarshalled_Oid_Access);
    --  Instanciation of the generic package Droopi.Object_Map
 
    type Seq_Object_Map is new CORBA.Object_Map.Object_Map with private;
@@ -56,25 +56,25 @@ package CORBA.Object_Map.Sequence_Map is
    --  Replace an element in the map, given an index
 
    function Is_Servant_In (O_Map  : in Seq_Object_Map;
-                           Item   : in CORBA.POA_Types.Servant_Access)
+                           Item   : in Droopi.POA_Types.Servant_Access)
                           return Boolean;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
 
    function Is_Object_Id_In
      (O_Map  : in Seq_Object_Map;
-      Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
+      Item   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
      return Boolean;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
    function Get_By_Id (O_Map  : in Seq_Object_Map;
-                       Item   : in CORBA.POA_Types.Unmarshalled_Oid_Access)
+                       Item   : in Droopi.POA_Types.Unmarshalled_Oid_Access)
                       return Object_Map_Entry_Access;
    --  Given an Object_Id, looks for the corresponding map entry
 
    function Get_By_Servant (O_Map  : in Seq_Object_Map;
-                            Item   : in CORBA.POA_Types.Servant_Access)
+                            Item   : in Droopi.POA_Types.Servant_Access)
                            return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
@@ -85,7 +85,7 @@ package CORBA.Object_Map.Sequence_Map is
    --  Given an index, returns the corrsponding map entry
 
    function Remove (O_Map : access Seq_Object_Map;
-                    Item  : in     CORBA.POA_Types.Unmarshalled_Oid_Access)
+                    Item  : in     Droopi.POA_Types.Unmarshalled_Oid_Access)
                    return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means

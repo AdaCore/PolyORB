@@ -1,7 +1,7 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 
 with CORBA.Object_Map.Sequence_Map;
-with CORBA.POA;
+with Droopi.POA;
 with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy_Types;            use CORBA.Policy_Types;
 with Droopi.Locks;                  use Droopi.Locks;
@@ -30,7 +30,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
    -------------------------
 
    procedure Check_Compatibility (Self : System_Id_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -52,15 +52,15 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
 
    function Activate_Object
      (Self   : System_Id_Policy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access
    is
       use CORBA.Object_Map;
       use CORBA.Object_Map.Sequence_Map;
       use CORBA.Policy.Lifespan_Policy;
 
-      P_OA      : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA      : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       New_Entry : Seq_Object_Map_Entry_Access;
       New_U_Oid : Unmarshalled_Oid_Access;
       Index     : Integer;
@@ -92,14 +92,14 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
 
    procedure Activate_Object_With_Id
      (Self   : System_Id_Policy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id)
    is
       use CORBA.Object_Map.Sequence_Map;
       use CORBA.Object_Map;
-      P_OA      : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA      : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       New_U_Oid : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
       New_Entry : Seq_Object_Map_Entry_Access;
@@ -136,14 +136,14 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : System_Id_Policy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
    is
       use CORBA.Object_Map.Sequence_Map;
       use CORBA.Object_Map;
       An_Entry : Object_Map_Entry_Access;
-      P_OA      : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA      : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       Index : Integer := Integer'Value (To_Standard_String (U_Oid.Id));
    begin
       Lock_R (P_OA.Map_Lock);
@@ -160,7 +160,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
 
    procedure Remove_Entry
      (Self  : System_Id_Policy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
    is
       use CORBA.Object_Map.Sequence_Map;
@@ -168,8 +168,8 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       An_Entry : Object_Map_Entry_Access;
       Index    : Integer
         := Integer'Value (CORBA.To_Standard_String (U_Oid.Id));
-      P_OA     : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA     : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       Lock_W (P_OA.Map_Lock);
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
@@ -189,7 +189,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
    -------------------
 
    function Id_To_Servant (Self  : System_Id_Policy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
    is
@@ -198,8 +198,8 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       An_Entry : Object_Map_Entry_Access;
       Index    : Integer
         := Integer'Value (CORBA.To_Standard_String (U_Oid.Id));
-      P_OA     : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA     : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       Servant  : Servant_Access;
    begin
       Lock_R (P_OA.Map_Lock);

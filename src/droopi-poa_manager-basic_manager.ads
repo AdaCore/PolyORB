@@ -1,17 +1,17 @@
 with Ada.Unchecked_Deallocation;
 
-with CORBA.POA_Types; use CORBA.POA_Types;
+with Droopi.POA_Types; use Droopi.POA_Types;
 with Droopi.Locks;
 with Droopi.Components;
 with Locked_Queue;
 
-package CORBA.POA_Manager.Basic_Manager is
+package Droopi.POA_Manager.Basic_Manager is
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
 
    Invalid_Obj_Adapter : exception
-     renames CORBA.POA_Manager.Invalid_Obj_Adapter;
+     renames Droopi.POA_Manager.Invalid_Obj_Adapter;
 
    ----------------------------------------------------------------------
    --  Procedures and functions to implement the POAManager interface  --
@@ -134,6 +134,6 @@ private
    procedure Free is new Ada.Unchecked_Deallocation
      (Hold_Servant, Hold_Servant_Access);
 
-end CORBA.POA_Manager.Basic_Manager;
+end Droopi.POA_Manager.Basic_Manager;
 
 

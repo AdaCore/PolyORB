@@ -51,7 +51,6 @@ package body Droopi.Setup.Test is
    use Droopi.Transport.Sockets;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
-
    My_Servant : Servant_Access;
 
    ---------------------------------------------
@@ -219,6 +218,11 @@ package body Droopi.Setup.Test is
       --  Register socket with ORB object, associating a protocol
       --  to the transport service access point.
 
+      Put_Line (" done.");
+   end Initialize_Test_Access_Points;
+
+   procedure Initialize_Test_Object is
+   begin
       ----------------------------------
       -- Create simple object adapter --
       ----------------------------------
@@ -234,40 +238,34 @@ package body Droopi.Setup.Test is
       My_Servant := new Test_Object.My_Object;
       --  Create application server object.
 
-      Put_Line (" done.");
-   end Initialize_Test_Access_Points;
-
-   My_Ref : Droopi.References.Ref;
-
-   procedure Initialize_Test_Object
-   is
-      My_Id : aliased Object_Id
-        := Obj_Adapters.Export (Obj_Adapter, My_Servant);
-      --  Register it with the SOA.
-
-   begin
-      Obj_Adapters.Simple.Set_Interface_Description
-        (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
-         My_Id, Test_Object.If_Desc);
-      --  Set object description.
-
-      Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
-      --  Obtain object reference.
-
-      Put_Line ("Registered object: " & Image (My_Id));
-      Put_Line ("Reference is     : " & References.Image (My_Ref));
-
+      declare
+         My_Id : aliased Object_Id
+           := Obj_Adapters.Export (Obj_Adapter, My_Servant);
+         --  Register it with the SOA.
       begin
-         Put_Line ("IOR is           : "
-                   & CORBA.To_Standard_String
-                   (References.IOR.Object_To_String
-                    ((Ref => My_Ref,
+         Obj_Adapters.Simple.Set_Interface_Description
+           (Obj_Adapters.Simple.Simple_Obj_Adapter (Obj_Adapter.all),
+            My_Id, Test_Object.If_Desc);
+         --  Set object description.
+
+         Create_Reference (The_ORB, My_Id'Unchecked_Access, My_Ref);
+         --  Obtain object reference.
+
+         Put_Line ("Registered object: " & Image (My_Id));
+         Put_Line ("Reference is     : " & References.Image (My_Ref));
+
+         begin
+            Put_Line ("IOR is           : "
+                      & CORBA.To_Standard_String
+                      (References.IOR.Object_To_String
+                       ((Ref => My_Ref,
                       Type_Id => CORBA.To_CORBA_String
-                      ("IDL:Echo:1.0")))));
-      exception
-         when E : others =>
-            Put_Line ("Warning: Object_To_String raised:");
-            Put_Line (Ada.Exceptions.Exception_Information (E));
+                         ("IDL:Echo:1.0")))));
+         exception
+            when E : others =>
+               Put_Line ("Warning: Object_To_String raised:");
+               Put_Line (Ada.Exceptions.Exception_Information (E));
+         end;
       end;
    end Initialize_Test_Object;
 

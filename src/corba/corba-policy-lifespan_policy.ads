@@ -1,4 +1,4 @@
-with CORBA.POA_Types;     use CORBA.POA_Types;
+with Droopi.POA_Types;     use Droopi.POA_Types;
 
 
 package CORBA.Policy.Lifespan_Policy is
@@ -13,11 +13,11 @@ package CORBA.Policy.Lifespan_Policy is
    --  possible Policy
 
    function Get_Time_Stamp (P  : LifespanPolicy;
-                            OA : CORBA.POA_Types.Obj_Adapter_Access)
+                            OA : Droopi.POA_Types.Obj_Adapter_Access)
                            return Time_Stamp is abstract;
 
    procedure Ensure_Lifespan (P     : LifespanPolicy;
-                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  PERSISTENT:

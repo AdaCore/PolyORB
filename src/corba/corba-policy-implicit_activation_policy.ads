@@ -1,4 +1,4 @@
-with CORBA.POA_Types;     use CORBA.POA_Types;
+with Droopi.POA_Types;     use Droopi.POA_Types;
 
 package CORBA.Policy.Implicit_Activation_Policy is
 
@@ -14,7 +14,7 @@ package CORBA.Policy.Implicit_Activation_Policy is
    --  possible Policy
 
    function Activate_Servant (Self      : ImplicitActivationPolicy;
-                              OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA        : Droopi.POA_Types.Obj_Adapter_Access;
                               P_Servant : Servant_Access)
                              return Object_Id_Access
       is abstract;

@@ -1,4 +1,4 @@
-with CORBA.POA_Types;     use CORBA.POA_Types;
+with Droopi.POA_Types;     use Droopi.POA_Types;
 
 package CORBA.Policy.Id_Assignement_Policy is
 
@@ -18,7 +18,7 @@ package CORBA.Policy.Id_Assignement_Policy is
 
    function Activate_Object
      (Self   : IdAssignementPolicy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access
       is abstract;
    --  Add an object to the Active Object Map, and return a new
@@ -26,7 +26,7 @@ package CORBA.Policy.Id_Assignement_Policy is
 
    procedure Activate_Object_With_Id
      (Self   : IdAssignementPolicy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id)
       is abstract;
@@ -46,7 +46,7 @@ package CORBA.Policy.Id_Assignement_Policy is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : IdAssignementPolicy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  Checks if the Object_Id is not yet in use.
@@ -58,13 +58,13 @@ package CORBA.Policy.Id_Assignement_Policy is
 
    procedure Remove_Entry
      (Self  : IdAssignementPolicy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  Removes an entry from the Active Object Map
 
    function Id_To_Servant (Self  : IdAssignementPolicy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
       is abstract;

@@ -1,6 +1,6 @@
-with CORBA.POA_Types; use CORBA.POA_Types;
+with Droopi.POA_Types; use Droopi.POA_Types;
 
-package CORBA.POA_Manager is
+package Droopi.POA_Manager is
 
    type State is
      (HOLDING, ACTIVE, DISCARDING, INACTIVE);
@@ -10,7 +10,7 @@ package CORBA.POA_Manager is
 
    Invalid_Obj_Adapter : exception;
 
-   type Hold_Servant_Base is abstract new CORBA.POA_Types.Servant
+   type Hold_Servant_Base is abstract new Droopi.POA_Types.Servant
      with null record;
    type Hold_Servant_Base_Access is
      access all Hold_Servant_Base'Class;
@@ -74,4 +74,4 @@ private
       Managed_POAs  : POAList_Access;
    end record;
 
-end CORBA.POA_Manager;
+end Droopi.POA_Manager;

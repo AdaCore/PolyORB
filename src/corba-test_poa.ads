@@ -1,4 +1,4 @@
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 with Droopi.Components;
 
 package CORBA.Test_POA is
@@ -6,7 +6,7 @@ package CORBA.Test_POA is
    Incorrect_Execution : exception;
    Correct_Execution   : exception;
 
-   type My_Servant is new CORBA.POA_Types.Servant with
+   type My_Servant is new Droopi.POA_Types.Servant with
      record
         Nb   : Integer;
         Name : String;

@@ -7,14 +7,15 @@ with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 
 with CORBA.Policy_Types;
 with CORBA.Policy_Values;
-with CORBA.POA_Types;
-with CORBA.POA_Manager.Basic_Manager;
+with Droopi.POA_Types;
+with Droopi.POA_Manager.Basic_Manager;
 
 with POA_Configuration.Minimum;
 with POA_Configuration;
 
-package body CORBA.POA.Basic_POA is
+package body Droopi.POA.Basic_POA is
 
+   use CORBA;
    use POA_Types;
    use Droopi.Log;
    use Droopi.Locks;
@@ -22,8 +23,8 @@ package body CORBA.POA.Basic_POA is
    use CORBA.Policy_Types;
    use POA_Configuration;
    use POA_Configuration.Minimum;
-   use CORBA.POA_Manager;
-   use CORBA.POA_Manager.Basic_Manager;
+   use Droopi.POA_Manager;
+   use Droopi.POA_Manager.Basic_Manager;
 
    package L is new Droopi.Log.Facility_Log ("corba.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -42,8 +43,9 @@ package body CORBA.POA.Basic_POA is
    --  the given name already exists.
    --  The function doesn't take care of locking the list of children!
 
-   procedure Init_With_User_Policies (OA       : Basic_Obj_Adapter_Access;
-                                      Policies : Policy.PolicyList_Access);
+   procedure Init_With_User_Policies
+     (OA       : Basic_Obj_Adapter_Access;
+      Policies : CORBA.Policy.PolicyList_Access);
 
    procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access);
 
@@ -88,11 +90,10 @@ package body CORBA.POA.Basic_POA is
       use POA_Sequences;
       A_Child : POA_Types.Obj_Adapter_Access;
    begin
-      pragma Debug (O ("Get_Child : " & To_Standard_String (Name)));
       if Adapter.Children /= null then
          for I in 1 .. Length (Adapter.Children.all) loop
             A_Child := Element_Of (Adapter.Children.all, I);
-            if CORBA.POA.Obj_Adapter_Access (A_Child).Name = Name then
+            if Droopi.POA.Obj_Adapter_Access (A_Child).Name = Name then
                return A_Child;
             end if;
          end loop;
@@ -124,7 +125,7 @@ package body CORBA.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : Basic_Obj_Adapter_Access;
-      Policies : Policy.PolicyList_Access)
+      Policies : CORBA.Policy.PolicyList_Access)
    is
       A_Policy : Policy_Access;
    begin
@@ -263,25 +264,25 @@ package body CORBA.POA.Basic_POA is
       pragma Debug (O ("Check compatibilities between policies"));
       Check_Compatibility
         (OA.Thread_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Lifespan_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Id_Uniqueness_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Id_Assignement_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Servant_Retention_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Request_Processing_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Implicit_Activation_Policy.all,
-         CORBA.POA_Types.Obj_Adapter_Access (OA));
+         Droopi.POA_Types.Obj_Adapter_Access (OA));
    end Check_Policies_Compatibility;
 
    --------------------
@@ -293,7 +294,7 @@ package body CORBA.POA.Basic_POA is
       Child :        Basic_Obj_Adapter_Access)
      return Positive
    is
-      use CORBA.POA_Types.POA_Sequences;
+      use Droopi.POA_Types.POA_Sequences;
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
                        & "registers child "
@@ -305,12 +306,12 @@ package body CORBA.POA.Basic_POA is
          if Element_Of (Sequence (Self.Children.all), I) = null then
             Replace_Element (Sequence (Self.Children.all),
                              I,
-                             CORBA.POA_Types.Obj_Adapter_Access (Child));
+                             Droopi.POA_Types.Obj_Adapter_Access (Child));
             return I;
          end if;
       end loop;
       Append (Sequence (Self.Children.all),
-              CORBA.POA_Types.Obj_Adapter_Access (Child));
+              Droopi.POA_Types.Obj_Adapter_Access (Child));
       return Length (Sequence (Self.Children.all));
    end Register_Child;
 
@@ -379,7 +380,7 @@ package body CORBA.POA.Basic_POA is
    begin
       if OA.POA_Manager /= null then
          Remove_POA (OA.POA_Manager,
-                     CORBA.POA_Types.Obj_Adapter_Access (OA));
+                     Droopi.POA_Types.Obj_Adapter_Access (OA));
       end if;
       Destroy_Policies (OA.all);
       Destroy_Locks    (OA.all);
@@ -414,7 +415,7 @@ package body CORBA.POA.Basic_POA is
       New_Obj_Adapter.POA_Manager      := new Basic_POA_Manager;
       Create (New_Obj_Adapter.POA_Manager);
       Register_POA (New_Obj_Adapter.POA_Manager,
-                    CORBA.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+                    Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
@@ -437,9 +438,9 @@ package body CORBA.POA.Basic_POA is
 
    function Create_POA
      (Self         : access Basic_Obj_Adapter;
-      Adapter_Name :        String;
+      Adapter_Name :        CORBA.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        Policy.PolicyList_Access)
+      Policies     :        CORBA.Policy.PolicyList_Access)
      return Obj_Adapter_Access
    is
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
@@ -447,9 +448,6 @@ package body CORBA.POA.Basic_POA is
       Conf            : POA_Configuration.Minimum.Minimum_Configuration;
       Index           : Positive;
    begin
-      pragma Debug (O ("Create a new POA with name "
-                      & To_Standard_String (Adapter_Name)));
-
       --  Adapter_Name should be not empty
       pragma Assert (Adapter_Name /= "");
 
@@ -459,7 +457,7 @@ package body CORBA.POA.Basic_POA is
          --  Write Lock here: content of children has to be the same when
          --  we add the new child.
          Children_Locked := True;
-         if Get_Child (Self, Adapter_Name) /= null then
+         if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
             Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
          end if;
       end if;
@@ -473,15 +471,14 @@ package body CORBA.POA.Basic_POA is
       New_Obj_Adapter.Name      := Adapter_Name;
 
       if A_POAManager = null then
-         pragma Debug (O ("Create new POAManager"));
          New_Obj_Adapter.POA_Manager := new Basic_POA_Manager;
          Create (New_Obj_Adapter.POA_Manager);
          Register_POA (New_Obj_Adapter.POA_Manager,
-                       CORBA.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+                       Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       else
          New_Obj_Adapter.POA_Manager := A_POAManager;
          Register_POA (A_POAManager,
-                       CORBA.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+                       Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
 
       --  Create and initialize policies factory
@@ -538,9 +535,9 @@ package body CORBA.POA.Basic_POA is
       Etherealize_Objects : in     Boolean;
       Wait_For_Completion : in     Boolean)
    is
-      use CORBA.POA_Types.POA_Sequences;
-      A_Child : CORBA.POA.Obj_Adapter_Access;
-      Name    : String := Self.Name;
+      use Droopi.POA_Types.POA_Sequences;
+      A_Child : Droopi.POA.Obj_Adapter_Access;
+      Name    : CORBA.String := Self.Name;
    begin
       pragma Debug (O ("Start destroying POA "
                        & To_Standard_String (Name)));
@@ -549,7 +546,7 @@ package body CORBA.POA.Basic_POA is
       Lock_W (Self.Children_Lock);
       if Self.Children /= null then
          for I in 1 .. Length (Sequence (Self.Children.all)) loop
-            A_Child := CORBA.POA.Obj_Adapter_Access
+            A_Child := Droopi.POA.Obj_Adapter_Access
               (Element_Of (Sequence (Self.Children.all), I));
             Destroy (A_Child.all'Access,
                      Etherealize_Objects,
@@ -562,7 +559,7 @@ package body CORBA.POA.Basic_POA is
       --  Tell father to remove current POA from its list of children
       if Self.Father /= null then
          Remove_POA_By_Name
-           (CORBA.POA.Obj_Adapter_Access (Self.Father).all'Access,
+           (Droopi.POA.Obj_Adapter_Access (Self.Father).all'Access,
             Self.Name);
       end if;
 
@@ -720,7 +717,7 @@ package body CORBA.POA.Basic_POA is
    is
    begin
       Deactivate (Self.Servant_Retention_Policy.all,
-                  CORBA.POA_Types.Obj_Adapter_Access (Self),
+                  Droopi.POA_Types.Obj_Adapter_Access (Self),
                   Oid);
       --  ??? Wait for completion?
    end Deactivate_Object;
@@ -772,13 +769,13 @@ package body CORBA.POA.Basic_POA is
 
    function Find_POA_Recursively
      (Self : access Basic_Obj_Adapter;
-      Name : String)
+      Name : CORBA.String)
      return Basic_Obj_Adapter_Access
    is
-      use CORBA.POA_Types.POA_Sequences;
+      use Droopi.POA_Types.POA_Sequences;
       Split_Point      : Natural := Index (Name, ".");
-      Remaining_Name   : String;
-      A_Child_Name     : String;
+      Remaining_Name   : CORBA.String;
+      A_Child_Name     : CORBA.String;
       A_Child          : Obj_Adapter_Access;
    begin
       if Name = "" then
@@ -840,7 +837,7 @@ package body CORBA.POA.Basic_POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
-      Child_Name :        String)
+      Child_Name :        CORBA.String)
    is
       use POA_Sequences;
       A_Child : POA_Types.Obj_Adapter_Access;
@@ -852,7 +849,7 @@ package body CORBA.POA.Basic_POA is
       for I in 1 .. Length (Self.Children.all) loop
          A_Child := Element_Of (Self.Children.all, I);
          if A_Child /= null
-           and then CORBA.POA.Obj_Adapter_Access (A_Child).Name = Child_Name
+           and then Droopi.POA.Obj_Adapter_Access (A_Child).Name = Child_Name
          then
             Replace_Element (Sequence (Self.Children.all), I, null);
             return;
@@ -993,7 +990,7 @@ package body CORBA.POA.Basic_POA is
                   S := Droopi.Objects.Servant_Access
                     (Get_Hold_Servant
                      (OA.POA_Manager.all'Access,
-                      CORBA.POA_Types.Obj_Adapter_Access (OA)));
+                      Droopi.POA_Types.Obj_Adapter_Access (OA)));
                   return S;
                end;
             when others =>
@@ -1030,4 +1027,4 @@ package body CORBA.POA.Basic_POA is
       null;
    end Release_Servant;
 
-end CORBA.POA.Basic_POA;
+end Droopi.POA.Basic_POA;

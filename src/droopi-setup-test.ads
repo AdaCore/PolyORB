@@ -3,6 +3,7 @@
 --  $Id$
 
 with Droopi.ORB;
+with Droopi.References;
 
 package Droopi.Setup.Test is
 
@@ -20,6 +21,9 @@ package Droopi.Setup.Test is
 
    procedure Initialize_Test_Object;
    --  Create the test object implementation.
+
+   My_Ref : Droopi.References.Ref;
+   --  Object reference designating the created test object.
 
    procedure Run_Test;
    --  Execute the test server.

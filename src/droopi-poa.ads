@@ -1,8 +1,10 @@
 with Droopi.Locks;
 
+with Droopi.POA_Types;     use Droopi.POA_Types;
+with Droopi.POA_Manager;
+
+with CORBA; use CORBA;
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-with CORBA.POA_Types;     use CORBA.POA_Types;
-with CORBA.POA_Manager;
 with CORBA.Object_Map;
 with CORBA.Policy;
 with CORBA.Policy.Thread_Policy;
@@ -20,17 +22,17 @@ use CORBA.Policy.Servant_Retention_Policy;
 use CORBA.Policy.Lifespan_Policy;
 use CORBA.Policy.Implicit_Activation_Policy;
 
-package CORBA.POA is
+package Droopi.POA is
 
-   Invalid_Object_Id : exception renames CORBA.POA_Types.Invalid_Object_Id;
-   Invalid_Method    : exception renames CORBA.POA_Types.Invalid_Method;
+   Invalid_Object_Id : exception renames Droopi.POA_Types.Invalid_Object_Id;
+   Invalid_Method    : exception renames Droopi.POA_Types.Invalid_Method;
 
-   type Obj_Adapter is abstract new CORBA.POA_Types.Obj_Adapter with
+   type Obj_Adapter is abstract new Droopi.POA_Types.Obj_Adapter with
       record
          Name                       : CORBA.String;
-         POA_Manager                : CORBA.POA_Manager.POAManager_Access;
+         POA_Manager                : Droopi.POA_Manager.POAManager_Access;
          Boot_Time                  : Time_Stamp;
-         Absolute_Address           : String;
+         Absolute_Address           : CORBA.String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
 
          --  Policies (one of each is required)
@@ -61,9 +63,9 @@ package CORBA.POA is
 
    function Create_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        String;
+      Adapter_Name :        CORBA.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        Policy.PolicyList_Access)
+      Policies     :        CORBA.Policy.PolicyList_Access)
      return Obj_Adapter_Access
       is abstract;
    --  Create a POA given its name and a list of policies
@@ -186,7 +188,7 @@ package CORBA.POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Obj_Adapter;
-      Child_Name :        String)
+      Child_Name :        CORBA.String)
      is abstract;
 
-end CORBA.POA;
+end Droopi.POA;

@@ -1,7 +1,7 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with CORBA.Policy.Servant_Retention_Policy;
 with CORBA.Policy_Values;
-with CORBA.POA;
+with Droopi.POA;
 with CORBA.Policy_Types;
 
 package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
@@ -31,11 +31,11 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
    -------------------------
 
    procedure Check_Compatibility (Self : Active_Map_Only_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
       use Droopi.CORBA_P.Exceptions;
-      Object : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      Object : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       if Object.Servant_Retention_Policy.Value /= RETAIN then
          Raise_Invalid_Policy;
@@ -49,7 +49,7 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
    ---------------------
 
    procedure Etherealize_All (Self  : Active_Map_Only_Policy;
-                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
    is
    begin
@@ -61,12 +61,12 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
    -------------------
 
    function Servant_To_Id (Self  : Active_Map_Only_Policy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
    is
       use CORBA.Policy.Servant_Retention_Policy;
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       Oid : Object_Id_Access;
    begin
       Oid := Servant_To_Id (POA.Servant_Retention_Policy.all,
@@ -80,12 +80,12 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
    -------------------
 
    function Id_To_Servant (Self : Active_Map_Only_Policy;
-                           OA   : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA   : Droopi.POA_Types.Obj_Adapter_Access;
                            Oid  : Object_Id) return Servant_Access
    is
       use CORBA.Policy.Servant_Retention_Policy;
-      POA     : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA     : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       U_Oid   : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
       Servant : Servant_Access;

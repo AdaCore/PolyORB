@@ -4,7 +4,7 @@ with CORBA.Policy.Id_Uniqueness_Policy;
 with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy.Request_Processing_Policy;
 with CORBA.Policy.Implicit_Activation_Policy;
-with CORBA.POA;
+with Droopi.POA;
 with CORBA.Policy_Types;
 
 package body CORBA.Policy.Servant_Retention_Policy.Retain is
@@ -32,7 +32,7 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
    -------------------------
 
    procedure Check_Compatibility (Self : Retain_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -44,14 +44,14 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
 
    function Activate_Object
      (Self      : Retain_Policy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
      return Object_Id_Access
    is
       use CORBA.Policy.Id_Assignement_Policy;
       use CORBA.Policy.Id_Uniqueness_Policy;
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       if not Is_System (POA.Id_Assignement_Policy.all) then
          Raise_Wrong_Policy;
@@ -68,15 +68,15 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
 
    procedure Activate_Object_With_Id
      (Self      : Retain_Policy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access;
       Oid       : Object_Id)
    is
       use CORBA.Policy.Id_Assignement_Policy;
       use CORBA.Policy.Id_Uniqueness_Policy;
       use CORBA.Policy.Lifespan_Policy;
-      POA       : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA       : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
    begin
@@ -104,15 +104,15 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
 
    procedure Deactivate
      (Self      : Retain_Policy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       Oid       : Object_Id)
    is
       use CORBA.Policy.Id_Assignement_Policy;
       use CORBA.Policy.Request_Processing_Policy;
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
-      POA       : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA       : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       Etherealize_All (POA.Request_Processing_Policy.all,
                        OA,
@@ -128,14 +128,14 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
    -------------------
 
    function Servant_To_Id (Self      : Retain_Policy;
-                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access)
                           return Object_Id_Access
    is
       use CORBA.Policy.Id_Uniqueness_Policy;
       use CORBA.Policy.Implicit_Activation_Policy;
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       Oid : Object_Id_Access;
    begin
       Oid := Servant_To_Id (POA.Id_Uniqueness_Policy.all,
@@ -154,13 +154,13 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
    -------------------
 
    function Id_To_Servant (Self  : Retain_Policy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
    is
       use CORBA.Policy.Id_Assignement_Policy;
-      POA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      POA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       return Id_To_Servant (POA.Id_Assignement_Policy.all,
                             OA,

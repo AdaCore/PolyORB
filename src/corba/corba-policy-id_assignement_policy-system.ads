@@ -8,18 +8,18 @@ package CORBA.Policy.Id_Assignement_Policy.System is
    function Create return System_Id_Policy_Access;
 
    procedure Check_Compatibility (Self : System_Id_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access);
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
    function Is_System (P : System_Id_Policy) return Boolean;
 
    function Activate_Object
      (Self   : System_Id_Policy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access) return Object_Id_Access;
 
    procedure Activate_Object_With_Id
      (Self   : System_Id_Policy;
-      OA     : CORBA.POA_Types.Obj_Adapter_Access;
+      OA     : Droopi.POA_Types.Obj_Adapter_Access;
       Object : Servant_Access;
       Oid    : Object_Id);
 
@@ -29,16 +29,16 @@ package CORBA.Policy.Id_Assignement_Policy.System is
 
    procedure Ensure_Oid_Uniqueness
      (Self  : System_Id_Policy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access);
 
    procedure Remove_Entry
      (Self  : System_Id_Policy;
-      OA    : CORBA.POA_Types.Obj_Adapter_Access;
+      OA    : Droopi.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid_Access);
 
    function Id_To_Servant (Self  : System_Id_Policy;
-                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA    : Droopi.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access;
 

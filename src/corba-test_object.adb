@@ -16,8 +16,7 @@ with Droopi.Requests;
 with Droopi.Types;
 
 with CORBA;
-with CORBA.POA;
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 
 package body CORBA.Test_Object is
 
@@ -28,15 +27,13 @@ package body CORBA.Test_Object is
    use CORBA;
 
    package L is new Droopi.Log.Facility_Log ("corba.test_object");
-   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
-     renames L.Output;
    procedure Output (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
    function "=" (Left, Right : My_Object)
                 return Standard.Boolean
    is
-      use CORBA.POA_Types;
+      use Droopi.POA_Types;
    begin
       return (Left.If_Desc = Right.If_Desc);
    end "=";
@@ -62,8 +59,8 @@ package body CORBA.Test_Object is
      return CORBA.Long
    is
    begin
-      pragma Debug (Output ("Echo_Integer is being executed with argument"
-                            & Long'Image (Long (I))));
+      pragma Debug
+        (Output ("Echo_Integer is being executed with argument" & I'Img));
       return I;
    end echoInteger;
 
@@ -79,7 +76,7 @@ package body CORBA.Test_Object is
       use Droopi.Any.NVList.Internals;
       use Droopi.Types;
    begin
-      pragma Debug (O ("Handle Message : enter"));
+      pragma Debug (Output ("Handle Message : enter"));
       if Msg in Execute_Request then
          declare
             Req : Request_Access
@@ -87,7 +84,7 @@ package body CORBA.Test_Object is
             Args_Sequence : Internals.NV_Sequence_Access :=
               Internals.List_Of (Req.all.Args);
          begin
-            pragma Debug (O ("The server is executing the request:"
+            pragma Debug (Output ("The server is executing the request:"
                              & Droopi.Requests.Image (Req.all)));
             if Req.all.Operation = To_Droopi_String ("echoString") then
                declare
@@ -97,7 +94,7 @@ package body CORBA.Test_Object is
                begin
                   Req.Result.Argument := To_Any
                     (echoString (Obj.all, echoString_Arg));
-                  pragma Debug (O ("Result: " & Image (Req.Result)));
+                  pragma Debug (Output ("Result: " & Image (Req.Result)));
                end;
             elsif Req.all.Operation = "echoInteger" then
                declare
@@ -107,7 +104,7 @@ package body CORBA.Test_Object is
                begin
                   Req.Result.Argument := To_Any
                     (echoInteger (Obj.all, echoInteger_Arg));
-                  pragma Debug (O ("Result: " & Image (Req.Result)));
+                  pragma Debug (Output ("Result: " & Image (Req.Result)));
                end;
             else
                raise Droopi.Components.Unhandled_Message;
@@ -120,7 +117,7 @@ package body CORBA.Test_Object is
 
    exception
       when E : others =>
-         pragma Debug (O ("Handle_Message: Got exception "
+         pragma Debug (Output ("Handle_Message: Got exception "
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
 
@@ -146,7 +143,8 @@ package body CORBA.Test_Object is
       Result : Droopi.Any.NVList.Ref;
    begin
       Droopi.Any.NVList.Create (Result);
-      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+      pragma Debug
+        (Output ("Parameter profile for " & Method & " requested."));
       if Method = "echoString" then
          Add_Item (Result,
                    (Name => To_Droopi_String ("S"),
@@ -169,7 +167,7 @@ package body CORBA.Test_Object is
       use Droopi.Any;
 
    begin
-      pragma Debug (O ("Result profile for " & Method & " requested."));
+      pragma Debug (Output ("Result profile for " & Method & " requested."));
       if Method = "echoString" then
          return Get_Empty_Any (TypeCode.TC_String);
       elsif Method = "echoInteger" then

@@ -1,7 +1,7 @@
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with Droopi.Locks;              use Droopi.Locks;
 
-with CORBA.POA;
+with Droopi.POA;
 with CORBA.Object_Map;
 with CORBA.Policy_Types;            use CORBA.Policy_Types;
 
@@ -29,7 +29,7 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
    -------------------------
 
    procedure Check_Compatibility (Self : Unique_Id_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
       null;
@@ -41,12 +41,12 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
 
    procedure Ensure_Servant_Uniqueness
      (Self      : Unique_Id_Policy;
-      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      OA        : Droopi.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
    is
       use CORBA.Object_Map;
-      P_OA : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
    begin
       if P_OA.Active_Object_Map /= null then
          Lock_R (P_OA.Map_Lock);
@@ -62,12 +62,12 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
    -------------------
 
    function Servant_To_Id (Self      : Unique_Id_Policy;
-                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
    is
       use CORBA.Object_Map;
-      P_OA        : CORBA.POA.Obj_Adapter_Access
-        := CORBA.POA.Obj_Adapter_Access (OA);
+      P_OA        : Droopi.POA.Obj_Adapter_Access
+        := Droopi.POA.Obj_Adapter_Access (OA);
       An_Entry    : Object_Map_Entry_Access;
    begin
       if P_OA.Active_Object_Map /= null then

@@ -3,7 +3,7 @@
 --  $Id$
 
 with CORBA.Policy_Values; use CORBA.Policy_Values;
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 with Sequences.Unbounded;
 with Generic_Factory;
 pragma Elaborate_All (Generic_Factory);
@@ -27,7 +27,7 @@ package CORBA.Policy is
    subtype Policies_Factory is Policies_Factory_Pkg.Factory_Access;
 
    procedure Check_Compatibility (Self : Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access)
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

@@ -7,7 +7,7 @@ package CORBA.Policy.Thread_Policy.Orb_Ctrl is
 
    function Create return Orb_Ctrl_Policy_Access;
    procedure Check_Compatibility (Self : Orb_Ctrl_Policy;
-                                  OA   : CORBA.POA_Types.Obj_Adapter_Access);
+                                  OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
 --    procedure Free (P   : Orb_Ctrl_Policy;
 --                    Ptr : Orb_Ctrl_Policy_Access);

@@ -1,10 +1,10 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
-with CORBA.POA.Basic_POA;
-with CORBA.POA;
+with Droopi.POA.Basic_POA;
+with Droopi.POA;
 with CORBA.Policy;
-with CORBA.POA_Types;
-with CORBA.POA_Manager;
+with Droopi.POA_Types;
+with Droopi.POA_Manager;
 
 with Droopi.Log;
 with Droopi.No_Tasking;
@@ -159,8 +159,8 @@ package body CORBA.Test_POA is
 
       --  Root POA creation
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          OA1 : Obj_Adapter_Access;
          OA2 : aliased Basic_Obj_Adapter;
       begin
@@ -175,11 +175,11 @@ package body CORBA.Test_POA is
 
       --  POA tree
       declare
-         use CORBA.POA;
+         use Droopi.POA;
          use CORBA.Policy;
          use CORBA.Policy.Policy_Sequences;
-         use CORBA.POA.Basic_POA;
-         use CORBA.POA_Manager;
+         use Droopi.POA.Basic_POA;
+         use Droopi.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
          Policies           : PolicyList_Access
            := new PolicyList;
@@ -225,8 +225,8 @@ package body CORBA.Test_POA is
 
       --  Single POA destruction
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          OA1 : Obj_Adapter_Access;
       begin
          Print_Test_Text ("Single POA destruction");
@@ -250,11 +250,11 @@ package body CORBA.Test_POA is
 
       --  POA tree destruction
       declare
-         use CORBA.POA;
+         use Droopi.POA;
          use CORBA.Policy;
          use CORBA.Policy.Policy_Sequences;
-         use CORBA.POA.Basic_POA;
-         use CORBA.POA_Manager;
+         use Droopi.POA.Basic_POA;
+         use Droopi.POA_Manager;
          OA1, OA2, OA3, OA4 : Obj_Adapter_Access;
          Policies           : PolicyList_Access
            := new PolicyList;
@@ -298,8 +298,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Activate_Object");
@@ -309,12 +309,12 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -323,12 +323,12 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
-            Id2 : CORBA.POA_Types.Object_Id
+                                  Droopi.POA_Types.Servant_Access (S1));
+            Id2 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -350,8 +350,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          OA1    : Obj_Adapter_Access;
          S1, S2 : My_Servant_Access;
       begin
@@ -367,28 +367,28 @@ package body CORBA.Test_POA is
          S2.Name  := To_CORBA_String ("Servant2");
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
          begin
             Deactivate_Object (OA1.all'Access, Id1);
             Activate_Object_With_Id (OA1.all'Access,
-                                     CORBA.POA_Types.Servant_Access (S1),
+                                     Droopi.POA_Types.Servant_Access (S1),
                                      Id1);
             Destroy (OA1, True, True);
          end;
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
          begin
             Activate_Object_With_Id (OA1.all'Access,
-                                     CORBA.POA_Types.Servant_Access (S2),
+                                     Droopi.POA_Types.Servant_Access (S2),
                                      Id1);
             Destroy (OA1, True, True);
          exception
@@ -397,20 +397,20 @@ package body CORBA.Test_POA is
          end;
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
-            Id2 : CORBA.POA_Types.Object_Id
+            Id2 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S2));
+                                  Droopi.POA_Types.Servant_Access (S2));
          begin
             Deactivate_Object (OA1.all'Access, Id2);
             Activate_Object_With_Id (OA1.all'Access,
-                                     CORBA.POA_Types.Servant_Access (S1),
+                                     Droopi.POA_Types.Servant_Access (S1),
                                      Id2);
             Destroy (OA1, True, True);
       exception
@@ -433,8 +433,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Deactivate_Object");
@@ -444,12 +444,12 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -459,9 +459,9 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -486,8 +486,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Servant_To_Id");
@@ -497,15 +497,15 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             use Droopi.Objects;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
-            Id2 : CORBA.POA_Types.Object_Id
+                                  Droopi.POA_Types.Servant_Access (S1));
+            Id2 : Droopi.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                CORBA.POA_Types.Servant_Access (S1));
+                                Droopi.POA_Types.Servant_Access (S1));
          begin
             if Id1 /= Id2 then
                raise Incorrect_Execution;
@@ -516,9 +516,9 @@ package body CORBA.Test_POA is
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             pragma Warnings (Off);
-            Id2 : CORBA.POA_Types.Object_Id
+            Id2 : Droopi.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                CORBA.POA_Types.Servant_Access (S1));
+                                Droopi.POA_Types.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -540,8 +540,8 @@ package body CORBA.Test_POA is
    is
    begin
       declare
-         use CORBA.POA;
-         use CORBA.POA.Basic_POA;
+         use Droopi.POA;
+         use Droopi.POA.Basic_POA;
          S1  : My_Servant_Access;
       begin
          Print_Test_Text ("Test Id_To_Servant");
@@ -551,11 +551,11 @@ package body CORBA.Test_POA is
          S1.Name  := To_CORBA_String ("Servant1");
 
          declare
-            use CORBA.POA;
+            use Droopi.POA;
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             S2 : My_Servant_Access
               := My_Servant_Access
               (Id_To_Servant (OA1.all'Access, Id1));
@@ -568,9 +568,9 @@ package body CORBA.Test_POA is
 
          declare
             OA1 : Obj_Adapter_Access := Create_Root_POA;
-            Id1 : CORBA.POA_Types.Object_Id
+            Id1 : Droopi.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  CORBA.POA_Types.Servant_Access (S1));
+                                  Droopi.POA_Types.Servant_Access (S1));
             S2 : My_Servant_Access;
          begin
             Deactivate_Object (OA1.all'Access, Id1);

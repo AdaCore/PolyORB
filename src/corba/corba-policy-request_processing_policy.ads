@@ -1,4 +1,4 @@
-with CORBA.POA_Types;     use CORBA.POA_Types;
+with Droopi.POA_Types;     use Droopi.POA_Types;
 
 package CORBA.Policy.Request_Processing_Policy is
 
@@ -13,7 +13,7 @@ package CORBA.Policy.Request_Processing_Policy is
    --  possible Request Processing Policy
 
    procedure Etherealize_All (Self  : RequestProcessingPolicy;
-                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              OA    : Droopi.POA_Types.Obj_Adapter_Access;
                               U_Oid : Unmarshalled_Oid_Access)
       is abstract;
    --  If a servant manager is used, etherealize the servant(s) associated
@@ -24,7 +24,7 @@ package CORBA.Policy.Request_Processing_Policy is
       is abstract;
 
    function Servant_To_Id (Self      : RequestProcessingPolicy;
-                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA        : Droopi.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
      is abstract;
    --  Case USE_ACTIVE_OBJECT_MAP_ONLY:
@@ -37,7 +37,7 @@ package CORBA.Policy.Request_Processing_Policy is
    --    Same than USE_ACTIVE_OBJECT_MAP_ONLY
 
    function Id_To_Servant (Self : RequestProcessingPolicy;
-                           OA   : CORBA.POA_Types.Obj_Adapter_Access;
+                           OA   : Droopi.POA_Types.Obj_Adapter_Access;
                            Oid  : Object_Id) return Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:

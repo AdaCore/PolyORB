@@ -3,13 +3,13 @@
 --  $Id$
 
 with Droopi.Components;
-with CORBA.POA_Types;
+with Droopi.POA_Types;
 with CORBA;
 
 package CORBA.Test_Object is
    use CORBA;
 
-   type My_Object is new CORBA.POA_Types.Servant with null record;
+   type My_Object is new Droopi.POA_Types.Servant with null record;
 
    procedure Create (O : in out My_Object);
 

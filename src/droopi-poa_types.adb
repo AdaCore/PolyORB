@@ -3,9 +3,10 @@ with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Types;
 with Ada.Streams;
 
-package body CORBA.POA_Types is
+package body Droopi.POA_Types is
 
    use Ada.Streams;
+   use CORBA;
 
    ----------
    -- Left --
@@ -31,7 +32,7 @@ package body CORBA.POA_Types is
 
    function Image
      (Oid : Object_Id)
-     return String
+     return CORBA.String
    is
    begin
       return To_CORBA_String (Droopi.Objects.To_String
@@ -155,7 +156,7 @@ package body CORBA.POA_Types is
    ----------
 
    procedure Free
-     (X : in out CORBA.POA_Types.Object_Id_Access)
+     (X : in out Droopi.POA_Types.Object_Id_Access)
    is
       Y : Droopi.Objects.Object_Id_Access
         := Droopi.Objects.Object_Id_Access (X);
@@ -163,4 +164,4 @@ package body CORBA.POA_Types is
       Droopi.Objects.Free (Y);
    end Free;
 
-end CORBA.POA_Types;
+end Droopi.POA_Types;
