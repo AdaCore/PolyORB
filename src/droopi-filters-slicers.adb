@@ -96,6 +96,7 @@ package body Droopi.Filters.Slicers is
 
       elsif False
         or else S in Connect_Indication
+        or else S in Connect_Confirmation
         or else S in Disconnect_Indication
         or else S in Set_Server
       then

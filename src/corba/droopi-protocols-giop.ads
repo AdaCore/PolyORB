@@ -282,12 +282,23 @@ package Droopi.Protocols.GIOP is
    -------------------
 
    procedure Store_Request
-     (Ses     :  access GIOP_Session;
-      R       :  Requests.Request_Access;
-      Profile :  Profile_Access;
-      Pending :  out Pending_Request);
+     (Ses     : access GIOP_Session;
+      R       :        Requests.Request_Access;
+      Profile :        Profile_Access;
+      Pending :    out Pending_Request);
    --  XXX What does this procedure do?
    --  Why does it need to be visible?
+
+   -----------------
+   -- Set_Version --
+   -----------------
+
+   procedure Set_Version
+     (S             : access GIOP_Session;
+      Major_Version :        Types.Octet;
+      Minor_Version :        Types.Octet);
+   --  Set the version of the protocol to be used
+   --  on a newly-created GIOP session.
 
    ------------------------
    -- Session primitives --
@@ -356,11 +367,15 @@ private
       Processing_Rq        : Req_Seq.Sequence;
       Current_Profile      : Profile_Access;
       Object_Found         : Boolean := False;
+      --  XXX wrong.
+      --  You can have many independent pending Locate_Requests
+      --  on the same session!
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;
       Mess_Type_Received   : Msg_Type;
-      --  XXX to be documented.
    end record;
+
+   --  XXX The components of GIOP session should be documented!
 
    type GIOP_Protocol is new Protocol with null record;
 

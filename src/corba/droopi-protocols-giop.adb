@@ -29,6 +29,7 @@ with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 with Droopi.Obj_Adapters;
 with Droopi.Objects;
+with Droopi.Objects.Interface;
 with Droopi.ORB;
 with Droopi.ORB.Interface;
 with Droopi.Protocols;           use Droopi.Protocols;
@@ -266,7 +267,8 @@ package body Droopi.Protocols.GIOP is
    procedure Request_Received
      (Ses : access GIOP_Session);
 
-   procedure Reply_Received (Ses : access GIOP_Session);
+   procedure Reply_Received
+     (Ses : access GIOP_Session);
 
    procedure Locate_Request_Receive
      (Ses : access GIOP_Session);
@@ -513,16 +515,18 @@ package body Droopi.Protocols.GIOP is
                          (Pend_Req.Target_Profile.all))));
 
             declare
-               Key : aliased Object_Id :=  Binding_Data.IIOP.
-                 Get_Object_Key
-                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all));
+               Key : Object_Id_Access
+                 := new Object_Id'
+                 (Binding_Data.IIOP.Get_Object_Key
+                  (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
+               --  XXX memory leak.
             begin
                GIOP.GIOP_1_2.Marshall_Request_Message
                  (Ses.Buffer_Out,
                   Request_Id,
                   Target_Address'
                   (Address_Type => Key_Addr,
-                   Object_Key   => Key'Unchecked_Access),
+                   Object_Key   => Key),
                   Sync,
                   To_Standard_String (Pend_Req.Req.Operation));
             end;
@@ -1055,7 +1059,6 @@ package body Droopi.Protocols.GIOP is
       Ses.Current_Profile := Profile;
    end Store_Profile;
 
-
    -------------------
    -- Store_Request --
    -------------------
@@ -1075,6 +1078,15 @@ package body Droopi.Protocols.GIOP is
         (Req => R, Target_Profile => Profile);
       Append (Ses.Pending_Rq, Pending);
    end Store_Request;
+
+   procedure Set_Version
+     (S             : access GIOP_Session;
+      Major_Version :        Types.Octet;
+      Minor_Version :        Types.Octet) is
+   begin
+      S.Major_Version := Major_Version;
+      S.Minor_Version := Minor_Version;
+   end Set_Version;
 
    ----------------------
    -- Request_Received --
@@ -1219,10 +1231,13 @@ package body Droopi.Protocols.GIOP is
    -- Receiving a  Reply Message --
    --------------------------------
 
-   procedure Reply_Received (Ses : access GIOP_Session) is
+   procedure Reply_Received
+     (Ses : access GIOP_Session)
+   is
       use References.IOR;
       use Binding_Data.IIOP;
       use Pend_Req_Seq;
+
       Reply_Status  : Reply_Status_Type;
       Request_Id    : Types.Unsigned_Long;
       Current_Req   : Pending_Request;
@@ -1230,15 +1245,16 @@ package body Droopi.Protocols.GIOP is
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
 
    begin
-
       case Ses.Minor_Version is
          when  0 =>
+
             GIOP.GIOP_1_0.Unmarshall_Reply_Message
               (Ses.Buffer_In,
                Request_Id,
                Reply_Status);
-            if Reply_Status = Location_Forward_Perm or
-              Reply_Status = Needs_Addressing_Mode then
+
+            if Reply_Status = Location_Forward_Perm
+              or else Reply_Status = Needs_Addressing_Mode then
                raise GIOP_Error;
             end if;
 
@@ -1274,25 +1290,21 @@ package body Droopi.Protocols.GIOP is
          raise GIOP_Error;
       end loop;
 
-
       case Reply_Status is
 
          when No_Exception =>
 
-            Current_Req.Req.Result :=
-              (Name     => To_Droopi_String ("Result"),
-               Argument => Obj_Adapters.Get_Empty_Result
-               (Object_Adapter (ORB),
-                Get_Object_Key
-                (IIOP_Profile_Type (Current_Req.Target_Profile.all)),
-                 To_Standard_String (Current_Req.Req.Operation)),
-               Arg_Modes => Any.ARG_OUT);
+            Unmarshall_To_Any
+              (Ses.Buffer_In, Current_Req.Req.Result.Argument);
+            --  XXX This looks wrong: not only should we unmarshall
+            --  the result, but also the "out" and "inout" arguments.
+            --  Also check that when sending the request, we send out
+            --  only the "in" and "inout" arguments.
 
-            Current_Req.Req.Result := Unmarshall (Ses.Buffer_In);
             Emit_No_Reply
               (Component_Access (ORB),
-               Queue_Request'(Request   => Current_Req.Req,
-                              Requestor => Component_Access (Ses)));
+               Objects.Interface.Executed_Request'
+               (Req => Current_Req.Req));
 
          when User_Exception =>
             raise Not_Implemented;
@@ -1574,7 +1586,6 @@ package body Droopi.Protocols.GIOP is
       Expect_Message (S);
    end Handle_Connect_Confirmation;
 
-
    procedure Handle_Data_Indication (S : access GIOP_Session)
    is
       use Binding_Data.IIOP;
@@ -1589,15 +1600,22 @@ package body Droopi.Protocols.GIOP is
       Success       : Boolean;
 
    begin
-      pragma Debug (O ("Received data on socket service..."));
+      pragma Debug (O ("Received data on transport endpoint..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
 
       if S.Expect_Header then
-         Unmarshall_GIOP_Header (S, Mess_Type, Mess_Size,
-                                 Fragment_Next, Success);
+         Unmarshall_GIOP_Header
+           (S, Mess_Type, Mess_Size,
+            Fragment_Next, Success);
+
          if not Success then
             raise GIOP_Error;
          end if;
+
+         pragma Debug
+           (O ("Got GIOP header of type "
+               & Mess_Type'Img
+               & "," & Mess_Size'Img & " bytes expected."));
          S.Mess_Type_Received  := Mess_Type;
          S.Expect_Header := False;
          Expect_Data (S, S.Buffer_In, Stream_Element_Count (Mess_Size));
@@ -1608,6 +1626,8 @@ package body Droopi.Protocols.GIOP is
       --   Expect_Data ();
       --   return;
       --  end if
+
+      --  XXX what is that?
 
       case S.Mess_Type_Received  is
          when Request =>

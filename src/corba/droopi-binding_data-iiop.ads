@@ -36,6 +36,7 @@ package Droopi.Binding_Data.IIOP is
    function Get_Object_Key
      (Profile : IIOP_Profile_Type)
      return Objects.Object_Id;
+   --  XXX Change to return an OID_Access
 
    procedure Bind_Profile
      (Profile   : IIOP_Profile_Type;
@@ -88,7 +89,12 @@ package Droopi.Binding_Data.IIOP is
 
 private
 
+   IIOP_Major_Version : constant Types.Octet := 1;
+   IIOP_Minor_Version : constant Types.Octet := 2;
+
    type IIOP_Profile_Type is new Profile_Type with record
+      Major_Version : Types.Octet := IIOP_Major_Version;
+      Minor_Version : Types.Octet := IIOP_Minor_Version;
       Address    : Sockets.Sock_Addr_Type;
       Object_Id  : Objects.Object_Id_Access;
       Components : Component_Seq.Sequence;
@@ -97,8 +103,5 @@ private
    type IIOP_Profile_Factory is new Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
    end record;
-
-   IIOP_Major_Version : constant Types.Octet := 1;
-   IIOP_Minor_Version : constant Types.Octet := 2;
 
 end Droopi.Binding_Data.IIOP;

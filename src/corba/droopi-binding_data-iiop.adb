@@ -4,8 +4,6 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with Droopi.CORBA_P.Exceptions;
-
 with Droopi.Transport.Sockets;
 with Droopi.Protocols.GIOP;
 with Droopi.Protocols;
@@ -88,6 +86,9 @@ package body Droopi.Binding_Data.IIOP is
       Pro  : aliased GIOP_Protocol;
       Sli  : aliased Slicer_Factory;
       Prof : Profile_Access := new IIOP_Profile_Type;
+      --  XXX memory leak (probable)
+      --  What is this copy used for?
+
       TProf : IIOP_Profile_Type
         renames IIOP_Profile_Type (Prof.all);
 
@@ -109,8 +110,17 @@ package body Droopi.Binding_Data.IIOP is
       TProf.Object_Id := Profile.Object_Id;
       Adjust (TProf);
 
-      Store_Profile (GIOP_Session (Upper (Filter_Access
-             (Filter)).all)'Access, Prof);
+      declare
+         S : GIOP_Session
+           renames GIOP_Session
+           (Upper (Filter_Access (Filter)).all);
+      begin
+         Store_Profile (S'Access, Prof);
+         Set_Version
+           (S'Access,
+            Profile.Major_Version,
+            Profile.Minor_Version);
+      end;
 
       --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
@@ -215,11 +225,8 @@ package body Droopi.Binding_Data.IIOP is
      (Buffer       : access Buffer_Type)
      return Profile_Access
    is
-      use Droopi.CORBA_P.Exceptions;
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
-      Major_Version  : Types.Octet;
-      Minor_Version  : Types.Octet;
       --  Length         : CORBA.Long;
       Result         : Profile_Access := new IIOP_Profile_Type;
       TResult        : IIOP_Profile_Type
@@ -229,28 +236,20 @@ package body Droopi.Binding_Data.IIOP is
    begin
       Decapsulate (Profile_Body'Access, Profile_Buffer);
 
-      Major_Version  := Unmarshall (Profile_Buffer);
-      Minor_Version  := Unmarshall (Profile_Buffer);
-
-      if Major_Version /= IIOP_Major_Version
-        or else Minor_Version > IIOP_Minor_Version
-      then
-         Release (Profile_Buffer);
-         Droopi.CORBA_P.Exceptions.Raise_Bad_Param;
-      end if;
+      TResult.Major_Version  := Unmarshall (Profile_Buffer);
+      TResult.Minor_Version  := Unmarshall (Profile_Buffer);
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
 
       declare
-            Str  : aliased Stream_Element_Array :=
-                     Unmarshall (Profile_Buffer);
+         Str  : aliased Stream_Element_Array :=
+           Unmarshall (Profile_Buffer);
       begin
-
-            TResult.Object_Id := new Object_Id'(Object_Id (Str));
-            if Minor_Version /= 0 then
-               TResult.Components := Unmarshall_Tagged_Component
-                   (Profile_Buffer);
-            end if;
+         TResult.Object_Id := new Object_Id'(Object_Id (Str));
+         if TResult.Minor_Version /= 0 then
+            TResult.Components := Unmarshall_Tagged_Component
+              (Profile_Buffer);
+         end if;
       end;
       Release (Profile_Buffer);
       return Result;
