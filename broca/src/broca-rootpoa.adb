@@ -482,7 +482,7 @@ package body Broca.RootPOA is
      (Oid : ObjectId)
      return Slot_Index;
 
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+   procedure Free is new Ada.Unchecked_Deallocation
      (Object => Object_Map_Type, Name => Object_Map_Ptr);
 
    Null_Object : Object;
@@ -695,7 +695,7 @@ package body Broca.RootPOA is
                         New_Object_Map (I).Requests_Lock
                           := new Broca.Locks.Rw_Lock_Type;
                      end loop;
-                     Unchecked_Deallocation (Self.Object_Map);
+                     Free (Self.Object_Map);
                      Self.Object_Map := New_Object_Map;
                   end;
                end if;
