@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#3 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#4 $
 
 with PolyORB.Tasking.Condition_Variables;
 
@@ -71,6 +71,12 @@ package PolyORB.Tasking.Rw_Locks is
    procedure Unlock_R (L : access Rw_Lock_Type);
    --  Release read mode lock.
 
+   function Is_Set_W (L : access Rw_Lock_Type) return Boolean;
+   --  Return 'True' iff the lock is held in write mode.
+
+   function Is_Set_R (L : access Rw_Lock_Type) return Boolean;
+   --  Return 'True' iff the lock is held in read mode.
+
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;
       Max : Natural);
@@ -88,6 +94,7 @@ private
       Writers_Waiting : Natural := 0;
 
       Serial : Integer := 0;
+      --  Debug information, Rw_Lock identifier.
 
       Count : Integer := 0;
       --  Current readers, or -1 if held for writing.
@@ -98,5 +105,8 @@ private
       Max_Count : Natural := Natural'Last;
       --  Maximum number of readers.
    end record;
+
+   pragma Inline (Is_Set_W);
+   pragma Inline (Is_Set_R);
 
 end PolyORB.Tasking.Rw_Locks;

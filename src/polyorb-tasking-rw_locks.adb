@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,7 +32,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#4 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.adb#5 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -60,18 +60,21 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Create (L : out Rw_Lock_Access)
    is
-      Result : constant Rw_Lock_Access
-        := new Rw_Lock_Type;
+      Result : constant Rw_Lock_Access := new Rw_Lock_Type;
+
    begin
       if All_Rw_Locks = null then
          Create (All_Rw_Locks);
       end if;
       pragma Assert (All_Rw_Locks /= null);
+
       Enter (All_Rw_Locks);
+
       Rw_Lock_Counter := Rw_Lock_Counter + 1;
-      pragma Debug (O ("Create, Serial ="
-                       & Integer'Image (Rw_Lock_Counter)));
       Result.Serial := Rw_Lock_Counter;
+      pragma Debug (O ("Create, Serial ="
+                       & Integer'Image (Result.Serial)));
+
       Leave (All_Rw_Locks);
       Create (Result.Guard_Values);
       L := Result;
@@ -90,12 +93,32 @@ package body PolyORB.Tasking.Rw_Locks is
 
    procedure Destroy (L : in out Rw_Lock_Access) is
    begin
-      pragma Debug
-        (O ("Destroy, Serial =" & Integer'Image (L.Serial)));
+      pragma Debug (O ("Destroy, Serial =" & Integer'Image (L.Serial)));
+
       Destroy (L.Guard_Values);
       Free (L);
       pragma Debug (O ("Desroy: end"));
    end Destroy;
+
+   --------------
+   -- Is_Set_R --
+   --------------
+
+   function Is_Set_R (L : access Rw_Lock_Type)
+                     return Boolean is
+   begin
+      return L.Count > 0;
+   end Is_Set_R;
+
+   --------------
+   -- Is_Set_W --
+   --------------
+
+   function Is_Set_W (L : access Rw_Lock_Type)
+                     return Boolean is
+   begin
+      return L.Count = -1;
+   end Is_Set_W;
 
    ------------
    -- Lock_W --
@@ -174,11 +197,13 @@ package body PolyORB.Tasking.Rw_Locks is
       pragma Debug (O ("Unlock_R Serial =" & Integer'Image (L.Serial)));
 
       Enter (All_Rw_Locks);
+
       if L.Count <= 0 then
          raise Program_Error;
       else
          L.Count := L.Count - 1;
       end if;
+
       Broadcast (L.Guard_Values);
       Leave (All_Rw_Locks);
    end Unlock_R;
@@ -192,8 +217,10 @@ package body PolyORB.Tasking.Rw_Locks is
       Max : Natural) is
    begin
       Enter (All_Rw_Locks);
+
       L.Max_Count := Max;
       Broadcast (L.Guard_Values);
+
       Leave (All_Rw_Locks);
    end Set_Max_Count;
 
