@@ -565,7 +565,7 @@ package body PolyORB.Buffers is
         := Buffer.CDR_Position;
 
    begin
-      pragma Debug (O ("Receive_buffer: max is" & Max'Img));
+      pragma Debug (O ("Receive_Buffer: Max =" & Max'Img));
 
       Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
       declare
@@ -582,7 +582,7 @@ package body PolyORB.Buffers is
       end;
       Received := Last + 1;
 
-      pragma Debug (O ("Receive_buffer: received" & Received'Img));
+      pragma Debug (O ("Receive_Buffer: Received =" & Received'Img));
       Unuse_Allocation (Buffer, Max - Received);
       Buffer.CDR_Position := Saved_CDR_Position;
    end Receive_Buffer;
