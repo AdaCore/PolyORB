@@ -35,42 +35,44 @@ with Broca.Exceptions;
 with Broca.Refs; use Broca.Refs;
 with Broca.Object;
 
+with CORBA.Impl;
+
 package body Broca.CDR.Refs is
 
-   ----------------
-   --  Marshall  --
-   ----------------
+   --------------
+   -- Marshall --
+   --------------
+
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Object.Ref'Class) is
+      Data : in CORBA.Object.Ref'Class)
+   is
    begin
       if CORBA.Object.Is_Nil (Data) then
          Broca.Exceptions.Raise_Marshal;
       end if;
-      Marshall (Buffer,
-                Broca.Refs.Ref_Type'Class (Data.Ptr.all));
+
+      Marshall
+        (Buffer,
+         Broca.Refs.Ref_Type'Class (Data.Ptr.all));
+
    end Marshall;
 
    ----------------
-   --  Marshall  --
+   -- Unmarshall --
    ----------------
-   procedure Marshall
+
+   procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Impl.Object) is
-   begin
-      Marshall (Buffer,
-                Broca.Refs.Ref_Type'Class (Data));
-   end Marshall;
-
-   -----------------
-   --  Unmarshall --
-   -----------------
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         Data : in out CORBA.Object.Ref'Class) is
+      Data : in out CORBA.Object.Ref'Class)
+   is
       Obj : constant CORBA.Impl.Object_Ptr
         := new Broca.Object.Object_Type;
+
    begin
-      Broca.Object.Unmarshall (Buffer, Broca.Object.Object_Type (Obj.all));
+      Broca.Object.Unmarshall
+        (Buffer, Broca.Object.Object_Type (Obj.all));
+
       CORBA.Object.Set (Data, Obj);
    end Unmarshall;
 

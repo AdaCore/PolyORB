@@ -76,18 +76,6 @@ package Broca.Refs is
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
 
-   procedure Marshall_Reference
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : in Ref);
-
-   procedure Unmarshall_Reference
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Value  : out Ref);
-
-   --  function Unmarshall
-   --    (Buffer : access Broca.Buffers.Buffer_Type)
-   --    return Ref'Class;
-
 private
 
    --   type Ref_Type is new Ada.Finalization.Limited_Controlled with

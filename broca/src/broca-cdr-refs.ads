@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
-with CORBA.Impl;
 
 package Broca.CDR.Refs is
 
@@ -40,12 +39,8 @@ package Broca.CDR.Refs is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Object.Ref'Class);
 
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         Data : in out CORBA.Object.Ref'Class);
-
-private
-   procedure Marshall
+   procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Impl.Object);
+      Data : in out CORBA.Object.Ref'Class);
 
 end Broca.CDR.Refs;

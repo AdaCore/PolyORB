@@ -71,18 +71,13 @@ main (int argc, char **argv)
 	bool Pass = 1;
 	int i;
 
-	for (i = 0; i < 10; i++)
-	  Test_Struct.a[i] = 2 * (i + 1);
+	Test_Struct.a = 123;
 	Test_Struct.s = "foobar";
 
 	Copy_Struct = *at->echoStruct (Test_Struct);
 
-	for (i = 0 ; i < 10 ; i++) {
-	  if (!(Pass &= (Copy_Struct.a [i] == Test_Struct.a [i])))
-	    break;
-	}
-
-	Pass &= !strcmp (Copy_Struct.s, Test_Struct.s);
+	Pass = ((Copy_Struct.a == Test_Struct.a)
+	     && !strcmp (Copy_Struct.s, Test_Struct.s));
 
 	Output ("test struct", Pass);
       }
