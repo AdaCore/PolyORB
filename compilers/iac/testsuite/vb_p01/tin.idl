@@ -1,0 +1,8 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: basic features of valuetype
+
+valuetype ShortValue short;
+interface Intf {
+   attribute ShortValue s;
+   ShortValue op(in ShortValue inp,inout ShortValue inoutp,out ShortValue outp);
+};

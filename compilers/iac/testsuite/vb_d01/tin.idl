@@ -1,0 +1,8 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: Value Box for simple types and enums
+
+valuetype LongValue long;
+typedef float FloatType;
+valuetype FloatValue FloatType;
+enum EnumType {eval1, eval2, eval3};
+valuetype EnumValue EnumType;

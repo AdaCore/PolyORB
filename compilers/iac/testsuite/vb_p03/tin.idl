@@ -1,0 +1,31 @@
+// IDL-Spec for testgroup: valuetype
+// Purpose: basic features of valuetype
+
+typedef sequence<long> LongSeq;
+valuetype LongSeqValue LongSeq;
+valuetype AnyValue any;
+union FixU switch (long) {
+  case 1: long x;
+  case 2: short v;
+};
+valuetype FixUValue FixU;
+typedef sequence<string> StringSeq;
+valuetype StringSeqValue StringSeq;
+union VarU switch (boolean) {
+  case TRUE: string strMbr;
+  case FALSE: StringSeq strseqMbr;
+};
+valuetype VarUValue VarU;
+
+interface Intf {
+   attribute LongSeqValue LongSeqAttr;
+   attribute AnyValue AnyAttr;
+   attribute FixUValue FixUAttr;
+   attribute StringSeqValue StringSeqAttr;
+   attribute VarUValue VarUAttr;
+   LongSeqValue op1(in LongSeqValue inp,inout LongSeqValue inoutp,out LongSeqValue outp);
+   AnyValue op2(in AnyValue inp,inout AnyValue inoutp,out AnyValue outp);
+   FixUValue op3(in FixUValue inp,inout FixUValue inoutp,out FixUValue outp);
+   StringSeqValue op4(in StringSeqValue inp,inout StringSeqValue inoutp,out StringSeqValue outp);
+   VarUValue op5(in VarUValue inp,inout VarUValue inoutp,out VarUValue outp);
+};
