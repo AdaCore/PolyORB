@@ -37,7 +37,30 @@
 
 package body MOMA.Provider.Topic_Datas is
 
+   use MOMA.Types;
+
    use PolyORB.Tasking.Rw_Locks;
+
+   --------------------
+   -- Add_Subscriber --
+   --------------------
+
+   procedure Add_Subscriber (Data      : Topic_Data;
+                             Topic_Id  : MOMA.Types.String;
+                             Pool      : PolyORB.References.Ref)
+   is
+      V : Topic;
+      T : String := To_Standard_String (Topic_Id);
+   begin
+      Lock_W (Data.T_Lock);
+      V := Lookup (Data.T, T);
+      Ref_List.Append (V.Subscribers, Pool);
+      Unlock_W (Data.T_Lock);
+   exception
+      when No_Key =>
+         Insert (Data.T, T, New_Topic (Ref_List."+" (Pool)));
+         Unlock_W (Data.T_Lock);
+   end Add_Subscriber;
 
    ---------------------------
    -- Ensure_Initialization --
@@ -64,7 +87,7 @@ package body MOMA.Provider.Topic_Datas is
    is
       V           : Topic;
       Subscribers : Ref_List.List;
-      K           : String := MOMA.Types.To_Standard_String (Topic_Id);
+      K           : String := To_Standard_String (Topic_Id);
    begin
       --  XXX Should we call Ensure_Initialization ?
       Lock_R (Data.T_Lock);
@@ -72,6 +95,10 @@ package body MOMA.Provider.Topic_Datas is
       Subscribers := Ref_List.Duplicate (V.Subscribers);
       Unlock_R (Data.T_Lock);
       return Subscribers;
+   exception
+      when No_Key =>
+         Unlock_R (Data.T_Lock);
+         return Subscribers;
    end Get_Subscribers;
 
    ------------
@@ -108,6 +135,16 @@ package body MOMA.Provider.Topic_Datas is
       Unlock_R (W.T_Lock);
       return V;
    end Lookup;
+
+   ---------------
+   -- New_Topic --
+   ---------------
+
+   function New_Topic (S : Ref_List.List) return Topic
+   is
+   begin
+      return Topic'(To_MOMA_String ("Unknown"), S);
+   end New_Topic;
 
    --------------
    -- Register --

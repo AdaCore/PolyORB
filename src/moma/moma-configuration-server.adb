@@ -33,6 +33,8 @@
 --  $Id$
 
 with MOMA.Provider.Message_Pool;
+with MOMA.Provider.Routers;
+
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 
@@ -67,5 +69,22 @@ package body MOMA.Configuration.Server is
                         Ref);
       MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
+
+   -------------------
+   -- Create_Router --
+   -------------------
+
+   procedure Create_Router (Ref : out PolyORB.References.Ref)
+   is
+      Router : constant MOMA.Provider.Routers.Router_Acc
+       := new MOMA.Provider.Routers.Router;
+   begin
+      pragma Debug (O ("Creating Router"));
+      Initiate_Servant (Router,
+                        MOMA.Provider.Routers.If_Desc,
+                        MOMA_Type_Id,
+                        Ref);
+      MOMA.Provider.Routers.Initialize (Router);
+   end Create_Router;
 
 end MOMA.Configuration.Server;

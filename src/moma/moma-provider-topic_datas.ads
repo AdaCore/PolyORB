@@ -65,8 +65,16 @@ package MOMA.Provider.Topic_Datas is
 
    type Topic_Data is private;
 
-   function Get_Subscribers (Data   : Topic_Data;
-                             Topic_Id : MOMA.Types.String)
+   procedure Add_Subscriber (Data      : Topic_Data;
+                             Topic_Id  : MOMA.Types.String;
+                             Pool      : PolyORB.References.Ref);
+   --  Add a new pool in the subsribers list of a topic.
+
+   procedure Ensure_Initialization (W : in out Topic_Data);
+   --  Ensure that T was initialized.
+
+   function Get_Subscribers (Data      : Topic_Data;
+                             Topic_Id  : MOMA.Types.String)
       return Ref_List.List;
    --  Return the list of current subscribers to a given topic.
 
@@ -77,9 +85,6 @@ private
       T_Initialized : Boolean := False;
       T_Lock        : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
-
-   procedure Ensure_Initialization (W : in out Topic_Data);
-   --  Ensure that T was initialized.
 
    procedure Register
      (W : in out Topic_Data;
@@ -107,5 +112,8 @@ private
      return Topic;
    --  As above, but Default is returned for non-registered keys,
    --  instead of raising an exception.
+
+   function New_Topic (S : Ref_List.List) return Topic;
+   --  Return a new topic with the list of subscribers S.
 
 end MOMA.Provider.Topic_Datas;

@@ -89,6 +89,7 @@ procedure Client is
    use Report;
 
    Pool_Ref           : PolyORB.References.Ref;
+   Router_Ref         : PolyORB.References.Ref;
    MOMA_Factory       : Connection_Factory_Queue;
    MOMA_Connection    : MOMA.Connections.Queues.Queue;
    MOMA_Session       : MOMA.Sessions.Queues.Session_Queue;
@@ -100,6 +101,9 @@ procedure Client is
 
    type Scenario_T is (Full, Stor, Retr);
    Scenario : Scenario_T;
+
+   type Kind_T is (Pool, Topic);
+   Kind : Kind_T;
 
    ----------------------
    -- Any Message Test --
@@ -347,16 +351,18 @@ procedure Client is
 begin
 
    --  Argument check
-   if Argument_Count /= 3 then
-      Put_Line ("usage : client <scenario> <kind> <IOR>");
+   if Argument_Count < 3 or Argument_Count > 4 then
+      Put_Line ("usage : client <scenario> <kind> <IOR1> [IOR2]");
       Put_Line (" where 'scenario' is in {full, stor, retr}");
       Put_Line ("  - full : full demo, send and receive messages");
       Put_Line ("  - stor : only send messages");
       Put_Line ("  - retr : only retrieve messages");
       New_Line;
-      Put_Line (" where 'kind' is in {pool, naming}");
-      Put_Line ("  - pool   : <IOR> is the IOR of a message pool");
-      Put_Line ("  - naming : <IOR> is the IOR of a naming service");
+      Put_Line (" where 'kind' is in {pool, naming, topic}");
+      Put_Line ("  - pool   : <IOR1> is the IOR of a message pool");
+      Put_Line ("  - naming : <IOR1> is the IOR of a naming service");
+      Put_Line ("  - topic  : <IOR1> is the IOR of a router");
+      Put_Line ("             <IOR2> is the IOR of a message pool");
       New_Line;
       Put_Line ("{stor, retr} scenarios are to test persistency");
       return;
@@ -376,12 +382,22 @@ begin
       Pool_Ref := PolyORB.References.IOR.String_To_Object
         (To_PolyORB_String
          (Ada.Command_Line.Argument (3)));
-   else
+      Kind := Pool;
+   elsif Ada.Command_Line.Argument (2) = "naming" then
       Init (PolyORB.References.IOR.String_To_Object
             (To_PolyORB_String
              (Ada.Command_Line.Argument (3))));
 
       Pool_Ref := Locate ("Pool_1");
+      Kind := Pool;
+   elsif Ada.Command_Line.Argument (2) = "topic" then
+      Router_Ref := PolyORB.References.IOR.String_To_Object
+        (To_PolyORB_String
+         (Ada.Command_Line.Argument (3)));
+      Pool_Ref := PolyORB.References.IOR.String_To_Object
+        (To_PolyORB_String
+         (Ada.Command_Line.Argument (4)));
+      Kind := Topic;
    end if;
 
    --  Initialize the connection factory
@@ -396,8 +412,15 @@ begin
    --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
    --       to the same thing (Pool_Ref). This will probably change later.
-   MOMA_Destination := MOMA.Sessions.Queues.Create_Destination
-      (To_MOMA_String ("queue1"), Pool_Ref);
+   if Kind = Pool then
+      MOMA_Destination := MOMA.Sessions.Queues.Create_Destination
+         (To_MOMA_String ("queue1"), Pool_Ref);
+   elsif Kind = Topic then
+      MOMA_Destination := MOMA.Destinations.Create
+         (To_MOMA_String ("router1"),
+          Router_Ref,
+          MOMA.Types.Topic);
+   end if;
 
    --  Create Session.
    MOMA_Session := Create_Session (MOMA_Connection, False, 1);

@@ -44,4 +44,7 @@ package MOMA.Configuration.Server is
                                   Ref  : out PolyORB.References.Ref);
    --  Create a message pool and return its reference.
 
+   procedure Create_Router (Ref : out PolyORB.References.Ref);
+   --  Create a router and return its reference.
+
 end MOMA.Configuration.Server;

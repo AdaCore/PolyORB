@@ -38,7 +38,9 @@ with MOMA.Provider.Topic_Datas;
 with MOMA.Types;
 
 with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.Minimal_Servant;
+with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 with PolyORB.Requests;
 
@@ -49,10 +51,20 @@ package MOMA.Provider.Routers is
    type Router is new PolyORB.Minimal_Servant.Servant with private;
    --  Topics : the list of all topics, with their subscribers.
 
+   type Router_Acc is access Router;
+
+   procedure Initialize (Self : access Router);
+   --  Initialize a Router.
+
    procedure Invoke
      (Self : access Router;
       Req  : PolyORB.Requests.Request_Access);
    --  Router servant skeleton.
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+   --  Interface description for SOA object adapter.
 
 private
 
@@ -69,5 +81,18 @@ private
                     Message   : PolyORB.Any.Any);
    --  Store a Message in a Pool.
    --  XXX Code from Moma.Provider.Message_Producer is duplicated.
+
+   procedure Subscribe (Self     : access Router;
+                        Topic_Id : MOMA.Types.String;
+                        Pool     : PolyORB.References.Ref);
+   --  Subscribe a Pool to the topic designed by Topic_Id.
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref;
+   --  Parameters part of the interface description.
+
+   function Get_Result_Profile (Method : String)
+     return PolyORB.Any.Any;
+   --  Result part of the interface description.
 
 end MOMA.Provider.Routers;

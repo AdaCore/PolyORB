@@ -51,13 +51,15 @@ package body MOMA.Destinations is
    ------------
 
    function Create (Name : MOMA.Types.String;
-                    Ref  : PolyORB.References.Ref)
+                    Ref  : PolyORB.References.Ref;
+                    Kind : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
       return Destination
    is
       Dest : MOMA.Destinations.Destination;
    begin
       Set_Name (Dest, Name);
       Set_Ref  (Dest, Ref);
+      Set_Kind (Dest, Kind);
       return Dest;
    end Create;
 
@@ -68,6 +70,7 @@ package body MOMA.Destinations is
    begin
       Set_Name (Dest, To_MOMA_String ("null"));
       Set_Ref  (Dest, PolyORB.References.Nil_Ref);
+      Set_Kind (Dest, MOMA.Types.Unknown);
       return Dest;
    end Create;
 
@@ -104,6 +107,16 @@ package body MOMA.Destinations is
    end From_Any;
 
    --------------
+   -- Get_Kind --
+   --------------
+
+   function Get_Kind (Self : Destination)
+                      return MOMA.Types.Destination_Type is
+   begin
+      return Self.Kind;
+   end Get_Kind;
+
+   --------------
    -- Get_Name --
    --------------
 
@@ -112,6 +125,16 @@ package body MOMA.Destinations is
    begin
       return Self.Name;
    end Get_Name;
+
+   -------------
+   -- Get_Ref --
+   -------------
+
+   function Get_Ref (Self : Destination)
+            return PolyORB.References.Ref is
+   begin
+      return Self.Ref;
+   end Get_Ref;
 
    -----------
    -- Image --
@@ -136,16 +159,6 @@ package body MOMA.Destinations is
    end Set_Name;
 
    -------------
-   -- Get_Ref --
-   -------------
-
-   function Get_Ref (Self : Destination)
-            return PolyORB.References.Ref is
-   begin
-      return Self.Ref;
-   end Get_Ref;
-
-   -------------
    -- Set_Ref --
    -------------
 
@@ -154,6 +167,17 @@ package body MOMA.Destinations is
    begin
       Self.Ref := Ref;
    end Set_Ref;
+
+   --------------
+   -- Set_Kind --
+   --------------
+
+   procedure Set_Kind (Self  : in out Destination;
+                       Kind  : MOMA.Types.Destination_Type)
+   is
+   begin
+      Self.Kind := Kind;
+   end Set_Kind;
 
    ------------
    -- To_Any --

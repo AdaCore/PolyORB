@@ -195,6 +195,10 @@ package MOMA.Types is
 
    MOMA_Type_Id : constant MOMA.Types.String;
 
+   type Destination_Type is (Unknown,
+                             Pool,
+                             Topic);
+
    type Pool_Type is (Queue,
                       Topic);
 

@@ -60,8 +60,9 @@ package body MOMA.Message_Producers.Queues is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Send_To_MOM (Self    : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class);
+   procedure Send_To_MOM (Servant : PolyORB.References.Ref;
+                          Message : MOMA.Messages.Message'Class;
+                          Kind    : MOMA.Types.Destination_Type := Unknown);
    --  Send Message to a MOM object.
 
    procedure Send_To_ORB (Self    : Queue;
@@ -87,10 +88,13 @@ package body MOMA.Message_Producers.Queues is
    procedure Send (Self    : Queue;
                    Message : MOMA.Messages.Message'Class)
    is
+      use MOMA.Destinations;
       Type_Id_S     : constant MOMA.Types.String := Get_Type_Id_Of (Self);
    begin
       if Type_Id_S = MOMA.Types.MOMA_Type_Id then
-         Send_To_MOM (Get_Ref (Self), Message);
+         Send_To_MOM (Get_Ref (Self),
+                      Message,
+                      Get_Kind (Get_Destination (Self)));
       else
          Send_To_ORB (Self, Message);
       end if;
@@ -100,18 +104,19 @@ package body MOMA.Message_Producers.Queues is
    -- Send_To_MOM --
    -----------------
 
-   procedure Send_To_MOM (Self    : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class)
+   procedure Send_To_MOM (Servant : PolyORB.References.Ref;
+                          Message : MOMA.Messages.Message'Class;
+                          Kind    : MOMA.Types.Destination_Type := Unknown)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
       Arg_List      : PolyORB.Any.NVList.Ref;
       Result        : PolyORB.Any.NamedValue;
-
+--      Argument_Mesg2 : PolyORB.Any.Any := PolyORB.Any.To_Any
+--        (To_PolyORB_String (""));
    begin
       pragma Debug (O ("Sending to MOM object : "
                        & PolyORB.Any.Image (Argument_Mesg)));
-
       PolyORB.Any.NVList.Create (Arg_List);
 
       PolyORB.Any.NVList.Add_Item (Arg_List,
@@ -119,12 +124,21 @@ package body MOMA.Message_Producers.Queues is
                                    Argument_Mesg,
                                    PolyORB.Any.ARG_IN);
 
+--      if Kind = Topic then
+--         PolyORB.Any.NVList.Add_Item (Arg_List,
+--                                      To_PolyORB_String ("Topic_Id"),
+--                                      Argument_Mesg2,
+--                                      PolyORB.Any.ARG_IN);
+      --  XXX The destination should not be always Test ! ;)
+--      end if;
+--  XXX To uncomment.
+
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
 
       PolyORB.Requests.Create_Request
-        (Target    => Self,
+        (Target    => Servant,
          Operation => "Publish",
          Arg_List  => Arg_List,
          Result    => Result,

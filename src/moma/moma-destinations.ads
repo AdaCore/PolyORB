@@ -45,12 +45,14 @@ with PolyORB.References;
 package MOMA.Destinations is
 
    type Destination is private;
-   --  Name : Logical name of the destination
+   --  Name : Logical name of the destination.
    --  Ref  : Reference to the actual destination object.
+   --  Kind : The kind of object it is really (message pool, router, ...).
 
    function Create (Name : MOMA.Types.String;
-                    Ref  : PolyORB.References.Ref)
-                    return Destination;
+                    Ref  : PolyORB.References.Ref;
+                    Kind : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
+      return Destination;
 
    function Create return Destination;
    --  Create a destination structure.
@@ -61,13 +63,16 @@ package MOMA.Destinations is
    --  Accessors to Destination internal data.
 
    function Get_Name (Self : Destination)
-                      return MOMA.Types.String;
+      return MOMA.Types.String;
 
    procedure Set_Name (Self : in out Destination;
                        Name : MOMA.Types.String);
 
+   function Get_Kind (Self : Destination)
+      return MOMA.Types.Destination_Type;
+
    function Get_Ref (Self : Destination)
-                     return PolyORB.References.Ref;
+      return PolyORB.References.Ref;
    --  XXX should be restricted to internal use only ...
 
    procedure Set_Ref (Self : in out Destination;
@@ -80,10 +85,10 @@ package MOMA.Destinations is
          := PolyORB.Any.TypeCode.TC_Struct;
 
    function To_Any (Self : Destination)
-                    return PolyORB.Any.Any;
+      return PolyORB.Any.Any;
 
    function From_Any (Self : PolyORB.Any.Any)
-                     return Destination;
+      return Destination;
 
    --  XXX check the conformance and pertinence of the above spec.
 
@@ -97,13 +102,15 @@ private
 
    type Destination is record
       Name : MOMA.Types.String;
-      --  Logical name of the destination
-
       Ref  : PolyORB.References.Ref;
-      --  Reference to the actual destination object.
+      Kind : MOMA.Types.Destination_Type;
    end record;
 
    type Queue is new Destination;
+
+   procedure Set_Kind (Self : in out Destination;
+                       Kind : MOMA.Types.Destination_Type);
+
 
    pragma Inline (Get_Name);
    pragma Inline (Set_Name);

@@ -36,6 +36,7 @@ with MOMA.Messages;
 with MOMA.Provider.Topic_Datas;
 
 with PolyORB.Any.NVList;
+with PolyORB.Any.ObjRef;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Types;
@@ -48,6 +49,95 @@ package body MOMA.Provider.Routers is
    package L is new PolyORB.Log.Facility_Log ("moma.provider.routers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------------------
+   -- Get_Parameter_Profile --
+   ---------------------------
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref
+   is
+      Result : PolyORB.Any.NVList.Ref;
+   begin
+      PolyORB.Any.NVList.Create (Result);
+      pragma Debug (O ("Parameter profile for " & Method & " requested."));
+
+      if Method = "Publish" then
+         PolyORB.Any.NVList.Add_Item
+            (Result,
+             (Name      => To_PolyORB_String ("Message"),
+              Argument  => PolyORB.Any.Get_Empty_Any
+                              (MOMA.Messages.TC_MOMA_Message),
+              Arg_Modes => PolyORB.Any.ARG_IN));
+--         PolyORB.Any.NVList.Add_Item
+--            (Result,
+--             (Name      => To_PolyORB_String ("Topic_Id"),
+--              Argument  => PolyORB.Any.Get_Empty_Any
+--                              (PolyORB.Any.TypeCode.TC_String),
+--              Arg_Modes => PolyORB.Any.ARG_IN));
+--  XXX To uncomment.
+
+      elsif Method = "Subscribe" then
+         PolyORB.Any.NVList.Add_Item
+            (Result,
+             (Name      => To_PolyORB_String ("Topic_Id"),
+              Argument  => PolyORB.Any.Get_Empty_Any
+                              (PolyORB.Any.TypeCode.TC_String),
+              Arg_Modes => PolyORB.Any.ARG_IN));
+         PolyORB.Any.NVList.Add_Item
+            (Result,
+             (Name      => To_PolyORB_String ("Pool"),
+              Argument  => PolyORB.Any.Get_Empty_Any
+                              (PolyORB.Any.TypeCode.TC_Object),
+              Arg_Modes => PolyORB.Any.ARG_IN));
+
+      else
+         raise Program_Error;
+      end if;
+
+      return Result;
+   end Get_Parameter_Profile;
+
+   ------------------------
+   -- Get_Result_Profile --
+   ------------------------
+
+   function Get_Result_Profile (Method : String)
+     return PolyORB.Any.Any
+   is
+      use PolyORB.Any;
+   begin
+      pragma Debug (O ("Result profile for " & Method & " requested."));
+      if Method = "Publish" then
+         return Get_Empty_Any (TypeCode.TC_Void);
+      elsif Method = "Subscribe" then
+         return Get_Empty_Any (TypeCode.TC_Void);
+      else
+         raise Program_Error;
+      end if;
+   end Get_Result_Profile;
+
+   -------------
+   -- If_Desc --
+   -------------
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description is
+   begin
+      return
+        (PP_Desc => Get_Parameter_Profile'Access,
+         RP_Desc => Get_Result_Profile'Access);
+   end If_Desc;
+
+   -----------------
+   --  Initialize --
+   -----------------
+
+   procedure Initialize (Self : access Router)
+   is
+   begin
+      MOMA.Provider.Topic_Datas.Ensure_Initialization (Self.Topics);
+   end Initialize;
 
    ------------
    -- Invoke --
@@ -64,35 +154,45 @@ package body MOMA.Provider.Routers is
 
       PolyORB.Any.NVList.Create (Args);
 
+      Args := Get_Parameter_Profile (To_Standard_String (Req.all.Operation));
+      PolyORB.Requests.Arguments (Req, Args);
+
       if Req.all.Operation = To_PolyORB_String ("Publish") then
 
          --  Publish
 
-         PolyORB.Any.NVList.Add_Item
-            (Args,
-             (Name      => To_PolyORB_String ("Message"),
-              Argument  => PolyORB.Any.Get_Empty_Any
-                              (MOMA.Messages.TC_MOMA_Message),
-              Arg_Modes => PolyORB.Any.ARG_IN));
-         PolyORB.Any.NVList.Add_Item
-            (Args,
-             (Name      => To_PolyORB_String ("Topic"),
-              Argument  => PolyORB.Any.Get_Empty_Any
-                              (PolyORB.Any.TypeCode.TC_String),
-              Arg_Modes => PolyORB.Any.ARG_IN));
-         PolyORB.Requests.Arguments (Req, Args);
+         declare
+            use PolyORB.Any.NVList.Internals;
+            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
+            Message        : PolyORB.Any.Any :=
+              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
+            Topic_Id       : MOMA.Types.String :=
+               MOMA.Types.To_MOMA_String ("Test");
+--              PolyORB.Any.From_Any (NV_Sequence.Element_Of
+--                                    (Args_Sequence.all, 2).Argument);
+--  XXX To uncomment.
+         begin
+            Publish (Self, Message, Topic_Id);
+         end;
+
+      elsif Req.all.Operation = To_PolyORB_String ("Subscribe") then
+
+         --  Subscribe
 
          declare
             use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Message : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-            Topic_Id : MOMA.Types.String :=
+            Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
+            Topic_Id       : MOMA.Types.String :=
               PolyORB.Any.From_Any (NV_Sequence.Element_Of
-                                    (Args_Sequence.all, 2).Argument);
+                                    (Args_Sequence.all, 1).Argument);
+            Pool           : PolyORB.References.Ref :=
+               PolyORB.Any.ObjRef.From_Any
+                  (PolyORB.Any.Get_Aggregate_Element
+                     (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument,
+                      PolyORB.Any.TypeCode.TC_Object,
+                      PolyORB.Types.Unsigned_Long (1)));
          begin
-            Publish (Self, Message, Topic_Id);
+            Subscribe (Self, Topic_Id, Pool);
          end;
 
       end if;
@@ -154,5 +254,19 @@ package body MOMA.Provider.Routers is
       PolyORB.Requests.Invoke (Request);
       PolyORB.Requests.Destroy_Request (Request);
    end Store;
+
+   ---------------
+   -- Subscribe --
+   ---------------
+
+   procedure Subscribe (Self     : access Router;
+                        Topic_Id : MOMA.Types.String;
+                        Pool     : PolyORB.References.Ref)
+   is
+   begin
+      MOMA.Provider.Topic_Datas.Add_Subscriber (Self.Topics,
+                                                Topic_Id,
+                                                Pool);
+   end Subscribe;
 
 end MOMA.Provider.Routers;
