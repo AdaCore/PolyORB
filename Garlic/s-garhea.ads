@@ -84,6 +84,10 @@ package System.Garlic.Heart is
    --  XXXXX : Three ways of terminating a partition. Should be
    --  synchronized with the type above.
 
+   type Execution_Mode_Type is (Trace_Mode,
+                                Replay_Mode,
+                                Normal_Mode);
+
    procedure Set_Policy
      (Reconnection : Reconnection_Type := Immediately;
       Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error);

@@ -64,7 +64,9 @@ s-garter.o\
 s-garuti.o\
 s-parint.o\
 s-rpc.o\
-s-stratt.o
+s-stratt.o\
+s-gartra.o\
+s-garrep.o
 
 COMMONSOURCES = \
 ${srcdir}/s-gafino.ads ${srcdir}/s-gafino.adb \
@@ -184,3 +186,6 @@ s-gtplsp.o: s-garlic.ads s-garpoi.ads s-garpro.ads s-gartcp.ads s-gtplsp.ads s-g
 s-parint.o: s-garlic.ads s-gardeb.ads s-gardeb.adb s-garhea.ads s-garopt.ads s-gaosli.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garsta.ads s-garter.ads s-garter.adb s-garuti.ads s-parint.ads s-parint.adb s-rpc.ads s-stratt.adb
 s-rpc.o: s-garlic.ads s-garcac.ads s-garcac.adb s-gardeb.ads s-gardeb.adb s-garhea.ads s-garopt.ads s-gaosli.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-garter.adb s-garuti.ads s-rpc.ads s-rpc.adb s-stratt.adb
 s-stratt.o: s-stratt.adb
+
+
+# DO NOT DELETE

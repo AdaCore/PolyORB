@@ -8,3 +8,5 @@ export TERMINATION=
 export PARTITION=
 export RPC=
 export HEART=
+export GARREP=
+export GARTRA=

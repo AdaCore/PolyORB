@@ -40,6 +40,7 @@ with System.Garlic.Caching;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Termination;
+with Ada.Exceptions;
 
 package body System.RPC is
 
@@ -256,6 +257,8 @@ package body System.RPC is
       Result    : Params_Stream_Access := new Params_Stream_Type (0);
       Cancelled : Boolean := False;
       Prio      : Any_Priority;
+
+      use Ada.Exceptions;
    begin
       pragma Debug (D (D_Debug, "Anonymous task starting"));
       Task_Pool.Get_One;
@@ -321,8 +324,9 @@ package body System.RPC is
       pragma Debug (D (D_Debug, "Anonymous task finishing"));
 
    exception
-      when others =>
-         pragma Debug (D (D_Debug, "Error in anonymous task"));
+      when E : others =>
+         pragma Debug (D (D_Debug, "Error in anonymous task " &
+                          "(exception " & Exception_Name (E) & ")"));
          null;
 
    end Anonymous_Task;

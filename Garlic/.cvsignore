@@ -1,7 +1,9 @@
 *.ali
 *.o
 .gdb_history
+*.xrs *.xrb
 Makefile
+Makefile.in
 b_*.c
 s-gaosli.ads
 s-gaprco.adb

@@ -58,6 +58,7 @@ package body System.Garlic.Options is
    Is_Slave_Default        : Boolean := False;
    Nolaunch_Default        : Boolean := False;
    Termination_Default     : Termination_Type := Global_Termination;
+   Execution_Mode_Default  : Execution_Mode_Type := Normal_Mode;
 
    ---------------------
    -- Get_Boot_Server --
@@ -203,6 +204,48 @@ package body System.Garlic.Options is
       end if;
       return Nolaunch_Default;
    end Get_Nolaunch;
+
+   -------------------------
+   -- Get_Trace_File_Name --
+   -------------------------
+
+   function Get_Trace_File_Name return String is
+   begin
+      for Index in 1 .. Argument_Count - 1 loop
+         if Argument (Index) = "--trace_file" then
+            return Argument (Index + 1);
+         end if;
+      end loop;
+      declare
+         EV : constant String := Getenv ("TRACE_FILE");
+      begin
+         if EV /= "" then
+            return EV;
+         end if;
+      end;
+      return Command_Name & ".trace";
+   end Get_Trace_File_Name;
+
+   ------------------------
+   -- Get_Execution_Mode --
+   ------------------------
+
+   function Get_Execution_Mode return Execution_Mode_Type is
+   begin
+      for Index in 1 .. Argument_Count loop
+         if Argument (Index) = "--trace" then
+            pragma Debug (D (D_Debug, "--trace available on command line"));
+            return Trace_Mode;
+         elsif Argument (Index) = "--replay" then
+            pragma Debug (D (D_Debug, "--replay available on command line"));
+            return Replay_Mode;
+         end if;
+      end loop;
+      pragma Debug
+        (D (D_Debug,
+            "Neither --trace nor --replay available on command line"));
+      return Execution_Mode_Default;
+   end Get_Execution_Mode;
 
    ---------------------
    -- Set_Boot_Server --

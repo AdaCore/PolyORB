@@ -63,6 +63,10 @@ package System.Garlic.Options is
    --  Return value next to --termination on the command line or if a
    --  TERMINATION environment variable is present.
 
+   function Get_Trace_File_Name return String;
+
+   function Get_Execution_Mode return Heart.Execution_Mode_Type;
+
    procedure Set_Boot_Server (Default : in String);
 
    procedure Set_Connection_Hits (Default : in Natural);

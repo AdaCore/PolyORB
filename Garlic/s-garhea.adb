@@ -38,6 +38,8 @@ with System.Garlic.Protocols;
 with System.Garlic.Termination;
 with System.Garlic.Utils;
 
+with System.Garlic.Trace;    use System.Garlic.Trace;
+with System.Garlic.Replay;
 with System.Garlic.Debug;    use System.Garlic.Debug;
 with System.Garlic.Filters;  use System.Garlic.Filters;
 
@@ -117,7 +119,7 @@ package body System.Garlic.Heart is
 
    Opcode_Size : Ada.Streams.Stream_Element_Count;
    --  Set in 'Initialize': length of result of an 'Opcode'Write'.
-      
+
    type Partition_Data is record
       Location : Physical_Location.Location;
       Known    : Boolean := False;
@@ -136,14 +138,13 @@ package body System.Garlic.Heart is
       function Get_Data (Partition : Partition_ID) return Partition_Data;
       entry Wait_For_Data (Partition : in  Partition_ID;
                            Data      : out Partition_Data);
-      
+
    private
       Map : Partition_Data_Array;
       New_Data : Boolean := False;  -- Local barrier
-      
+
       entry Queue (Partition : in  Partition_ID;
                    Data      : out Partition_Data);
-      
    end Partition_Map_Type;
    --  Data available for a partition. When the data is not available for
    --  a given partition, Wait_For_Data will block, unless the caller *has*
@@ -203,6 +204,12 @@ package body System.Garlic.Heart is
       Operation : in Internal_Opcode;
       Params    : access Params_Stream_Type);
    --  Internal operation.
+
+   procedure Replay_Handle_Internal
+     (Partition : in Partition_ID;
+      Operation : in Internal_Opcode;
+      Params    : access Params_Stream_Type);
+   --  Internal operation during replay.
 
    procedure Handle_Public
      (Partition : in Partition_ID;
@@ -386,10 +393,21 @@ package body System.Garlic.Heart is
    function Get_Partition_Location (Partition : Partition_ID)
      return Physical_Location.Location is
       Data : Partition_Data;
+      Replay_Location : constant Physical_Location.Location
+        := Physical_Location.To_Location ("replay://");
+
    begin
       pragma Debug
         (D (D_Table,
             "Looking in my tables for location of partition" & Partition'Img));
+
+      if Get_Current_Execution_Mode = Replay_Mode then
+         --  Hack warning!
+         Partition_Map.Set_Data (Partition, (Location => Replay_Location,
+                                             Known    => True,
+                                             Queried  => False));
+         return Replay_Location;
+      end if;
 
       --  If the partition location is in the cache, then get it from
       --  there instead of using the protected type.
@@ -543,6 +561,120 @@ package body System.Garlic.Heart is
             raise Communication_Error;
    end Handle_Internal;
 
+   ----------------------------
+   -- Replay_Handle_Internal --
+   ----------------------------
+
+   procedure Replay_Handle_Internal
+     (Partition : in Partition_ID;
+      Operation : in Internal_Opcode;
+      Params    : access Params_Stream_Type)
+   is
+      Replay_Location : constant Physical_Location.Location
+        := Physical_Location.To_Location ("replay://");
+      --    := Physical_Location.To_Location
+      --         (Protocols.Protocol_Type (Replay.Replay_Protocol'Access, ""));
+      --  the 2 lines above result in:
+      --     gcc: Internal compiler error: program gnat1 got fatal signal 11
+   begin
+
+      Termination.Activity_Detected;
+
+      case Operation is
+
+         when No_Operation => null;
+
+         when Set_Location =>
+            declare
+               Loc  : Physical_Location.Location;
+               Data : Partition_Data;
+            begin
+               pragma Debug
+                 (D (D_Server,
+                     "I received location of partition" & Partition'Img));
+               Physical_Location.Location'Read (Params, Loc);
+               pragma Debug
+                 (D (D_Server,
+                     "Partition" & Partition'Img &
+                     " is at " & Physical_Location.To_String (Loc)));
+
+               --  In replay mode we have to make sure that all partitions
+               --  have location ``replay://''.
+               Data := (Location => Replay_Location,
+                        Known    => True,
+                        Queried  => False);
+               Partition_Map.Set_Data (Partition, Data);
+            end;
+
+         when Query_Location =>
+            declare
+               Asked : Partition_ID;
+               Loc   : Physical_Location.Location;
+               Ans   : aliased Params_Stream_Type (0);
+            begin
+               Partition_ID'Read (Params, Asked);
+               if not Asked'Valid then
+                  pragma Debug
+                    (D (D_Debug, "Received invalid partition ID"));
+                  raise Constraint_Error;
+               end if;
+               pragma Debug
+                 (D (D_Server,
+                     "Partition" & Partition'Img &
+                     " asked me for location of partition" & Asked'Img));
+
+               Loc := Replay_Location;
+
+               pragma Debug
+                 (D (D_Server,
+                     "Giving location of partition" & Asked'Img &
+                     " to partition" & Partition'Img));
+               Partition_ID'Write (Ans'Access, Asked);
+               Physical_Location.Location'Write (Ans'Access, Loc);
+               Send (Partition, Query_Location_Answer, Ans'Access);
+            end;
+
+         when Query_Location_Answer =>
+            declare
+               Asked : Partition_ID;
+               Loc   : Physical_Location.Location;
+               Data  : Partition_Data;
+            begin
+               Partition_ID'Read (Params, Asked);
+               if not Asked'Valid then
+                  pragma Debug (D (D_Debug, "Received invalid partition ID"));
+                  raise Constraint_Error;
+               end if;
+               pragma Debug
+                 (D (D_Garlic,
+                     "I received the answer for location of partition" &
+                     Asked'Img));
+               Physical_Location.Location'Read (Params, Loc);
+
+               --  In replay mode we have to make sure that all partitions
+               --  have location ``replay://...''.
+               Data := (Location => Replay_Location,
+                        Known    => True,
+                        Queried  => False);
+               Partition_Map.Set_Data (Asked, Data);
+            end;
+
+         when Shutdown =>
+            pragma Debug
+              (D (D_Garlic,
+                  "I received a shutdown request from partition" &
+                  Partition'Img));
+            Heart.Shutdown;
+
+      end case;
+
+      exception
+         when others =>
+            pragma Debug
+              (D (D_Garlic, "Handle internal (replay): fatal error"));
+            raise Communication_Error;
+   end Replay_Handle_Internal;
+
    -------------------
    -- Handle_Public --
    -------------------
@@ -570,10 +702,14 @@ package body System.Garlic.Heart is
       Data      : in Ada.Streams.Stream_Element_Array)
    is
       use type Ada.Streams.Stream_Element_Count;
-      
+
       Operation : Opcode;
 
    begin
+      if Get_Current_Execution_Mode = Trace_Mode then
+         Record_Trace (Partition, Data);
+      end if;
+
       declare
          Params : aliased Params_Stream_Type (Opcode_Size);
       begin
@@ -582,6 +718,7 @@ package body System.Garlic.Heart is
              Params'Access);
          Opcode'Read (Params'Access, Operation);
       end;
+
       if not Operation'Valid then
          pragma Debug
            (D (D_Debug, "Received unknown opcode"));
@@ -601,7 +738,13 @@ package body System.Garlic.Heart is
       begin
          To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
          if Operation in Internal_Opcode then
-            Handle_Internal (Partition, Operation, Filtered_Params'Access);
+            if Get_Current_Execution_Mode = Replay_Mode then
+               Replay_Handle_Internal
+                 (Partition, Operation, Filtered_Params'Access);
+            else
+               Handle_Internal
+                 (Partition, Operation, Filtered_Params'Access);
+            end if;
          elsif Operation in Public_Opcode then
             Handle_Public (Partition, Operation, Filtered_Params'Access);
          else
@@ -809,7 +952,7 @@ package body System.Garlic.Heart is
       end Wait_For_Data;
 
       --  Local entries implementing wait queues below.
-      
+
       entry Queue
          (Partition : in Partition_ID;
           Data      : out Partition_Data)
@@ -820,7 +963,7 @@ package body System.Garlic.Heart is
          end if;
          requeue Wait_For_Data with abort;
       end Queue;
-      
+
    end Partition_Map_Type;
 
    -------------
@@ -990,8 +1133,13 @@ package body System.Garlic.Heart is
    -------------------------
 
    procedure Set_My_Partition_ID (Partition : in Partition_ID) is
+      use System.Garlic.Trace;
    begin
       Local_Partition_ID.Set (Partition);
+
+      if Get_Current_Execution_Mode = Trace_Mode then
+         Save_Partition_ID (Partition);
+      end if;
    end Set_My_Partition_ID;
 
    ----------------
